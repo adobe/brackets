@@ -64,7 +64,6 @@ define(function (require, exports, module) {
             
             var SpecialMatch = StringMatch._SpecialMatch;
             var NormalMatch = StringMatch._NormalMatch;
-            var CaseMatch = StringMatch._CaseMatch;
             
             beforeEach(function () {
                 SpecialMatch.prototype.type = "special";
@@ -95,18 +94,18 @@ define(function (require, exports, module) {
             
             it("should try contiguous matches as well, but prefer specials", function () {
                 var result = generateMatchList("do", pathLower, "do", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
-                expect(result).toEqual([new SpecialMatch(13), new CaseMatch(14)]);
+                expect(result).toEqual([new SpecialMatch(13), new NormalMatch(14)]);
                 
                 result = generateMatchList("doc", pathLower, "doc", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
-                expect(result).toEqual([new SpecialMatch(13), new CaseMatch(14), new SpecialMatch(21)]);
+                expect(result).toEqual([new SpecialMatch(13), new NormalMatch(14), new SpecialMatch(21)]);
                 
                 result = generateMatchList("doch", pathLower, "doch", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
-                expect(result).toEqual([new SpecialMatch(13), new CaseMatch(14), new SpecialMatch(21), new SpecialMatch(28)]);
+                expect(result).toEqual([new SpecialMatch(13), new NormalMatch(14), new SpecialMatch(21), new SpecialMatch(28)]);
             });
             
             it("should handle contiguous matches that stand alone", function () {
                 var result = generateMatchList("o", pathLower, "o", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
-                expect(result).toEqual([new CaseMatch(14)]);
+                expect(result).toEqual([new NormalMatch(14)]);
             });
             
             it("should recognize non-matches", function () {
@@ -116,7 +115,7 @@ define(function (require, exports, module) {
             
             it("should backtrack as needed", function () {
                 var result = generateMatchList("cu", pathLower, "cu", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
-                expect(result).toEqual([new CaseMatch(15), new CaseMatch(16)]);
+                expect(result).toEqual([new NormalMatch(15), new NormalMatch(16)]);
                 
                 result = generateMatchList("dcho", pathLower, "dcho", path, specialsInfo.specials, specialsInfo.lastSegmentSpecialsIndex);
                 expect(result).toEqual(null);
@@ -129,10 +128,10 @@ define(function (require, exports, module) {
                 expect(result).toEqual([new SpecialMatch(0)]);
                 
                 result = generateMatchList("mu", btpathLower, "mu", btpath, btspecials.specials, 0);
-                expect(result).toEqual([new SpecialMatch(0), new CaseMatch(11)]);
+                expect(result).toEqual([new SpecialMatch(0), new NormalMatch(11)]);
                 
                 result = generateMatchList("mamo", btpathLower, "mamo", btpath, btspecials.specials, 0);
-                expect(result).toEqual([new SpecialMatch(0), new CaseMatch(1), new SpecialMatch(4), new CaseMatch(9)]);
+                expect(result).toEqual([new SpecialMatch(0), new NormalMatch(1), new SpecialMatch(4), new NormalMatch(9)]);
                 
                 btpath = "AbcdefzBcdefCdefDefEfF";
                 btspecials = fSC(btpath);
@@ -142,24 +141,24 @@ define(function (require, exports, module) {
                 expect(result).toEqual([new SpecialMatch(21)]);
                 
                 result = generateMatchList("abcdefz", btpathLower, "abcdefz", btpath, btspecials.specials, 0);
-                expect(result).toEqual([new SpecialMatch(0), new CaseMatch(1), new CaseMatch(2), new CaseMatch(3), new CaseMatch(4), new CaseMatch(5), new CaseMatch(6)]);
+                expect(result).toEqual([new SpecialMatch(0), new NormalMatch(1), new NormalMatch(2), new NormalMatch(3), new NormalMatch(4), new NormalMatch(5), new NormalMatch(6)]);
 
                 result = generateMatchList("abcdefz", btpathLower, "ABCDEFZ", btpath, btspecials.specials, 0);
-                expect(result).toEqual([new SpecialMatch(0), new NormalMatch(1), new NormalMatch(2), new NormalMatch(3), new NormalMatch(4), new NormalMatch(5), new NormalMatch(6)]);
+                expect(result).toEqual([new SpecialMatch(0, true), new NormalMatch(1), new NormalMatch(2), new NormalMatch(3), new NormalMatch(4), new NormalMatch(5), new NormalMatch(6)]);
                 
                 result = generateMatchList("abcdefe", btpathLower, "abcdefe", btpath, btspecials.specials, 0);
-                expect(result).toEqual([new SpecialMatch(0), new SpecialMatch(7), new SpecialMatch(12), new SpecialMatch(16), new CaseMatch(17), new CaseMatch(18), new SpecialMatch(19)]);
+                expect(result).toEqual([new SpecialMatch(0), new SpecialMatch(7), new SpecialMatch(12), new SpecialMatch(16), new NormalMatch(17), new NormalMatch(18), new SpecialMatch(19)]);
                 
                 var str = "_computeRangesAndScore";
                 var strSpecials = fSC(str);
                 var strLower = str.toLowerCase();
                 result = generateMatchList("_computerangesa", strLower, "_computerangesa", str, strSpecials.specials, 0);
                 expect(result).toEqual([
-                    new SpecialMatch(0), new SpecialMatch(1), new CaseMatch(2),
-                    new CaseMatch(3), new CaseMatch(4), new CaseMatch(5),
-                    new CaseMatch(6), new CaseMatch(7), new SpecialMatch(8),
-                    new CaseMatch(9), new CaseMatch(10), new CaseMatch(11),
-                    new CaseMatch(12), new CaseMatch(13), new SpecialMatch(14)
+                    new SpecialMatch(0), new SpecialMatch(1), new NormalMatch(2),
+                    new NormalMatch(3), new NormalMatch(4), new NormalMatch(5),
+                    new NormalMatch(6), new NormalMatch(7), new SpecialMatch(8),
+                    new NormalMatch(9), new NormalMatch(10), new NormalMatch(11),
+                    new NormalMatch(12), new NormalMatch(13), new SpecialMatch(14)
                 ]);
             });
                 
@@ -197,17 +196,15 @@ define(function (require, exports, module) {
         describe("_lastSegmentSearch", function () {
             var SpecialMatch = StringMatch._SpecialMatch;
             var NormalMatch = StringMatch._NormalMatch;
-            var CaseMatch = StringMatch._CaseMatch;
+            
             beforeEach(function () {
                 SpecialMatch.prototype.type = "special";
                 NormalMatch.prototype.type = "normal";
-                CaseMatch.prototype.type = "case";
             });
             
             afterEach(function () {
                 delete SpecialMatch.prototype.type;
                 delete NormalMatch.prototype.type;
-                delete CaseMatch.prototype.type;
             });
             
             it("should compare results in the final segment properly", function () {
@@ -228,7 +225,7 @@ define(function (require, exports, module) {
                     originalRemainder: "",
                     matchList: [
                         new SpecialMatch(13),
-                        new CaseMatch(14)
+                        new NormalMatch(14)
                     ]
                 });
                 
@@ -237,7 +234,7 @@ define(function (require, exports, module) {
                     originalRemainder: "",
                     matchList: [
                         new SpecialMatch(13),
-                        new CaseMatch(14),
+                        new NormalMatch(14),
                         new SpecialMatch(21)
                     ]
                 });
@@ -247,8 +244,8 @@ define(function (require, exports, module) {
                     originalRemainder: "",
                     matchList: [
                         new SpecialMatch(13),
-                        new CaseMatch(14),
-                        new CaseMatch(15),
+                        new NormalMatch(14),
+                        new NormalMatch(15),
                         new SpecialMatch(21)
                     ]
                 });
@@ -258,8 +255,8 @@ define(function (require, exports, module) {
                     originalRemainder: "",
                     matchList: [
                         new SpecialMatch(13),
-                        new CaseMatch(14),
-                        new CaseMatch(15),
+                        new NormalMatch(14),
+                        new NormalMatch(15),
                         new SpecialMatch(21),
                         new SpecialMatch(28)
                     ]
@@ -270,13 +267,13 @@ define(function (require, exports, module) {
                     originalRemainder: "",
                     matchList: [
                         new SpecialMatch(13),
-                        new CaseMatch(14),
-                        new CaseMatch(15),
+                        new NormalMatch(14),
+                        new NormalMatch(15),
                         new SpecialMatch(21),
                         new SpecialMatch(28),
                         new SpecialMatch(35),
                         new SpecialMatch(36),
-                        new CaseMatch(37)
+                        new NormalMatch(37)
                     ]
                 });
                 
@@ -284,9 +281,9 @@ define(function (require, exports, module) {
                     remainder: "",
                     originalRemainder: "",
                     matchList: [
-                        new CaseMatch(14),
-                        new CaseMatch(15),
-                        new CaseMatch(16)
+                        new NormalMatch(14),
+                        new NormalMatch(15),
+                        new NormalMatch(16)
                     ]
                 });
                 
@@ -294,11 +291,11 @@ define(function (require, exports, module) {
                     remainder: "",
                     originalRemainder: "",
                     matchList: [
-                        new CaseMatch(14),
-                        new CaseMatch(15),
-                        new CaseMatch(16),
+                        new NormalMatch(14),
+                        new NormalMatch(15),
+                        new NormalMatch(16),
                         new SpecialMatch(28),
-                        new CaseMatch(29)
+                        new NormalMatch(29)
                     ]
                 });
                 
@@ -310,7 +307,7 @@ define(function (require, exports, module) {
                     originalRemainder: "s",
                     matchList: [
                         new SpecialMatch(13),
-                        new CaseMatch(14),
+                        new NormalMatch(14),
                         new SpecialMatch(21)
                     ]
                 });
@@ -338,13 +335,13 @@ define(function (require, exports, module) {
                 expect(wholeStringSearch("sdoc", comparePath, "sdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(0),
                     new SpecialMatch(13),
-                    new CaseMatch(14),
+                    new NormalMatch(14),
                     new SpecialMatch(21)
                 ]);
                 
                 expect(wholeStringSearch("doc", comparePath, "doc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(13),
-                    new CaseMatch(14),
+                    new NormalMatch(14),
                     new SpecialMatch(21)
                 ]);
                 
@@ -352,10 +349,10 @@ define(function (require, exports, module) {
                 
                 expect(wholeStringSearch("docdoc", comparePath, "docdoc", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(4),
-                    new CaseMatch(5),
-                    new CaseMatch(6),
+                    new NormalMatch(5),
+                    new NormalMatch(6),
                     new SpecialMatch(13),
-                    new CaseMatch(14),
+                    new NormalMatch(14),
                     new SpecialMatch(21)
                 ]);
                 
@@ -373,37 +370,37 @@ define(function (require, exports, module) {
                 
                 expect(wholeStringSearch("quick", comparePath, "quick", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(23),
-                    new CaseMatch(24),
-                    new CaseMatch(25),
-                    new CaseMatch(26),
-                    new CaseMatch(27)
+                    new NormalMatch(24),
+                    new NormalMatch(25),
+                    new NormalMatch(26),
+                    new NormalMatch(27)
                 ]);
                 
                 expect(wholeStringSearch("quickopen", comparePath, "quickopen", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(23),
-                    new CaseMatch(24),
-                    new CaseMatch(25),
-                    new CaseMatch(26),
-                    new CaseMatch(27),
+                    new NormalMatch(24),
+                    new NormalMatch(25),
+                    new NormalMatch(26),
+                    new NormalMatch(27),
                     new SpecialMatch(28),
-                    new CaseMatch(29),
-                    new CaseMatch(30),
-                    new CaseMatch(39)
+                    new NormalMatch(29),
+                    new NormalMatch(30),
+                    new NormalMatch(39)
                 ]);
                                 
                 expect(wholeStringSearch("quickopenain", comparePath, "quickopenain", path, sc.specials, sc.lastSegmentSpecialsIndex)).toEqual([
                     new SpecialMatch(23),
-                    new CaseMatch(24),
-                    new CaseMatch(25),
-                    new CaseMatch(26),
-                    new CaseMatch(27),
+                    new NormalMatch(24),
+                    new NormalMatch(25),
+                    new NormalMatch(26),
+                    new NormalMatch(27),
                     new SpecialMatch(28),
-                    new CaseMatch(29),
-                    new CaseMatch(30),
-                    new CaseMatch(31),
-                    new CaseMatch(37),
-                    new CaseMatch(38),
-                    new CaseMatch(39)
+                    new NormalMatch(29),
+                    new NormalMatch(30),
+                    new NormalMatch(31),
+                    new NormalMatch(37),
+                    new NormalMatch(38),
+                    new NormalMatch(39)
                 ]);
             });
         });
@@ -680,6 +677,25 @@ define(function (require, exports, module) {
                     "scrollTo",
                     "setTimeout",
                     "switch"
+                ])).toBe(true);
+            });
+            
+            it("should have good ordering with case matches", function () {
+                expect(goodRelativeOrdering("func", [
+                    "function",
+                    "Function"
+                ])).toBe(true);
+                expect(goodRelativeOrdering("Func", [
+                    "Function",
+                    "function"
+                ])).toBe(true);
+                expect(goodRelativeOrdering("Pack", [
+                    "Package.js",
+                    "package.json"
+                ])).toBe(true);
+                expect(goodRelativeOrdering("Pack", [
+                    "src/extensibility/Package.js",
+                    "package.json"
                 ])).toBe(true);
             });
         });

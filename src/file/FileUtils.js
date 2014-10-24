@@ -36,10 +36,10 @@ define(function (require, exports, module) {
     var FileSystemError     = require("filesystem/FileSystemError"),
         LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        StringUtils         = require("utils/StringUtils"),
+        Dialogs;            // This will be loaded asynchronously
 
     
     /**
@@ -277,19 +277,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Warning: Contrary to the name, this does NOT return a canonical path. The canonical format
-     * used by Directory.fullPath actually DOES include the trailing "/"
-     * @deprecated
-     * 
-     * @param {string} path
-     * @return {string}
-     */
-    function canonicalizeFolderPath(path) {
-        console.error("Warning: FileUtils.canonicalizeFolderPath() is deprecated. Use paths ending in '/' if possible, like Directory.fullPath");
-        return stripTrailingSlash(path);
-    }
-    
-    /**
      * Get the name of a file or a directory, removing any preceding path.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the base name of a file or the name of a
@@ -500,8 +487,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Compares two paths segment-by-segment, used for sorting. Sorts folders before files,
-     * and sorts files based on `compareFilenames()`.
+     * Compares two paths segment-by-segment, used for sorting. When two files share a path prefix,
+     * the less deeply nested one is sorted earlier in the list. Sorts files within the same parent
+     * folder based on `compareFilenames()`.
      * @param {string} path1
      * @param {string} path2
      * @return {number} -1, 0, or 1 depending on whether path1 is less than, equal to, or greater than
@@ -526,12 +514,17 @@ define(function (require, exports, module) {
                 } else if (index >= folders1 && index >= folders2) {
                     return compareFilenames(entryName1, entryName2);
                 }
-                return (index >= folders1 && index < folders2) ? 1 : -1;
+                return (index >= folders1 && index < folders2) ? -1 : 1;
             }
             index++;
         }
         return 0;
     }
+
+    // Asynchronously loading Dialogs to avoid the circular dependency
+    require(["widgets/Dialogs"], function (dialogsModule) {
+        Dialogs = dialogsModule;
+    });
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -548,7 +541,6 @@ define(function (require, exports, module) {
     exports.convertWindowsPathToUnixPath   = convertWindowsPathToUnixPath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
-    exports.canonicalizeFolderPath         = canonicalizeFolderPath;
     exports.stripTrailingSlash             = stripTrailingSlash;
     exports.isCSSPreprocessorFile          = isCSSPreprocessorFile;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
