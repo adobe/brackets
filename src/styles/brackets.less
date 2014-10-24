@@ -878,10 +878,20 @@ a, img {
     position: absolute;
 }
 
-.sidebar-selection-extension {
+.sidebar-selection-extension, .filetree-selection-extension {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
+    box-sizing: border-box;
+    height: 23px;
+    width: 9px; /* quiet scrollbar width */
+    position: fixed;
+
+    z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
+}
+
+.filetree-context-extension {
+    background: rgba(255, 255, 255, 0.06);
     box-sizing: border-box;
     height: 23px;
     width: 9px; /* quiet scrollbar width */
