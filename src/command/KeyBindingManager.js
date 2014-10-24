@@ -1149,11 +1149,7 @@ define(function (require, exports, module) {
     function _loadUserKeyMap() {
         _readUserKeyMap()
             .then(function (keyMap) {
-                if (_.size(_customKeyMap)) {
-                    _customKeyMapCache = _.cloneDeep(_customKeyMap);
-                } else {
-                    _customKeyMapCache = {};
-                }
+                _customKeyMapCache = _.cloneDeep(_customKeyMap);
                 _customKeyMap = keyMap;
                 _undoPriorUserKeyBindings();
                 _applyUserKeyBindings();
