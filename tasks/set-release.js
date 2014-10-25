@@ -27,16 +27,16 @@ module.exports = function (grunt) {
 
     var common = require("./lib/common")(grunt);
 
-    // task: update-release-number
+    // task: set-release
     // Updates the version property in package.json
-    grunt.registerTask('update-release-number', function () {
+    grunt.registerTask('set-release', function () {
         var path        = "package.json",
             packageJSON = grunt.file.readJSON(path),
             release     = grunt.option("release") || 0,
             versionNumberRegexp = /([0-9]+\.)([0-9]+)([\.\-a-zA-Z0-9]*)?/;
 
         if (!release) {
-            grunt.fail.fatal("Please specify a release. e.g. grunt update-release-number --release=40");
+            grunt.fail.fatal("Please specify a release. e.g. grunt set-release --release=40");
         }
 
         packageJSON.version = packageJSON.version.replace(versionNumberRegexp, "$1" + release + "$3");
