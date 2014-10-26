@@ -49,19 +49,15 @@ define(function (require, exports, module) {
     
     /**
      * @param {!string} cssPropName
-     * @param {!{SUMMARY:string, URL:string, VALUES:Array.<{TITLE:string, DESCRIPTION:string}>}} cssPropDetails
+     * @param {!{SUMMARY:string, URL:string, VALUES:?Array.<{value:string, description:string}>}} cssPropDetails
      */
     function InlineDocsViewer(cssPropName, cssPropDetails) {
         InlineWidget.call(this);
         
-        var propValues = cssPropDetails.VALUES.map(function (valueInfo) {
-            return { value: valueInfo.TITLE, description: valueInfo.DESCRIPTION };
-        });
-        
         var templateVars = {
             propName    : cssPropName,
             summary     : cssPropDetails.SUMMARY,
-            propValues  : propValues,
+            propValues  : cssPropDetails.VALUES || [],
             url         : cssPropDetails.URL,
             Strings     : Strings
         };
