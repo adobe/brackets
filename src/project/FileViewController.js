@@ -52,7 +52,6 @@ define(function (require, exports, module) {
     var DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
-        EditorManager       = require("editor/EditorManager"),
         PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands"),
         DeprecationWarning  = require("utils/DeprecationWarning");
@@ -130,8 +129,10 @@ define(function (require, exports, module) {
             return;
         }
 
-        _fileSelectionFocus = fileSelectionFocus;
-        $(exports).triggerHandler("fileViewFocusChange");
+        if (_fileSelectionFocus !== fileSelectionFocus) {
+            _fileSelectionFocus = fileSelectionFocus;
+            $(exports).triggerHandler("fileViewFocusChange");
+        }
     }
 
     /** 
@@ -143,7 +144,8 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus, paneId) {
-        var result;
+        var result,
+            curDocChangedDueToMe = _curDocChangedDueToMe;
 
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
             console.error("Bad parameter passed to FileViewController.openAndSelectDocument");
@@ -173,7 +175,7 @@ define(function (require, exports, module) {
         
         // clear after notification is done
         result.always(function () {
-            _curDocChangedDueToMe = false;
+            _curDocChangedDueToMe = curDocChangedDueToMe;
         });
         
         return result;
@@ -200,6 +202,9 @@ define(function (require, exports, module) {
             // image file, we get a null doc here but we still want to keep _fileSelectionFocus
             // as PROJECT_MANAGER. Regardless of doc is null or not, call _activatePane
             // to trigger documentSelectionFocusChange event.
+            _fileSelectionFocus = WORKING_SET_VIEW;
+            _activatePane(paneId);
+            
             result.resolve(file);
         }).fail(function (err) {
             result.reject(err);

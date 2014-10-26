@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, brackets, beforeFirst, afterLast */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, $, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -147,11 +147,19 @@ define(function (require, exports, module) {
         }
 
         function expectPopoverMessageWithText(text) {
-            var $popover  = testWindow.$(".popover-message");
-            expect($popover.length).toEqual(1);
+            var $popover;
 
-            var popoverText = $(".text", $popover).html();
-            expect(popoverText).toEqual(text);
+            runs(function () {
+                waitsFor(function () {
+                    $popover = testWindow.$(".popover-message");
+                    return $popover.length === 1;
+                }, "Expect popover window");
+            });
+
+            runs(function () {
+                var popoverText = testWindow.$(".text", $popover).html();
+                expect(popoverText).toEqual(text);
+            });
         }
         
         function getBounds(object, useOffset) {
@@ -486,8 +494,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var hostEditor = EditorManager.getCurrentFullEditor(),
-                        inlineWidget = hostEditor.getInlineWidgets()[0],
-                        inlinePos = inlineWidget.editor.getCursorPos();
+                        inlineWidget = hostEditor.getInlineWidgets()[0];
 
                     // verify inline widget
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
@@ -672,7 +679,7 @@ define(function (require, exports, module) {
             });
 
             it("should scroll cursor into view and position message popover inside right edge of window", function () {
-                var $popover, scrollPos, editor,
+                var $popover, editor,
                     openFile = "test1.html";
 
                 runs(function () {
@@ -775,8 +782,7 @@ define(function (require, exports, module) {
             it("should save changes in the inline editor", function () {
                 initInlineTest("test1.html", 1);
                 
-                var saved = false,
-                    err = false,
+                var err = false,
                     hostEditor,
                     inlineEditor,
                     newText = "\n/* jasmine was here */",
@@ -919,8 +925,7 @@ define(function (require, exports, module) {
                 
                 it("should close inline editor when file deleted on disk", function () {
                     // Create an expendable CSS file
-                    var fileToWrite,
-                        savedTempCSSFile = false;
+                    var fileToWrite;
 
                     runs(function () {
                         // Important: must create file using test window's FS so that it sees the new file right away
@@ -1376,8 +1381,8 @@ define(function (require, exports, module) {
                     });
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 2));
                     
-                    // TODO: can't do our usual undo + re-check range test at the end, becuase of
-                    // marijnh/CodeMirror2 bug #487
+                    // TODO: can't do our usual undo + re-check range test at the end, because of
+                    // codemirror/CodeMirror bug #487
                 });
                 
                 
@@ -1401,8 +1406,6 @@ define(function (require, exports, module) {
                 });
             
                 it("should close inline if the contents of the full editor are all deleted", function () {
-                    var newInlineText = "/* jasmine was inline */\n";
-                    
                     // verify inline is open
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
                     

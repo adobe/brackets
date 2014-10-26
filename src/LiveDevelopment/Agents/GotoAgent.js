@@ -33,14 +33,14 @@ define(function GotoAgent(require, exports, module) {
 
     require("utils/Global");
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
-    var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
-    var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
-
-    var DocumentManager = require("document/DocumentManager");
-    var EditorManager = require("editor/EditorManager");
-    var MainViewManager = require("view/MainViewManager");
+    var Inspector = require("LiveDevelopment/Inspector/Inspector"),
+        DOMAgent = require("LiveDevelopment/Agents/DOMAgent"),
+        ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent"),
+        RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent"),
+        EditorManager = require("editor/EditorManager"),
+        CommandManager = require("command/CommandManager"),
+        Commands = require("command/Commands");
+    
 
     /** Return the URL without the query string
      * @param {string} URL
@@ -67,7 +67,6 @@ define(function GotoAgent(require, exports, module) {
      */
     function _makeHTMLTarget(targets, node) {
         if (node.location) {
-            var target = {};
             var url = DOMAgent.url;
             var location = node.location;
             if (node.canHaveChildren()) {
@@ -86,7 +85,6 @@ define(function GotoAgent(require, exports, module) {
      */
     function _makeCSSTarget(targets, rule) {
         if (rule.sourceURL) {
-            var target = {};
             var url = rule.sourceURL;
             url += ":" + rule.style.range.start;
             var name = rule.selectorList.text;
@@ -102,7 +100,6 @@ define(function GotoAgent(require, exports, module) {
     function _makeJSTarget(targets, callFrame) {
         var script = ScriptAgent.scriptWithId(callFrame.location.scriptId);
         if (script && script.url) {
-            var target = {};
             var url = script.url;
             url += ":" + callFrame.location.lineNumber + "," + callFrame.location.columnNumber;
             var name = callFrame.functionName;
@@ -121,7 +118,7 @@ define(function GotoAgent(require, exports, module) {
 
         // get all css rules that apply to the given node
         Inspector.CSS.getMatchedStylesForNode(node.nodeId, function onMatchedStyles(res) {
-            var i, callFrame, name, script, url, rule, targets = [];
+            var i, targets = [];
             _makeHTMLTarget(targets, node);
             for (i in node.trace) {
                 _makeJSTarget(targets, node.trace[i]);
@@ -171,9 +168,8 @@ define(function GotoAgent(require, exports, module) {
         var path = url.slice(brackets.platform === "win" ? 8 : 7);
         // URL-decode the path ('%20' => ' ')
         path = decodeURI(path);
-        var promise = DocumentManager.getDocumentForPath(path);
+        var promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: path});
         promise.done(function onDone(doc) {
-            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
             if (location) {
                 openLocation(location, noFlash);
             }

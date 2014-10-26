@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache */
+/*global define, $ */
 /*unittests: FindReplace*/
 
 
@@ -35,11 +35,8 @@ define(function (require, exports, module) {
     "use strict";
 
     var CommandManager      = require("command/CommandManager"),
-        AppInit             = require("utils/AppInit"),
         Commands            = require("command/Commands"),
-        DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
-        ProjectManager      = require("project/ProjectManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         Editor              = require("editor/Editor"),
@@ -48,9 +45,6 @@ define(function (require, exports, module) {
         FindUtils           = require("search/FindUtils"),
         FindInFilesUI       = require("search/FindInFilesUI"),
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
-        Resizer             = require("utils/Resizer"),
-        StatusBar           = require("widgets/StatusBar"),
-        PreferencesManager  = require("preferences/PreferencesManager"),
         _                   = require("thirdparty/lodash"),
         CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror");
     
@@ -65,12 +59,6 @@ define(function (require, exports, module) {
      * @const {number}
      */
     var FIND_HIGHLIGHT_MAX  = 2000;
-
-    /**
-     * Instance of the currently opened document when replaceAllPanel is visible
-     * @type {?Document}
-     */
-    var currentDocument = null;
 
     /**
      * Currently open Find or Find/Replace bar, if any
@@ -605,13 +593,7 @@ define(function (require, exports, module) {
         state.searchStartPos = editor.getCursorPos(false, "start");
         
         // Prepopulate the search field
-        var initialQuery;
-        if (findBar) {
-            // Use the previous query. This can happen if the user switches from Find to Replace.
-            initialQuery = findBar.getQueryInfo().query;
-        } else {
-            initialQuery = FindUtils.getInitialQueryFromSelection(editor);
-        }
+        var initialQuery = FindUtils.getInitialQuery(findBar, editor);
         
         // Close our previous find bar, if any. (The open() of the new findBar will
         // take care of closing any other find bar instances.)
@@ -623,7 +605,8 @@ define(function (require, exports, module) {
         findBar = new FindBar({
             multifile: false,
             replace: replace,
-            initialQuery: initialQuery,
+            initialQuery: initialQuery.query,
+            initialReplaceText: initialQuery.replaceText,
             queryPlaceholder: Strings.FIND_QUERY_PLACEHOLDER
         });
         findBar.open();

@@ -32,7 +32,8 @@ define(function (require, exports, module) {
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         QuickOpen           = brackets.getModule("search/QuickOpen"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
-        DocumentManager     = brackets.getModule("document/DocumentManager");
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
+        StringMatch         = brackets.getModule("utils/StringMatch");
 
 
     /**
@@ -46,7 +47,6 @@ define(function (require, exports, module) {
             return;
         }
 
-        var selectorList = [];
         var docText = doc.getText();
         return CSSUtils.extractAllSelectors(docText, doc.getLanguage().getMode());
     }
@@ -74,7 +74,7 @@ define(function (require, exports, module) {
         });
         
         // Sort based on ranking & basic alphabetical order
-        QuickOpen.basicMatchSort(filteredList);
+        StringMatch.basicMatchSort(filteredList);
 
         return filteredList;
     }

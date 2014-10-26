@@ -31,14 +31,11 @@ define(function (require, exports, module) {
 
     var CodeHintManager      = brackets.getModule("editor/CodeHintManager"),
         EditorManager        = brackets.getModule("editor/EditorManager"),
-        DocumentManager      = brackets.getModule("document/DocumentManager"),
         Commands             = brackets.getModule("command/Commands"),
         CommandManager       = brackets.getModule("command/CommandManager"),
         LanguageManager      = brackets.getModule("language/LanguageManager"),
-        Menus                = brackets.getModule("command/Menus"),
         AppInit              = brackets.getModule("utils/AppInit"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
-        PerfUtils            = brackets.getModule("utils/PerfUtils"),
         StringMatch          = brackets.getModule("utils/StringMatch"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
@@ -63,7 +60,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", []);
     
     // This preference controls when Tern will time out when trying to understand files
-    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 10000);
+    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 30000);
     
     // This preference controls whether to prevent hints from being displayed when dot is typed
     PreferencesManager.definePreference("jscodehints.noHintsOnDot", "boolean", false);
@@ -449,9 +446,6 @@ define(function (require, exports, module) {
                 if (session.isFunctionName()) {
                     return false;
                 }
-                var offset = session.getOffset(),
-                    type    = session.getType(),
-                    query   = session.getQuery();
 
                 if (this.needNewHints(session)) {
                     resetCachedHintContext();
@@ -536,7 +530,6 @@ define(function (require, exports, module) {
         var hint        = $hintObj.data("token"),
             completion  = hint.value,
             cursor      = session.getCursor(),
-            token       = session.getToken(cursor),
             query       = session.getQuery(),
             start       = {line: cursor.line, ch: cursor.ch - query.length},
             end         = {line: cursor.line, ch: cursor.ch},
@@ -754,7 +747,6 @@ define(function (require, exports, module) {
                     var cursor = {line: end.line, ch: end.ch},
                         prev = session._getPreviousToken(cursor),
                         next,
-                        token,
                         offset;
     
                     // see if the selection is preceded by a '.', indicating we're in a member expr

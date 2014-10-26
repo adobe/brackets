@@ -94,16 +94,6 @@ define(function CSSDocumentModule(require, exports, module) {
     };
 
     /**
-     * CSSStyleSheetBody was removed in protocol 1.1. This method is unused in Brackets 36.
-     * Get the browser version of the StyleSheet object
-     * @deprecated
-     * @return {jQuery.promise}
-     */
-    CSSDocument.prototype.getStyleSheetFromBrowser = function getStyleSheetFromBrowser() {
-        return new $.Deferred().reject().promise();
-    };
-
-    /**
      * Get the browser version of the source
      * @return {jQuery.promise} Promise resolved with the text content of this CSS document
      */
@@ -176,7 +166,6 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.updateHighlight = function () {
         if (Inspector.config.highlight && this.editor) {
             var editor = this.editor,
-                codeMirror = editor._codeMirror,
                 selectors = [];
             _.each(this.editor.getSelections(), function (sel) {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, (sel.reversed ? sel.end : sel.start));

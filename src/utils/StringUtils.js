@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, brackets */
 
 /**
  *  Utilities functions related to string manipulation
@@ -49,14 +49,6 @@ define(function (require, exports, module) {
         return str.replace(/\{(\d+)\}/g, function (match, num) {
             return typeof args[num] !== "undefined" ? args[num] : match;
         });
-    }
-
-    /**
-     * @deprecated Use lodash `escape()` instead.
-     */
-    function htmlEscape(str) {
-        console.warn("StringUtils.htmlEscape is deprecated. Use _.escape instead.");
-        return _.escape(str);
     }
 
     function regexEscape(str) {
@@ -221,7 +213,6 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.format              = format;
-    exports.htmlEscape          = htmlEscape;
     exports.regexEscape         = regexEscape;
     exports.jQueryIdEscape      = jQueryIdEscape;
     exports.getLines            = getLines;

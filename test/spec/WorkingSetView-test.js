@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         DocumentManager,        // Load from brackets.test
         FileViewController,     // Load from brackets.test
         MainViewManager,        // Load from brackets.test
+        WorkingSetView,
         SpecRunnerUtils         = require("spec/SpecRunnerUtils");
 
 
@@ -72,7 +73,8 @@ define(function (require, exports, module) {
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
                 FileViewController  = testWindow.brackets.test.FileViewController;
                 MainViewManager     = testWindow.brackets.test.MainViewManager;
-
+                WorkingSetView      = testWindow.brackets.test.WorkingSetView;
+                
                 // Open a directory
                 if (loadProject) {
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);
@@ -263,9 +265,7 @@ define(function (require, exports, module) {
                 // In that case, waitsFor will be needed before continuing with the rest of the test.
                 CommandManager.execute(Commands.FILE_RENAME);
                 
-                var $projectFileItems = $("#project-files-container > ul").children();
-    
-                expect($projectFileItems.find("a.jstree-clicked").eq(0).siblings("input").eq(0).val()).toBe(fileName);
+                expect($("#project-files-container ul input").val()).toBe(fileName);
             });
         });
 
@@ -287,7 +287,6 @@ define(function (require, exports, module) {
 
                     // Now close last opened file to hide the directories again
                     DocumentManager.getCurrentDocument()._markClean(); // so we can close without a save dialog
-                    var didClose = false, gotError = false;
                     waitsForDone(CommandManager.execute(Commands.FILE_CLOSE), "timeout on FILE_CLOSE", 1000);
 
                     // there should be no more directories shown
@@ -329,6 +328,74 @@ define(function (require, exports, module) {
                 });
             });
         });
+        
+        it("should callback for icons", function () {
+            runs(function () {
+                function iconProvider(file) {
+                    return "<img src='" + file.name + ".jpg' class='icon' />";
+                }
+                
+                WorkingSetView.addIconProvider(iconProvider);
+                
+                runs(function () {
+                    // Collect all icon filenames used
+                    var $list = testWindow.$(".open-files-container > ul");
+                    var icons = $list.find(".icon").map(function () {
+                        return $(this).attr("src");
+                    }).toArray();
+
+                    // All directory names should be unique
+                    expect(icons.length).toBe(2);
+                    expect(icons[0]).toBe("file_one.js.jpg");
+                    expect(icons[1]).toBe("file_two.js.jpg");
+                });
+            });
+        });
             
+        it("should callback for class", function () {
+            runs(function () {
+                var master = ["one", "two"],
+                    classes = master.slice(0);
+
+                function classProvider(file) {
+                    return classes.pop();
+                }
+                
+                WorkingSetView.addClassProvider(classProvider);
+
+                runs(function () {
+                    var $list = testWindow.$(".open-files-container > li"),
+                        test = master.slice(0);
+                    
+                    $list.each(function (number, el) {
+                        expect($(el).hasClass(test.pop())).toBeTruthy();
+                    });
+                });
+            });
+        });
+
+        it("should allow refresh to be used to update the class list", function () {
+            runs(function () {
+                function classProvider(file) {
+                    return "one";
+                }
+                
+                WorkingSetView.addClassProvider(classProvider);
+
+                var master = ["three", "four"];
+                
+                WorkingSetView.refresh();
+                
+                runs(function () {
+                    var $list = testWindow.$(".open-files-container > li"),
+                        test = master.slice(0);
+                    
+                    $list.each(function (number, el) {
+                        expect($(el).hasClass(test.pop())).toBeTruthy();
+                        expect($(el).hasClass("one")).toBeFalsy();
+                    });
+                });
+            });
+        });
     });
 });

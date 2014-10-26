@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $ */
 
 /*
  * The core search functionality used by Find in Files and single-file Replace Batch.
@@ -127,7 +127,9 @@ define(function (require, exports, module) {
 
             // We have the max hits in just this 1 file. Stop searching this file.
             // This fixed issue #1829 where code hangs on too many hits.
-            if (matches.length >= SearchModel.MAX_TOTAL_RESULTS) {
+            // Adds one over MAX_TOTAL_RESULTS in order to know if the search has exceeded
+            // or is equal to MAX_TOTAL_RESULTS. Additional result removed in SearchModel
+            if (matches.length > SearchModel.MAX_TOTAL_RESULTS) {
                 queryExpr.lastIndex = 0;
                 break;
             }
@@ -385,7 +387,7 @@ define(function (require, exports, module) {
         searchModel.filter = filter;
         
         var queryResult = searchModel.setQueryInfo(queryInfo);
-        if (!queryResult.valid) {
+        if (!queryResult) {
             return null;
         }
         

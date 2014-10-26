@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, window, $, brackets, Mustache */
+/*global define, $ */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -31,7 +31,6 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
-        Package          = require("extensibility/Package"),
         registry_utils   = require("extensibility/registry_utils"),
         Strings          = require("strings");
 

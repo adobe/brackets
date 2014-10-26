@@ -57,8 +57,7 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var _                   = require("thirdparty/lodash"),
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         CommandManager      = require("command/CommandManager"),
@@ -177,9 +176,9 @@ define(function (require, exports, module) {
      * @param {!jQuery.Event} e - event
      * @param {?File} file - current file (can be null)
      */
-    function _handlecurrentFileChange(e, file) {
-        var doc = file ? DocumentManager.getOpenDocumentForPath(file.fullPath) : null;
-        _notifyActiveEditorChanged(doc ? doc._masterEditor : null);
+    function _handleCurrentFileChange(e, file) {
+        var doc = file && DocumentManager.getOpenDocumentForPath(file.fullPath);
+        _notifyActiveEditorChanged(doc && doc._masterEditor);
     }
     
     /**
@@ -210,7 +209,7 @@ define(function (require, exports, module) {
         return editor;
     }
     
- /**
+    /**
      * @private
      * Finds an inline widget provider from the given list that can offer a widget for the current cursor
      * position, and once the widget has been created inserts it into the editor.
@@ -471,13 +470,15 @@ define(function (require, exports, module) {
      * Semi-private: should only be called within this module or by Document.
      * @param {!Document} document  Document whose main/full Editor to create
      * @param {!Pane} pane  Pane in which the editor will be hosted
+     * @return {!Editor}
      */
     function _createFullEditorForDocument(document, pane) {
         // Create editor; make it initially invisible
-        var editor = _createEditorForDocument(document, true, pane.$el);
+        var editor = _createEditorForDocument(document, true, pane.$content);
         editor.setVisible(false);
         pane.addView(editor);
         $(exports).triggerHandler("_fullEditorCreatedForDocument", [document, editor, pane.id]);
+        return editor;
     }
  
     
@@ -536,8 +537,6 @@ define(function (require, exports, module) {
             editor = document._masterEditor;
         
         if (!editor) {
-            createdNewEditor = true;
-
             // Performance (see #4757) Chrome wastes time messing with selection
             // that will just be changed at end, so clear it for now
             if (window.getSelection && window.getSelection().empty) {  // Chrome
@@ -545,20 +544,24 @@ define(function (require, exports, module) {
             }
             
             // Editor doesn't exist: populate a new Editor with the text
-            _createFullEditorForDocument(document, pane);
-        } else if (editor.$el.parent() !== pane.$el) {
+            editor = _createFullEditorForDocument(document, pane);
+            createdNewEditor = true;
+        } else if (editor.$el.parent()[0] !== pane.$content[0]) {
             // editor does exist but is not a child of the pane so add it to the 
             //  pane (which will switch the view's container as well)
             pane.addView(editor);
         }
 
         // show the view
-        pane.showView(document._masterEditor);
-        // give it focus
-        document._masterEditor.focus();
-        
+        pane.showView(editor);
+
+        if (MainViewManager.getActivePaneId() === pane.id) {
+            // give it focus
+            editor.focus();
+        }
+
         if (createdNewEditor) {
-            _restoreEditorViewState(document._masterEditor);
+            _restoreEditorViewState(editor);
         }
     }
 
@@ -783,7 +786,7 @@ define(function (require, exports, module) {
     // Create PerfUtils measurement
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
-    $(MainViewManager).on("currentFileChange", _handlecurrentFileChange);
+    $(MainViewManager).on("currentFileChange", _handleCurrentFileChange);
     $(MainViewManager).on("workingSetRemove workingSetRemoveList", _handleRemoveFromPaneView);
 
     
