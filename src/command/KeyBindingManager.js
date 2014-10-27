@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         KeyEvent            = require("utils/KeyEvent"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
+        UrlParams           = require("utils/UrlParams").UrlParams,
         _                   = require("thirdparty/lodash");
 
     var KeyboardPrefs       = JSON.parse(require("text!base-config/keyboard.json"));
@@ -86,6 +87,17 @@ define(function (require, exports, module) {
         _reservedShortcuts = ["Ctrl-Z", "Ctrl-Y", "Ctrl-A", "Ctrl-X", "Ctrl-C", "Ctrl-V"],
         _macReservedShortcuts = ["Cmd-,", "Cmd-H", "Cmd-Alt-H", "Cmd-M", "Cmd-Shift-Z", "Cmd-Q"],
         _keyNames = ["Up", "Down", "Left", "Right", "Backspace", "Enter", "Space", "Tab"];
+
+    /**
+     * @private
+     * Flag to show key binding errors in the key map file. Default is true and 
+     * it will be set to false when reloading without extensions. This flag is not 
+     * used to suppress errors in loading or parsing the key map file. So if the key 
+     * map file is corrupt, then the error dialog still shows up.
+     *
+     * @type {boolean}
+     */
+    var _showErrors = true;
 
     /**
      * @private
@@ -435,6 +447,12 @@ define(function (require, exports, module) {
             targetPlatform = brackets.platform;
         }
         
+        
+        // Skip if the key binding is not for this platform.
+        if (explicitPlatform === "mac" && brackets.platform !== "mac") {
+            return null;
+        }
+
         // if the request does not specify an explicit platform, and we're
         // currently on a mac, then replace Ctrl with Cmd.
         key = (keyBinding.key) || keyBinding;
@@ -444,6 +462,7 @@ define(function (require, exports, module) {
                 keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
             }
         }
+        
         normalized = normalizeKeyDescriptorString(key);
         
         // skip if the key binding is invalid 
@@ -793,9 +812,8 @@ define(function (require, exports, module) {
      */
     function _showErrorsAndOpenKeyMap(err, message) {
         // Asynchronously loading Dialogs module to avoid the circular dependency
-        require(["widgets/Dialogs"], function (dialogsModule) {
-            var Dialogs = dialogsModule,
-                errorMessage = Strings.ERROR_KEYMAP_CORRUPT;
+        require(["widgets/Dialogs"], function (Dialogs) {
+            var errorMessage = Strings.ERROR_KEYMAP_CORRUPT;
             
             if (err === FileSystemError.UNSUPPORTED_ENCODING) {
                 errorMessage = Strings.ERROR_LOADING_KEYMAP;
@@ -1011,7 +1029,7 @@ define(function (require, exports, module) {
             errorMessage += StringUtils.format(Strings.ERROR_NONEXISTENT_COMMANDS, _getBulletList(invalidCommands));
         }
 
-        if (errorMessage) {
+        if (_showErrors && errorMessage) {
             _showErrorsAndOpenKeyMap("", errorMessage);
         }
     }
@@ -1025,7 +1043,7 @@ define(function (require, exports, module) {
     function _undoPriorUserKeyBindings() {
         _.forEach(_customKeyMapCache, function (commandID, key) {
             var normalizedKey  = normalizeKeyDescriptorString(key),
-                defaults       = KeyboardPrefs[commandID],
+                defaults       = _.find(_.toArray(_defaultKeyMap), { "commandID": commandID }),
                 defaultCommand = _defaultKeyMap[normalizedKey];
 
             // We didn't modified this before, so skip it.
@@ -1039,11 +1057,11 @@ define(function (require, exports, module) {
                 // Unassign the key from any command. e.g. "Cmd-W": "file.open" in _customKeyMapCache
                 // will require us to remove Cmd-W shortcut from file.open command.
                 removeBinding(normalizedKey);
-
+                
                 // Reassign the default key binding. e.g. "Cmd-W": "file.open" in _customKeyMapCache
                 // will require us to reassign Cmd-O shortcut to file.open command.
-                if (defaults.length) {
-                    addBinding(commandID, defaults);
+                if (defaults) {
+                    addBinding(commandID, defaults, brackets.platform);
                 }
 
                 // Reassign the default key binding of the previously modified command. 
@@ -1131,9 +1149,7 @@ define(function (require, exports, module) {
     function _loadUserKeyMap() {
         _readUserKeyMap()
             .then(function (keyMap) {
-                if (_.size(_customKeyMap)) {
-                    _customKeyMapCache = _.cloneDeep(_customKeyMap);
-                }
+                _customKeyMapCache = _.cloneDeep(_customKeyMap);
                 _customKeyMap = keyMap;
                 _undoPriorUserKeyBindings();
                 _applyUserKeyBindings();
@@ -1206,6 +1222,12 @@ define(function (require, exports, module) {
     }
     
     AppInit.extensionsLoaded(function () {
+        var params  = new UrlParams();
+        params.parse();
+        if (params.get("reloadWithoutUserExts") === "true") {
+            _showErrors = false;
+        }
+        
         _initCommandAndKeyMaps();
         _loadUserKeyMap();
     });
