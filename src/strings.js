@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     additionalGlobals.VERSION_PATCH = parsedVersion[3];
 
     var isDevBuild = !StringUtils.endsWith(decodeURI(window.location.pathname), "/www/index.html");
-    additionalGlobals.BUILD_TYPE    = (isDevBuild ? strings.DEVELOPMENT_BUILD : strings.EXPERIMENTAL_BUILD);
+    additionalGlobals.BUILD_TYPE    = (isDevBuild ? strings.DEVELOPMENT_BUILD : strings.RELEASE_BUILD);
     
     // Insert application strings
     _.forEach(strings, function (value, key) {
