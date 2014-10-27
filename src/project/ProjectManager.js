@@ -1334,7 +1334,8 @@ define(function (require, exports, module) {
     /**
      * Returns an Array of all files for this project, optionally including
      * files in the working set that are *not* under the project root. Files are
-     * filtered out by ProjectModel.shouldShow().
+     * filtered first by ProjectModel.shouldShow(), then by the custom filter
+     * argument (if one was provided). The list is unsorted.
      *
      * @param {function (File, number):boolean=} filter Optional function to filter
      *          the file list (does not filter directory traversal). API matches Array.filter().

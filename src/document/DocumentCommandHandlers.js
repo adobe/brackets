@@ -873,7 +873,7 @@ define(function (require, exports, module) {
             // explictly allow "blind" writes to the filesystem in this case,
             // ignoring warnings about the contents being modified outside of
             // the editor.
-            FileUtils.writeText(newFile, doc.getText(), true)
+            FileUtils.writeText(newFile, doc.getText(true), true)
                 .done(function () {
                     // If there were unsaved changes before Save As, they don't stay with the old
                     // file anymore - so must revert the old doc to match disk content.
