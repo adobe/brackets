@@ -425,6 +425,7 @@ define({
     "CMD_OPEN_KEYMAP"                     : "Open User Key Map",
 
     // Strings for main-view.html
+    "EXPERIMENTAL_BUILD"                   : "experimental build",
     "RELEASE_BUILD"                        : "release build",
     "DEVELOPMENT_BUILD"                    : "development build",
     "RELOAD_FROM_DISK"                     : "Reload from Disk",
