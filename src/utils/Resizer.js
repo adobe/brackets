@@ -169,8 +169,10 @@ define(function (require, exports, module) {
      * @param {?boolean} createdByWorkspaceManager For internal use only
      * @param {?boolean} usePercentages Maintain the size of the element as a percentage of its parent
      *                          the default is to maintain the size of the element in pixels
+     * @param {?boolean} attachToParent Attaches the resizer element to parent of the element rather than
+     *                          to element itself.
      */
-    function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager, usePercentages) {
+    function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager, usePercentages, attachToParent) {
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
             $parent             = $element.parent(),
@@ -229,8 +231,11 @@ define(function (require, exports, module) {
 
         collapsible = collapsible || false;
         
-        $element.prepend($resizer);
-        
+        if (attachToParent) {
+            $parent.prepend($resizer);
+        } else {
+            $element.prepend($resizer);
+        }
         // Important so min/max sizes behave predictably
         $element.css("box-sizing", "border-box");
         
@@ -291,8 +296,11 @@ define(function (require, exports, module) {
             elementPrefs.visible = true;
             
             if (collapsible) {
-                $element.prepend($resizer);
-                
+                if (attachToParent) {
+                    $parent.prepend($resizer);
+                } else {
+                    $element.prepend($resizer);
+                }
                 if (position === POSITION_TOP) {
                     $resizer.css(resizerCSSPosition, "");
                 } else if (position === POSITION_RIGHT) {
