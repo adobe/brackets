@@ -1073,7 +1073,7 @@ define(function (require, exports, module) {
         Resizer.makeResizable(firstPane.$el,
                               _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
                               _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
-                              MIN_PANE_SIZE, false, false, false, true);
+                              MIN_PANE_SIZE, false, false, false, true, true);
         
         firstPane.$el.on("panelResizeUpdate", function () {
             _updateLayout();
