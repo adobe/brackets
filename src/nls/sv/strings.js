@@ -77,7 +77,7 @@ define({
 
     // User key map error strings
     "ERROR_KEYMAP_TITLE"                : "Fel uppstod när användarens tangentuppsättning lästes in",
-    "ERROR_KEYMAP_CORRUPT"              : "Din tangentuppsättningsfil är inte korrekt JSON. Filen kommer att öppnas så att du kan åtgärda formatet.",
+    "ERROR_KEYMAP_CORRUPT"              : "Din tangentuppsättningsfil är inte korrekt formaterad JSON. Filen kommer att öppnas så att du kan åtgärda formateringsfelet.",
     "ERROR_LOADING_KEYMAP"              : "Din tangentuppsättningsfil är inte en UTF-8-kodad textfil och kan inte läsas",
     "ERROR_RESTRICTED_COMMANDS"         : "Du kan inte ändra kortkommandot för följande kommandon: {0}",
     "ERROR_RESTRICTED_SHORTCUTS"        : "Du kan inte ändra följande kortkommandon: {0}",
@@ -241,9 +241,9 @@ define({
     "LEFT"              : "Vänster",
     "RIGHT"             : "Höger",
 
-    "CMD_SPLITVIEW_NONE"        : "Ingen split",
-    "CMD_SPLITVIEW_VERTICAL"    : "Vertikal split",
-    "CMD_SPLITVIEW_HORIZONTAL"  : "Horisontell split",
+    "CMD_SPLITVIEW_NONE"        : "Ingen delning",
+    "CMD_SPLITVIEW_VERTICAL"    : "Vertikal delning",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Horisontell delning",
     "SPLITVIEW_MENU_TOOLTIP"    : "Dela editorn vertikalt eller horisontellt",
     "GEAR_MENU_TOOLTIP"         : "Konfigurera arbetsyta",
 
