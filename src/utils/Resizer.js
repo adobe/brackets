@@ -171,6 +171,9 @@ define(function (require, exports, module) {
      *                          the default is to maintain the size of the element in pixels
      * @param {?boolean} attachToParent Attaches the resizer element to parent of the element rather than
      *                          to element itself.
+     *                   attach the resizer to the parent *ONLY* if element has the same offset as parent
+     *                          otherwise the resizer will be incorrectly positioned. This means that
+     *                          once splitview has more than 2 panes we will need to find another solution
      */
     function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager, usePercentages, attachToParent) {
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
