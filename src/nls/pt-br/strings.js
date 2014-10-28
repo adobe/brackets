@@ -626,3 +626,4 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Leia mais"
 });
+/* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */
