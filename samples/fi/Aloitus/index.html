@@ -18,10 +18,9 @@
         -->
         
         <p>
-            Tervetuloa käyttämään Bracketsin varhaista esiversiota, uutta avoimen lähdekoodin ja seuraavan
-            web-sukupolven editoria. Olemme suuria standardien faneja ja haluamme rakentaa paremmat työkalut
-            JavaScriptille, HTML:lle ja CSS:lle sekä niihin liittyville, avoimille web-tekniikoille. Tämä on nöyrä
-            alkumme.
+            Tervetuloa käyttämään Bracketsia, nykyaikaista, avoimen lähdekoodin koodieditoria, joka ymmärtää
+            web-suunnittelun. Se on kevyt mutta silti tehokas: koodieditori, joka sulauttaa visuaaliset työkalut suoraan
+            editoriin, niin että saat oikean määrän apua silloin, kun haluat sitä.
         </p>
         
         <!--
@@ -29,15 +28,32 @@
         -->
         <p>
             <em>Brackets on erityyppinen editori.</em>
-            Yksi huomattava ero on se, että tämä editori on kirjoitettu JavaScriptillä, HTML:llä ja CSS:llä. Se
-            tarkoittaa, että useimmilla teistä, Bracketsin käyttäjistä, on välttämättömät taidot muokata ja laajentaa
-            editoria. Itse asiassa käytämme Bracketsia joka päivä sen itsensä kehittämiseen. Bracketsissa on joitakin
-            ainutlaatuisia ominaisuuksia, kuten pikamuokkaus, reaaliaikainen esikatselu ja muita, joita et voi löytää
-            muista editoreista. Oppiaksesi lisää siitä, kuinka käyttää näitä ominaisuuksia, jatka lukemista.
+            Bracketsissa on joitakin ainutlaatuisia ominaisuuksia, kuten pikamuokkaus, reaaliaikainen esikatselu ja
+            muita, joita et voi löytää muista editoreista. Lisäksi Brackets on kirjoitettu JavaSciptillä, HTML:llä ja
+            CSS:llä. Se tarkoittaa, että useimmilla Bracketsin käyttäjistä on riittävät taidot muokata ja laajentaa
+            editoria. Itse asiassa käytämme Bracketsia joka päivä sen itsensä kehitykseen. Oppiaksesi lisää siitä,
+            kuinka käyttää avainominaisuuksia, jatka lukemista.
         </p>
         
+        <!--
+            ALOITUS OMIEN TIEDOSTOJESI KANSSA
+        -->
         
-        <h2>Kokeilemme muutamia uusia asioita</h2>
+        <h3>Projektit Bracketsissa</h3>
+        <p>
+            Muokataksesi omaa koodiasi Bracketsia käyttäen voit vain avata tiedostosi sisältävän kansion. Brackets pitää
+            nykyistä avointa kansiota ”projektina”; ominaisuudet, kuten koodivihjeet, esikatselu ja pikamuokkaus,
+            käyttävät vain parhaillaan avoinna olevan kansion tiedostoja.
+        </p>
+        
+        <samp>
+            Heti kun olet valmis luopumaan tästä näyteprojektista ja muokkaamaan omaa koodiasi, voit käyttää vasemman
+            sivupalkin pudotusvalikkoa kansioiden vaihtamiseen. Juuri nyt pudotusvalikossa lukee ”Aloitus”. Tämä on
+            kansio, joka sisältää tiedoston, jota tarkastelet juuri nyt. Avaa oma kansiosi napsauttamalla
+            pudotusvalikkoa ja valitsemalla ”Avaa kansio…”.
+            Voit käyttää pudotusvalikkoa myös myöhemmin vaihtaaksesi takaisin kansioihin, jotka olet avannut aiemmin,
+            sisältäen tämän näyteprojektin.
+        </samp>
         
         <!--
             YHTEYS HTML:N, CSS:N JA JAVASCRIPTIN VÄLILLÄ
@@ -49,13 +65,14 @@
             liittyvän CSS:n. Muokkaa CSS:ääsi, paina <kbd>ESC</kbd>-näppäintä ja olet taas muokkaamassa HTML:ää, tai
             yksinkertaisesti jätä CSS-säännöt auki, ja niistä tulee osa HTML-editoriasi. Jos painat
             <kbd>ESC</kbd>-näppäintä pikaeditorin ulkopuolella, ne kaikki sulkeutuvat. Pikaeditori löytää myös LESS- ja
-            SCSS-tiedostoissa määritellyt säännöt, sisältäen sisäkkäiset säännöt.
+            SCSS-tiedostoissa määritellyt säännöt, sisältäen sisäkkäiset sellaiset.
         </p>
         
         <samp>
             Haluatko nähdä sen toiminnassa? Aseta kohdistin alla olevaan <!-- <samp> --> -tägiin ja paina
-            <kbd>Cmd/Ctrl + E</kbd>. Sinun pitäisi nähdä, kun CSS-pikaeditori ilmestyy alapuolelle näyttäen
-            CSS-säännön, joka pätee siihen. Pikamuokkaus toimii niin class- kuin id-attribuuttienkin kanssa.
+            <kbd>Cmd/Ctrl + E</kbd>. Sinun pitäisi nähdä, kun CSS-pikaeditori ilmestyy alapuolelle näyttäen CSS-säännön,
+            joka pätee siihen. Pikamuokkaus toimii toki myös class- ja id-attribuuttien kanssa. Voit käyttää sitä myös
+            LESS- ja SCSS-tiedostojesi kanssa.
             
             Voit luoda uusia sääntöjä samalla tavalla. Napsauta yhtä alaosan <!-- <p> --> -tägeistä ja paina
             <kbd>Cmd/Ctrl + E</kbd>. Sille ei ole sääntöjä juuri nyt, mutta voit napsauttaa Uusi sääntö -painiketta
@@ -99,10 +116,10 @@
         </p>
         
         <samp>
-            Jos sinulla on Google Chrome asennettuna, voit kokeilla tätä itse. Napsauta Brackets-ikkunan
-            oikeassa yläkulmassa sijaitsevaa salamakuvaketta tai paina <kbd>Cmd/Ctrl + Alt + P</kbd>. Kun esikatselu on
-            käytössä HTML-dokumentissa, kaikkia linkitettyjä CSS-dokumentteja voi muokata reaaliajassa. Kuvake muuttuu
-            harmaasta kultaiseksi, kun Brackets muodostaa yhteyden selaimeesi.
+            Jos sinulla on Google Chrome asennettuna, voit kokeilla tätä itse. Napsauta Brackets-ikkunan oikeassa
+            yläkulmassa sijaitsevaa salamakuvaketta tai paina <kbd>Cmd/Ctrl + Alt + P</kbd>. Kun esikatselu on käytössä
+            HTML-dokumentissa, kaikkia linkitettyjä CSS-dokumentteja voi muokata reaaliajassa. Kuvake muuttuu harmaasta
+            kultaiseksi, kun Brackets muodostaa yhteyden selaimeesi.
             
             Aseta kohdistin nyt yläpuolella olevaan <!-- <img> --> -tägiin. Huomaa sininen korostus, joka ilmestyy kuvan
             ympärille Chromessa. Käytä seuraavaksi <kbd>Cmd/Ctrl + E</kbd> -näppäinyhdistelmää avataksesi määritellyt
@@ -137,28 +154,13 @@
         
         <h3>Tarvitsetko jotakin muuta? Kokeile laajennusta!</h3>
         <p>
-            Sen kaiken hyvän lisäksi, jota Bracketsiin on rakennettu, suuri ja kasvava laajennuskehittäjien yhteisömme
-            on tehnyt yli sata laajennusta, jotka lisäävät hyödyllisiä toimintoja. Jos on jotakin, jota tarvitset ja
-            jota Brackets ei tarjoa, enemmän kuin todennäköisesti joku on tehnyt laajennuksen siihen. Selaa saatavilla
-            olevien laajennusten luetteloa tai hae siitä valitsemalla <strong>Tiedosto &gt; Laajennusten
+            Sen kaiken hyvän lisäksi, jota Bracketsiin on rakennettu, on suuri ja kasvava laajennuskehittäjien
+            yhteisömme tehnyt satoja laajennuksia, jotka lisäävät hyödyllisiä toimintoja. Jos on jotakin, jota tarvitset
+            ja jota Brackets ei tarjoa, enemmän kuin todennäköisesti joku on tehnyt laajennuksen siihen. Selaa
+            saatavilla olevien laajennusten luetteloa tai hae siitä valitsemalla <strong>Tiedosto &gt; Laajennusten
             hallinta</strong> ja napsauttamalla ”Saatavilla”-välilehteä. Kun löydät haluamasi laajennuksen, napsauta
             vain ”Asenna”-painiketta sen vierestä.
         </p>
-        
-        <h3>Projektit Bracketsissa</h3>
-        <p>
-            Muokataksesi omaa koodiasi Bracketsia käyttäen voit vain avata tiedostosi sisältävän kansion. Brackets pitää
-            nykyistä avointa kansiota ”projektina”; ominaisuudet, kuten koodivihjeet, esikatselu ja pikamuokkaus,
-            käyttävät vain parhaillaan avoinna olevan kansion tiedostoja.
-        </p>
-        
-        <samp>
-            Heti kun olet valmis luopumaan tästä näyteprojektista ja muokkaamaan omaa koodiasi, voit käyttää vasemman
-            sivupalkin pudotusvalikkoa kansioiden vaihtamiseen. Juuri nyt pudotusvalikossa lukee ”Aloitus”. Tämä on
-            kansio, joka sisältää tiedoston, jota tarkastelet juuri nyt. Avaa oma kansiosi napsauttamalla
-            pudotusvalikkoa ja valitsemalla ”Avaa kansio…”. Voit käyttää pudotusvalikkoa myös myöhemmin vaihtaaksesi
-            takaisin kansioihin, jotka olet avannut aiemmin, sisältäen tämän näyteprojektin.
-        </samp>
         
         <!--
             KERRO MEILLE, MITÄ AJATTELET
@@ -166,7 +168,7 @@
         <h2>Lähde mukaan</h2>
         <p>
             Brackets on avoimen lähdekoodin projekti. Web-kehittäjät ympäri maailmaa osallistuvat paremman koodieditorin
-            kehittämiseen. Paljon enemmän rakennetaan laajennuksia, jotka laajentavat Bracketsin kykyjä. Kerro meille,
+            kehittämiseen. Vieläkin enemmän kehitetään laajennuksia, jotka laajentavat Bracketsin kykyjä. Kerro meille,
             mitä ajattelet. Jaa ideasi tai osallistu suoraan projektiin.
         </p>
         <ul>
