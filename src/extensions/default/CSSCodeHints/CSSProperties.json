@@ -172,7 +172,7 @@
     "shape-inside":                {"values": ["auto", "circle()", "ellipse()", "inherit", "outside-shape", "polygon()", "rectangle()"]},
     "shape-margin":                {"values": []},
     "shape-outside":               {"values": ["none", "inherit", "circle()", "ellipse()", "polygon()", "inset()", "margin-box", "border-box", "padding-box", "content-box", "url()", "image()", "linear-gradient()", "radial-gradient()", "repeating-linear-gradient()", "repeating-radial-gradient()"]},
-    "tab-size":                	   {"values": []},
+    "tab-size":                    {"values": []},
     "table-layout":                {"values": ["auto", "fixed", "inherit"]},
     "text-align":                  {"values": ["center", "left", "justify", "right", "inherit"]},
     "text-align-last":             {"values": ["center", "left", "justify", "right", "inherit"]},
