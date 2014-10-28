@@ -39,7 +39,7 @@ module.exports = function (grunt) {
             grunt.fail.fatal("Please specify a release. e.g. grunt update-release-number --release=1.1.0");
         }
 
-        packageJSON.version = release;
+        packageJSON.version = release + "-0";
         packageJSON.apiVersion = release;
 
         common.writeJSON(grunt, path, packageJSON);
