@@ -426,6 +426,7 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "kokeellinen koontiversio",
+    "RELEASE_BUILD"                        : "koontiversio",
     "DEVELOPMENT_BUILD"                    : "kehityskoontiversio",
     "RELOAD_FROM_DISK"                     : "Lataa uudelleen levyltä",
     "KEEP_CHANGES_IN_EDITOR"               : "Pidä muutokset muokkaimessa",
@@ -627,4 +628,4 @@ define({
     "DOCS_MORE_LINK"                            : "Lue lisää"
 });
 
-/* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */
+/* Last translated for 893c065b715c211526dcd010c0294e12a8683995 */
