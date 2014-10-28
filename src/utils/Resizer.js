@@ -169,8 +169,12 @@ define(function (require, exports, module) {
      * @param {?boolean} createdByWorkspaceManager For internal use only
      * @param {?boolean} usePercentages Maintain the size of the element as a percentage of its parent
      *                          the default is to maintain the size of the element in pixels
+     * @param {?boolean} _attachToParent Attaches the resizer element to parent of the element rather than
+     *                          to element itself. Attach the resizer to the parent *ONLY* if element has the
+     *                          same offset as parent otherwise the resizer will be incorrectly positioned. 
+     *                          FOR INTERNAL USE ONLY
      */
-    function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager, usePercentages) {
+    function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager, usePercentages, _attachToParent) {
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
             $parent             = $element.parent(),
@@ -229,8 +233,11 @@ define(function (require, exports, module) {
 
         collapsible = collapsible || false;
         
-        $element.prepend($resizer);
-        
+        if (_attachToParent) {
+            $parent.prepend($resizer);
+        } else {
+            $element.prepend($resizer);
+        }
         // Important so min/max sizes behave predictably
         $element.css("box-sizing", "border-box");
         
@@ -291,8 +298,11 @@ define(function (require, exports, module) {
             elementPrefs.visible = true;
             
             if (collapsible) {
-                $element.prepend($resizer);
-                
+                if (_attachToParent) {
+                    $parent.prepend($resizer);
+                } else {
+                    $element.prepend($resizer);
+                }
                 if (position === POSITION_TOP) {
                     $resizer.css(resizerCSSPosition, "");
                 } else if (position === POSITION_RIGHT) {
