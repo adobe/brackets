@@ -453,7 +453,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "La URL base no puede contener hashes como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Error desconocido analizando la URL base",
-    "EMPTY_VIEW_HEADER"                    : "<em>Abra un archivo mientras este panel está efocado</em>", 
+    "EMPTY_VIEW_HEADER"                    : "<em>Abra un archivo mientras este panel está enfocado</em>", 
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema actual",
