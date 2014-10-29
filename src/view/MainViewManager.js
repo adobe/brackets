@@ -1073,7 +1073,7 @@ define(function (require, exports, module) {
         Resizer.makeResizable(firstPane.$el,
                               _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
                               _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
-                              MIN_PANE_SIZE, false, false, false, true);
+                              MIN_PANE_SIZE, false, false, false, true, true);
         
         firstPane.$el.on("panelResizeUpdate", function () {
             _updateLayout();
@@ -1120,28 +1120,20 @@ define(function (require, exports, module) {
     
     /**
      * Edits a document in the specified pane.
-     * This function is only used by Unit Tests (which construct Mock Documents), 
-     *  The Deprecated API "setCurrentDocument" and by File > New 
-     *  because there is yet to be an established File object for the Document which is required 
-     *  for the open API.  
-     * Do not use this API unless you have a document object without a file object
+     * This function is only used by:
+     *  - Unit Tests (which construct Mock Document objects), 
+     *  - by File > New  because there is yet to be an established File object 
+     *  - by Find In Files which needs to open documents synchronously in some cases
+     * Do not use this API it is for internal use only
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
-     * @param {{noPaneActivate:boolean=, noPaneRedundancyCheck:boolean=}=} optionsIn - options
+     * @param {{noPaneActivate:boolean=}=} optionsIn - options
      * @private
      */
     function _edit(paneId, doc, optionsIn) {
         var options = optionsIn || {},
-            currentPaneId;
+            currentPaneId  = _getPaneIdForPath(doc.file.fullPath);
         
-        if (options.noPaneRedundancyCheck) {
-            // This flag is for internal use only to improve performance
-            // Don't check for the file to have been opened in another pane pane which could be time
-            //  consuming.  should only be used when passing an actual paneId (not a special paneId)
-            //  and the caller has already done a redundancy check.  
-            currentPaneId = _getPaneIdForPath(doc.file.fullPath);
-        }
-   
         if (currentPaneId) {
             // If the doc is open in another pane then switch to that pane and call open document
             //  which will really just show the view as it has always done we could just 
@@ -1172,7 +1164,7 @@ define(function (require, exports, module) {
      * or a document for editing.  If it's a document for editing, edit is called on the document 
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to open
-     * @param {{noPaneActivate:boolean=, noPaneRedundancyCheck:boolean=}=} optionsIn - options
+     * @param {{noPaneActivate:boolean=}=} optionsIn - options
      * @return {jQuery.Promise}  promise that resolves to a File object or 
      *                           rejects with a File error or string
      */
@@ -1250,8 +1242,7 @@ define(function (require, exports, module) {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
                     _edit(paneId, doc, $.extend({}, options, {
-                        noPaneActivate: true,
-                        noPaneRedundancyCheck: true
+                        noPaneActivate: true
                     }));
                     doPostOpenActivation();
                     result.resolve(doc.file);

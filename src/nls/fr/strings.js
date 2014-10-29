@@ -34,11 +34,11 @@ define({
 	"GENERIC_ERROR": "(Erreur {0})",
 	"NOT_FOUND_ERR": "Fichier introuvable.",
 	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
+	"EXCEEDS_MAX_FILE_SIZE": "Les fichiers dont la taille excède {0} Mo ne peuvent pas être ouverts dans {APP_NAME}.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 	"CONTENTS_MODIFIED_ERR": "Le fichier a été modifié dans une application autre que {APP_NAME}.",
 	"UNSUPPORTED_ENCODING_ERR": "Pour le moment, {APP_NAME} ne prend en charge que les fichiers texte avec encodage UTF-8.",
-	"UNSUPPORTED_FILE_TYPE_ERR": "Ce type de fichier n’est pas pris en charge.",
 	"FILE_EXISTS_ERR": "Le fichier ou le répertoire existe déjà.",
 	"FILE": "fichier",
 	"FILE_TITLE": "Fichier",
@@ -74,6 +74,17 @@ define({
 	"ERROR_CREATING_FILE_TITLE": "Erreur lors de la création de l’élément {0}",
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du {0} <span class='dialog-filename'>{1}</span>. {2}",
 	"ERROR_MIXED_DRAGDROP": "Impossible d’ouvrir un dossier en même temps que d’autres fichiers.",
+
+    // User key map error strings
+	"ERROR_KEYMAP_TITLE": "Erreur lors de la lecture de la mappe de clé utilisateur",
+	"ERROR_KEYMAP_CORRUPT": "Votre fichier de mappe de clé n'est pas un fichier JSON valide. Il va s'ouvrir afin que vous puissiez corriger le format.",
+	"ERROR_LOADING_KEYMAP": "Votre fichier de mappe de clé n'étant pas un fichier texte codé en UTF-8 valide, il ne peut pas être chargé",
+	"ERROR_RESTRICTED_COMMANDS": "Vous ne pouvez pas réaffecter de raccourcis à ces commandes : {0}",
+	"ERROR_RESTRICTED_SHORTCUTS": "Vous ne pouvez pas réaffecter ces raccourcis : {0}",
+	"ERROR_MULTIPLE_SHORTCUTS": "Vous réaffectez plusieurs raccourcis à ces commandes : {0}",
+	"ERROR_DUPLICATE_SHORTCUTS": "Vous disposez de plusieurs liaisons pour ces raccourcis : {0}",
+	"ERROR_INVALID_SHORTCUTS": "Ces raccourcis ne sont pas valides : {0}",
+	"ERROR_NONEXISTENT_COMMANDS": "Vous affectez des raccourcis à des commandes qui n'existent pas : {0}",
 
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "Erreur lors de la lecture des préférences",
@@ -236,8 +247,8 @@ define({
 	"SPLITVIEW_MENU_TOOLTIP": "Fractionner l’éditeur horizontalement ou verticalement",
 	"GEAR_MENU_TOOLTIP": "Configurer l’ensemble de travail",
 
-	"SPLITVIEW_INFO_TITLE": "[7765195] !é=Already Open=!",
-	"SPLITVIEW_MULTIPANE_WARNING": "[7765196] !é=The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)=!",
+	"SPLITVIEW_INFO_TITLE": "Déjà ouvert",
+	"SPLITVIEW_MULTIPANE_WARNING": "Ce fichier est déjà ouvert dans un autre volet. Il sera bientôt possible d’ouvrir un même fichier dans plusieurs volets de l’application {APP_NAME}, mais en attendant, vous ne pouvez consulter le fichier que dans le volet dans lequel il est déjà ouvert.<br /><br />(Ce message ne s’affichera qu’une fois.)",
 
     /**
      * Keyboard modifier names
@@ -411,9 +422,11 @@ define({
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
 	"CMD_OPEN_PREFERENCES": "Ouvrir le fichier de préférences",
+	"CMD_OPEN_KEYMAP": "Ouvrir la mappe de clé utilisateur",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
+	"RELEASE_BUILD": "version",
 	"DEVELOPMENT_BUILD": "version de développement",
 	"RELOAD_FROM_DISK": "Recharger à partir du disque",
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
@@ -440,7 +453,7 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "L’URL de base ne peut pas contenir de signe dièse (\"{0}\").",
 	"BASEURL_ERROR_INVALID_CHAR": "Les caractères spéciaux tels que '{0}' doivent être codés en %.",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "Erreur inconnue lors de l’analyse de l’URL de base",
-	"EMPTY_VIEW_HEADER": "<em>Sélectionnez un fichier quand cette vue est active</em>",
+	"EMPTY_VIEW_HEADER": "<em>Ouvrir un fichier quand ce panneau est actif</em>",
     
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "Thème actuel ",
@@ -544,6 +557,7 @@ define({
 	"EXTENSIONS_UPDATES_TITLE": "Mises à jour",
     
 	"INLINE_EDITOR_NO_MATCHES": "Aucun résultat.",
+	"INLINE_EDITOR_HIDDEN_MATCHES": "Tous les résultats sont réduits. Développez les fichiers dans la liste de droite pour voir le détail.",
 	"CSS_QUICK_EDIT_NO_MATCHES": "Aucune règle CSS existante ne correspond à votre sélection.<br> Cliquez sur « Nouvelle règle » pour en créer une.",
 	"CSS_QUICK_EDIT_NO_STYLESHEETS": "Votre projet ne contient aucune feuille de style.<br>Créez-en une pour pouvoir ajouter des règles CSS.",
 
@@ -599,7 +613,7 @@ define({
 	"CMD_SHOW_PARAMETER_HINT": "Afficher l’indicateur de paramètre",
 	"NO_ARGUMENTS": "<aucun paramètre>",
 	"DETECTED_EXCLUSION_TITLE": "Problème d’inférence de fichier Javascript",
-	"DETECTED_EXCLUSION_INFO": "Brackets a rencontré des problèmes lors du traitement :<br><br>{0}<br><br>La fonction d’accès aux définitions et les indicateurs de code de ce fichier ne seront plus traités. Pour réactiver cette fonctionnalité, ouvrez <code>.brackets.json</code> dans votre projet et supprimez le fichier de la section jscodehints.detectedExclusions.",
+	"DETECTED_EXCLUSION_INFO": "Brackets a rencontré des problèmes lors du traitement du fichier <span class='dialog-filename'>{0}</span>.<br><br>La fonction d’accès aux définitions, les indicateurs de code et la fonction Edition rapide de ce fichier ne seront plus traités. Pour réactiver ce fichier, ouvrez <code>.brackets.json</code> dans votre projet et éditez la section <code>jscodehints.detectedExclusions</code>.<br><br>Il s’agit vraisemblablement d’un bug au niveau de l’application Brackets. Si vous pouvez nous transmettre une copie de ce fichier, merci de <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>consigner un bug</a> en fournissant un lien vers le fichier en question.",
     
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",

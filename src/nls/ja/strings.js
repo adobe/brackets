@@ -34,11 +34,11 @@ define({
 	"GENERIC_ERROR": "(エラー {0})",
 	"NOT_FOUND_ERR": "ファイルが見つかりません。",
 	"NOT_READABLE_ERR": "ファイルを読み取れません。",
+	"EXCEEDS_MAX_FILE_SIZE": "{0} MB を超えるサイズのファイルは {APP_NAME} で開くことはできません。",
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
 	"CONTENTS_MODIFIED_ERR": "このファイルは {APP_NAME} 以外で変更されています。",
 	"UNSUPPORTED_ENCODING_ERR": "{APP_NAME} は現在 UTF-8 でエンコードされたテキストファイルのみをサポートしています。",
-	"UNSUPPORTED_FILE_TYPE_ERR": "ファイルはサポートされているファイルタイプではありません。",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
 	"FILE_TITLE": "ファイル",
@@ -74,6 +74,17 @@ define({
 	"ERROR_CREATING_FILE_TITLE": "{0} を作成する際にエラーが発生しました。",
 	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
 	"ERROR_MIXED_DRAGDROP": "他のファイルを開いている間はフォルダーを開くことはできません。",
+
+    // User key map error strings
+	"ERROR_KEYMAP_TITLE": "ユーザーキーマップを読み込む際にエラーが発生しました",
+	"ERROR_KEYMAP_CORRUPT": "キーマップファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。",
+	"ERROR_LOADING_KEYMAP": "キーマップファイルが UTF-8 でエンコードされた有効なテキストファイルではないため、読み込めません",
+	"ERROR_RESTRICTED_COMMANDS": "これらのコマンドにショートカットを割り当て直すことはできません : {0}",
+	"ERROR_RESTRICTED_SHORTCUTS": "これらのショートカットを割り当て直すことはできません : {0}",
+	"ERROR_MULTIPLE_SHORTCUTS": "これらのコマンドに複数のショートカットを割り当て直しています : {0}",
+	"ERROR_DUPLICATE_SHORTCUTS": "これらのショートカットの複数のバインディングがあります : {0}",
+	"ERROR_INVALID_SHORTCUTS": "これらのショートカットは無効です : {0}",
+	"ERROR_NONEXISTENT_COMMANDS": "存在しないコマンドにショートカットを割り当てています : {0}",
 
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",
@@ -236,8 +247,8 @@ define({
 	"SPLITVIEW_MENU_TOOLTIP": "エディターを垂直方向 / 水平方向に分割",
 	"GEAR_MENU_TOOLTIP": "ワーキングセットを構成",
 
-	"SPLITVIEW_INFO_TITLE": "!能=[7765195] Already Open_=!",
-	"SPLITVIEW_MULTIPANE_WARNING": "!能=[7765196] The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)_=!",
+	"SPLITVIEW_INFO_TITLE": "既に開かれています",
+	"SPLITVIEW_MULTIPANE_WARNING": "ファイルは他のペインで既に開かれています。{APP_NAME} ではまもなく複数のペインで同じファイルを開くことが可能になる予定です。それまでは、ファイルは既に開かれているペインで表示されます。<br /><br />(このメッセージは一度しか表示されません。)",
 
     /**
      * Keyboard modifier names
@@ -411,9 +422,11 @@ define({
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
 	"CMD_OPEN_PREFERENCES": "環境設定ファイルを開く",
+	"CMD_OPEN_KEYMAP": "ユーザーキーマップを開く",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
+	"RELEASE_BUILD": "ビルド",
 	"DEVELOPMENT_BUILD": "開発ビルド",
 	"RELOAD_FROM_DISK": "ディスクから再読み込み",
 	"KEEP_CHANGES_IN_EDITOR": "エディター内の変更を保持する",
@@ -440,7 +453,7 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
-	"EMPTY_VIEW_HEADER": "<em>このビューにフォーカスがあるときにファイルを選択</em>",
+	"EMPTY_VIEW_HEADER": "<em>このペインにフォーカスがあるときにファイルを開く</em>",
     
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "現在のテーマ",
@@ -544,6 +557,7 @@ define({
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
     
 	"INLINE_EDITOR_NO_MATCHES": "一致するものがありません。",
+	"INLINE_EDITOR_HIDDEN_MATCHES": "一致項目はすべて縮小されています。一致項目を表示するには、右側にリストされているファイルを展開してください。",
 	"CSS_QUICK_EDIT_NO_MATCHES": "選択に一致する既存の CSS ルールがありません。<br>「新規ルール」をクリックしてルールを作成してください。",
 	"CSS_QUICK_EDIT_NO_STYLESHEETS": "プロジェクトにはスタイルシートがありません。<br>スタイルシートを作成して CSS ルールに追加してください。",
 
@@ -599,7 +613,7 @@ define({
 	"CMD_SHOW_PARAMETER_HINT": "パラメーターヒントを表示",
 	"NO_ARGUMENTS": "<パラメーターがありません>",
 	"DETECTED_EXCLUSION_TITLE": "JavaScript ファイルの推論問題",
-	"DETECTED_EXCLUSION_INFO": "Brackets で処理中に問題が発生しました : <br><br>{0}<br><br>このファイルはコードヒントとしては処理されず、定義に移動します。これを戻すには、プロジェクトで <code>.brackets.json</code> を開いて jscodehints.detectedExclusions からファイルを削除してください。",
+	"DETECTED_EXCLUSION_INFO": "Brackets で <span class='dialog-filename'>{0}</span> の処理中に問題が発生しました。<br><br>このファイルはコードヒント、定義にジャンプ、またはクイック編集では処理されません。このファイルを再度有効にするには、プロジェクトで <code>.brackets.json</code> を開いて <code>jscodehints.detectedExclusions</code> を編集してください。<br><br>これは、Brackets のバグである可能性があります。このファイルのコピーをご提供いただける場合は、ここで名付けたファイルへのリンクを記載して<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>バグを登録</a>してください。",
     
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",

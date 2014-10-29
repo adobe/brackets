@@ -34,10 +34,11 @@ define({
     "GENERIC_ERROR"                     : "(erro {0})",
     "NOT_FOUND_ERR"                     : "O arquivo não pôde ser encontrado.",
     "NOT_READABLE_ERR"                  : "O arquivo não pôde ser lido.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "Arquivos maiores que {0} MB não podem ser abertos no {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "O diretório de destino não pode ser modificado.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "As permissões não permitem que você faça modificações.",
     "CONTENTS_MODIFIED_ERR"             : "O arquivo foi modificado fora do {APP_NAME}.",
-    "UNSUPPORTED_ENCODING_ERR"          : "O arquivo não contém texto codificado em UTF-8.",
+    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} atualmente suporta apenas arquivos de texto codificados em UTF-8.",
     "FILE_EXISTS_ERR"                   : "Arquivo ou pasta já existe.",
     "FILE"                              : "arquivo",
     "FILE_TITLE"                        : "Arquivo",
@@ -72,9 +73,21 @@ define({
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "Já existe um arquivo ou diretório como o nome <span class='dialog-filename'>{0}</span>.",
     "ERROR_CREATING_FILE_TITLE"         : "Erro ao criar {0}",
     "ERROR_CREATING_FILE"               : "Ocorreu um erro ao tentar criar o {0} <span class='dialog-filename'>{1}</span>. {2}",
+    "ERROR_MIXED_DRAGDROP"              : "Não é possível abrir uma pasta e outros arquivos ao mesmo tempo.",
+
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "Erro ao ler mapa de teclas do usuário",
+    "ERROR_KEYMAP_CORRUPT"              : "Seu arquivo de mapa de teclas não é um JSON válido. O arquivo será aberto para que você possa corrigir o formato.",
+    "ERROR_LOADING_KEYMAP"              : "Seu arquivo de mapa de teclas não é um arquivo de texto com codificação UTF-8 válida e não pode ser carregado",
+    "ERROR_RESTRICTED_COMMANDS"         : "Você não pode reatribuir atalhos para estes comandos: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Você não pode reatribuir estes atalhos: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Você está reatribuindo múltiplos atalhos para estes comandos: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Você tem múltiplos vínculos para estes atalhos: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Estes atalhos são inválidos: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Você está atribuindo atalhos para comandos não existentes: {0}",
 
     // Application preferences corrupt error strings
-    "ERROR_PREFS_CORRUPT_TITLE"         : "Erro ao ler preferências",
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Erro ao ler as preferências",
     "ERROR_PREFS_CORRUPT"               : "Seu arquivo de preferências não é um JSON válido. O arquivo será aberto para que você possa corrigir o formato. Você deverá reiniciar o {APP_NAME} para as alterações terem efeito.",
 
     // Application error strings
@@ -83,7 +96,7 @@ define({
 
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Erro ao indexar arquivos",
-    "ERROR_MAX_FILES"                   : "O número máximo de arquivos foi indexado. Ações que procuram no índice de arquivos podem funcionar incorretamente.",
+    "ERROR_MAX_FILES"                   : "Este projeto contém mais de 30.000 arquivos. Funcionalidades que operam em múltiplos arquivos podem ser desabilitadas ou se comportarem como se o projeto estivesse vazio. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Leia mais sobre como trabalhar com grandes projetos</a>.",
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Erro ao abrir o navegador",
@@ -93,7 +106,7 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Erro no Live Preview",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectando-se ao navegador",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para que o Live Preview conecte-se, o Chrome deve ser reiniciado com a opção de depuração remota ativada.<br /><br />Gostaria de abrir o Chrome novamente e permitir a depuração remota?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Não foi possível carregar a página de Live Development",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Não foi possível carregar a página de Live Preview",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abra um arquivo HTML para iniciar Live Preview.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Para iniciar um live preview com um arquivo server-side, é preciso especificar uma URL Base para este projeto.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Erro ao iniciar o servidor HTTP para os arquivos do desenvolvimento em tempo real. Por favor, tente novamente.",
@@ -102,7 +115,7 @@ define({
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para mais informações, veja <a href='{0}' title='{0}'>Solucionando erros de conexão com Live Development</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connectando\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Conectando\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Inicializando\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Desconectar Live Preview",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview (salve o arquivo para recarregar)",
@@ -116,7 +129,7 @@ define({
     "SAVE_CLOSE_TITLE"                  : "Salvar alterações",
     "SAVE_CLOSE_MESSAGE"                : "Você quer salvar as alterações feitas no documento <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Você quer salvar as alterações feitas aos seguintes arquivos?",
-    "EXT_MODIFIED_TITLE"                : "Mudanças externas",
+    "EXT_MODIFIED_TITLE"                : "Alterações externas",
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmar exclusão",
     "CONFIRM_FOLDER_DELETE"             : "Tem certeza que deseja excluir a pasta <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Arquivo excluído",
@@ -150,15 +163,15 @@ define({
     "BUTTON_PREV_HINT"                  : "Resultado anterior",
     "BUTTON_CASESENSITIVE_HINT"         : "Diferenciar maiúsculas/minúsculas",
     "BUTTON_REGEXP_HINT"                : "Expressão regular",
-    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Substituir sem Desfazer",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Substituir sem desfazer",
     "REPLACE_WITHOUT_UNDO_WARNING"      : "Porque mais de {0} arquivos precisam ser alterados, {APP_NAME} irá modificar arquivos não abertos no disco.<br />Não será possível desfazer as modificações nestes arquivos.",
-    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Substituir sem Desfazer",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Substituir sem desfazer",
 
     "OPEN_FILE"                         : "Abrir arquivo",
     "SAVE_FILE_AS"                      : "Salvar arquivo",
     "CHOOSE_FOLDER"                     : "Escolha uma pasta",
 
-    "RELEASE_NOTES"                     : "Notas da Versão",
+    "RELEASE_NOTES"                     : "Notas da versão",
     "NO_UPDATE_TITLE"                   : "Você está atualizado!",
     "NO_UPDATE_MESSAGE"                 : "Você está executando a versão mais recente do {APP_NAME}.",
 
@@ -221,6 +234,23 @@ define({
     "WORKING_FILES"     : "Arquivos abertos",
 
     /**
+     * MainViewManager
+     */
+    "TOP"               : "Início",
+    "BOTTOM"            : "Fim",
+    "LEFT"              : "Esquerda",
+    "RIGHT"             : "Direita",
+
+    "CMD_SPLITVIEW_NONE"        : "Sem divisão",
+    "CMD_SPLITVIEW_VERTICAL"    : "Divisão vertical",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Divisão horizontal",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Divida o editor verticalmente ou horizontalmente",
+    "GEAR_MENU_TOOLTIP"         : "Configurar conjunto de trabalho",
+
+    "SPLITVIEW_INFO_TITLE"              : "Já está aberto",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "O arquivo já está aberto em outro painel. {APP_NAME} em breve irá suportar a abertura de um mesmo arquivo em mais de um painel. Até lá, o arquivo será mostrado no painel onde já está aberto.<br /><br />(Você irá ver esta mensagem apenas uma vez.)",
+
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
@@ -249,7 +279,7 @@ define({
     "STATUSBAR_OVERWRITE"                   : "OVR",
     "STATUSBAR_INSOVR_TOOLTIP"              : "Clique para alternar o cursor entre os modos Insert (INS) e Overwrite (OVR)",
     "STATUSBAR_LANG_TOOLTIP"                : "Clique para alterar o tipo de arquivo",
-    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Clique para abrir/fechar o painel de reatórios.",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Clique para abrir/fechar o painel de relatórios.",
     "STATUSBAR_DEFAULT_LANG"                : "(padrão)",
     "STATUSBAR_SET_DEFAULT_LANG"            : "Definir como padrão para arquivos .{0}.",
 
@@ -276,7 +306,7 @@ define({
     "CMD_FILE_NEW"                        : "Novo arquivo",
     "CMD_FILE_NEW_FOLDER"                 : "Nova pasta",
     "CMD_FILE_OPEN"                       : "Abrir\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Adicionar ao Conjunto de Trabalho",
+    "CMD_ADD_TO_WORKING_SET"              : "Adicionar ao conjunto de trabalho",
     "CMD_OPEN_DROPPED_FILES"              : "Abrir arquivos largados",
     "CMD_OPEN_FOLDER"                     : "Abrir pasta\u2026",
     "CMD_FILE_CLOSE"                      : "Fechar",
@@ -392,6 +422,7 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} no Twitter",
     "CMD_ABOUT"                           : "Sobre o {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Abrir arquivo de configurações",
+    "CMD_OPEN_KEYMAP"                     : "Abrir mapa de teclas do usuário",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versão experimental",
@@ -421,6 +452,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "A URL base não pode conter hashes como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Caracteres especiais como '{0}' devem ser codificados para URL encoding.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Erro desconhecido ao parsear URL base",
+    "EMPTY_VIEW_HEADER"                    : "<em>Abra um arquivo enquanto este painel possui o foco</em>",
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema atual",
@@ -517,13 +549,14 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Não foi possível remover a extensão {0} porque ela não estava instalada.",
     "NO_EXTENSIONS"                        : "Nenhuma extensão instalada ainda.<br>Clique na aba Disponíveis acima para começar.",
     "NO_EXTENSION_MATCHES"                 : "Nenhuma extensão corresponde à sua pesquisa.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Tenha cuidado ao instalar extensões de fontes desconhecidas.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: Estas extensões podem vir de diferentes autores e não do próprio {APP_NAME}. Extensões não são revisadas e tem prilégios locais totais. Tenha cuidado ao instalar extensões de fontes desconhecidas.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Instaladas",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponíveis",
     "EXTENSIONS_THEMES_TITLE"              : "Temas",
     "EXTENSIONS_UPDATES_TITLE"             : "Atualizações",
     
-    "INLINE_EDITOR_NO_MATCHES"             : "Nenhuma correspondência.",
+    "INLINE_EDITOR_NO_MATCHES"             : "Nenhum resultado.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "Todas as correspondências foram ocultadas. Expanda os arquivos listados na direita para ver os resultados.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Nenhuma regra CSS corresponde à sua seleção.<br> Clique em \"Nova regra\" para criar uma.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Seu projeto não tem uma folha de estilos.<br>Crie uma para adicionar regras CSS.",
 
@@ -539,7 +572,7 @@ define({
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Depurar",
     "ERRORS"                                    : "Erros",
-    "CMD_SHOW_DEV_TOOLS"                        : "Mostrar Ferramentas do Desenvolvedor",
+    "CMD_SHOW_DEV_TOOLS"                        : "Mostrar ferramentas do desenvolvedor",
     "CMD_REFRESH_WINDOW"                        : "Recarregar com extensões",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Recarregar sem extensões",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Nova janela do {APP_NAME}",
@@ -550,6 +583,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Registrar estado do Node no console",
     "CMD_RESTART_NODE"                          : "Reiniciar Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostrar erros na barra de status",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Abrir local do Brackets",
     
     "LANGUAGE_TITLE"                            : "Alterar idioma",
     "LANGUAGE_MESSAGE"                          : "Idioma:",
@@ -578,7 +612,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostrar dicas de parâmetro",
     "NO_ARGUMENTS"                              : "<nenhum parâmetro>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problema de inferência de arquivo JavaScript",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets enfrentou um problema ao processar:<br><br>{0}<br><br>Este arquivo não será mais processado para dicas de código e definições. Para reverter, abra <code>.brackets.json</code> em seu projeto e remova o arquivo de jscodehints.detectedExclusions.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets enfrentou um problema ao processar: <span class='dialog-filename'>{0}</span>.<br><br>Este arquivo não será mais processado para dicas de código, definições ou edição rápida. Para reverter, abra <code>.brackets.json</code> em seu projeto e edite <code>jscodehints.detectedExclusions</code>.<br><br>Este provavelmente é um bug do Brackets. Se você pode fornecer uma cópia deste arquivo, por favor <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>registre um bug</a> com um link para o arquivo mencionado aqui.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -592,3 +626,4 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Leia mais"
 });
+/* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */
