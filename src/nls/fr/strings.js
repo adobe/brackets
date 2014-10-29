@@ -426,6 +426,7 @@ define({
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
+	"RELEASE_BUILD": "version",
 	"DEVELOPMENT_BUILD": "version de développement",
 	"RELOAD_FROM_DISK": "Recharger à partir du disque",
 	"KEEP_CHANGES_IN_EDITOR": "Conserver les modifications dans l’éditeur",
