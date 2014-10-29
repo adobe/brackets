@@ -1,7 +1,7 @@
 Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.svg?branch=master)](https://travis-ci.org/adobe/brackets)
 -------------------
 
-This is an early version of Brackets, a code editor for HTML, CSS
+Brackets is a code editor for HTML, CSS
 and JavaScript that's *built* in HTML, CSS and JavaScript. 
 
 What makes Brackets different from other web code editors?
@@ -22,11 +22,6 @@ on the wiki, [intro videos](http://www.youtube.com/user/CodeBrackets) on YouTube
 
 How to install and run Brackets
 -------------------------------
-
-
-#### Brackets is getting close to 1.0
-
-Together with your contributions, we're getting close to our first release candidate.  What's there is reasonably stable, and the Brackets team even uses Brackets to develop Brackets full time. So feel free to give it a spin and let us know what's missing! Being built on JavaScript, it's easy to make your own changes, and we give priority to integrating your pull requests back into Brackets!
 
 #### Download
 
