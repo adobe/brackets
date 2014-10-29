@@ -34,6 +34,7 @@ define({
     "GENERIC_ERROR"                     : "(errore {0})",
     "NOT_FOUND_ERR"                     : "Impossibile trovare il file.",
     "NOT_READABLE_ERR"                  : "Il file non può essere letto.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "File oltre {0} MB non possono essere aperti con {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "La cartella selezionata non può essere modificata.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Non hai i permessi necessari per effettuare la modifica.",
     "CONTENTS_MODIFIED_ERR"             : "Il file è stato modificato fuori {APP_NAME}.",
@@ -73,6 +74,18 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Errore durante la creazione del file",
     "ERROR_CREATING_FILE"               : "Errore durante il tentativo di creare il file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_MIXED_DRAGDROP"              : "Impossibile aprire una cartella, contemporaneamente, come l'apertura di altri file.",
+
+
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "Errore nella lettura della mappatura dei tasti",
+    "ERROR_KEYMAP_CORRUPT"              : "Il tuo file non è in formatto JSON valide.  Il file sarà riaperto per poter correggiare il formatto.",
+    "ERROR_LOADING_KEYMAP"              : "La tua mappatura dei tasti non è un file formattato con testo UTF-8 valido e non può essere caricato",
+    "ERROR_RESTRICTED_COMMANDS"         : "Non puoi riassegnare queste scorciatoie: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Non puoi riassegnare delle scorciatoie a questi commandi: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Stai riassegnando più di una scorciatoia a questi commandi:: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Queste scorciatoie non sono valide: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Stai assegnando scorciatoie a commandi inesistenti: {0}",
+
     
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Errore nella lettura delle preferenze",
