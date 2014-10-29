@@ -1075,9 +1075,19 @@ define(function (require, exports, module) {
             });
         }
     };
+    
+    /**
+     * @private
+     * 
+     * Clear all caches associated with the project.
+     */
+    ProjectModel.prototype._clearAllCaches = function () {
+        this._resetCache();
+        FileSystem.clearAllCaches();
+    };
 
     /**
-     * Refreshes the contents of the tree.
+     * Clears caches and refreshes the contents of the tree.
      *
      * @return {$.Promise} resolved when the tree has been refreshed
      */
@@ -1088,7 +1098,8 @@ define(function (require, exports, module) {
             selections  = this._selections,
             viewModel   = this._viewModel,
             deferred    = new $.Deferred();
-
+        
+        this._clearAllCaches();
         this.setProjectRoot(projectRoot).then(function () {
             self.reopenNodes(openNodes).then(function () {
                 if (selections.selected) {
