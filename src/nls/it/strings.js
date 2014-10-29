@@ -79,7 +79,7 @@ define({
     // User key map error strings
     "ERROR_KEYMAP_TITLE"                : "Errore nella lettura della mappatura dei tasti",
     "ERROR_KEYMAP_CORRUPT"              : "Il tuo file non è in formatto JSON valide.  Il file sarà riaperto per poter correggiare il formatto.",
-    "ERROR_LOADING_KEYMAP"              : "La tua mappatura dei tasti non è un file formattato con testo UTF-8 valido e non può essere caricato",
+    "ERROR_LOADING_KEYMAP"              : "La tua mappatura dei tasti non è un file nel formatto UTF-8 valido e non può essere caricato",
     "ERROR_RESTRICTED_COMMANDS"         : "Non puoi riassegnare queste scorciatoie: {0}",
     "ERROR_RESTRICTED_SHORTCUTS"        : "Non puoi riassegnare delle scorciatoie a questi commandi: {0}",
     "ERROR_MULTIPLE_SHORTCUTS"          : "Stai riassegnando più di una scorciatoia a questi commandi:: {0}",
@@ -427,6 +427,7 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                : "build sperimentale",
     "DEVELOPMENT_BUILD"                 : "build di sviluppo",
+    "RELEASE_BUILD"                     : "build di rilascio",
     "RELOAD_FROM_DISK"                  : "Ricarica dal disco",
     "KEEP_CHANGES_IN_EDITOR"            : "Conserva le modifiche nell’editor",
     "CLOSE_DONT_SAVE"                   : "Chiudi (non salvare)",
