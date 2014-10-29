@@ -77,9 +77,9 @@ define({
 
 
     // User key map error strings
-    "ERROR_KEYMAP_TITLE"                : "Errore nella lettura della mappatura dei tasti",
-    "ERROR_KEYMAP_CORRUPT"              : "Il tuo file non è in formatto JSON valide.  Il file sarà riaperto per poter correggiare il formatto.",
-    "ERROR_LOADING_KEYMAP"              : "La tua mappatura dei tasti non è un file nel formatto UTF-8 valido e non può essere caricato",
+    "ERROR_KEYMAP_TITLE"                : "Errore nella lettura della key map",
+    "ERROR_KEYMAP_CORRUPT"              : "Il tuo file non è in formato JSON valido.  Il file sarà riaperto per poter correggiare il formato.",
+    "ERROR_LOADING_KEYMAP"              : "La tua key map non è un file UTF-8 valido e non può essere caricato",
     "ERROR_RESTRICTED_COMMANDS"         : "Non puoi riassegnare queste scorciatoie: {0}",
     "ERROR_RESTRICTED_SHORTCUTS"        : "Non puoi riassegnare delle scorciatoie a questi commandi: {0}",
     "ERROR_MULTIPLE_SHORTCUTS"          : "Stai riassegnando più di una scorciatoia a questi commandi:: {0}",
