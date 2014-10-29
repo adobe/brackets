@@ -34,6 +34,7 @@ define({
     "GENERIC_ERROR"                     : "(error {0})",
     "NOT_FOUND_ERR"                     : "No se pudo encontrar el archivo.",
     "NOT_READABLE_ERR"                  : "No se pudo leer el archivo.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "Los archivos de más de {0} MB no se pueden abrir en {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "El directorio de destino no se puede modificar.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Los permisos no permiten hacer modificaciones.",
     "CONTENTS_MODIFIED_ERR"             : "El archivo fue modificado fuera de {APP_NAME}.",
@@ -74,9 +75,20 @@ define({
     "ERROR_CREATING_FILE"               : "Ha ocurrido un error al intentar crear el {0} <span class='dialog-filename'>{1}</span>. {2}",
     "ERROR_MIXED_DRAGDROP"              : "No es posible abrir una carpeta y otros archivos al mismo tiempo.",
     
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "Ocurrió un error leyendo los atajos de teclado",
+    "ERROR_KEYMAP_CORRUPT"              : "El archivo de atajos de teclado no tiene un formato JSON válido. El archivo se abrirá para que puedas corregir el formato.",
+    "ERROR_LOADING_KEYMAP"              : "El archivo de atajos de teclado no está codificado como UTF-8 y no puede ser cargado.",
+    "ERROR_RESTRICTED_COMMANDS"         : "No puedes reasignar atajos de teclado a los siguientes comandos: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "No puedes reasignar los siguientes atajos de teclado: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Estas reasignando múltiples atajos de teclado a los siguientes comandos: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Hay múltiples apariciones de los siguientes atajos de teclado: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Los siguientes atajos de teclado son inválidos: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Estas asignando atajos de teclado a commandos inexistentes: {0}",
+    
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Error leyendo las preferencias",
-    "ERROR_PREFS_CORRUPT"               : "El archivo de preferencias no tiene un formato JSON válido. El archivo se abrirá para que pueda corregir el formato. Luego deberá reiniciar {APP_NAME} para que los cambios surtan efecto.",
+    "ERROR_PREFS_CORRUPT"               : "El archivo de preferencias no tiene un formato JSON válido. El archivo se abrirá para que puedas corregir el formato. Luego deberás reiniciar {APP_NAME} para que los cambios surtan efecto.",
     
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Vaya... parece que {APP_NAME} todavía no funciona en navegadores.",
@@ -94,18 +106,18 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Error en la Vista previa dinámica",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectando con el navegador",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Vista previa dinámica, Chrome debe ser iniciado habilitando la depuración remota.<br /><br />¿Quieres reiniciar Chrome y habilitar la depuración remota?<br /><br />",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "No se pudo cargar la página para Vista previa dinámica.",
-    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abre un archivo HTML o asegúrate de que haya un index.html en tu proyecto para poder iniciar el modo de Vista previa dinámica.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar Vista previa dinámica con archivos de servidor.",
-    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para Vista previa dinámica. Vuelve a intentarlo, por favor.",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "No se pudo cargar la página para la Vista previa dinámica.",
+    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abra un archivo HTML o asegúrate de que haya un index.html en tu proyecto para poder iniciar el modo de Vista previa dinámica.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar la Vista previa dinámica con archivos de servidor.",
+    "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para la Vista previa dinámica. Vuelve a intentarlo, por favor.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a la Vista previa dinámica!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista previa dinámica conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarrollo en Vivo sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista previa dinámica conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, el modo de Vista previa dinámica sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para más información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Vista previa dinámica</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Vista previa dinámica",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Vista previa dinámica: Conectando\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Vista previa dinámica: Inicializando\u2026",
-    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Terminar Vista previa dinámica",
+    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Terminar la Vista previa dinámica",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Vista previa dinámica (guarda el archivo para actualizar)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Vista previa dinámica (no se está actualizando debido a un error de sintaxis)",
     
@@ -119,9 +131,9 @@ define({
     "SAVE_CLOSE_MULTI_MESSAGE"          : "¿Quieres guardar tus cambios en los siguientes documentos?",
     "EXT_MODIFIED_TITLE"                : "Cambios externos",
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmar eliminación",
-    "CONFIRM_FOLDER_DELETE"             : "¿Está seguro que desea eliminar el directorio <span class='dialog-filename'>{0}</span>?",
+    "CONFIRM_FOLDER_DELETE"             : "¿Estás seguro que deseas eliminar el directorio <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Archivo eliminado",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> ha sido modificado en el disco.<br /><br />¿Desea guardar el archivo y sobrescribir esos cambios?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> ha sido modificado en el disco.<br /><br />¿Deseas guardar el archivo y sobrescribir esos cambios?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> ha sido modificado, pero también tiene cambios en {APP_NAME}.<br /><br />¿Qué versión quieres conservar?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ha sido eliminado, pero tiene cambios sin guardar en {APP_NAME}.<br /><br />¿Quieres conservar tus cambios?",
     
@@ -259,7 +271,7 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Haz clic para cambiar el número de espacios usados en la sangría",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Haz clic para cambiar el ancho de las tabulaciones",
     "STATUSBAR_SPACES"                      : "Espacios:",
-    "STATUSBAR_TAB_SIZE"                    : "Tamaño de tabulador:",
+    "STATUSBAR_TAB_SIZE"                    : "Tamaño del tabulador:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} línea",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} líneas",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensiones deshabilitadas",
@@ -410,9 +422,11 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
     "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Abrir archivo de preferencias",
+    "CMD_OPEN_KEYMAP"                     : "Abrir archivo de atajos de teclado",
     
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
+    "RELEASE_BUILD"                        : "versión",
     "DEVELOPMENT_BUILD"                    : "versión de desarrollo",
     "RELOAD_FROM_DISK"                     : "Volver a cargar desde disco",
     "KEEP_CHANGES_IN_EDITOR"               : "Conservar los cambios del editor",
@@ -439,7 +453,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "La URL base no puede contener hashes como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Error desconocido analizando la URL base",
-    "EMPTY_VIEW_HEADER"                    : "<em>Abra un archivo mientras este panel esté efocado</em>", 
+    "EMPTY_VIEW_HEADER"                    : "<em>Abra un archivo mientras este panel está enfocado</em>", 
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema actual",
@@ -467,7 +481,7 @@ define({
     "INSTALL_SUCCEEDED"                    : "¡Instalación completada!",
     "INSTALL_FAILED"                       : "Error en la instalación.",
     "CANCELING_INSTALL"                    : "Cancelando\u2026",
-    "CANCELING_HUNG"                       : "La instalación está tardando demasiado; cancelando. Puede que se haya producido un error interno.",
+    "CANCELING_HUNG"                       : "Cancelando la instalación porque está tardando demasiado tiempo. Puede que se haya producido un error interno.",
     "INSTALL_CANCELED"                     : "Instalación cancelada.",
     "VIEW_COMPLETE_DESCRIPTION"            : "Ver descripción completa",
     "VIEW_TRUNCATED_DESCRIPTION"           : "Ver descripción corta",
@@ -478,8 +492,8 @@ define({
     "BAD_PACKAGE_NAME"                     : "{0} no es un nombre de paquete válido.",
     "MISSING_PACKAGE_VERSION"              : "El archivo package.json no especifica la versión del paquete.",
     "INVALID_VERSION_NUMBER"               : "El número de paquete de la versión ({0}) no es válido.",
-    "INVALID_BRACKETS_VERSION"             : "El código de compatibilidad de {APP_NAME} {{0}} no es válido.",
-    "DISALLOWED_WORDS"                     : "Las palabras {{1}} no están permitidas en el campo {{0}}.",
+    "INVALID_BRACKETS_VERSION"             : "El código de compatibilidad de {APP_NAME} ({0}) no es válido.",
+    "DISALLOWED_WORDS"                     : "Las palabras ({1}) no están permitidas en el campo {0}.",
     "API_NOT_COMPATIBLE"                   : "La extensión no es compatible con esta versión de {APP_NAME}. Está en la carpeta de extensiones deshabilitadas.",
     "MISSING_MAIN"                         : "El paquete no contiene el archivo main.js.",
     "EXTENSION_ALREADY_INSTALLED"          : "Instalar este paquete sobrescribirá una extensión instalada previamente. ¿Deseas sobrescribir la antigua extensión?",
@@ -490,7 +504,7 @@ define({
     "BAD_HTTP_STATUS"                      : "Archivo no encontrado en el servidor (HTTP {0}).",
     "CANNOT_WRITE_TEMP"                    : "No se pudo guardar la descarga en un archivo temporal.",
     "ERROR_LOADING"                        : "La extensión ha encontrado un error al arrancar.",
-    "MALFORMED_URL"                        : "La URL no es válida. Por favor, comprueba que la has escrito correctamente.",
+    "MALFORMED_URL"                        : "La URL no es válida. Por favor, comprueba que esté escrita correctamente.",
     "UNSUPPORTED_PROTOCOL"                 : "La URL debe ser una dirección http o https.",
     "UNKNOWN_ERROR"                        : "Error interno desconocido.",
     // For NOT_FOUND_ERR, see generic strings above
@@ -520,9 +534,9 @@ define({
     "EXTENSION_MORE_INFO_LINK"             : "Más",
     "BROWSE_EXTENSIONS"                    : "Explorar extensiones",
     "EXTENSION_MANAGER_REMOVE"             : "Eliminar extensión",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "No se pudo eliminar una o más extensiones: {{0}}. {APP_NAME} se recargará igualmente.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "No se pudo eliminar una o más extensiones: {0}. {APP_NAME} se recargará igualmente.",
     "EXTENSION_MANAGER_UPDATE"             : "Actualizar extensión",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "No se pudo actualizar una o más extensiones: {{0}}. {APP_NAME} se recargará igualmente.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "No se pudo actualizar una o más extensiones: {0}. {APP_NAME} se recargará igualmente.",
     "MARKED_FOR_REMOVAL"                   : "Marcada para eliminar",
     "UNDO_REMOVE"                          : "Deshacer",
     "MARKED_FOR_UPDATE"                    : "Marcada para actualizar",
@@ -533,18 +547,19 @@ define({
     "CHANGE_AND_RELOAD"                    : "Cambiar extensiones y recargar",
     "UPDATE_AND_RELOAD"                    : "Actualizar extensiones y recargar",
     "PROCESSING_EXTENSIONS"                : "Procesando los cambios en las extensiones\u2026",
-    "EXTENSION_NOT_INSTALLED"              : "No se pudo eliminar la extensión {{0}} porque no se encuentra instalada.",
-    "NO_EXTENSIONS"                        : "Todavía no hay ninguna extensión instalada.<br />Haz clic en la pestaña Disponibles para empezar.",
+    "EXTENSION_NOT_INSTALLED"              : "No se pudo eliminar la extensión {0} porque no se encuentra instalada.",
+    "NO_EXTENSIONS"                        : "Todavía no hay ninguna extensión instalada.<br>Haz clic en la pestaña Disponibles para empezar.",
     "NO_EXTENSION_MATCHES"                 : "No hay extensiones que coincidan con tu búsqueda.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: estas extensiones pueden provenir de autores diferentes a {APP_NAME}. Las extensiones no son revisadas y tiene todos los privilegios locales. Tenga cuidado cuando instale extensiones de una fuente desconocida.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: estas extensiones pueden provenir de autores diferentes a {APP_NAME}. Las extensiones no son revisadas y tiene todos los privilegios locales. Tenga cuidado cuando instala extensiones de una fuente desconocida.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Instaladas",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponibles",
     "EXTENSIONS_THEMES_TITLE"              : "Temas",
     "EXTENSIONS_UPDATES_TITLE"             : "Actualizaciones",
     
     "INLINE_EDITOR_NO_MATCHES"             : "No hay coincidencias disponibles.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "No hay reglas CSS existentes que coincidan con tu selección.<br> Haz clic en \"Nueva regla\" para crear una.",
-    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "No hay hojas de estilos en tu proyecto.<br>Crea una para añadir reglas CSS.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "Todas las coincidencias están colapsadas. Expanda los archivos listados a la derecha para ver coincidencias.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "No hay reglas de CSS existentes que coincidan con tu selección.<br> Haz clic en \"Nueva regla\" para crear una.",
+    "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "No hay hojas de estilos en tu proyecto.<br>Crea una para añadir reglas de CSS.",
     
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "más grande",
@@ -598,7 +613,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostrar sugerencias de parámetros",
     "NO_ARGUMENTS"                              : "<no hay parámetros>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problema de inferencia con un archivo JavaScript",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets se encontró con problemas procesando:<span class='dialog-filename'>{0}</span>.<br><br>Este archivo no volverá a ser procesado para las sugerencias de código, saltar a la definición o para la edición rápida. Para reactivar este archivo, abra el archivo <code>.brackets.json</code> en su proyecto y edite <code>jscodehints.detectedExclusions</code><br><br>Esto es probablemente un error en Brackets. Si puede proporcionar una copia de este archivo, por favor <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>envíe un informe</a> con un vínculo a dicho archivo.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets se encontró con problemas procesando: <span class='dialog-filename'>{0}</span>.<br><br>Este archivo no volverá a ser procesado para las sugerencias de código, saltar a la definición o para la edición rápida. Para reactivar este archivo, abra el archivo <code>.brackets.json</code> en su proyecto y edite <code>jscodehints.detectedExclusions</code><br><br>Esto es probablemente un error en Brackets. Si puede proporcionar una copia de este archivo, por favor <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>envíe un informe</a> con un vínculo a dicho archivo.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -613,4 +628,4 @@ define({
     "DOCS_MORE_LINK"                            : "Más"
 });
 
-/* Last translated for 91b392bf349ece5058595b26a11c651697ee7ff6 */
+/* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */
