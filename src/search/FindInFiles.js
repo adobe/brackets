@@ -98,7 +98,7 @@ define(function (require, exports, module) {
         }
         
         var match, lineNum, line, ch, totalMatchLength, matchedLines, numMatchedLines, lastLineLength, endCh,
-            padding, leftPadding, rightPadding, highlightOffset,
+            padding, leftPadding, rightPadding, highlightOffset, highlightEndCh,
             lines   = StringUtils.getLines(contents),
             matches = [];
         
@@ -111,9 +111,10 @@ define(function (require, exports, module) {
             totalMatchLength = match[0].length;
             lastLineLength   = matchedLines[matchedLines.length - 1].length;
             endCh            = (numMatchedLines === 1 ? ch + totalMatchLength : lastLineLength);
+            highlightEndCh   = (numMatchedLines === 1 ? endCh : line.length);
             highlightOffset  = 0;
             
-            if (endCh <= MAX_DISPLAY_LENGTH) {
+            if (highlightEndCh <= MAX_DISPLAY_LENGTH) {
                 // Don't store more than 200 chars per line
                 line = line.substr(0, Math.min(MAX_DISPLAY_LENGTH, line.length));
             } else if (totalMatchLength > MAX_DISPLAY_LENGTH) {
@@ -123,10 +124,10 @@ define(function (require, exports, module) {
             } else {
                 // Try to have both beginning and end of match displayed
                 padding = MAX_DISPLAY_LENGTH - totalMatchLength;
-                rightPadding = Math.floor(Math.min(padding / 2, line.length - endCh));
+                rightPadding = Math.floor(Math.min(padding / 2, line.length - highlightEndCh));
                 leftPadding = Math.ceil(padding - rightPadding);
                 highlightOffset = ch - leftPadding;
-                line = line.substring(highlightOffset, endCh + rightPadding);
+                line = line.substring(highlightOffset, highlightEndCh + rightPadding);
             }
             
             matches.push({
