@@ -949,4 +949,10 @@ define(function (require, exports, module) {
     exports.beginSearch             = beginSearch;
     exports.addQuickOpenPlugin      = addQuickOpenPlugin;
     exports.highlightMatch          = highlightMatch;
+    
+    // accessing these from this module will ultimately be deprecated
+    exports.stringMatch             = StringMatch.stringMatch;
+    exports.SearchResult            = StringMatch.SearchResult;
+    exports.basicMatchSort          = StringMatch.basicMatchSort;
+    exports.multiFieldSort          = StringMatch.multiFieldSort;
 });
