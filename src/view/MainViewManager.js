@@ -260,6 +260,12 @@ define(function (require, exports, module) {
         });
     }
     
+    function _dumpMRUList() {
+        _mruList.forEach(function (entry) {
+            console.log(entry.file.fullPath);
+        });
+    }
+    
     /**
      * Retrieves the currently active Pane Id
      * @return {!string} Active Pane's ID.
