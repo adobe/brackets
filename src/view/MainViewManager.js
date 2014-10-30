@@ -254,6 +254,12 @@ define(function (require, exports, module) {
         return {file: file, paneId: paneId};
     }
     
+    function _findFileInMRUList(file) {
+        return _.findIndex(_mruList, function (record) {
+            return (record.file.fullPath === file.fullPath);
+        });
+    }
+    
     /**
      * Retrieves the currently active Pane Id
      * @return {!string} Active Pane's ID.
@@ -330,6 +336,10 @@ define(function (require, exports, module) {
                 _mruList.splice(index, 1);
             }
 
+            if (_findFileInMRUList(file) !== -1) {
+                console.log(file.fullPath + " duplicated in mru list");
+            }
+            
             // add it to the front of the list
             _mruList.unshift(entry);
         }
@@ -710,6 +720,10 @@ define(function (require, exports, module) {
         } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
 
+            if (_findFileInMRUList(file) !== -1) {
+                console.log(file.fullPath + " duplicated in mru list");
+            }
+            
             // Add to or update the position in MRU
             if (pane.getCurrentlyViewedFile() === file) {
                 _mruList.unshift(entry);
@@ -733,6 +747,9 @@ define(function (require, exports, module) {
         uniqueFileList = pane.addListToViewList(fileList);
         
         uniqueFileList.forEach(function (file) {
+            if (_findFileInMRUList(file) !== -1) {
+                console.log(file.fullPath + " duplicated in mru list");
+            }
             _mruList.push(_makeMRUListEntry(file, pane.id));
         });
         
@@ -1516,6 +1533,9 @@ define(function (require, exports, module) {
                     var fileList = pane.getViewList();
 
                     fileList.forEach(function (file) {
+                        if (_findFileInMRUList(file) !== -1) {
+                            console.log(file.fullPath + " duplicated in mru list");
+                        }
                         _mruList.push(_makeMRUListEntry(file, pane.id));
                     });
                     $(exports).triggerHandler("workingSetAddList", [fileList, pane.id]);
