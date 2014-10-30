@@ -950,7 +950,7 @@ define(function (require, exports, module) {
     exports.addQuickOpenPlugin      = addQuickOpenPlugin;
     exports.highlightMatch          = highlightMatch;
     
-    // accessing these from this module will ultimately be deprecated
+    // Convenience exports for functions that most QuickOpen plugins would need.
     exports.stringMatch             = StringMatch.stringMatch;
     exports.SearchResult            = StringMatch.SearchResult;
     exports.basicMatchSort          = StringMatch.basicMatchSort;
