@@ -816,7 +816,16 @@ define(function (require, exports, module) {
             }
         }
     };
-        
+    
+    /**
+     * Clears all cached content. Because of the performance implications of this, this should only be used if
+     * there is a suspicion that the file system has not been updated through the normal file watchers
+     * mechanism.
+     */
+    FileSystem.prototype.clearAllCaches = function () {
+        this._handleExternalChange(null);
+    };
+    
     /**
      * Start watching a filesystem root entry.
      * 
@@ -965,6 +974,7 @@ define(function (require, exports, module) {
     exports.showSaveDialog = _wrap(FileSystem.prototype.showSaveDialog);
     exports.watch = _wrap(FileSystem.prototype.watch);
     exports.unwatch = _wrap(FileSystem.prototype.unwatch);
+    exports.clearAllCaches = _wrap(FileSystem.prototype.clearAllCaches);
     
     // Static public utility methods
     exports.isAbsolutePath = FileSystem.isAbsolutePath;
