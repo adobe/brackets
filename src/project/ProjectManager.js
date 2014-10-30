@@ -921,21 +921,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
-     * @type {?$.Promise} Resolves when the currently running instance of
-     *      _refreshFileTreeInternal completes, or null if there is no currently
-     *      running instance.
-     */
-    var _refreshFileTreePromise = null;
-
-    /**
-     * @type {boolean} If refreshFileTree is called before _refreshFileTreePromise
-     *      has resolved then _refreshPending is set, which indicates that
-     *      refreshFileTree should be called again once the promise resolves.
-     */
-    var _refreshPending = false;
-
-    /**
      * @const
      * @private
      * @type {number} Minimum delay in milliseconds between calls to refreshFileTree
@@ -944,38 +929,16 @@ define(function (require, exports, module) {
 
     /**
      * Refresh the project's file tree, maintaining the current selection.
-     *
-     * @return {$.Promise} A promise object that will be resolved when the
-     *  project tree is reloaded, or rejected if the project path
-     *  fails to reload. If the previous selected entry is not found,
-     *  the promise is still resolved.
+     * 
+     * Note that the original implementation of this returned a promise to be resolved when the refresh is complete.
+     * That use is deprecated and `refreshFileTree` is now a "fire and forget" kind of function.
      */
-    function refreshFileTree() {
-        if (!_refreshFileTreePromise) {
-            var internalRefreshPromise  = model.refresh(),
-                deferred                = new $.Deferred();
-
-            _refreshFileTreePromise = deferred.promise();
-
-            _refreshFileTreePromise.always(function () {
-                _refreshFileTreePromise = null;
-
-                if (_refreshPending) {
-                    _refreshPending = false;
-                    refreshFileTree();
-                }
-            });
-
-            // Wait at least one second before resolving the promise
-            window.setTimeout(function () {
-                internalRefreshPromise.then(deferred.resolve, deferred.reject);
-            }, _refreshDelay);
-        } else {
-            _refreshPending = true;
-        }
-
-        return _refreshFileTreePromise;
-    }
+    var refreshFileTree = function refreshFileTree() {
+        FileSystem.clearAllCaches();
+        return new $.Deferred().resolve().promise();
+    };
+    
+    refreshFileTree = _.debounce(refreshFileTree, _refreshDelay);
 
     /**
      * Expands tree nodes to show the given file or folder and selects it. Silently no-ops if the

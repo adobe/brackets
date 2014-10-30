@@ -1080,7 +1080,6 @@ define(function (require, exports, module) {
 
             it("should refresh the whole tree", function () {
                 var oldTree;
-                spyOn(model, "_clearAllCaches");
                 waitsForDone(model.reopenNodes(data.nodesByDepth));
                 runs(function () {
                     model.setSelected("/foo/subdir1/subsubdir/interior.txt");
@@ -1103,7 +1102,6 @@ define(function (require, exports, module) {
                     expect(vm._treeData.getIn(["subdir1", "children", "subsubdir", "children", "newInterior.txt"])).toBeDefined();
                     expect(vm._treeData.getIn(["subdir1", "children", "subsubdir", "children", "interior.txt"])).toBeUndefined();
                     expect(vm._treeData.getIn(["subdir3", "children", "higher.txt", "context"])).toBe(true);
-                    expect(model._clearAllCaches).toHaveBeenCalled();
                 });
             });
         });

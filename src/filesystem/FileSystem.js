@@ -823,9 +823,7 @@ define(function (require, exports, module) {
      * mechanism.
      */
     FileSystem.prototype.clearAllCaches = function () {
-        this._index.visitAll(function (entry) {
-            entry._clearCachedData(true);
-        });
+        this._handleExternalChange(null);
     };
     
     /**
