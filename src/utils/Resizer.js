@@ -138,15 +138,15 @@ define(function (require, exports, module) {
      *  fixed size (3000px) in each panes to prevent rendering when the user is resizing 
      * @makeFixed  {Boolean} false if we want thenormal width
      */
-    function makeEditorsFixedWidth( makeFixed ) {
-        var firstPane =  $('#first-pane>.pane-content>.CodeMirror');
-        var secondPane =  $('#second-pane>.pane-content>.CodeMirror');
+    function makeEditorsFixedWidth(makeFixed) {
+        var $firstPane = $("#first-pane>.pane-content>.CodeMirror");
+        var $secondPane = $("#second-pane>.pane-content>.CodeMirror");
         if (makeFixed) {
-            firstPane.addClass('fixedWidth');
-            secondPane.addClass('fixedWidth');
+            $firstPane.addClass("fixedWidth");
+            $secondPane.addClass("fixedWidth");
         } else {
-            firstPane.removeClass('fixedWidth');
-            secondPane.removeClass('fixedWidth');
+            $firstPane.removeClass("fixedWidth");
+            $secondPane.removeClass("fixedWidth");
         }
     }
 
@@ -357,9 +357,8 @@ define(function (require, exports, module) {
         
 
         $resizer.on("mousedown.resizer", function (e) {
-        	
-        	// we change the editors' width to fixed size to prevent rendering contents
-        	makeEditorsFixedWidth(true);
+            // we change the editors' width to fixed size to prevent rendering contents
+            makeEditorsFixedWidth(true);
 
             var $resizeShield   = $("<div class='resizing-container " + direction + "-resizing' />"),
                 startPosition   = e[directionProperty],
