@@ -207,7 +207,13 @@
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
-        "fileExtensions": ["md", "markdown"],
+        "fileExtensions": ["md", "markdown", "mdown", "mkdn"],
+        "blockComment": ["<!--", "-->"]
+    },
+
+    "gfm": {
+        "name": "GitHub Flavored Markdown",
+        "mode": "gfm",
         "blockComment": ["<!--", "-->"]
     },
 
