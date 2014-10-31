@@ -458,8 +458,8 @@ define(function (require, exports, module) {
             }
             
             function endResize(e) {
-            	// restoring the width to default value
-            	makeEditorsFixedWidth(false);
+                // restoring the width to default value
+                makeEditorsFixedWidth(false);
 
                 if (isResizing) {
                     
