@@ -79,11 +79,11 @@ define({
 	"ERROR_KEYMAP_TITLE": "ユーザーキーマップを読み込む際にエラーが発生しました",
 	"ERROR_KEYMAP_CORRUPT": "キーマップファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。",
 	"ERROR_LOADING_KEYMAP": "キーマップファイルが UTF-8 でエンコードされた有効なテキストファイルではないため、読み込めません",
-	"ERROR_RESTRICTED_COMMANDS": "これらのコマンドにショートカットを割り当て直すことはできません : {0}",
-	"ERROR_RESTRICTED_SHORTCUTS": "これらのショートカットを割り当て直すことはできません : {0}",
-	"ERROR_MULTIPLE_SHORTCUTS": "これらのコマンドに複数のショートカットを割り当て直しています : {0}",
-	"ERROR_DUPLICATE_SHORTCUTS": "これらのショートカットの複数のバインディングがあります : {0}",
-	"ERROR_INVALID_SHORTCUTS": "これらのショートカットは無効です : {0}",
+	"ERROR_RESTRICTED_COMMANDS": "次のコマンドにショートカットを割り当て直すことはできません : {0}",
+	"ERROR_RESTRICTED_SHORTCUTS": "次のショートカットを割り当て直すことはできません : {0}",
+	"ERROR_MULTIPLE_SHORTCUTS": "次のコマンドに複数のショートカットを割り当て直しています : {0}",
+	"ERROR_DUPLICATE_SHORTCUTS": "次のショートカットの複数のバインディングがあります : {0}",
+	"ERROR_INVALID_SHORTCUTS": "次のショートカットは無効です : {0}",
 	"ERROR_NONEXISTENT_COMMANDS": "存在しないコマンドにショートカットを割り当てています : {0}",
 
     // Application preferences corrupt error strings

@@ -76,13 +76,13 @@ define({
 	"ERROR_MIXED_DRAGDROP": "Impossible d’ouvrir un dossier en même temps que d’autres fichiers.",
 
     // User key map error strings
-	"ERROR_KEYMAP_TITLE": "Erreur lors de la lecture de la mappe de clé utilisateur",
-	"ERROR_KEYMAP_CORRUPT": "Votre fichier de mappe de clé n'est pas un fichier JSON valide. Il va s'ouvrir afin que vous puissiez corriger le format.",
-	"ERROR_LOADING_KEYMAP": "Votre fichier de mappe de clé n'étant pas un fichier texte codé en UTF-8 valide, il ne peut pas être chargé",
+	"ERROR_KEYMAP_TITLE": "Erreur lors de la lecture du mappage de touches utilisateur",
+	"ERROR_KEYMAP_CORRUPT": "Votre fichier de mappage de touches n’est pas un fichier JSON valide. Il va s’ouvrir afin que vous puissiez corriger le format.",
+	"ERROR_LOADING_KEYMAP": "Votre fichier de mappage de touches n’étant pas un fichier texte codé en UTF-8 valide, il ne peut pas être chargé.",
 	"ERROR_RESTRICTED_COMMANDS": "Vous ne pouvez pas réaffecter de raccourcis à ces commandes : {0}",
 	"ERROR_RESTRICTED_SHORTCUTS": "Vous ne pouvez pas réaffecter ces raccourcis : {0}",
 	"ERROR_MULTIPLE_SHORTCUTS": "Vous réaffectez plusieurs raccourcis à ces commandes : {0}",
-	"ERROR_DUPLICATE_SHORTCUTS": "Vous disposez de plusieurs liaisons pour ces raccourcis : {0}",
+	"ERROR_DUPLICATE_SHORTCUTS": "Plusieurs liaisons ont été définies pour les raccourcis suivants : {0}",
 	"ERROR_INVALID_SHORTCUTS": "Ces raccourcis ne sont pas valides : {0}",
 	"ERROR_NONEXISTENT_COMMANDS": "Vous affectez des raccourcis à des commandes qui n'existent pas : {0}",
 
@@ -422,7 +422,7 @@ define({
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
 	"CMD_OPEN_PREFERENCES": "Ouvrir le fichier de préférences",
-	"CMD_OPEN_KEYMAP": "Ouvrir la mappe de clé utilisateur",
+	"CMD_OPEN_KEYMAP": "Ouvrir le mappage de touches utilisateur",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "version expérimentale",
