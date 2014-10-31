@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         Async                   = require("utils/Async"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
-        DeprecationWarning      = require("utils/DeprecationWarning"),
         FileUtils               = require("file/FileUtils"),
         PreferencesBase         = require("preferences/PreferencesBase"),
         FileSystem              = require("filesystem/FileSystem"),
@@ -257,23 +256,6 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_PREFERENCES, Commands.FILE_OPEN_PREFERENCES, _handleOpenPreferences);
     
     /**
-     * Convenience function that sets a preference and then saves the file, mimicking the
-     * old behavior a bit more closely.
-     * @deprecated Use set instead.
-     *
-     * @param {string} id preference to set
-     * @param {*} value new value for the preference
-     * @param {{location: ?Object, context: ?Object|string}=} options Specific location in which to set the value or the context to use when setting the value
-     * @return {boolean} true if a value was set
-     */
-    function setValueAndSave(id, value, options) {
-        DeprecationWarning.deprecationWarning("setValueAndSave called for " + id + ". Use set instead.");
-        var changed = exports.set(id, value, options).stored;
-        PreferencesImpl.manager.save();
-        return changed;
-    }
-    
-    /**
      * Convenience function that gets a view state
      *
      * @param {string} id preference to get
@@ -347,7 +329,6 @@ define(function (require, exports, module) {
     exports.off                 = PreferencesImpl.manager.off.bind(PreferencesImpl.manager);
     exports.getPreference       = PreferencesImpl.manager.getPreference.bind(PreferencesImpl.manager);
     exports.getExtensionPrefs   = getExtensionPrefs;
-    exports.setValueAndSave     = setValueAndSave;
     exports.getViewState        = getViewState;
     exports.setViewState        = setViewState;
     exports.finalize            = finalize;
