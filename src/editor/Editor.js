@@ -1248,7 +1248,7 @@ define(function (require, exports, module) {
      * @param {boolean} center true to center the viewport
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      * @param {?string} origin An optional string that describes what other selection or edit operations this
-     *      should be merged with for the purposes of undo. See Document.replaceRange() for more details.
+     *      should be merged with for the purposes of undo. See {@link Document#replaceRange} for more details.
      */
     Editor.prototype.setSelection = function (start, end, center, centerOptions, origin) {
         this.setSelections([{start: start, end: end || start}], center, centerOptions, origin);
@@ -1267,7 +1267,7 @@ define(function (require, exports, module) {
      * @param {boolean} center true to center the viewport around the primary selection.
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      * @param {?string} origin An optional string that describes what other selection or edit operations this
-     *      should be merged with for the purposes of undo. See Document.replaceRange() for more details.
+     *      should be merged with for the purposes of undo. See {@link Document#replaceRange} for more details.
      */
     Editor.prototype.setSelections = function (selections, center, centerOptions, origin) {
         var primIndex = selections.length - 1, options;
@@ -2002,7 +2002,7 @@ define(function (require, exports, module) {
      *     the start and end.
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode.
-     * @see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
+     * @see {@link LanguageManager::#getLanguageForPath} and {@link LanguageManager::Language#getMode}.
      */
     Editor.prototype.getModeForRange = function (start, end, knownMixed) {
         var outerMode = this._codeMirror.getMode(),
@@ -2028,7 +2028,7 @@ define(function (require, exports, module) {
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode.
-     * @see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
+     * @see {@link LanguageManager::#getLanguageForPath} and {@link LanguageManager::Language#getMode}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -2081,7 +2081,8 @@ define(function (require, exports, module) {
     /**
      * Gets the syntax-highlighting mode for the document.
      *
-     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
+     * @return {Object|String} Object or Name of syntax-highlighting mode
+     * @see {@link LanguageManager::#getLanguageForPath|LanguageManager.getLanguageForPath} and {@link LanguageManager::Language#getMode|Language.getMode}.
      */
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");

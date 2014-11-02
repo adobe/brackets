@@ -92,7 +92,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * See shouldShow
+     * @see #shouldShow
      */
     function _shouldShowName(name) {
         return !name.match(_exclusionListRegEx);
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
      * @type {string}
      * 
      * Encoded URL
-     * @see getBaseUrl(), setBaseUrl()
+     * @see {@link ProjectModel#getBaseUrl}, {@link ProjectModel#setBaseUrl}
      */
     ProjectModel.prototype._projectBaseUrl = "";
 
@@ -1224,7 +1224,7 @@ define(function (require, exports, module) {
      * Returns the full path to the welcome project, which we open on first launch.
      *
      * @param {string} sampleUrl URL for getting started project
-     * @param {string} initialPath Path to Brackets directory (see FileUtils.getNativeBracketsDirectoryPath())
+     * @param {string} initialPath Path to Brackets directory (see {@link FileUtils::#getNativeBracketsDirectoryPath})
      * @return {!string} fullPath reference
      */
     function _getWelcomeProjectPath(sampleUrl, initialPath) {

@@ -59,7 +59,7 @@ define(function (require, exports, module) {
     /** 
      * Tracks whether a "currentFileChange" notification occured due to a call to 
      * openAndSelectDocument.
-     * @see FileviewController.openAndSelectDocument
+     * @see #openAndSelectDocument
      * @private 
      */
     var _curDocChangedDueToMe = false;
@@ -68,7 +68,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @see FileViewController.getFileSelectionFocus()
+     * @see #getFileSelectionFocus
      */
     var _fileSelectionFocus = PROJECT_MANAGER;
     
