@@ -254,6 +254,7 @@ define(function (require, exports, module) {
 
     PreferencesManager.definePreference("showCodeHints", "boolean", true);
     PreferencesManager.definePreference("insertHintOnTab", "boolean", false);
+    PreferencesManager.definePreference("maxCodeHints", "integer", 50);
 
     PreferencesManager.on("change", "showCodeHints", function () {
         codeHintsEnabled = PreferencesManager.get("showCodeHints");
@@ -484,7 +485,8 @@ define(function (require, exports, module) {
 
         // If a provider is found, initialize the hint list and update it
         if (sessionProvider) {
-            var insertHintOnTab;
+            var insertHintOnTab,
+                maxCodeHints = PreferencesManager.get("maxCodeHints");
             if (sessionProvider.insertHintOnTab !== undefined) {
                 insertHintOnTab = sessionProvider.insertHintOnTab;
             } else {
@@ -493,7 +495,7 @@ define(function (require, exports, module) {
 
             sessionEditor = editor;
 
-            hintList = new CodeHintList(sessionEditor, insertHintOnTab);
+            hintList = new CodeHintList(sessionEditor, insertHintOnTab, maxCodeHints);
             hintList.onSelect(function (hint) {
                 var restart = sessionProvider.insertHint(hint),
                     previousEditor = sessionEditor;
