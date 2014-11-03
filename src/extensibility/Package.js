@@ -252,7 +252,7 @@ define(function (require, exports, module) {
             }
             
             // Download the bits (using Node since brackets-shell doesn't support binary file IO)
-            var r = extensionManager.downloadFile(downloadId, urlInfo.url, PreferencesManager.get("proxy"));
+            var r = extensionManager.downloadFile(downloadId, urlInfo.url, PreferencesManager.get("proxy"), PreferencesManager.get("proxy.ignoreSSL"));
             r.done(function (result) {
                 d.resolve({ localPath: FileUtils.convertWindowsPathToUnixPath(result), filenameHint: urlInfo.filenameHint });
             }).fail(function (err) {
