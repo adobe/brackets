@@ -1,7 +1,7 @@
 Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.svg?branch=master)](https://travis-ci.org/adobe/brackets)
 -------------------
 
-This is an early version of Brackets, a code editor for HTML, CSS
+Brackets is a modern open-source code editor for HTML, CSS
 and JavaScript that's *built* in HTML, CSS and JavaScript. 
 
 What makes Brackets different from other web code editors?
@@ -15,19 +15,17 @@ back and forth between your real source code and the browser view.
 * **Do it yourself.** Because Brackets is open source, and built with HTML, CSS
 and JavaScript, you can [help build](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md) the best code editor for the web.
 
+Brackets is at 1.0 and we're not stopping there. We have many feature ideas on our
+[trello board](http://bit.ly/BracketsTrelloBoard) that we're anxious to add and other
+innovative web development workflows that we're planning to build into Brackets. 
+So take Brackets out for a spin and let us know how we can make it your favorite editor. 
+
 You can see some 
 [screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
 on the wiki, [intro videos](http://www.youtube.com/user/CodeBrackets) on YouTube, and news on the [Brackets blog](http://blog.brackets.io/).
 
-
 How to install and run Brackets
 -------------------------------
-
-
-#### Brackets is getting close to 1.0
-
-Together with your contributions, we're getting close to our first release candidate.  What's there is reasonably stable, and the Brackets team even uses Brackets to develop Brackets full time. So feel free to give it a spin and let us know what's missing! Being built on JavaScript, it's easy to make your own changes, and we give priority to integrating your pull requests back into Brackets!
-
 #### Download
 
 Installers for the latest stable build for Mac, Windows and Linux (Debian/Ubuntu) can be [downloaded here](http://brackets.io/).
