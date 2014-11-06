@@ -242,7 +242,7 @@ define({
     "RIGHT"             : "Rechts",
 
     "CMD_SPLITVIEW_NONE"        : "Nicht geteilt",
-    "CMD_SPLITVIEW_VERTICAL"    : "Vetikal geteilt",
+    "CMD_SPLITVIEW_VERTICAL"    : "Vertikal geteilt",
     "CMD_SPLITVIEW_HORIZONTAL"  : "Horizontal geteilt",
     "SPLITVIEW_MENU_TOOLTIP"    : "Teilen Sie den Editor vertikal oder horizontal",
     "GEAR_MENU_TOOLTIP"         : "Projektdateien konfigurieren",
