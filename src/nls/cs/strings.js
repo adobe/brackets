@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@ define({
     "GENERIC_ERROR"                     : "(chyba {0})",
     "NOT_FOUND_ERR"                     : "Soubor nenalezen.",
     "NOT_READABLE_ERR"                  : "Soubor nelze číst.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "Soubory větší než {0} MB nemohou být otevřeny v {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Cílová složka nemůže být změněna.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Oprávnění neumožní provádět změny.",
     "CONTENTS_MODIFIED_ERR"             : "Soubor byl změněn mimo aplikaci {APP_NAME}.",
@@ -72,6 +73,17 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Chyba při tvorbě souboru",
     "ERROR_CREATING_FILE"               : "Došlo k chybě při vytváření souboru <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_MIXED_DRAGDROP"              : "Nelze otevřít složku ve chvíli, kdy se otevírají jiné soubory.",
+
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "Chyba při čtení uživatelské tabulky znaků",
+    "ERROR_KEYMAP_CORRUPT"              : "Váš soubor obsahující tabulku znaků není validní JSON. Soubor bude otevřen k opravě formátu.",
+    "ERROR_LOADING_KEYMAP"              : "Vaše tabulka znaků není validním textovým souborem kódovaným v UTF-8 a nemůže být proto načtena.",
+    "ERROR_RESTRICTED_COMMANDS"         : "Nemůžete přepsat zkratky k těmto příkazům: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Nemůžete přepsat tyto zkratky: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Přiřazujete více zkratek k těmto příkazům: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Existuje více výskytů těchto zkratek: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Tyto zkratky jsou chybné: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Přiřazujete zkratky k neexistujícím příkazům: {0}",
 
     // Řetězce chyb nastavení aplikace
     "ERROR_PREFS_CORRUPT_TITLE"         : "Chyba při čtení nastavení",
@@ -220,7 +232,7 @@ define({
     "UNTITLED"          : "Nový",
     "WORKING_FILES"     : "Pracovní soubory",
 
-      /**
+    /**
      * Správce rozložení
      */
     "TOP"               : "Nahoře",
@@ -247,12 +259,12 @@ define({
     /**
      * Řetezce příkazového řádku
      */
+    "STATUSBAR_CURSOR_POSITION"             : "Řádek {0}, Sloupec {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Vybrán {0} sloupec",
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Vybrány {0} sloupce",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Vybrán {0} řádek",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Vybrány {0} řádky",
     "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} Vybráno",
-    "STATUSBAR_CURSOR_POSITION"             : "Řádek {0}, Sloupec {1}",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Přepnout odsazení na mezery",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Přepnout odsazení na tabulátory",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Změnit počet mezer použitých pro odsazení",
@@ -281,7 +293,6 @@ define({
     "NOTHING_TO_LINT"                       : "Nic k lintování",
     "LINTER_TIMED_OUT"                      : "{0} - vypršel časový limit po uplynutí {1} ms",
     "LINTER_FAILED"                         : "{0} byl(a) ukončen(a) s chybou: {1}",
-
 
     /**
      * Příkazy
@@ -396,23 +407,24 @@ define({
     "CMD_SHOW_IN_FINDER"                  : "Zobrazit ve vyhledávači",
     "CMD_SHOW_IN_OS"                      : "Zobrazit v OS",
 
-
     // Příkazy menu nápověda
     "HELP_MENU"                           : "Nápověda",
     "CMD_CHECK_FOR_UPDATE"                : "Zkontrolovat aktualizace",
     "CMD_HOW_TO_USE_BRACKETS"             : "Jak používat {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} Podpora",
     "CMD_SUGGEST"                         : "Navrhněte funkci",
-    "CMD_GET_INVOLVED"                    : "Zapojte se",
     "CMD_RELEASE_NOTES"                   : "Poznámky k verzi",
+    "CMD_GET_INVOLVED"                    : "Zapojte se",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} domovská stránka",
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Otevřít soubor s preferencemi",
+    "CMD_OPEN_KEYMAP"                     : "Otevřít uživatelskou tabulku znaků",
 
     // Řetězce pro main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
+    "RELEASE_BUILD"                        : "verze",
     "DEVELOPMENT_BUILD"                    : "vývojová verze",
     "RELOAD_FROM_DISK"                     : "Načíst z disku",
     "KEEP_CHANGES_IN_EDITOR"               : "Ponechat změny v editoru",
@@ -543,6 +555,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizace",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Žádné dostupné shody.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "Všechny shody jsou skryty. Ke zobrazení shod rozšiřte soubory vypsané vpravo.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádná CSS pravidla odpovídající vašemu výběru.<br> Pro vytvoření pravidla klikněte na \"Nové pravidlo\".",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Neexistují žádné soubory s kaskádovými styly ve vašem projektu.<br>Vytvořte nový soubor pro přidání CSS pravidel.",
 
