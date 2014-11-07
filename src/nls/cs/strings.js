@@ -75,9 +75,9 @@ define({
     "ERROR_MIXED_DRAGDROP"              : "Nelze otevřít složku ve chvíli, kdy se otevírají jiné soubory.",
 
     // User key map error strings
-    "ERROR_KEYMAP_TITLE"                : "Chyba při čtení uživatelské tabulky znaků",
-    "ERROR_KEYMAP_CORRUPT"              : "Váš soubor obsahující tabulku znaků není validní JSON. Soubor bude otevřen k opravě formátu.",
-    "ERROR_LOADING_KEYMAP"              : "Vaše tabulka znaků není validním textovým souborem kódovaným v UTF-8 a nemůže být proto načtena.",
+    "ERROR_KEYMAP_TITLE"                : "Chyba při čtení souboru se zkratkami",
+    "ERROR_KEYMAP_CORRUPT"              : "Váš soubor se zkratkami není validní JSON. Soubor bude otevřen k opravě formátu.",
+    "ERROR_LOADING_KEYMAP"              : "Váš soubor se zkratkami není validním textovým souborem kódovaným v UTF-8 a nemůže být proto načten.",
     "ERROR_RESTRICTED_COMMANDS"         : "Nemůžete přepsat zkratky k těmto příkazům: {0}",
     "ERROR_RESTRICTED_SHORTCUTS"        : "Nemůžete přepsat tyto zkratky: {0}",
     "ERROR_MULTIPLE_SHORTCUTS"          : "Přiřazujete více zkratek k těmto příkazům: {0}",
@@ -420,7 +420,7 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Otevřít soubor s preferencemi",
-    "CMD_OPEN_KEYMAP"                     : "Otevřít uživatelskou tabulku znaků",
+    "CMD_OPEN_KEYMAP"                     : "Otevřít soubor se zkratkami",
 
     // Řetězce pro main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
