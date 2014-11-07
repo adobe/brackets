@@ -409,7 +409,8 @@ define(function (require, exports, module) {
                 }
                 
                 if (fileListResult.length) {
-                    return Async.doInParallel(fileListResult, _doSearchInOneFileWithNotify);
+                    // search sequentially to allow incremental updating of panel
+                    return Async.doSequentially(fileListResult, _doSearchInOneFileWithNotify);
                 } else {
                     return ZERO_FILES_TO_SEARCH;
                 }

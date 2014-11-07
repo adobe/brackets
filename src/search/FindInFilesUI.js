@@ -74,7 +74,8 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
     function searchAndShowResults(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
-        var matchCount = 0,
+        var progressFirstPage, progressFirstUpdate,
+            progressCount = 0,
             searchAndShowDeferred = new $.Deferred(),
             searchInScopePromise = FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, searchAndShowDeferred.promise());
         
@@ -82,12 +83,14 @@ define(function (require, exports, module) {
             .done(function (zeroFilesToken) {
                 // Done searching all files: show results
                 if (FindInFiles.searchModel.hasResults()) {
-                    _resultsView.open();
-
-                    if (_findBar) {
-                        _findBar.close();
+                    if (progressFirstUpdate) {
+                        _resultsView._updateResults();
+                    } else {
+                        _resultsView.open();
+                        if (_findBar) {
+                            _findBar.close();
+                        }
                     }
-
                 } else {
                     _resultsView.close();
 
@@ -107,11 +110,30 @@ define(function (require, exports, module) {
                 StatusBar.hideBusyIndicator();
             })
             .progress(function (results) {
-                if (results.matches && results.matches.length && matchCount === 0) {
-                    matchCount += results.matches.length;
-                    _resultsView.open();
-                    if (_findBar) {
-                        _findBar.close();
+                // Update first page of panel (100 matches) for every file with matches,
+                // then only update for every page (100 matches)
+                if (results.matches && results.matches.length) {
+                    progressCount += results.matches.length;
+                    if (!progressFirstUpdate) {
+                        // First update
+                        _resultsView.open();
+                        if (_findBar) {
+                            _findBar.close();
+                        }
+                        progressFirstUpdate = true;
+                    } else if (!progressFirstPage) {
+                        // First page
+                        if (progressCount >= 100) {
+                            progressCount -= 100;
+                            progressFirstPage = true;
+                        }
+                        _resultsView._updateResults();
+                    } else {
+                        // Subsequent full pages
+                        if (progressCount >= 100) {
+                            progressCount -= 100;
+                            _resultsView._updateResults();
+                        }
                     }
                 }
             })
