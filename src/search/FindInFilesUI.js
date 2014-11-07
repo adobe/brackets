@@ -74,7 +74,11 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
     function searchAndShowResults(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
-        return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
+        var matchCount = 0,
+            searchAndShowDeferred = new $.Deferred(),
+            searchInScopePromise = FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, searchAndShowDeferred.promise());
+        
+        searchInScopePromise
             .done(function (zeroFilesToken) {
                 // Done searching all files: show results
                 if (FindInFiles.searchModel.hasResults()) {
@@ -102,10 +106,26 @@ define(function (require, exports, module) {
 
                 StatusBar.hideBusyIndicator();
             })
+            .progress(function (results) {
+                if (results.matches && results.matches.length && matchCount === 0) {
+                    matchCount += results.matches.length;
+                    _resultsView.open();
+                    if (_findBar) {
+                        _findBar.close();
+                    }
+                }
+            })
             .fail(function (err) {
                 console.log("find in files failed: ", err);
                 StatusBar.hideBusyIndicator();
             });
+
+        // candidateFilesPromise is usually already resolved due to file caching, so if
+        // it's passed to FindInFiles.doSearchInScope() the notify() calls are made synchronously
+        // and only 1 promise() call is made. Instead, pass in our own deferred and resolve it here.
+        candidateFilesPromise.done(searchAndShowDeferred.resolve);
+        
+        return searchInScopePromise;
     }
     
     /**
