@@ -73,18 +73,18 @@ define({
     "FILE_ALREADY_EXISTS"               : "Il file <span class='dialog-filename'>{0}</span> esiste già.",
     "ERROR_CREATING_FILE_TITLE"         : "Errore durante la creazione del file",
     "ERROR_CREATING_FILE"               : "Errore durante il tentativo di creare il file <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_MIXED_DRAGDROP"              : "Impossibile aprire una cartella, contemporaneamente, come l'apertura di altri file.",
+    "ERROR_MIXED_DRAGDROP"              : "Impossibile aprire una cartella contemporaneamente all'apertura di altri file.",
 
 
     // User key map error strings
     "ERROR_KEYMAP_TITLE"                : "Errore nella lettura della key map",
-    "ERROR_KEYMAP_CORRUPT"              : "Il tuo file non è in formato JSON valido.  Il file sarà riaperto per poter correggiare il formato.",
+    "ERROR_KEYMAP_CORRUPT"              : "Il tuo file non è in formato JSON valido.  Il file sarà riaperto per poter correggere il formato.",
     "ERROR_LOADING_KEYMAP"              : "La tua key map non è un file UTF-8 valido e non può essere caricato",
     "ERROR_RESTRICTED_COMMANDS"         : "Non puoi riassegnare queste scorciatoie: {0}",
-    "ERROR_RESTRICTED_SHORTCUTS"        : "Non puoi riassegnare delle scorciatoie a questi commandi: {0}",
-    "ERROR_MULTIPLE_SHORTCUTS"          : "Stai riassegnando più di una scorciatoia a questi commandi:: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Non puoi riassegnare delle scorciatoie a questi comandi: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Stai riassegnando più di una scorciatoia a questi comandi:: {0}",
     "ERROR_INVALID_SHORTCUTS"           : "Queste scorciatoie non sono valide: {0}",
-    "ERROR_NONEXISTENT_COMMANDS"        : "Stai assegnando scorciatoie a commandi inesistenti: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Stai assegnando scorciatoie a comandi inesistenti: {0}",
 
     
     // Application preferences corrupt error strings
@@ -93,7 +93,7 @@ define({
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} non può essere ancora eseguita nel browser.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} è scritta in HTML, ma al momento viene eseguita come applicazione desktop per avere la possibilità di modificare file locali. Puoi usare la shell dell’applicazione Puoi usare la shell sul <b>github.com/adobe/brackets-shell</b> repository per eseguire {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} è scritta in HTML, ma al momento viene eseguita come applicazione desktop per avere la possibilità di modificare file locali. Puoi usare la shell dal repository <b>github.com/adobe/brackets-shell</b> per eseguire {APP_NAME}.",
     
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Errore durante l’indicizzazione dei file",
@@ -504,7 +504,7 @@ define({
     "BAD_HTTP_STATUS"                      : "File non trovato sul server (HTTP {0}).",
     "CANNOT_WRITE_TEMP"                    : "Impossibile salvare il file scaricato nei file temporanei.",
     "ERROR_LOADING"                        : "Questa estensione ha incontrato un errore durante l’avvio.",
-    "MALFORMED_URL"                        : "L’indirizzo URL è invalido. Controlla di averlo inserito correttamente.",
+    "MALFORMED_URL"                        : "L’indirizzo URL non è valido. Controlla di averlo inserito correttamente.",
     "UNSUPPORTED_PROTOCOL"                 : "L’indirizzo URL dev’essere di tipo http o https.",
     "UNKNOWN_ERROR"                        : "Errore interno sconosciuto.",
     // For NOT_FOUND_ERR, see generic strings above
