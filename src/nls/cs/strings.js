@@ -382,7 +382,7 @@ define({
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýraznit aktivní řádek",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomit řádky",
     "CMD_LIVE_HIGHLIGHT"                  : "Živé zvýraznění",
-    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint soubory při uložení",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint souborů při uložení",
     "CMD_WORKINGSET_SORT_BY_ADDED"        : "Řadit podle data přidání",
     "CMD_WORKINGSET_SORT_BY_NAME"         : "Řadit podle jména",
     "CMD_WORKINGSET_SORT_BY_TYPE"         : "Řadit podle typu",
