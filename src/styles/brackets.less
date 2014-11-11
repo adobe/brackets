@@ -323,19 +323,9 @@ a, img {
     position: relative;
 
     /* Placeholder shown when there is no editor open */
-    .not-editor {
-        height: 100%;
-        .vbox;
-        .box-pack(center);
-        .box-align(center);
-        background: @bc-menu-bg url('images/no_content_bg.svg') no-repeat center 45%;
-
-        .dark & {
-            background: @dark-bc-menu-bg url('images/no_content_bg_dark.svg') no-repeat center 45%;
-        }
-    }
 
     .view-pane {
+        opacity: 0.7; // quieten inactive pane
         display: block;
         margin: 0;
         overflow: hidden;
@@ -491,19 +481,19 @@ a, img {
         box-sizing: border-box;
         border-bottom:  1px solid rgba(0, 0, 0, 0.05);
         padding: 5px 10px;
-        color: @bc-text-thin-quiet;
         background-color: @background;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         
         .dark & {
-            color: @dark-bc-text-quiet;
             background-color: #1d1f21; // not using a variable on purpose.
             border-bottom-color: rgba(255, 255, 255, 0.05);
         }
     }
     .active-pane {
+        opacity: 1;
+        
         .pane-header {
             color: @bc-menu-text;
 
@@ -511,6 +501,19 @@ a, img {
                 color: @dark-bc-menu-text;
             }
         }
+    }
+}
+
+// moved this out of #editor-holder because we need to lower the specificity so theme authors can override the background color
+.not-editor {
+    height: 100%;
+    .vbox;
+    .box-pack(center);
+    .box-align(center);
+    background: #f8f8f8 url('images/no_content_bg.svg') no-repeat center 45%;
+
+    .dark & {
+        background: #1d1f21 url('images/no_content_bg_dark.svg') no-repeat center 45%;
     }
 }
 
@@ -716,6 +719,12 @@ a, img {
     text-shadow: none;
     overflow: hidden;
     
+    > span {
+        background: @bc-sidebar-bg;
+        position: relative;
+        z-index: 9;
+    }
+    
     > div {
         background-color: @dark-bc-sidebar-bg;
         opacity: 1;
@@ -740,6 +749,8 @@ a, img {
     padding: 4px 6px;
     .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
     background-origin: content-box;  // center image within the 13x13 area - ignore button's padding
+    -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
+    transform: translateZ(0); // future proofing
     -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
     z-index: 1;
 }
@@ -791,6 +802,14 @@ a, img {
     font-size: 13px;
     color: @project-panel-text-2;
     overflow: hidden;
+    
+    .btn-alt-quiet {
+        background-color: #47484b;
+        
+        // relative positioning plus z-index make sure that the splitview button flows under the left aligned buttons in the project pane when there are no working set files
+        position: relative;
+        z-index: 9; 
+    }
 }
 
 .open-files-container {
@@ -859,10 +878,20 @@ a, img {
     position: absolute;
 }
 
-.sidebar-selection-extension {
+.sidebar-selection-extension, .filetree-selection-extension {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
+    box-sizing: border-box;
+    height: 23px;
+    width: 9px; /* quiet scrollbar width */
+    position: fixed;
+
+    z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
+}
+
+.filetree-context-extension {
+    background: rgba(255, 255, 255, 0.06);
     box-sizing: border-box;
     height: 23px;
     width: 9px; /* quiet scrollbar width */
@@ -1008,6 +1037,7 @@ a, img {
 .inline-widget {
     position: relative;
     overflow: hidden;
+    outline: none;
 
     background-color: @bc-bg-inline-widget;
     min-width: 250px;
@@ -1181,7 +1211,7 @@ a, img {
 
         ul {
             margin: 0;
-            padding: @top-margin 0px;
+            padding: 10px 0px 10px 5px;
             list-style: none;
         }
 
@@ -1196,9 +1226,21 @@ a, img {
             .dark & {
                 color: @dark-bc-text-emphasized;
             }
+            
+            &.section-header {
+                padding-left: 0;
+                padding-bottom: 0;
+                .disclosure-triangle {
+                    .expand-collapse-triangle();
+                }
+                .filename {
+                    font-weight: @font-weight-semibold;
+                }
+            }
 
             .related-file {
                 color: @bc-text-thin-quiet;
+                padding-left: 3px;
                 
                 .dark & {
                     color: @dark-bc-text-thin-quiet;
@@ -1325,16 +1367,16 @@ a, img {
 
 .search-results .disclosure-triangle,
 #problems-panel .disclosure-triangle {
+    .expand-collapse-triangle();
+}
+.expand-collapse-triangle() {
     .jstree-sprite;
     display: inline-block;
+    background-position: 7px 5px;
     &.expanded {
         // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
         // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
-        background-position: 7px 5px;
         -webkit-transform: translateZ(0) rotate(90deg);
-    }
-    &.collapsed {
-        background-position: 7px 5px;
     }
 }
 

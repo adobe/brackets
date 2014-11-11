@@ -34,6 +34,7 @@ define({
     "GENERIC_ERROR"                     : "(error {0})",
     "NOT_FOUND_ERR"                     : "The file could not be found.",
     "NOT_READABLE_ERR"                  : "The file could not be read.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "Files larger than {0} MB cannot be opened in {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
     "CONTENTS_MODIFIED_ERR"             : "The file has been modified outside of {APP_NAME}.",
@@ -73,6 +74,17 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Error Creating {0}",
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the {0} <span class='dialog-filename'>{1}</span>. {2}",
     "ERROR_MIXED_DRAGDROP"              : "Cannot open a folder at the same time as opening other files.",
+
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "Error Reading User Key Map",
+    "ERROR_KEYMAP_CORRUPT"              : "Your key map file is not valid JSON. The file will be opened so that you can correct the format.",
+    "ERROR_LOADING_KEYMAP"              : "Your key map file is not a valid UTF-8 encoded text file and cannot be loaded",
+    "ERROR_RESTRICTED_COMMANDS"         : "You cannot reassign shortcuts to these commands: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "You cannot reassign these shortcuts: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "You are reassigning multiple shortcuts to these commands: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "You have multiple bindings of these shortcuts: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "These shortcuts are invalid: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "You are assigning shortcuts to nonexistent commands: {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Error Reading Preferences",
@@ -410,9 +422,11 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Open Preferences File",
+    "CMD_OPEN_KEYMAP"                     : "Open User Key Map",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
+    "RELEASE_BUILD"                        : "build",
     "DEVELOPMENT_BUILD"                    : "development build",
     "RELOAD_FROM_DISK"                     : "Reload from Disk",
     "KEEP_CHANGES_IN_EDITOR"               : "Keep Changes in Editor",
@@ -544,6 +558,7 @@ define({
     "EXTENSIONS_THEMES_TITLE"              : "Themes",
     
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
 

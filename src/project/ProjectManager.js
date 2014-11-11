@@ -59,7 +59,6 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
-        DeprecationWarning  = require("utils/DeprecationWarning"),
         LanguageManager     = require("language/LanguageManager"),
         Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
@@ -606,17 +605,6 @@ define(function (require, exports, module) {
     };
 
     /**
-     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
-     * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
-     * @param {string} fileName
-     * @return {boolean}
-     */
-    function isBinaryFile(fileName) {
-        DeprecationWarning.deprecationWarning("ProjectManager.isBinaryFile() called for " + fileName + ". Use LanguageManager.getLanguageForPath(fileName).isBinary() instead.");
-        return LanguageManager.getLanguageForPath(fileName).isBinary();
-    }
-
-    /**
      * @private
      *
      * Rerender the file tree view.
@@ -933,21 +921,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
-     * @type {?$.Promise} Resolves when the currently running instance of
-     *      _refreshFileTreeInternal completes, or null if there is no currently
-     *      running instance.
-     */
-    var _refreshFileTreePromise = null;
-
-    /**
-     * @type {boolean} If refreshFileTree is called before _refreshFileTreePromise
-     *      has resolved then _refreshPending is set, which indicates that
-     *      refreshFileTree should be called again once the promise resolves.
-     */
-    var _refreshPending = false;
-
-    /**
      * @const
      * @private
      * @type {number} Minimum delay in milliseconds between calls to refreshFileTree
@@ -956,38 +929,16 @@ define(function (require, exports, module) {
 
     /**
      * Refresh the project's file tree, maintaining the current selection.
-     *
-     * @return {$.Promise} A promise object that will be resolved when the
-     *  project tree is reloaded, or rejected if the project path
-     *  fails to reload. If the previous selected entry is not found,
-     *  the promise is still resolved.
+     * 
+     * Note that the original implementation of this returned a promise to be resolved when the refresh is complete.
+     * That use is deprecated and `refreshFileTree` is now a "fire and forget" kind of function.
      */
-    function refreshFileTree() {
-        if (!_refreshFileTreePromise) {
-            var internalRefreshPromise  = model.refresh(),
-                deferred                = new $.Deferred();
-
-            _refreshFileTreePromise = deferred.promise();
-
-            _refreshFileTreePromise.always(function () {
-                _refreshFileTreePromise = null;
-
-                if (_refreshPending) {
-                    _refreshPending = false;
-                    refreshFileTree();
-                }
-            });
-
-            // Wait at least one second before resolving the promise
-            window.setTimeout(function () {
-                internalRefreshPromise.then(deferred.resolve, deferred.reject);
-            }, _refreshDelay);
-        } else {
-            _refreshPending = true;
-        }
-
-        return _refreshFileTreePromise;
-    }
+    var refreshFileTree = function refreshFileTree() {
+        FileSystem.clearAllCaches();
+        return new $.Deferred().resolve().promise();
+    };
+    
+    refreshFileTree = _.debounce(refreshFileTree, _refreshDelay);
 
     /**
      * Expands tree nodes to show the given file or folder and selects it. Silently no-ops if the
@@ -1346,7 +1297,8 @@ define(function (require, exports, module) {
     /**
      * Returns an Array of all files for this project, optionally including
      * files in the working set that are *not* under the project root. Files are
-     * filtered out by ProjectModel.shouldShow().
+     * filtered first by ProjectModel.shouldShow(), then by the custom filter
+     * argument (if one was provided). The list is unsorted.
      *
      * @param {function (File, number):boolean=} filter Optional function to filter
      *          the file list (does not filter directory traversal). API matches Array.filter().
@@ -1439,7 +1391,6 @@ define(function (require, exports, module) {
     exports.isWithinProject               = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow                    = ProjectModel.shouldShow;
-    exports.isBinaryFile                  = isBinaryFile;
     exports.openProject                   = openProject;
     exports.getSelectedItem               = getSelectedItem;
     exports.getContext                    = getContext;

@@ -33,6 +33,9 @@ define(function (require, exports, module) {
         FileSystemError     = require("filesystem/FileSystemError"),
         NodeDomain          = require("utils/NodeDomain");
     
+    /**
+     * @const
+     */
     var FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
 
     /**
@@ -361,42 +364,35 @@ define(function (require, exports, module) {
      */
     function readFile(path, options, callback) {
         var encoding = options.encoding || "utf8";
-        
-        // Execute the read and stat calls in parallel. Callback early if the
-        // read call completes first with an error; otherwise wait for both
-        // to finish.
-        var done = false, data, stat, err;
 
+        // callback to be executed when the call to stat completes
+        //  or immediately if a stat object was passed as an argument
+        function doReadFile(stat) {
+            if (stat.size > (FileUtils.MAX_FILE_SIZE)) {
+                callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
+            } else {
+                appshell.fs.readFile(path, encoding, function (_err, _data) {
+                    if (_err) {
+                        callback(_mapError(_err));
+                    } else {
+                        callback(null, _data, stat);
+                    }
+                });
+            }
+        }
+        
         if (options.stat) {
-            done = true;
-            stat = options.stat;
+            doReadFile(options.stat);
         } else {
             exports.stat(path, function (_err, _stat) {
-                if (done) {
-                    callback(_err, _err ? null : data, _stat);
+                if (_err) {
+                    callback(_err);
                 } else {
-                    done = true;
-                    stat = _stat;
-                    err = _err;
+                    doReadFile(_stat);
                 }
             });
         }
-        
-        appshell.fs.readFile(path, encoding, function (_err, _data) {
-            if (_err) {
-                callback(_mapError(_err));
-                return;
-            }
-            
-            if (done) {
-                callback(err, err ? null : _data, stat);
-            } else {
-                done = true;
-                data = _data;
-            }
-        });
     }
-    
     /**
      * Write data to the file at the given path, calling back asynchronously with
      * either a FileSystemError string or the FileSystemStats object associated
@@ -568,6 +564,7 @@ define(function (require, exports, module) {
         _nodeDomain.exec("unwatchAll")
             .then(callback, callback);
     }
+
     
     // Export public API
     exports.showOpenDialog  = showOpenDialog;

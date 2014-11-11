@@ -43,7 +43,12 @@ a {
 }
 
 a:hover {
+    color: @bc-text-link;
     text-decoration: underline;
+    
+    .dark & {
+        color: @dark-bc-text-link;
+    }
 }
 
 a:focus {
@@ -281,6 +286,10 @@ a:focus {
     -webkit-transform-origin: 0 0;
     border: none;
     border-radius: @bc-border-radius;
+
+    .dark & {
+        border: 1px solid rgba(255, 255, 255, 0.09) !important;
+    }
 }
 
 @-webkit-keyframes dropdown {

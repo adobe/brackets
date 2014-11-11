@@ -34,26 +34,70 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var AppInit        = require("utils/AppInit"),
-        CommandManager = require("command/CommandManager"),
-        KeyEvent       = require("utils/KeyEvent"),
-        Strings        = require("strings");
+    var AppInit             = require("utils/AppInit"),
+        Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
+        FileSystem          = require("filesystem/FileSystem"),
+        FileSystemError     = require("filesystem/FileSystemError"),
+        FileUtils           = require("file/FileUtils"),
+        KeyEvent            = require("utils/KeyEvent"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
+        UrlParams           = require("utils/UrlParams").UrlParams,
+        _                   = require("thirdparty/lodash");
 
-    var KeyboardPrefs = JSON.parse(require("text!base-config/keyboard.json"));
+    var KeyboardPrefs       = JSON.parse(require("text!base-config/keyboard.json"));
     
+    var KEYMAP_FILENAME     = "keymap.json",
+        _userKeyMapFilePath = brackets.app.getApplicationSupportDirectory() + "/" + KEYMAP_FILENAME;
+
     /**
      * @private
      * Maps normalized shortcut descriptor to key binding info.
      * @type {!Object.<string, {commandID: string, key: string, displayKey: string}>}
      */
-    var _keyMap = {};
+    var _keyMap            = {},    // For the actual key bindings including user specified ones
+        // For the default factory key bindings, cloned from _keyMap after all extensions are loaded.
+        _defaultKeyMap     = {};
 
+    /**
+     * @typedef {{shortcut: !string,
+     *            commandID: ?string}} UserKeyBinding
+     */
+    
+    /**
+     * @private
+     * Maps shortcut descriptor to a command id.
+     * @type {UserKeyBinding}
+     */
+    var _customKeyMap      = {},
+        _customKeyMapCache = {};
+    
     /**
      * @private
      * Maps commandID to the list of shortcuts that are bound to it.
      * @type {!Object.<string, Array.<{key: string, displayKey: string}>>}
      */
-    var _commandMap = {};
+    var _commandMap  = {},
+        _allCommands = [];
+    
+    var _specialCommands = [Commands.EDIT_UNDO, Commands.EDIT_REDO, Commands.EDIT_SELECT_ALL,
+                            Commands.EDIT_CUT, Commands.EDIT_COPY, Commands.EDIT_PASTE],
+        _reservedShortcuts = ["Ctrl-Z", "Ctrl-Y", "Ctrl-A", "Ctrl-X", "Ctrl-C", "Ctrl-V"],
+        _macReservedShortcuts = ["Cmd-,", "Cmd-H", "Cmd-Alt-H", "Cmd-M", "Cmd-Shift-Z", "Cmd-Q"],
+        _keyNames = ["Up", "Down", "Left", "Right", "Backspace", "Enter", "Space", "Tab"];
+
+    /**
+     * @private
+     * Flag to show key binding errors in the key map file. Default is true and 
+     * it will be set to false when reloading without extensions. This flag is not 
+     * used to suppress errors in loading or parsing the key map file. So if the key 
+     * map file is corrupt, then the error dialog still shows up.
+     *
+     * @type {boolean}
+     */
+    var _showErrors = true;
 
     /**
      * @private
@@ -74,8 +118,12 @@ define(function (require, exports, module) {
      */
     function _reset() {
         _keyMap = {};
+        _defaultKeyMap = {};
+        _customKeyMap = {};
+        _customKeyMapCache = {};
         _commandMap = {};
         _globalKeydownHooks = [];
+        _userKeyMapFilePath = brackets.app.getApplicationSupportDirectory() + "/" + KEYMAP_FILENAME;
     }
 
     /**
@@ -152,11 +200,19 @@ define(function (require, exports, module) {
                     hasCtrl = true;
                 }
             } else if (_compareModifierString("cmd", ele)) {
-                hasCtrl = true;
+                if (brackets.platform === "mac") {
+                    hasCtrl = true;
+                } else {
+                    error = true;
+                }
             } else if (_compareModifierString("alt", ele)) {
                 hasAlt = true;
             } else if (_compareModifierString("opt", ele)) {
-                hasAlt = true;
+                if (brackets.platform === "mac") {
+                    hasAlt = true;
+                } else {
+                    error = true;
+                }
             } else if (_compareModifierString("shift", ele)) {
                 hasShift = true;
             } else if (key.length > 0) {
@@ -180,6 +236,21 @@ define(function (require, exports, module) {
         // unicode characters (unescaped). Keyboard shortcut display strings may use
         // unicode escape sequences (e.g. \u20AC euro sign)
         if ((key.indexOf("+")) >= 0 && (key.length > 1)) {
+            return null;
+        }
+        
+        // Ensure that the first letter of the key name is in upper case.
+        // i.e. 'a' => 'A' and 'up' => 'Up'
+        if (/^[a-z]/.test(key)) {
+            key = key.toLowerCase().replace(/(^[a-z])/, function (match, p1) {
+                return p1.toUpperCase();
+            });
+        }
+        
+        // No restriction on single character key yet, but other key names are restricted to either 
+        // Function keys or those listed in _keyNames array.
+        if (key.length > 1 && !/F\d+/.test(key) &&
+                _keyNames.indexOf(key) === -1) {
             return null;
         }
         
@@ -268,6 +339,8 @@ define(function (require, exports, module) {
             key = "Tab";
         } else if (key === " ") {
             key = "Space";
+        } else if (key === "\b") {
+            key = "Backspace";
         } else {
             key = _mapKeycodeToKey(event.keyCode, key);
         }
@@ -374,6 +447,12 @@ define(function (require, exports, module) {
             targetPlatform = brackets.platform;
         }
         
+        
+        // Skip if the key binding is not for this platform.
+        if (explicitPlatform === "mac" && brackets.platform !== "mac") {
+            return null;
+        }
+
         // if the request does not specify an explicit platform, and we're
         // currently on a mac, then replace Ctrl with Cmd.
         key = (keyBinding.key) || keyBinding;
@@ -383,6 +462,7 @@ define(function (require, exports, module) {
                 keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
             }
         }
+        
         normalized = normalizeKeyDescriptorString(key);
         
         // skip if the key binding is invalid 
@@ -504,11 +584,14 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns a copy of the keymap
+     * Returns a copy of the current key map. If the optional 'defaults' parameter is true,
+     * then a copy of the default key map is returned.
+     * @param {boolean=} defaults true if the caller wants a copy of the default key map.
+     *                            Otherwise, the current active key map is returned.
      * @return {!Object.<string, {commandID: string, key: string, displayKey: string}>}
      */
-    function getKeymap() {
-        return $.extend({}, _keyMap);
+    function getKeymap(defaults) {
+        return $.extend({}, defaults ? _defaultKeyMap : _keyMap);
     }
 
     /**
@@ -568,7 +651,7 @@ define(function (require, exports, module) {
      *     Returns record(s) for valid key binding(s)
      */
     function addBinding(command, keyBindings, platform) {
-        var commandID           = "",
+        var commandID = "",
             results;
         
         if (!command) {
@@ -719,10 +802,442 @@ define(function (require, exports, module) {
             (brackets.platform !== "win");
     });
     
+    /**
+     * @private
+     * Displays an error dialog and also opens the user key map file for editing only if 
+     * the error is not the loading file error.
+     *
+     * @param {?string} err Error type returned from JSON parser or open file operation
+     * @param {string=} message Error message to be displayed in the dialog
+     */
+    function _showErrorsAndOpenKeyMap(err, message) {
+        // Asynchronously loading Dialogs module to avoid the circular dependency
+        require(["widgets/Dialogs"], function (Dialogs) {
+            var errorMessage = Strings.ERROR_KEYMAP_CORRUPT;
+            
+            if (err === FileSystemError.UNSUPPORTED_ENCODING) {
+                errorMessage = Strings.ERROR_LOADING_KEYMAP;
+            } else if (message) {
+                errorMessage = message;
+            }
+            
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_ERROR,
+                Strings.ERROR_KEYMAP_TITLE,
+                errorMessage
+            )
+                .done(function () {
+                    if (err !== FileSystemError.UNSUPPORTED_ENCODING) {
+                        CommandManager.execute(Commands.FILE_OPEN_KEYMAP);
+                    }
+                });
+        });
+    }
+    
+    /**
+     * @private
+     *
+     * Checks whether the given command ID is a special command that the user can't bind 
+     * to another shortcut.
+     * @param {!string} commandID A string referring to a specific command
+     * @return {boolean} true if normalizedKey is a special command, false otherwise.
+     */
+    function _isSpecialCommand(commandID) {
+        if (brackets.platform === "mac" && commandID === "file.quit") {
+            return true;
+        }
+        
+        return (_specialCommands.indexOf(commandID) > -1);
+    }
+    
+    /**
+     * @private
+     *
+     * Checks whether the given key combination is a shortcut of a special command
+     * or a Mac system command that the user can't reassign to another command.
+     * @param {!string} normalizedKey A key combination string used for a keyboard shortcut
+     * @return {boolean} true if normalizedKey is a restricted shortcut, false otherwise.
+     */
+    function _isReservedShortcuts(normalizedKey) {
+        if (!normalizedKey) {
+            return false;
+        }
+        
+        if (_reservedShortcuts.indexOf(normalizedKey) > -1 ||
+                _reservedShortcuts.indexOf(normalizedKey.replace("Cmd", "Ctrl")) > -1) {
+            return true;
+        }
+        
+        if (brackets.platform === "mac" && _macReservedShortcuts.indexOf(normalizedKey) > -1) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * @private
+     *
+     * Creates a bullet list item for any item in the given list.
+     * @param {Array.<string>} list An array of strings to be converted into a 
+     * message string with a bullet list.
+     * @return {string} the html text version of the list
+     */
+    function _getBulletList(list) {
+        var message = "<ul class='dialog-list'>";
+        list.forEach(function (info) {
+            message += "<li>" + info + "</li>";
+        });
+        message += "</ul>";
+        return message;
+    }
+    
+    /**
+     * @private
+     *
+     * Gets the corresponding unicode symbol of an arrow key for display in the menu.
+     * @param {string} normalizedKey 
+     * @return {string} An empty string if normalizedKey does not have any arrow key. Otherwise, the name
+     *                  of the arrow key is replaced with the corresponding unicode symbol in the return string.
+     */
+    function _getDisplayKey(normalizedKey) {
+        var displayKey = "";
+        if (/(Up|Down|Left|Right)$/i.test(normalizedKey)) {
+            normalizedKey = normalizedKey.replace(/Up$/i, "\u2191");
+            normalizedKey = normalizedKey.replace(/Down$/i, "\u2193");
+            normalizedKey = normalizedKey.replace(/Left$/i, "\u2190");
+            normalizedKey = normalizedKey.replace(/Right$/i, "\u2192");
+            displayKey = normalizedKey;
+        }
+        return displayKey;
+    }
+    
+    /**
+     * @private
+     *
+     * Applies each user key binding to all the affected commands and updates _keyMap. 
+     * Shows errors in a dialog and then opens the user key map file if any of the following 
+     * is detected while applying the user key bindings.
+     *     - A key binding is attempting to modify a special command.
+     *     - A key binding is attempting to assign a shortcut of a special command to another one.
+     *     - Multiple key bindings are specified for the same command ID.
+     *     - The same key combination is listed for multiple key bindings.
+     *     - A key binding has any invalid key syntax.
+     *     - A key binding is referring to a non-existent command ID.
+     */
+    function _applyUserKeyBindings() {
+        var remappedCommands   = [],
+            remappedKeys       = [],
+            restrictedCommands = [],
+            restrictedKeys     = [],
+            invalidKeys        = [],
+            invalidCommands    = [],
+            multipleKeys       = [],
+            duplicateBindings  = [],
+            errorMessage       = "";
+        
+        _.forEach(_customKeyMap, function (commandID, key) {
+            var normalizedKey    = normalizeKeyDescriptorString(key),
+                existingBindings = _commandMap[commandID] || [];
+
+            // Skip this since we don't allow user to update key binding of a special 
+            // command like cut, copy, paste, undo, redo and select all.
+            if (_isSpecialCommand(commandID)) {
+                restrictedCommands.push(commandID);
+                return;
+            }
+
+            // Skip this since we don't allow user to update a shortcut used in 
+            // a special command or any Mac system command.
+            if (_isReservedShortcuts(normalizedKey)) {
+                restrictedKeys.push(key);
+                return;
+            }
+
+            if (!normalizedKey) {
+                invalidKeys.push(key);
+            } else if (_isKeyAssigned(normalizedKey)) {
+                if (remappedKeys.indexOf(normalizedKey) !== -1) {
+                    // JSON parser already removed all the duplicates that have the exact
+                    // same case or order in their keys. So we're only detecting duplicate 
+                    // bindings that have different orders or different cases used in the key.
+                    duplicateBindings.push(key);
+                    return;
+                }
+                // The same key binding already exists, so skip this.
+                if (_keyMap[normalizedKey].commandID === commandID) {
+                    // Still need to add it to the remappedCommands so that
+                    // we can detect any duplicate later on.
+                    remappedCommands.push(commandID);
+                    return;
+                }
+                removeBinding(normalizedKey);
+            }
+
+            if (remappedKeys.indexOf(normalizedKey) === -1) {
+                remappedKeys.push(normalizedKey);
+            }
+
+            // Remove another key binding if the new key binding is for a command
+            // that has a different key binding. e.g. "Ctrl-W": "edit.selectLine"
+            // requires us to remove "Ctrl-W" from "file.close" command, but we
+            // also need to remove "Ctrl-L" from "edit.selectLine".
+            if (existingBindings.length) {
+                existingBindings.forEach(function (binding) {
+                    removeBinding(binding.key);
+                });
+            }
+
+            if (commandID) {
+                if (_allCommands.indexOf(commandID) !== -1) {
+                    if (remappedCommands.indexOf(commandID) === -1) {
+                        var keybinding = { key: normalizedKey };
+
+                        keybinding.displayKey = _getDisplayKey(normalizedKey);
+                        addBinding(commandID, keybinding.displayKey ? keybinding : normalizedKey, brackets.platform);
+                        remappedCommands.push(commandID);
+                    } else {
+                        multipleKeys.push(commandID);
+                    }
+                } else {
+                    invalidCommands.push(commandID);
+                }
+            }
+        });
+
+        if (restrictedCommands.length) {
+            errorMessage = StringUtils.format(Strings.ERROR_RESTRICTED_COMMANDS, _getBulletList(restrictedCommands));
+        }
+
+        if (restrictedKeys.length) {
+            errorMessage += StringUtils.format(Strings.ERROR_RESTRICTED_SHORTCUTS, _getBulletList(restrictedKeys));
+        }
+
+        if (multipleKeys.length) {
+            errorMessage += StringUtils.format(Strings.ERROR_MULTIPLE_SHORTCUTS, _getBulletList(multipleKeys));
+        }
+
+        if (duplicateBindings.length) {
+            errorMessage += StringUtils.format(Strings.ERROR_DUPLICATE_SHORTCUTS, _getBulletList(duplicateBindings));
+        }
+
+        if (invalidKeys.length) {
+            errorMessage += StringUtils.format(Strings.ERROR_INVALID_SHORTCUTS, _getBulletList(invalidKeys));
+        }
+
+        if (invalidCommands.length) {
+            errorMessage += StringUtils.format(Strings.ERROR_NONEXISTENT_COMMANDS, _getBulletList(invalidCommands));
+        }
+
+        if (_showErrors && errorMessage) {
+            _showErrorsAndOpenKeyMap("", errorMessage);
+        }
+    }
+    
+    /**
+     * @private
+     *
+     * Restores the default key bindings for all the commands that are modified by each key binding
+     * specified in _customKeyMapCache (old version) but no longer specified in _customKeyMap (new version).
+     */
+    function _undoPriorUserKeyBindings() {
+        _.forEach(_customKeyMapCache, function (commandID, key) {
+            var normalizedKey  = normalizeKeyDescriptorString(key),
+                defaults       = _.find(_.toArray(_defaultKeyMap), { "commandID": commandID }),
+                defaultCommand = _defaultKeyMap[normalizedKey];
+
+            // We didn't modified this before, so skip it.
+            if (_isSpecialCommand(commandID) ||
+                    _isReservedShortcuts(normalizedKey)) {
+                return;
+            }
+
+            if (_isKeyAssigned(normalizedKey) &&
+                    _customKeyMap[key] !== commandID && _customKeyMap[normalizedKey] !== commandID) {
+                // Unassign the key from any command. e.g. "Cmd-W": "file.open" in _customKeyMapCache
+                // will require us to remove Cmd-W shortcut from file.open command.
+                removeBinding(normalizedKey);
+                
+                // Reassign the default key binding. e.g. "Cmd-W": "file.open" in _customKeyMapCache
+                // will require us to reassign Cmd-O shortcut to file.open command.
+                if (defaults) {
+                    addBinding(commandID, defaults, brackets.platform);
+                }
+
+                // Reassign the default key binding of the previously modified command. 
+                // e.g. "Cmd-W": "file.open" in _customKeyMapCache will require us to reassign Cmd-W
+                // shortcut to file.close command.
+                if (defaultCommand && defaultCommand.key) {
+                    addBinding(defaultCommand.commandID, defaultCommand.key, brackets.platform);
+                }
+            }
+        });
+    }
+    
+    /**
+     * @private
+     *
+     * Gets the full file path to the user key map file. In testing environment
+     * a different file path is returned so that running integration tests won't
+     * pop up the error dialog showing the errors from the actual user key map file.
+     *
+     * @return {string} full file path to the user key map file.
+     */
+    function _getUserKeyMapFilePath() {
+        if (window.isBracketsTestWindow) {
+            return brackets.app.getApplicationSupportDirectory() + "/_test_/" + KEYMAP_FILENAME;
+        }
+        return _userKeyMapFilePath;
+    }
+
+    /**
+     * @private
+     *
+     * Reads in the user key map file and parses its content into JSON.
+     * Returns the user key bindings if JSON has "overrides".
+     * Otherwise, returns an empty object or an error if the file 
+     * cannot be parsed or loaded.
+     *
+     * @return {$.Promise} a jQuery promise that will be resolved with the JSON
+     * object if the user key map file has "overrides" property or an empty JSON.
+     * If the key map file cannot be read or cannot be parsed by the JSON parser,
+     * then the promise is rejected with an error.
+     */
+    function _readUserKeyMap() {
+        var file   = FileSystem.getFileForPath(_getUserKeyMapFilePath()),
+            result = new $.Deferred();
+       
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                FileUtils.readAsText(file)
+                    .done(function (text) {
+                        var keyMap = {};
+                        try {
+                            if (text) {
+                                var json = JSON.parse(text);
+                                // If no overrides, return an empty key map.
+                                result.resolve((json && json.overrides) || keyMap);
+                            } else {
+                                // The file is empty, so return an empty key map.
+                                result.resolve(keyMap);
+                            }
+                        } catch (err) {
+                            // Cannot parse the text read from the key map file.
+                            result.reject(err);
+                        }
+                    })
+                    .fail(function (err) {
+                        // Key map file cannot be loaded.
+                        result.reject(err);
+                    });
+            } else {
+                // Just resolve if no user key map file
+                result.resolve();
+            }
+        });
+        return result.promise();
+    }
+
+    /**
+     * @private
+     *
+     * Reads in the user key bindings and updates the key map with each user key
+     * binding by removing the existing one assigned to each key and adding 
+     * new one for the specified command id. Shows errors and opens the user 
+     * key map file if it cannot be parsed.
+     */
+    function _loadUserKeyMap() {
+        _readUserKeyMap()
+            .then(function (keyMap) {
+                _customKeyMapCache = _.cloneDeep(_customKeyMap);
+                _customKeyMap = keyMap;
+                _undoPriorUserKeyBindings();
+                _applyUserKeyBindings();
+            }, function (err) {
+                _showErrorsAndOpenKeyMap(err);
+            });
+    }
+        
+    /**
+     * @private
+     *
+     * Opens the existing key map file or creates a new one with default content 
+     * if it does not exist.
+     */
+    function _openUserKeyMap() {
+        var userKeyMapPath = _getUserKeyMapFilePath(),
+            file = FileSystem.getFileForPath(userKeyMapPath);
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: userKeyMapPath });
+            } else {
+                var defaultContent = "{\n    \"documentation\": \"https://github.com/adobe/brackets/wiki/User-Key-Bindings\"," +
+                                     "\n    \"overrides\": {" +
+                                     "\n        \n    }\n}\n";
+                
+                FileUtils.writeText(file, defaultContent, true)
+                    .done(function () {
+                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: userKeyMapPath });
+                    });
+            }
+        });
+    }
+    
     $(CommandManager).on("commandRegistered", _handleCommandRegistered);
+    CommandManager.register(Strings.CMD_OPEN_KEYMAP, Commands.FILE_OPEN_KEYMAP, _openUserKeyMap);
+
+    // Asynchronously loading DocumentManager to avoid the circular dependency
+    require(["document/DocumentManager"], function (DocumentManager) {
+        $(DocumentManager).on("documentSaved", function checkKeyMapUpdates(e, doc) {
+            if (doc && doc.file.fullPath === _userKeyMapFilePath) {
+                _loadUserKeyMap();
+            }
+        });
+    });
+    
+    /**
+     * @private
+     *
+     * Initializes _allCommands array and _defaultKeyMap so that we can use them for
+     * detecting non-existent commands and restoring the original key binding.
+     *
+     * @param {string} fullPath file path to the user key map file.
+     */
+    function _initCommandAndKeyMaps() {
+        _allCommands = CommandManager.getAll();
+        // Keep a copy of the default key bindings before loading user key bindings.
+        _defaultKeyMap = _.cloneDeep(_keyMap);
+    }
+    
+    /**
+     * @private
+     *
+     * Sets the full file path to the user key map file. Only used by unit tests 
+     * to load a test file instead of the actual user key map file.
+     *
+     * @param {string} fullPath file path to the user key map file.
+     */
+    function _setUserKeyMapFilePath(fullPath) {
+        _userKeyMapFilePath = fullPath;
+    }
+    
+    AppInit.extensionsLoaded(function () {
+        var params  = new UrlParams();
+        params.parse();
+        if (params.get("reloadWithoutUserExts") === "true") {
+            _showErrors = false;
+        }
+        
+        _initCommandAndKeyMaps();
+        _loadUserKeyMap();
+    });
 
     // unit test only
     exports._reset = _reset;
+    exports._setUserKeyMapFilePath = _setUserKeyMapFilePath;
+    exports._getDisplayKey = _getDisplayKey;
+    exports._loadUserKeyMap = _loadUserKeyMap;
+    exports._initCommandAndKeyMaps = _initCommandAndKeyMaps;
 
     // Define public API
     exports.getKeymap = getKeymap;
