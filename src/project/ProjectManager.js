@@ -1340,11 +1340,10 @@ define(function (require, exports, module) {
 
     /**
      * Adds an icon provider. The icon provider is a function which takes a data object and
-     * returns a React.DOM.ins instance, a string, a DOM node or a jQuery instance
+     * returns a React.DOM.ins instance, an HTML string, a DOM node or a jQuery instance
      * for the icons within the tree.
      *
-     * The data object contains:
-     *
+     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string|jQuery|DOMElement|React.DOM.ins} callback
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
@@ -1357,8 +1356,7 @@ define(function (require, exports, module) {
      * Adds an additional classes provider which can return classes that should be added to a
      * given file or directory in the tree.
      *
-     * The data object contains:
-     *
+     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):!string} callback
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory

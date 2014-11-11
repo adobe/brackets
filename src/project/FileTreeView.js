@@ -267,7 +267,7 @@ define(function (require, exports, module) {
                         }
                         return result;
                     } catch (e) {
-                        console.warn("Exception thrown in FileTreeView icon provider:", e);
+                        console.error("Exception thrown in FileTreeView icon provider: " + e, e.stack);
                     }
                 }).filter(isDefined).toArray();
             }
@@ -296,7 +296,7 @@ define(function (require, exports, module) {
                     try {
                         return callback(data);
                     } catch (e) {
-                        console.warn("Exception thrown in FileTreeView addClass provider:", e);
+                        console.error("Exception thrown in FileTreeView addClass provider: " + e, e.stack);
                     }
                 }).filter(isDefined).toArray().join(" ");
             }

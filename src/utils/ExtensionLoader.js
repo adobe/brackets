@@ -211,7 +211,13 @@ define(function (require, exports, module) {
             }
         }, function errback(err) {
             // Extension failed to load during the initial require() call
-            console.error("[Extension] failed to load " + config.baseUrl + " " + err);
+            var additionalInfo = String(err);
+            if (err.requireType === "scripterror" && err.originalError) {
+                // This type has a misleading error message - replace it with something clearer (URL of require() call that got a 404 result)
+                additionalInfo = "Module does not exist: " + err.originalError.target.src;
+            }
+            console.error("[Extension] failed to load " + config.baseUrl + " - " + additionalInfo);
+            
             if (err.requireType === "define") {
                 // This type has a useful stack (exception thrown by ext code or info on bad getModule() call)
                 console.log(err.stack);

@@ -107,7 +107,7 @@ define(function (require, exports, module) {
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.val();
             })
-            .on("change", function () {
+            .on("change", "select", function () {
                 var $target = $(":selected", this);
                 var attr = $target.attr("data-target");
 

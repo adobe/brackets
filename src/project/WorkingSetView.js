@@ -1429,7 +1429,7 @@ define(function (require, exports, module) {
     /** 
      * adds an icon provider to the view.  
      * Icon providers are called when a working set item is created
-     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string|jQuery} callback - the function to call for each item
+     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string|jQuery|DOMNode} callback
      * The callback must return the html to place before the link of each WSV item. 
      *  The return value can be a string representing the HTML, a jQuery object or undefined.
      * if a falsy value is returned then nothing is prepended to the list item
@@ -1447,7 +1447,7 @@ define(function (require, exports, module) {
     /** 
      * adds a list item class provider to the view.  
      * Class providers are called when a working set item is created
-     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string} callback - the function to call for each item
+     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string} callback
      * The callback can return a string that contains the class (or classes) to add to the list item
      */
     function addClassProvider(callback) {

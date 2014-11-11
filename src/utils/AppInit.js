@@ -92,8 +92,7 @@ define(function (require, exports, module) {
             // add callbacks to this, we need to be robust to exceptions
             handler();
         } catch (e) {
-            console.error("Exception when calling a 'brackets done loading' handler:");
-            console.log(e.stack);
+            console.error("Exception when calling a 'brackets done loading' handler: " + e, e.stack);
         }
     }
 
