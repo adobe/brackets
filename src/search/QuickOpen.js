@@ -797,10 +797,12 @@ define(function (require, exports, module) {
      * Close the dialog when the user clicks outside of it. Smart-autocomplete listens for this and automatically closes its popup,
      * but we want to close the whole search "dialog." (And we can't just piggyback on the popup closing event, since there are cases
      * where the popup closes that we want the dialog to remain open (e.g. deleting search term via backspace).
+     * @param {!Event} e
      */
     QuickNavigateDialog.prototype._handleDocumentMouseDown = function (e) {
         if (this.modalBar.getRoot().find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
-            this.close(this._origScrollPos, this._origSelections, true);
+            // User clicked in page, so ignore original scroll pos/selection to use new scroll pos/selection.
+            this.close(null, null, true);
         } else {
             // Allow clicks in the search field to propagate. Clicks in the menu should be 
             // blocked to prevent focus from leaving the search field.
