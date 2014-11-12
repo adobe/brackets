@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileTreeViewModel   = require("project/FileTreeViewModel"),
-        Async               = require("utils/Async");
+        Async               = require("utils/Async"),
+        PerfUtils           = require("utils/PerfUtils");
 
     // Constants
     var EVENT_CHANGE            = "change",
@@ -393,11 +394,16 @@ define(function (require, exports, module) {
                 };
 
             this._allFilesCachePromise = deferred.promise();
+            
+            var projectIndexTimer = PerfUtils.markStart("Creating project files cache: " +
+                                                        this.projectRoot.fullPath);
 
             this.projectRoot.visit(allFilesVisitor, function (err) {
                 if (err) {
+                    PerfUtils.finalizeMeasurement(projectIndexTimer);
                     deferred.reject(err);
                 } else {
+                    PerfUtils.addMeasurement(projectIndexTimer);
                     deferred.resolve(allFiles);
                 }
             }.bind(this));
