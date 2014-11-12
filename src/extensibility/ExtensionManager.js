@@ -82,6 +82,11 @@ define(function (require, exports, module) {
     var FOLDER_AUTOINSTALL = "auto-install-extensions";
 
     /**
+     * extension bundles folder
+     */
+    var FOLDER_EXTENSION_BUNDLES = "extension-bundles";
+
+    /**
      * @private
      * @type {Object.<string, {metadata: Object, path: string, status: string}>}
      * The set of all known extensions, both from the registry and locally installed.
@@ -752,9 +757,142 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
 
+    // Extension Bundle Support
+    function _getExtensionBundles(pathToExtensionBundles) {
+        var deferred = new $.Deferred();
+
+        FileSystem.getDirectoryForPath(pathToExtensionBundles).getContents(function (err, contents) {
+            if (err) {
+                deferred.reject(err);
+            }
+
+            var bundles = contents.filter(function (dirEntry) {
+                return (dirEntry.isFile && FileUtils.getFileExtension(dirEntry.fullPath) === "json");
+            });
+
+            deferred.resolve(bundles);
+        });
+
+        return deferred.promise();
+    }
+
+    function _validateAndFixDownloadURLForExtensionBundle(extensionBundle) {
+        var extensionURLsToInstall = [];
+
+        _.forEach(extensionBundle.extensions, function (bundleInfo, key) {
+            if (! bundleInfo.url) {
+                var version = bundleInfo.version;
+
+                if (!version) {
+                    version = extensions[bundleInfo.name].registryInfo.metadata.version;
+                }
+
+                bundleInfo.url = getExtensionURL(bundleInfo.name, version);
+            }
+
+            extensionURLsToInstall.push(bundleInfo.url);
+        });
+
+        return extensionURLsToInstall;
+    }
+
+    function _filterExtensionsToInstall(extensionBundle) {
+        var extensionBundlesToInstall = _.filter(extensionBundle.extensions, function (extension) {
+            var extensionInfo = extensions[extension.name];
+            var installedVersion = extensionInfo && extensionInfo.installInfo && extensionInfo.installInfo.metadata.version;
+
+            if (installedVersion) {
+                return extension.version && semver.lt(extension.version, installedVersion);
+            } else {
+                return true;
+            }
+        });
+
+        return {extensions: extensionBundlesToInstall};
+    }
+
+    function _validateExtensionBundle(bundle) {
+        var deferred = new $.Deferred(),
+            result = true,
+            reason,
+            validatedExtensionBundle;
+
+        if (! _.size(bundle)) {
+            deferred.reject("This is an empty object");
+        } else {
+            if (!bundle.name) {
+                result = false;
+                reason = "name attribute missing";
+            } else {
+                if (!bundle.extensions) {
+                    result = false;
+                    reason = "no extensions attribute defined";
+                } else {
+                    if (! bundle.extensions.length) {
+                        result = false;
+                        reason = "no extensions defined";
+                    }
+                }
+            }
+
+            if (result) {
+                for(var i = 0; i < bundle.extensions.length; i++) {
+                    if (! bundle.extensions[i].name) {
+                        result = false;
+                        reason = "Extension #" + i + " doesn't have a name";
+                        break;
+                    }
+                }
+            }
+
+            if (result) {
+                deferred.resolve(validatedExtensionBundle);
+            } else {
+                deferred.reject("bundle format is wrong: " + reason);
+            }
+        }
+
+        return deferred.promise();
+    }
+
+    function _extensionExistsInRegistry(extensionInfo) {
+        return extensions[extensionInfo.name] !== undefined && getExtensionURL(extensionInfo.name, extensions[extensionInfo.name].registryInfo.metadata.version) === extensionInfo.url;
+    }
+
+    function _installExtensionBundles() {
+        var extensionBundlesDir = FileUtils.getDirectoryPath(FileUtils.getNativeBracketsDirectoryPath()) + FOLDER_EXTENSION_BUNDLES + "/";
+
+        downloadRegistry().done(function () {
+            _getExtensionBundles(extensionBundlesDir).then(function (bundleFiles) {
+                _.forEach(bundleFiles, function (bundleFile) {
+                    FileUtils.readAsText(bundleFile).then(function (content) {
+                        var bundleJSON = JSON.parse(content);
+                        _validateExtensionBundle(bundleJSON).then(function () {
+                            var extensionsToInstall = _filterExtensionsToInstall(bundleJSON);
+                            var extensionURLsToInstall = _validateAndFixDownloadURLForExtensionBundle(extensionsToInstall);
+
+                            var installPromise = Async.doSequentially(extensionURLsToInstall, function (extensionURL) {
+                                return Package.installFromURL(extensionURL).promise;
+                            });
+
+                            installPromise.fail(function (err) {
+                                console.error("Error installing extensions: " + err);
+                            });
+                        }).fail(function (err) {
+                            console.error("Error validating extension bundle: " + err);
+                        });
+                    });
+                });
+            }).fail(function (err) {
+                console.error("Extension Bundle installation failed: " + err);
+            });
+        });
+    }
+
     AppInit.appReady(function () {
         Package._getNodeConnectionDeferred().done(function () {
             _autoInstallExtensions();
+            _installExtensionBundles();
         });
     });
 
@@ -792,7 +930,11 @@ define(function (require, exports, module) {
     exports.LOCATION_UNKNOWN  = LOCATION_UNKNOWN;
 
     // For unit testing only
-    exports._getAutoInstallFiles    = _getAutoInstallFiles;
-    exports._reset                  = _reset;
-    exports._setExtensions          = _setExtensions;
+    exports._getAutoInstallFiles          = _getAutoInstallFiles;
+    exports._reset                        = _reset;
+    exports._setExtensions                = _setExtensions;
+    exports._getExtensionBundles          = _getExtensionBundles;
+    exports._validateExtensionBundle      = _validateExtensionBundle;
+    exports._extensionExistsInRegistry    = _extensionExistsInRegistry;
+    exports._validateAndFixDownloadURLForExtensionBundle    = _validateAndFixDownloadURLForExtensionBundle;
 });
