@@ -817,7 +817,16 @@ define(function (require, exports, module) {
      * Close the dialog when it loses focus.
      */
     QuickNavigateDialog.prototype._handleBlur = function (e) {
-        this.close(this._origScrollPos, this._origSelections, true);
+        var origScrollPos, origSelections,
+            curDoc = DocumentManager.getCurrentDocument();
+
+        // If doc hasn't changed, restore scroll pos/selections
+        if (curDoc && this._origDocPath === curDoc.file.fullPath) {
+            origScrollPos  = this._origScrollPos;
+            origSelections = this._origSelections;
+        }
+        
+        this.close(origScrollPos, origSelections, true);
     };
 
     /**
