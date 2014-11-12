@@ -513,6 +513,7 @@ define(function (require, exports, module) {
      */
     function ThemesViewModel() {
         ExtensionManagerViewModel.call(this);
+        this.infoMessage = Strings.REGISTRY_THEMES_INFO;
     }
 
     // Inheritance setup

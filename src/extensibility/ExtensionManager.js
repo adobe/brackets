@@ -48,8 +48,7 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        ThemeManager        = require("view/ThemeManager");
+        StringUtils         = require("utils/StringUtils");
 
     // semver.browser is an AMD-compatible module
     var semver = require("extensibility/node/node_modules/semver/semver.browser");
@@ -151,23 +150,6 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("registryUpdate", [id]);
     }
 
-
-    /**
-     * @private
-     * Verifies if an extension is a theme based on the presence of the field "theme"
-     * in the package.json.  If it is a theme, then the theme file is just loaded by the
-     * ThemeManager
-     *
-     * @param {string} id of the theme extension to load
-     */
-    function loadTheme(id) {
-        var extension = extensions[id];
-        if (extension.installInfo && extension.installInfo.metadata && extension.installInfo.metadata.theme) {
-            ThemeManager.loadPackage(extension.installInfo);
-        }
-    }
-
-
     /**
      * @private
      * Sets our data. For unit testing only.
@@ -236,8 +218,9 @@ define(function (require, exports, module) {
      * When an extension is loaded, fetches the package.json and stores the extension in our map.
      * @param {$.Event} e The event object
      * @param {string} path The local path of the loaded extension's folder.
+     * @param {Package.OperationTypes} operationType Tells if the package is being installed or updated
      */
-    function _handleExtensionLoad(e, path) {
+    function _handleExtensionLoad(e, path, operationType) {
         function setData(id, metadata) {
             var locationType,
                 userExtensionPath = ExtensionLoader.getUserExtensionPath();
@@ -263,10 +246,10 @@ define(function (require, exports, module) {
                 metadata: metadata,
                 path: path,
                 locationType: locationType,
-                status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
+                status: (e.type === "loadFailed" ? START_FAILED : ENABLED),
+                operationType: operationType
             };
             synchronizeEntry(id);
-            loadTheme(id);
             $(exports).triggerHandler("statusChange", [id]);
         }
 

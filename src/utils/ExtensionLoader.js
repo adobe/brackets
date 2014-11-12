@@ -227,11 +227,12 @@ define(function (require, exports, module) {
      * @param {!string} name, used to identify the extension
      * @param {!{baseUrl: string}} config object with baseUrl property containing absolute path of extension
      * @param {!string} entryPoint, name of the main js file to load
+     * @param {Package.OperationTypes} operationType Tells if the package is being installed or updated
      * @return {!$.Promise} A promise object that is resolved when the extension is loaded, or rejected
      *              if the extension fails to load or throws an exception immediately when loaded.
      *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
      */
-    function loadExtension(name, config, entryPoint) {
+    function loadExtension(name, config, entryPoint, operationType) {
         var promise = new $.Deferred();
 
         // Try to load the package.json to figure out if we are loading a theme.
@@ -247,9 +248,9 @@ define(function (require, exports, module) {
                 return loadExtensionModule(name, config, entryPoint);
             })
             .then(function () {
-                $(exports).triggerHandler("load", config.baseUrl);
+                $(exports).triggerHandler("load", [config.baseUrl, operationType]);
             }, function (err) {
-                $(exports).triggerHandler("loadFailed", config.baseUrl);
+                $(exports).triggerHandler("loadFailed", [config.baseUrl, operationType]);
             });
     }
 
