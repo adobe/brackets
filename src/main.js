@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, window, brackets, navigator */
+/*global require, define, window, brackets, navigator, jQuery */
 
 /**
  * The bootstrapping module for brackets. This module sets up the require
@@ -59,6 +59,22 @@ if (window.location.search.indexOf("testEnvironment") > -1) {
         locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
     });
 }
+
+// jQuery patch for event dispatchers
+// TODO: once all core usages fixed, we can move this into brackets.js since only extensions will need it
+(function () {
+    "use strict";
+    var DefaultCtor = jQuery.fn.init;
+
+    jQuery.fn.init = function (firstArg, secondArg) {
+        var jQObject = new DefaultCtor(firstArg, secondArg);
+        if (firstArg && firstArg._EventDispatcher) {
+            jQObject.on  = firstArg.on.bind(firstArg);
+            jQObject.off = firstArg.off.bind(firstArg);
+        }
+        return jQObject;
+    };
+}());
 
 define(function (require) {
     "use strict";

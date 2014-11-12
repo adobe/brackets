@@ -1639,13 +1639,13 @@ define(function (require, exports, module) {
      */
     AppInit.htmlReady(function () {
         _initialize($("#editor-holder"));
+        
+        // Event handlers - attach late due to circular references
+        $(ProjectManager).on("projectOpen",                       _loadViewState);
+        $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
+        $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
+        DocumentManager.on("pathDeleted",                         _removeDeletedFileFromMRU);
     });
-    
-    // Event handlers
-    $(ProjectManager).on("projectOpen",                       _loadViewState);
-    $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
-    $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
-    $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
     
     
     // Unit Test Helpers

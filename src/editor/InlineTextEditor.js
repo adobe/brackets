@@ -30,7 +30,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var AppInit             = require("utils/AppInit"),
+        CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
@@ -337,8 +338,11 @@ define(function (require, exports, module) {
         this.close();
     };
     
-    // consolidate all dirty document updates
-    $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
+    // Attach listeners late due to circular references
+    AppInit.htmlReady(function () {
+        // consolidate all dirty document updates
+        DocumentManager.on("dirtyFlagChange", _dirtyFlagChangeHandler);
+    });
 
     exports.InlineTextEditor = InlineTextEditor;
 
