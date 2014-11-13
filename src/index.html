@@ -60,6 +60,12 @@
          "htmlReady" (e.g. AppInit.htmlReady(handler)) before touching the DOM.
     -->
     
+    <!-- Rename node.js's require. -->
+    <script>
+      window.nodeRequire = window.require;
+      window.require = undefined;
+    </script>
+    
     <!-- All other scripts are loaded through require. -->
     <!-- build:js main.js -->
     <script src="thirdparty/requirejs/require.js" data-main="main"></script>

@@ -1,0 +1,8 @@
+{
+  "name": "appshell-node-core",
+  "version": "0.0.1",
+  "description": "Node core for appshell",
+  "main": "Launcher.js",
+  "author": "Joel Brandt <joelrbrandt@gmail.com>",
+  "license": "MIT"
+}

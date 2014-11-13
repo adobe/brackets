@@ -80,9 +80,9 @@ define(function (require, exports, module) {
         var ws = null;
         setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
         
-        brackets.app.getNodeState(function (err, nodePort) {
-            if (!err && nodePort && deferred.state() !== "rejected") {
-                port = nodePort;
+//        brackets.app.getNodeState(function (err, nodePort) {
+//            if (!err && nodePort && deferred.state() !== "rejected") {
+                port = 59234;
                 ws = new WebSocket("ws://localhost:" + port);
                 
                 // Expect ArrayBuffer objects from Node when receiving binary
@@ -103,10 +103,10 @@ define(function (require, exports, module) {
                     ws.onclose = null;
                     deferred.resolveWith(null, [ws, port]);
                 };
-            } else {
-                deferred.reject("brackets.app.getNodeState error: " + err);
-            }
-        });
+//            } else {
+//                deferred.reject("brackets.app.getNodeState error: " + err);
+//            }
+//        });
         
         return deferred.promise();
     }
