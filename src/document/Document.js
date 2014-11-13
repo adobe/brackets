@@ -76,12 +76,12 @@ define(function (require, exports, module) {
      * @param {!string} rawText  Text content of the file.
      */
     function Document(file, initialTimestamp, rawText) {
-        EventDispatcher.makeEventDispatcher(this);
-        
         this.file = file;
         this._updateLanguage();
         this.refreshText(rawText, initialTimestamp, true);
     }
+    
+    EventDispatcher.makeEventDispatcher(Document.prototype);
     
     /**
      * Number of clients who want this Document to stay alive. The Document is listed in
