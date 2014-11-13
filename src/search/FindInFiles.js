@@ -42,7 +42,8 @@ define(function (require, exports, module) {
         LanguageManager       = require("language/LanguageManager"),
         SearchModel           = require("search/SearchModel").SearchModel,
         PerfUtils             = require("utils/PerfUtils"),
-        FindUtils             = require("search/FindUtils");
+        FindUtils             = require("search/FindUtils"),
+        Package               = require("extensibility/Package");
     
     /**
      * Token used to indicate a specific reason for zero search results
@@ -452,12 +453,56 @@ define(function (require, exports, module) {
     function doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
         clearSearch();
         searchModel.scope = scope;
+        searchModel.setQueryInfo(queryInfo);
         if (replaceText !== undefined) {
             searchModel.isReplace = true;
             searchModel.replaceText = replaceText;
         }
-        candidateFilesPromise = candidateFilesPromise || getCandidateFiles(scope);
-        return _doSearch(queryInfo, candidateFilesPromise, filter);
+        var projPath = ProjectManager.getProjectRoot().fullPath,
+            directory = scope ? scope.fullPath : projPath,
+            result = new $.Deferred(),
+            linedata = /^(\d+);(\d+) (\d+):(.*)/;
+        Package.fileSearch(directory, queryInfo.query).then(function (results) {
+            var currentFile = null,
+                currentMatches = null,
+                timestamp = new Date().getTime();
+            results.forEach(function (line) {
+                if (line === "") {
+                    if (currentFile) {
+                        searchModel.setResults(currentFile, {
+                            matches: currentMatches,
+                            timestamp: timestamp
+                        });
+                    }
+                    currentFile = null;
+                    currentMatches = null;
+                } else if (line[0] === ":") {
+                    currentFile = line.substr(1);
+                    currentMatches = [];
+                } else {
+                    var result = linedata.exec(line);
+                    if (!result) {
+                        console.log("Didn't get a result for ", line);
+                        return;
+                    }
+                    var lineNum = parseInt(result[1], 10) - 1,
+                        chNum = parseInt(result[2], 10);
+                    currentMatches.push({
+                        start: {
+                            line: lineNum,
+                            ch: chNum
+                        },
+                        end: {
+                            line: lineNum,
+                            ch: chNum + parseInt(result[3], 10)
+                        },
+                        line: result[4]
+                    });
+                }
+            });
+            result.resolve(searchModel.results);
+        });
+        return result.promise();
     }
         
     /**

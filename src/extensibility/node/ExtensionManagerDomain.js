@@ -460,6 +460,21 @@ function _getFileList(directory, callback) {
     });
 }
 
+function _doSearch(directory, pattern, callback) {
+    exec("/usr/local/bin/ag --ackmate " + pattern + " " + directory, {
+        maxBuffer: 8192 * 1024
+    }, function (err, stdout) {
+        if (err) {
+            console.log("Got error", err);
+            callback(err, null);
+        } else {
+            var results = stdout.split("\n");
+            console.log("Result text", results.length);
+            callback(null, results);
+        }
+    });
+}
+
 /**
  * Initialize the "extensions" domain.
  * The extensions domain handles downloading, unpacking/verifying, and installing extensions.
@@ -635,6 +650,26 @@ function init(domainManager) {
         {
             type: "array",
             description: "List of files"
+        }
+    );
+    domainManager.registerCommand(
+        "extensionManager",
+        "fileSearch",
+        _doSearch,
+        true,
+        "Find in files",
+        [{
+            name: "directory",
+            type: "string",
+            description: "directory to search in"
+        }, {
+            name: "pattern",
+            type: "string",
+            description: "pattern to search for"
+        }],
+        {
+            type: "array",
+            description: "ackmate style list"
         }
     );
     domainManager.registerCommand(

@@ -436,6 +436,12 @@ define(function (require, exports, module) {
         });
     }
     
+    function fileSearch(directory, pattern) {
+        return _extensionManagerCall(function (extensionManager) {
+            return extensionManager.fileSearch(directory, pattern);
+        });
+    }
+    
     /**
      * Install an extension update located at path.
      * This assumes that the installation was previously attempted
@@ -513,4 +519,5 @@ define(function (require, exports, module) {
     exports.formatError = formatError;
     exports.InstallationStatuses = InstallationStatuses;
     exports.getAllFiles = getAllFiles;
+    exports.fileSearch = fileSearch;
 });
