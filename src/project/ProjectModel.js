@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileTreeViewModel   = require("project/FileTreeViewModel"),
-        Async               = require("utils/Async");
+        Async               = require("utils/Async"),
+        Package             = require("extensibility/Package");
 
     // Constants
     var EVENT_CHANGE            = "change",
@@ -380,27 +381,26 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype._getAllFilesCache = function _getAllFilesCache() {
         if (!this._allFilesCachePromise) {
-            var deferred = new $.Deferred(),
-                allFiles = [],
-                allFilesVisitor = function (entry) {
-                    if (shouldShow(entry)) {
-                        if (entry.isFile) {
-                            allFiles.push(entry);
-                        }
-                        return true;
-                    }
-                    return false;
-                };
+            var deferred = new $.Deferred();
 
             this._allFilesCachePromise = deferred.promise();
-
-            this.projectRoot.visit(allFilesVisitor, function (err) {
-                if (err) {
-                    deferred.reject(err);
-                } else {
-                    deferred.resolve(allFiles);
-                }
-            }.bind(this));
+            
+            var projPath = this.projectRoot.fullPath;
+            
+            Package.getAllFiles(projPath).then(function (filelist) {
+                var allFiles = filelist.filter(function (file) {
+                    if (file[file.length - 1] === "/" || !file) {
+                        return false;
+                    }
+                    
+                    if (_shouldShowName(FileUtils.getBaseName(file))) {
+                        return !(/\/\.git\//.test(file));
+                    }
+                }).map(function (filename) {
+                    return FileSystem.getFileForPath(projPath + filename);
+                });
+                deferred.resolve(allFiles);
+            });
         }
 
         return this._allFilesCachePromise;

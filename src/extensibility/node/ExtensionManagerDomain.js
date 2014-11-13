@@ -32,7 +32,8 @@ var semver   = require("semver"),
     request  = require("request"),
     fs       = require("fs-extra"),
     temp     = require("temp"),
-    validate = require("./package-validator").validate;
+    validate = require("./package-validator").validate,
+    exec     = require("child_process").exec;
 
 // Automatically clean up temp files on exit
 temp.track();
@@ -446,6 +447,19 @@ function _cmdRemove(extensionDir, callback) {
     });
 }
 
+function _getFileList(directory, callback) {
+    exec("find " + directory, {
+        maxBuffer: 8192 * 1024
+    }, function (error, stdout) {
+        if (error) {
+            callback(error, null);
+        } else {
+            callback(null, stdout.split("\n"));
+        }
+        
+    });
+}
+
 /**
  * Initialize the "extensions" domain.
  * The extensions domain handles downloading, unpacking/verifying, and installing extensions.
@@ -604,6 +618,23 @@ function init(domainManager) {
         {
             type: "string",
             description: "Local path to the downloaded file"
+        }
+    );
+    
+    domainManager.registerCommand(
+        "extensionManager",
+        "getFileList",
+        _getFileList,
+        true,
+        "Gets the list of files in a directory",
+        [{
+            name: "directory",
+            type: "string",
+            description: "directory to load"
+        }],
+        {
+            type: "array",
+            description: "List of files"
         }
     );
     domainManager.registerCommand(
