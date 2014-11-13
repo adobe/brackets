@@ -212,9 +212,8 @@
     },
 
     "gfm": {
-        "name": "GitHub Flavored Markdown",
-        "mode": "gfm",
-        "blockComment": ["<!--", "-->"]
+        "name": "Markdown (GitHub)",
+        "mode": "gfm"
     },
 
     "yaml": {
