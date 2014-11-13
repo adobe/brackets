@@ -397,7 +397,7 @@ define(function (require, exports, module) {
                         return !(/\/\.git\//.test(file));
                     }
                 }).map(function (filename) {
-                    return FileSystem.getFileForPath(projPath + filename);
+                    return FileSystem.getFileForPath(filename);
                 });
                 deferred.resolve(allFiles);
             });
