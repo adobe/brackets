@@ -219,6 +219,23 @@ define({
     "WORKING_FILES"     : "工作区",
 
     /**
+     * MainViewManager
+     */
+    "TOP"               : "顶",
+    "BOTTOM"            : "底",
+    "LEFT"              : "左",
+    "RIGHT"             : "右",
+
+    "CMD_SPLITVIEW_NONE"        : "取消分割",
+    "CMD_SPLITVIEW_VERTICAL"    : "垂直分割",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "水平分割",
+    "SPLITVIEW_MENU_TOOLTIP"    : "垂直或水平分割窗口",
+    "GEAR_MENU_TOOLTIP"         : "定义工作区设置",
+
+    "SPLITVIEW_INFO_TITLE"              : "已经打开",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "这个文件已在另一个面板打开. {APP_NAME} 很快将支持同一文件在多面板同时打开, 接下来文件会在原来的面板打开.<br /><br />(你只能看到一次这条消息.)",
+   
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
