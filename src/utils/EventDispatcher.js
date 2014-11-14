@@ -22,11 +22,11 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, jQuery */
+/*global define, $ */
 
 /**
  * Implements a jQuery-like event dispatch pattern for non-DOM objects:
- *  - Listeners are attached via on() & detached via off()
+ *  - Listeners are attached via on()/one() & detached via off()
  *  - Listeners can use namespaces for easy removal
  *  - Listeners can attach to multiple events at once via a space-separated list
  *  - Events are fired via trigger()
@@ -177,6 +177,24 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Attaches a handler so it's only called once (per event in the 'events' list).
+     * @param {string} events
+     * @param {?function(!{type:string, target:!Object}, ...)} fn
+     */
+    var one = function (events, fn) {
+        // Tie wrapper uniqueness to fn uniqueness, so ...
+        if (!fn._eventOnceWrapper) {
+            fn._eventOnceWrapper = function (event) {
+                // Note: this wrapper is reused for all attachments of the same fn, so it shouldn't reference
+                // anything from the outer closure other than 'fn'
+                event.target.off(event.type, fn._eventOnceWrapper);
+                fn.apply(this, arguments);
+            };
+        }
+        return this.on(events, fn._eventOnceWrapper);
+    };
+    
+    /**
      * Invokes all handlers for the given event (in the order they were added).
      * @param {string} eventName
      * @param {*} ... Any additional args are passed to the event handler after the event object
@@ -189,6 +207,9 @@ define(function (require, exports, module) {
         if (!handlerList) {
             return;
         }
+        
+        // Use a clone of the list so we're frozen in the face of concurrent on()/off() calls
+        handlerList = handlerList.slice();
 
         // Pass 'event' object followed by any additional args trigger() was given
         var applyArgs = Array.prototype.slice.call(arguments, 1);
@@ -215,6 +236,7 @@ define(function (require, exports, module) {
         $.extend(obj, {
             on: on,
             off: off,
+            one: one,
             trigger: trigger,
             _EventDispatcher: true
         });
@@ -223,6 +245,18 @@ define(function (require, exports, module) {
         //   of handler records
         // Later, markDeprecated() may add _deprecatedEvents: Object.<string, string|boolean> - map from
         //   eventName to deprecation warning info
+    }
+    
+    /**
+     * Utility for calling on() with an array of arguments to pass to event handlers (rather than a varargs
+     * list). makeEventDispatcher() must have previously been called on 'dispatcher'.
+     * @param {!Object} dispatcher
+     * @param {string} eventName
+     * @param {!Array.<*>} argsArray
+     */
+    function triggerWithArray(dispatcher, eventName, argsArray) {
+        var triggerArgs = [eventName].concat(argsArray);
+        dispatcher.trigger.apply(dispatcher, triggerArgs);
     }
     
     /**
@@ -243,5 +277,6 @@ define(function (require, exports, module) {
     
     
     exports.makeEventDispatcher = makeEventDispatcher;
+    exports.triggerWithArray    = triggerWithArray;
     exports.markDeprecated      = markDeprecated;
 });

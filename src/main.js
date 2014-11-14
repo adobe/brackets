@@ -71,6 +71,8 @@ if (window.location.search.indexOf("testEnvironment") > -1) {
         if (firstArg && firstArg._EventDispatcher) {
             jQObject.on  = firstArg.on.bind(firstArg);
             jQObject.off = firstArg.off.bind(firstArg);
+            // We don't offer legacy support for trigger()/triggerHandler() on core model objects; extensions
+            // shouldn't be doing that anyway since it's basically poking at private API
         }
         return jQObject;
     };

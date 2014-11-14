@@ -197,7 +197,7 @@ define(function (require, exports, module) {
         var editor = new Editor(doc, makeMasterEditor, container, range);
 
         $(editor).on("focus", function () {
-            _notifyActiveEditorChanged(this);
+            _notifyActiveEditorChanged(editor);
         });
         
         $(editor).on("beforeDestroy", function () {

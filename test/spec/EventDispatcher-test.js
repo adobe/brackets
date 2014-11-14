@@ -85,6 +85,15 @@ define(function (require, exports, module) {
             expect(fn2).toHaveBeenCalled();
         });
         
+        it("should call handlers in the order added", function () {
+            var order = 1;
+            dispatcher.on("foo", function () { expect(order).toBe(1); order++; });
+            dispatcher.on("foo", function () { expect(order).toBe(2); order++; });
+            dispatcher.on("foo", function () { expect(order).toBe(3); order++; });
+            dispatcher.on("foo", function () { expect(order).toBe(4); order++; });
+            dispatcher.trigger("foo");
+        });
+        
         
         it("should detach handlers by function", function () {
             dispatcher.on("foo", fn1).on("foo", fn2).on("foo", fn3).on("foo", fn4);
@@ -268,6 +277,113 @@ define(function (require, exports, module) {
             dispatcher.off("foo", fn1);
             dispatcher.trigger("foo");
             expect(fn1).not.toHaveBeenCalled();
+        });
+        
+        it("namespaces let duplicate handlers be detached separately", function () {
+            dispatcher.on("foo.1", fn1).on("foo.2", fn1);
+            dispatcher.off("foo.1", fn1);
+            dispatcher.trigger("foo");
+            expect(fn1.callCount).toBe(1);
+        });
+        
+        it("concurrent removals don't break trigger()", function () {
+            dispatcher.on("foo", function () {
+                dispatcher.off("foo", fn1).off("foo", fn2);
+            });
+            dispatcher.on("foo", fn1).on("foo", fn2);
+            
+            dispatcher.trigger("foo");
+            expect(fn1).toHaveBeenCalled();
+            expect(fn2).toHaveBeenCalled();
+            
+            fn1.reset();
+            fn2.reset();
+            dispatcher.trigger("foo");
+            expect(fn1).not.toHaveBeenCalled();
+            expect(fn2).not.toHaveBeenCalled();
+        });
+        
+        it("concurrent additions don't break trigger()", function () {
+            dispatcher.on("foo", function () {
+                dispatcher.on("foo", fn3);
+            });
+            dispatcher.on("foo", fn1).on("foo", fn2);
+            
+            dispatcher.trigger("foo");
+            expect(fn1).toHaveBeenCalled();
+            expect(fn2).toHaveBeenCalled();
+            expect(fn3).not.toHaveBeenCalled();
+            
+            fn1.reset();
+            fn2.reset();
+            fn3.reset();
+            dispatcher.trigger("foo");
+            expect(fn1).toHaveBeenCalled();
+            expect(fn2).toHaveBeenCalled();
+            expect(fn3).toHaveBeenCalled();
+        });
+        
+        
+        it("handlers attached with one() are only called once", function () {
+            dispatcher.on("foo", fn1).one("foo", fn2).on("foo", fn3);
+            dispatcher.trigger("foo");
+            expect(fn1).toHaveBeenCalled();
+            expect(fn2).toHaveBeenCalled();
+            expect(fn3).toHaveBeenCalled();
+            
+            fn1.reset();
+            fn2.reset();
+            fn3.reset();
+            dispatcher.trigger("foo");
+            expect(fn1).toHaveBeenCalled();
+            expect(fn2).not.toHaveBeenCalled();
+            expect(fn3).toHaveBeenCalled();
+        });
+        
+        it("one() is independent per event", function () {
+            dispatcher.one("foo bar", fn1);
+            
+            dispatcher.trigger("foo");
+            expect(fn1).toHaveBeenCalled();
+            fn1.reset();
+            dispatcher.trigger("foo");
+            expect(fn1).not.toHaveBeenCalled();
+            
+            fn1.reset();
+            dispatcher.trigger("bar");
+            expect(fn1).toHaveBeenCalled();
+            fn1.reset();
+            dispatcher.trigger("bar");
+            expect(fn1).not.toHaveBeenCalled();
+        });
+        
+        it("one() is independent per dispatcher", function () {
+            var dispatcher1 = {}, dispatcher2 = {};
+            EventDispatcher.makeEventDispatcher(dispatcher1);
+            EventDispatcher.makeEventDispatcher(dispatcher2);
+            
+            dispatcher1.one("foo", fn1);
+            dispatcher2.one("foo", fn1);
+            
+            dispatcher1.trigger("foo");
+            expect(fn1).toHaveBeenCalled();
+            fn1.reset();
+            dispatcher1.trigger("foo");
+            expect(fn1).not.toHaveBeenCalled();
+            
+            fn1.reset();
+            dispatcher2.trigger("foo");
+            expect(fn1).toHaveBeenCalled();
+            fn1.reset();
+            dispatcher2.trigger("foo");
+            expect(fn1).not.toHaveBeenCalled();
+        });
+        
+        
+        it("triggerWithArray() util accepts an array of event arguments", function () {
+            dispatcher.on("foo", fn1);
+            EventDispatcher.triggerWithArray(dispatcher, "foo", [42, "bar"]);
+            expect(fn1).toHaveBeenCalledWith(jasmine.any(Object), 42, "bar");
         });
     });
 });
