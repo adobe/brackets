@@ -185,8 +185,8 @@ define(function (require, exports, module) {
                 
                 valuesArr.forEach(function (value) {
                     values.push({
-                        TITLE: value[0] || undefined,
-                        DESCRIPTION: value[1] || undefined
+                        title: value[0] || undefined,
+                        description: value[1] || undefined
                     });
                 });
                 
