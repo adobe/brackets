@@ -147,11 +147,19 @@ define(function (require, exports, module) {
         }
 
         function expectPopoverMessageWithText(text) {
-            var $popover  = testWindow.$(".popover-message");
-            expect($popover.length).toEqual(1);
+            var $popover;
 
-            var popoverText = $(".text", $popover).html();
-            expect(popoverText).toEqual(text);
+            runs(function () {
+                waitsFor(function () {
+                    $popover = testWindow.$(".popover-message");
+                    return $popover.length === 1;
+                }, "Expect popover window");
+            });
+
+            runs(function () {
+                var popoverText = testWindow.$(".text", $popover).html();
+                expect(popoverText).toEqual(text);
+            });
         }
         
         function getBounds(object, useOffset) {
@@ -1373,8 +1381,8 @@ define(function (require, exports, module) {
                     });
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 2));
                     
-                    // TODO: can't do our usual undo + re-check range test at the end, becuase of
-                    // marijnh/CodeMirror2 bug #487
+                    // TODO: can't do our usual undo + re-check range test at the end, because of
+                    // codemirror/CodeMirror bug #487
                 });
                 
                 

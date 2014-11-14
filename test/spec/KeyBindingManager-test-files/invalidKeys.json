@@ -1,0 +1,11 @@
+{
+    "documentation": "https://github.com/adobe/brackets/wiki/Key-Bindings",
+    "overrides": {
+        "command-2": "file.openFolder",
+        "Option-Cmd-Backspace": "view.hideSidebar",
+        "no_modifier_key": "file.openFolder",
+        "Home": "view.hideSidebar",
+        "ctrl-kk": "file.openFolder",
+        "cmd-Delete": "view.hideSidebar"
+    } 
+}

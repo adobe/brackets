@@ -33,14 +33,14 @@ define(function GotoAgent(require, exports, module) {
 
     require("utils/Global");
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
-    var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
-    var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
-
-    var DocumentManager = require("document/DocumentManager");
-    var EditorManager = require("editor/EditorManager");
-    var MainViewManager = require("view/MainViewManager");
+    var Inspector = require("LiveDevelopment/Inspector/Inspector"),
+        DOMAgent = require("LiveDevelopment/Agents/DOMAgent"),
+        ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent"),
+        RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent"),
+        EditorManager = require("editor/EditorManager"),
+        CommandManager = require("command/CommandManager"),
+        Commands = require("command/Commands");
+    
 
     /** Return the URL without the query string
      * @param {string} URL
@@ -161,25 +161,23 @@ define(function GotoAgent(require, exports, module) {
     function open(url, location, noFlash) {
         console.assert(url.substr(0, 7) === "file://", "Cannot open non-file URLs");
 
-        var result = new Promise(function (resolve, reject) {
+        var result = new $.Deferred();
 
-            url = _urlWithoutQueryString(url);
-            // Extract the path, also strip the third slash when on Windows
-            var path = url.slice(brackets.platform === "win" ? 8 : 7);
-            // URL-decode the path ('%20' => ' ')
-            path = decodeURI(path);
-            var promise = DocumentManager.getDocumentForPath(path);
-            promise.then(function onDone(doc) {
-                MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
-                if (location) {
-                    openLocation(location, noFlash);
-                }
-                resolve();
-            });
-            promise.catch(function onErr(err) {
-                console.error(err);
-                reject(err);
-            });
+        url = _urlWithoutQueryString(url);
+        // Extract the path, also strip the third slash when on Windows
+        var path = url.slice(brackets.platform === "win" ? 8 : 7);
+        // URL-decode the path ('%20' => ' ')
+        path = decodeURI(path);
+        var promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: path});
+        promise.done(function onDone(doc) {
+            if (location) {
+                openLocation(location, noFlash);
+            }
+            result.resolve();
+        });
+        promise.fail(function onErr(err) {
+            console.error(err);
+            result.reject(err);
         });
     }
 

@@ -1103,11 +1103,13 @@ define(function (require, exports, module) {
      * SPECIAL CASE NOTE: this does not trigger a change event because this data is
      * explicitly set in the rendering process (see ProjectManager._renderTree).
      * 
+     * @param {int} scrollWidth width of the tree content
      * @param {int} scrollTop Scroll position
      * @param {int=} scrollLeft Horizontal scroll position
      * @param {int=} offsetTop top of the scroller
      */
-    FileTreeViewModel.prototype.setSelectionScrollerInfo = function (scrollTop, scrollLeft, offsetTop) {
+    FileTreeViewModel.prototype.setSelectionScrollerInfo = function (scrollWidth, scrollTop, scrollLeft, offsetTop) {
+        this._selectionViewInfo = this._selectionViewInfo.set("scrollWidth", scrollWidth);
         this._selectionViewInfo = this._selectionViewInfo.set("scrollTop", scrollTop);
         
         if (scrollLeft !== undefined) {

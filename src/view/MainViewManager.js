@@ -370,9 +370,8 @@ define(function (require, exports, module) {
                                                             oldPaneId]);
             
             _makePaneMostRecent(_activePaneId);
+            focusActivePane();
         }
-        
-        focusActivePane();
     }
     
     /**
@@ -1073,7 +1072,7 @@ define(function (require, exports, module) {
         Resizer.makeResizable(firstPane.$el,
                               _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
                               _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
-                              MIN_PANE_SIZE, false, false, false, true);
+                              MIN_PANE_SIZE, false, false, false, true, true);
         
         firstPane.$el.on("panelResizeUpdate", function () {
             _updateLayout();
@@ -1120,31 +1119,26 @@ define(function (require, exports, module) {
     
     /**
      * Edits a document in the specified pane.
-     * This function is only used by Unit Tests (which construct Mock Documents), 
-     *  The Deprecated API "setCurrentDocument" and by File > New 
-     *  because there is yet to be an established File object for the Document which is required 
-     *  for the open API.  
-     * Do not use this API unless you have a document object without a file object
+     * This function is only used by:
+     *  - Unit Tests (which construct Mock Document objects), 
+     *  - by File > New  because there is yet to be an established File object 
+     *  - by Find In Files which needs to open documents synchronously in some cases
+     * Do not use this API it is for internal use only
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
-     * @param {{noPaneActivate:boolean}=} optionsIn - options
+     * @param {{noPaneActivate:boolean=}=} optionsIn - options
      * @private
      */
     function _edit(paneId, doc, optionsIn) {
-        var currentPaneId = _getPaneIdForPath(doc.file.fullPath),
-            options = optionsIn || {};
-
-            
+        var options = optionsIn || {},
+            currentPaneId  = _getPaneIdForPath(doc.file.fullPath);
+        
         if (currentPaneId) {
-            // If the doc is open in another pane
-            //  then switch to that pane and call open document
-            //  which will really just show the view as it has always done
-            //  we could just do pane.showView(doc._masterEditor) in that
-            //  case but Editor Manager may do some state syncing 
+            // If the doc is open in another pane then switch to that pane and call open document
+            //  which will really just show the view as it has always done we could just 
+            //  do pane.showView(doc._masterEditor) in that case but Editor Manager may do some 
+            //  state syncing 
             paneId = currentPaneId;
-            if (!options.noPaneActivate) {
-                setActivePaneId(paneId);
-            }
         }
         
         var pane = _getPane(paneId);
@@ -1158,6 +1152,10 @@ define(function (require, exports, module) {
         // open document will show the editor if there is one already
         EditorManager.openDocument(doc, pane);
         _makeFileMostRecent(paneId, doc.file);
+
+        if (!options.noPaneActivate) {
+            setActivePaneId(paneId);
+        }
     }
     
     /**
@@ -1165,12 +1163,18 @@ define(function (require, exports, module) {
      * or a document for editing.  If it's a document for editing, edit is called on the document 
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to open
-     * @param {{noPaneActivate:boolean}=} optionsIn - options
+     * @param {{noPaneActivate:boolean=}=} optionsIn - options
      * @return {Promise}  promise that resolves to a File object or 
      *                           rejects with a File error or string
      */
     function _open(paneId, file, optionsIn) {
         var options = optionsIn || {};
+        
+        function doPostOpenActivation() {
+            if (!options.noPaneActivate) {
+                setActivePaneId(paneId);
+            }
+        }
         
         if (!file || !_getPane(paneId)) {
             return Promise.reject("bad argument");
@@ -1201,9 +1205,6 @@ define(function (require, exports, module) {
             //  we could just do pane.showView(doc._masterEditor) in that
             //  case but Editor Manager may do some state syncing             
             paneId = currentPaneId;
-            if (!options.noPaneActivate) {
-                setActivePaneId(paneId);
-            }
         }
         
         // See if there is already a view for the file
@@ -1214,38 +1215,42 @@ define(function (require, exports, module) {
         //  editor to edit files for which there are suitable viewfactories
         var factory = MainViewFactory.findSuitableFactoryForPath(file.fullPath);
 
-        return new Promise(function (resolve, reject) {
-            if (factory) {
-                file.exists(function (fileError, fileExists) {
-                    if (fileExists) {
-                        // let the factory open the file and create a view for it
-                        factory.openFile(file, pane)
-                            .then(function () {
-                                // if we opened a file that isn't in the project
-                                //  then add the file to the working set
-                                if (!ProjectManager.isWithinProject(file.fullPath)) {
-                                    addToWorkingSet(paneId, file);
-                                }
-                                resolve(file);
-                            })
-                            .catch(function (fileError) {
-                                reject(fileError);
-                            });
-                    } else {
-                        reject(fileError || FileSystemError.NOT_FOUND);
-                    }
+        if (factory) {
+            file.exists(function (fileError, fileExists) {
+                if (fileExists) {
+                    // let the factory open the file and create a view for it
+                    factory.openFile(file, pane)
+                        .done(function () {
+                            // if we opened a file that isn't in the project
+                            //  then add the file to the working set
+                            if (!ProjectManager.isWithinProject(file.fullPath)) {
+                                addToWorkingSet(paneId, file);
+                            }
+                            doPostOpenActivation();
+                            result.resolve(file);
+                        })
+                        .fail(function (fileError) {
+                            result.reject(fileError);
+                        });
+                } else {
+                    result.reject(fileError || FileSystemError.NOT_FOUND);
+                }
+            });
+        } else {
+            DocumentManager.getDocumentForPath(file.fullPath)
+                .done(function (doc) {
+                    _edit(paneId, doc, $.extend({}, options, {
+                        noPaneActivate: true
+                    }));
+                    doPostOpenActivation();
+                    result.resolve(doc.file);
+                })
+                .fail(function (fileError) {
+                    result.reject(fileError);
                 });
-            } else {
-                DocumentManager.getDocumentForPath(file.fullPath)
-                    .then(function (doc) {
-                        _edit(paneId, doc, options);
-                        resolve(doc.file);
-                    })
-                    .catch(function (fileError) {
-                        reject(fileError);
-                    });
-            }
-        });
+        }
+
+        return result;
     }
     
     /**

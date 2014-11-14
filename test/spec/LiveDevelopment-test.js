@@ -297,29 +297,11 @@ define(function (require, exports, module) {
                 spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
                 
                 // document spies
-                var deferred = new $.Deferred();
-                spyOn(CSSDocumentModule.prototype, "getStyleSheetFromBrowser").andCallFake(function () {
-                    return deferred.promise();
-                });
-                
                 var mock = SpecRunnerUtils.createMockEditor("p {}\n\ndiv {}", "css");
                 testDocument = mock.doc;
                 testEditor = mock.editor;
                 testCSSDoc = new CSSDocumentModule(testDocument, testEditor);
                 
-                // resolve reloadRules()
-                deferred.resolve({rules: [
-                    {
-                        selectorText    : "p",
-                        selectorRange   : {start: 0},
-                        style           : {range: {end: 3}}
-                    },
-                    {
-                        selectorText    : "div",
-                        selectorRange   : {start: 6},
-                        style           : {range: {end: 11}}
-                    }
-                ]});
             });
             
             afterEach(function () {

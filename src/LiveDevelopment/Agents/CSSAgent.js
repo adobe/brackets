@@ -92,19 +92,6 @@ define(function CSSAgent(require, exports, module) {
     }
 
     /**
-     * Use styleSheetAdded and styleSheetRemoved events.
-     * Get a list of all loaded stylesheet files by URL.
-     * @deprecated
-     */
-    function getStylesheetURLs() {
-        var styleSheetId, urls = [];
-        for (styleSheetId in _styleSheetDetails) {
-            urls[_styleSheetDetails[styleSheetId].canonicalizedURL] = true;
-        }
-        return _.keys(urls);
-    }
-
-    /**
      * Reload a CSS style sheet from a document
      * @param {Document} document
      * @param {string=} newContent new content of every stylesheet. Defaults to doc.getText() if omitted
@@ -242,7 +229,6 @@ define(function CSSAgent(require, exports, module) {
     // Export public functions
     exports.enable = enable;
     exports.styleForURL = styleForURL;
-    exports.getStylesheetURLs = getStylesheetURLs;
     exports.reloadCSSForDocument = reloadCSSForDocument;
     exports.clearCSSForDocument = clearCSSForDocument;
     exports.load = load;

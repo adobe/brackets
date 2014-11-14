@@ -34,7 +34,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var DocumentManager       = require("document/DocumentManager"),
+    var AppInit               = require("utils/AppInit"),
+        DocumentManager       = require("document/DocumentManager"),
         MainViewManager       = require("view/MainViewManager"),
         CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
@@ -70,6 +71,12 @@ define(function (require, exports, module) {
         
 
     /**
+     * #working-set-list-container 
+     * @type {jQuery}
+     */
+    var $workingFilesContainer;
+    
+    /**
      * Constants for event.which values
      * @enum {number}
      */
@@ -96,6 +103,12 @@ define(function (require, exports, module) {
         BOTSCROLL  = "bottomscroll",
         BELOWVIEW  = "belowview",
         ABOVEVIEW  = "aboveview";
+    
+    /**
+     * Drag an item has to move 3px before dragging starts
+     * @constant
+     */
+    var _DRAG_MOVE_DETECTION_START = 3;
     
     /**
      * Refreshes all Pane View List Views
@@ -129,7 +142,6 @@ define(function (require, exports, module) {
      */
     function _updateListItemSelection(listItem, selectedFile) {
         var shouldBeSelected = (selectedFile && $(listItem).data(_FILE_KEY).fullPath === selectedFile.fullPath);
-        
         ViewUtils.toggleClass($(listItem), "selected", shouldBeSelected);
     }
 
@@ -145,6 +157,10 @@ define(function (require, exports, module) {
         return (docIfOpen && docIfOpen.isDirty);
     }
     
+    
+    function _hasSelectionFocus() {
+        return FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW;
+    }
     
     /** 
      * Turns on/off the flag which suppresses rebuilding of the working set 
@@ -259,19 +275,43 @@ define(function (require, exports, module) {
                 dragged = false,
                 startPageY = e.pageY,
                 lastPageY = startPageY,
-                itemHeight = $el.height(),
+                lastHit = { where: NOMANSLAND },
                 tryClosing = $(e.target).hasClass("can-close"),
-                offset = $el.offset(),
-                $copy = $el.clone(),
-                $ghost = $("<div class='open-files-container wsv-drag-ghost' style='overflow: hidden; display: inline-block;'>").append($("<ul>").append($copy).css("padding", "0")),
-                sourceView = _viewFromEl($el),
                 currentFile = MainViewManager.getCurrentlyViewedFile(),
                 activePaneId = MainViewManager.getActivePaneId(),
                 activeView = _views[activePaneId],
-                draggingCurrentFile = ($el.hasClass("selected") && sourceView.paneId === activePaneId),
-                startingIndex = MainViewManager.findInWorkingSet(sourceView.paneId, sourceFile.fullPath),
+                sourceView = _viewFromEl($el),
                 currentView = sourceView,
-                lastHit = { where: NOMANSLAND };
+                startingIndex = $el.index(),
+                itemHeight,
+                offset,
+                $copy,
+                $ghost,
+                draggingCurrentFile;
+            
+            function initDragging() {
+                itemHeight = $el.height();
+                offset = $el.offset();
+                $copy = $el.clone();
+                $ghost = $("<div class='open-files-container wsv-drag-ghost' style='overflow: hidden; display: inline-block;'>").append($("<ul>").append($copy).css("padding", "0"));
+                draggingCurrentFile = ($el.hasClass("selected") && sourceView.paneId === activePaneId);
+                
+                // setup our ghost element as position absolute
+                //  so we can put it wherever we want to while dragging
+                if (draggingCurrentFile && _hasSelectionFocus()) {
+                    $ghost.addClass("dragging-current-file");
+                }
+
+                $ghost.css({
+                    top: offset.top,
+                    left: offset.left,
+                    width: $el.width() + 8
+                });
+
+                // this will give the element the appearence that it's ghosted if the user
+                //  drags the element out of the view and goes off into no mans land
+                $ghost.appendTo($("body"));
+            }
             
             // Switches the view context to match the hit context
             function updateContext(hit) {
@@ -290,7 +330,6 @@ define(function (require, exports, module) {
                     hasScroller = false,
                     onTopScroller = false,
                     onBottomScroller = false,
-                    $workingFilesContainer =  $("#working-set-list-container"),
                     $container,
                     $hit,
                     $item,
@@ -434,6 +473,7 @@ define(function (require, exports, module) {
                 
                 function targetIsNoDrop() {
                     return $hit.is(".working-set-header") ||
+                           $hit.is(".working-set-header-title") ||
                            $hit.is(".scroller-shadow") ||
                            $hit.is(".scroller-shadow");
                 }
@@ -559,7 +599,7 @@ define(function (require, exports, module) {
                 // The drag function
                 function drag(e) {
                     if (!dragged) {
-                        
+                        initDragging();
                         // sort redraw and scroll shadows
                         //  cause problems during drag so disable them
                         _suppressSortRedrawForAllViews(true);
@@ -571,12 +611,12 @@ define(function (require, exports, module) {
                         _deactivateAllViews(true);
                         
                         // add a "dragging" class to the outer container
-                        $("#working-set-list-container").addClass("dragging");
+                        $workingFilesContainer.addClass("dragging");
                         
                         // add a class to the element we're dragging if 
-                        //  its the currently selected file so that we 
-                        //  can show it as selected while dragging it
-                        if (!draggingCurrentFile) {
+                        //  it's the currently selected file so that we 
+                        //  can show it as selected while dragging
+                        if (!draggingCurrentFile && FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) {
                             $(activeView._findListItemFromFile(currentFile)).addClass("drag-show-as-selected");
                         }
                         
@@ -649,13 +689,15 @@ define(function (require, exports, module) {
                     }
                 }
 
-                // move the drag affordance
-                $ghost.css("top", $ghost.offset().top + (e.pageY - lastPageY));
-
+                // Reposition the drag affordance if we've started dragging
+                if ($ghost) {
+                    $ghost.css("top", $ghost.offset().top + (e.pageY - lastPageY));
+                }
+                
                 // if we have't started dragging yet then we wait until
                 //  the mouse has moved 3 pixels before we start dragging
                 //  to avoid the item moving when clicked or double clicked
-                if (dragged || Math.abs(e.pageY - startPageY) > 3) {
+                if (dragged || Math.abs(e.pageY - startPageY) > _DRAG_MOVE_DETECTION_START) {
                     drag(e);
                 }
 
@@ -676,30 +718,35 @@ define(function (require, exports, module) {
             
             // Close down the drag operation
             function preDropCleanup() {
-                $("#working-set-list-container").removeClass("dragging");
-                $("#working-set-list-container .drag-show-as-selected").removeClass("drag-show-as-selected");
-                endScroll($el);
-                // re-activate the views (adds the "active" class to the view that was previously active)
-                _deactivateAllViews(false);
-                // turn scroll wheel back on
                 window.onmousewheel = window.document.onmousewheel = null;
                 $(window).off(".wsvdragging");
-                $ghost.remove();
-                $el.css("opacity", "");
+                if (dragged) {
+                    $workingFilesContainer.removeClass("dragging");
+                    $workingFilesContainer.find(".drag-show-as-selected").removeClass("drag-show-as-selected");
+                    endScroll($el);
+                    // re-activate the views (adds the "active" class to the view that was previously active)
+                    _deactivateAllViews(false);
+                    // turn scroll wheel back on
+                    $ghost.remove();
+                    $el.css("opacity", "");
                 
-                if (dragged && $el.next().length === 0) {
-                    scrollCurrentViewToBottom();
+                    if ($el.next().length === 0) {
+                        scrollCurrentViewToBottom();
+                    }
                 }
             }
         
             // Final Cleanup
             function postDropCleanup(noRefresh) {
-                // re-enable stuff we turned off
-                _suppressSortRedrawForAllViews(false);
-                _suppressScrollShadowsOnAllViews(false);
+                if (dragged) {
+                    // re-enable stuff we turned off
+                    _suppressSortRedrawForAllViews(false);
+                    _suppressScrollShadowsOnAllViews(false);
+                }
                 
-                // we don't need to refresh if the
-                //  item was not dragged or opened
+                // we don't need to refresh if the item
+                //  was dragged but not enough to not change 
+                //  its order in the working set
                 if (!noRefresh) {
                     // rebuild the view
                     refresh(true);
@@ -724,6 +771,7 @@ define(function (require, exports, module) {
                                 });
                         } else {
                             // Normal right and left click - select the item
+                            FileViewController.setFileViewFocus(FileViewController.WORKING_SET_VIEW);
                             CommandManager
                                 .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
                                                                paneId: currentView.paneId})
@@ -759,6 +807,9 @@ define(function (require, exports, module) {
                 }
             }
 
+            // prevent working set from grabbing focus no matter what type of click/drag occurs
+            e.preventDefault();
+            
             // initialization
             $(window).on("mouseup.wsvdragging", function () {
                 drop();
@@ -788,21 +839,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            // setup our ghost element as position absolute
-            //  so we can put it wherever we want to while dragging
-            if (draggingCurrentFile) {
-                $ghost.addClass("dragging-current-file");
-            }
 
-            $ghost.css({
-                top: offset.top,
-                left: offset.left,
-                width: $el.width() + 8
-            });
-            
-            // this will give the element the appearence that it's ghosted if the user
-            //  drags the element out of the view and goes off into no mans land
-            $ghost.appendTo($("body"));
             
             e.stopPropagation();
         });
@@ -898,7 +935,7 @@ define(function (require, exports, module) {
      * @private
      */
     WorkingSetView.prototype._scrollSelectedFileIntoView = function () {
-        if (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW) {
+        if (!_hasSelectionFocus()) {
             return;
         }
 
@@ -924,7 +961,7 @@ define(function (require, exports, module) {
             this._scrollSelectedFileIntoView();
         }
 
-        if (FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW && this.$el.hasClass("active")) {
+        if (_hasSelectionFocus() && this.$el.hasClass("active")) {
             this.$openFilesList.trigger("selectionChanged", reveal);
         } else {
             this.$openFilesList.trigger("selectionHide");
@@ -1151,8 +1188,7 @@ define(function (require, exports, module) {
      */
     WorkingSetView.prototype._updateViewState = function () {
         var paneId = MainViewManager.getActivePaneId();
-        if ((FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) &&
-                (paneId === this.paneId)) {
+        if (_hasSelectionFocus() && paneId === this.paneId) {
             this.$el.addClass("active");
             this.$openFilesContainer.addClass("active");
         } else {
@@ -1359,6 +1395,7 @@ define(function (require, exports, module) {
      * Destroys the WorkingSetView DOM element and removes all event handlers
      */
     WorkingSetView.prototype.destroy = function () {
+        ViewUtils.removeScrollerShadow(this.$openFilesContainer[0], null);
         this.$openFilesContainer.off(".workingSetView");
         this.$el.remove();
         $(MainViewManager).off(this._makeEventName(""));
@@ -1422,6 +1459,11 @@ define(function (require, exports, module) {
         //    all items that have already been created
         refresh(true);
     }
+    
+    AppInit.htmlReady(function () {
+        $workingFilesContainer =  $("#working-set-list-container");
+    });
+    
     
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;

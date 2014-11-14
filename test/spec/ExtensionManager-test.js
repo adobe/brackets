@@ -447,6 +447,178 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("Auto-Install Extensions", function () {
+
+            function lookupFileName(zipArray, fileName) {
+                return zipArray.some(function (zip) {
+                    return (zip.file.name === fileName);
+                });
+            }
+
+            function addZipFilesToArray(array, result) {
+                result.installZips.every(function (zip) {
+                    array[zip.info.metadata.name] = zip.info.metadata.version;
+                });
+                result.updateZips.every(function (zip) {
+                    array[zip.info.metadata.name] = zip.info.metadata.version;
+                });
+            }
+
+            it("should correctly handle auto-install extension zip files", function () {
+                var promiseFail    = false,
+                    promiseResult  = null,
+                    autoExtensions = {},
+                    dirPath        = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions1");
+
+                // Should find 1 install zip
+                runs(function () {
+                    ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
+                        .done(function (result) {
+                            addZipFilesToArray(autoExtensions, result);
+                            promiseResult = result;
+                        })
+                        .fail(function (err) {
+                            promiseFail = true;
+                            expect("[_getAutoInstallFiles] promise rejected with: " + err).toBe("(expected resolved instead)");
+                        });
+                });
+
+                waitsFor(function () {
+                    return promiseResult || promiseFail;
+                }, "_getAutoInstallFiles success [_getAutoInstallFiles]", 1000);
+
+                runs(function () {
+                    expect(promiseResult).toBeTruthy();
+                    if (promiseResult) {
+                        expect(promiseResult.installZips.length).toBe(1);
+                        expect(promiseResult.updateZips.length).toBe(0);
+
+                        // Extension
+                        expect(lookupFileName(promiseResult.installZips, "mock-extension-v1.0.0.zip")).toBeTruthy();
+
+                        // Not extensions
+                        expect(lookupFileName(promiseResult.installZips, "ignore-this-folder")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "not-an-extension.zip")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "should-be-ignored.txt")).toBeFalsy();
+                    }
+                });
+
+                // Subsequent run of first folder should find 0 install zips
+                runs(function () {
+                    promiseFail   = false;
+                    promiseResult = null;
+                    ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
+                        .done(function (result) {
+                            addZipFilesToArray(autoExtensions, result);
+                            promiseResult = result;
+                        })
+                        .fail(function (err) {
+                            promiseFail = true;
+                            expect("[_getAutoInstallFiles] promise rejected with: " + err).toBe("(expected resolved instead)");
+                        });
+                });
+
+                waitsFor(function () {
+                    return promiseResult || promiseFail;
+                }, "_getAutoInstallFiles success [_getAutoInstallFiles]", 1000);
+
+                runs(function () {
+                    expect(promiseResult).toBeTruthy();
+                    if (promiseResult) {
+                        expect(promiseResult.installZips.length).toBe(0);
+                        expect(promiseResult.updateZips.length).toBe(0);
+
+                        // Extension already installed
+                        expect(lookupFileName(promiseResult.installZips, "mock-extension-v1.0.0.zip")).toBeFalsy();
+
+                        // Not extensions
+                        expect(lookupFileName(promiseResult.installZips, "ignore-this-folder")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "not-an-extension.zip")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "should-be-ignored.txt")).toBeFalsy();
+                    }
+                });
+
+            });
+
+            it("should detect auto-install extension is an update", function () {
+                var promiseFail    = false,
+                    promiseResult  = null,
+                    autoExtensions = {},
+                    dirPath        = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions2");
+
+                runs(function () {
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.1"]) };
+                    var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
+                    ExtensionManager._setExtensions(mockInstallInfo);
+
+                    ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
+                        .done(function (result) {
+                            addZipFilesToArray(autoExtensions, result);
+                            promiseResult = result;
+                        })
+                        .fail(function (err) {
+                            promiseFail = true;
+                            expect("[_getAutoInstallFiles] promise rejected with: " + err).toBe("(expected resolved instead)");
+                        });
+                });
+
+                waitsFor(function () {
+                    return promiseResult || promiseFail;
+                }, "_getAutoInstallFiles success [_getAutoInstallFiles]", 1000);
+
+                runs(function () {
+                    expect(promiseResult).toBeTruthy();
+                    if (promiseResult) {
+                        expect(promiseResult.installZips.length).toBe(0);
+                        expect(promiseResult.updateZips.length).toBe(1);
+
+                        // Extension
+                        expect(lookupFileName(promiseResult.updateZips, "mock-extension-v1.1.1.zip")).toBeTruthy();
+                    }
+                });
+            });
+
+            it("should correctly handle multiple auto-install extension zip files of same extension", function () {
+                var promiseFail    = false,
+                    promiseResult  = null,
+                    autoExtensions = {},
+                    dirPath        = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions3");
+
+                // There are 3 zips of same extension using 3 different versions. Only the latest should be returned.
+                runs(function () {
+                    ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
+                        .done(function (result) {
+                            addZipFilesToArray(autoExtensions, result);
+                            promiseResult = result;
+                        })
+                        .fail(function (err) {
+                            promiseFail = true;
+                            expect("[_getAutoInstallFiles] promise rejected with: " + err).toBe("(expected resolved instead)");
+                        });
+                });
+
+                waitsFor(function () {
+                    return promiseResult || promiseFail;
+                }, "_getAutoInstallFiles success [_getAutoInstallFiles]", 1000);
+
+                runs(function () {
+                    expect(promiseResult).toBeTruthy();
+                    if (promiseResult) {
+                        expect(promiseResult.installZips.length).toBe(1);
+                        expect(promiseResult.updateZips.length).toBe(0);
+
+                        // Latest version
+                        // Note that files are named to try to force code to hit desired branches, but order is arbitrary.
+                        expect(lookupFileName(promiseResult.installZips, "b-mock-extension-v1.1.1.zip")).toBeTruthy();
+
+                        // Older versions
+                        expect(lookupFileName(promiseResult.installZips, "a-mock-extension-v1.0.0.zip")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "c-mock-extension-v1.1.0.zip")).toBeFalsy();
+                    }
+                });
+            });
+        });
+
         describe("ExtensionManagerView Model", function () {
             describe("when initialized from registry", function () {
                 var model;
@@ -1023,7 +1195,7 @@ define(function (require, exports, module) {
                 
                 it("should show disabled install button if requires newer API version", function () {   // isCompatible: false, requiresNewer: true
                     runs(function () {
-                        mockRegistry = { "mock-extension": makeMockExtension([">0.100"]) };
+                        mockRegistry = { "mock-extension": makeMockExtension([">100.0"]) };
                         setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
@@ -1057,7 +1229,7 @@ define(function (require, exports, module) {
                 
                 it("should show enabled install button if latest requires newer API version", function () { // isCompatible: true, isLatestVersion: false, requiresNewer: true
                     runs(function () {
-                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.100"]) };
+                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">100.0"]) };
                         setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
@@ -1105,7 +1277,7 @@ define(function (require, exports, module) {
                 
                 it("should install latest compatible version", function () {
                     runs(function () {
-                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.2", ">0.100"]) };
+                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.2", ">100.0"]) };
                         setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
@@ -1152,7 +1324,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should show disabled update button for items whose available update requires newer API version", function () {   // isLatestVersion: false, requiresNewer: true
-                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.100"]) };
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">100.0"]) };
                     var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
                     ExtensionManager._setExtensions(mockInstallInfo);
                     setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
@@ -1414,7 +1586,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should show disabled update button for items whose available update requires newer API version", function () {   // isLatestVersion: false, requiresNewer: true
-                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.100"]) };
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">100.0"]) };
                     var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
                     ExtensionManager._setExtensions(mockInstallInfo);
                     waitsForDone(ExtensionManager.downloadRegistry()); // ensure mockRegistry integrated in

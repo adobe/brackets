@@ -141,9 +141,8 @@ define(function (require, exports, module) {
     /**
      * Update the inline editor's height when the number of lines change. The
      * base implementation of this method does nothing.
-     * @param {boolean} force the editor to resize
      */
-    InlineTextEditor.prototype.sizeInlineWidgetToContents = function (force) {
+    InlineTextEditor.prototype.sizeInlineWidgetToContents = function () {
         // brackets_codemirror_overrides.css adds height:auto to CodeMirror
         // Inline editors themselves do not need to be sized, but layouts like
         // the one used in CSSInlineEditor do need some manual layout.
@@ -166,7 +165,7 @@ define(function (require, exports, module) {
         // Update display of inline editors when the hostEditor signals a redraw
         CodeMirror.on(this.info, "redraw", function () {
             // At the point where we get the redraw, CodeMirror might not yet have actually
-            // re-added the widget to the DOM. This is filed as https://github.com/marijnh/CodeMirror/issues/1226.
+            // re-added the widget to the DOM. This is filed as https://github.com/codemirror/CodeMirror/issues/1226.
             // For now, we can work around it by doing the refresh on a setTimeout().
             window.setTimeout(function () {
                 if (self.editor) {
@@ -265,7 +264,7 @@ define(function (require, exports, module) {
         // Always update the widget height when an inline editor completes a
         // display update
         $(this.editor).on("update.InlineTextEditor", function (event, editor) {
-            self.sizeInlineWidgetToContents(true);
+            self.sizeInlineWidgetToContents();
         });
 
         // Size editor to content whenever text changes (via edits here or any
@@ -273,7 +272,7 @@ define(function (require, exports, module) {
         // changes, regardless of origin)
         $(this.editor).on("change.InlineTextEditor", function (event, editor) {
             if (self.hostEditor.isFullyVisible()) {
-                self.sizeInlineWidgetToContents(true);
+                self.sizeInlineWidgetToContents();
                 self._updateLineRange(editor);
             }
         });
@@ -326,7 +325,7 @@ define(function (require, exports, module) {
         }
 
         // We need to call this explicitly whenever the host editor is reshown
-        this.sizeInlineWidgetToContents(true);
+        this.sizeInlineWidgetToContents();
     };
         
     /**

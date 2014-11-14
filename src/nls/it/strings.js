@@ -25,6 +25,7 @@
 /*global define */
 
 define({
+    
     /**
     * Errors
     */
@@ -33,14 +34,21 @@ define({
     "GENERIC_ERROR"                     : "(errore {0})",
     "NOT_FOUND_ERR"                     : "Impossibile trovare il file.",
     "NOT_READABLE_ERR"                  : "Il file non può essere letto.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "File oltre {0} MB non possono essere aperti con {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "La cartella selezionata non può essere modificata.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Non hai i permessi necessari per effettuare la modifica.",
     "CONTENTS_MODIFIED_ERR"             : "Il file è stato modificato fuori {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "Il file non è testo codificato in UTF-8",
-    "UNSUPPORTED_FILE_TYPE_ERR"         : "Il file non è un tipo di file supportato.",
     "FILE_EXISTS_ERR"                   : "Il file è già presente.",
     "FILE"                              : "file",
+    "FILE_TITLE"                        : "File",
     "DIRECTORY"                         : "cartella",
+    "DIRECTORY_TITLE"                   : "Cartella",
+    "DIRECTORY_NAMES_LEDE"              : "Nomi cartelle",
+    "FILENAMES_LEDE"                    : "Nomi dei file",
+    "FILENAME"                          : "Nome del file",
+    "DIRECTORY_NAME"                    : "Nome cartella",
+
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Errore durante il caricamento del progetto",
@@ -65,16 +73,33 @@ define({
     "FILE_ALREADY_EXISTS"               : "Il file <span class='dialog-filename'>{0}</span> esiste già.",
     "ERROR_CREATING_FILE_TITLE"         : "Errore durante la creazione del file",
     "ERROR_CREATING_FILE"               : "Errore durante il tentativo di creare il file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_MIXED_DRAGDROP"              : "Impossibile aprire una cartella contemporaneamente all'apertura di altri file.",
+
+
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "Errore nella lettura della key map",
+    "ERROR_KEYMAP_CORRUPT"              : "Il tuo file non è in formato JSON valido.  Il file sarà riaperto per poter correggere il formato.",
+    "ERROR_LOADING_KEYMAP"              : "La tua key map non è un file UTF-8 valido e non può essere caricato",
+    "ERROR_RESTRICTED_COMMANDS"         : "Non puoi riassegnare queste scorciatoie: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Non puoi riassegnare delle scorciatoie a questi comandi: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Stai riassegnando più di una scorciatoia a questi comandi:: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Queste scorciatoie non sono valide: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Stai assegnando scorciatoie a comandi inesistenti: {0}",
+
+    
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Errore nella lettura delle preferenze",
+    "ERROR_PREFS_CORRUPT"               : "Le tue preferenze non sono in un file JSON valido. Il file verrà aperto in modo da poter correggere il formato. Dovrai riavviare {APP_NAME} così le modifiche avranno effetto.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} non può essere ancora eseguita nel browser.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} è scritta in HTML, ma al momento viene eseguita come applicazione desktop per avere la possibilità di modificare file locali. Puoi usare la shell dell’applicazione Puoi usare la shell sul <b>github.com/adobe/brackets-shell</b> repository per eseguire {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} è scritta in HTML, ma al momento viene eseguita come applicazione desktop per avere la possibilità di modificare file locali. Puoi usare la shell dal repository <b>github.com/adobe/brackets-shell</b> per eseguire {APP_NAME}.",
     
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Errore durante l’indicizzazione dei file",
     "ERROR_MAX_FILES"                   : "È stato raggiunto il massimo numero di file indicizzati. Le azioni che controllano file presenti nell’indice posso funzionare in modo non corretto.",
     
-    // Live Development error strings
+    // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Errore durante l’avvio del browser",
     "ERROR_CANT_FIND_CHROME"            : "Non è stato possibile trovare il browser Google Chrome. Assicurarsi che sia correttamente installato.",
     "ERROR_LAUNCHING_BROWSER"           : "Errore durante l’avvio del browser. (errore {0})",
@@ -131,6 +156,7 @@ define({
     "FIND_QUERY_PLACEHOLDER"            : "Trova\u2026",
     "REPLACE_PLACEHOLDER"               : "Sostituisci con\u2026",
     "BUTTON_REPLACE_ALL"                : "Tutti\u2026",
+    "BUTTON_REPLACE_ALL_IN_FILES"       : "Sostituire\u2026",
     "BUTTON_REPLACE"                    : "Sostituisci",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
@@ -141,9 +167,7 @@ define({
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Sostituire senza Annulla",
     "REPLACE_WITHOUT_UNDO_WARNING"      : "Perché più di {0} file hanno bisogno di essere sostituiti, {APP_NAME} modificherà i file aperti sul disco.<br />Non sarai in grado di annullare le sostituzioni in quei file.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Sostituire senza Annulla",
-    "FIND_REPLACE_TITLE_LABEL"          : "Sostituire",
-    "FIND_REPLACE_TITLE_WITH"           : "con",
-
+   
     "OPEN_FILE"                         : "Apri File",
     "SAVE_FILE_AS"                      : "Salva File",
     "CHOOSE_FOLDER"                     : "Scegli una cartella",
@@ -152,15 +176,14 @@ define({
     "NO_UPDATE_TITLE"                   : "Sei aggiornato!",
     "NO_UPDATE_MESSAGE"                 : "Stai utilizzando l’ultima versione di {APP_NAME}.",
 
-    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "Sostituisci \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" con \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+    // Find and Replace
+    "FIND_REPLACE_TITLE_LABEL"          : "Sostituire",
+    "FIND_REPLACE_TITLE_WITH"           : "con",
+    "FIND_TITLE_LABEL"                  : "Trovato",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} in {3}",
 
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" trovato",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
+    "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "nel progetto",
     "FIND_IN_FILES_ZERO_FILES"          : "Filtra esclude tutti i file {0}",
@@ -168,35 +191,42 @@ define({
     "FIND_IN_FILES_FILES"               : "file",
     "FIND_IN_FILES_MATCH"               : "corrispondenza",
     "FIND_IN_FILES_MATCHES"             : "corrispondenze",
-    "FIND_IN_FILES_MORE_THAN"           : "Più ",
+    "FIND_IN_FILES_MORE_THAN"           : "Oltre ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click per Espandere/Chiudere tutto",
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Sostituire errori",
+    "REPLACE_IN_FILES_ERRORS"           : "I seguenti file non sono stati modificati perché hanno cambiato dopo la ricerca o non potevano essere scritti.",
+    
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Si è verificato un errore nel recuperare le informazioni aggiornate",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Si è verificato un errore nel recuperare le informazioni aggiornate dal server. Assicurati di essere connesso a internet e riprova.",
-    "ERROR_CSSQUICKEDIT_BETWEENCLASSES" : "CSS Quick Edit: posiziona il cursore sul nome di una classe singola.",
-    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"  : "CSS Quick Edit: attributo classe incompleto",
-    "ERROR_CSSQUICKEDIT_IDNOTFOUND"     : "CSS Quick Edit: attributo id incompleto",
-    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: posiziona il cursore su etichetta, classe, oppure id",
-    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: posiziona il cursore su nome della funziona",
-    "EDIT_FILE_FILTER"                      : "Modifica\u2026",
-    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Quick Docs non disponibile per posizione attuale del cursore",
-    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Quick Edit non disponibile per posizione attuale del cursore",
-    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Funzione CSS Timing Quick Edit:  sintassi invalida",
-    "FILE_FILTER_CLIPPED_SUFFIX"        : "e {0} in più ",
-    "FILE_FILTER_INSTRUCTIONS"          : "Esclude i file e cartelle che sono uguali a qualsiasi delle seguente stringhe / sottostringhe o <a href='{0}' title='{0}'>caratteri jolly</a>.  Digita ciascun stringa su una nuova riga.",
- 
+    
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Nuova regola di esclusione\u2026",
     "CLEAR_FILE_FILTER"                 : "Non escludere file",
     "NO_FILE_FILTER"                    : "Nessun file escluso",
     "EXCLUDE_FILE_FILTER"               : "Escludere {0}",
+    "EDIT_FILE_FILTER"                  : "Modifica\u2026",
     "FILE_FILTER_DIALOG"                : "Modifica regole di esclusione",
+    "FILE_FILTER_INSTRUCTIONS"          : "Esclusione di file e cartelle corrispondenti delle seguenti stringhe o sottostringhe <a href='{0}' title='{0}'>caratteri jolly</a>. Immettere ogni stringa su una nuova linea.",
     "FILTER_NAME_PLACEHOLDER"           : "Nome delle regole di esclusione (facoltativo)",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "e {0} più",
     "FILTER_COUNTING_FILES"             : "Contando i file\u2026",
     "FILTER_FILE_COUNT"                 : "Consentire {0} di {1} file {2}",
     "FILTER_FILE_COUNT_ALL"             : "Consentire tutti {0} file {1}",
-     
-      
+    
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Quick Edit non disponibile per posizione attuale del cursore",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS Quick Edit: posiziona il cursore sul nome di una classe singola.",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS Quick Edit: attributo classe incompleto",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS Quick Edit: attributo id incompleto",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: posiziona il cursore su etichetta, classe, oppure id",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Funzione CSS Timing Quick Edit: sintassi invalida",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: posiziona il cursore su nome della Funzione",
+    
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Quick Docs non disponibile per posizione attuale del cursore",
+ 
     /**
      * ProjectManager
      */
@@ -211,7 +241,16 @@ define({
     "BOTTOM"            : "Inferiore",
     "LEFT"              : "Sinistra",
     "RIGHT"             : "Destra",
+    
+    "CMD_SPLITVIEW_NONE"        : "Nessuna Divisione",
+    "CMD_SPLITVIEW_VERTICAL"    : "Dividere Verticalmente",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Dividere Orizzontalmente",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Dividere l'editor verticalmente oppure orizzontalmente",
+    "GEAR_MENU_TOOLTIP"         : "Configura le impostazioni di lavoro",
 
+    "SPLITVIEW_INFO_TITLE"              : "Già aperto",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Il file è già aperto in un altro riquadro. {APP_NAME} sarà presto possibile aprire lo stesso file in più di un riquadro. Fino ad allora, il file verrà mostrato nel riquadro che è già aperto.<br /><br />(Tu vedrai questo messaggio solo una volta.)",
+   
     /**
      * Keyboard modifier names
      */
@@ -251,9 +290,9 @@ define({
     "MULTIPLE_ERRORS"                       : "{1} {0} Problemi",
     "NO_ERRORS"                             : "Nessun {0} problema trovato - ottimo lavoro!",
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "Nessun problema trovato - ottimo lavoro!",
-    "LINT_DISABLED"                         : "Linting disabilitato",
-    "NO_LINT_AVAILABLE"                     : "Linter disponibile {0}",
-    "NOTHING_TO_LINT"                       : "Niente dal lint",
+    "LINT_DISABLED"                         : "Lint disabilitato",
+    "NO_LINT_AVAILABLE"                     : "Lint disponibile {0}",
+    "NOTHING_TO_LINT"                       : "Niente dal Lint",
     "LINTER_TIMED_OUT"                      : "{0} è scaduto dopo aver atteso per {1} ms",
     "LINTER_FAILED"                         : "{0} terminato con errore: {1}",
     
@@ -304,7 +343,6 @@ define({
     "CMD_SPLIT_SEL_INTO_LINES"          : "Dividi selezione dentro alle righe",
     "CMD_ADD_CUR_TO_NEXT_LINE"          : "Aggiungi cursore alla riga successiva",
     "CMD_ADD_CUR_TO_PREV_LINE"          : "Aggiungi il cursore sulla riga precedente",
-    "CMD_FIND_FIELD_PLACEHOLDER"        : "Trova\u2026",
     "CMD_INDENT"                        : "Aumenta indentazione",
     "CMD_UNINDENT"                      : "Riduci indentazione",
     "CMD_DUPLICATE"                     : "Duplica",
@@ -359,7 +397,7 @@ define({
     "CMD_QUICK_OPEN"                    : "Apri velocemente",
     "CMD_GOTO_LINE"                     : "Vai alla linea",
     "CMD_GOTO_DEFINITION"               : "Vai alla definizione",
-    "CMD_GOTO_FIRST_PROBLEM"            : "Vai al primo errore/avviso",
+    "CMD_GOTO_FIRST_PROBLEM"            : "Vai al primo Errore/Avviso",
     "CMD_TOGGLE_QUICK_EDIT"             : "Modifica veloce",
     "CMD_TOGGLE_QUICK_DOCS"             : "Documentazione veloce",
     "CMD_QUICK_EDIT_PREV_MATCH"         : "Corrispondenza precedente",
@@ -368,54 +406,54 @@ define({
     "CMD_NEXT_DOC"                      : "Documento successivo",
     "CMD_PREV_DOC"                      : "Documento precedente",
     "CMD_SHOW_IN_TREE"                  : "Mostra nell’albero dei file",
+    "CMD_SHOW_IN_EXPLORER"              : "Mostra in Explorer",
+    "CMD_SHOW_IN_FINDER"                : "Mostra in Finder",
     "CMD_SHOW_IN_OS"                    : "Mostra in SO",
     
     // Help menu commands
     "HELP_MENU"                         : "Aiuto",
     "CMD_CHECK_FOR_UPDATE"              : "Controlla aggiornamenti",
     "CMD_HOW_TO_USE_BRACKETS"           : "Come usare {APP_NAME}",
-    "CMD_FORUM"                         : "Forum di {APP_NAME}",
-    "CMD_RELEASE_NOTES"                 : "Note del rilascio",
-    "CMD_REPORT_AN_ISSUE"               : "Segnala un problema",
+    "CMD_SUPPORT"                       : "Supporto per {APP_NAME}",
+    "CMD_SUGGEST"                       : "Suggerisci una funzionalità",
+    "CMD_RELEASE_NOTES"                 : "Note di rilascio",
+    "CMD_GET_INVOLVED"                  : "Far parte",
     "CMD_SHOW_EXTENSIONS_FOLDER"        : "Mostra cartella estensioni",
     "CMD_HOMEPAGE"                      : "Sito WEB di {APP_TITLE}",
     "CMD_TWITTER"                       : "{TWITTER_NAME} su Twitter",
     "CMD_ABOUT"                         : "Informazioni su {APP_TITLE}",
-    "CMD_SHOW_IN_EXPLORER"              : "Mostra in Explorer",
-    "CMD_SHOW_IN_FINDER"                : "Mostra nel Finder",
-
     "CMD_OPEN_PREFERENCES"              : "Apri il file delle preferenze",
 
     // Strings for main-view.html
-    "EXPERIMENTAL_BUILD"                : "Build sperimentale",
-    "DEVELOPMENT_BUILD"                 : "Build di sviluppo",
-    "CMD_SUGGEST"                       : "Suggerisci una funzionalità",
-    "CMD_SUPPORT"                       : "Supporto per {APP_NAME}",
+    "EXPERIMENTAL_BUILD"                : "build sperimentale",
+    "DEVELOPMENT_BUILD"                 : "build di sviluppo",
+    "RELEASE_BUILD"                     : "build di rilascio",
     "RELOAD_FROM_DISK"                  : "Ricarica dal disco",
-    "CMD_GET_INVOLVED"                  : "Far parte",
     "KEEP_CHANGES_IN_EDITOR"            : "Conserva le modifiche nell’editor",
     "CLOSE_DONT_SAVE"                   : "Chiudi (non salvare)",
     "RELAUNCH_CHROME"                   : "Riavvia Google Chrome",
     "ABOUT"                             : "Informazioni",
     "CLOSE"                             : "Chiudi",
-    "ABOUT_TEXT_LINE1"                  : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                  : "Release {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_BUILD_TIMESTAMP"        : "build timestamp: ",
     "ABOUT_TEXT_LINE3"                  : "Avvisi, termini e condizioni circa i software di terze parti raggiungibili all’indirizzo <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> incorporati come riferimento.",
     "ABOUT_TEXT_LINE4"                  : "Documentazione e codice sorgente sono disponibili all’indirizzo <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Fatto con \u2764 e JavaScript da:",
-    "ABOUT_TEXT_LINE6"                     : "Molta gente (abbiamo qualche difficoltà a caricare questi dati ora).",
+    "ABOUT_TEXT_LINE6"                     : "Molte persone (abbiamo qualche difficoltà a caricare questi dati ora).",
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "I loghi di 'Web Platform Docs'e 'Web Platform' sono sotto licenza Creative Common Attribution, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"       : "È disponibile una nuova versione di {APP_NAME}! Clicca qui per i dettagli.",
-    "UPDATE_AVAILABLE_TITLE"            : "Aggiornamento disponibile",
+    "UPDATE_AVAILABLE_TITLE"            : "Aggiornamento Disponibile",
     "UPDATE_MESSAGE"                    : "Hey, è disponibile una nuova versione di {APP_NAME}. Nuove caratteristiche:",
     "GET_IT_NOW"                        : "Installalo ora!",
     "PROJECT_SETTINGS_TITLE"            : "Impostazioni del progetto per: {0}",
     "PROJECT_SETTING_BASE_URL"          : "URL di base per Anteprima Live",
-    "PROJECT_SETTING_BASE_URL_HINT"     : "(lasciare vuoto per utilizzare l’URL del file)",
+    "PROJECT_SETTING_BASE_URL_HINT"     : "Per utilizzare un server locale, immettere un URL come http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"    : "Il protocollo {0} non è supportato da Anteprima Live&mdash;utilizzare http:// o https:// .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"   : "L’URL di base non può contenere parametri di ricerca come \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"     : "L’URL di base non può contenere hash come \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"        : "I caratteri speciali come '{0}' devono essere %-encodate.",
     "BASEURL_ERROR_UNKNOWN_ERROR"       : "Trovato un carattere sconosciuto durante l'analisi del URL di base",
+    "EMPTY_VIEW_HEADER"                 : "<em>Aprire un file mentre questo riquadro è attivo</em>",
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema attuale",
@@ -424,7 +462,6 @@ define({
     "FONT_FAMILY"                          : "Tipo di carattere",
     "THEMES_SETTINGS"                      : "Impostazioni Temi",
  
-    
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nuova regola",
     
@@ -446,6 +483,8 @@ define({
     "CANCELING_INSTALL"                    : "Cancellazione\u2026",
     "CANCELING_HUNG"                       : "L’arresto dell’installazione sta prendendo molto tempo. Potrebbe essersi verificato un errore interno.",
     "INSTALL_CANCELED"                     : "Installazione cancellata.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Visualizza descrizione completa",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Visualizza descrizione ridotta",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Il contenuto scaricato non è un file zip valido.",
     "INVALID_PACKAGE_JSON"                 : "Il file package.json non è valido (errore: {0}).",
@@ -465,7 +504,7 @@ define({
     "BAD_HTTP_STATUS"                      : "File non trovato sul server (HTTP {0}).",
     "CANNOT_WRITE_TEMP"                    : "Impossibile salvare il file scaricato nei file temporanei.",
     "ERROR_LOADING"                        : "Questa estensione ha incontrato un errore durante l’avvio.",
-    "MALFORMED_URL"                        : "L’indirizzo URL è invalido. Controlla di averlo inserito correttamente.",
+    "MALFORMED_URL"                        : "L’indirizzo URL non è valido. Controlla di averlo inserito correttamente.",
     "UNSUPPORTED_PROTOCOL"                 : "L’indirizzo URL dev’essere di tipo http o https.",
     "UNKNOWN_ERROR"                        : "Errore interno sconosciuto.",
     // For NOT_FOUND_ERR, see generic strings above
@@ -475,6 +514,7 @@ define({
     "INSTALL_EXTENSION_DROP"               : "Rilascia .zip per l'installazione",
     "INSTALL_EXTENSION_DROP_ERROR"         : "Installazione/Aggiornamento interrotto a causa dei seguenti errori:",
     "INSTALL_FROM_URL"                     : "Installo dall’indirizzo URL\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Convalida\u2026",
     "EXTENSION_AUTHOR"                     : "Autore",
     "EXTENSION_DATE"                       : "Data",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Questa estensione richiede una versione di {APP_NAME} più recente.",
@@ -545,7 +585,6 @@ define({
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Apri sorgente di Brackets",
     "ERRORS"                                    : "Errori",
 
-    
     "LANGUAGE_TITLE"                            : "Cambia la lingua",
     "LANGUAGE_MESSAGE"                          : "Lingua:",
     "LANGUAGE_SUBMIT"                           : "Riavvia {APP_NAME}",
@@ -557,6 +596,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progresso",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Sposta punto selezionato<br><kbd class='text'>Maiuscola</kbd> Muovi di dieci unità",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Aumenta o diminuisci<br><kbd>←</kbd><kbd>→</kbd> 'Inizio' o 'Fine'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "Il vecchio valore <code>{0}</code> non è valido, per cui la funzione visualizzata è stato cambiato in <code>{1}</code>. Il documento sarà aggiornato con la prima modifica.",
     
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Colore corrente",
@@ -572,13 +612,13 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostra suggerimenti sul parametro",
     "NO_ARGUMENTS"                              : "<nessun parametro>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problema Conseguente File JavaScript",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets ha dei problemi per elaborare il file:<br><br>{0}<br><br>This file will no longer be processed for code hints and jump to definition. To turn this back on, open <code>.brackets.json</code> nel tuo progetto e rimuovi il file da jscodehints.detectedExclusions.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets ha dei problemi nel elaborare il processo <span class='dialog-filename'>{0}</span>.<br><br> Questo file non sarà più elaborato per i Suggerimenti sul codice, Vai a definizione o Modifica rapida. Per riattivare questo file , aprire <code>.brackets.json</code> nel progetto e modificare <code>jscodehints.detectedExclusions</code>.<br><br>Questo è probabilmente un bug di Brackets. Se è possibile fornire una copia di questo file, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>un bug</a> con un collegamento al file denominato qui.",
     
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
     
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                     : "Vista Veloce al passaggio del mouse",
+    "CMD_ENABLE_QUICK_VIEW"                     : "Quick Edit al passaggio del mouse",
     
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Progetti recenti",
@@ -587,5 +627,5 @@ define({
     "DOCS_MORE_LINK"                            : "Leggi tutto"
 });
 
-/* Last translation of: 0f21bf6b9740a302609ad0111c5cf0ae1951c3d4*/
+/* Last translation of: 91b392bf349ece5058595b26a11c651697ee7ff6*/
 

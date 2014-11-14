@@ -1627,25 +1627,40 @@ define(function (require, exports, module) {
                     });
 
                     runs(function () {
-                        expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/css/foo.css");
+                        var expectedFile = testPath + "/foo.html";
+                        expect(DocumentManager.getCurrentDocument().file.fullPath).toBe(expectedFile);
+                        expect(MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, expectedFile)).not.toBe(-1);
                     });
                 });
 
                 it("should select the first modified file in the working set if replacements are done in memory and no editor was open", function () {
                     openTestProjectCopy(defaultSourcePath);
 
+                    var testFiles = ["/css/foo.css", "/foo.html", "/foo.js"];
+                    
                     doInMemoryTest({
                         queryInfo:         {query: "foo"},
                         numMatches:        14,
                         replaceText:       "bar",
                         knownGoodFolder:   "unchanged",
                         forceFilesOpen:    true,
-                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryFiles:     testFiles,
                         inMemoryKGFolder:  "simple-case-insensitive"
                     });
 
+                    
                     runs(function () {
-                        expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/css/foo.css");
+                        // since nothing was opened prior to doing the 
+                        //  replacements then the first file modified will be opened. 
+                        // This may not be the first item in the array above
+                        //  since the files are sorted differently in performReplacements
+                        //  and the replace is performed asynchronously.  
+                        // So, just ensure that *something* was opened
+                        expect(DocumentManager.getCurrentDocument().file.fullPath).toBeTruthy();
+                        
+                        testFiles.forEach(function (relPath) {
+                            expect(MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, testPath + relPath)).not.toBe(-1);
+                        });
                     });
                 });
 
@@ -2149,8 +2164,8 @@ define(function (require, exports, module) {
                             $(".check-one").eq(1).click();
                             expect($(".check-one").eq(1).is(":checked")).toBeFalsy();
                             expect($(".check-all").is(":checked")).toBeFalsy();
-                            // In the sorting, this item should be the second match in the first file, which is css/foo.css.
-                            var uncheckedMatch = FindInFiles.searchModel.results[testPath + "/css/foo.css"].matches[1];
+                            // In the sorting, this item should be the second match in the first file, which is foo.html
+                            var uncheckedMatch = FindInFiles.searchModel.results[testPath + "/foo.html"].matches[1];
                             expect(uncheckedMatch.isChecked).toBe(false);
                             // Check that all items in the model besides the unchecked one to be checked.
                             expect(_.every(FindInFiles.searchModel.results, function (result) {

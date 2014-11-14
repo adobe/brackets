@@ -116,15 +116,18 @@ define(function (require, exports, module) {
             }
         }
         
-        return new Promise(function (resolve, reject) {
-            var parser = new less.Parser(options);
-            parser.parse(code, function onParse(err, tree) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(tree.toCSS());
+        var parser = new less.Parser(options);
+        parser.parse(code, function onParse(err, tree) {
+            if (err) {
+                result.reject(err);
+            } else {
+                try {
+                    result.resolve(tree.toCSS());
+                } catch (toCSSError) {
+                    console.error(toCSSError.filename + ":" + toCSSError.line + " " + toCSSError.message);
+                    result.reject(toCSSError);
                 }
-            });
+            }
         });
     }
     

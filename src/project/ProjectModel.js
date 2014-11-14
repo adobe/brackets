@@ -305,12 +305,13 @@ define(function (require, exports, module) {
     /**
      * Tracks the scroller position.
      * 
+     * @param {int} scrollWidth Width of the tree container
      * @param {int} scrollTop Top of scroll position
      * @param {int} scrollLeft Left of scroll position
      * @param {int} offsetTop Top of scroller element
      */
-    ProjectModel.prototype.setScrollerInfo = function (scrollTop, scrollLeft, offsetTop) {
-        this._viewModel.setSelectionScrollerInfo(scrollTop, scrollLeft, offsetTop);
+    ProjectModel.prototype.setScrollerInfo = function (scrollWidth, scrollTop, scrollLeft, offsetTop) {
+        this._viewModel.setSelectionScrollerInfo(scrollWidth, scrollTop, scrollLeft, offsetTop);
     };
 
     /**
@@ -605,28 +606,24 @@ define(function (require, exports, module) {
      * @return {Promise} promise resolved when the path is shown
      */
     ProjectModel.prototype.showInTree = function (path) {
+        var d = new $.Deferred();
+        path = _getPathFromFSObject(path);
+        
+        if (!this.isWithinProject(path)) {
+            return d.resolve().promise();
+        }
 
-        return new Promise(function (resolve, reject) {
-            path = _getPathFromFSObject(path);
-
-            var projectRelative = this.makeProjectRelativeIfPossible(path);
-
-            // Not in project?
-            if (projectRelative[0] === "/") {
-                resolve();
-            } else {
-                var parentDirectory = FileUtils.getDirectoryPath(path),
-                    self = this;
-                this.setDirectoryOpen(parentDirectory, true).then(function () {
-                    if (_pathIsFile(path)) {
-                        self.setSelected(path);
-                    }
-                    resolve();
-                }, function (err) {
-                    reject(err);
-                });
+        var parentDirectory = FileUtils.getDirectoryPath(path),
+            self = this;
+        this.setDirectoryOpen(parentDirectory, true).then(function () {
+            if (_pathIsFile(path)) {
+                self.setSelected(path);
             }
+            d.resolve();
+        }, function (err) {
+            d.reject(err);
         });
+        return d.promise();
     };
 
     /**
@@ -786,7 +783,13 @@ define(function (require, exports, module) {
         if (this._selections.rename && this._selections.rename.path === path) {
             return;
         }
-
+        
+        var projectRelativePath = this.makeProjectRelativeIfPossible(path);
+        
+        if (!this._viewModel.isFilePathVisible(projectRelativePath)) {
+            this.showInTree(path);
+        }
+        
         if (path !== this._selections.context) {
             this.setContext(path);
         } else {
@@ -794,17 +797,15 @@ define(function (require, exports, module) {
         }
 
         this._viewModel.moveMarker("rename", null,
-                                   this.makeProjectRelativeIfPossible(path));
-        var d = new Promise(function (resolve, reject) {
-            this._selections.rename = {
-                resolve: resolve,
-                reject: reject,
-                type: FILE_RENAMING,
-                path: path,
-                newName: FileUtils.getBaseName(path)
-            };
-        });
-        return d;
+                                   projectRelativePath);
+        var d = new $.Deferred();
+        this._selections.rename = {
+            deferred: d,
+            type: FILE_RENAMING,
+            path: path,
+            newName: FileUtils.getBaseName(path)
+        };
+        return d.promise();
     };
 
     /**
@@ -1065,9 +1066,9 @@ define(function (require, exports, module) {
             });
         }
     };
-
+    
     /**
-     * Refreshes the contents of the tree.
+     * Clears caches and refreshes the contents of the tree.
      *
      * @return {Promise} resolved when the tree has been refreshed
      */
@@ -1076,25 +1077,24 @@ define(function (require, exports, module) {
             openNodes   = this.getOpenNodes(),
             self        = this,
             selections  = this._selections,
-            viewModel   = this._viewModel;
+            viewModel   = this._viewModel,
+            deferred    = new $.Deferred();
         
-        return new Promise(function (resolve, reject) {
-            this.setProjectRoot(projectRoot).then(function () {
-                self.reopenNodes(openNodes).then(function () {
-                    if (selections.selected) {
-                        viewModel.moveMarker("selected", null, self.makeProjectRelativeIfPossible(selections.selected));
-                    }
+        this.setProjectRoot(projectRoot).then(function () {
+            self.reopenNodes(openNodes).then(function () {
+                if (selections.selected) {
+                    viewModel.moveMarker("selected", null, self.makeProjectRelativeIfPossible(selections.selected));
+                }
 
-                    if (selections.context) {
-                        viewModel.moveMarker("context", null, self.makeProjectRelativeIfPossible(selections.context));
-                    }
+                if (selections.context) {
+                    viewModel.moveMarker("context", null, self.makeProjectRelativeIfPossible(selections.context));
+                }
 
-                    if (selections.rename) {
-                        viewModel.moveMarker("rename", null, self.makeProjectRelativeIfPossible(selections.rename));
-                    }
+                if (selections.rename) {
+                    viewModel.moveMarker("rename", null, self.makeProjectRelativeIfPossible(selections.rename));
+                }
 
-                    resolve();
-                });
+                resolve();
             });
         });
     };
@@ -1127,9 +1127,18 @@ define(function (require, exports, module) {
             ];
         } else {
             // Special case: a directory passed in without added and removed values
-            // appears to be new.
+            // needs to be updated.
             if (!added && !removed) {
-                this._viewModel.ensureDirectoryExists(this.makeProjectRelativeIfPossible(entry.fullPath));
+                entry.getContents(function (err, contents) {
+                    if (err) {
+                        console.error("Unexpected error refreshing file tree for directory", entry.fullPath, err);
+                        return;
+                    }
+                    self._viewModel.setDirectoryContents(self.makeProjectRelativeIfPossible(entry.fullPath), contents);
+                });
+                
+                // Exit early because we can't update the viewModel until we get the directory contents.
+                return;
             }
         }
 

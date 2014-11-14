@@ -239,6 +239,37 @@ define(function (require, exports, module) {
         }, false);
     }
     
+    /**
+     * Executes a series of tasks in serial (task N does not begin until task N-1 has completed).
+     * Returns a "master" Promise that is resolved when the first task has resolved. If all tasks
+     * fail, the master Promise is rejected.
+     *
+     * @param {!Array.<*>} items
+     * @param {!function(*, number):Promise} beginProcessItem
+     * @return {$.Promise}
+     */
+    function firstSequentially(items, beginProcessItem) {
+
+        var masterDeferred = new $.Deferred();
+
+        function doItem(i) {
+            if (i >= items.length) {
+                masterDeferred.reject();
+                return;
+            }
+
+            beginProcessItem(items[i], i)
+                .fail(function () {
+                    doItem(i + 1);
+                })
+                .done(function () {
+                    masterDeferred.resolve(items[i]);
+                });
+        }
+
+        doItem(0);
+        return masterDeferred.promise();
+    }
     
     /**
      * Executes a series of tasks in parallel, saving up error info from any that fail along the way.
@@ -387,6 +418,50 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Chains a series of synchronous and asynchronous (jQuery promise-returning) functions
+     * together, using the result of each successive function as the argument(s) to the next.
+     * A promise is returned that resolves with the result of the final call if all calls
+     * resolve or return normally. Otherwise, if any of the functions reject or throw, the
+     * computation is halted immediately and the promise is rejected with this halting error.
+     *
+     * @param {Array.<function(*)>} functions Functions to be chained
+     * @param {?Array} args Arguments to call the first function with
+     * @return {jQuery.Promise} A promise that resolves with the result of the final call, or
+     * rejects with the first error.
+     */
+    function chain(functions, args) {
+        var deferred = $.Deferred();
+        
+        function chainHelper(index, args) {
+            if (functions.length === index) {
+                deferred.resolveWith(null, args);
+            } else {
+                var nextFunction = functions[index++];
+                try {
+                    var responseOrPromise = nextFunction.apply(null, args);
+                    if (responseOrPromise.hasOwnProperty("done") &&
+                            responseOrPromise.hasOwnProperty("fail")) {
+                        responseOrPromise.done(function () {
+                            chainHelper(index, arguments);
+                        });
+                        responseOrPromise.fail(function () {
+                            deferred.rejectWith(null, arguments);
+                        });
+                    } else {
+                        chainHelper(index, [responseOrPromise]);
+                    }
+                } catch (e) {
+                    deferred.reject(e);
+                }
+            }
+        }
+        
+        chainHelper(0, args || []);
+        
+        return deferred.promise();
+    }
+    
+    /**
      * Utility for converting a method that takes (error, callback) to one that returns a promise;
      * useful for using FileSystem methods (or other Node-style API methods) in a promise-oriented
      * workflow. For example, instead of
@@ -516,13 +591,15 @@ define(function (require, exports, module) {
     };
     
     // Define public API
-    exports.doInParallel   = doInParallel;
-    exports.doSequentially = doSequentially;
+    exports.doInParallel        = doInParallel;
+    exports.doSequentially      = doSequentially;
     exports.doSequentiallyInBackground   = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
-    exports.withTimeout    = withTimeout;
-    exports.waitForAll     = waitForAll;
-    exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
-    exports.promisify      = promisify;
-    exports.PromiseQueue   = PromiseQueue;
+    exports.firstSequentially   = firstSequentially;
+    exports.withTimeout         = withTimeout;
+    exports.waitForAll          = waitForAll;
+    exports.ERROR_TIMEOUT       = ERROR_TIMEOUT;
+    exports.chain               = chain;
+    exports.promisify           = promisify;
+    exports.PromiseQueue        = PromiseQueue;
 });
