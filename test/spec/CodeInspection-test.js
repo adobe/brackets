@@ -786,56 +786,56 @@ define(function (require, exports, module) {
                 });
             });
 
-	    it("should show warning icon in inspector icon when only warnings", function () {
-            var lintResult = {
-                errors: [
-                    {
-                        pos: { line: 1, ch: 3 },
-                        message: "Some errors here and there",
-                        type: CodeInspection.Type.WARNING
-                    }
-                ]
-            };
-            
-            
-            var codeInspector = createCodeInspector("javascript linter", lintResult);
-            CodeInspection.register("javascript", codeInspector);
-            
-            waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
-		  
-            runs(function () {
-                var $statusBar = $("#status-inspection");
-                expect($statusBar.is(":visible")).toBe(true);
-                expect($statusBar.attr("class")).toBe('inspection-warnings');
-            });
-        });
+            it("should show warning icon in inspector icon when only warnings", function () {
+                var lintResult = {
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                };
 
-        it("should show error icon in inspector icon when has errors", function () {
-            var lintResult = {
-                errors: [
-                    {
-                        pos: { line: 1, ch: 3 },
-                        message: "Some errors here and there",
-                        type: CodeInspection.Type.WARNING
-                    },
-                    {
-                        pos: { line: 1, ch: 5 },
-                        message: "Some errors there and there and over there",
-                        type: CodeInspection.Type.ERROR
-                    }
-                ]
-            };
-            var codeInspector = createCodeInspector("javascript linter", lintResult);
-            CodeInspection.register("javascript", codeInspector);
+                var codeInspector = createCodeInspector("javascript linter", lintResult);
+                CodeInspection.register("javascript", codeInspector);
 
-            waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
-            
-            runs(function () {
-                var $statusBar = $("#status-inspection");
-                expect($statusBar.is(":visible")).toBe(true);
-                expect($statusBar.attr("class")).toBe('inspection-errors');
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+                    expect($statusBar.attr("class")).toBe('inspection-warnings');
+                });
             });
-        });
+
+            it("should show error icon in inspector icon when has errors", function () {
+                var lintResult = {
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some errors here and there",
+                            type: CodeInspection.Type.WARNING
+                        },
+                        {
+                            pos: { line: 1, ch: 5 },
+                            message: "Some errors there and there and over there",
+                            type: CodeInspection.Type.ERROR
+                        }
+                    ]
+                };
+                
+                var codeInspector = createCodeInspector("javascript linter", lintResult);
+                CodeInspection.register("javascript", codeInspector);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+                    expect($statusBar.attr("class")).toBe('inspection-errors');
+                });
+            });
 
             it("should show the generic panel title if more than one inspector reported problems", function () {
                 var lintResult = failLintResult();
