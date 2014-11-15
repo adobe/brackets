@@ -1195,7 +1195,7 @@ define(function (require, exports, module) {
                 
                 it("should show disabled install button if requires newer API version", function () {   // isCompatible: false, requiresNewer: true
                     runs(function () {
-                        mockRegistry = { "mock-extension": makeMockExtension([">0.100"]) };
+                        mockRegistry = { "mock-extension": makeMockExtension([">100.0"]) };
                         setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
@@ -1229,7 +1229,7 @@ define(function (require, exports, module) {
                 
                 it("should show enabled install button if latest requires newer API version", function () { // isCompatible: true, isLatestVersion: false, requiresNewer: true
                     runs(function () {
-                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.100"]) };
+                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">100.0"]) };
                         setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
@@ -1277,7 +1277,7 @@ define(function (require, exports, module) {
                 
                 it("should install latest compatible version", function () {
                     runs(function () {
-                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.2", ">0.100"]) };
+                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.2", ">100.0"]) };
                         setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
@@ -1324,7 +1324,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should show disabled update button for items whose available update requires newer API version", function () {   // isLatestVersion: false, requiresNewer: true
-                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.100"]) };
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">100.0"]) };
                     var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
                     ExtensionManager._setExtensions(mockInstallInfo);
                     setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
@@ -1586,7 +1586,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should show disabled update button for items whose available update requires newer API version", function () {   // isLatestVersion: false, requiresNewer: true
-                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.100"]) };
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">100.0"]) };
                     var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
                     ExtensionManager._setExtensions(mockInstallInfo);
                     waitsForDone(ExtensionManager.downloadRegistry()); // ensure mockRegistry integrated in
