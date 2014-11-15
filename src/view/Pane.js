@@ -153,6 +153,7 @@ define(function (require, exports, module) {
     "use strict";
         
     var _                   = require("thirdparty/lodash"),
+        Async               = require("utils/Async"),
         FileSystem          = require("filesystem/FileSystem"),
         InMemoryFile        = require("document/InMemoryFile"),
         ViewStateManager    = require("view/ViewStateManager"),
@@ -450,12 +451,11 @@ define(function (require, exports, module) {
                 } else if (!destinationPane.getCurrentlyViewedFile()) {
                     // The view has not have been created and the pane was 
                     //  not showing anything so open the file moved in to the pane
-                    destinationPane._execOpenFile(file.fullPath).always(function () {
-                        // wait until the file has been opened before
-                        //  we resolve the promise so the working set 
-                        //  view can sync appropriately
-                        moveViewResolve();
-                    });
+                    var promise = destinationPane._execOpenFile(file.fullPath);
+
+                    // wait until the file has been opened before we resolve the
+                    // promise so the working set view can sync appropriately
+                    Async.promiseAlways(promise, moveViewResolve);
                 } else {
                     // nothing to do, we're done
                     moveViewResolve();

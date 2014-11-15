@@ -98,7 +98,7 @@ define(function (require, exports, module) {
      * @constructor
      * @param {Array.<{name:String,document:Document,lineStart:number,lineEnd:number}>} ranges The text
      *      ranges to display. Results within the same file are expected to be contiguous in this array.
-     * @param {?function(): $.Promise} messageCB Optional; returns a promise resolved with a message to
+     * @param {?function(): Promise} messageCB Optional; returns a promise resolved with a message to
      *      show when no matches are available. The message should be already-escaped HTML.
      * @param {?function(range): string} labelCB Optional; returns an updated label string for the given
      *      range. Called when we detect that the content of a range has changed. The label is plain
@@ -427,7 +427,7 @@ define(function (require, exports, module) {
             if (hasHiddenMatches) {
                 this.$messageDiv.text(Strings.INLINE_EDITOR_HIDDEN_MATCHES);
             } else if (this._messageCB) {
-                this._messageCB(hasHiddenMatches).done(function (msg) {
+                this._messageCB(hasHiddenMatches).then(function (msg) {
                     self.$messageDiv.html(msg);
                 });
             } else {

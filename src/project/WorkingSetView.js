@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var AppInit               = require("utils/AppInit"),
+        Async                 = require("utils/Async"),
         DocumentManager       = require("document/DocumentManager"),
         MainViewManager       = require("view/MainViewManager"),
         CommandManager        = require("command/CommandManager"),
@@ -757,27 +758,22 @@ define(function (require, exports, module) {
             
             // Drop
             function drop() {
+                var promise;
                 preDropCleanup();
                 if (sourceView.paneId === currentView.paneId && startingIndex === $el.index()) {
                     // if the item was dragged but not moved then don't open or close 
                     if (!dragged) {
                         // Click on close icon, or middle click anywhere - close the item without selecting it first
                         if (tryClosing || e.which === MIDDLE_BUTTON) {
-                            CommandManager
-                                .execute(Commands.FILE_CLOSE, {file: sourceFile,
-                                                               paneId: sourceView.paneId})
-                                .always(function () {
-                                    postDropCleanup();
-                                });
+                            promise = CommandManager.execute(Commands.FILE_CLOSE,
+                                                             {file: sourceFile, paneId: sourceView.paneId});
+                            Async.promiseAlways(promise, postDropCleanup);
                         } else {
                             // Normal right and left click - select the item
                             FileViewController.setFileViewFocus(FileViewController.WORKING_SET_VIEW);
-                            CommandManager
-                                .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
-                                                               paneId: currentView.paneId})
-                                .always(function () {
-                                    postDropCleanup();
-                                });
+                            promise = CommandManager.execute(Commands.FILE_OPEN,
+                                                             {fullPath: sourceFile.fullPath, paneId: currentView.paneId});
+                            Async.promiseAlways(promise, postDropCleanup);
                         }
                     } else {
                         // no need to refresh
@@ -789,21 +785,18 @@ define(function (require, exports, module) {
                     postDropCleanup();
                 } else {
                     // item was dragged to another working set
-                    MainViewManager._moveView(sourceView.paneId, currentView.paneId, sourceFile, $el.index())
-                        .always(function () {
-                            // if the current document was dragged to another working set 
-                            //  then reopen it to make it the currently selected file
-                            if (draggingCurrentFile) {
-                                CommandManager
-                                    .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
-                                                                   paneId: currentView.paneId})
-                                    .always(function () {
-                                        postDropCleanup();
-                                    });
-                            } else {
-                                postDropCleanup();
-                            }
-                        });
+                    promise = MainViewManager._moveView(sourceView.paneId, currentView.paneId, sourceFile, $el.index());
+                    Async.promiseAlways(promise, function () {
+                        // if the current document was dragged to another working set 
+                        //  then reopen it to make it the currently selected file
+                        if (draggingCurrentFile) {
+                            var p = CommandManager.execute(Commands.FILE_OPEN,
+                                                           {fullPath: sourceFile.fullPath, paneId: currentView.paneId});
+                            Async.promiseAlways(p, postDropCleanup);
+                        } else {
+                            postDropCleanup();
+                        }
+                    });
                 }
             }
 

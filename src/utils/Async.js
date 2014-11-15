@@ -246,29 +246,28 @@ define(function (require, exports, module) {
      *
      * @param {!Array.<*>} items
      * @param {!function(*, number):Promise} beginProcessItem
-     * @return {$.Promise}
+     * @return {Promise}
      */
     function firstSequentially(items, beginProcessItem) {
 
-        var masterDeferred = new $.Deferred();
+        return new Promise(function (resolve, reject) {
+            function doItem(i) {
+                if (i >= items.length) {
+                    reject();
+                    return;
+                }
 
-        function doItem(i) {
-            if (i >= items.length) {
-                masterDeferred.reject();
-                return;
+                beginProcessItem(items[i], i)
+                    .catch(function () {
+                        doItem(i + 1);
+                    })
+                    .then(function () {
+                        resolve(items[i]);
+                    });
             }
 
-            beginProcessItem(items[i], i)
-                .fail(function () {
-                    doItem(i + 1);
-                })
-                .done(function () {
-                    masterDeferred.resolve(items[i]);
-                });
-        }
-
-        doItem(0);
-        return masterDeferred.promise();
+            doItem(0);
+        });
     }
     
     /**
@@ -313,7 +312,7 @@ define(function (require, exports, module) {
         });
     }
         
-    /** Value passed to fail() handlers that have been triggered due to withTimeout()'s timeout */
+    /** Value passed to catch() handlers that have been triggered due to withTimeout()'s timeout */
     var ERROR_TIMEOUT = {};
     
     /**
@@ -426,39 +425,35 @@ define(function (require, exports, module) {
      *
      * @param {Array.<function(*)>} functions Functions to be chained
      * @param {?Array} args Arguments to call the first function with
-     * @return {jQuery.Promise} A promise that resolves with the result of the final call, or
+     * @return {Promise} A promise that resolves with the result of the final call, or
      * rejects with the first error.
      */
     function chain(functions, args) {
-        var deferred = $.Deferred();
-        
-        function chainHelper(index, args) {
-            if (functions.length === index) {
-                deferred.resolveWith(null, args);
-            } else {
-                var nextFunction = functions[index++];
-                try {
-                    var responseOrPromise = nextFunction.apply(null, args);
-                    if (responseOrPromise.hasOwnProperty("done") &&
-                            responseOrPromise.hasOwnProperty("fail")) {
-                        responseOrPromise.done(function () {
+
+        return new Promise(function (resolve, reject) {
+
+            function chainHelper(index, args) {
+                if (functions.length === index) {
+                    resolve(args);
+                } else {
+                    var nextFunction = functions[index++],
+                        responseOrPromise = nextFunction.apply(null, args);
+                    if (responseOrPromise.hasOwnProperty("then") &&
+                            responseOrPromise.hasOwnProperty("catch")) {
+                        responseOrPromise.then(function () {
                             chainHelper(index, arguments);
                         });
-                        responseOrPromise.fail(function () {
-                            deferred.rejectWith(null, arguments);
+                        responseOrPromise.catch(function () {
+                            reject(arguments);
                         });
                     } else {
                         chainHelper(index, [responseOrPromise]);
                     }
-                } catch (e) {
-                    deferred.reject(e);
                 }
             }
-        }
-        
-        chainHelper(0, args || []);
-        
-        return deferred.promise();
+
+            chainHelper(0, args || []);
+        });
     }
     
     /**
@@ -590,6 +585,18 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Helper function to ease converting from jQuery Deferreds to ES6 Promises.
+     * 
+     * @param {!Promise} promise
+     * @param {!function()} fn Function to always be executed
+     * @return {Promise} For chaining
+     */
+    function promiseAlways(promise, fn) {
+        promise.then(fn, fn);
+        return promise;
+    }
+    
     // Define public API
     exports.doInParallel        = doInParallel;
     exports.doSequentially      = doSequentially;
@@ -602,4 +609,5 @@ define(function (require, exports, module) {
     exports.chain               = chain;
     exports.promisify           = promisify;
     exports.PromiseQueue        = PromiseQueue;
+    exports.promiseAlways       = promiseAlways;
 });

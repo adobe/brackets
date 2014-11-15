@@ -161,23 +161,23 @@ define(function GotoAgent(require, exports, module) {
     function open(url, location, noFlash) {
         console.assert(url.substr(0, 7) === "file://", "Cannot open non-file URLs");
 
-        var result = new $.Deferred();
-
-        url = _urlWithoutQueryString(url);
-        // Extract the path, also strip the third slash when on Windows
-        var path = url.slice(brackets.platform === "win" ? 8 : 7);
-        // URL-decode the path ('%20' => ' ')
-        path = decodeURI(path);
-        var promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: path});
-        promise.done(function onDone(doc) {
-            if (location) {
-                openLocation(location, noFlash);
-            }
-            result.resolve();
-        });
-        promise.fail(function onErr(err) {
-            console.error(err);
-            result.reject(err);
+        new Promise(function (resolve, reject) {
+            url = _urlWithoutQueryString(url);
+            // Extract the path, also strip the third slash when on Windows
+            var path = url.slice(brackets.platform === "win" ? 8 : 7);
+            // URL-decode the path ('%20' => ' ')
+            path = decodeURI(path);
+            var promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: path});
+            promise.then(function onDone(doc) {
+                if (location) {
+                    openLocation(location, noFlash);
+                }
+                resolve();
+            });
+            promise.catch(function onErr(err) {
+                console.error(err);
+                reject(err);
+            });
         });
     }
 

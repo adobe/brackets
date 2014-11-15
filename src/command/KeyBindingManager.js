@@ -835,7 +835,7 @@ define(function (require, exports, module) {
                 Strings.ERROR_KEYMAP_TITLE,
                 errorMessage
             )
-                .done(function () {
+                .then(function () {
                     if (err !== FileSystemError.UNSUPPORTED_ENCODING) {
                         CommandManager.execute(Commands.FILE_OPEN_KEYMAP);
                     }
@@ -1108,44 +1108,44 @@ define(function (require, exports, module) {
      * Otherwise, returns an empty object or an error if the file 
      * cannot be parsed or loaded.
      *
-     * @return {$.Promise} a jQuery promise that will be resolved with the JSON
+     * @return {Promise} a jQuery promise that will be resolved with the JSON
      * object if the user key map file has "overrides" property or an empty JSON.
      * If the key map file cannot be read or cannot be parsed by the JSON parser,
      * then the promise is rejected with an error.
      */
     function _readUserKeyMap() {
-        var file   = FileSystem.getFileForPath(_getUserKeyMapFilePath()),
-            result = new $.Deferred();
-       
-        file.exists(function (err, doesExist) {
-            if (doesExist) {
-                FileUtils.readAsText(file)
-                    .done(function (text) {
-                        var keyMap = {};
-                        try {
-                            if (text) {
-                                var json = JSON.parse(text);
-                                // If no overrides, return an empty key map.
-                                result.resolve((json && json.overrides) || keyMap);
-                            } else {
-                                // The file is empty, so return an empty key map.
-                                result.resolve(keyMap);
+        var file   = FileSystem.getFileForPath(_getUserKeyMapFilePath());
+        
+        return new Promise(function (resolve, reject) {
+            file.exists(function (err, doesExist) {
+                if (doesExist) {
+                    FileUtils.readAsText(file)
+                        .then(function (text) {
+                            var keyMap = {};
+                            try {
+                                if (text) {
+                                    var json = JSON.parse(text);
+                                    // If no overrides, return an empty key map.
+                                    resolve((json && json.overrides) || keyMap);
+                                } else {
+                                    // The file is empty, so return an empty key map.
+                                    resolve(keyMap);
+                                }
+                            } catch (err) {
+                                // Cannot parse the text read from the key map file.
+                                reject(err);
                             }
-                        } catch (err) {
-                            // Cannot parse the text read from the key map file.
-                            result.reject(err);
-                        }
-                    })
-                    .fail(function (err) {
-                        // Key map file cannot be loaded.
-                        result.reject(err);
-                    });
-            } else {
-                // Just resolve if no user key map file
-                result.resolve();
-            }
+                        })
+                        .catch(function (err) {
+                            // Key map file cannot be loaded.
+                            reject(err);
+                        });
+                } else {
+                    // Just resolve if no user key map file
+                    resolve();
+                }
+            });
         });
-        return result.promise();
     }
 
     /**
@@ -1186,7 +1186,7 @@ define(function (require, exports, module) {
                                      "\n        \n    }\n}\n";
                 
                 FileUtils.writeText(file, defaultContent, true)
-                    .done(function () {
+                    .then(function () {
                         CommandManager.execute(Commands.FILE_OPEN, { fullPath: userKeyMapPath });
                     });
             }

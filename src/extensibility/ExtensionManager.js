@@ -621,144 +621,147 @@ define(function (require, exports, module) {
      * @param {string} dirPath Directory with extensions
      * @param {Object} autoExtensions Object that maps names of previously auto-installed
      *      extensions {string} to installed version {string}.
-     * @return {$.Promise} Promise that resolves with arrays for extensions to update and install
+     * @return {Promise} Promise that resolves with arrays for extensions to update and install
      */
     function _getAutoInstallFiles(dirPath, autoExtensions) {
         var zipFiles    = [],
             installZips = [],
-            updateZips  = [],
-            deferred    = new $.Deferred();
-
-        FileSystem.getDirectoryForPath(dirPath).getContents(function (err, contents) {
-            if (!err) {
-                zipFiles = contents.filter(function (dirItem) {
-                    return (dirItem.isFile && FileUtils.getFileExtension(dirItem.fullPath) === "zip");
-                });
-            }
-
-            // Parse zip files and separate new installs vs. updates
-            Async.doInParallel_aggregateErrors(zipFiles, function (file) {
-                var zipFilePromise = new $.Deferred();
-
-                // Call validate() so that we open the local zip file and parse the
-                // package.json. We need the name to detect if this zip will be a
-                // new install or an update.
-                Package.validate(file.fullPath, { requirePackageJSON: true }).done(function (info) {
-                    if (info.errors.length) {
-                        zipFilePromise.reject(Package.formatError(info.errors));
-                        return;
-                    }
-
-                    var extensionInfo, installedVersion, zipArray, existingItem,
-                        extensionName   = info.metadata.name,
-                        autoExtVersion  = autoExtensions[extensionName];
-
-                    // Verify extension has not already been auto-installed/updated
-                    if (autoExtVersion && semver.lte(info.metadata.version, autoExtVersion)) {
-                        // Have already auto installed/updated version >= version of this extension
-                        zipFilePromise.reject();
-                        return;
-                    }
-
-                    // Verify extension has not already been installed/updated by some other means
-                    extensionInfo = extensions[extensionName];
-                    installedVersion = extensionInfo && extensionInfo.installInfo && extensionInfo.installInfo.metadata.version;
-                    if (installedVersion && semver.lte(info.metadata.version, installedVersion)) {
-                        // Have already manually installed/updated version >= version of this extension
-                        zipFilePromise.reject();
-                        return;
-                    }
-
-                    // Update appropriate zip array. There could be multiple zip files for an
-                    // extension, so make sure only the latest is stored
-                    zipArray = (installedVersion) ? updateZips : installZips;
-                    zipArray.some(function (zip) {
-                        if (zip.info.metadata.name === extensionName) {
-                            existingItem = zip;
-                            return true;
-                        }
-                        return false;
+            updateZips  = [];
+        
+        return new Promise(function (getFilesResolve, getFilesReject) {
+            FileSystem.getDirectoryForPath(dirPath).getContents(function (err, contents) {
+                if (!err) {
+                    zipFiles = contents.filter(function (dirItem) {
+                        return (dirItem.isFile && FileUtils.getFileExtension(dirItem.fullPath) === "zip");
                     });
-                    if (existingItem) {
-                        if (semver.lt(existingItem.info.metadata.version, info.metadata.version)) {
-                            existingItem.file = file;
-                            existingItem.info = info;
-                        }
-                    } else {
-                        zipArray.push({ file: file, info: info });
-                    }
+                }
 
-                    zipFilePromise.resolve();
-                }).fail(function (err) {
-                    zipFilePromise.reject(Package.formatError(err));
-                });
+                // Parse zip files and separate new installs vs. updates
+                var zipFilesPromise = Async.doInParallel_aggregateErrors(zipFiles, function (file) {
 
-                return zipFilePromise.promise();
-            }).fail(function (errorArray) {
-                // Async.doInParallel() fails if some are successful, so write errors
-                // to console and always resolve
-                errorArray.forEach(function (errorObj) {
-                    if (errorObj.error) {
-                        if (errorObj.error.forEach) {
-                            console.error("Errors for", errorObj.item);
-                            errorObj.error.forEach(function (error) {
-                                console.error(Package.formatError(error));
+                    return new Promise(function (zipFileResolve, zipFileReject) {
+
+                        // Call validate() so that we open the local zip file and parse the
+                        // package.json. We need the name to detect if this zip will be a
+                        // new install or an update.
+                        Package.validate(file.fullPath, { requirePackageJSON: true }).then(function (info) {
+                            if (info.errors.length) {
+                                zipFileReject(Package.formatError(info.errors));
+                                return;
+                            }
+
+                            var extensionInfo, installedVersion, zipArray, existingItem,
+                                extensionName   = info.metadata.name,
+                                autoExtVersion  = autoExtensions[extensionName];
+
+                            // Verify extension has not already been auto-installed/updated
+                            if (autoExtVersion && semver.lte(info.metadata.version, autoExtVersion)) {
+                                // Have already auto installed/updated version >= version of this extension
+                                zipFileReject();
+                                return;
+                            }
+
+                            // Verify extension has not already been installed/updated by some other means
+                            extensionInfo = extensions[extensionName];
+                            installedVersion = extensionInfo && extensionInfo.installInfo && extensionInfo.installInfo.metadata.version;
+                            if (installedVersion && semver.lte(info.metadata.version, installedVersion)) {
+                                // Have already manually installed/updated version >= version of this extension
+                                zipFileReject();
+                                return;
+                            }
+
+                            // Update appropriate zip array. There could be multiple zip files for an
+                            // extension, so make sure only the latest is stored
+                            zipArray = (installedVersion) ? updateZips : installZips;
+                            zipArray.some(function (zip) {
+                                if (zip.info.metadata.name === extensionName) {
+                                    existingItem = zip;
+                                    return true;
+                                }
+                                return false;
                             });
-                        } else {
-                            console.error("Error for", errorObj.item, errorObj);
-                        }
-                    }
+                            if (existingItem) {
+                                if (semver.lt(existingItem.info.metadata.version, info.metadata.version)) {
+                                    existingItem.file = file;
+                                    existingItem.info = info;
+                                }
+                            } else {
+                                zipArray.push({ file: file, info: info });
+                            }
+
+                            zipFileResolve();
+                        }).catch(function (err) {
+                            zipFileReject(Package.formatError(err));
+                        });
+                    });
                 });
-            }).always(function () {
-                deferred.resolve({
-                    installZips: installZips,
-                    updateZips:  updateZips
+
+                zipFilesPromise.catch(function (errorArray) {
+                    // Async.doInParallel() fails if some are successful, so write errors
+                    // to console and always resolve
+                    errorArray.forEach(function (errorObj) {
+                        if (errorObj.error) {
+                            if (errorObj.error.forEach) {
+                                console.error("Errors for", errorObj.item);
+                                errorObj.error.forEach(function (error) {
+                                    console.error(Package.formatError(error));
+                                });
+                            } else {
+                                console.error("Error for", errorObj.item, errorObj);
+                            }
+                        }
+                    });
+                });
+
+                Async.promiseAlways(zipFilesPromise, function () {
+                    getFilesResolve({
+                        installZips: installZips,
+                        updateZips:  updateZips
+                    });
                 });
             });
         });
-
-        return deferred.promise();
     }
 
     /**
      * @private
      * Auto-install extensions bundled with installer
-     * @return {$.Promise} Promise that resolves when finished
+     * @return {Promise} Promise that resolves when finished
      */
     function _autoInstallExtensions() {
         var dirPath        = FileUtils.getDirectoryPath(FileUtils.getNativeBracketsDirectoryPath()) + FOLDER_AUTOINSTALL + "/",
-            autoExtensions = PreferencesManager.getViewState(FOLDER_AUTOINSTALL) || {},
-            deferred       = new $.Deferred();
+            autoExtensions = PreferencesManager.getViewState(FOLDER_AUTOINSTALL) || {};
 
-        _getAutoInstallFiles(dirPath, autoExtensions).done(function (result) {
-            var installPromise = Async.doSequentially(result.installZips, function (zip) {
-                autoExtensions[zip.info.metadata.name] = zip.info.metadata.version;
-                return Package.installFromPath(zip.file.fullPath);
-            });
+        return new Promise(function (resolve, reject) {
 
-            var updatePromise = installPromise.always(function () {
-                return Async.doSequentially(result.updateZips, function (zip) {
+            _getAutoInstallFiles(dirPath, autoExtensions).then(function (result) {
+                var installPromise = Async.doSequentially(result.installZips, function (zip) {
                     autoExtensions[zip.info.metadata.name] = zip.info.metadata.version;
-                    return Package.installUpdate(zip.file.fullPath);
+                    return Package.installFromPath(zip.file.fullPath);
+                });
+
+                var updatePromise = Async.promiseAlways(installPromise, function () {
+                    return Async.doSequentially(result.updateZips, function (zip) {
+                        autoExtensions[zip.info.metadata.name] = zip.info.metadata.version;
+                        return Package.installUpdate(zip.file.fullPath);
+                    });
+                });
+
+                // Always resolve the outer promise
+                Async.promiseAlways(updatePromise, function () {
+                    if (result.installZips.length > 0 || result.updateZips.length > 0) {
+                        // Keep track of auto-installed extensions so we only install an extension once
+                        PreferencesManager.setViewState(FOLDER_AUTOINSTALL, autoExtensions);
+                    }
+
+                    resolve();
                 });
             });
-
-            // Always resolve the outer promise
-            updatePromise.always(function () {
-                if (result.installZips.length > 0 || result.updateZips.length > 0) {
-                    // Keep track of auto-installed extensions so we only install an extension once
-                    PreferencesManager.setViewState(FOLDER_AUTOINSTALL, autoExtensions);
-                }
-
-                deferred.resolve();
-            });
         });
-
-        return deferred.promise();
     }
 
     AppInit.appReady(function () {
-        Package._getNodeConnectionDeferred().done(function () {
+        Package._getNodeConnectionDeferred().then(function () {
             _autoInstallExtensions();
         });
     });

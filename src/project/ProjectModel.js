@@ -606,24 +606,26 @@ define(function (require, exports, module) {
      * @return {Promise} promise resolved when the path is shown
      */
     ProjectModel.prototype.showInTree = function (path) {
-        var d = new $.Deferred();
-        path = _getPathFromFSObject(path);
-        
-        if (!this.isWithinProject(path)) {
-            return d.resolve().promise();
-        }
 
-        var parentDirectory = FileUtils.getDirectoryPath(path),
-            self = this;
-        this.setDirectoryOpen(parentDirectory, true).then(function () {
-            if (_pathIsFile(path)) {
-                self.setSelected(path);
+        return new Promise(function (resolve, reject) {
+            path = _getPathFromFSObject(path);
+
+            if (!this.isWithinProject(path)) {
+                resolve();
+                return;
             }
-            d.resolve();
-        }, function (err) {
-            d.reject(err);
+
+            var parentDirectory = FileUtils.getDirectoryPath(path),
+                self = this;
+            this.setDirectoryOpen(parentDirectory, true).then(function () {
+                if (_pathIsFile(path)) {
+                    self.setSelected(path);
+                }
+                resolve();
+            }, function (err) {
+                reject(err);
+            });
         });
-        return d.promise();
     };
 
     /**
@@ -798,14 +800,17 @@ define(function (require, exports, module) {
 
         this._viewModel.moveMarker("rename", null,
                                    projectRelativePath);
-        var d = new $.Deferred();
-        this._selections.rename = {
-            deferred: d,
-            type: FILE_RENAMING,
-            path: path,
-            newName: FileUtils.getBaseName(path)
-        };
-        return d.promise();
+
+        return new Promise(function (resolve, reject) {
+            this._selections.rename = {
+//                deferred: d,
+                resolve: resolve,
+                reject: reject,
+                type: FILE_RENAMING,
+                path: path,
+                newName: FileUtils.getBaseName(path)
+            };
+        });
     };
 
     /**
@@ -1077,24 +1082,26 @@ define(function (require, exports, module) {
             openNodes   = this.getOpenNodes(),
             self        = this,
             selections  = this._selections,
-            viewModel   = this._viewModel,
-            deferred    = new $.Deferred();
-        
-        this.setProjectRoot(projectRoot).then(function () {
-            self.reopenNodes(openNodes).then(function () {
-                if (selections.selected) {
-                    viewModel.moveMarker("selected", null, self.makeProjectRelativeIfPossible(selections.selected));
-                }
+            viewModel   = this._viewModel;
 
-                if (selections.context) {
-                    viewModel.moveMarker("context", null, self.makeProjectRelativeIfPossible(selections.context));
-                }
+        return new Promise(function (resolve, reject) {
 
-                if (selections.rename) {
-                    viewModel.moveMarker("rename", null, self.makeProjectRelativeIfPossible(selections.rename));
-                }
+            this.setProjectRoot(projectRoot).then(function () {
+                self.reopenNodes(openNodes).then(function () {
+                    if (selections.selected) {
+                        viewModel.moveMarker("selected", null, self.makeProjectRelativeIfPossible(selections.selected));
+                    }
 
-                resolve();
+                    if (selections.context) {
+                        viewModel.moveMarker("context", null, self.makeProjectRelativeIfPossible(selections.context));
+                    }
+
+                    if (selections.rename) {
+                        viewModel.moveMarker("rename", null, self.makeProjectRelativeIfPossible(selections.rename));
+                    }
+
+                    resolve();
+                });
             });
         });
     };

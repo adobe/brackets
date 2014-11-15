@@ -1220,7 +1220,7 @@ define(function (require, exports, module) {
                 if (fileExists) {
                     // let the factory open the file and create a view for it
                     factory.openFile(file, pane)
-                        .done(function () {
+                        .then(function () {
                             // if we opened a file that isn't in the project
                             //  then add the file to the working set
                             if (!ProjectManager.isWithinProject(file.fullPath)) {
@@ -1229,7 +1229,7 @@ define(function (require, exports, module) {
                             doPostOpenActivation();
                             result.resolve(file);
                         })
-                        .fail(function (fileError) {
+                        .catch(function (fileError) {
                             result.reject(fileError);
                         });
                 } else {
@@ -1238,14 +1238,14 @@ define(function (require, exports, module) {
             });
         } else {
             DocumentManager.getDocumentForPath(file.fullPath)
-                .done(function (doc) {
+                .then(function (doc) {
                     _edit(paneId, doc, $.extend({}, options, {
                         noPaneActivate: true
                     }));
                     doPostOpenActivation();
                     result.resolve(doc.file);
                 })
-                .fail(function (fileError) {
+                .catch(function (fileError) {
                     result.reject(fileError);
                 });
         }

@@ -669,49 +669,48 @@ define(function (require, exports, module) {
 
     /**
      * After failing to load a project, this function determines which project path to fallback to.
-     * @return {$.Promise} Promise that resolves to a project path {string}
+     * @return {Promise} Promise that resolves to a project path {string}
      */
     function _getFallbackProjectPath() {
         var fallbackPaths = [],
-            recentProjects = PreferencesManager.getViewState("recentProjects") || [],
-            deferred = new $.Deferred();
+            recentProjects = PreferencesManager.getViewState("recentProjects") || [];
 
-        // Build ordered fallback path array
-        if (recentProjects.length > 1) {
-            // *Most* recent project is the one that just failed to load, so use second most recent
-            fallbackPaths.push(recentProjects[1]);
-        }
+        return new Promise(function (fallbackResolve, reject) {
 
-        // Next is Getting Started project
-        fallbackPaths.push(_getWelcomeProjectPath());
+            // Build ordered fallback path array
+            if (recentProjects.length > 1) {
+                // *Most* recent project is the one that just failed to load, so use second most recent
+                fallbackPaths.push(recentProjects[1]);
+            }
 
-        // Helper func for Async.firstSequentially()
-        function processItem(path) {
-            var deferred = new $.Deferred(),
-                fileEntry = FileSystem.getDirectoryForPath(path);
+            // Next is Getting Started project
+            fallbackPaths.push(_getWelcomeProjectPath());
 
-            fileEntry.exists(function (err, exists) {
-                if (!err && exists) {
-                    deferred.resolve();
-                } else {
-                    deferred.reject();
-                }
-            });
-            
-            return deferred.promise();
-        }
+            // Helper func for Async.firstSequentially()
+            function processItem(path) {
+                var fileEntry = FileSystem.getDirectoryForPath(path);
 
-        // Find first path that exists
-        Async.firstSequentially(fallbackPaths, processItem)
-            .done(function (fallbackPath) {
-                deferred.resolve(fallbackPath);
-            })
-            .fail(function () {
-                // Last resort is Brackets source folder which is guaranteed to exist
-                deferred.resolve(FileUtils.getNativeBracketsDirectoryPath());
-            });
-        
-        return deferred.promise();
+                return new Promise(function (itemResolve, itemReject) {
+                    fileEntry.exists(function (err, exists) {
+                        if (!err && exists) {
+                            itemResolve();
+                        } else {
+                            itemReject();
+                        }
+                    });
+                });
+            }
+
+            // Find first path that exists
+            Async.firstSequentially(fallbackPaths, processItem)
+                .then(function (fallbackPath) {
+                    fallbackResolve(fallbackPath);
+                })
+                .catch(function () {
+                    // Last resort is Brackets source folder which is guaranteed to exist
+                    fallbackResolve(FileUtils.getNativeBracketsDirectoryPath());
+                });
+        });
     }
 
     /**
@@ -905,12 +904,12 @@ define(function (require, exports, module) {
                                 // project directory.
                                 // TODO (issue #267): When Brackets supports having no project directory
                                 // defined this code will need to change
-                                _getFallbackProjectPath().done(function (path) {
-                                    _loadProject(path).always(function () {
+                                _getFallbackProjectPath().then(function (path) {
+                                    Async.promiseAlways(_loadProject(path), function () {
                                         // Make sure not to reject the original deferred until the fallback
                                         // project is loaded, so we don't violate expectations that there is always
                                         // a current project before continuing after _loadProject().
-                                        result.reject();
+                                        resultReject();
                                     });
                                 });
                             });
@@ -935,7 +934,7 @@ define(function (require, exports, module) {
      */
     var refreshFileTree = function refreshFileTree() {
         FileSystem.clearAllCaches();
-        return new $.Deferred().resolve().promise();
+        return Promise.resolve();
     };
     
     refreshFileTree = _.debounce(refreshFileTree, _refreshDelay);
@@ -1304,7 +1303,7 @@ define(function (require, exports, module) {
      * @return {Promise} Promise that is resolved with an Array of File objects.
      */
     function getAllFiles(filter, includeWorkingSet) {
-        var viewFiles, deferred;
+        var viewFiles;
 
         // The filter and includeWorkingSet params are both optional.
         // Handle the case where filter is omitted but includeWorkingSet is
