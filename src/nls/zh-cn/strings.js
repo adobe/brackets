@@ -247,8 +247,8 @@ define({
     "SPLITVIEW_MENU_TOOLTIP"    : "垂直/水平分割编辑器窗口",
     "GEAR_MENU_TOOLTIP"         : "配置工作区",
 
-    "SPLITVIEW_INFO_TITLE"              : "Already Open",
-    "SPLITVIEW_MULTIPANE_WARNING"       : "The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)",
+    "SPLITVIEW_INFO_TITLE"              : "已经打开",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "该文件已经在编辑器的另一个窗格中打开。{APP_NAME} 后续会加上同文件多窗格打开的支持。在此之前，文件只会显示在已打开的窗格中。<br /><br />（本信息只显示一次。）",
 
     /**
      * Keyboard modifier names
