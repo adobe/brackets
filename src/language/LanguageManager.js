@@ -807,7 +807,7 @@ define(function (require, exports, module) {
      * Returns either a language associated with the mode or the fallback language.
      * Used to disambiguate modes used by multiple languages.
      * @param {!string} mode The mode to associate the language with
-     * @return {Language} This language if it uses the mode, or whatever {@link LanguageManager#_getLanguageForMode} returns
+     * @return {Language} This language if it uses the mode, or whatever {@link #_getLanguageForMode} returns
      */
     Language.prototype.getLanguageForMode = function (mode) {
         if (mode === this._mode) {
@@ -846,7 +846,7 @@ define(function (require, exports, module) {
     
     /**
      * Trigger the "languageModified" event if this language is registered already
-     * @see _triggerLanguageModified
+     * @see #_triggerLanguageModified
      * @private
      */
     Language.prototype._wasModified = function () {

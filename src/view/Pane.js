@@ -170,8 +170,8 @@ define(function (require, exports, module) {
      * @param {boolean} requestIndex - true to request an index, false if not
      * @param {number} index - the index to request
      * @return {indexRequested:boolean, index:number} an object that can be pased to 
-     * Pane._addToViewList to insert the item at a specific index
-     * @see {Pane._addToViewList}
+     * {@link Pane#addToViewList} to insert the item at a specific index
+     * @see Pane#addToViewList
      */
     function _makeIndexRequestObject(requestIndex, index) {
         return {indexRequested: requestIndex, index: index};
@@ -585,7 +585,7 @@ define(function (require, exports, module) {
     
     /** 
      * Return value from reorderItem when the Item was not found 
-     * @see {@link reorderItem()}
+     * @see {@link Pane#reorderItem}
      * @const 
      */
     Pane.prototype.ITEM_NOT_FOUND = -1;
@@ -593,7 +593,7 @@ define(function (require, exports, module) {
     /** 
      * Return value from reorderItem when the Item was found at its natural index 
      * and the workingset does not need to be resorted
-     * @see {@link reorderItem()}
+     * @see {@link Pane#reorderItem}
      * @const 
      */
     Pane.prototype.ITEM_FOUND_NO_SORT = 0;
@@ -601,7 +601,7 @@ define(function (require, exports, module) {
     /** 
      * Return value from reorderItem when the Item was found and reindexed 
      * and the workingset needs to be resorted
-     * @see {@link reorderItem()}
+     * @see {@link Pane#reorderItem}
      * @const 
      */
     Pane.prototype.ITEM_FOUND_NEEDS_SORT = 1;

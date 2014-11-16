@@ -227,7 +227,7 @@ define(function (require, exports, module) {
      * localized pane titles 
      * @type {Object.<FIRST_PANE|SECOND_PANE, <VERTICAL.string, HORIZONTAL.string>}}
      *  Localized string for first and second panes in the current orientation.  
-     * @see {@link getPaneTitle()} for more information
+     * @see {@link #getPaneTitle} for more information
      * @private
      */
     var _paneTitles  = {};
@@ -846,7 +846,7 @@ define(function (require, exports, module) {
      * sorts the pane's view list 
      * @param {!string} paneId - id of the pane to sort, ALL_PANES or ACTIVE_PANE
      * @param {sortFunctionCallback} compareFn - callback to determine sort order (called on each item)
-     * @see {@link Pane.sortViewList()} for more information
+     * @see {@link Pane#sortViewList} for more information
      * @see {@link https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort|Sort Array - MDN}
      * @private
      */
