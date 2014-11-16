@@ -333,7 +333,7 @@ define(function (require, exports, module) {
         var $fileCount = dialog.getElement().find(".exclusions-filecount");
         
         function updateFileCount() {
-            _context.then(function (files) {
+            _context.promise.then(function (files) {
                 var filter = getValue();
                 if (filter.length) {
                     var filtered = filterFileList(compile(filter), files);

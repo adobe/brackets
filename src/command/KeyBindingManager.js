@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, Promise */
 /*unittests: KeyBindingManager */
 
 /**
@@ -1120,8 +1120,9 @@ define(function (require, exports, module) {
             file.exists(function (err, doesExist) {
                 if (doesExist) {
                     FileUtils.readAsText(file)
-                        .then(function (text) {
-                            var keyMap = {};
+                        .then(function (args) {
+                            var text = args[0],
+                                keyMap = {};
                             try {
                                 if (text) {
                                     var json = JSON.parse(text);

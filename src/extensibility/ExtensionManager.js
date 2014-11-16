@@ -761,7 +761,7 @@ define(function (require, exports, module) {
     }
 
     AppInit.appReady(function () {
-        Package._getNodeConnectionDeferred().then(function () {
+        Package._getNodeConnectionPromise().promise.then(function () {
             _autoInstallExtensions();
         });
     });

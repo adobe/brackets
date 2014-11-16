@@ -1215,42 +1215,42 @@ define(function (require, exports, module) {
         //  editor to edit files for which there are suitable viewfactories
         var factory = MainViewFactory.findSuitableFactoryForPath(file.fullPath);
 
-        if (factory) {
-            file.exists(function (fileError, fileExists) {
-                if (fileExists) {
-                    // let the factory open the file and create a view for it
-                    factory.openFile(file, pane)
-                        .then(function () {
-                            // if we opened a file that isn't in the project
-                            //  then add the file to the working set
-                            if (!ProjectManager.isWithinProject(file.fullPath)) {
-                                addToWorkingSet(paneId, file);
-                            }
-                            doPostOpenActivation();
-                            result.resolve(file);
-                        })
-                        .catch(function (fileError) {
-                            result.reject(fileError);
-                        });
-                } else {
-                    result.reject(fileError || FileSystemError.NOT_FOUND);
-                }
-            });
-        } else {
-            DocumentManager.getDocumentForPath(file.fullPath)
-                .then(function (doc) {
-                    _edit(paneId, doc, $.extend({}, options, {
-                        noPaneActivate: true
-                    }));
-                    doPostOpenActivation();
-                    result.resolve(doc.file);
-                })
-                .catch(function (fileError) {
-                    result.reject(fileError);
+        return new Promise(function (resolve, reject) {
+            if (factory) {
+                file.exists(function (fileError, fileExists) {
+                    if (fileExists) {
+                        // let the factory open the file and create a view for it
+                        factory.openFile(file, pane)
+                            .then(function () {
+                                // if we opened a file that isn't in the project
+                                //  then add the file to the working set
+                                if (!ProjectManager.isWithinProject(file.fullPath)) {
+                                    addToWorkingSet(paneId, file);
+                                }
+                                doPostOpenActivation();
+                                resolve(file);
+                            })
+                            .catch(function (fileError) {
+                                reject(fileError);
+                            });
+                    } else {
+                        reject(fileError || FileSystemError.NOT_FOUND);
+                    }
                 });
-        }
-
-        return result;
+            } else {
+                DocumentManager.getDocumentForPath(file.fullPath)
+                    .then(function (doc) {
+                        _edit(paneId, doc, $.extend({}, options, {
+                            noPaneActivate: true
+                        }));
+                        doPostOpenActivation();
+                        resolve(doc.file);
+                    })
+                    .catch(function (fileError) {
+                        reject(fileError);
+                    });
+            }
+        });
     }
     
     /**
