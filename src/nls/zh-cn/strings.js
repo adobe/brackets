@@ -34,7 +34,7 @@ define({
     "GENERIC_ERROR"                     : "(错误 {0})",
     "NOT_FOUND_ERR"                     : "未能发现该文件",
     "NOT_READABLE_ERR"                  : "无法读取该文件。",
-    "EXCEEDS_MAX_FILE_SIZE"             : " {APP_NAME} 中不能打开大于 {0} MB 的文件。",
+    "EXCEEDS_MAX_FILE_SIZE"             : "{APP_NAME} 不能打开大于 {0} MB 的文件。",
     "NO_MODIFICATION_ALLOWED_ERR"       : "无法修改此目录。",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "你没有权限做此次修改。",
     "CONTENTS_MODIFIED_ERR"             : "该文件已经在 {APP_NAME} 之外被修改。",
