@@ -28,6 +28,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                  = require("thirdparty/lodash"),
+        EventDispatcher    = require("utils/EventDispatcher"),
         FileSystem         = require("filesystem/FileSystem"),
         FileUtils          = require("file/FileUtils"),
         EditorManager      = require("editor/EditorManager"),
@@ -330,7 +331,7 @@ define(function (require, exports, module) {
         ThemeView.updateScrollbars(getCurrentTheme());
 
         // Expose event for theme changes
-        $(exports).trigger("themeChange", getCurrentTheme());
+        exports.trigger("themeChange", getCurrentTheme());
     });
 
     prefs.on("change", "themeScrollbars", function () {
@@ -350,11 +351,13 @@ define(function (require, exports, module) {
         }
     });
 
-    $(EditorManager).on("activeEditorChange", function () {
+    EditorManager.on("activeEditorChange", function () {
         refresh();
     });
 
-
+    
+    EventDispatcher.makeEventDispatcher(exports);
+    
     exports.refresh         = refresh;
     exports.loadFile        = loadFile;
     exports.loadPackage     = loadPackage;

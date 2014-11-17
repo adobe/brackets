@@ -181,7 +181,7 @@ define(function (require, exports, module) {
     initializeCommands();
 
     // Add a context menu open handler
-    $(workingSetListCmenu).on("beforeContextMenuOpen", contextMenuOpenHandler);
+    workingSetListCmenu.on("beforeContextMenuOpen", contextMenuOpenHandler);
 
     prefs.on("change", prefChangeHandler);
 });

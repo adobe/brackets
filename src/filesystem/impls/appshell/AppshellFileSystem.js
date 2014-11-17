@@ -70,7 +70,7 @@ define(function (require, exports, module) {
     
     
     // If the connection closes, notify the FileSystem that watchers have gone offline.
-    $(_nodeDomain.connection).on("close", function (event, promise) {
+    _nodeDomain.connection.on("close", function (event, promise) {
         if (_offlineCallback) {
             _offlineCallback();
         }
@@ -139,7 +139,7 @@ define(function (require, exports, module) {
     }
 
     // Setup the change handler. This only needs to happen once.
-    $(_nodeDomain).on("change", _fileWatcherChange);
+    _nodeDomain.on("change", _fileWatcherChange);
 
     /**
      * Convert appshell error codes to FileSystemError values.

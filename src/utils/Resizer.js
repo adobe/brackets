@@ -60,6 +60,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var AppInit                 = require("utils/AppInit"),
+        EventDispatcher         = require("utils/EventDispatcher"),
         PreferencesManager      = require("preferences/PreferencesManager");
     
     var $mainView;
@@ -244,7 +245,7 @@ define(function (require, exports, module) {
         // Detect legacy cases where panels in the editor area are created without using WorkspaceManager APIs
         if ($parent[0] && $parent.is(".content") && !createdByWorkspaceManager) {
             console.warn("Deprecated: resizable panels should be created via WorkspaceManager.createBottomPanel(). Using Resizer directly will stop working in the future. \nElement:", element);
-            $(exports).triggerHandler("deprecatedPanelAdded", [$element]);
+            exports.trigger("deprecatedPanelAdded", $element);
         }
         
         function adjustSibling(size) {
@@ -546,6 +547,8 @@ define(function (require, exports, module) {
     }
     
     PreferencesManager.convertPreferences(module, {"panelState": "user"}, true, _isPanelPreferences);
+    
+    EventDispatcher.makeEventDispatcher(exports);
     
     exports.makeResizable   = makeResizable;
     exports.removeSizable   = removeSizable;

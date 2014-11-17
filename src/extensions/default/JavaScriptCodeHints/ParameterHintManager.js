@@ -215,7 +215,7 @@ define(function (require, exports, module) {
             $hintContainer.hide();
             $hintContent.empty();
             hintState = {};
-            $(session.editor).off("cursorActivity", handleCursorActivity);
+            session.editor.off("cursorActivity", handleCursorActivity);
 
             if (!preserveHintStack) {
                 clearFunctionHintStack();
@@ -285,7 +285,7 @@ define(function (require, exports, module) {
             hintState.visible = true;
             hintState.fnType = fnType;
 
-            $(session.editor).on("cursorActivity", handleCursorActivity);
+            session.editor.on("cursorActivity", handleCursorActivity);
             $deferredPopUp.resolveWith(null);
         }).fail(function () {
             hintState = {};
@@ -358,7 +358,7 @@ define(function (require, exports, module) {
      * @param {Session} session - session to start cursor tracking on.
      */
     function startCursorTracking(session) {
-        $(session.editor).on("cursorActivity", handleCursorActivity);
+        session.editor.on("cursorActivity", handleCursorActivity);
     }
 
     /**
@@ -369,7 +369,7 @@ define(function (require, exports, module) {
      * @param {Session} session - session to stop cursor tracking on.
      */
     function stopCursorTracking(session) {
-        $(session.editor).off("cursorActivity", handleCursorActivity);
+        session.editor.off("cursorActivity", handleCursorActivity);
     }
 
     /**
@@ -414,7 +414,7 @@ define(function (require, exports, module) {
 
         // Close the function hint when commands are executed, except for the commands
         // to show function hints for code hints.
-        $(CommandManager).on("beforeExecuteCommand", function (jqEvent, commandId) {
+        CommandManager.on("beforeExecuteCommand", function (event, commandId) {
             if (commandId !== SHOW_PARAMETER_HINT_CMD_ID &&
                     commandId !== Commands.SHOW_CODE_HINTS) {
                 dismissHint();

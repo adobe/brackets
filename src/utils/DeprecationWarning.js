@@ -97,8 +97,8 @@ define(function (require, exports, module) {
      * Show a deprecation warning if there are listeners for the event
      * 
      * ```
-     *    DeprecationWarning.deprecateEvent($(exports), 
-     *                                      $(MainViewManager), 
+     *    DeprecationWarning.deprecateEvent(exports, 
+     *                                      MainViewManager, 
      *                                      "workingSetAdd", 
      *                                      "workingSetAdd", 
      *                                      "DocumentManager.workingSetAdd", 
@@ -117,9 +117,9 @@ define(function (require, exports, module) {
         EventDispatcher.markDeprecated(outbound, oldEventName, canonicalInboundName);
         
         // create an event handler for the new event to listen for 
-        $(inbound).on(newEventName, function () {
+        inbound.on(newEventName, function () {
             // Dispatch the event in case anyone is still listening
-            $(outbound).trigger(oldEventName, Array.prototype.slice.call(arguments, 1));
+            EventDispatcher.triggerWithArray(outbound, oldEventName, Array.prototype.slice.call(arguments, 1));
         });
     }
     

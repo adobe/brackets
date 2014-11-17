@@ -85,7 +85,7 @@ define(function ConsoleAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        $(Inspector.Console)
+        Inspector.Console
             .on("messageAdded.ConsoleAgent", _onMessageAdded)
             .on("messageRepeatCountUpdated.ConsoleAgent", _onMessageRepeatCountUpdated)
             .on("messagesCleared.ConsoleAgent", _onMessagesCleared);
@@ -93,7 +93,7 @@ define(function ConsoleAgent(require, exports, module) {
 
     /** Clean up */
     function unload() {
-        $(Inspector.Console).off(".ConsoleAgent");
+        Inspector.Console.off(".ConsoleAgent");
     }
 
     // Export public functions

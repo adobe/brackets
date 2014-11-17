@@ -147,7 +147,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _removeListeners() {
-        $(MainViewManager).off(".sort");
+        MainViewManager.off(".sort");
     }
     
     /**
@@ -173,7 +173,7 @@ define(function (require, exports, module) {
      */
     function _addListeners() {
         if (_automaticSort && _currentSort && _currentSort.getEvents()) {
-            $(MainViewManager)
+            MainViewManager
                 .on(_currentSort.getEvents(), function () {
                     _currentSort.sort();
                 })

@@ -52,7 +52,7 @@ define(function (require, exports, module) {
             gotLostSync = false;
 
             range = new TextRange(doc, 4, 6);
-            $(range).on("change.unittest", function () {
+            range.on("change.unittest", function () {
                 expect(gotChange).toBe(false);
                 gotChange = true;
             }).on("contentChange.unittest", function () {
@@ -67,7 +67,7 @@ define(function (require, exports, module) {
         afterEach(function () {
             SpecRunnerUtils.destroyMockEditor(doc);
             doc = null;
-            $(range).off(".unittest");
+            range.off(".unittest");
             range.dispose();
             range = null;
         });

@@ -411,7 +411,7 @@ define(function (require, exports, module) {
                 });
     
                 if (command) {
-                    $(command).triggerHandler("keyBindingRemoved", [{key: normalizedKey, displayKey: binding.displayKey}]);
+                    command.trigger("keyBindingRemoved", {key: normalizedKey, displayKey: binding.displayKey});
                 }
             }
         }
@@ -577,7 +577,7 @@ define(function (require, exports, module) {
         command = CommandManager.get(commandID);
         
         if (command) {
-            $(command).triggerHandler("keyBindingAdded", [result]);
+            command.trigger("keyBindingAdded", result);
         }
         
         return result;
@@ -1183,12 +1183,20 @@ define(function (require, exports, module) {
         });
     }
     
-    $(CommandManager).on("commandRegistered", _handleCommandRegistered);
+    AppInit.htmlReady(function () {
+        // Due to circular dependencies, not safe to attach event handlers until all modules loaded
+        CommandManager.on("commandRegistered", _handleCommandRegistered);
+        
+        // Some commands may have been registered already though, so process those now:
+        CommandManager.getAll().forEach(function (commandId) {
+            _handleCommandRegistered(null, CommandManager.get(commandId));
+        });
+    });
     CommandManager.register(Strings.CMD_OPEN_KEYMAP, Commands.FILE_OPEN_KEYMAP, _openUserKeyMap);
 
     // Asynchronously loading DocumentManager to avoid the circular dependency
     require(["document/DocumentManager"], function (DocumentManager) {
-        $(DocumentManager).on("documentSaved", function checkKeyMapUpdates(e, doc) {
+        DocumentManager.on("documentSaved", function checkKeyMapUpdates(e, doc) {
             if (doc && doc.file.fullPath === _userKeyMapFilePath) {
                 _loadUserKeyMap();
             }

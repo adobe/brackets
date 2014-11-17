@@ -101,13 +101,13 @@ define(function (require, exports, module) {
         
             var onChangeHandler = function (event, editor, change) {
                 PerfUtils.addMeasurement(STRING_ONCHANGE);
-                $(editor).off("change.typingSpeedLogger", onChangeHandler);
+                editor.off("change.typingSpeedLogger", onChangeHandler);
 
                 requestAnimFrame(repaintAfterChangeHandler);
             };
             
             requestAnimFrame(repaintBeforeChangeHandler);
-            $(editor).on("change.typingSpeedLogger", onChangeHandler);
+            editor.on("change.typingSpeedLogger", onChangeHandler);
         };
 
         var updateFocusedEditor = function (focusedEditor) {
@@ -125,7 +125,7 @@ define(function (require, exports, module) {
             }
         };
         
-        $(EditorManager).on("activeEditorChange", function (event, focusedEditor) {
+        EditorManager.on("activeEditorChange", function (event, focusedEditor) {
             updateFocusedEditor(focusedEditor);
         });
         updateFocusedEditor(EditorManager.getFocusedEditor());

@@ -677,7 +677,7 @@ define(function (require, exports, module) {
         PreferencesManager.fileChanged(doc.file.fullPath);
     });
     
-    $(MainViewManager).on("currentFileChange", function (e, newFile, newPaneId, oldFile) {
+    MainViewManager.on("currentFileChange", function (e, newFile, newPaneId, oldFile) {
         var newDoc = null,
             oldDoc = null;
 
@@ -737,6 +737,6 @@ define(function (require, exports, module) {
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
     // Handle Language change events
-    $(LanguageManager).on("languageAdded", _handleLanguageAdded);
-    $(LanguageManager).on("languageModified", _handleLanguageModified);
+    LanguageManager.on("languageAdded", _handleLanguageAdded);
+    LanguageManager.on("languageModified", _handleLanguageModified);
 });

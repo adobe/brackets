@@ -509,7 +509,7 @@ define(function (require, exports, module) {
                     expect(asyncProvider.filesCalledOn).toEqual([noErrorsJS]);
                     
                     // "Modify" the file
-                    $(DocumentManager).triggerHandler("documentSaved", DocumentManager.getCurrentDocument());
+                    DocumentManager.trigger("documentSaved", DocumentManager.getCurrentDocument());
                     expect(asyncProvider.futures[noErrorsJS].length).toBe(2);
                     
                     // Finish old (stale) linting session - verify results not shown
@@ -538,7 +538,7 @@ define(function (require, exports, module) {
                     expect(asyncProvider.filesCalledOn).toEqual([noErrorsJS]);
                     
                     // "Modify" the file
-                    $(DocumentManager).triggerHandler("documentSaved", DocumentManager.getCurrentDocument());
+                    DocumentManager.trigger("documentSaved", DocumentManager.getCurrentDocument());
                     expect(asyncProvider.futures[noErrorsJS].length).toBe(2);
                     
                     // Finish new (current) linting session - verify results are shown

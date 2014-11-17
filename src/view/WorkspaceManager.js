@@ -39,6 +39,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var AppInit                 = require("utils/AppInit"),
+        EventDispatcher         = require("utils/EventDispatcher"),
         Resizer                 = require("utils/Resizer");
     
     
@@ -108,7 +109,7 @@ define(function (require, exports, module) {
         $editorHolder.height(editorAreaHeight);  // affects size of "not-editor" placeholder as well
         
         // Resize editor to fill the space
-        $(exports).trigger("workspaceUpdateLayout", [editorAreaHeight, refreshHint]);
+        exports.trigger("workspaceUpdateLayout", editorAreaHeight, refreshHint);
     }
     
     
@@ -254,7 +255,7 @@ define(function (require, exports, module) {
     /* If someone adds a panel in the .content stack the old way, make sure we still listen for resize/show/hide
      * (Resizer emits a deprecation warning for us - no need to log anything here) 
      */
-    $(Resizer).on("deprecatedPanelAdded", function (event, $panel) {
+    Resizer.on("deprecatedPanelAdded", function (event, $panel) {
         listenToResize($panel);
     });
     
@@ -263,6 +264,8 @@ define(function (require, exports, module) {
      */
     window.addEventListener("resize", handleWindowResize, true);
     
+    
+    EventDispatcher.makeEventDispatcher(exports);
     
     // Define public API
     exports.createBottomPanel    = createBottomPanel;

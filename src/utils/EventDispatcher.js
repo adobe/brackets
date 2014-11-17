@@ -119,7 +119,7 @@ define(function (require, exports, module) {
     
     /**
      * Removes one or more handler functions based on the space-separated 'events' list. Each item in
-     * 'events' can be: bare event name, bare namespace, or event.namespace pair. This yields a set of
+     * 'events' can be: bare event name, bare .namespace, or event.namespace pair. This yields a set of
      * matching handlers. If 'fn' is ommitted, all these handlers are removed. If 'fn' is provided,
      * only handlers exactly equal to 'fn' are removed (there may still be >1, if duplicates were
      * added).
@@ -228,8 +228,8 @@ define(function (require, exports, module) {
     
     
     /**
-     * Adds the EventDispatcher APIs to the given object. May also be called on a prototype object,
-     * in which case each instance will behave independently.
+     * Adds the EventDispatcher APIs to the given object: on(), one(), off(), and trigger(). May also be
+     * called on a prototype object - each instance will still behave independently.
      * @param {!Object} obj Object to add event-dispatch methods to
      */
     function makeEventDispatcher(obj) {
@@ -262,7 +262,7 @@ define(function (require, exports, module) {
     /**
      * Mark a given event name as deprecated, such that on() will emit warnings when called with it.
      * May be called before makeEventDispatcher(). May be called on a prototype where makeEventDispatcher()
-     * is called separately per instance (in the ctor).
+     * is called separately per instance (i.e. in the constructor).
      * @param {!Object} obj Event dispatcher object
      * @param {string} eventName Name of deprecated event
      * @param {string=} insteadStr Suggested thing to use instead

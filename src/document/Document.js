@@ -200,7 +200,7 @@ define(function (require, exports, module) {
         } else {
             this._text = null;
             this._masterEditor = masterEditor;
-            $(masterEditor).on("change", this._handleEditorChange.bind(this));
+            masterEditor.on("change", this._handleEditorChange.bind(this));
         }
     };
     

@@ -202,14 +202,14 @@ define(function GotoAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        $(RemoteAgent)
+        RemoteAgent
             .on("showgoto.GotoAgent", _onRemoteShowGoto)
             .on("goto.GotoAgent", _onRemoteGoto);
     }
 
     /** Initialize the agent */
     function unload() {
-        $(RemoteAgent).off(".GotoAgent");
+        RemoteAgent.off(".GotoAgent");
     }
 
     // Export public functions

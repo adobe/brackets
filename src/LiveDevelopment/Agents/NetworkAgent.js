@@ -88,15 +88,15 @@ define(function NetworkAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        $(Inspector.Page).on("frameNavigated.NetworkAgent", _onFrameNavigated);
-        $(Inspector.Network).on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
+        Inspector.Page.on("frameNavigated.NetworkAgent", _onFrameNavigated);
+        Inspector.Network.on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
     }
 
     /** Unload the agent */
     function unload() {
         _reset();
-        $(Inspector.Page).off(".NetworkAgent");
-        $(Inspector.Network).off(".NetworkAgent");
+        Inspector.Page.off(".NetworkAgent");
+        Inspector.Network.off(".NetworkAgent");
     }
 
     // Export public functions

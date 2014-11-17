@@ -668,32 +668,32 @@ define(function (require, exports, module) {
 
     function activeEditorChangeHandler(event, current, previous) {
         if (current) {
-            $(current).on("editorChange", _handleChange);
-            $(current).on("keydown",  _handleKeydownEvent);
-            $(current).on("keypress", _handleKeypressEvent);
-            $(current).on("keyup",    _handleKeyupEvent);
-            $(current).on("cursorActivity", _handleCursorActivity);
+            current.on("editorChange", _handleChange);
+            current.on("keydown",  _handleKeydownEvent);
+            current.on("keypress", _handleKeypressEvent);
+            current.on("keyup",    _handleKeyupEvent);
+            current.on("cursorActivity", _handleCursorActivity);
         }
 
         if (previous) {
             //Removing all old Handlers
-            $(previous).off("editorChange", _handleChange);
-            $(previous).off("keydown",  _handleKeydownEvent);
-            $(previous).off("keypress", _handleKeypressEvent);
-            $(previous).off("keyup",    _handleKeyupEvent);
-            $(previous).off("cursorActivity", _handleCursorActivity);
+            previous.off("editorChange", _handleChange);
+            previous.off("keydown",  _handleKeydownEvent);
+            previous.off("keypress", _handleKeypressEvent);
+            previous.off("keyup",    _handleKeyupEvent);
+            previous.off("cursorActivity", _handleCursorActivity);
         }
     }
 
     activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
 
-    $(EditorManager).on("activeEditorChange", activeEditorChangeHandler);
+    EditorManager.on("activeEditorChange", activeEditorChangeHandler);
 
     // Dismiss code hints before executing any command since the command
     // may make the current hinting session irrevalent after execution.
     // For example, when the user hits Ctrl+K to open Quick Doc, it is
     // pointless to keep the hint list since the user wants to view the Quick Doc.
-    $(CommandManager).on("beforeExecuteCommand", _endSession);
+    CommandManager.on("beforeExecuteCommand", _endSession);
 
     CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
 

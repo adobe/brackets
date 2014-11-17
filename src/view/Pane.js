@@ -153,6 +153,7 @@ define(function (require, exports, module) {
     "use strict";
         
     var _                   = require("thirdparty/lodash"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         FileSystem          = require("filesystem/FileSystem"),
         InMemoryFile        = require("document/InMemoryFile"),
         ViewStateManager    = require("view/ViewStateManager"),
@@ -253,15 +254,15 @@ define(function (require, exports, module) {
         this.updateHeaderText();
 
         // Listen to document events so we can update ourself
-        $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
-        $(DocumentManager).on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
-        $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
-        $(MainViewManager).on(this._makeEventName("workingSetAdd"), _.bind(this.updateHeaderText, this));
-        $(MainViewManager).on(this._makeEventName("workingSetRemove"), _.bind(this.updateHeaderText, this));
-        $(MainViewManager).on(this._makeEventName("workingSetAddList"), _.bind(this.updateHeaderText, this));
-        $(MainViewManager).on(this._makeEventName("workingSetRemoveList"), _.bind(this.updateHeaderText, this));
-        
+        DocumentManager.on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
+        DocumentManager.on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
+        MainViewManager.on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
+        MainViewManager.on(this._makeEventName("workingSetAdd"), _.bind(this.updateHeaderText, this));
+        MainViewManager.on(this._makeEventName("workingSetRemove"), _.bind(this.updateHeaderText, this));
+        MainViewManager.on(this._makeEventName("workingSetAddList"), _.bind(this.updateHeaderText, this));
+        MainViewManager.on(this._makeEventName("workingSetRemoveList"), _.bind(this.updateHeaderText, this));
     }
+    EventDispatcher.makeEventDispatcher(Pane.prototype);
 
     /**
      * id of the pane
@@ -526,8 +527,8 @@ define(function (require, exports, module) {
 
         this._reset();
         
-        $(DocumentManager).off(this._makeEventName(""));
-        $(MainViewManager).off(this._makeEventName(""));
+        DocumentManager.off(this._makeEventName(""));
+        MainViewManager.off(this._makeEventName(""));
 
         this.$el.off(".pane");
         this.$el.remove();
@@ -721,7 +722,7 @@ define(function (require, exports, module) {
     Pane.prototype._notifyCurrentViewChange = function (newView, oldView) {
         this.updateHeaderText();
         
-        $(this).triggerHandler("currentViewChange", [newView, oldView]);
+        this.trigger("currentViewChange", newView, oldView);
     };
     
     
@@ -898,7 +899,7 @@ define(function (require, exports, module) {
         
         // dispatch the change event
         if (dispatchEvent) {
-            $(this).triggerHandler("viewListChange");
+            this.trigger("viewListChange");
         }
     };
 
@@ -910,7 +911,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype._handleFileDeleted = function (e, fullPath) {
         if (this.removeView({fullPath: fullPath})) {
-            $(this).triggerHandler("viewListChange");
+            this.trigger("viewListChange");
         }
     };
     

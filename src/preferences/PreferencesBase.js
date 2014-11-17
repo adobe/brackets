@@ -60,6 +60,7 @@ define(function (require, exports, module) {
     
     var FileUtils   = require("file/FileUtils"),
         FileSystem  = require("filesystem/FileSystem"),
+        EventDispatcher = require("utils/EventDispatcher"),
         _           = require("thirdparty/lodash"),
         Async       = require("utils/Async"),
         globmatch   = require("thirdparty/globmatch");
@@ -120,6 +121,10 @@ define(function (require, exports, module) {
         }
     };
     
+    // MemoryStorage never actually dispatches change events, but Storage interface requires implementing on()/off()
+    EventDispatcher.makeEventDispatcher(MemoryStorage.prototype);
+    
+    
     /**
      * Error type for problems parsing preference files.
      * 
@@ -132,6 +137,7 @@ define(function (require, exports, module) {
     }
     
     ParsingError.prototype = new Error();
+    
     
     /**
      * Loads/saves preferences from a JSON file on disk.
@@ -236,7 +242,7 @@ define(function (require, exports, module) {
          */
         setPath: function (newPath) {
             this.path = newPath;
-            $(this).trigger("changed");
+            this.trigger("changed");
         },
         
         /**
@@ -246,10 +252,13 @@ define(function (require, exports, module) {
          */
         fileChanged: function (filePath) {
             if (filePath === this.path) {
-                $(this).trigger("changed");
+                this.trigger("changed");
             }
         }
     };
+    
+    EventDispatcher.makeEventDispatcher(FileStorage.prototype);
+    
     
     /**
      * A `Scope` is a data container that is tied to a `Storage`.
@@ -262,7 +271,7 @@ define(function (require, exports, module) {
      */
     function Scope(storage) {
         this.storage = storage;
-        $(storage).on("changed", this.load.bind(this));
+        storage.on("changed", this.load.bind(this));
         this.data = {};
         this._dirty = false;
         this._layers = [];
@@ -283,7 +292,7 @@ define(function (require, exports, module) {
                     var oldKeys = this.getKeys();
                     this.data = data;
                     result.resolve();
-                    $(this).trigger(PREFERENCE_CHANGE, {
+                    this.trigger(PREFERENCE_CHANGE, {
                         ids: _.union(this.getKeys(), oldKeys)
                     });
                 }.bind(this))
@@ -478,7 +487,7 @@ define(function (require, exports, module) {
             this._layers.push(layer);
             this._layerMap[layer.key] = layer;
             this._exclusions.push(layer.key);
-            $(this).trigger(PREFERENCE_CHANGE, {
+            this.trigger(PREFERENCE_CHANGE, {
                 ids: layer.getKeys(this.data[layer.key], {})
             });
         },
@@ -518,6 +527,9 @@ define(function (require, exports, module) {
             return _.union.apply(null, changes);
         }
     });
+    
+    EventDispatcher.makeEventDispatcher(Scope.prototype);
+    
     
     // Utility functions for the PathLayer
     
@@ -834,6 +846,7 @@ define(function (require, exports, module) {
         }
     };
     
+    
     /**
      * Represents a single, known Preference.
      * 
@@ -844,27 +857,8 @@ define(function (require, exports, module) {
         _.extend(this, properties);
     }
     
-    _.extend(Preference.prototype, {
-        /**
-         * Sets an event handler on this Preference.
-         * 
-         * @param {string} event Event name
-         * @param {Function} handler Function to handle the event
-         */
-        on: function (event, handler) {
-            $(this).on(event, handler);
-        },
-        
-        /**
-         * Removes an event handler from this Preference
-         * 
-         * @param {string} event Event name
-         * @param {?Function} handler Optional specific function to stop receiving events 
-         */
-        off: function (event, handler) {
-            $(this).off(event, handler);
-        }
-    });
+    EventDispatcher.makeEventDispatcher(Preference.prototype);
+    
     
     /**
      * Provides a subset of the PreferencesSystem functionality with preference
@@ -1033,6 +1027,7 @@ define(function (require, exports, module) {
         }
     };
     
+    
     /**
      * PreferencesSystem ties everything together to provide a simple interface for
      * managing the whole prefs system.
@@ -1090,7 +1085,7 @@ define(function (require, exports, module) {
         var notifyPrefChange = function (id) {
             var pref = this._knownPrefs[id];
             if (pref) {
-                $(pref).trigger(PREFERENCE_CHANGE);
+                pref.trigger(PREFERENCE_CHANGE);
             }
         }.bind(this);
         
@@ -1242,7 +1237,7 @@ define(function (require, exports, module) {
                 isPending = false,
                 self = this;
 
-            $(scope).on(PREFERENCE_CHANGE + ".prefsys", function (e, data) {
+            scope.on(PREFERENCE_CHANGE + ".prefsys", function (e, data) {
                 self._triggerChange(data);
             }.bind(this));
 
@@ -1328,7 +1323,7 @@ define(function (require, exports, module) {
             if (scope) {
                 _.pull(this._defaultContext.scopeOrder, id);
                 var $this = $(this);
-                $(scope).off(".prefsys");
+                scope.off(".prefsys");
                 $this.trigger(SCOPEORDER_CHANGE, {
                     id: id,
                     action: "removed"

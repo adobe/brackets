@@ -50,6 +50,8 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
+        AppInit             = require("utils/AppInit"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
         PerfUtils           = require("utils/PerfUtils"),
@@ -72,34 +74,37 @@ define(function (require, exports, module) {
      */
     var _fileSelectionFocus = PROJECT_MANAGER;
     
-    /** 
-     * Change the doc selection to the working set when ever a new file is added to the working set
-     */
-    $(MainViewManager).on("workingSetAdd", function (event, addedFile) {
-        _fileSelectionFocus = WORKING_SET_VIEW;
-        $(exports).triggerHandler("documentSelectionFocusChange");
-    });
+    // Due to circular dependencies, can't attach events until all modules fully loaded
+    AppInit.htmlReady(function () {
+        /**
+         * Change the doc selection to the working set when ever a new file is added to the working set
+         */
+        MainViewManager.on("workingSetAdd", function (event, addedFile) {
+            _fileSelectionFocus = WORKING_SET_VIEW;
+            exports.trigger("documentSelectionFocusChange");
+        });
 
-    /** 
-      * Update the file selection focus whenever the contents of the editor area change
-      */
-    $(MainViewManager).on("currentFileChange", function (event, file, paneId) {
-        var perfTimerName;
-        if (!_curDocChangedDueToMe) {
-            // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
-            perfTimerName = PerfUtils.markStart("FileViewController._oncurrentFileChange():\t" + (file ? (file.fullPath) : "(no open file)"));
-            if (file && MainViewManager.findInWorkingSet(paneId,  file.fullPath) !== -1) {
-                _fileSelectionFocus = WORKING_SET_VIEW;
-            } else {
-                _fileSelectionFocus = PROJECT_MANAGER;
+        /**
+         * Update the file selection focus whenever the contents of the editor area change
+         */
+        MainViewManager.on("currentFileChange", function (event, file, paneId) {
+            var perfTimerName;
+            if (!_curDocChangedDueToMe) {
+                // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
+                perfTimerName = PerfUtils.markStart("FileViewController._oncurrentFileChange():\t" + (file ? (file.fullPath) : "(no open file)"));
+                if (file && MainViewManager.findInWorkingSet(paneId,  file.fullPath) !== -1) {
+                    _fileSelectionFocus = WORKING_SET_VIEW;
+                } else {
+                    _fileSelectionFocus = PROJECT_MANAGER;
+                }
             }
-        }
 
-        $(exports).triggerHandler("documentSelectionFocusChange");
+            exports.trigger("documentSelectionFocusChange");
 
-        if (!_curDocChangedDueToMe) {
-            PerfUtils.addMeasurement(perfTimerName);
-        }
+            if (!_curDocChangedDueToMe) {
+                PerfUtils.addMeasurement(perfTimerName);
+            }
+        });
     });
     
     /** 
@@ -115,7 +120,7 @@ define(function (require, exports, module) {
         // If fullPath corresonds to the current doc being viewed then opening the file won't
         // trigger a currentFileChange event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
-        $(exports).triggerHandler("documentSelectionFocusChange");
+        exports.trigger("documentSelectionFocusChange");
     }
 
     /**
@@ -131,7 +136,7 @@ define(function (require, exports, module) {
 
         if (_fileSelectionFocus !== fileSelectionFocus) {
             _fileSelectionFocus = fileSelectionFocus;
-            $(exports).triggerHandler("fileViewFocusChange");
+            exports.trigger("fileViewFocusChange");
         }
     }
 
@@ -250,9 +255,10 @@ define(function (require, exports, module) {
     }
 
 
+    EventDispatcher.makeEventDispatcher(exports);
+    
     // Deprecated
     exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
-
 
     // Define public API
     exports.getFileSelectionFocus = getFileSelectionFocus;

@@ -233,7 +233,7 @@ define(function (require, exports, module) {
         _changeCallback = null;
         _offlineCallback = null;
 
-        $(_model).on("change", function (event, path) {
+        _model.on("change", function (event, path) {
             if (_changeCallback) {
                 var cb = _getCallback("change", path, _changeCallback);
                 cb(path, _model.stat(path));

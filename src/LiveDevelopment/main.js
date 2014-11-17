@@ -177,7 +177,7 @@ define(function main(require, exports, module) {
         _$btnGoLive.click(function onGoLive() {
             _handleGoLiveCommand();
         });
-        $(LiveDevelopment).on("statusChange", function statusChange(event, status, reason) {
+        LiveDevelopment.on("statusChange", function statusChange(event, status, reason) {
             // status starts at -1 (error), so add one when looking up name and style
             // See the comments at the top of LiveDevelopment.js for details on the
             // various status codes.
@@ -194,7 +194,7 @@ define(function main(require, exports, module) {
     
     /** Maintains state of the Live Preview menu item */
     function _setupGoLiveMenu() {
-        $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
+        LiveDevelopment.on("statusChange", function statusChange(event, status) {
             // Update the checkmark next to 'Live Preview' menu item
             // Add checkmark when status is STATUS_ACTIVE; otherwise remove it
             CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(status === LiveDevelopment.STATUS_ACTIVE);

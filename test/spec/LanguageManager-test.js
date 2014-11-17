@@ -554,8 +554,8 @@ define(function (require, exports, module) {
                     doc.addRef();
 
                     // listen for event
-                    _$(doc).on("languageChanged", spy);
-                    _$(DocumentManager).on("currentDocumentLanguageChanged", dmspy);
+                    doc.on("languageChanged", spy);
+                    DocumentManager.on("currentDocumentLanguageChanged", dmspy);
                     
                     // trigger a rename
                     oldFile.rename(newFilename, function (err) {
@@ -605,7 +605,7 @@ define(function (require, exports, module) {
                     
                     // listen for event
                     spy = jasmine.createSpy("languageChanged event handler");
-                    $(doc).on("languageChanged", spy);
+                    doc.on("languageChanged", spy);
                     
                     // sanity check language
                     expect(doc.getLanguage()).toBe(unknown);
@@ -657,7 +657,7 @@ define(function (require, exports, module) {
                 
                 // listen for event
                 spy = jasmine.createSpy("languageChanged event handler");
-                $(doc).on("languageChanged", spy);
+                doc.on("languageChanged", spy);
                 
                 // sanity check language
                 expect(doc.getLanguage()).toBe(unknown);
@@ -693,7 +693,7 @@ define(function (require, exports, module) {
                 
                 // listen for event
                 spy = jasmine.createSpy("languageChanged event handler");
-                $(doc).on("languageChanged", spy);
+                doc.on("languageChanged", spy);
                 
                 // sanity check language
                 expect(doc.getLanguage()).toBe(unknownLang);
@@ -734,7 +734,7 @@ define(function (require, exports, module) {
                 
                 // listen for event
                 spy = jasmine.createSpy("languageChanged event handler");
-                $(doc).on("languageChanged", spy);
+                doc.on("languageChanged", spy);
                 
                 // sanity check language
                 expect(doc.getLanguage()).toBe(unknownLang);
