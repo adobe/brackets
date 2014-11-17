@@ -1,0 +1,122 @@
+{
+    "/path/to/extensions/user/legacy-extension": {
+        "installInfo": {
+            "metadata": {
+                "title": "legacy-extension"
+            },
+            "status": "enabled",
+            "path": "/path/to/extensions/user/legacy-extension",
+            "locationType": "user"
+        }
+    },
+    "registered-extension": {
+        "registryInfo": {
+            "metadata": {
+                "name": "registered-extension",
+                "title": "AAA extension to sort to the beginning",
+                "description": "An updated extension from the registry",
+                "version": "2.0.0"
+            },
+            "owner": "github:someuser",
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "published": "2013-04-10T18:26:20.553Z"
+                },
+                {
+                    "version": "2.0.0",
+                    "published": "2013-04-15T12:26:20.553Z"
+                }
+            ]
+        },
+        "installInfo": {
+            "metadata": {
+                "name": "registered-extension",
+                "title": "AAA extension to sort to the beginning",
+                "description": "An extension from the registry",
+                "version": "1.0.0"
+            },
+            "status": "enabled",
+            "path": "/path/to/extensions/user/registered-extension",
+            "locationType": "user"
+        }
+    },
+    "Z-capital-extension": {
+        "registryInfo": {
+            "metadata": {
+                "name": "Z-capital-extension",
+                "description": "An extension that should sort after lowercase extensions",
+                "version": "1.0.0"
+            },
+            "owner": "github:someuser",
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "published": "2013-04-10T18:26:20.553Z"
+                }
+            ]
+        },
+        "installInfo": {
+            "metadata": {
+                "name": "Z-capital-extension",
+                "description": "An extension that should sort after lowercase extensions",
+                "version": "1.0.0"
+            },
+            "status": "enabled",
+            "path": "/path/to/extensions/user/Z-capital-extension",
+            "locationType": "user"
+        }
+    },
+    "unregistered-extension": {
+        "installInfo": {
+            "metadata": {
+                "name": "registered-extension",
+                "description": "An extension not from the registry",
+                "version": "1.0.0"
+            },
+            "status": "enabled",
+            "path": "/path/to/extensions/user/unregistered-extension",
+            "locationType": "user"
+        }
+    },
+    "install-later-extension": {
+        "registryInfo": {
+            "metadata": {
+                "name": "install-later-extension",
+                "description": "An extension from the registry that will be installed later",
+                "version": "1.0.0"
+            },
+            "owner": "github:someuser",
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "published": "2013-04-10T18:26:20.553Z"
+                }
+            ]
+        }
+    },
+    "default-extension": {
+        "installInfo": {
+            "metadata": {
+                "name": "default-extension",
+                "description": "An extension in the default folder",
+                "version": "1.0.0"
+            },
+            "status": "enabled",
+            "path": "/path/to/extensions/default/default-extension",
+            "locationType": "default"
+        }
+    },
+    "dev-extension": {
+        "installInfo": {
+            "metadata": {
+                "name": "dev-extension",
+                "description": "An extension in the dev folder",
+                "version": "1.0.0"
+            },
+            "status": "enabled",
+            "path": "/path/to/extensions/dev/dev-extension",
+            "locationType": "dev"
+        }
+    }
+}

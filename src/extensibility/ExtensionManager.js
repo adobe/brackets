@@ -803,9 +803,9 @@ define(function (require, exports, module) {
 
             if (installedVersion) {
                 return extension.version && semver.lt(extension.version, installedVersion);
-            } else {
-                return true;
             }
+
+            return true;
         });
 
         return {extensions: extensionBundlesToInstall};
@@ -892,7 +892,7 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
         Package._getNodeConnectionDeferred().done(function () {
             _autoInstallExtensions();
-            _installExtensionBundles();
+//            _installExtensionBundles();
         });
     });
 
