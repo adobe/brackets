@@ -1659,12 +1659,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * removes strings from the content 
+     * removes strings specified with css content property (e.g. "content: '('")
      * @param {!string} content to reduce
      * @return {string} reduced content 
      */
     function _removeStrings(content) {
-        return content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, "");
+        return content.replace(/content\s*:\s*(?:[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\')/g, "");
     }
     
     /**
