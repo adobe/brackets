@@ -59,7 +59,7 @@ define(function (require, exports, module) {
     var manager = new PreferencesBase.PreferencesSystem();
     manager.pauseChangeEvents();
 
-    // Create a Project scope
+    // Create a Project scope.
     var projectStorage          = new PreferencesBase.FileStorage(undefined, true),
         projectScope            = new PreferencesBase.Scope(projectStorage),
         projectPathLayer        = new PreferencesBase.PathLayer();
@@ -68,7 +68,7 @@ define(function (require, exports, module) {
 
     var userScopeLoading = manager.addScope("user", new PreferencesBase.MemoryStorage());
 
-    // Set up the .brackets.json file handling
+    // Set up the .brackets.json file handling.
     manager.addScope("project", projectScope, {
         before: "user"
     });
