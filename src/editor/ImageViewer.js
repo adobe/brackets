@@ -35,8 +35,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         FileSystem          = require("filesystem/FileSystem"),
-        FileUtils           = require("file/FileUtils"),
-        _                   = require("thirdparty/lodash");
+        FileUtils           = require("file/FileUtils");
     
     
     var _viewers = {};
@@ -77,7 +76,7 @@ define(function (require, exports, module) {
         this.$vertGuide = this.$el.find(".vert-guide");
         
         this.$imagePath.text(this.relPath).attr("title", this.relPath);
-        this.$imagePreview.on("load", _.bind(this._onImageLoaded, this));
+        this.$imagePreview.on("load", this._onImageLoaded.bind(this));
         
         _viewers[file.fullPath] = this;
     }
@@ -87,8 +86,8 @@ define(function (require, exports, module) {
      * update the view
      * 
      * @param {jQuery.Event} e - event
-     * @param {!string} oldPath - the name of the file that's changing changing 
-     * @param {!string} newPath - the name of the file that's changing changing 
+     * @param {!string} oldPath - the name of the file that's changing 
+     * @param {!string} newPath - the name of the file that's changing 
      * @private
      */
     ImageView.prototype._onFilenameChange = function (e, oldPath, newPath) {
@@ -141,13 +140,13 @@ define(function (require, exports, module) {
         });
         
         // make sure we always show the right file name
-        DocumentManager.on("fileNameChange.ImageView", _.bind(this._onFilenameChange, this));
+        DocumentManager.on("fileNameChange.ImageView", this._onFilenameChange.bind(this));
        
         this.$imageTip.hide();
         this.$imageGuides.hide();
         
-        this.$image.on("mousemove.ImageView", ".image-preview", _.bind(this._showImageTip, this))
-                   .on("mouseleave.ImageView", ".image-preview", _.bind(this._hideImageTip, this));
+        this.$image.on("mousemove.ImageView", ".image-preview", this._showImageTip.bind(this))
+                   .on("mouseleave.ImageView", ".image-preview", this._hideImageTip.bind(this));
 
         this._updateScale();
     };

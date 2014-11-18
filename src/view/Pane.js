@@ -254,13 +254,13 @@ define(function (require, exports, module) {
         this.updateHeaderText();
 
         // Listen to document events so we can update ourself
-        DocumentManager.on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
-        DocumentManager.on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
-        MainViewManager.on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
-        MainViewManager.on(this._makeEventName("workingSetAdd"), _.bind(this.updateHeaderText, this));
-        MainViewManager.on(this._makeEventName("workingSetRemove"), _.bind(this.updateHeaderText, this));
-        MainViewManager.on(this._makeEventName("workingSetAddList"), _.bind(this.updateHeaderText, this));
-        MainViewManager.on(this._makeEventName("workingSetRemoveList"), _.bind(this.updateHeaderText, this));
+        DocumentManager.on(this._makeEventName("fileNameChange"),  this._handleFileNameChange.bind(this));
+        DocumentManager.on(this._makeEventName("pathDeleted"), this._handleFileDeleted.bind(this));
+        MainViewManager.on(this._makeEventName("activePaneChange"), this._handleActivePaneChange.bind(this));
+        MainViewManager.on(this._makeEventName("workingSetAdd"), this.updateHeaderText.bind(this));
+        MainViewManager.on(this._makeEventName("workingSetRemove"), this.updateHeaderText.bind(this));
+        MainViewManager.on(this._makeEventName("workingSetAddList"), this.updateHeaderText.bind(this));
+        MainViewManager.on(this._makeEventName("workingSetRemoveList"), this.updateHeaderText.bind(this));
     }
     EventDispatcher.makeEventDispatcher(Pane.prototype);
 

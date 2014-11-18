@@ -1364,18 +1364,18 @@ define(function (require, exports, module) {
         this.$openFilesList = this.$el.find("ul");
         
         // Register listeners
-        MainViewManager.on(this._makeEventName("workingSetAdd"), _.bind(this._handleFileAdded, this));
-        MainViewManager.on(this._makeEventName("workingSetAddList"), _.bind(this._handleFileListAdded, this));
-        MainViewManager.on(this._makeEventName("workingSetRemove"), _.bind(this._handleFileRemoved, this));
-        MainViewManager.on(this._makeEventName("workingSetRemoveList"), _.bind(this._handleRemoveList, this));
-        MainViewManager.on(this._makeEventName("workingSetSort"), _.bind(this._handleWorkingSetSort, this));
-        MainViewManager.on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
-        MainViewManager.on(this._makeEventName("paneLayoutChange"), _.bind(this._handlePaneLayoutChange, this));
-        MainViewManager.on(this._makeEventName("workingSetUpdate"), _.bind(this._handleWorkingSetUpdate, this));
+        MainViewManager.on(this._makeEventName("workingSetAdd"), this._handleFileAdded.bind(this));
+        MainViewManager.on(this._makeEventName("workingSetAddList"), this._handleFileListAdded.bind(this));
+        MainViewManager.on(this._makeEventName("workingSetRemove"), this._handleFileRemoved.bind(this));
+        MainViewManager.on(this._makeEventName("workingSetRemoveList"), this._handleRemoveList.bind(this));
+        MainViewManager.on(this._makeEventName("workingSetSort"), this._handleWorkingSetSort.bind(this));
+        MainViewManager.on(this._makeEventName("activePaneChange"), this._handleActivePaneChange.bind(this));
+        MainViewManager.on(this._makeEventName("paneLayoutChange"), this._handlePaneLayoutChange.bind(this));
+        MainViewManager.on(this._makeEventName("workingSetUpdate"), this._handleWorkingSetUpdate.bind(this));
 
-        DocumentManager.on(this._makeEventName("dirtyFlagChange"), _.bind(this._handleDirtyFlagChanged, this));
+        DocumentManager.on(this._makeEventName("dirtyFlagChange"), this._handleDirtyFlagChanged.bind(this));
 
-        FileViewController.on(this._makeEventName("documentSelectionFocusChange") + " " + this._makeEventName("fileViewFocusChange"), _.bind(this._updateListSelection, this));
+        FileViewController.on(this._makeEventName("documentSelectionFocusChange") + " " + this._makeEventName("fileViewFocusChange"), this._updateListSelection.bind(this));
         
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow(this.$openFilesContainer[0], null, true);

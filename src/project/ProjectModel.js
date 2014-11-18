@@ -124,7 +124,7 @@ define(function (require, exports, module) {
      * @param {string} path Path to test.
      */
     function _pathIsFile(path) {
-        return _.last(path) !== "/";
+        return path.charAt(path.length) !== "/";
     }
 
     /**
