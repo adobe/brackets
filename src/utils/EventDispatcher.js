@@ -260,6 +260,24 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Utility for attaching an event handler to an object that has not YET had makeEventDispatcher() called
+     * on it, but will in the future. Once 'futureDispatcher' becomes a real event dispatcher, any handlers
+     * attached here will be retained.
+     * 
+     * Useful with core modules that have circular dependencies (one module initially gets an empty copy of the
+     * other, with no on() API present yet). Unlike other strategies like waiting for htmlReady(), this helper
+     * guarantees you won't miss any future events, regardless of how soon the other module finishes init and
+     * starts calling trigger().
+     * 
+     * @param {!Object} futureDispatcher
+     * @param {string} events
+     * @param {?function(!{type:string, target:!Object}, ...)} fn
+     */
+    function on_duringInit(futureDispatcher, events, fn) {
+        on.call(futureDispatcher, events, fn);
+    }
+    
+    /**
      * Mark a given event name as deprecated, such that on() will emit warnings when called with it.
      * May be called before makeEventDispatcher(). May be called on a prototype where makeEventDispatcher()
      * is called separately per instance (i.e. in the constructor).
@@ -278,5 +296,6 @@ define(function (require, exports, module) {
     
     exports.makeEventDispatcher = makeEventDispatcher;
     exports.triggerWithArray    = triggerWithArray;
+    exports.on_duringInit       = on_duringInit;
     exports.markDeprecated      = markDeprecated;
 });

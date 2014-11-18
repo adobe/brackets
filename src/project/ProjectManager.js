@@ -1136,11 +1136,6 @@ define(function (require, exports, module) {
     
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
-        // Due to circular dependencies, can't attach event handlers until all modules loaded
-        FileViewController.on("documentSelectionFocusChange", _documentSelectionFocusChange);
-        FileViewController.on("fileViewFocusChange", _fileViewControllerChange);
-        MainViewManager.on("currentFileChange", _currentFileChange);
-        
         $projectTreeContainer = $("#project-files-container");
         $projectTreeContainer.addClass("jstree jstree-brackets");
         $projectTreeContainer.css("overflow", "auto");
@@ -1242,6 +1237,11 @@ define(function (require, exports, module) {
     exports.on("projectOpen", _saveProjectPath);
     exports.on("beforeAppClose", _unwatchProjectRoot);
 
+    // Due to circular dependencies, not safe to call on() directly for other modules' events
+    EventDispatcher.on_duringInit(FileViewController, "documentSelectionFocusChange", _documentSelectionFocusChange);
+    EventDispatcher.on_duringInit(FileViewController, "fileViewFocusChange", _fileViewControllerChange);
+    EventDispatcher.on_duringInit(MainViewManager, "currentFileChange", _currentFileChange);
+    
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
@@ -1383,7 +1383,6 @@ define(function (require, exports, module) {
     
     // Private API helpful in testing
     exports._actionCreator                 = actionCreator;
-    
     
     // Private API for use with SidebarView
     exports._setFileTreeSelectionWidth    = _setFileTreeSelectionWidth;

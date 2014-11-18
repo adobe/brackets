@@ -50,7 +50,6 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
-        AppInit             = require("utils/AppInit"),
         EventDispatcher     = require("utils/EventDispatcher"),
         MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
@@ -74,37 +73,35 @@ define(function (require, exports, module) {
      */
     var _fileSelectionFocus = PROJECT_MANAGER;
     
-    // Due to circular dependencies, can't attach events until all modules fully loaded
-    AppInit.htmlReady(function () {
-        /**
-         * Change the doc selection to the working set when ever a new file is added to the working set
-         */
-        MainViewManager.on("workingSetAdd", function (event, addedFile) {
-            _fileSelectionFocus = WORKING_SET_VIEW;
-            exports.trigger("documentSelectionFocusChange");
-        });
+    // Due to circular dependencies, not safe to call on() directly
+    /**
+     * Change the doc selection to the working set when ever a new file is added to the working set
+     */
+    EventDispatcher.on_duringInit(MainViewManager, "workingSetAdd", function (event, addedFile) {
+        _fileSelectionFocus = WORKING_SET_VIEW;
+        exports.trigger("documentSelectionFocusChange");
+    });
 
-        /**
-         * Update the file selection focus whenever the contents of the editor area change
-         */
-        MainViewManager.on("currentFileChange", function (event, file, paneId) {
-            var perfTimerName;
-            if (!_curDocChangedDueToMe) {
-                // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
-                perfTimerName = PerfUtils.markStart("FileViewController._oncurrentFileChange():\t" + (file ? (file.fullPath) : "(no open file)"));
-                if (file && MainViewManager.findInWorkingSet(paneId,  file.fullPath) !== -1) {
-                    _fileSelectionFocus = WORKING_SET_VIEW;
-                } else {
-                    _fileSelectionFocus = PROJECT_MANAGER;
-                }
+    /**
+     * Update the file selection focus whenever the contents of the editor area change
+     */
+    EventDispatcher.on_duringInit(MainViewManager, "currentFileChange", function (event, file, paneId) {
+        var perfTimerName;
+        if (!_curDocChangedDueToMe) {
+            // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
+            perfTimerName = PerfUtils.markStart("FileViewController._oncurrentFileChange():\t" + (file ? (file.fullPath) : "(no open file)"));
+            if (file && MainViewManager.findInWorkingSet(paneId,  file.fullPath) !== -1) {
+                _fileSelectionFocus = WORKING_SET_VIEW;
+            } else {
+                _fileSelectionFocus = PROJECT_MANAGER;
             }
+        }
 
-            exports.trigger("documentSelectionFocusChange");
+        exports.trigger("documentSelectionFocusChange");
 
-            if (!_curDocChangedDueToMe) {
-                PerfUtils.addMeasurement(perfTimerName);
-            }
-        });
+        if (!_curDocChangedDueToMe) {
+            PerfUtils.addMeasurement(perfTimerName);
+        }
     });
     
     /** 

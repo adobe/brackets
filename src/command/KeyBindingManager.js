@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileUtils           = require("file/FileUtils"),
@@ -1183,15 +1184,8 @@ define(function (require, exports, module) {
         });
     }
     
-    AppInit.htmlReady(function () {
-        // Due to circular dependencies, not safe to attach event handlers until all modules loaded
-        CommandManager.on("commandRegistered", _handleCommandRegistered);
-        
-        // Some commands may have been registered already though, so process those now:
-        CommandManager.getAll().forEach(function (commandId) {
-            _handleCommandRegistered(null, CommandManager.get(commandId));
-        });
-    });
+    // Due to circular dependencies, not safe to call on() directly
+    EventDispatcher.on_duringInit(CommandManager, "commandRegistered", _handleCommandRegistered);
     CommandManager.register(Strings.CMD_OPEN_KEYMAP, Commands.FILE_OPEN_KEYMAP, _openUserKeyMap);
 
     // Asynchronously loading DocumentManager to avoid the circular dependency

@@ -385,5 +385,20 @@ define(function (require, exports, module) {
             EventDispatcher.triggerWithArray(dispatcher, "foo", [42, "bar"]);
             expect(fn1).toHaveBeenCalledWith(jasmine.any(Object), 42, "bar");
         });
+        
+        it("on_duringInit() attaches listeners before makeEventDispatcher()", function () {
+            dispatcher = {};
+            EventDispatcher.on_duringInit(dispatcher, "foo", fn1);
+            
+            EventDispatcher.makeEventDispatcher(dispatcher);
+            dispatcher.trigger("foo");
+            expect(fn1).toHaveBeenCalled();
+            
+            fn1.reset();
+            dispatcher.on("foo", fn2);  // add 2nd listener the normal way - shouldn't disrupt original listener
+            dispatcher.trigger("foo");
+            expect(fn1).toHaveBeenCalled();
+            expect(fn2).toHaveBeenCalled();
+        });
     });
 });

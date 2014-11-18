@@ -1634,18 +1634,19 @@ define(function (require, exports, module) {
         return result;
     }
     
+    
     /** 
      * Setup a ready event to initialize ourself
      */
     AppInit.htmlReady(function () {
         _initialize($("#editor-holder"));
-        
-        // Event handlers - attach late due to circular references
-        ProjectManager.on("projectOpen",                       _loadViewState);
-        ProjectManager.on("beforeProjectClose beforeAppClose", _saveViewState);
-        EditorManager.on("activeEditorChange",                 _activeEditorChange);
-        DocumentManager.on("pathDeleted",                      _removeDeletedFileFromMRU);
     });
+    
+    // Event handlers - not safe to call on() directly, due to circular dependencies
+    EventDispatcher.on_duringInit(ProjectManager, "projectOpen",                       _loadViewState);
+    EventDispatcher.on_duringInit(ProjectManager, "beforeProjectClose beforeAppClose", _saveViewState);
+    EventDispatcher.on_duringInit(EditorManager, "activeEditorChange",                 _activeEditorChange);
+    EventDispatcher.on_duringInit(DocumentManager, "pathDeleted",                      _removeDeletedFileFromMRU);
     
     
     EventDispatcher.makeEventDispatcher(exports);

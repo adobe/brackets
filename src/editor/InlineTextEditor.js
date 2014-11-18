@@ -30,8 +30,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var AppInit             = require("utils/AppInit"),
-        CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
@@ -338,11 +338,10 @@ define(function (require, exports, module) {
         this.close();
     };
     
-    // Attach listeners late due to circular references
-    AppInit.htmlReady(function () {
-        // consolidate all dirty document updates
-        DocumentManager.on("dirtyFlagChange", _dirtyFlagChangeHandler);
-    });
+    
+    // Consolidate all dirty document updates
+    // Due to circular dependencies, not safe to call on() directly
+    EventDispatcher.on_duringInit(DocumentManager, "dirtyFlagChange", _dirtyFlagChangeHandler);
 
     exports.InlineTextEditor = InlineTextEditor;
 
