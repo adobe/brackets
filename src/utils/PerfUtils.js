@@ -77,13 +77,13 @@ define(function (require, exports, module) {
      * @param {?number} reent Sequence identifier for parallel tests of the same name
      */
     function PerfMeasurement(id, name, reent) {
+        this.name = name;
+        this.reent = reent;
         if (id) {
             this.id = id;
         } else {
             this.id = (reent) ? "[reent " + this.reent + "] " + name : name;
         }
-        this.name = name;
-        this.reent = reent;
     }
     
     /**
@@ -150,10 +150,9 @@ define(function (require, exports, module) {
      * this name will appear as an entry in the performance report. 
      * For example: "Open file: /Users/brackets/src/ProjectManager.js"
      *
-     * Multiple timers can be opened simultaneously, but all open timers must have
-     * a unique name.
+     * Multiple timers can be opened simultaneously.
      * 
-     * Returns an opaque set of timer ids which can be store and used for calling
+     * Returns an opaque set of timer ids which can be stored and used for calling
      * addMeasurement(). Since name is often creating via concatenating strings this
      * return value allows clients to construct the name once.
      *
