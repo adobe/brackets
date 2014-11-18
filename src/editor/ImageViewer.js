@@ -35,8 +35,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         FileSystem          = require("filesystem/FileSystem"),
-        FileUtils           = require("file/FileUtils"),
-        _                   = require("thirdparty/lodash");
+        FileUtils           = require("file/FileUtils");
     
     
     var _viewers = {};
@@ -75,9 +74,11 @@ define(function (require, exports, module) {
         this.$y_value = this.$el.find(".y-value");
         this.$horzGuide = this.$el.find(".horz-guide");
         this.$vertGuide = this.$el.find(".vert-guide");
-        
+
+        this._onFilenameChange = this._onFilenameChange.bind(this);
+
         this.$imagePath.text(this.relPath).attr("title", this.relPath);
-        this.$imagePreview.on("load", _.bind(this._onImageLoaded, this));
+        this.$imagePreview.on("load", this._onImageLoaded.bind(this));
         
         _viewers[file.fullPath] = this;
     }
@@ -141,13 +142,13 @@ define(function (require, exports, module) {
         });
         
         // make sure we always show the right file name
-        $(DocumentManager).on("fileNameChange", _.bind(this._onFilenameChange, this));
+        $(DocumentManager).on("fileNameChange", this._onFilenameChange);
        
         this.$imageTip.hide();
         this.$imageGuides.hide();
         
-        this.$image.on("mousemove.ImageView", ".image-preview", _.bind(this._showImageTip, this))
-                   .on("mouseleave.ImageView", ".image-preview", _.bind(this._hideImageTip, this));
+        this.$image.on("mousemove.ImageView", ".image-preview", this._showImageTip.bind(this))
+                   .on("mouseleave.ImageView", ".image-preview", this._hideImageTip.bind(this));
 
         this._updateScale();
     };
@@ -384,7 +385,7 @@ define(function (require, exports, module) {
      */
     ImageView.prototype.destroy = function () {
         delete _viewers[this.file.fullPath];
-        $(DocumentManager).off("fileNameChange", _.bind(this._onFilenameChange, this));
+        $(DocumentManager).off("fileNameChange", this._onFilenameChange);
         this.$image.off(".ImageView");
         this.$el.remove();
     };
