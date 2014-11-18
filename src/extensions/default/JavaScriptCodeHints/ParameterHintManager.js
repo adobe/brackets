@@ -389,9 +389,8 @@ define(function (require, exports, module) {
      *      changes
      */
     function installListeners(editor) {
-
-        $(editor).on("keydown", function (jqEvent, editor, event) {
-            if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+        editor.on("keydown", function (event, editor, domEvent) {
+            if (domEvent.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 dismissHint();
             }
         }).on("scroll", function () {

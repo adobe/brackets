@@ -506,8 +506,7 @@ define(function (require, exports, module) {
                 var DocumentManager,
                     FileSystem,
                     LanguageManager,
-                    MainViewManager,
-                    _$;
+                    MainViewManager;
                 
                 SpecRunnerUtils.createTempDirectory();
                 
@@ -517,7 +516,6 @@ define(function (require, exports, module) {
                     LanguageManager = w.brackets.test.LanguageManager;
                     DocumentManager = w.brackets.test.DocumentManager;
                     MainViewManager = w.brackets.test.MainViewManager;
-                    _$ = w.$;
                 });
                 
                 var writeDeferred = $.Deferred();

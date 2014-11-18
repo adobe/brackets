@@ -163,7 +163,7 @@ define(function (require, exports, module) {
         exports.on("beforeMenuPopup", _beforeMenuPopup);
         
         // Close all popups when a command is executed
-        CommandManager.on("beforeExecuteCommand", function (jqEvent, commandId) {
+        CommandManager.on("beforeExecuteCommand", function (event, commandId) {
             removeCurrentPopUp();
         });
     });

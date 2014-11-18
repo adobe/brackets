@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 /*
  * __CodeHintManager Overview:__
@@ -582,10 +582,10 @@ define(function (require, exports, module) {
     /**
      * Handle a selection change event in the editor. If the selection becomes a
      * multiple selection, end our current session.
-     * @param {Event} jqEvent
+     * @param {BracketsEvent} event
      * @param {Editor} editor
      */
-    function _handleCursorActivity(jqEvent, editor) {
+    function _handleCursorActivity(event, editor) {
         if (_inSession(editor)) {
             if (editor.getSelections().length > 1) {
                 _endSession();

@@ -317,13 +317,13 @@ define(function (require, exports, module) {
         
         this._installEditorListeners();
         
-        this.on("cursorActivity", function (jqEvent, editor) {
-            self._handleCursorActivity(jqEvent);
+        this.on("cursorActivity", function (event, editor) {
+            self._handleCursorActivity(event);
         });
-        this.on("keypress", function (jqEvent, editor, cmEvent) {
-            self._handleKeypressEvents(cmEvent);
+        this.on("keypress", function (event, editor, domEvent) {
+            self._handleKeypressEvents(domEvent);
         });
-        this.on("change", function (jqEvent, editor, changeList) {
+        this.on("change", function (event, editor, changeList) {
             self._handleEditorChange(changeList);
         });
         
@@ -362,6 +362,7 @@ define(function (require, exports, module) {
     }
     
     EventDispatcher.makeEventDispatcher(Editor.prototype);
+    EventDispatcher.markDeprecated(Editor.prototype, "keyEvent", "'keydown/press/up'");
     
     /**
      * Removes this editor from the DOM and detaches from the Document. If this is the "master"
@@ -839,7 +840,7 @@ define(function (require, exports, module) {
     Editor.prototype._installEditorListeners = function () {
         var self = this;
         
-        // Redispatch these CodeMirror key events as jQuery events
+        // Redispatch these CodeMirror key events as Editor events
         function _onKeyEvent(instance, event) {
             self.trigger("keyEvent", self, event);  // deprecated
             self.trigger(event.type, self, event);
