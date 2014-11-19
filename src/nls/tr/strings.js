@@ -112,8 +112,8 @@ define({
     "FIND_IN_FILES_NO_SCOPE"            : "proje içinde",
     "FIND_IN_FILES_FILE"                : "dosya",
     "FIND_IN_FILES_FILES"               : "dosyalar",
-    "FIND_IN_FILES_MATCH"               : "eşlesen",
-    "FIND_IN_FILES_MATCHES"             : "eşlesenler",
+    "FIND_IN_FILES_MATCH"               : "eşleşen",
+    "FIND_IN_FILES_MATCHES"             : "eşleşenler",
     "FIND_IN_FILES_MORE_THAN"           : "Daha fazla ",
     "FIND_IN_FILES_MAX"                 : " (ilk {0} eşlemeyi gösteriyor)",
     "FIND_IN_FILES_FILE_PATH"           : "Dosya: <b>{0}</b>",
@@ -125,8 +125,9 @@ define({
     /**
      * ProjectManager
      */
-
+    "PROJECT_LOADING"   : "Proje Yükleniyor\u2026",
     "UNTITLED" : "Adsız",
+    "WORKING_FILES"     : "Çalışılan Dosyalar",
 
     /**
      * Keyboard modifier names
@@ -134,7 +135,7 @@ define({
 
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
-    "KEYBOARD_SPACE"  : "Space",
+    "KEYBOARD_SPACE"  : "Boşluk",
 
     /**
      * StatusBar strings
@@ -144,8 +145,8 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Girintiyi tab karakterleriyle değiştirmek için tıklayın",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Girintide kullanılacak boşluk sayısını değiştirmek için tıklayın",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Tab karakter genişliğini değiştirmek için tıklayın",
-    "STATUSBAR_SPACES"                      : "Boşluk",
-    "STATUSBAR_TAB_SIZE"                    : "Tab Boyutu",
+    "STATUSBAR_SPACES"                      : "Boşluk:",
+    "STATUSBAR_TAB_SIZE"                    : "Tab Boyutu:",
     "STATUSBAR_LINE_COUNT"                  : "{0} Satır",
 
     /**
@@ -154,6 +155,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "Dosya",
+    "CMD_FILE_NEW_UNTITLED"               : "Yeni",
     "CMD_FILE_NEW"                        : "Yeni Dosya",
     "CMD_FILE_NEW_FOLDER"                 : "Yeni Klasör",
     "CMD_FILE_OPEN"                       : "Aç\u2026",
@@ -162,36 +164,57 @@ define({
     "CMD_FILE_CLOSE"                      : "Kapat",
     "CMD_FILE_CLOSE_ALL"                  : "Hepsini Kapat",
     "CMD_FILE_SAVE"                       : "Kaydet",
+    "CMD_FILE_SAVE_AS"                    : "Farklı Kaydet\u2026",
     "CMD_FILE_SAVE_ALL"                   : "Hepsini Kaydet",
     "CMD_LIVE_FILE_PREVIEW"               : "Canlı Önizleme",
     "CMD_PROJECT_SETTINGS"                : "Proje Ayarları\u2026",
     "CMD_FILE_RENAME"                     : "Yeniden Adlandır",
+    "CMD_EXTENSION_MANAGER"               : "Eklenti Yöneticisi\u2026",
     "CMD_FILE_DELETE"                     : "Sil",
     "CMD_QUIT"                            : "Çık",
+    // Used in native File menu on Windows
+    "CMD_EXIT"                            : "Çıkış",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Düzenle",
+    "CMD_UNDO"                            : "Geri Al",
+    "CMD_REDO"                            : "Yinele",
+    "CMD_CUT"                             : "Kes",
+    "CMD_COPY"                            : "Kopyala",
+    "CMD_PASTE"                           : "Yapıştır",
     "CMD_SELECT_ALL"                      : "Hepsini Seç",
     "CMD_SELECT_LINE"                     : "Satırı Seç",
-    "CMD_FIND"                            : "Bul",
-    "CMD_FIND_IN_FILES"                   : "Dosyalarda Bul",
-    "CMD_FIND_IN_SUBTREE"                 : "\u2026içinde bul",
-    "CMD_FIND_NEXT"                       : "Sonrakini Bul",
-    "CMD_FIND_PREVIOUS"                   : "Öncekini Bul",
-    "CMD_REPLACE"                         : "Değiştir",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Seçileni Satırlara Böl",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Sonraki Satıra İmleç Ekle",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Önceki Satıra İmleç Ekle",
     "CMD_INDENT"                          : "Girinti Ekle",
     "CMD_UNINDENT"                        : "Girintiyi Geri Al",
-    "CMD_DUPLICATE"                       : "Kopyala",
+    "CMD_DUPLICATE"                       : "Çoğalt",
     "CMD_DELETE_LINES"                    : "Satırı Sil",
-    "CMD_COMMENT"                         : "Satırı komentle/koment kaldır",
-    "CMD_BLOCK_COMMENT"                   : "Bloğu komentle/koment kaldır",
+    "CMD_COMMENT"                         : "Yorum Satırını Aç / Kapat",
+    "CMD_BLOCK_COMMENT"                   : "Yorum Bloğunu Aç / Kapat",
     "CMD_LINE_UP"                         : "Satırı Yukarı Taşı",
     "CMD_LINE_DOWN"                       : "Satırı Aşağıya Taşı",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Parantezleri Otomatik Tamamla",
+    "CMD_SHOW_CODE_HINTS"                 : "Kod İpuçlarını Göster",
+    
+    // Search menu commands
+    "FIND_MENU"                           : "Bul",
+    "CMD_FIND"                            : "Bul",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Bul\u2026",
+    "CMD_FIND_NEXT"                       : "Sonrakini Bul",
+    "CMD_FIND_PREVIOUS"                   : "Öncekini Bul",
+    "CMD_FIND_ALL_AND_SELECT"             : "Hepsini Bul ve Seç",
+    "CMD_ADD_NEXT_MATCH"                  : "Sonraki Eşleşmeyi Seçime Ekle",
+    "CMD_SKIP_CURRENT_MATCH"              : "Atla ve Sonraki Eşleşmeyi Ekle",
+    "CMD_FIND_IN_FILES"                   : "Dosyalarda Bul",
+    "CMD_FIND_IN_SUBTREE"                 : "\u2026içinde bul",
+    "CMD_REPLACE"                         : "Değiştir",
      
     // View menu commands
     "VIEW_MENU"                           : "Göster",
-    "CMD_HIDE_SIDEBAR"                    : "Kenar Çubuğu Gizle",
-    "CMD_SHOW_SIDEBAR"                    : "Kenar Çubuğu Göster",
+    "CMD_HIDE_SIDEBAR"                    : "Kenar Çubuğunu Gizle",
+    "CMD_SHOW_SIDEBAR"                    : "Kenar Çubuğunu Göster",
     "CMD_INCREASE_FONT_SIZE"              : "Font Boyutunu Büyült",
     "CMD_DECREASE_FONT_SIZE"              : "Font Boyutunu Küçült",
     "CMD_RESTORE_FONT_SIZE"               : "Font Boyutunu Sıfırla",
@@ -207,7 +230,10 @@ define({
     "CMD_GOTO_DEFINITION"                 : "Tanıma Git",
     "CMD_TOGGLE_QUICK_EDIT"               : "Hızlı Düzenle",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Önceki Eşleşme",
+    "CMD_GOTO_FIRST_PROBLEM"              : "İlk Hata veya Uyarıya Git",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Sonraki Eşleşme",
+    "CMD_TOGGLE_QUICK_DOCS"               : "Hızlı Erişim Dökümanları",
+    "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Yeni Kural",
     "CMD_NEXT_DOC"                        : "Sonraki Dosya",
     "CMD_PREV_DOC"                        : "Önceki Dosya",
     "CMD_SHOW_IN_TREE"                    : "Dosya Listesinde Göster",
@@ -215,10 +241,17 @@ define({
     
     // Help menu commands
     "HELP_MENU"                           : "Yardım",
+    "CMD_HOW_TO_USE_BRACKETS"             : "{APP_NAME} Nasıl Kullanılır",
+    "CMD_SUPPORT"                         : "{APP_NAME} Desteği",
+    "CMD_SUGGEST"                         : "Yeni Özellik Öner",
+    "CMD_RELEASE_NOTES"                   : "Sürüm Notları",
+    "CMD_GET_INVOLVED"                    : "Projeye Dahil Ol",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Eklentiler Klasörünü Göster",
+    "CMD_TWITTER"                         : "{TWITTER_NAME} Twitter'da...",
     "CMD_CHECK_FOR_UPDATE"                : "Yeni Versiyon Kontrol Et",
     "CMD_ABOUT"                           : "{APP_TITLE} Hakkında",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
+    "CMD_OPEN_PREFERENCES"                : "Ayarlar Dosyasını Aç",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Ekranı Kapat",
@@ -253,15 +286,22 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "'{0}' gibi özel karakterler %-kodlanması gerekiyor.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ana URL'yi işlerken bilinmeyen hata",
     
+    // Extension Management strings
+    // For NOT_FOUND_ERR, see generic strings above
+    "EXTENSION_MANAGER_TITLE"              : "Eklenti Yöneticisi",
     
     // extensions/default/DebugCommands
     "DEBUG_MENU"                           : "Ayıkla",
     "CMD_SHOW_DEV_TOOLS"                   : "Geliştirici Araçlarını Göster",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"         : "Eklentiler Olmadan Yeniden Yükle",
     "CMD_REFRESH_WINDOW"                   : "{APP_NAME} Ekranını Yenile",
     "CMD_NEW_BRACKETS_WINDOW"              : "Yeni {APP_NAME} Ekranı",
     "CMD_SWITCH_LANGUAGE"                  : "Dili Değiştir",
     "CMD_RUN_UNIT_TESTS"                   : "Testleri Çalıştır",
     "CMD_SHOW_PERF_DATA"                   : "Performans Bilgisini Göster",
+    "CMD_ENABLE_NODE_DEBUGGER"             : "Node Hata Ayıklayıcısını Etkinleştir",
+    "CMD_LOG_NODE_STATE"                   : "Node Durumunu Konsola Yaz",
+    "CMD_RESTART_NODE"                     : "Node'u Yeniden Başlat",
     
     "LANGUAGE_TITLE"                       : "Dili değiştir",
     "LANGUAGE_MESSAGE"                     : "Lütfen aşağıdaki dillerden istediğiniz dili seçin:",
@@ -274,5 +314,11 @@ define({
     "JSLINT_ERROR_INFORMATION"             : "1 JSLint Hatası",
     "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Hatası",
     "JSLINT_NO_ERRORS"                     : "JSLint hatası bulunamadı - Mükemmel!",
-    "JSLINT_DISABLED"                      : "JSLint kapalı veya şuan ki dosyada kullanılamıyor"
+    "JSLINT_DISABLED"                      : "JSLint kapalı veya şuan ki dosyada kullanılamıyor",
+
+    // extensions/default/JavaScriptCodeHints
+    "CMD_JUMPTO_DEFINITION"                     : "Tanıma Atla",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Parametre İpuçlarını Göster",
+    "NO_ARGUMENTS"                              : "<parametre yok>"
+
 });

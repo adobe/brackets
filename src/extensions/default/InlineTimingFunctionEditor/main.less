@@ -1,0 +1,381 @@
+/**
+ * All BezierCurveEditor selectors descend from .bezier-curve-editor to constrain styles to this extension
+ */
+@cubic-bezier: url(grid.png);
+
+.bezier-curve-editor * {
+    margin: 0;
+}
+
+.bezier-curve-editor {
+    position: relative;
+    height: 300px;
+    margin: 0 25px;
+}
+
+.bezier-curve-editor:focus {
+    outline: none;
+}
+
+.bezier-curve-editor .cubic-bezier {
+    background: @cubic-bezier 0px -75px repeat-x;
+    background-size: 15px 450px;
+    height: 300px;
+    width: 149px;
+    margin: 0 0 0 25px;
+    position: absolute;
+    top: 0;
+    z-index: 2;
+}
+
+.bezier-curve-editor:after {
+    content: "";
+    display: block;
+    height: 300px;
+    width: 149px;
+    margin: 0 0 0 25px;
+    background: -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, #fff 30%, #fff 70%, rgba(255, 255, 255, 0) 100%);
+    background-position: 2px 0;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+}
+
+.bezier-curve-editor .coordinate-plane {
+    position: relative;
+    left: 0;
+    line-height: 0;
+    top: 75px;
+    width: 149px;
+    height: 149px;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+}
+
+.bezier-curve-editor .coordinate-plane:before,
+.bezier-curve-editor .coordinate-plane:after {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: .3em .5em;
+    
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    
+    color: #454545;
+    font-size: 11px;
+    line-height: 1;
+}
+
+.bezier-curve-editor .coordinate-plane:before {
+    border-bottom: 1px solid transparent;
+       -moz-transform: rotate(-90deg);
+        -ms-transform: rotate(-90deg);
+         -o-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+            transform: rotate(-90deg);
+       -moz-transform-origin: bottom left;
+        -ms-transform-origin: bottom left;
+         -o-transform-origin: bottom left;
+    -webkit-transform-origin: bottom left;
+            transform-origin: bottom left;
+    white-space: nowrap;
+}
+
+.bezier-curve-editor .coordinate-plane:after {
+    margin-bottom: -1.5em;
+    white-space: nowrap;
+}
+
+.bezier-curve-editor .control-point {
+    background: #e5e9e9;
+    position: absolute;
+    z-index: 2;
+    height: 16px;
+    width: 16px;
+    border: 1px solid #b2b5b5;
+    margin: -8px 0 0 -8px;
+    outline: none;
+    padding: 0 !important;
+    box-sizing: border-box;
+    border-radius: 8px;
+}
+
+.bezier-curve-editor .control-point:focus {
+    border: 1px solid #2893ef !important;
+    box-shadow: 0 0 0 2px #94ceff;
+}
+
+.bezier-curve-editor .P0, .bezier-curve-editor .P3 {
+    background: #2893ef;
+    border-radius: 0;
+    border: none;
+    height: 12px;
+    width: 12px;
+    z-index: 1;
+}
+
+.bezier-curve-editor .P1, .bezier-curve-editor .P2 {
+    cursor: pointer;
+    z-index: 100;
+}
+
+.bezier-curve-editor .P0 {
+    left: 2px;
+    top: 151px;
+}
+
+.bezier-curve-editor .P3 {
+    right: -7px;
+    top: 1px;
+}
+
+.bezier-curve-editor canvas.curve {
+    position: absolute;
+    z-index: 1;
+    top: -75px;
+    left: 0;
+
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+
+/**
+ * All StepEditor selectors descend from .step-editor to constrain styles to this extension
+ */
+.step-editor * {
+    margin: 0;
+}
+
+.step-editor {
+    position: relative;
+    height: 190px;
+    margin: 0 25px;
+}
+
+.step-editor:focus, .step-editor canvas.steps:focus {
+    outline: none;
+}
+
+.step-editor .steps-func {
+    height: 179px;
+    width: 179px;
+    margin: 0 0 0 17px;
+    position: absolute;
+    top: 0;
+    z-index: 2;
+}
+
+.step-editor:after {
+    content: "";
+    display: block;
+    height: 179px;
+    width: 179px;
+    margin: 0 0 0 25px;
+    background-position: 2px 0;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+}
+
+.step-editor .coordinate-plane {
+    background: #fff;
+    position: relative;
+    left: 0;
+    line-height: 0;
+    top: 0;
+    width: 179px;
+    height: 190px;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+}
+
+.step-editor .coordinate-plane:before,
+.step-editor .coordinate-plane:after {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    
+    color: #454545;
+    font-size: 11px;
+    line-height: 1;
+}
+
+.step-editor .coordinate-plane:before {
+    border-bottom: 1px solid transparent;
+       -moz-transform: rotate(-90deg);
+        -ms-transform: rotate(-90deg);
+         -o-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+            transform: rotate(-90deg);
+       -moz-transform-origin: top left;
+        -ms-transform-origin: top left;
+         -o-transform-origin: top left;
+    -webkit-transform-origin: top left;
+            transform-origin: top left;
+    white-space: nowrap;
+    
+    padding: .3em .5em 0 1.3em;
+}
+
+.step-editor .coordinate-plane:after {
+    margin-left: 15px;
+    white-space: nowrap;
+    
+    bottom: 0.9em;
+    padding: 0 .5em 0 0.2em;
+}
+
+.step-editor canvas.steps {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.bezier-curve-editor .info,
+.step-editor .info {
+    position: absolute;
+    z-index: 1;
+    top: 20px;
+    left: 170px;
+    width: 400px;
+
+    font-family: SourceSansPro;
+    font-size: 11px;
+    line-height: 2.2 !important;
+}
+
+.step-editor .info {
+    left: 205px;
+}
+
+.bezier-curve-editor kbd,
+.step-editor kbd {
+    font-size: 15px;
+    font-weight: bold;
+    color: #454545;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: inline-block;
+    margin: 0 2px 2px 0;
+    padding: 0 3px 2px;
+    border-radius: 2px;
+    vertical-align: top;
+    line-height: 1;
+}
+
+.bezier-curve-editor kbd.text,
+.step-editor kbd.text {
+    font-size: 10px;
+    font-family: SourceSansPro;
+    font-weight: normal;
+    padding: 4px 4px;
+}
+
+.bezier-curve-editor .info .hint,
+.step-editor .info .hint {
+    margin-top: 25px;
+    font-size: 13px;
+    display: none;
+    opacity: 1;
+    line-height: 1.5 !important;
+}
+
+.bezier-curve-editor .info .hint.fadeout,
+.step-editor .info .hint.fadeout {
+    transition: opacity 0.6s ease-in 0.1s;
+    opacity: 0;
+}
+
+/* Dark UI theme */
+
+@dark-bc-bg-highlight: #2a3b50;
+@dark-bc-highlight: rgba(255, 255, 255, 0.06);
+@dark-bc-text: #ccc;
+@dark-bc-text-alt: #fff;
+@dark-bc-btn-bg: #3f3f3f;
+@dark-bc-btn-border: #202020;
+@dark-bc-btn-border-focused: #2893ef;
+@dark-bc-btn-border-focused-glow: transparent;
+@dark-bc-shadow: rgba(0, 0, 0, 0.24);
+@dark-bc-shadow-small: rgba(0, 0, 0, 0.06);
+@dark-bc-shadow-medium: rgba(0, 0, 0, 0.12);
+@dark-bc-input-bg: #555;
+
+@dark-cubic-bezier: url("grid-dark.png");
+
+.dark {
+    .bezier-curve-editor {
+        color: @dark-bc-text;
+
+        .cubic-bezier {
+            background: @dark-cubic-bezier 0px -75px repeat-x;
+            background-size: 15px 450px;
+        }
+
+        .control-point {
+            background: @dark-bc-btn-bg;
+            border: 1px solid @dark-bc-btn-border;
+        }
+
+        .control-point:focus {
+            border: 1px solid @dark-bc-btn-border-focused !important;
+            box-shadow: 0 0 0 2px @dark-bc-btn-border-focused-glow;
+        }
+
+        .P0, .P3 {
+            background: @dark-bc-btn-border-focused;
+        }
+
+        .coordinate-plane:before,
+        .coordinate-plane:after {
+            color: @dark-bc-text;
+        }
+
+        kbd {
+            background: #3D3D3D;
+            color: white;
+        }
+    }
+
+    .bezier-curve-editor:after {
+        background: -webkit-linear-gradient(270deg, rgba(255, 255, 255, 0) 0%, @dark-bc-input-bg 30%, @dark-bc-input-bg 70%, rgba(255, 255, 255, 0) 100%);
+    }
+
+    .step-editor {
+        color: @dark-bc-text;
+
+        kbd {
+            background: #3D3D3D;
+            color: white;
+        }
+        
+        .coordinate-plane {
+            background: #2c2c2c;
+        }
+
+        .coordinate-plane:before,
+        .coordinate-plane:after {
+            color: @dark-bc-text;
+        }
+    }
+    
+    .bezier-curve-editor,
+    .step-editor {
+        code {
+            color: @dark-bc-text-alt;
+        }        
+    }
+}

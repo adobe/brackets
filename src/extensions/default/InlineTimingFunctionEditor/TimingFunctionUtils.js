@@ -60,15 +60,15 @@ define(function (require, exports, module) {
      * If string is a number, then convert it.
      *
      * @param {string} str  value parsed from page.
-     * @return { isNumber: boolean, value: number } 
+     * @return { isNumber: boolean, value: ?number }
      */
     function _convertToNumber(str) {
-        if (typeof (str) !== "string") {
-            return { isNumber: false };
+        if (typeof str !== "string") {
+            return { isNumber: false, value: null };
         }
 
-        var val = parseFloat(str, 10),
-            isNum = (typeof (val) === "number") && !isNaN(val) &&
+        var val = parseFloat(+str, 10),
+            isNum = (typeof val === "number") && !isNaN(val) &&
                     (val !== Infinity) && (val !== -Infinity);
 
         return {
@@ -173,8 +173,7 @@ define(function (require, exports, module) {
             def = [ "5", "end" ],
             params = def,
             oldIndex = match.index, // we need to store the old match.index to re-set the index afterwards
-            originalString = match[0],
-            i;
+            originalString = match[0];
 
         if (match) {
             match = match[1].split(",");
@@ -248,28 +247,34 @@ define(function (require, exports, module) {
     /**
      * Show, hide or update the hint text
      * 
-     * @param {(BezierCurveEditor|StepEditor)} editor BezierCurveEditor or StepsEditor where the hint should be changed
+     * @param {object} hint Editor.hint object of the current InlineTimingFunctionEditor
      * @param {boolean} show Whether the hint should be shown or hidden
      * @param {string=} documentCode The invalid code from the document (can be omitted when hiding)
      * @param {string=} editorCode The valid code that is shown in the Inline Editor (can be omitted when hiding)
      */
-    function showHideHint(editor, show, documentCode, editorCode) {
-        if (!editor.hint) {
+    function showHideHint(hint, show, documentCode, editorCode) {
+        if (!hint || !hint.elem) {
             return;
         }
         
         if (show) {
-            editor.hintShown = true;
-            editor.hint.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, documentCode, editorCode));
-            editor.hint.css("display", "block");
-        } else if (editor.hintShown) {
-            AnimationUtils.animateUsingClass(editor.hint[0], "fadeout")
+            hint.shown = true;
+            hint.animationInProgress = false;
+            hint.elem.removeClass("fadeout");
+            hint.elem.html(StringUtils.format(Strings.INLINE_TIMING_EDITOR_INVALID, documentCode, editorCode));
+            hint.elem.css("display", "block");
+        } else if (hint.shown) {
+            hint.animationInProgress = true;
+            AnimationUtils.animateUsingClass(hint.elem[0], "fadeout", 750)
                 .done(function () {
-                    editor.hint.css("display", "none");
-                    editor.hintShown = false;
+                    if (hint.animationInProgress) { // do this only if the animation was not cancelled
+                        hint.elem.hide();
+                    }
+                    hint.shown = false;
+                    hint.animationInProgress = false;
                 });
         } else {
-            editor.hint.css("display", "none");
+            hint.elem.hide();
         }
     }
 

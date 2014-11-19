@@ -22,43 +22,46 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, $, waitsForDone, beforeEach, afterEach, beforeFirst, afterLast, jasmine, brackets */
+/*global require, define, $, beforeEach, afterEach, beforeFirst, afterLast, jasmine, brackets */
 
 // Set the baseUrl to brackets/src
 require.config({
     baseUrl: "../src",
     paths: {
-        "test"              : "../test",
-        "perf"              : "../test/perf",
-        "spec"              : "../test/spec",
-        "text"              : "thirdparty/text/text",
-        "i18n"              : "thirdparty/i18n/i18n",
-        "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
+        "test"                          : "../test",
+        "perf"                          : "../test/perf",
+        "spec"                          : "../test/spec",
+        "text"                          : "thirdparty/text/text",
+        "i18n"                          : "thirdparty/i18n/i18n",
+        "fileSystemImpl"                : "filesystem/impls/appshell/AppshellFileSystem",
+        "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl"
     }
 });
 
 define(function (require, exports, module) {
     'use strict';
-    
-    var _ = require("thirdparty/lodash");
-    
+
     // Utility dependencies
     var AppInit                 = require("utils/AppInit"),
-        CodeHintManager         = require("editor/CodeHintManager"),
-        Global                  = require("utils/Global"),
         SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         Async                   = require("utils/Async"),
         FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
-        Menus                   = require("command/Menus"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
-        NodeDomain              = require("utils/NodeDomain"),
         BootstrapReporterView   = require("test/BootstrapReporterView").BootstrapReporterView,
-        ColorUtils              = require("utils/ColorUtils"),
         NativeApp               = require("utils/NativeApp");
+
+    // Load modules for later use
+    require("thirdparty/lodash");
+    require("editor/CodeHintManager");
+    require("utils/Global");
+    require("command/Menus");
+    require("utils/NodeDomain");
+    require("utils/ColorUtils");
+    require("preferences/PreferencesBase");
 
     // Load modules that self-register and just need to get included in the test-runner window
     require("document/ChangedDocumentTracker");
@@ -79,12 +82,23 @@ define(function (require, exports, module) {
     // Load JUnitXMLReporter
     require("test/thirdparty/jasmine-reporters/jasmine.junit_reporter");
     
+    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
+    require("thirdparty/CodeMirror2/addon/fold/xml-fold");
+    require("thirdparty/CodeMirror2/addon/edit/matchtags");
+    require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closebrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closetag");
+    require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/mode/multiplex");
+    require("thirdparty/CodeMirror2/addon/mode/overlay");
+    require("thirdparty/CodeMirror2/addon/search/searchcursor");
+    require("thirdparty/CodeMirror2/keymap/sublime");
+
     var selectedSuites,
-        params                  = new UrlParams(),
+        params          = new UrlParams(),
         reporter,
         reporterView,
-        _writeResults           = new $.Deferred(),
-        _writeResultsPromise    = _writeResults.promise(),
+        _writeResults   = new $.Deferred(),
         resultsPath;
     
     /**
@@ -319,7 +333,7 @@ define(function (require, exports, module) {
         // configure spawned test windows to load extensions
         SpecRunnerUtils.setLoadExtensionsInTestWindow(selectedSuites.indexOf("extension") >= 0);
         
-        _loadExtensionTests(selectedSuites).done(function () {
+        _loadExtensionTests(selectedSuites).always(function () {
             var jasmineEnv = jasmine.getEnv();
             jasmineEnv.updateInterval = 1000;
             

@@ -42,6 +42,8 @@ define(function (require, exports, module) {
     
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -54,23 +56,39 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils");
     
     
-    /** @const {RegExp} The regular expression to check the cursor position */
+    /**
+     * The regular expression to check the cursor position
+     * @const {RegExp}
+     */
     var CURSOR_POS_EXP = new RegExp(":([^,]+)?(,(.+)?)?");
     
-    /** @type Array.<QuickOpenPlugin> */
+    /**
+     * List of plugins
+     * @type {Array.<QuickOpenPlugin>}
+     */
     var plugins = [];
 
-    /** @type {QuickOpenPlugin} */
+    /**
+     * Current plugin
+     * @type {QuickOpenPlugin}
+     */
     var currentPlugin = null;
 
-    /** @type Array.<FileInfo>*/
+    /**
+     * List of files
+     * @type {Array.<FileInfo>}
+     */
     var fileList;
     
-    /** @type $.Promise */
+    /**
+     * File list promise
+     * @type {$.Promise}
+     */
     var fileListPromise;
 
     /**
      * The currently open quick open dialog.
+     * @type {Dialog}
      */
     var _curDialog;
 
@@ -127,15 +145,6 @@ define(function (require, exports, module) {
      * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
-        // Backwards compatibility (for now) for old fileTypes field, if newer languageIds not specified
-        if (pluginDef.fileTypes && !pluginDef.languageIds) {
-            console.warn("Using fileTypes for QuickOpen plugins is deprecated. Use languageIds instead.");
-            pluginDef.languageIds = pluginDef.fileTypes.map(function (extension) {
-                return LanguageManager.getLanguageForPath("file." + extension).getId();
-            });
-            delete pluginDef.fileTypes;
-        }
-        
         plugins.push(new QuickOpenPlugin(
             pluginDef.name,
             pluginDef.languageIds,
@@ -222,12 +231,12 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Remembers the selection in origDocPath that was present when showDialog() was called. Focusing on an
+     * Remembers the selection state in origDocPath that was present when showDialog() was called. Focusing on an
      * item can change the selection; we restore this original selection if the user presses Escape. Null if
      * no document was open when Quick Open was invoked.
-     * @type {?{start:{line:number, ch:number}, end:{line:number, ch:number}}}
+     * @type {?Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>}
      */
-    QuickNavigateDialog.prototype._origSelection = null;
+    QuickNavigateDialog.prototype._origSelections = null;
     
     /**
      * @private
@@ -260,8 +269,7 @@ define(function (require, exports, module) {
      *      Or null if the query is invalid
      */
     function extractCursorPos(query) {
-        var regInfo = query.match(CURSOR_POS_EXP),
-            result;
+        var regInfo = query.match(CURSOR_POS_EXP);
         
         if (query.length <= 1 || !regInfo ||
                 (regInfo[1] && isNaN(regInfo[1])) ||
@@ -339,7 +347,7 @@ define(function (require, exports, module) {
                 // So we call `prepareClose()` first, and finish the close later.
                 doClose = false;
                 this.modalBar.prepareClose();
-                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
+                CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath})
                     .done(function () {
                         if (cursorPos) {
                             var editor = EditorManager.getCurrentFullEditor();
@@ -356,7 +364,7 @@ define(function (require, exports, module) {
 
         if (doClose) {
             this.close();
-            EditorManager.focusEditor();
+            MainViewManager.focusActivePane();
         }
     };
 
@@ -406,7 +414,7 @@ define(function (require, exports, module) {
             setTimeout(function () {
                 if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                     // Restore original selection / scroll pos
-                    self.close(self._origScrollPos, self._origSelection);
+                    self.close(self._origScrollPos, self._origSelections);
                 } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls close() too
                 }
@@ -462,11 +470,11 @@ define(function (require, exports, module) {
      * searching is done.
      * @param {{x: number, y: number}=} scrollPos If specified, scroll to the given
      *     position when closing the ModalBar.
-     * @param {{start: {line: number, ch: number}, end: {line: number, ch: number}} selection If specified,
-     *     restore the given selection when closing the ModalBar.
+     * @param Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>
+     *     selections If specified, restore the given selections when closing the ModalBar.
      * @return {$.Promise} Resolved when the search bar is entirely closed.
      */
-    QuickNavigateDialog.prototype.close = function (scrollPos, selection) {
+    QuickNavigateDialog.prototype.close = function (scrollPos, selections) {
         if (!this.isOpen) {
             return this._closeDeferred.promise();
         }
@@ -495,7 +503,7 @@ define(function (require, exports, module) {
         // So we wait until after this call chain is complete before actually closing the dialog.
         var self = this;
         setTimeout(function () {
-            self.modalBar.close(!scrollPos).done(function () {
+            self.modalBar.close(!!scrollPos).done(function () {
                 self._closeDeferred.resolve();
             });
 
@@ -503,8 +511,8 @@ define(function (require, exports, module) {
             // `ModalBar.close()` (before the animation completes).
             // See description of `restoreScrollPos` in `ModalBar.close()`.
             var editor = EditorManager.getCurrentFullEditor();
-            if (selection) {
-                editor.setSelection(selection.start, selection.end);
+            if (selections) {
+                editor.setSelections(selections);
             }
             if (scrollPos) {
                 editor.setScrollPos(scrollPos.x, scrollPos.y);
@@ -663,7 +671,7 @@ define(function (require, exports, module) {
             displayName += '<span title="sp:' + sd.special + ', m:' + sd.match +
                 ', ls:' + sd.lastSegment + ', b:' + sd.beginning +
                 ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + ', nsos: ' +
-                sd.notStartingOnSpecial + '">(' + item.matchGoodness + ') </span>';
+                sd.notStartingOnSpecial + ', upper: ' + sd.upper + '">(' + item.matchGoodness + ') </span>';
         }
         
         // Put the path pieces together, highlighting the matched parts
@@ -816,10 +824,10 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
         this._origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
-            this._origSelection = EditorManager.getCurrentFullEditor().getSelection();
+            this._origSelections = EditorManager.getCurrentFullEditor().getSelections();
             this._origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();
         } else {
-            this._origSelection = null;
+            this._origSelections = null;
             this._origScrollPos = null;
         }
 
@@ -857,10 +865,17 @@ define(function (require, exports, module) {
         });
 
         this.setSearchFieldValue(prefix, initialString);
+
+        // Return files that are non-binary, or binary files that have a custom viewer
+        function _filter(file) {
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() ||
+                MainViewFactory.findSuitableFactoryForPath(file.fullPath);
+        }
         
-        // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
-        // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
-        fileListPromise = ProjectManager.getAllFiles(true)
+        // Start fetching the file list, which will be needed the first time the user enters
+        // an un-prefixed query. If file index caches are out of date, this list might take
+        // some time to asynchronously build. See searchFileList() for how this is handled.
+        fileListPromise = ProjectManager.getAllFiles(_filter, true)
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;
@@ -935,7 +950,7 @@ define(function (require, exports, module) {
     exports.addQuickOpenPlugin      = addQuickOpenPlugin;
     exports.highlightMatch          = highlightMatch;
     
-    // accessing these from this module will ultimately be deprecated
+    // Convenience exports for functions that most QuickOpen plugins would need.
     exports.stringMatch             = StringMatch.stringMatch;
     exports.SearchResult            = StringMatch.SearchResult;
     exports.basicMatchSort          = StringMatch.basicMatchSort;

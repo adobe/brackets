@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window */
+/*global define, brackets */
 
 /**
  * This is a collection of utility functions for gathering performance data.
@@ -31,8 +31,9 @@ define(function (require, exports, module) {
     "use strict";
     
     var _ = require("thirdparty/lodash");
-    
-    var Global = require("utils/Global");
+
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
 
     /**
      * Flag to enable/disable performance data gathering. Default is true (enabled)
@@ -128,7 +129,7 @@ define(function (require, exports, module) {
      * a unique name.
      *
      * @param {(string|Array.<string>)} name  Single name or an Array of names.
-     * @returns {string} timer name. Returned for convenience to store and use
+     * @return {string} timer name. Returned for convenience to store and use
      *      for calling addMeasure(). Since name is often creating via concatenating
      *      strings this return value allows clients to construct the name once.
      */
@@ -278,7 +279,7 @@ define(function (require, exports, module) {
 
     /**
       * Returns the performance data as a tab deliminted string
-      * @returns {string}
+      * @return {string}
       */
     function getDelimitedPerfData() {
         var getValue = function (entry) {
@@ -298,9 +299,7 @@ define(function (require, exports, module) {
             }
         };
 
-        var testName,
-            index,
-            result = "";
+        var result = "";
         _.forEach(perfData, function (entry, testName) {
             result += getValue(entry) + "\t" + testName + "\n";
         });

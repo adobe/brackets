@@ -29,20 +29,28 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, CodeMirror, $, Worker, setTimeout */
+/*global define, brackets, $, Worker, setTimeout */
 
 define(function (require, exports, module) {
     "use strict";
 
     var _ = brackets.getModule("thirdparty/lodash");
     
-    var DocumentManager     = brackets.getModule("document/DocumentManager"),
-        LanguageManager     = brackets.getModule("language/LanguageManager"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
+    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+        DefaultDialogs      = brackets.getModule("widgets/DefaultDialogs"),
+        Dialogs             = brackets.getModule("widgets/Dialogs"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
+        EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
-        HintUtils           = require("HintUtils"),
+        LanguageManager     = brackets.getModule("language/LanguageManager"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        ProjectManager      = brackets.getModule("project/ProjectManager"),
+        Strings             = brackets.getModule("strings"),
+        StringUtils         = brackets.getModule("utils/StringUtils");
+
+    var HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
         Preferences         = require("Preferences");
     
@@ -59,7 +67,7 @@ define(function (require, exports, module) {
 
     var MAX_HINTS           = 30,  // how often to reset the tern server
         LARGE_LINE_CHANGE   = 100,
-        LARGE_LINE_COUNT    = 2000,
+        LARGE_LINE_COUNT    = 10000,
         OFFSET_ZERO         = {line: 0, ch: 0};
     
     var config = {};
@@ -195,6 +203,36 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Test if the file path is in current editor
+     *
+     * @param {string} filePath file path to test for exclusion.
+     * @return {boolean} true if in editor, false otherwise.
+     */
+    function isFileBeingEdited(filePath) {
+        var currentEditor   = EditorManager.getFocusedEditor(),
+            currentDoc      = currentEditor && currentEditor.document;
+
+        return (currentDoc && currentDoc.file.fullPath === filePath);
+    }
+
+    /**
+     * Test if the file path is an internal exclusion.
+     *
+     * @param {string} path file path to test for exclusion.
+     * @return {boolean} true if excluded, false otherwise.
+     */
+    function isFileExcludedInternal(path) {
+        // The detectedExclusions are files detected to be troublesome with current versions of Tern.
+        // detectedExclusions is an array of full paths.
+        var detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions") || [];
+        if (detectedExclusions && detectedExclusions.indexOf(path) !== -1) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Test if the file should be excluded from analysis.
      *
      * @param {!File} file - file to test for exclusion.
@@ -211,15 +249,20 @@ define(function (require, exports, module) {
         }
         
         var excludes = preferences.getExcludedFiles();
-        if (!excludes) {
-            return false;
+        if (excludes && excludes.test(file.name)) {
+            return true;
         }
-        
-        return excludes.test(file.name);
+
+        if (isFileExcludedInternal(file.fullPath)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
      * Add a pending request waiting for the tern-worker to complete.
+     * If file is a detected exclusion, then reject request.
      *
      * @param {string} file - the name of the file
      * @param {{line: number, ch: number}} offset - the offset into the file the request is for
@@ -230,6 +273,12 @@ define(function (require, exports, module) {
         var requests,
             key = file + "@" + offset.line + "@" + offset.ch,
             $deferredRequest;
+
+        // Reject detected exclusions
+        if (isFileExcludedInternal(file)) {
+            return (new $.Deferred()).reject().promise();
+        }
+        
         if (_.has(pendingTernRequests, key)) {
             requests = pendingTernRequests[key];
         } else {
@@ -240,7 +289,7 @@ define(function (require, exports, module) {
         if (_.has(requests, type)) {
             $deferredRequest = requests[type];
         } else {
-            requests[type] = $deferredRequest = $.Deferred();
+            requests[type] = $deferredRequest = new $.Deferred();
         }
         return $deferredRequest.promise();
     }
@@ -640,7 +689,7 @@ define(function (require, exports, module) {
      * Handle the response from the tern web worker when
      * it responds to the update file message.
      *
-     * @param {{path:string, type: string}} response - the response from the worker
+     * @param {{path: string, type: string}} response - the response from the worker
      */
     function handleUpdateFile(response) {
 
@@ -651,6 +700,49 @@ define(function (require, exports, module) {
         if ($deferredHints) {
             $deferredHints.resolve();
         }
+    }
+
+    /**
+     * Handle timed out inference
+     *
+     * @param {{path: string, type: string}} response - the response from the worker
+     */
+    function handleTimedOut(response) {
+
+        var detectedExclusions  = PreferencesManager.get("jscodehints.detectedExclusions") || [],
+            filePath            = response.file;
+
+        // Don't exclude the file currently being edited
+        if (isFileBeingEdited(filePath)) {
+            return;
+        }
+
+        // Handle file that is already excluded
+        if (detectedExclusions.indexOf(filePath) !== -1) {
+            console.log("JavaScriptCodeHints.handleTimedOut: file already in detectedExclusions array timed out: " + filePath);
+            return;
+        }
+
+        // Save detected exclusion in project prefs so no further time is wasted on it
+        detectedExclusions.push(filePath);
+        PreferencesManager.set("jscodehints.detectedExclusions", detectedExclusions, { location: { scope: "project" } });
+
+        // Show informational dialog
+        Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_INFO,
+            Strings.DETECTED_EXCLUSION_TITLE,
+            StringUtils.format(
+                Strings.DETECTED_EXCLUSION_INFO,
+                StringUtils.breakableUrl(filePath)
+            ),
+            [
+                {
+                    className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                    id        : Dialogs.DIALOG_BTN_OK,
+                    text      : Strings.OK
+                }
+            ]
+        );
     }
 
     /**
@@ -738,7 +830,7 @@ define(function (require, exports, module) {
 
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_UPDATE_FILE_MSG);
         }
-
+        
         /**
          * Handle a request from the worker for text of a file
          *
@@ -767,7 +859,7 @@ define(function (require, exports, module) {
              */
             function getDocText(filePath) {
                 if (!FileSystem.isAbsolutePath(filePath)) {
-                    return new $.Deferred().reject();
+                    return (new $.Deferred()).reject().promise();
                 }
                 
                 var file = FileSystem.getFileForPath(filePath),
@@ -789,8 +881,8 @@ define(function (require, exports, module) {
              */
             function findNameInProject() {
                 // check for any files in project that end with the right path.
-                var fileName = name.substring(name.lastIndexOf("/"));
-                
+                var fileName = name.substring(name.lastIndexOf("/") + 1);
+
                 function _fileFilter(entry) {
                     return entry.name === fileName;
                 }
@@ -814,16 +906,18 @@ define(function (require, exports, module) {
                     }
                 });
             }
-    
-            getDocText(name).fail(function () {
-                getDocText(rootTernDir + name).fail(function () {
-                    // check relative to project root
-                    getDocText(projectRoot + name)
-                        // last look for any files that end with the right path
-                        // in the project
-                        .fail(findNameInProject);
+            
+            if (!isFileExcludedInternal(name)) {
+                getDocText(name).fail(function () {
+                    getDocText(rootTernDir + name).fail(function () {
+                        // check relative to project root
+                        getDocText(projectRoot + name)
+                            // last look for any files that end with the right path
+                            // in the project
+                            .fail(findNameInProject);
+                    });
                 });
-            });
+            }
         }
     
         /**
@@ -837,7 +931,7 @@ define(function (require, exports, module) {
                 type        : MessageIds.TERN_PRIME_PUMP_MSG,
                 path        : path
             });
-    
+
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_PRIME_PUMP_MSG);
         }
 
@@ -970,6 +1064,8 @@ define(function (require, exports, module) {
                     handleGetGuesses(response);
                 } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
                     handleUpdateFile(response);
+                } else if (type === MessageIds.TERN_INFERENCE_TIMEDOUT) {
+                    handleTimedOut(response);
                 } else if (type === MessageIds.TERN_WORKER_READY) {
                     workerDeferred.resolveWith(null, [_ternWorker]);
                 } else {
@@ -998,13 +1094,20 @@ define(function (require, exports, module) {
                     type        : MessageIds.TERN_INIT_MSG,
                     dir         : dir,
                     files       : files,
-                    env         : ternEnvironment
+                    env         : ternEnvironment,
+                    timeout     : PreferencesManager.get("jscodehints.inferenceTimeout")
                 };
-                
-                if (config.debug) {
-                    console.debug("Sending message", msg);
+
+                if (worker) {
+                    if (config.debug) {
+                        console.debug("Sending message", msg);
+                    }
+                    worker.postMessage(msg);
+                } else {
+                    if (config.debug) {
+                        console.debug("Worker null. Cannot send message", msg);
+                    }
                 }
-                worker.postMessage(msg);
             });
             rootTernDir = dir + "/";
         }
@@ -1025,15 +1128,14 @@ define(function (require, exports, module) {
         /**
          *  Do the work to initialize a code hinting session.
          *
-         * @param {Session} session - the active hinting session
-         * @param {Document} document - the document the editor has changed to
-         * @param {Document} previousDocument - the document the editor has changed from
+         * @param {Session} session - the active hinting session (TODO: currently unused)
+         * @param {!Document} document - the document the editor has changed to
+         * @param {?Document} previousDocument - the document the editor has changed from
          */
         function doEditorChange(session, document, previousDocument) {
             var file        = document.file,
                 path        = file.fullPath,
                 dir         = file.parentPath,
-                files       = [],
                 pr;
     
             var addFilesDeferred = $.Deferred();
@@ -1125,9 +1227,9 @@ define(function (require, exports, module) {
         /**
          * Called each time a new editor becomes active.
          *
-         * @param {Session} session - the active hinting session
-         * @param {Document} document - the document of the editor that has changed
-         * @param {Document} previousDocument - the document of the editor is changing from
+         * @param {Session} session - the active hinting session (TODO: currently unused by doEditorChange())
+         * @param {!Document} document - the document of the editor that has changed
+         * @param {?Document} previousDocument - the document of the editor is changing from
          */
         function handleEditorChange(session, document, previousDocument) {
             if (addFilesPromise === null) {
@@ -1320,29 +1422,32 @@ define(function (require, exports, module) {
      *  Track the update area of the current document so we can tell if we can send
      *  partial updates to tern or not.
      *
-     * @param {{from: {line:number, ch: number}, to: {line:number, ch: number},
-     * text: Array<string>}} changeList - the document changes (since last change or cumlative?)
+     * @param {Array.<{from: {line:number, ch: number}, to: {line:number, ch: number},
+     *     text: Array<string>}>} changeList - the document changes from the current change event
      */
     function trackChange(changeList) {
-        var changed = documentChanges;
+        var changed = documentChanges, i;
         if (changed === null) {
-            documentChanges = changed = {from: changeList.from.line, to: changeList.from.line};
+            documentChanges = changed = {from: changeList[0].from.line, to: changeList[0].from.line};
             if (config.debug) {
                 console.debug("ScopeManager: document has changed");
             }
         }
 
-        var end = changeList.from.line + (changeList.text.length - 1);
-        if (changeList.from.line < changed.to) {
-            changed.to = changed.to - (changeList.to.line - end);
-        }
+        for (i = 0; i < changeList.length; i++) {
+            var thisChange = changeList[i],
+                end = thisChange.from.line + (thisChange.text.length - 1);
+            if (thisChange.from.line < changed.to) {
+                changed.to = changed.to - (thisChange.to.line - end);
+            }
 
-        if (end >= changed.to) {
-            changed.to = end + 1;
-        }
+            if (end >= changed.to) {
+                changed.to = end + 1;
+            }
 
-        if (changed.from > changeList.from.line) {
-            changed.from = changeList.from.line;
+            if (changed.from > thisChange.from.line) {
+                changed.from = thisChange.from.line;
+            }
         }
     }
 
@@ -1362,7 +1467,7 @@ define(function (require, exports, module) {
      *
      * @param {Session} session - the active hinting session
      * @param {Document} document - the document of the editor that has changed
-     * @param {Document} previousDocument - the document of the editor is changing from
+     * @param {?Document} previousDocument - the document of the editor is changing from
      */
     function handleEditorChange(session, document, previousDocument) {
 

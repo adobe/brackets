@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, beforeFirst, afterLast, spyOn, waitsForDone */
+/*global define, describe, it, expect, beforeEach, runs, beforeFirst, afterLast, spyOn, waitsForDone */
 define(function (require, exports, module) {
     'use strict';
     
@@ -89,7 +89,6 @@ define(function (require, exports, module) {
         
         it("should throw errors for invalid values", function () {
             var store = new PreferenceStorage(CLIENT_ID, {"foo": 42});
-            var error = null;
             
             expect(store.getValue("foo")).toBe(42);
             // function data is not valid JSON
@@ -134,14 +133,14 @@ define(function (require, exports, module) {
             waitsForDone(SpecRunnerUtils.openProjectFiles(".brackets.json"));
             
             runs(function () {
-                expect(PreferencesManager.get("spaceUnits")).toBe(92);
+                expect(PreferencesManager.get("spaceUnits")).toBe(9);
                 waitsForDone(FileViewController.openAndSelectDocument(nonProjectFile,
                              FileViewController.WORKING_SET_VIEW));
             
             });
             
             runs(function () {
-                expect(PreferencesManager.get("spaceUnits")).not.toBe(92);
+                expect(PreferencesManager.get("spaceUnits")).not.toBe(9);
                 
                 // Changing projects will force a change in the project scope.
                 SpecRunnerUtils.loadProjectInTestWindow(projectWithoutSettings);
@@ -150,7 +149,7 @@ define(function (require, exports, module) {
                 waitsForDone(SpecRunnerUtils.openProjectFiles("file_one.js"));
             });
             runs(function () {
-                expect(PreferencesManager.get("spaceUnits")).not.toBe(92);
+                expect(PreferencesManager.get("spaceUnits")).not.toBe(9);
             });
         });
         

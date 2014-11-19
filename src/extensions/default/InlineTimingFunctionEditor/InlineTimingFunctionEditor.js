@@ -49,7 +49,7 @@ define(function (require, exports, module) {
         this._endBookmark = endBookmark;
         this._isOwnChange = false;
         this._isHostChange = false;
-        this._origin = "*InlineTimingFunctionEditor_" + (lastOriginId++);
+        this._origin = "+InlineTimingFunctionEditor_" + (lastOriginId++);
 
         this._handleTimingFunctionChange = this._handleTimingFunctionChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
@@ -156,7 +156,8 @@ define(function (require, exports, module) {
      * @param {!string} timingFunctionString
      */
     InlineTimingFunctionEditor.prototype._handleTimingFunctionChange = function (timingFunctionString) {
-        var timingFunctionMatch = TimingFunctionUtils.timingFunctionMatch(timingFunctionString, true);
+        var self                = this,
+            timingFunctionMatch = TimingFunctionUtils.timingFunctionMatch(timingFunctionString, true);
         if (timingFunctionMatch !== this._timingFunction) {
             var range = this.getCurrentRange();
             if (!range) {
@@ -165,14 +166,14 @@ define(function (require, exports, module) {
 
             // Don't push the change back into the host editor if it came from the host editor.
             if (!this._isHostChange) {
-                // Replace old timingFunction in code with the editor's timing function, and select it
                 this._isOwnChange = true;
-                this.hostEditor.document.replaceRange(timingFunctionString, range.start, range.end, this._origin);
-                this._isOwnChange = false;
-                this.hostEditor.setSelection(range.start, {
-                    line: range.start.line,
-                    ch: range.start.ch + timingFunctionString.length
+                this.hostEditor.document.batchOperation(function () {
+                    // Replace old timingFunction in code with the editor's timing function, and select it
+                    self.hostEditor.document.replaceRange(timingFunctionString, range.start, range.end, self._origin);
+                    var newEnd = { line: range.start.line, ch: range.start.ch + timingFunctionString.length };
+                    self.hostEditor.setSelection(range.start, newEnd, false, 0, self._origin);
                 });
+                this._isOwnChange = false;
             }
             
             this._timingFunction = timingFunctionMatch;

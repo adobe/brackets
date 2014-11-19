@@ -1,0 +1,14 @@
+CHANGED/* foo.css */
+CHANGEDbody {
+CHANGED    margin: 0;
+CHANGED}
+CHANGEDh1, footer {
+CHANGED    padding: 2px auto;
+CHANGED}
+CHANGEDul.foo {
+CHANGED    list-style: none;
+CHANGED}
+CHANGED.bar {
+CHANGED    font-size: large;
+CHANGED}
+CHANGED

@@ -22,20 +22,20 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, beforeFirst, afterLast, spyOn */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, brackets, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
 
     var Commands             = brackets.getModule("command/Commands"),
         CommandManager       = brackets.getModule("command/CommandManager"),
+        MainViewManager      = brackets.getModule("view/MainViewManager"),
         DocumentManager      = brackets.getModule("document/DocumentManager"),
-        Editor               = brackets.getModule("editor/Editor").Editor,
         EditorManager        = brackets.getModule("editor/EditorManager"),
         FileSystem           = brackets.getModule("filesystem/FileSystem"),
         FileUtils            = brackets.getModule("file/FileUtils"),
+        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
-        UnitTestReporter     = brackets.getModule("test/UnitTestReporter"),
         JSCodeHints          = require("main"),
         Preferences          = require("Preferences"),
         ScopeManager         = require("ScopeManager"),
@@ -53,7 +53,7 @@ define(function (require, exports, module) {
     CommandManager.register("test-file-open", Commands.FILE_OPEN, function (fileInfo) {
         // Register a command for FILE_OPEN, which the jump to def code will call
         return DocumentManager.getDocumentForPath(fileInfo.fullPath).done(function (doc) {
-            DocumentManager.setCurrentDocument(doc);
+            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
         });
     });
     
@@ -269,7 +269,7 @@ define(function (require, exports, module) {
          * @param {string} hintSelection - the hint to select
          */
         function selectHint(provider, hintObj, hintSelection) {
-            var hintList = expectHints(provider);
+            expectHints(provider);
             _waitForHints(hintObj, function (hintList) {
                 expect(hintList).toBeTruthy();
                 var index = findHint(hintList, hintSelection);
@@ -314,8 +314,6 @@ define(function (require, exports, module) {
          *  editor is expected to stay in the same file, then file may be omitted.  
          */
         function editorJumped(expectedLocation) {
-            var oldLocation = testEditor.getCursorPos();
-            
             var jumpPromise = JSCodeHints.handleJumpToDefinition();
             
             
@@ -439,7 +437,7 @@ define(function (require, exports, module) {
 
             // The following call ensures that the document is reloaded
             // from disk before each test
-            DocumentManager.closeAll();
+            MainViewManager._closeAll(MainViewManager.ALL_PANES);
             SpecRunnerUtils.destroyMockEditor(testDoc);
             testEditor = null;
             testDoc = null;
@@ -841,10 +839,11 @@ define(function (require, exports, module) {
             });
             
             it("should list matching property names", function () {
-                var start = { line: 12, ch: 10 };
+                var cursor1 = { line: 12, ch: 0 },
+                    cursor2 = { line: 12, ch: 6 };
                 
-                testDoc.replaceRange("param", start, start);
-                testEditor.setCursorPos(start);
+                testDoc.replaceRange("paramB", cursor1, cursor1);
+                testEditor.setCursorPos(cursor2);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
                     hintsPresentExact(hintObj, ["paramB1", "paramB2"]);
@@ -935,7 +934,7 @@ define(function (require, exports, module) {
                 var testPos = { line: 96, ch: 33 };
                 
                 testEditor.setCursorPos(testPos);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
                     expectParameterHint([], 0);
                 });
@@ -1278,6 +1277,27 @@ define(function (require, exports, module) {
                 });
             });
 
+            // Test `jscodehints.noHintsOnDot` preference
+            it("should consider dot a hintable key based on preference", function () {
+                var noHintsOnDot = PreferencesManager.get("jscodehints.noHintsOnDot");
+
+                testEditor.setCursorPos({ line: 44, ch: 10 });
+
+                // Default is falsey
+                expect(noHintsOnDot).toBeFalsy();
+
+                // Should get hints after dot
+                expectHints(JSCodeHints.jsHintProvider, ".");
+
+                // Set preference to true
+                PreferencesManager.set("jscodehints.noHintsOnDot", true);
+
+                // Should no longer get hints after dot
+                expectNoHints(JSCodeHints.jsHintProvider, ".");
+
+                // Set preference back to original value (converted to boolean)
+                PreferencesManager.set("jscodehints.noHintsOnDot", !!noHintsOnDot);
+            });
         });
         
         describe("JavaScript Code Hinting in a HTML file", function () {
@@ -1409,7 +1429,8 @@ define(function (require, exports, module) {
             });
 
             // Test reading multiple files and subdirectories
-            it("should handle reading all files when modules not used", function () {
+            // Turned for per #7646
+            xit("should handle reading all files when modules not used", function () {
                 var start = { line: 8, ch: 8 };
 
                 runs(function () {
@@ -1562,9 +1583,9 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(preferences.getExcludedDirectories()).toBeNull();
+                    expect(preferences.getExcludedDirectories()).toEqual(/node_modules/);
                     expect(preferences.getExcludedFiles().source).
-                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$/.source);
+                        toBe(/^require.*\.js$|^jquery.*\.js$/.source);
                     expect(preferences.getMaxFileCount()).toBe(100);
                     expect(preferences.getMaxFileSize()).toBe(512 * 1024);
                 });
@@ -1579,9 +1600,9 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(preferences.getExcludedDirectories()).toBeNull();
+                    expect(preferences.getExcludedDirectories()).toEqual(/node_modules/);
                     expect(preferences.getExcludedFiles().source).
-                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$/.source);
+                        toBe(/^require.*\.js$|^jquery.*\.js$/.source);
                     expect(preferences.getMaxFileCount()).toBe(100);
                     expect(preferences.getMaxFileSize()).toBe(512 * 1024);
                 });
@@ -1806,6 +1827,32 @@ define(function (require, exports, module) {
 
         });
 
+        describe("Code Hinting Regression", function () {
+            var testFile = extensionPath + "/unittest-files/module-test-files/china/cupFiller.js";
+
+            beforeEach(function () {
+                setupTest(testFile, true);
+            });
+
+            afterEach(function () {
+                tearDownTest();
+            });
+
+            // The test is disabled, because the TernWorker will consult the ProjectManager to
+            // determine all the files in the project root. We don't have a project root for this
+            // testcase. Perhaps we need to change the testsetup or find another way of dealing with this
+            // Test makes sure that http://github.com/adobe/brackets/issue/6931 doesn't show up
+            xit("should show hints for members of referenced class", function () {
+                var start = { line: 8, ch: 15 };
+
+                runs(function () {
+                    testEditor.setCursorPos(start);
+                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                    hintsPresentExact(hintObj, ["empty", "emptyIt", "fill", "full"]);
+                });
+            });
+        });
+
         describe("JavaScript Code Hinting format parameters tests", function () {
 
             it("should format parameters with no params", function () {
@@ -1859,7 +1906,5 @@ define(function (require, exports, module) {
             });
 
         });
-
-
     });
 });

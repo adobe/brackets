@@ -22,13 +22,12 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, document */
+/*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
     
     var EditorManager       = brackets.getModule("editor/EditorManager"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         InlineColorEditor   = require("InlineColorEditor").InlineColorEditor,
         ColorUtils          = brackets.getModule("utils/ColorUtils");
@@ -43,8 +42,7 @@ define(function (require, exports, module) {
      * @return {?{color:String, start:TextMarker, end:TextMarker}}
      */
     function prepareEditorForProvider(hostEditor, pos) {
-        var colorPicker, colorRegEx, cursorLine, inlineColorEditor, match, result,
-            sel, start, end, startBookmark, endBookmark;
+        var colorRegEx, cursorLine, match, sel, start, end, startBookmark, endBookmark;
         
         sel = hostEditor.getSelection();
         if (sel.start.line !== sel.end.line) {
@@ -111,7 +109,7 @@ define(function (require, exports, module) {
     
     
     // Initialize extension
-    ExtensionUtils.loadStyleSheet(module, "css/main.css");
+    ExtensionUtils.loadStyleSheet(module, "css/main.less");
     
     EditorManager.registerInlineEditProvider(inlineColorEditorProvider);
     

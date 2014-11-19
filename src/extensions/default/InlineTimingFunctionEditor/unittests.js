@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, brackets, waitsForDone, spyOn, KeyEvent */
+/*global define, describe, it, expect, beforeEach, afterEach, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -214,6 +214,9 @@ define(function (require, exports, module) {
             });
             it("should correct cubic-bezier function with 5 parameters", function () {
                 testInvalidBezier("cubic-bezier(0, 0, 1, 1, 1)", ["cubic-bezier(0, 0, 1, 1)", "0", "0", "1", "1"]);
+            });
+            it("should correct cubic-bezier function with trailing comma", function () {
+                testInvalidBezier("cubic-bezier(.42, 0, .58, .5,)", ["cubic-bezier(.42, 0, .58, .5)", ".42", "0", ".58", ".5"]);
             });
             
             // Real invalid cubic-beziers - they should NOT be corrected automatically

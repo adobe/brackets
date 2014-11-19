@@ -24,8 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waits,
-waitsFor, runs, $, brackets, waitsForDone, ArrayBuffer, DataView, jasmine */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, ArrayBuffer, DataView, jasmine */
 
 define(function (require, exports, module) {
     "use strict";
@@ -45,6 +44,8 @@ define(function (require, exports, module) {
     var testPath = SpecRunnerUtils.getTestPath("/spec/NodeConnection-test-files");
     
     describe("Node Connection", function () {
+
+        this.category = "livepreview";
 
         var _connectionsToAutoDisconnect = null;
         
@@ -193,7 +194,6 @@ define(function (require, exports, module) {
         
         it("should receive events", function () {
             var connection = createConnection();
-            var eventMessages = [];
             var spy = jasmine.createSpy();
             $(connection).one(
                 "test:eventOne",

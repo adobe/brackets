@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $ */
 /*unittests: HTML Instrumentation*/
 
 /**
@@ -56,8 +56,7 @@ define(function (require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager"),
         HTMLSimpleDOM   = require("./HTMLSimpleDOM"),
-        HTMLDOMDiff     = require("./HTMLDOMDiff"),
-        PerfUtils       = require("utils/PerfUtils");
+        HTMLDOMDiff     = require("./HTMLDOMDiff");
     
     var allowIncremental = true;
     
@@ -137,7 +136,7 @@ define(function (require, exports, module) {
      *     given position.
      */
     function _getMarkerAtDocumentPos(editor, pos, preferParent, markCache) {
-        var i, marks, match;
+        var marks, match;
         
         markCache = markCache || {};
         marks = _getSortedTagMarks(editor._codeMirror.findMarksAt(pos), markCache);
@@ -162,7 +161,7 @@ define(function (require, exports, module) {
         
         return match.mark;
     }
-    
+
     /**
      * @private
      * Dumps the current list of mark ranges for instrumented tags to the console. Used for debugging.
@@ -180,6 +179,8 @@ define(function (require, exports, module) {
                         range.from.line + ":" + range.from.ch + " - " + range.to.line + ":" + range.to.ch);
         });
     }
+    // Workaround for JSHint to not complain about the unused function
+    void(_dumpMarks);
 
     /**
      * Get the instrumented tagID at the specified position. Returns -1 if
@@ -190,6 +191,10 @@ define(function (require, exports, module) {
      * the API is likely to change in the future.
      *
      * @param {Editor} editor The editor to scan. 
+     * @param {{line: number, ch: number}} pos The position to find the DOM marker for.
+     * @param {Object=} markCache An optional cache to look up positions of existing
+     *     markers. (This avoids calling the find() operation on marks multiple times, 
+     *     which is expensive.)
      * @return {number} tagID at the specified position, or -1 if there is no tag
      */
     function _getTagIDAtDocumentPos(editor, pos, markCache) {
@@ -241,14 +246,14 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @constructor
      * Subclass of HTMLSimpleDOM.Builder that builds an updated DOM after changes have been made,
      * and maps nodes from the new DOM to the old DOM by tag ID. For non-structural edits, avoids reparsing
      * the whole editor. Also updates marks in the editor based on the new DOM state.
      *
+     * @constructor
      * @param {Object} previousDOM The root of the HTMLSimpleDOM tree representing a previous state of the DOM.
      * @param {Editor} editor The editor containing the instrumented HTML.
-     * @param {Array=} changeList An optional list of CodeMirror change records representing the
+     * @param {Array=} changeList An optional array of CodeMirror change records representing the
      *     edits the user made in the editor since previousDOM was built. If provided, and the
      *     edits are not structural, DOMUpdater will do a fast incremental reparse. If not provided,
      *     or if one of the edits changes the DOM structure, DOMUpdater will reparse the whole DOM.
@@ -265,16 +270,17 @@ define(function (require, exports, module) {
         }
         
         // If there's more than one change, be conservative and assume we have to do a full reparse.
-        if (changeList && !changeList.next) {
+        if (changeList && changeList.length === 1) {
             // If the inserted or removed text doesn't have any characters that could change the
             // structure of the DOM (e.g. by adding or removing a tag boundary), then we can do
             // an incremental reparse of just the parent tag containing the edit. This should just
             // be the marked range that contains the beginning of the edit range, since that position
             // isn't changed by the edit.
-            if (!isDangerousEdit(changeList.text) && !isDangerousEdit(changeList.removed)) {
+            var change = changeList[0];
+            if (!isDangerousEdit(change.text) && !isDangerousEdit(change.removed)) {
                 // If the edit is right at the beginning or end of a tag, we want to be conservative
                 // and use the parent as the edit range.
-                var startMark = _getMarkerAtDocumentPos(editor, changeList.from, true);
+                var startMark = _getMarkerAtDocumentPos(editor, change.from, true);
                 if (startMark) {
                     var range = startMark.find();
                     if (range) {

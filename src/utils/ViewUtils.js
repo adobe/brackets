@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _ = require("thirdparty/lodash");
+    var _         = require("thirdparty/lodash"),
+        FileUtils = require("file/FileUtils");
     
     var SCROLL_SHADOW_HEIGHT = 5;
     
@@ -69,7 +70,6 @@ define(function (require, exports, module) {
             var clientHeight        = scrollElement.clientHeight,
                 outerHeight         = $displayElement.outerHeight(),
                 scrollHeight        = scrollElement.scrollHeight,
-                bottomOffset        = outerHeight - clientHeight,
                 bottomShadowOffset  = SCROLL_SHADOW_HEIGHT; // outside of shadow div viewport
             
             if (scrollHeight > clientHeight) {
@@ -127,6 +127,11 @@ define(function (require, exports, module) {
             _updateScrollerShadow($displayElement, $scrollElement, $shadowTop, $shadowBottom, isPositionFixed);
         };
         
+        // remove any previously installed listeners on this node
+        $scrollElement.off("scroll.scroller-shadow");
+        $displayElement.off("contentChanged.scroller-shadow");
+        
+        // add new ones
         $scrollElement.on("scroll.scroller-shadow", doUpdate);
         $displayElement.on("contentChanged.scroller-shadow", doUpdate);
         
@@ -185,9 +190,9 @@ define(function (require, exports, module) {
     function sidebarList($scrollerElement, selectedClassName, leafClassName) {
         var $listElement = $scrollerElement.find("ul"),
             $selectionMarker,
-            $selectionTriangle,
+            $selectionExtension,
             $sidebar = $("#sidebar"),
-            showTriangle = true;
+            showExtension = true;
         
         // build selectionMarker and position absolute within the scroller
         $selectionMarker = $(window.document.createElement("div")).addClass("sidebar-selection");
@@ -199,36 +204,40 @@ define(function (require, exports, module) {
         // use relative postioning for clipping the selectionMarker within the scrollElement
         $scrollerElement.css("position", "relative");
         
-        // build selectionTriangle and position fixed to the window
-        $selectionTriangle = $(window.document.createElement("div")).addClass("sidebar-selection-triangle");
+        // build selectionExtension and position fixed to the window
+        $selectionExtension = $(window.document.createElement("div")).addClass("sidebar-selection-extension");
         
-        $scrollerElement.append($selectionTriangle);
+        $scrollerElement.append($selectionExtension);
         
         selectedClassName = "." + (selectedClassName || "selected");
         
-        var updateSelectionTriangle = function () {
+        var updateSelectionExtension = function () {
             var selectionMarkerHeight = $selectionMarker.height(),
                 selectionMarkerOffset = $selectionMarker.offset(),  // offset relative to *document*
                 scrollerOffset = $scrollerElement.offset(),
-                triangleHeight = $selectionTriangle.outerHeight(),
+                selectionExtensionHeight = $selectionExtension.outerHeight(),
                 scrollerTop = scrollerOffset.top,
                 scrollerBottom = scrollerTop + $scrollerElement.outerHeight(),
-                scrollerLeft = scrollerOffset.left,
-                triangleTop = selectionMarkerOffset.top;
+                selectionExtensionTop = selectionMarkerOffset.top;
             
-            $selectionTriangle.css("top", triangleTop);
-            $selectionTriangle.css("left", $sidebar.width() - $selectionTriangle.outerWidth());
-            toggleClass($selectionTriangle, "triangle-visible", showTriangle);
+            $selectionExtension.css("top", selectionExtensionTop);
+            $selectionExtension.css("left", $sidebar.width() - $selectionExtension.outerWidth());
+            toggleClass($selectionExtension, "selectionExtension-visible", showExtension);
                 
-            var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
-                triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
+            var selectionExtensionClipOffsetYBy = Math.floor((selectionMarkerHeight - selectionExtensionHeight) / 2),
+                selectionExtensionBottom = selectionExtensionTop + selectionExtensionHeight + selectionExtensionClipOffsetYBy;
             
-            if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
-                $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
-                                           (triangleHeight - Math.max(triangleBottom - scrollerBottom, 0)) + "px, auto)");
+            if (selectionExtensionTop < scrollerTop || selectionExtensionBottom > scrollerBottom) {
+                $selectionExtension.css("clip", "rect(" + Math.max(scrollerTop - selectionExtensionTop - selectionExtensionClipOffsetYBy, 0) + "px, auto, " +
+                                           (selectionExtensionHeight - Math.max(selectionExtensionBottom - scrollerBottom, 0)) + "px, auto)");
             } else {
-                $selectionTriangle.css("clip", "");
+                $selectionExtension.css("clip", "");
             }
+        };
+        
+        var hideSelectionMarker = function (event) {
+            $selectionExtension.addClass("forced-hidden");
+            $selectionMarker.addClass("forced-hidden");
         };
         
         var updateSelectionMarker = function (event, reveal) {
@@ -236,11 +245,14 @@ define(function (require, exports, module) {
             var $listItem = $listElement.find(selectedClassName).closest("li");
             
             if (leafClassName) {
-                showTriangle = $listItem.hasClass(leafClassName);
+                showExtension = $listItem.hasClass(leafClassName);
             }
+
+            $selectionExtension.removeClass("forced-hidden");
+            $selectionMarker.removeClass("forced-hidden");
             
             // always hide selection visuals first to force layout (issue #719)
-            $selectionTriangle.hide();
+            $selectionExtension.hide();
             $selectionMarker.hide();
             
             if ($listItem.length === 1) {
@@ -254,8 +266,8 @@ define(function (require, exports, module) {
                 $selectionMarker.css("top", selectionMarkerTop);
                 $selectionMarker.show();
                 
-                updateSelectionTriangle();
-                $selectionTriangle.show();
+                updateSelectionExtension();
+                $selectionExtension.show();
             
                 // fully scroll to the selectionMarker if it's not initially in the viewport
                 var scrollerElement = $scrollerElement.get(0),
@@ -276,14 +288,15 @@ define(function (require, exports, module) {
         };
         
         $listElement.on("selectionChanged", updateSelectionMarker);
-        $scrollerElement.on("scroll", updateSelectionTriangle);
-        $scrollerElement.on("selectionRedraw", updateSelectionTriangle);
+        $scrollerElement.on("scroll", updateSelectionExtension);
+        $scrollerElement.on("selectionRedraw", updateSelectionExtension);
+        $scrollerElement.on("selectionHide", hideSelectionMarker);
         
         // update immediately
         updateSelectionMarker();
         
         // update clipping when the window resizes
-        _resizeHandlers.push(updateSelectionTriangle);
+        _resizeHandlers.push(updateSelectionExtension);
     }
     
     /**
@@ -307,8 +320,7 @@ define(function (require, exports, module) {
     function getElementClipSize($view, elementRect) {
         var delta,
             clip = { top: 0, right: 0, bottom: 0, left: 0 },
-            viewOffset = $view.offset() || { top: 0, left: 0},
-            viewScroller = $view.get(0);
+            viewOffset = $view.offset() || { top: 0, left: 0};
 
         // Check if element extends below viewport
         delta = (elementRect.top + elementRect.height) - (viewOffset.top + $view.height());
@@ -355,10 +367,7 @@ define(function (require, exports, module) {
      * @param {?boolean} scrollHorizontal - whether to also scroll horizontally
      */
     function scrollElementIntoView($view, $element, scrollHorizontal) {
-        var viewOffset = $view.offset(),
-            viewScroller = $view.get(0),
-            element = $element.get(0),
-            elementOffset = $element.offset();
+        var elementOffset = $element.offset();
 
         // scroll minimum amount
         var elementRect = {
@@ -393,9 +402,10 @@ define(function (require, exports, module) {
      */
     function getFileEntryDisplay(entry) {
         var name = entry.name,
-            i = name.lastIndexOf(".");
+            ext = FileUtils.getSmartFileExtension(name),
+            i = name.lastIndexOf("." + ext);
         
-        if (i >= 0) {
+        if (i > 0) {
             // Escape all HTML-sensitive characters in filename.
             name = _.escape(name.substring(0, i)) + "<span class='extension'>" + _.escape(name.substring(i)) + "</span>";
         } else {
@@ -465,6 +475,32 @@ define(function (require, exports, module) {
         return displayPaths;
     }
 
+    function traverseViewArray(viewArray, startIndex, direction) {
+        if (Math.abs(direction) !== 1) {
+            console.error("traverseViewArray called with unsupported direction: " + direction.toString());
+            return null;
+        }
+        if (startIndex === -1) {
+            // If doc not in view list, return most recent view list item
+            if (viewArray.length > 0) {
+                return viewArray[0];
+            }
+        } else if (viewArray.length > 1) {
+            // If doc is in view list, return next/prev item with wrap-around
+            startIndex += direction;
+            if (startIndex >= viewArray.length) {
+                startIndex = 0;
+            } else if (startIndex < 0) {
+                startIndex = viewArray.length - 1;
+            }
+
+            return viewArray[startIndex];
+        }
+        
+        // If no doc open or view list empty, there is no "next" file
+        return null;
+    }
+    
     // handle all resize handlers in a single listener
     $(window).resize(_handleResize);
 
@@ -478,4 +514,5 @@ define(function (require, exports, module) {
     exports.getFileEntryDisplay          = getFileEntryDisplay;
     exports.toggleClass                  = toggleClass;
     exports.getDirNamesForDuplicateFiles = getDirNamesForDuplicateFiles;
+    exports.traverseViewArray            = traverseViewArray;
 });

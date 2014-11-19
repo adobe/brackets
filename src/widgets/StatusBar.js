@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, document, Mustache */
+/*global define, $, document, Mustache */
 
 /**
  * A status bar with support for file information and busy and status indicators. This is a semi-generic
@@ -34,10 +34,10 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var AppInit         = require("utils/AppInit"),
-        StatusBarHTML   = require("text!widgets/StatusBar.html"),
-        EditorManager   = require("editor/EditorManager"),
-        Strings         = require("strings");
+    var AppInit          = require("utils/AppInit"),
+        StatusBarHTML    = require("text!widgets/StatusBar.html"),
+        Strings          = require("strings"),
+        WorkspaceManager = require("view/WorkspaceManager");
 
     var _init = false;
     
@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     
     // These vars are initialized by the AppInit.htmlReady handler
     // below since they refer to DOM elements
-    var $editorContainer,
+    var $statusInfo,
         $statusBar,
         $indicators,
         $busyIndicator;
@@ -175,6 +175,52 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Hide the statusbar Information Panel
+     */
+    function hideInformation() {
+        $statusInfo.css("display", "none");
+    }
+    
+    /**
+     * Show the statusbar Information Panel
+     */
+    function showInformation() {
+        $statusInfo.css("display", "");
+    }
+    
+    /**
+     * Hide the statusbar Indicators
+     */
+    function hideIndicators() {
+        $indicators.css("display", "none");
+    }
+    
+    /**
+     * Show the statusbar Indicators
+     */
+    function showIndicators() {
+        $indicators.css("display", "");
+    }
+
+    
+    /**
+     * Hides all panels but not the status bar
+     */
+    function hideAllPanes() {
+        hideInformation();
+        hideIndicators();
+    }
+    
+    /**
+     * Shows all panels (will not show a hidden statusbar)
+     */
+    function showAllPanes() {
+        showInformation();
+        showIndicators();
+    }
+    
+    
+    /**
      * Hide the statusbar
      */
     function hide() {
@@ -185,7 +231,7 @@ define(function (require, exports, module) {
         
         if ($statusBar.is(":visible")) {
             $statusBar.hide();
-            EditorManager.resizeEditor();  // changes available ht for editor area
+            WorkspaceManager.recomputeLayout();
         }
     }
     
@@ -200,7 +246,7 @@ define(function (require, exports, module) {
 
         if (!$statusBar.is(":visible")) {
             $statusBar.show();
-            EditorManager.resizeEditor();  // changes available ht for editor area
+            WorkspaceManager.recomputeLayout();
         }
     }
     
@@ -212,6 +258,7 @@ define(function (require, exports, module) {
         $statusBar          = $("#status-bar");
         $indicators         = $("#status-indicators");
         $busyIndicator      = $("#status-bar .spinner");
+        $statusInfo         = $("#status-info");
 
         _init = true;
 
@@ -219,10 +266,16 @@ define(function (require, exports, module) {
         hide();
     });
 
+    exports.hideInformation   = hideInformation;
+    exports.showInformation   = showInformation;
     exports.showBusyIndicator = showBusyIndicator;
     exports.hideBusyIndicator = hideBusyIndicator;
-    exports.addIndicator = addIndicator;
-    exports.updateIndicator = updateIndicator;
-    exports.hide = hide;
-    exports.show = show;
+    exports.hideIndicators    = hideIndicators;
+    exports.showIndicators    = showIndicators;
+    exports.hideAllPanes      = hideAllPanes;
+    exports.showAllPanes      = showAllPanes;
+    exports.addIndicator      = addIndicator;
+    exports.updateIndicator   = updateIndicator;
+    exports.hide              = hide;
+    exports.show              = show;
 });

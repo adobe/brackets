@@ -58,6 +58,15 @@ define(function (require, exports, module) {
             isFile: true,
             mtime: new Date(),
             contents: "File 4 Contents"
+        },
+        "/subdir/child/": {
+            isFile: false,
+            mtime: new Date()
+        },
+        "/subdir/child/file5.txt": {
+            isFile: true,
+            mtime: new Date(),
+            contents: "File 5 Contents"
         }
     };
     

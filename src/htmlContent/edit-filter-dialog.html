@@ -1,0 +1,17 @@
+<div class="file-filter-dialog modal">
+    <div class="modal-header">
+        <h1 class="dialog-title">{{Strings.FILE_FILTER_DIALOG}}</h1>
+    </div>
+    <div class="modal-body">
+        <div class="dialog-message">
+            {{{instruction}}}
+            <textarea class="exclusions-editor"></textarea>
+            <input type="text" class="exclusions-name" placeholder="{{Strings.FILTER_NAME_PLACEHOLDER}}">
+            <div class="exclusions-filecount">{{Strings.FILTER_COUNTING_FILES}}</div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="dialog-button btn" data-button-id="cancel">{{Strings.CANCEL}}</button>
+        <button class="dialog-button btn primary" data-button-id="ok">{{Strings.OK}}</button>
+    </div>
+</div>

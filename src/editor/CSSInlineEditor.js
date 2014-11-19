@@ -22,48 +22,48 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, window, Mustache */
+/*jslint regexp: true, vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
     var CSSUtils                = require("language/CSSUtils"),
+        DropdownButton          = require("widgets/DropdownButton").DropdownButton,
         CommandManager          = require("command/CommandManager"),
         Commands                = require("command/Commands"),
         DocumentManager         = require("document/DocumentManager"),
-        DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
-        PanelManager            = require("view/PanelManager"),
+        LanguageManager         = require("language/LanguageManager"),
         ProjectManager          = require("project/ProjectManager"),
+        FileUtils               = require("file/FileUtils"),
         HTMLUtils               = require("language/HTMLUtils"),
-        Menus                   = require("command/Menus"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
-        PopUpManager            = require("widgets/PopUpManager"),
         Strings                 = require("strings"),
         ViewUtils               = require("utils/ViewUtils"),
         _                       = require("thirdparty/lodash");
-
-    var StylesheetsMenuTemplate = require("text!htmlContent/stylesheets-menu.html");
     
     var _newRuleCmd,
         _newRuleHandlers = [];
 
     function _getCSSFilesInProject() {
-        return ProjectManager.getAllFiles(ProjectManager.getLanguageFilter("css"));
+        return ProjectManager.getAllFiles(ProjectManager.getLanguageFilter(["css", "less", "scss"]));
     }
     
     /**
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
      * surrounding that position, or "" if none is found.
      * @param {!Editor} editor
+     * @param {!{line:Number, ch:Number}} pos
+     * @return {selectorName: {string}, reason: {string}}
      * @private
      */
     function _getSelectorName(editor, pos) {
         var tagInfo = HTMLUtils.getTagInfo(editor, pos),
-            selectorName = "";
+            selectorName = "",
+            reason;
         
         if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME || tagInfo.position.tokenType === HTMLUtils.CLOSING_TAG) {
             // Type selector
@@ -77,42 +77,40 @@ define(function (require, exports, module) {
                 //   class="error-dialog modal hide"
                 // and the insertion point is inside "modal", we want ".modal"
                 var attributeValue = tagInfo.attr.value;
-                var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
-                var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
-                selectorName = "." +
-                    attributeValue.substring(
-                        startIndex === -1 ? 0 : startIndex + 1,
-                        endIndex === -1 ? attributeValue.length : endIndex
-                    );
-                
-                // If the insertion point is surrounded by space, selectorName is "."
-                // Check for that here
-                if (selectorName === ".") {
-                    selectorName = "";
+                if (/\S/.test(attributeValue)) {
+                    var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
+                    var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
+                    selectorName = "." +
+                        attributeValue.substring(
+                            startIndex === -1 ? 0 : startIndex + 1,
+                            endIndex === -1 ? attributeValue.length : endIndex
+                        );
+
+                    // If the insertion point is surrounded by space between two classnames, selectorName is "."
+                    if (selectorName === ".") {
+                        selectorName = "";
+                        reason = Strings.ERROR_CSSQUICKEDIT_BETWEENCLASSES;
+                    }
+                } else {
+                    reason = Strings.ERROR_CSSQUICKEDIT_CLASSNOTFOUND;
                 }
             } else if (tagInfo.attr.name === "id") {
                 // ID selector
                 var trimmedVal = tagInfo.attr.value.trim();
                 if (trimmedVal) {
                     selectorName = "#" + trimmedVal;
+                } else {
+                    reason = Strings.ERROR_CSSQUICKEDIT_IDNOTFOUND;
                 }
+            } else {
+                reason = Strings.ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR;
             }
         }
         
-        return selectorName;
-    }
-
-    /**
-     * @private
-     * Create the list of stylesheets in the dropdown menu.
-     * @return {string} The html content
-     */
-    function _renderList(cssFileInfos) {
-        var templateVars   = {
-                styleSheetList : cssFileInfos
-            };
-
-        return Mustache.render(StylesheetsMenuTemplate, templateVars);
+        return {
+            selectorName: selectorName,
+            reason:       reason
+        };
     }
 
     /**
@@ -125,7 +123,7 @@ define(function (require, exports, module) {
      */
     function _addRule(selectorName, inlineEditor, path) {
         DocumentManager.getDocumentForPath(path).done(function (styleDoc) {
-            var newRuleInfo = CSSUtils.addRuleToDocument(styleDoc, selectorName, Editor.getUseTabChar(), Editor.getSpaceUnits());
+            var newRuleInfo = CSSUtils.addRuleToDocument(styleDoc, selectorName, Editor.getUseTabChar(path), Editor.getSpaceUnits(path));
             inlineEditor.addAndSelectRange(selectorName, styleDoc, newRuleInfo.range.from.line, newRuleInfo.range.to.line);
             inlineEditor.editor.setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
         });
@@ -147,6 +145,16 @@ define(function (require, exports, module) {
         }
     }
     
+    /** Item renderer for stylesheet-picker dropdown */
+    function _stylesheetListRenderer(item) {
+        var html = "<span class='stylesheet-name'>" + _.escape(item.name);
+        if (item.subDirStr) {
+            html += "<span class='stylesheet-dir'> — " + _.escape(item.subDirStr) + "</span>";
+        }
+        html += "</span>";
+        return html;
+    }
+    
     /**
      * This function is registered with EditManager as an inline editor provider. It creates a CSSInlineEditor
      * when cursor is on an HTML tag name, class attribute, or id attribute, find associated
@@ -154,8 +162,9 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {$.Promise} a promise that will be resolved with an InlineWidget
-     *      or null if we're not going to provide anything.
+     * @return {?$.Promise} synchronously resolved with an InlineWidget; or error
+     *         {string} if pos is in tag but not in tag name, class attr, or id attr; or null if the
+     *         selection isn't even close to a context where we could provide anything.
      */
     function htmlToCSSProvider(hostEditor, pos) {
 
@@ -172,115 +181,24 @@ define(function (require, exports, module) {
         
         // Always use the selection start for determining selector name. The pos
         // parameter is usually the selection end.
-        var selectorName = _getSelectorName(hostEditor, sel.start);
-        if (selectorName === "") {
-            return null;
+        var selectorResult = _getSelectorName(hostEditor, sel.start);
+        if (selectorResult.selectorName === "") {
+            return selectorResult.reason || null;
         }
+        
+        var selectorName = selectorResult.selectorName;
 
         var result = new $.Deferred(),
             cssInlineEditor,
             cssFileInfos = [],
-            $newRuleButton,
-            $dropdown,
-            $dropdownItem,
-            dropdownEventHandler;
-
-        /**
-         * @private
-         * Close the dropdown externally to dropdown, which ultimately calls the
-         * _cleanupDropdown callback.
-         */
-        function _closeDropdown() {
-            if (dropdownEventHandler) {
-                dropdownEventHandler.close();
-            }
-        }
-        
-        /**
-         * @private
-         * Handle click
-         */
-        function _onClickOutside(event) {
-            var $container = $(event.target).closest(".stylesheet-dropdown");
-
-            // If click is outside dropdown list, then close dropdown list
-            if ($container.length === 0 || $container[0] !== $dropdown[0]) {
-                _closeDropdown();
-            }
-        }
-        
-        /**
-         * @private
-         * Remove the various event handlers that close the dropdown. This is called by the
-         * PopUpManager when the dropdown is closed.
-         */
-        function _cleanupDropdown() {
-            window.document.body.removeEventListener("click", _onClickOutside, true);
-            $(hostEditor).off("scroll", _closeDropdown);
-            $(PanelManager).off("editorAreaResize", _closeDropdown);
-            dropdownEventHandler = null;
-            $dropdown = null;
-    
-            EditorManager.focusEditor();
-        }
+            newRuleButton;
 
         /**
          * @private
          * Callback when item from dropdown list is selected
-         * @param {jQueryObject} $link  The `a` element selected with mouse or keyboard
          */
-        function _onSelect($link) {
-            var path  = $link.data("path");
-
-            if (path) {
-                _addRule(selectorName, cssInlineEditor, path);
-            }
-        }
-        
-        /**
-         * @private
-         * Show or hide the stylesheets dropdown.
-         */
-        function _showDropdown() {
-            Menus.closeAll();
-            
-            $dropdown = $(_renderList(cssFileInfos))
-                .appendTo($("body"));
-            
-            var toggleOffset   = $newRuleButton.offset(),
-                posLeft        = toggleOffset.left,
-                posTop         = toggleOffset.top + $newRuleButton.outerHeight(),
-                elementRect = {
-                    top:    posTop,
-                    left:   posLeft,
-                    height: $dropdown.height(),
-                    width:  $dropdown.width()
-                },
-                clip = ViewUtils.getElementClipSize($(window), elementRect);
-            
-            if (clip.bottom > 0) {
-                // Bottom is clipped, so move entire menu above button
-                posTop = Math.max(0, toggleOffset.top - $dropdown.height() - 4);
-            }
-            
-            if (clip.right > 0) {
-                // Right is clipped, so adjust left to fit menu in editor
-                posLeft = Math.max(0, posLeft - clip.right);
-            }
-            
-            $dropdown.css({
-                left: posLeft,
-                top: posTop
-            });
-            
-            dropdownEventHandler = new DropdownEventHandler($dropdown, _onSelect, _cleanupDropdown);
-            dropdownEventHandler.open();
-            
-            $dropdown.focus();
-            
-            window.document.body.addEventListener("click", _onClickOutside, true);
-            $(hostEditor).on("scroll", _closeDropdown);
-            $(PanelManager).on("editorAreaResize", _closeDropdown);
+        function _onDropdownSelect(event, fileInfo) {
+            _addRule(selectorName, cssInlineEditor, fileInfo.fullPath);
         }
         
         /**
@@ -302,7 +220,7 @@ define(function (require, exports, module) {
          * Update the enablement of associated menu commands.
          */
         function _updateCommands() {
-            _newRuleCmd.setEnabled(cssInlineEditor.hasFocus() && !$newRuleButton.hasClass("disabled"));
+            _newRuleCmd.setEnabled(cssInlineEditor.hasFocus() && !newRuleButton.$button.hasClass("disabled"));
         }
         
         /**
@@ -310,89 +228,78 @@ define(function (require, exports, module) {
          * Create a new rule on click.
          */
         function _handleNewRuleClick(e) {
-            if (!$newRuleButton.hasClass("disabled")) {
+            if (!newRuleButton.$button.hasClass("disabled")) {
                 if (cssFileInfos.length === 1) {
                     // Just go ahead and create the rule.
                     _addRule(selectorName, cssInlineEditor, cssFileInfos[0].fullPath);
-                } else if ($dropdown) {
-                    _closeDropdown();
                 } else {
-                    _showDropdown();
+                    // Although not attached to button click in 'dropdown mode', this handler can still be
+                    // invoked via the command shortcut. Just toggle dropdown open/closed in that case.
+                    newRuleButton.toggleDropdown();
                 }
-            }
-            if (e) {
-                e.stopPropagation();
             }
         }
         
         /**
          * @private
-         * Sort fileInfo objects by name then sub-directory
+         * Sort files with LESS/SCSS above CSS, and then within each grouping sort by path & filename
+         * (the same order we use for Find in Files)
+         * @param {!File} a, b
+         * @return {number}
          */
-        function _sortFileInfos(a, b) {
-            var nameComparison = a.name.localeCompare(b.name);
-            if (nameComparison !== 0) {
-                return nameComparison;
+        function _fileComparator(a, b) {
+            var aIsCSS = LanguageManager.getLanguageForPath(a.fullPath).getId() === "css",
+                bIsCSS = LanguageManager.getLanguageForPath(b.fullPath).getId() === "css";
+            if (aIsCSS && !bIsCSS) {
+                return 1;
+            } else if (!aIsCSS && bIsCSS) {
+                return -1;
+            } else {
+                return FileUtils.comparePaths(a.fullPath, b.fullPath);
             }
-            return a.subDirStr.localeCompare(b.subDirStr);
         }
         
         /**
          * @private
          * Prepare file list for display
          */
-        function _prepFileList(fileInfos) {
-            var i, j, firstDupeIndex,
-                displayPaths = [],
-                dupeList = [];
+        function _prepFileList(files) {
+            // First, sort list (the same ordering we use for the results list)
+            files.sort(_fileComparator);
             
-            // Add subdir field to each entry
-            fileInfos.forEach(function (fileInfo) {
-                fileInfo.subDirStr = "";
+            // Find any files that share the same name (with different path)
+            var fileNames = {};
+            files.forEach(function (file) {
+                if (!fileNames[file.name]) {
+                    fileNames[file.name] = [];
+                }
+                fileNames[file.name].push(file);
+            });
+            
+            // For any duplicate filenames, set subDirStr to a path snippet the helps
+            // the user distinguish each file in the list.
+            _.forEach(fileNames, function (files) {
+                if (files.length > 1) {
+                    var displayPaths = ViewUtils.getDirNamesForDuplicateFiles(files);
+                    files.forEach(function (file, i) {
+                        file.subDirStr = displayPaths[i];
+                    });
+                }
             });
 
-            // Add directory path to files with the same name so they can be
-            // distinguished in list. Start with list sorted by name.
-            fileInfos.sort(_sortFileInfos);
-
-            // For identical names, add a subdir
-            for (i = 1; i < fileInfos.length; i++) {
-                if (_sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
-                    // Duplicates found
-                    firstDupeIndex = i - 1;
-                    dupeList.push(fileInfos[i - 1]);
-                    dupeList.push(fileInfos[i]);
-
-                    // Lookahead for more dupes
-                    while (++i < fileInfos.length &&
-                            _sortFileInfos(dupeList[0], fileInfos[i]) === 0) {
-                        dupeList.push(fileInfos[i]);
-                    }
-
-                    // Get minimum subdir to make each unique
-                    displayPaths = ViewUtils.getDirNamesForDuplicateFiles(dupeList);
-
-                    // Add a subdir to each dupe entry
-                    for (j = 0; j < displayPaths.length; j++) {
-                        fileInfos[firstDupeIndex + j].subDirStr = displayPaths[j];
-                    }
-
-                    // Release memory
-                    dupeList = [];
-                }
-            }
-            
-            // Sort by name again, so paths are sorted
-            fileInfos.sort(_sortFileInfos);
-
-            return fileInfos;
+            return files;
+        }
+        
+        function _onHostEditorScroll() {
+            newRuleButton.closeDropdown();
         }
         
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
                 var inlineEditorDeferred = new $.Deferred();
                 cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(CSSUtils.consolidateRules(rules),
-                                                                                    _getNoRulesMsg, CSSUtils.getRangeSelectors);
+                                                                                    _getNoRulesMsg, CSSUtils.getRangeSelectors,
+                                                                                    _fileComparator);
                 cssInlineEditor.load(hostEditor);
                 cssInlineEditor.$htmlContent
                     .on("focusin", _updateCommands)
@@ -401,17 +308,21 @@ define(function (require, exports, module) {
                     inlineEditorDeferred.resolve();
                 });
                 $(cssInlineEditor).on("close", function () {
-                    _closeDropdown();
+                    newRuleButton.closeDropdown();
+                    $(hostEditor).off("scroll", _onHostEditorScroll);
                 });
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
-                $newRuleButton = $("<button class='stylesheet-button btn btn-mini disabled'/>")
-                    .text(Strings.BUTTON_NEW_RULE)
-                    .on("click", _handleNewRuleClick);
-                $header.append($newRuleButton);
+                newRuleButton = new DropdownButton(Strings.BUTTON_NEW_RULE, [], _stylesheetListRenderer); // actual item list populated later, below
+                newRuleButton.$button.addClass("disabled");  // disabled until list is known
+                newRuleButton.$button.addClass("btn-mini stylesheet-button");
+                $header.append(newRuleButton.$button);
                 _newRuleHandlers.push({inlineEditor: cssInlineEditor, handler: _handleNewRuleClick});
                 
+                $(hostEditor).on("scroll", _onHostEditorScroll);
+                
                 result.resolve(cssInlineEditor);
+                
 
                 // Now that dialog has been built, collect list of stylesheets
                 var stylesheetsPromise = _getCSSFilesInProject();
@@ -428,14 +339,21 @@ define(function (require, exports, module) {
                         // "New Rule" button is disabled by default and gets enabled
                         // here if there are any stylesheets in project
                         if (cssFileInfos.length > 0) {
-                            $newRuleButton.removeClass("disabled");
+                            newRuleButton.$button.removeClass("disabled");
                             if (!rules.length) {
                                 // Force focus to the button so the user can create a new rule from the keyboard.
-                                $newRuleButton.focus();
+                                newRuleButton.$button.focus();
                             }
-                        }
-                        if (cssFileInfos.length > 1) {
-                            $newRuleButton.addClass("btn-dropdown");
+                            
+                            if (cssFileInfos.length === 1) {
+                                // Make it look & feel like a plain button in this case
+                                newRuleButton.$button.removeClass("btn-dropdown");
+                                newRuleButton.$button.on("click", _handleNewRuleClick);
+                            } else {
+                                // Fill out remaining dropdown attributes otherwise
+                                newRuleButton.items = cssFileInfos;
+                                $(newRuleButton).on("select", _onDropdownSelect);
+                            }
                         }
                         
                         _updateCommands();
