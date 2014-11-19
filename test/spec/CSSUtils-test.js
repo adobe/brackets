@@ -1333,6 +1333,27 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
             });
                 
+            it("should find selectors that are after a rule starting with a pseudo selector/element", function () {
+                var css = ":focus { color:red; } \n" +
+                          "div { color:blue; } \n" +
+                          "::selection { color:green; } \n" +
+                          ".Foo { color:black } \n" +
+                          "#bar { color:blue } \n" +
+                          "#baR { color:white }";
+                           
+                var result = match(css, { tag: "div" });
+                expect(result.length).toBe(1);
+
+                result = matchAgain({ clazz: "Foo" });
+                expect(result.length).toBe(1);
+                
+                result = matchAgain({ id: "bar" });
+                expect(result.length).toBe(1);
+                
+                result = matchAgain({ id: "baR" });
+                expect(result.length).toBe(1);
+            });
+            
         }); // describe("Simple selectors")
         
         

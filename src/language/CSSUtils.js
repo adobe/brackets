@@ -844,7 +844,7 @@ define(function (require, exports, module) {
 
         function _maybeProperty() {
             return (/^-(moz|ms|o|webkit)-$/.test(token) ||
-                    (state.state !== "top" && state.state !== "block" &&
+                    (state.state !== "top" && state.state !== "block" && state.state !== "pseudo" &&
                     // Has a semicolon as in "rgb(0,0,0);", but not one of those after a LESS 
                     // mixin parameter variable as in ".size(@width; @height)"
                     stream.string.indexOf(";") !== -1 && !/\([^)]+;/.test(stream.string)));
