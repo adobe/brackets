@@ -81,7 +81,7 @@ define(function (require, exports, module) {
     
     /**
      * Registered inline-editor widget providers sorted descending by priority. 
-     * @see {@link #registerInlineEditProvider()}.
+     * @see {@link #registerInlineEditProvider}.
      * @type {Array.<{priority:number, provider:function(...)}>}
      * @private
      */
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
     
     /**
      * Registered inline documentation widget providers sorted descending by priority.
-     * @see {@link #registerInlineDocsProvider()}.
+     * @see {@link #registerInlineDocsProvider}.
      * @type {Array.<{priority:number, provider:function(...)}>}
      * @private
      */
@@ -97,7 +97,7 @@ define(function (require, exports, module) {
     
     /**
      * Registered jump-to-definition providers. 
-     * @see {@link #registerJumpToDefProvider()}.
+     * @see {@link #registerJumpToDefProvider}.
      * @private
      * @type {Array.<function(...)>}
      */
@@ -598,7 +598,7 @@ define(function (require, exports, module) {
     
     /**
      * @deprecated Register a View Factory instead  
-     * @see MainViewManager.registerViewFactory()
+     * @see MainViewFactory::#registerViewFactory
      */
     function registerCustomViewer() {
         throw new Error("EditorManager.registerCustomViewer() has been removed.");
@@ -685,7 +685,7 @@ define(function (require, exports, module) {
      * Returns the current active editor (full-sized OR inline editor). This editor may not 
      * have focus at the moment, but it is visible and was the last editor that was given 
      * focus. Returns null if no editors are active.
-     * @see getFocusedEditor()
+     * @see #getFocusedEditor
      * @return {?Editor}
      */
     function getActiveEditor() {

@@ -57,14 +57,14 @@ define(function (require, exports, module) {
 
     /**
      * Icon Providers
-     * @see {@link WorkingSetView#addIconProvider()}
+     * @see {@link #addIconProvider}
      * @private
      */
     var _iconProviders = [];
     
     /**
      * Class Providers
-     * @see {@link WorkingSetView#addClassProvider()}
+     * @see {@link #addClassProvider}
      * @private
      */
     var _classProviders = [];
