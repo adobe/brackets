@@ -31,7 +31,6 @@ define(function (require, exports, module) {
     var AppInit         = brackets.getModule("utils/AppInit"),
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         CSSUtils        = brackets.getModule("language/CSSUtils"),
-        EditorManager   = brackets.getModule("editor/EditorManager"),
         FileSystem      = brackets.getModule("filesystem/FileSystem"),
         FileUtils       = brackets.getModule("file/FileUtils"),
         HTMLUtils       = brackets.getModule("language/HTMLUtils"),
