@@ -91,7 +91,7 @@ define(function (require, exports, module) {
      * explicit conversion.
      */
     PerfMeasurement.prototype.toString = function () {
-        return this.id;
+        return this.name;
     };
     
     /**
@@ -110,9 +110,9 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Generates unique identifier for the measurements.
+     * Generates PerfMeasurements based on the name or array of names.
      */
-    function generateId(name) {
+    function _generatePerfMeasurements(name) {
         // always convert it to array so that the rest of the routines could rely on it
         var id = (!Array.isArray(name)) ? [name] : name;
         // generate unique identifiers for each name
@@ -138,11 +138,11 @@ define(function (require, exports, module) {
      * @param {number} time  Timer start time.
      */
     function _markStart(id, time) {
-        if (activeTests[id]) {
-            console.error("Recursive tests with the same name are not supported. Timer name: " + id.name);
+        if (activeTests[id.id]) {
+            console.error("Recursive tests with the same id are not supported. Timer id: " + id.id);
         }
         
-        activeTests[id] = { startTime: time };
+        activeTests[id.id] = { startTime: time };
     }
     
     /**
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
         }
 
         var time = brackets.app.getElapsedMilliseconds();
-        var id = generateId(name);
+        var id = _generatePerfMeasurements(name);
         var i;
 
         for (i = 0; i < id.length; i++) {
@@ -196,28 +196,28 @@ define(function (require, exports, module) {
 
         var elapsedTime = brackets.app.getElapsedMilliseconds();
         
-        if (activeTests[id]) {
-            elapsedTime -= activeTests[id].startTime;
-            delete activeTests[id];
+        if (activeTests[id.id]) {
+            elapsedTime -= activeTests[id.id].startTime;
+            delete activeTests[id.id];
         }
         
-        if (perfData[id.name]) {
+        if (perfData[id]) {
             // We have existing data, add to it
-            if (Array.isArray(perfData[id.name])) {
-                perfData[id.name].push(elapsedTime);
+            if (Array.isArray(perfData[id])) {
+                perfData[id].push(elapsedTime);
             } else {
                 // Current data is a number, convert to Array
-                perfData[id.name] = [perfData[id.name], elapsedTime];
+                perfData[id] = [perfData[id], elapsedTime];
             }
         } else {
-            perfData[id.name] = elapsedTime;
+            perfData[id] = elapsedTime;
         }
         
         if (id.reent !== undefined) {
-            if (testSequenceIds[id.name] === 0) {
-                delete testSequenceIds[id.name];
+            if (testSequenceIds[id] === 0) {
+                delete testSequenceIds[id];
             } else {
-                testSequenceIds[id.name]--;
+                testSequenceIds[id]--;
             }
         }
 
@@ -245,25 +245,25 @@ define(function (require, exports, module) {
     function updateMeasurement(id) {
         var elapsedTime = brackets.app.getElapsedMilliseconds();
 
-        if (updatableTests[id]) {
+        if (updatableTests[id.id]) {
             // update existing measurement
             elapsedTime -= updatableTests[id].startTime;
             
             // update
-            if (perfData[id.name] && Array.isArray(perfData[id.name])) {
+            if (perfData[id] && Array.isArray(perfData[id])) {
                 // We have existing data and it's an array, so update the last entry
-                perfData[id.name][perfData[id.name].length - 1] = elapsedTime;
+                perfData[id][perfData[id].length - 1] = elapsedTime;
             } else {
                 // No current data or a single entry, so set/update it
-                perfData[id.name] = elapsedTime;
+                perfData[id] = elapsedTime;
             }
             
         } else {
             // not yet in updatable list
 
-            if (activeTests[id]) {
+            if (activeTests[id.id]) {
                 // save startTime in updatable list before addMeasurement() deletes it
-                updatableTests[id] = { startTime: activeTests[id].startTime };
+                updatableTests[id.id] = { startTime: activeTests[id.id].startTime };
             }
             
             // let addMeasurement() handle the initial case
@@ -280,12 +280,12 @@ define(function (require, exports, module) {
      * @param {Object} id  Timer id.
      */
     function finalizeMeasurement(id) {
-        if (activeTests[id]) {
-            delete activeTests[id];
+        if (activeTests[id.id]) {
+            delete activeTests[id.id];
         }
         
-        if (updatableTests[id]) {
-            delete updatableTests[id];
+        if (updatableTests[id.id]) {
+            delete updatableTests[id.id];
         }
     }
     
@@ -298,7 +298,7 @@ define(function (require, exports, module) {
      * @return {boolean} Whether a timer is active or not.
      */
     function isActive(id) {
-        return (activeTests[id]) ? true : false;
+        return (activeTests[id.id]) ? true : false;
     }
 
     /**
@@ -340,7 +340,7 @@ define(function (require, exports, module) {
             return perfData;
         }
         
-        return perfData[id.name];
+        return perfData[id];
     }
     
     function searchData(regExp) {
