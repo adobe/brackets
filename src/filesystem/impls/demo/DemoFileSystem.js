@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemError = require("filesystem/FileSystemError");
+    var FileSystemError = require("filesystem/FileSystemError"),
+        FileSystemStats = require("filesystem/FileSystemStats");
     
     
     function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
@@ -42,22 +43,112 @@ define(function (require, exports, module) {
     }
     
     function _makeFakeStat(file) {
-        return {
-            isFile: function () {
-                return file;
-            },
-            isDirectory: function () {
-                return !file;
-            },
-            mtime: new Date(0)
+        var options = {
+            isFile: Boolean(file),
+            mtime: new Date(0),
+            size: 0, // TODO
+            hash: 0
+        };
+        return new FileSystemStats(options);
+    }
+    
+    function _forceAsync(cb) {
+        return function () {
+            var cbArgs = arguments;
+            setTimeout(function () {
+                cb.apply(null, cbArgs);
+            }, 50);
         };
     }
     
+    var demoContent = {
+        "index.html": "<html>\n<head>\n    <title>Hello, world!</title>\n</head>\n<body>\n    Welcome to Brackets!\n</body>\n</html>",
+        "main.css": ".hello {\n    content: 'world!';\n}",
+        "samples": {
+            "test.txt": "Sample text"
+        },
+        "src": {
+            "test.txt": "Sample text",
+            "base-config": { "dummy": "" },
+            "command": { "dummy": "" },
+            "document": { "dummy": "" },
+            "editor": { "dummy": "" },
+            "extensibility": { "dummy": "" },
+            "extensions": {
+                "default": {
+                    "CloseOthers": { "package.json": "" },
+                    "CSSCodeHints": { "dummy": "" },
+                    "DarkTheme": { "dummy": "" },
+                    "DebugCommands": { "dummy": "" }
+                },
+                "dev": {
+                    "CloseOthers": { "dummy": "" },
+                    "CSSCodeHints": { "dummy": "" },
+                    "DarkTheme": { "dummy": "" },
+                    "DebugCommands": { "dummy": "" }
+                },
+                "samples": { "dummy": "" }
+            },
+            "file": { "dummy": "" },
+            "filesystem": { "dummy": "" },
+            "help": { "dummy": "" },
+            "htmlContent": { "dummy": "" },
+            "language": { "dummy": "" },
+            "LiveDevelopment": { "dummy": "" },
+            "nls": { "dummy": "" },
+            "preferences": { "dummy": "" },
+            "project": { "dummy": "" },
+            "search": { "dummy": "" },
+            "styles": { "dummy": "" },
+            "thirdparty": { "dummy": "" },
+            "utils": { "dummy": "" },
+            "view": { "dummy": "" },
+            "widgets": { "dummy": "" },
+            "brackets.js": "...",
+            "brackets.config.json": "...",
+            "config.json": "...",
+        },
+        "test": {
+            "test.txt": "Sample text"
+        }
+    };
+    function _stripTrailingSlash(path) {
+        return path[path.length - 1] === "/" ? path.substr(0, path.length - 1) : path;
+    }
+    function _getFromDemoStore(fullPath) {
+        var prefix = "/Getting Started/";
+        if (fullPath.substr(0, prefix.length) !== prefix) {
+            return null;
+        }
+        var suffix = _stripTrailingSlash(fullPath.substr(prefix.length));
+        if (!suffix) {
+            return demoContent;
+        }
+        
+        var segments = suffix.split("/");
+        var dir = demoContent;
+        var i;
+        for (i = 0; i < segments.length; i++) {
+            if (!dir) { return null; }
+            dir = dir[segments[i]];
+        }
+        return dir;
+    }
+    
+    function _statFromStore(storeData) {
+        return _makeFakeStat(typeof storeData === "string");
+    }
+    function _nameFromPath(path) {
+        var segments = _stripTrailingSlash(path).split("/");
+        return segments[segments.length - 1];
+    }
+    
     function stat(path, callback) {
-        if (path === "/Getting Started/index.html" || path === "/Getting Started/main.css") {
-            callback(null, _makeFakeStat(true));
-        } else if (path === "/Getting Started/") {
-            callback(null, _makeFakeStat(false));
+        callback = _forceAsync(callback);
+        
+        var result = _getFromDemoStore(path);
+        if (result || result === "") {
+            callback(null, _statFromStore(result));
         } else {
             callback(FileSystemError.NOT_FOUND);
         }
@@ -74,12 +165,20 @@ define(function (require, exports, module) {
     }
     
     function readdir(path, callback) {
-        if (path === "/Getting Started/") {
-            callback(null,
-                     ["index.html", "main.css"],
-                     [_makeFakeStat(), _makeFakeStat()]);
-        } else {
+        callback = _forceAsync(callback);
+        
+        var storeData = _getFromDemoStore(path);
+        if (!storeData) {
             callback(FileSystemError.NOT_FOUND);
+        } else if (typeof storeData === "string") {
+            callback(FileSystemError.INVALID_PARAMS);
+        } else {
+            var names = Object.keys(storeData);
+            var stats = [];
+            names.forEach(function (name) {
+                stats.push(_statFromStore(storeData[name]));
+            });
+            callback(null, names, stats);
         }
     }
     
@@ -97,13 +196,16 @@ define(function (require, exports, module) {
         if (typeof options === "function") {
             callback = options;
         }
+        callback = _forceAsync(callback);
         
-        if (path === "/Getting Started/index.html") {
-            callback(null, "<html>\n<head>\n    <title>Hello, world!</title>\n</head>\n<body>\n    Welcome to Brackets!\n</body>\n</html>", _makeFakeStat());
-        } else if (path === "/Getting Started/main.css") {
-            callback(null, ".hello {\n    content: 'world!';\n}", _makeFakeStat());
-        } else {
+        var storeData = _getFromDemoStore(path);
+        if (!storeData && storeData !== "") {
             callback(FileSystemError.NOT_FOUND);
+        } else if (typeof storeData !== "string") {
+            callback(FileSystemError.INVALID_PARAMS);
+        } else {
+            var name = _nameFromPath(path);
+            callback(null, storeData, _statFromStore(storeData[name]));
         }
     }
     
@@ -125,14 +227,18 @@ define(function (require, exports, module) {
     
     function watchPath(path, callback) {
         console.warn("File watching is not supported on immutable HTTP demo server");
+        
+        callback = _forceAsync(callback);
         callback();
     }
     
     function unwatchPath(path, callback) {
+        callback = _forceAsync(callback);
         callback();
     }
     
     function unwatchAll(callback) {
+        callback = _forceAsync(callback);
         callback();
     }
     
