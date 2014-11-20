@@ -79,10 +79,12 @@ if (window.location.search.indexOf("testEnvironment") > -1) {
             // shouldn't be doing that anyway since it's basically poking at private API
             
             // Console warning, since $() is deprecated for EventDispatcher objects
-            // Check if this is an extension vs. core - 4th line of stack trace is $()'s caller
+            // Check if this is an extension vs. core - 4th line of stack trace (3rd stack frame) is $()'s caller
             var stack = new Error().stack.split("\n");
-            if (stack[3].indexOf("/extensions/") === -1 || stack[3].indexOf("/extensions/default/") !== -1) {
-                // Report more agressively if core code is still using deprecated $()
+            if (stack[3].indexOf("/dev/src/") !== -1 && stack[3].indexOf("/extensions/dev/") === -1) {
+                // Report more agressively if core code is still using deprecated $(). This detection only
+                // works in dev builds, since r.js-concatenated builds don't provide much path info in the
+                // stack trace, and we don't want an overbroad check that would flag r.js extension code too.
                 console.error("Core code should no longer be using $().on/off()!");
                 console.assert();  // force dev tools to pause
                 

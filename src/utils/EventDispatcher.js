@@ -281,7 +281,8 @@ define(function (require, exports, module) {
     /**
      * Mark a given event name as deprecated, such that on() will emit warnings when called with it.
      * May be called before makeEventDispatcher(). May be called on a prototype where makeEventDispatcher()
-     * is called separately per instance (i.e. in the constructor).
+     * is called separately per instance (i.e. in the constructor). Should be called before clients have
+     * a chance to start calling on().
      * @param {!Object} obj Event dispatcher object
      * @param {string} eventName Name of deprecated event
      * @param {string=} insteadStr Suggested thing to use instead
