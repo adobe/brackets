@@ -32,8 +32,8 @@ define({
 
     // General file io error strings
 	"GENERIC_ERROR": "(Erreur {0})",
-	"NOT_FOUND_ERR": "Fichier introuvable.",
-	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
+	"NOT_FOUND_ERR": "[6307168] !é=The file/directory could not be found.=!",
+	"NOT_READABLE_ERR": "[6307169] !é=The file/directory could not be read.=!",
 	"EXCEEDS_MAX_FILE_SIZE": "Les fichiers dont la taille excède {0} Mo ne peuvent pas être ouverts dans {APP_NAME}.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",

@@ -32,8 +32,8 @@ define({
 
     // General file io error strings
 	"GENERIC_ERROR": "(エラー {0})",
-	"NOT_FOUND_ERR": "ファイルが見つかりません。",
-	"NOT_READABLE_ERR": "ファイルを読み取れません。",
+	"NOT_FOUND_ERR": "!能=[6307168] The file/directory could not be found._=!",
+	"NOT_READABLE_ERR": "!能=[6307169] The file/directory could not be read._=!",
 	"EXCEEDS_MAX_FILE_SIZE": "{0} MB を超えるサイズのファイルは {APP_NAME} で開くことはできません。",
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
