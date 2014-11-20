@@ -99,9 +99,9 @@ define(function (require, exports, module) {
         }
         
         if (path === "/Getting Started/index.html") {
-            callback(null, "<html>\n<head>\n  <title>Hello, world!</title>\n</head>\n<body>\n  Welcome to Brackets!\n</body>\n</html>", _makeFakeStat());
+            callback(null, "<html>\n<head>\n    <title>Hello, world!</title>\n</head>\n<body>\n    Welcome to Brackets!\n</body>\n</html>", _makeFakeStat());
         } else if (path === "/Getting Started/main.css") {
-            callback(null, ".hello {\n  content: 'world!';\n}", _makeFakeStat());
+            callback(null, ".hello {\n    content: 'world!';\n}", _makeFakeStat());
         } else {
             callback(FileSystemError.NOT_FOUND);
         }

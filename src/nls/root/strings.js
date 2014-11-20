@@ -91,7 +91,7 @@ define({
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't fully run in browsers yet.",
-    "ERROR_IN_BROWSER"                  : "This feature is not yet supported when running {APP_NAME} in a web browser.",
+    "ERROR_IN_BROWSER"                  : "This feature is not yet supported when running {APP_NAME} in a web browser. Please try the desktop version.",
 
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",

@@ -119,6 +119,10 @@ define(function (require, exports, module) {
     // Listen for times where we might be unwatching a root that contains one of the user-level prefs files,
     // and force a re-read of the file in order to ensure we can write to it later (see #7300).
     function _reloadUserPrefs(rootDir) {
+        if (brackets.inBrowser) {
+            return;  // TODO: is this applicable? depends on how backend stores prefs
+        }
+        
         var prefsDir = brackets.app.getApplicationSupportDirectory() + "/";
         if (prefsDir.indexOf(rootDir.fullPath) === 0) {
             manager.fileChanged(userPrefFile);

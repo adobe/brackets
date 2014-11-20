@@ -212,6 +212,11 @@ define(function (require, exports, module) {
         });
     }
 
+    /**
+     * If in-browser, shows an error dialog and returns true (dialog is still open after returning).
+     * If in brackets-shell, returns false.
+     * @return {boolean}
+     */
     brackets.unsupportedInBrowser = function () {
         if (brackets.inBrowser) {
             Dialogs.showModalDialog(

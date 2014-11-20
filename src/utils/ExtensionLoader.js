@@ -388,15 +388,20 @@ define(function (require, exports, module) {
         if (brackets.inBrowser) {
             var basePath = PathUtils.directory(window.location.href) + "extensions/default/",
                 defaultExtensions = [
+//                    "test-server-file-system",  // uncomment (and update the root main.js) to test your own FileSystem back-end
+                    "CloseOthers",
                     "CSSCodeHints",
+                    //"DarkTheme", - FIXME: does this work?
                     //"DebugCommands",
                     "HTMLCodeHints",
                     "HtmlEntityCodeHints",
                     "InlineColorEditor",
+                    "InlineTimingFunctionEditor",
                     //"JavaScriptCodeHints",
                     "JavaScriptQuickEdit",
                     "JSLint",
                     "LESSSupport",
+                    //"LightTheme", - FIXME: does this work?
                     "QuickOpenCSS",
                     "QuickOpenHTML",
                     "QuickOpenJavaScript",
@@ -404,9 +409,7 @@ define(function (require, exports, module) {
                     "RecentProjects",
                     //"StaticServer",
                     "UrlCodeHints",
-                    "WebPlatformDocs",
-                    
-                    "test-server-file-system"
+                    "WebPlatformDocs"
                 ];
             
             return Async.doInParallel(defaultExtensions, function (item) {

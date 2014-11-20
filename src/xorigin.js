@@ -66,7 +66,7 @@
         }
 
         // Show an error message
-        alert("Oops! This application doesn't run from a file: URL.\n\nPlease use the native desktop version (http://download.brackets.io/) or an online server-hosted version.");
+        alert("Oops! This application doesn't run from a file: URL.\n\nPlease use the native desktop version (from http://brackets.io/) or an online server-hosted version.");
 
         // Restore the original handler for later errors
         window.onerror = previousErrorHandler;

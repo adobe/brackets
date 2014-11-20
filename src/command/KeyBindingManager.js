@@ -50,7 +50,8 @@ define(function (require, exports, module) {
     var KeyboardPrefs       = JSON.parse(require("text!base-config/keyboard.json"));
     
     var KEYMAP_FILENAME     = "keymap.json",
-        _userKeyMapFilePath = brackets.app.getApplicationSupportDirectory() + "/" + KEYMAP_FILENAME;
+//        _userKeyMapFilePath = brackets.app.getApplicationSupportDirectory() + "/" + KEYMAP_FILENAME;
+        _userKeyMapFilePath = "/&&&doesnt_exist&&&/" + KEYMAP_FILENAME;
 
     /**
      * @private
