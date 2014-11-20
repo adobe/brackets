@@ -631,7 +631,7 @@ define(function (require, exports, module) {
      */
     function _getWelcomeProjectPath() {
         if (brackets.inBrowser) {
-            return "/Getting Started";
+            return "/Getting Started/";
         }
         return ProjectModel._getWelcomeProjectPath(Urls.GETTING_STARTED, FileUtils.getNativeBracketsDirectoryPath());
     }

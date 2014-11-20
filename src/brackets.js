@@ -264,15 +264,14 @@ define(function (require, exports, module) {
                 // Finish UI initialization
                 ViewCommandHandlers.restoreFontSize();
                 
-                var initialProjectPath, initialProjectFs;
+                var initialProjectPath;
                 if (brackets.inBrowser && params.get("project")) {
                     initialProjectPath = params.get("project");
-                    initialProjectFs = "test-server-fs";  // TODO: should this be passed in too?
                 } else {
                     initialProjectPath = ProjectManager.getInitialProjectPath();
                 }
                 
-                ProjectManager.openProject(initialProjectPath, initialProjectFs).always(function () {
+                ProjectManager.openProject(initialProjectPath).always(function () {
                     _initTest();
                     
                     // If this is the first launch, and we have an index.html file in the project folder (which should be
