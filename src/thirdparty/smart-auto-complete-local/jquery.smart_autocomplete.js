@@ -260,7 +260,7 @@
           if(options.alignResultsContainer){
             results_container.css({ 
                   position: "absolute",
-                  top: function(){ return $(context).offset().top + $(context).height(); }, 
+                  top: function(){ return $(context).offset().top + $(context).height() + 1; }, 
                   left: function(){ return $(context).offset().left; }, 
                   width: function(){ return $(context).width(); }, 
                   zIndex: 1000
