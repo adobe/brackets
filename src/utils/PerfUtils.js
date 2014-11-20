@@ -63,16 +63,17 @@ define(function (require, exports, module) {
     var updatableTests = {};
     
     /**
+     * @private
      * Keeps the track of measurements sequence number for re-entrant sequences with
      * the same name currently running. Entries are created and deleted as needed.
      */
-    var testSequenceIds = {};
+    var _reentTests = {};
     
     /**
      * @private
      * A unique key to log performance data
      *
-     * @param {!string} id Unique ID for this measurement name
+     * @param {(string|undefined)} id Unique ID for this measurement name
      * @param {!string} name A short name for this measurement
      * @param {?number} reent Sequence identifier for parallel tests of the same name
      */
@@ -119,12 +120,12 @@ define(function (require, exports, module) {
         var i;
         for (i = 0; i < id.length; i++) {
             if (!(id[i] instanceof PerfMeasurement)) {
-                if (testSequenceIds[id[i]] === undefined) {
-                    testSequenceIds[id[i]] = 0;
+                if (_reentTests[id[i]] === undefined) {
+                    _reentTests[id[i]] = 0;
                 } else {
-                    testSequenceIds[id[i]]++;
+                    _reentTests[id[i]]++;
                 }
-                id[i] = new PerfMeasurement(undefined, id[i], testSequenceIds[id[i]]);
+                id[i] = new PerfMeasurement(undefined, id[i], _reentTests[id[i]]);
             }
         }
         return id;
@@ -214,10 +215,10 @@ define(function (require, exports, module) {
         }
         
         if (id.reent !== undefined) {
-            if (testSequenceIds[id] === 0) {
-                delete testSequenceIds[id];
+            if (_reentTests[id] === 0) {
+                delete _reentTests[id];
             } else {
-                testSequenceIds[id]--;
+                _reentTests[id]--;
             }
         }
 
@@ -302,9 +303,9 @@ define(function (require, exports, module) {
     }
 
     /**
-      * Returns the performance data as a tab deliminted string
-      * @return {string}
-      */
+     * Returns the performance data as a tab deliminted string
+     * @return {string}
+     */
     function getDelimitedPerfData() {
         var getValue = function (entry) {
             // return single value, or tab deliminted values for an array
@@ -364,7 +365,7 @@ define(function (require, exports, module) {
         perfData = {};
         activeTests = {};
         updatableTests = {};
-        testSequenceIds = {};
+        _reentTests = {};
     }
     
     // create performance measurement constants
