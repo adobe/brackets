@@ -61,8 +61,9 @@ define(function (require, exports, module) {
 
     
     /**
-     * @param {string} eventName Event name, optionally with trailing ".namespace" part
-     * @return {!{event:string, ns:string}} Record containing separate event name and namespace
+     * Split "event.namespace" string into its two parts; both parts are optional.
+     * @param {string} eventName Event name and/or trailing ".namespace"
+     * @return {!{event:string, ns:string}} Uses "" for missing parts.
      */
     function splitNs(eventStr) {
         var dot = eventStr.indexOf(".");
@@ -94,7 +95,7 @@ define(function (require, exports, module) {
                 if (deprecation) {
                     var message = "Registering for deprecated event '" + eventsList[i].eventName + "'.";
                     if (typeof deprecation === "string") {
-                        message += " Use " + deprecation + " instead.";
+                        message += " Instead, use " + deprecation + ".";
                     }
                     console.warn(message, new Error().stack);
                 }
@@ -208,7 +209,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Use a clone of the list so we're frozen in the face of concurrent on()/off() calls
+        // Use a clone of the list in case handlers call on()/off() while we're still in the loop
         handlerList = handlerList.slice();
 
         // Pass 'event' object followed by any additional args trigger() was given
@@ -221,7 +222,7 @@ define(function (require, exports, module) {
                 handlerList[i].handler.apply(null, applyArgs);
             } catch (err) {
                 console.error("Exception in '" + eventName + "' listener on", this, String(err), err.stack);
-                console.assert(false);  // causes dev tools to break, just like an uncaught exception
+                console.assert();  // causes dev tools to pause, just like an uncaught exception
             }
         }
     };

@@ -40,9 +40,9 @@
  * but this is considered deprecated and may go away.
  *
  * The Editor object dispatches the following events:
- *    - keyEvent -- When any key event happens in the editor (whether it changes the text or not).
- *      Event handlers are passed `({Editor}, {KeyboardEvent})`. The 2nd arg is the raw DOM event.
- *      Note: most listeners will only want to respond when `event.type === "keypress"`.
+ *    - keydown, keypress, keyup -- When any key event happens in the editor (whether it changes the
+ *      text or not). Handlers are passed `(BracketsEvent, Editor, KeyboardEvent)`. The 3nd arg is the
+ *      raw DOM event. Note: most listeners will only want to listen for "keypress".
  *    - cursorActivity -- When the user moves the cursor or changes the selection, or an edit occurs.
  *      Note: do not listen to this in order to be generally informed of edits--listen to the
  *      "change" event on Document instead.

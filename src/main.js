@@ -84,7 +84,7 @@ if (window.location.search.indexOf("testEnvironment") > -1) {
             if (stack[3].indexOf("/extensions/") === -1 || stack[3].indexOf("/extensions/default/") !== -1) {
                 // Report more agressively if core code is still using deprecated $()
                 console.error("Core code should no longer be using $().on/off()!");
-                console.assert(false);  // force dev tools to pause
+                console.assert();  // force dev tools to pause
                 
             // TODO: Enable warnings for extensions once they've had some time to update (too much spam for now)
 //            } else {

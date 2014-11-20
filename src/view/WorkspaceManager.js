@@ -252,13 +252,6 @@ define(function (require, exports, module) {
         $editorHolder = $mockEditorHolder;
     }
     
-    /* If someone adds a panel in the .content stack the old way, make sure we still listen for resize/show/hide
-     * (Resizer emits a deprecation warning for us - no need to log anything here) 
-     */
-    Resizer.on("deprecatedPanelAdded", function (event, $panel) {
-        listenToResize($panel);
-    });
-    
     /* Add this as a capture handler so we're guaranteed to run it before the editor does its own
      * refresh on resize.
      */
