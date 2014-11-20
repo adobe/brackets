@@ -16,7 +16,7 @@ if exist %1\dev rmdir %1\dev
 
 REM - Make symlink
 REM   (doesn't work on XP - see instructions below)
-mklink /d %1\dev %root_path%
+mklink /d %1\dev "%root_path%"
 
 GOTO Exit
 
@@ -30,7 +30,7 @@ GOTO Exit
 :XPNotSupported
 ECHO Sorry, this script doesn't run in Windows XP.
 ECHO To enable hacking, use the junction tool (http://technet.microsoft.com/en-us/sysinternals/bb896768)
-ECHO as follows: junction.exe %1\dev %root_path%
+ECHO as follows: junction.exe %1\dev "%root_path%"
 ECHO (in the folder containing Brackets.exe)
 
 :Exit

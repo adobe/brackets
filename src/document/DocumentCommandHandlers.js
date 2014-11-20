@@ -27,15 +27,17 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _ = require("thirdparty/lodash");
-    
+
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
+        DeprecationWarning  = require("utils/DeprecationWarning"),
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
         EditorManager       = require("editor/EditorManager"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
@@ -49,52 +51,90 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         PopUpManager        = require("widgets/PopUpManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
-        DragAndDrop         = require("utils/DragAndDrop"),
         PerfUtils           = require("utils/PerfUtils"),
         KeyEvent            = require("utils/KeyEvent"),
-        LanguageManager     = require("language/LanguageManager"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         Menus               = require("command/Menus"),
         UrlParams           = require("utils/UrlParams").UrlParams,
-        StatusBar           = require("widgets/StatusBar");
-    
+        StatusBar           = require("widgets/StatusBar"),
+        WorkspaceManager    = require("view/WorkspaceManager");
+
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
      */
-    
-    /** @type {jQueryObject} Container for label shown above editor; must be an inline element */
+
+    /**
+     * Container for label shown above editor; must be an inline element
+     * @type {jQueryObject}
+     */
     var _$title = null;
-    /** @type {jQueryObject} Container for dirty dot; must be an inline element */
+
+    /**
+     * Container for dirty dot; must be an inline element
+     * @type {jQueryObject}
+     */
     var _$dirtydot = null;
-    /** @type {jQueryObject} Container for _$title; need not be an inline element */
+
+    /**
+     * Container for _$title; need not be an inline element
+     * @type {jQueryObject}
+     */
     var _$titleWrapper = null;
-    /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
+
+    /**
+     * Label shown above editor for current document: filename and potentially some of its path
+     * @type {string}
+     */
     var _currentTitlePath = null;
-    /** @type {string} String template for window title. Use emdash on mac only. */
+
+    /**
+     * String template for window title. Use emdash on mac only.
+     * @type {string}
+     */
     var WINDOW_TITLE_STRING = (brackets.platform !== "mac") ? "{0} - {1}" : "{0} \u2014 {1}";
-    
-    /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
+
+    /**
+     * Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize
+     * @type {jQueryObject}
+     */
     var _$titleContainerToolbar = null;
-    /** @type {Number} Last known height of _$titleContainerToolbar */
+
+    /**
+     * Last known height of _$titleContainerToolbar
+     * @type {number}
+     */
     var _lastToolbarHeight = null;
-    
-    /** @type {Number} index to use for next, new Untitled document */
+
+    /**
+     * index to use for next, new Untitled document
+     * @type {number}
+     */
     var _nextUntitledIndexToUse = 1;
-    
-    /** @type {boolean} prevents reentrancy of browserReload() */
+
+    /**
+     * prevents reentrancy of browserReload()
+     * @type {boolean}
+     */
     var _isReloading = false;
-    
+
     /** Unique token used to indicate user-driven cancellation of Save As (as opposed to file IO error) */
     var USER_CANCELED = { userCanceled: true };
-    
-    PreferencesManager.definePreference("defaultExtension", "string", "");
-    
-    /** @type {function} JSLint workaround for circular dependency */
-    var handleFileSaveAs;
 
-    function updateTitle() {
+    PreferencesManager.definePreference("defaultExtension", "string", "");
+
+    /**
+     * JSLint workaround for circular dependency
+     * @type {function}
+     */
+    var handleFileSaveAs;
+    
+    /**
+     * Updates the title bar with new file title or dirty indicator
+     * @private
+     */
+    function _updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument(),
-            currentlyViewedPath = EditorManager.getCurrentlyViewedPath(),
+            currentlyViewedPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE),
             windowTitle = brackets.config.app_title;
 
         if (!brackets.nativeMenus) {
@@ -126,7 +166,7 @@ define(function (require, exports, module) {
             var newToolbarHeight = _$titleContainerToolbar.height();
             if (_lastToolbarHeight !== newToolbarHeight) {
                 _lastToolbarHeight = newToolbarHeight;
-                EditorManager.resizeEditor();
+                WorkspaceManager.recomputeLayout();
             }
         }
 
@@ -145,11 +185,11 @@ define(function (require, exports, module) {
         // update shell/browser window title
         window.document.title = windowTitle;
     }
-    
+
     /**
      * Returns a short title for a given document.
      *
-     * @param {Document} doc
+     * @param {Document} doc - the document to compute the short title for
      * @return {string} - a short title for doc.
      */
     function _shortTitleForDocument(doc) {
@@ -164,37 +204,37 @@ define(function (require, exports, module) {
             return ProjectManager.makeProjectRelativeIfPossible(fullPath);
         }
     }
-    
-    function updateDocumentTitle() {
-        var newDocument = DocumentManager.getCurrentDocument();
 
-        // TODO: This timer is causing a "Recursive tests with the same name are not supporte"
-        // exception. This code should be removed (if not needed), or updated with a unique
-        // timer name (if needed).
-        // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
+    /**
+     * Handles currentFileChange and filenameChanged events and updates the titlebar
+     */
+    function handleCurrentFileChange() {
+        var newFile = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
         
-        if (newDocument) {
-            _currentTitlePath = _shortTitleForDocument(newDocument);
-        } else {
-            var currentlyViewedFilePath = EditorManager.getCurrentlyViewedPath();
-            if (currentlyViewedFilePath) {
-                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(currentlyViewedFilePath);
+        if (newFile) {
+            var newDocument = DocumentManager.getOpenDocumentForPath(newFile.fullPath);
+
+            if (newDocument) {
+                _currentTitlePath = _shortTitleForDocument(newDocument);
             } else {
-                _currentTitlePath = null;
+                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(newFile.fullPath);
             }
+        } else {
+            _currentTitlePath = null;
         }
         
         // Update title text & "dirty dot" display
-        updateTitle();
-
-        // PerfUtils.addMeasurement(perfTimerName);
+        _updateTitle();
     }
-    
+
+    /**
+     * Handles dirtyFlagChange event and updates the title bar if necessary
+     */
     function handleDirtyChange(event, changedDoc) {
         var currentDoc = DocumentManager.getCurrentDocument();
         
         if (currentDoc && changedDoc.file.fullPath === currentDoc.file.fullPath) {
-            updateTitle();
+            _updateTitle();
         }
     }
 
@@ -203,106 +243,85 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
+     * @param {string=} paneId, the id oi the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE. 
+     * @param {{*}=} options, command options
      * @return {$.Promise} a jQuery promise that will either
-     * - be resolved with a document for the specified file path or
-     * - be resolved without document, i.e. when an image is displayed or
-     * - be rejected if the file can not be read.
+     * - be resolved with a file for the specified file path or
+     * - be rejected with FileSystemError if the file can not be read.
+     * If paneId is undefined, the ACTIVE_PANE constant
      */
-    function doOpen(fullPath, silent) {
+    function _doOpen(fullPath, silent, paneId, options) {
         var result = new $.Deferred();
         
         // workaround for https://github.com/adobe/brackets/issues/6001
         // TODO should be removed once bug is closed.
         // if we are already displaying a file do nothing but resolve immediately.
         // this fixes timing issues in test cases.
-        if (EditorManager.getCurrentlyViewedPath() === fullPath) {
-            result.resolve(DocumentManager.getCurrentDocument());
+        if (MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE) === fullPath) {
+            result.resolve(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE));
             return result.promise();
         }
         
-        function _cleanup(fullFilePath) {
-            if (!fullFilePath || EditorManager.showingCustomViewerForPath(fullFilePath)) {
-                // We get here only after the user renames a file that makes it no longer belong to a
-                // custom viewer but the file is still showing in the current custom viewer. This only
-                // occurs on Mac since opening a non-text file always fails on Mac and triggers an error
-                // message that in turn calls _cleanup() after the user clicks OK in the message box.
-                // So we need to explicitly close the currently viewing image file whose filename is  
-                // no longer valid. Calling notifyPathDeleted will close the image vieer and then select 
-                // the previously opened text file or show no-editor if none exists.
-                EditorManager.notifyPathDeleted(fullFilePath);
-            } else {
-                // For performance, we do lazy checking of file existence, so it may be in working set
-                DocumentManager.removeFromWorkingSet(FileSystem.getFileForPath(fullFilePath));
-                EditorManager.focusEditor();
+        function _cleanup(fileError, fullFilePath) {
+            if (fullFilePath) {
+                // For performance, we do lazy checking of file existence, so it may be in workingset
+                MainViewManager._removeView(paneId, FileSystem.getFileForPath(fullFilePath));
+                MainViewManager.focusActivePane();
             }
-            result.reject();
+            result.reject(fileError);
         }
         function _showErrorAndCleanUp(fileError, fullFilePath) {
             if (silent) {
-                _cleanup(fullFilePath);
+                _cleanup(fileError, fullFilePath);
             } else {
                 FileUtils.showFileOpenError(fileError, fullFilePath).done(function () {
-                    _cleanup(fullFilePath);
+                    _cleanup(fileError, fullFilePath);
                 });
             }
         }
         
         if (!fullPath) {
-            console.error("doOpen() called without fullPath");
-            result.reject();
+            throw new Error("_doOpen() called without fullPath");
         } else {
             var perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
             result.always(function () {
                 PerfUtils.addMeasurement(perfTimerName);
             });
 
-            var viewProvider = EditorManager.getCustomViewerForPath(fullPath);
-            if (viewProvider) {
-                var file = FileSystem.getFileForPath(fullPath);
-                file.exists(function (fileError, fileExists) {
-                    if (fileExists) {
-                        EditorManager.showCustomViewer(viewProvider, fullPath);
-                        result.resolve();
-                    } else {
-                        fileError = fileError || FileSystemError.NOT_FOUND;
-                        _showErrorAndCleanUp(fileError);
-                    }
+            var file = FileSystem.getFileForPath(fullPath);
+            MainViewManager._open(paneId, file, options)
+                .done(function () {
+                    result.resolve(file);
+                })
+                .fail(function (fileError) {
+                    _showErrorAndCleanUp(fileError, fullPath);
+                    result.reject();
                 });
-                
-            } else {
-                // Load the file if it was never open before, and then switch to it in the UI
-                DocumentManager.getDocumentForPath(fullPath)
-                    .done(function (doc) {
-                        DocumentManager.setCurrentDocument(doc);
-                        result.resolve(doc);
-                    })
-                    .fail(function (fileError) {
-                        _showErrorAndCleanUp(fileError, fullPath);
-                    });
-            }
         }
 
         return result.promise();
     }
-    
+
     /**
      * @private
      * Used to track the default directory for the file open dialog
      */
     var _defaultOpenDialogFullPath = null;
-    
+
     /**
      * @private
-     * Creates a document and displays an editor for the specified file path.
+     * Opens a file and displays its view (editor, image view, etc...) for the specified path.
      * If no path is specified, a file prompt is provided for input.
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
-     * @return {$.Promise} a jQuery promise that will be resolved with a new
-     * document for the specified file path or be resolved without document, i.e. when an image is displayed, 
-     * or rejected if the file can not be read.
+     * @param {string=}  paneId - the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE
+     * @param {{*}=} options - options to pass to MainViewManager._open
+     * @return {$.Promise} a jQuery promise resolved with a Document object or 
+     *                      rejected with an err 
      */
-    function _doOpenWithOptionalPath(fullPath, silent) {
+    function _doOpenWithOptionalPath(fullPath, silent, paneId, options) {
         var result;
+        paneId = paneId || MainViewManager.ACTIVE_PANE;
         if (!fullPath) {
             // Create placeholder deferred
             result = new $.Deferred();
@@ -315,24 +334,21 @@ define(function (require, exports, module) {
             FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
                 if (!err) {
                     if (paths.length > 0) {
-                        // Add all files to the working set without verifying that
+                        // Add all files to the workingset without verifying that
                         // they still exist on disk (for faster opening)
-                        var filesToOpen = [],
-                            filteredPaths = DragAndDrop.filterFilesToOpen(paths);
+                        var filesToOpen = [];
                         
-                        filteredPaths.forEach(function (file) {
-                            filesToOpen.push(FileSystem.getFileForPath(file));
+                        paths.forEach(function (path) {
+                            filesToOpen.push(FileSystem.getFileForPath(path));
                         });
-                        DocumentManager.addListToWorkingSet(filesToOpen);
+                        MainViewManager.addListToWorkingSet(paneId, filesToOpen);
                         
-                        doOpen(filteredPaths[filteredPaths.length - 1], silent)
-                            .done(function (doc) {
-                                //  doc may be null, i.e. if an image has been opened.
-                                // Then we do not add the opened file to the working set.
-                                if (doc) {
-                                    DocumentManager.addToWorkingSet(doc.file);
-                                }
-                                _defaultOpenDialogFullPath = FileUtils.getDirectoryPath(EditorManager.getCurrentlyViewedPath());
+                        _doOpen(paths[paths.length - 1], silent, paneId, options)
+                            .done(function (file) {
+                                _defaultOpenDialogFullPath =
+                                    FileUtils.getDirectoryPath(
+                                        MainViewManager.getCurrentlyViewedPath(paneId)
+                                    );
                             })
                             // Send the resulting document that was opened
                             .then(result.resolve, result.reject);
@@ -343,7 +359,7 @@ define(function (require, exports, module) {
                 }
             });
         } else {
-            result = doOpen(fullPath, silent);
+            result = _doOpen(fullPath, silent, paneId, options);
         }
         
         return result.promise();
@@ -375,28 +391,56 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file and makes it the current document. Does NOT add it to the working set.
-     * @param {!{fullPath:string}} Params for FILE_OPEN command;
-     * the fullPath string is of the form "path[:lineNumber[:columnNumber]]"
-     * lineNumber and columnNumber are 1-origin: the very first line is line 1, and the very first column is column 1.
+     * @typedef {{fullPath:?string=, silent:boolean=, paneId:string=}} FileCommandData
+     * fullPath: is in the form "path[:lineNumber[:columnNumber]]"
+     * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
+     */
+
+    /**
+     * @typedef {{fullPath:?string=, index:number=, silent:boolean=, forceRedraw:boolean=, paneId:string=}} PaneCommandData
+     * fullPath: is in the form "path[:lineNumber[:columnNumber]]"
+     * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
+     */
+    
+    /**
+     * Opens the given file and makes it the current file. Does NOT add it to the workingset.
+     * @param {FileCommandData=} commandData - record with the following properties:
+     *   fullPath: File to open; 
+     *   silent: optional flag to suppress error messages; 
+     *   paneId: optional PaneId (defaults to active pane)
+     * @return {$.Promise} a jQuery promise that will be resolved with a file object
      */
     function handleFileOpen(commandData) {
         var fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null),
-            silent = commandData ? commandData.silent : false;
-        return _doOpenWithOptionalPath(fileInfo.path, silent)
-            .always(function () {
+            silent = (commandData && commandData.silent) || false,
+            paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE,
+            result = new $.Deferred();
+        
+        _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
+            .done(function (file) {
+                if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
+                    MainViewManager.setActivePaneId(paneId);
+                }
+
                 // If a line and column number were given, position the editor accordingly.
                 if (fileInfo.line !== null) {
                     if (fileInfo.column === null || (fileInfo.column <= 0)) {
                         fileInfo.column = 1;
                     }
+                    
                     // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1, fileInfo.column - 1, true);
+                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
+                                                                      fileInfo.column - 1,
+                                                                      true);
                 }
                 
-                // Give the editor focus
-                EditorManager.focusEditor();
+                result.resolve(file);
+            })
+            .fail(function (err) {
+                result.reject(err);
             });
+        
+        return result;
         // Testing notes: here are some recommended manual tests for handleFileOpen, on macintosh.
         // Do all tests with brackets already running, and also with brackets not already running.
         //
@@ -411,20 +455,81 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Opens the given file, makes it the current document, AND adds it to the working set 
-     * only if the file does not have a custom viewer.
-     * @param {!{fullPath:string, index:number=, forceRedraw:boolean}} commandData  File to open; optional position in
-     *   working set list (defaults to last); optional flag to force working set redraw
+     * Opens the given file, makes it the current file, does NOT add it to the workingset
+     * @param {FileCommandData} commandData  
+     *   fullPath: File to open; 
+     *   silent: optional flag to suppress error messages; 
+     *   paneId: optional PaneId (defaults to active pane)
+     * @return {$.Promise} a jQuery promise that will be resolved with @type {Document} 
+     */
+    function handleDocumentOpen(commandData) {
+        var result = new $.Deferred();
+        handleFileOpen(commandData)
+            .done(function (file) {
+                // if we succeeded with an open file
+                //  then we need to resolve that to a document.
+                //  getOpenDocumentForPath will return null if there isn't a 
+                //  supporting document for that file (e.g. an image)
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                result.resolve(doc);
+            })
+            .fail(function (err) {
+                result.reject(err);
+            });
+
+        return result.promise();
+        
+    }
+    
+    /**
+     * Opens the given file, makes it the current file, AND adds it to the workingset
+     * @param {!PaneCommandData} commandData - record with the following properties:
+     *   fullPath: File to open; 
+     *   index: optional index to position in workingset (defaults to last); 
+     *   silent: optional flag to suppress error messages; 
+     *   forceRedraw: flag to force the working set view redraw; 
+     *   paneId: optional PaneId (defaults to active pane)
+     * @return {$.Promise} a jQuery promise that will be resolved with a @type {File} 
+     */
+    function handleFileAddToWorkingSetAndOpen(commandData) {
+        return handleFileOpen(commandData).done(function (file) {
+            var paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
+            MainViewManager.addToWorkingSet(paneId, file, commandData.index, commandData.forceRedraw);
+        });
+    }
+
+    /**
+     * @deprecated
+     * Opens the given file, makes it the current document, AND adds it to the workingset
+     * @param {!PaneCommandData} commandData - record with the following properties:
+     *   fullPath: File to open; 
+     *   index: optional index to position in workingset (defaults to last); 
+     *   silent: optional flag to suppress error messages; 
+     *   forceRedraw: flag to force the working set view redraw; 
+     *   paneId: optional PaneId (defaults to active pane)
+     * @return {$.Promise} a jQuery promise that will be resolved with @type {File} 
      */
     function handleFileAddToWorkingSet(commandData) {
-        return handleFileOpen(commandData).done(function (doc) {
-            // addToWorkingSet is synchronous
-            // When opening a file with a custom viewer, we get a null doc.
-            // So check it before we add it to the working set.
-            if (doc) {
-                DocumentManager.addToWorkingSet(doc.file, commandData.index, commandData.forceRedraw);
-            }
-        });
+        // This is a legacy deprecated command that 
+        //  will use the new command and resolve with a document
+        //  as the legacy command would only support.
+        DeprecationWarning.deprecationWarning("Commands.FILE_ADD_TO_WORKING_SET has been deprecated.  Use Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN instead.");
+        var result = new $.Deferred();
+        
+        handleFileAddToWorkingSetAndOpen(commandData)
+            .done(function (file) {
+                // if we succeeded with an open file
+                //  then we need to resolve that to a document.
+                //  getOpenDocumentForPath will return null if there isn't a 
+                //  supporting document for that file (e.g. an image)
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                result.resolve(doc);
+            })
+            .fail(function (err) {
+                result.reject(err);
+            });
+        
+        return result.promise();
     }
 
     /**
@@ -441,7 +546,7 @@ define(function (require, exports, module) {
             deferred        = $.Deferred();
         
         if (_nextUntitledIndexToUse > 9999) {
-            //we've tried this enough            
+            //we've tried this enough
             deferred.reject();
         } else {
             var path = dir.fullPath + suggestedName,
@@ -469,9 +574,11 @@ define(function (require, exports, module) {
      * file creation call is outstanding
      */
     var fileNewInProgress = false;
-    
+
     /**
      * Bottleneck function for creating new files and folders in the project tree.
+     * @private
+     * @param {boolean} isFolder - true if creating a new folder, false if creating a new file
      */
     function _handleNewItemInProject(isFolder) {
         if (fileNewInProgress) {
@@ -484,7 +591,7 @@ define(function (require, exports, module) {
         // If a file is currently selected in the tree, put it next to it.
         // If a directory is currently selected in the tree, put it in it.
         // If an Untitled document is selected or nothing is selected in the tree, put it at the root of the project.
-        // (Note: 'selected' may be an item that's selected in the working set and not the tree; but in that case
+        // (Note: 'selected' may be an item that's selected in the workingset and not the tree; but in that case
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDirEntry,
             selected = ProjectManager.getSelectedItem();
@@ -510,7 +617,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Create a new untitled document in the working set, and make it the current document.
+     * Create a new untitled document in the workingset, and make it the current document.
      * Promise is resolved (synchronously) with the newly-created Document.
      */
     function handleFileNew() {
@@ -518,22 +625,21 @@ define(function (require, exports, module) {
         //if (defaultExtension) {
         //    defaultExtension = "." + defaultExtension;
         //}
-        var defaultExtension = "";  // disable preference setting for now 
+        var defaultExtension = "";  // disable preference setting for now
         
         var doc = DocumentManager.createUntitledDocument(_nextUntitledIndexToUse++, defaultExtension);
-        DocumentManager.setCurrentDocument(doc);
-        EditorManager.focusEditor();
+        MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
         
         return new $.Deferred().resolve(doc).promise();
     }
-    
+
     /**
      * Create a new file in the project tree.
      */
     function handleFileNewInProject() {
         _handleNewItemInProject(false);
     }
-    
+
     /**
      * Create a new folder in the project tree.
      */
@@ -559,7 +665,7 @@ define(function (require, exports, module) {
             )
         );
     }
-    
+
     /**
      * Saves a document to its existing path. Does NOT support untitled documents.
      * @param {!Document} docToSave
@@ -634,13 +740,11 @@ define(function (require, exports, module) {
         }
 
         if (docToSave.isDirty) {
-            var writeError = false;
-            
             if (docToSave.keepChangesTime) {
                 // The user has decided to keep conflicting changes in the editor. Check to make sure
                 // the file hasn't changed since they last decided to do that.
                 docToSave.file.stat(function (err, stat) {
-                    // If the file has been deleted on disk, the stat will return an error, but that's fine since 
+                    // If the file has been deleted on disk, the stat will return an error, but that's fine since
                     // that means there's no file to overwrite anyway, so the save will succeed without us having
                     // to set force = true.
                     if (!err && docToSave.keepChangesTime === stat.mtime.getTime()) {
@@ -657,19 +761,23 @@ define(function (require, exports, module) {
             result.resolve(file);
         }
         result.always(function () {
-            EditorManager.focusEditor();
+            MainViewManager.focusActivePane();
         });
         return result.promise();
     }
-    
+
     /**
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
+     * @private
      * @param {Document} doc
-     * @return {$.Promise} a Promise that's resolved when done, or rejected with a FileSystemError if the
-     *      file cannot be read (after showing an error dialog to the user).
+     * @param {boolean=} suppressError If true, then a failure to read the file will be ignored and the
+     *      resulting promise will be resolved rather than rejected.
+     * @return {$.Promise} a Promise that's resolved when done, or (if suppressError is false) 
+     *      rejected with a FileSystemError if the file cannot be read (after showing an error 
+     *      dialog to the user).
      */
-    function doRevert(doc) {
+    function _doRevert(doc, suppressError) {
         var result = new $.Deferred();
         
         FileUtils.readAsText(doc.file)
@@ -678,15 +786,19 @@ define(function (require, exports, module) {
                 result.resolve();
             })
             .fail(function (error) {
-                FileUtils.showFileOpenError(error, doc.file.fullPath)
-                    .done(function () {
-                        result.reject(error);
-                    });
+                if (suppressError) {
+                    result.resolve();
+                } else {
+                    FileUtils.showFileOpenError(error, doc.file.fullPath)
+                        .done(function () {
+                            result.reject(error);
+                        });
+                }
             });
         
         return result.promise();
     }
-    
+
     /**
      * Opens the native OS save as dialog and saves document.
      * The original document is reverted in case it was dirty.
@@ -714,29 +826,30 @@ define(function (require, exports, module) {
                 var editor = EditorManager.getActiveEditor();
                 if (editor) {
                     if (settings) {
-                        editor.setCursorPos(settings.cursorPos);
-                        editor.setSelection(settings.selection.start, settings.selection.end);
+                        editor.setSelections(settings.selections);
                         editor.setScrollPos(settings.scrollPos.x, settings.scrollPos.y);
                     }
                 }
                 result.resolve(newFile);
             }
             
-            // Replace old document with new one in open editor & working set
+            // Replace old document with new one in open editor & workingset
             function openNewFile() {
                 var fileOpenPromise;
 
                 if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
-                    // If selection is in the tree, leave working set unchanged - even if orig file is in the list
+                    // If selection is in the tree, leave workingset unchanged - even if orig file is in the list
                     fileOpenPromise = FileViewController
                         .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
                 } else {
-                    // If selection is in working set, replace orig item in place with the new file
-                    var index = DocumentManager.findInWorkingSet(doc.file.fullPath);
-                    // Remove old file from working set; no redraw yet since there's a pause before the new file is opened
-                    DocumentManager.removeFromWorkingSet(doc.file, true);
-                    // Add new file to working set, and ensure we now redraw (even if index hasn't changed)
-                    fileOpenPromise = handleFileAddToWorkingSet({fullPath: path, index: index, forceRedraw: true});
+                    // If selection is in workingset, replace orig item in place with the new file
+                    var info = MainViewManager.findInAllWorkingSets(doc.file.fullPath).shift();
+                    
+                    // Remove old file from workingset; no redraw yet since there's a pause before the new file is opened
+                    MainViewManager._removeView(info.paneId, doc.file, true);
+                    
+                    // Add new file to workingset, and ensure we now redraw (even if index hasn't changed)
+                    fileOpenPromise = handleFileAddToWorkingSetAndOpen({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
                 }
 
                 // always configure editor after file is opened
@@ -751,6 +864,8 @@ define(function (require, exports, module) {
                 return;
             }
             
+            doc.isSaving = true;    // mark that we're saving the document
+            
             // First, write document's current text to new file
             newFile = FileSystem.getFileForPath(path);
             
@@ -758,24 +873,30 @@ define(function (require, exports, module) {
             // explictly allow "blind" writes to the filesystem in this case,
             // ignoring warnings about the contents being modified outside of
             // the editor.
-            FileUtils.writeText(newFile, doc.getText(), true).done(function () {
-                // If there were unsaved changes before Save As, they don't stay with the old
-                // file anymore - so must revert the old doc to match disk content.
-                // Only do this if the doc was dirty: doRevert on a file that is not dirty and
-                // not in the working set has the side effect of adding it to the working set.
-                if (doc.isDirty && !(doc.isUntitled())) {
-                    // if the file is dirty it must be in the working set
-                    // doRevert is side effect free in this case
-                    doRevert(doc).always(openNewFile);
-                } else {
-                    openNewFile();
-                }
-            }).fail(function (error) {
-                _showSaveFileError(error, path)
-                    .done(function () {
-                        result.reject(error);
-                    });
-            });
+            FileUtils.writeText(newFile, doc.getText(true), true)
+                .done(function () {
+                    // If there were unsaved changes before Save As, they don't stay with the old
+                    // file anymore - so must revert the old doc to match disk content.
+                    // Only do this if the doc was dirty: _doRevert on a file that is not dirty and
+                    // not in the workingset has the side effect of adding it to the workingset.
+                    if (doc.isDirty && !(doc.isUntitled())) {
+                        // if the file is dirty it must be in the workingset
+                        // _doRevert is side effect free in this case
+                        _doRevert(doc).always(openNewFile);
+                    } else {
+                        openNewFile();
+                    }
+                })
+                .fail(function (error) {
+                    _showSaveFileError(error, path)
+                        .done(function () {
+                            result.reject(error);
+                        });
+                })
+                .always(function () {
+                    // mark that we're done saving the document
+                    doc.isSaving = false;
+                });
         }
         
         if (doc) {
@@ -785,7 +906,11 @@ define(function (require, exports, module) {
                 // (Issue #4489) if we're saving an untitled document, go ahead and switch to this document
                 //   in the editor, so that if we're, for example, saving several files (ie. Save All),
                 //   then the user can visually tell which document we're currently prompting them to save.
-                DocumentManager.setCurrentDocument(doc);
+                var info = MainViewManager.findInAllWorkingSets(origPath).shift();
+                
+                if (info) {
+                    MainViewManager._open(info.paneId, doc.file);
+                }
 
                 // If the document is untitled, default to project root.
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
@@ -809,7 +934,7 @@ define(function (require, exports, module) {
         }
         return result.promise();
     }
-    
+
     /**
      * Saves the given file. If no file specified, assumes the current document.
      * @param {?{doc: ?Document}} commandData  Document to close, or null
@@ -824,12 +949,11 @@ define(function (require, exports, module) {
             doc = (commandData && commandData.doc) || activeDoc,
             settings;
         
-        if (doc) {
+        if (doc && !doc.isSaving) {
             if (doc.isUntitled()) {
                 if (doc === activeDoc) {
                     settings = {
-                        selection: activeEditor.getSelection(),
-                        cursorPos: activeEditor.getCursorPos(),
+                        selections: activeEditor.getSelections(),
                         scrollPos: activeEditor.getScrollPos()
                     };
                 }
@@ -842,7 +966,7 @@ define(function (require, exports, module) {
         
         return $.Deferred().reject().promise();
     }
-    
+
     /**
      * Saves all unsaved documents corresponding to 'fileList'. Returns a Promise that will be resolved
      * once ALL the save operations have been completed. If ANY save operation fails, an error dialog is
@@ -883,7 +1007,7 @@ define(function (require, exports, module) {
                         });
                     return savePromise;
                 } else {
-                    // working set entry that was never actually opened - ignore
+                    // workingset entry that was never actually opened - ignore
                     filesAfterSave.push(file);
                     return (new $.Deferred()).resolve().promise();
                 }
@@ -893,15 +1017,15 @@ define(function (require, exports, module) {
             return filesAfterSave;
         });
     }
-    
+
     /**
      * Saves all unsaved documents. See _saveFileList() for details on the semantics.
      * @return {$.Promise}
      */
     function saveAll() {
-        return _saveFileList(DocumentManager.getWorkingSet());
+        return _saveFileList(MainViewManager.getWorkingSet(MainViewManager.ALL_PANES));
     }
-    
+
     /**
      * Prompts user with save as dialog and saves document.
      * @return {$.Promise} a promise that is resolved once the save has been completed
@@ -918,8 +1042,7 @@ define(function (require, exports, module) {
             if (activeEditor) {
                 doc = activeEditor.document;
                 settings = {};
-                settings.selection = activeEditor.getSelection();
-                settings.cursorPos = activeEditor.getCursorPos();
+                settings.selections = activeEditor.getSelections();
                 settings.scrollPos = activeEditor.getScrollPos();
             }
         }
@@ -937,9 +1060,9 @@ define(function (require, exports, module) {
     function handleFileSaveAll() {
         return saveAll();
     }
-    
+
     /**
-     * Closes the specified file: removes it from the working set, and closes the main editor if one
+     * Closes the specified file: removes it from the workingset, and closes the main editor if one
      * is open. Prompts user about saving changes first, if document is dirty.
      *
      * @param {?{file: File, promptOnly:boolean}} commandData  Optional bag of arguments:
@@ -947,7 +1070,7 @@ define(function (require, exports, module) {
      *      promptOnly - If true, only displays the relevant confirmation UI and does NOT actually
      *          close the document. This is useful when chaining file-close together with other user
      *          prompts that may be cancelable.
-     *      _forceClose - If true, closes the document without prompting even if there are unsaved 
+     *      _forceClose - If true, closes the document without prompting even if there are unsaved
      *          changes. Only for use in unit tests.
      * @return {$.Promise} a promise that is resolved when the file is closed, or if no file is open.
      *      FUTURE: should we reject the promise if no file is open?
@@ -955,58 +1078,28 @@ define(function (require, exports, module) {
     function handleFileClose(commandData) {
         var file,
             promptOnly,
-            _forceClose;
+            _forceClose,
+            paneId = MainViewManager.ACTIVE_PANE;
         
         if (commandData) {
             file        = commandData.file;
             promptOnly  = commandData.promptOnly;
             _forceClose = commandData._forceClose;
+            paneId      = commandData.paneId || paneId;
         }
         
-        // utility function for handleFileClose: closes document & removes from working set
+        // utility function for handleFileClose: closes document & removes from workingset
         function doClose(file) {
             if (!promptOnly) {
-                // This selects a different document if the working set has any other options
-                DocumentManager.closeFullEditor(file);
-                
-                EditorManager.focusEditor();
+                MainViewManager._close(paneId, file);
             }
         }
 
         var result = new $.Deferred(), promise = result.promise();
         
-        function doCloseCustomViewer() {
-            if (!promptOnly) {
-                var nextFile = DocumentManager.getNextPrevFile(1);
-                if (nextFile) {
-                    // opening a text file will automatically close the custom viewer.
-                    // This is done in the currentDocumentChange handler in EditorManager
-                    doOpen(nextFile.fullPath).always(function () {
-                        EditorManager.focusEditor();
-                        result.resolve();
-                    });
-                } else {
-                    EditorManager.closeCustomViewer();
-                    result.resolve();
-                }
-            }
-        }
-
-        // Close custom viewer if, either
-        // - a custom viewer is currently displayed and no file specified in command data
-        // - a custom viewer is currently displayed and the file specified in command data 
-        //   is the file in the custom viewer
-        if (!DocumentManager.getCurrentDocument()) {
-            if ((EditorManager.getCurrentlyViewedPath() && !file) ||
-                    (file && file.fullPath === EditorManager.getCurrentlyViewedPath())) {
-                doCloseCustomViewer();
-                return promise;
-            }
-        }
-        
         // Default to current document if doc is null
-        if (!file && DocumentManager.getCurrentDocument()) {
-            file = DocumentManager.getCurrentDocument().file;
+        if (!file) {
+            file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
         }
         
         // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
@@ -1065,28 +1158,34 @@ define(function (require, exports, module) {
                         // copy of whatever's on disk.
                         doClose(file);
                         
-                        // Only reload from disk if we've executed the Close for real,
-                        // *and* if at least one other view still exists
-                        if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
-                            doRevert(doc)
-                                .then(result.resolve, result.reject);
-                        } else {
+                        // Only reload from disk if we've executed the Close for real.
+                        if (promptOnly) {
                             result.resolve();
+                        } else {
+                            // Even if there are no listeners attached to the document at this point, we want
+                            // to do the revert anyway, because clients who are listening to the global documentChange
+                            // event from the Document module (rather than attaching to the document directly),
+                            // such as the Find in Files panel, should get a change event. However, in that case,
+                            // we want to ignore errors during the revert, since we don't want a failed revert
+                            // to throw a dialog if the document isn't actually open in the UI.
+                            var suppressError = !DocumentManager.getOpenDocumentForPath(file.fullPath);
+                            _doRevert(doc, suppressError)
+                                .then(result.resolve, result.reject);
                         }
                     }
                 });
             result.always(function () {
-                EditorManager.focusEditor();
+                MainViewManager.focusActivePane();
             });
         } else {
             // File is not open, or IS open but Document not dirty: close immediately
             doClose(file);
-            EditorManager.focusEditor();
+            MainViewManager.focusActivePane();
             result.resolve();
         }
         return promise;
     }
-    
+
     /**
      * @return {!Array.<Document>} All Documents with unsaved changes whose files are in the given list. Empty array if no
      * unsaved changes anywhere
@@ -1103,16 +1202,17 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @param {!Array.<FileEntry>} list
-     * @param {boolean} promptOnly
-     * @param {boolean} clearCurrentDoc
+     * @param {!Array.<File>} list - the list of files to close
+     * @param {boolean} promptOnly - true to just prompt for saving documents with actually closing them.
+     * @param {boolean} _forceClose Whether to force all the documents to close even if they have unsaved changes. For unit testing only.
+     * @return {jQuery.Promise} promise that is resolved or rejected when the function finishes.
      */
-    function _closeList(list, promptOnly, clearCurrentDoc) {
+    function _closeList(list, promptOnly, _forceClose) {
         var result      = new $.Deferred(),
             unsavedDocs = _getUnsavedDocs(list);
         
-        if (unsavedDocs.length === 0) {
-            // No unsaved changes, so we can proceed without a prompt
+        if (unsavedDocs.length === 0 || _forceClose) {
+            // No unsaved changes or we want to ignore them, so we can proceed without a prompt
             result.resolve();
             
         } else if (unsavedDocs.length === 1) {
@@ -1128,17 +1228,7 @@ define(function (require, exports, module) {
             
         } else {
             // Multiple unsaved files: show a single bulk prompt listing all files
-            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE;
-            
-            message += "<ul class='dialog-list'>";
-            unsavedDocs.forEach(function (doc) {
-                var fullPath = doc.file.fullPath;
-                
-                message += "<li><span class='dialog-filename'>";
-                message += StringUtils.breakableUrl(_shortTitleForDocument(doc));
-                message += "</span></li>";
-            });
-            message += "</ul>";
+            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE + FileUtils.makeDialogFileList(_.map(unsavedDocs, _shortTitleForDocument));
             
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_SAVE_CLOSE,
@@ -1186,48 +1276,58 @@ define(function (require, exports, module) {
         result.done(function (listAfterSave) {
             listAfterSave = listAfterSave || list;
             if (!promptOnly) {
-                DocumentManager.removeListFromWorkingSet(listAfterSave, clearCurrentDoc);
+                MainViewManager._closeList(MainViewManager.ALL_PANES, listAfterSave);
             }
         });
         
         return result.promise();
     }
-    
+
     /**
-     * Closes all open documents; equivalent to calling handleFileClose() for each document, except
+     * Closes all open files; equivalent to calling handleFileClose() for each document, except
      * that unsaved changes are confirmed once, in bulk.
-     * @param {?{promptOnly: boolean}}  If true, only displays the relevant confirmation UI and does NOT
+     * @param {?{promptOnly: boolean, _forceClose: boolean}}
+     *          If promptOnly is true, only displays the relevant confirmation UI and does NOT
      *          actually close any documents. This is useful when chaining close-all together with
      *          other user prompts that may be cancelable.
+     *          If _forceClose is true, forces the files to close with no confirmation even if dirty. 
+     *          Should only be used for unit test cleanup.
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
-        return _closeList(DocumentManager.getWorkingSet(),
-                                    (commandData && commandData.promptOnly), true).done(function () {
-            if (!DocumentManager.getCurrentDocument()) {
-                EditorManager.closeCustomViewer();
-            }
-        });
+        return _closeList(MainViewManager.getAllOpenFiles(),
+                                    (commandData && commandData.promptOnly), (commandData && commandData._forceClose));
     }
-    
+
+
+    /**
+     * Closes a list of open files; equivalent to calling handleFileClose() for each document, except
+     * that unsaved changes are confirmed once, in bulk.
+     * @param {?{promptOnly: boolean, _forceClose: boolean}}
+     *          If promptOnly is true, only displays the relevant confirmation UI and does NOT
+     *          actually close any documents. This is useful when chaining close-all together with
+     *          other user prompts that may be cancelable.
+     *          If _forceClose is true, forces the files to close with no confirmation even if dirty. 
+     *          Should only be used for unit test cleanup.
+     * @return {$.Promise} a promise that is resolved when all files are closed
+     */
     function handleFileCloseList(commandData) {
-        return _closeList(commandData.fileList, false, false).done(function () {
-            if (!DocumentManager.getCurrentDocument()) {
-                EditorManager.closeCustomViewer();
-            }
-        });
+        return _closeList(commandData.fileList);
     }
-    
+
     /**
      * @private - tracks our closing state if we get called again
      */
     var _windowGoingAway = false;
-    
+
     /**
      * @private
      * Common implementation for close/quit/reload which all mostly
      * the same except for the final step
-    */
+     * @param {Object} commandData - (not referenced)
+     * @param {!function()} postCloseHandler - called after close
+     * @param {!function()} failHandler - called when the save fails to cancel closing the window
+     */
     function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
         if (_windowGoingAway) {
             //if we get called back while we're closing, then just return
@@ -1248,7 +1348,7 @@ define(function (require, exports, module) {
                 
                 PreferencesManager.savePreferences();
                 
-                postCloseHandler();
+                PreferencesManager.finalize().always(postCloseHandler);
             })
             .fail(function () {
                 _windowGoingAway = false;
@@ -1257,7 +1357,7 @@ define(function (require, exports, module) {
                 }
             });
     }
-    
+
     /**
      * @private
      * Implementation for abortQuit callback to reset quit sequence settings
@@ -1265,7 +1365,7 @@ define(function (require, exports, module) {
     function handleAbortQuit() {
         _windowGoingAway = false;
     }
-    
+
     /**
      * @private
      * Implementation for native APP_BEFORE_MENUPOPUP callback to trigger beforeMenuPopup event
@@ -1273,8 +1373,11 @@ define(function (require, exports, module) {
     function handleBeforeMenuPopup() {
         $(PopUpManager).triggerHandler("beforeMenuPopup");
     }
-    
-    /** Confirms any unsaved changes, then closes the window */
+
+    /** 
+     * Confirms any unsaved changes, then closes the window 
+     * @param {Object} command data
+     */
     function handleFileCloseWindow(commandData) {
         return _handleWindowGoingAway(
             commandData,
@@ -1283,10 +1386,7 @@ define(function (require, exports, module) {
             },
             function () {
                 // if fail, tell the app to abort any pending quit operation.
-                // TODO: remove this if statement when we move to the new CEF3 shell
-                if (brackets.app.abortQuit) {
-                    brackets.app.abortQuit();
-                }
+                brackets.app.abortQuit();
             }
         );
     }
@@ -1311,11 +1411,10 @@ define(function (require, exports, module) {
     /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
     function handleFileRename() {
         // Prefer selected sidebar item (which could be a folder)
-        var entry = ProjectManager.getSelectedItem();
+        var entry = ProjectManager.getContext();
         if (!entry) {
-            // Else use current file (not selected in ProjectManager if not visible in tree or working set)
-            var doc = DocumentManager.getCurrentDocument();
-            entry = doc && doc.file;
+            // Else use current file (not selected in ProjectManager if not visible in tree or workingset)
+            entry = MainViewManager.getCurrentlyViewedFile();
         }
         if (entry) {
             ProjectManager.renameItemInline(entry);
@@ -1335,18 +1434,15 @@ define(function (require, exports, module) {
             },
             function () {
                 // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
-                // TODO: remove this if statement when we move to the new CEF3 shell
-                if (brackets.app.abortQuit) {
-                    brackets.app.abortQuit();
-                }
+                brackets.app.abortQuit();
             }
         );
     }
 
-    
+
     /** Are we already listening for a keyup to call detectDocumentNavEnd()? */
     var _addedNavKeyHandler = false;
-    
+
     /**
      * When the Ctrl key is released, if we were in the middle of a next/prev document navigation
      * sequence, now is the time to end it and update the MRU order. If we allowed the order to update
@@ -1356,19 +1452,22 @@ define(function (require, exports, module) {
      */
     function detectDocumentNavEnd(event) {
         if (event.keyCode === KeyEvent.DOM_VK_CONTROL) {  // Ctrl key
-            DocumentManager.finalizeDocumentNavigation();
-            
+            MainViewManager.endTraversal();
             _addedNavKeyHandler = false;
             $(window.document.body).off("keyup", detectDocumentNavEnd);
         }
     }
-    
+
     /** Navigate to the next/previous (MRU) document. Don't update MRU order yet */
     function goNextPrevDoc(inc) {
-        var file = DocumentManager.getNextPrevFile(inc);
-        if (file) {
-            DocumentManager.beginDocumentNavigation();
-            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
+        var result = MainViewManager.traverseToNextViewByMRU(inc);
+        if (result) {
+            var file = result.file,
+                paneId = result.paneId;
+            
+            MainViewManager.beginTraversal();
+            CommandManager.execute(Commands.FILE_OPEN, {fullPath: file.fullPath,
+                                                        paneId: paneId });
             
             // Listen for ending of Ctrl+Tab sequence
             if (!_addedNavKeyHandler) {
@@ -1377,18 +1476,23 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
+    /** Next Doc command handler **/
     function handleGoNextDoc() {
         goNextPrevDoc(+1);
+
     }
+    /** Previous Doc command handler **/
     function handleGoPrevDoc() {
         goNextPrevDoc(-1);
     }
-    
+
+    /** Show in File Tree command handler **/
     function handleShowInTree() {
-        ProjectManager.showInTree(DocumentManager.getCurrentDocument().file);
+        ProjectManager.showInTree(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE));
     }
-    
+
+    /** Delete file command handler  **/
     function handleFileDelete() {
         if (brackets.unsupportedInBrowser()) {
             return;
@@ -1426,7 +1530,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Show the selected sidebar (tree or working set) item in Finder/Explorer */
+    /** Show the selected sidebar (tree or workingset) item in Finder/Explorer */
     function handleShowInOS() {
         if (brackets.unsupportedInBrowser()) {
             return;
@@ -1441,7 +1545,7 @@ define(function (require, exports, module) {
             });
         }
     }
-    
+
     /**
      * Disables Brackets' cache via the remote debugging protocol.
      * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
@@ -1478,7 +1582,7 @@ define(function (require, exports, module) {
          
         return result.promise();
     }
-    
+
     /**
     * Does a full reload of the browser window
     * @param {string} href The url to reload into the window
@@ -1506,6 +1610,12 @@ define(function (require, exports, module) {
                     Menus.removeMenu(key);
                 });
                 
+                // If there's a fragment in both URLs, setting location.href won't actually reload
+                var fragment = href.indexOf("#");
+                if (fragment !== -1) {
+                    href = href.substr(0, fragment);
+                }
+                
                 window.location.href = href;
             });
         }).fail(function () {
@@ -1513,15 +1623,26 @@ define(function (require, exports, module) {
         });
     }
     
-    function handleReload() {
+    /**
+     * Restarts brackets Handler
+     * @param {boolean=} loadWithoutExtensions - true to restart without extensions, 
+     *                                           otherwise extensions are loadeed as it is durning a typical boot
+     */
+    function handleReload(loadWithoutExtensions) {
         var href    = window.location.href,
             params  = new UrlParams();
         
         // Make sure the Reload Without User Extensions parameter is removed
         params.parse();
         
-        if (params.get("reloadWithoutUserExts")) {
-            params.remove("reloadWithoutUserExts");
+        if (loadWithoutExtensions) {
+            if (!params.get("reloadWithoutUserExts")) {
+                params.put("reloadWithoutUserExts", true);
+            }
+        } else {
+            if (params.get("reloadWithoutUserExts")) {
+                params.remove("reloadWithoutUserExts");
+            }
         }
         
         if (href.indexOf("?") !== -1) {
@@ -1538,30 +1659,12 @@ define(function (require, exports, module) {
             browserReload(href);
         }, 100);
     }
-    
-    function handleReloadWithoutExts() {
-        var href    = window.location.href,
-            params  = new UrlParams();
-        
-        params.parse();
-        
-        if (!params.get("reloadWithoutUserExts")) {
-            params.put("reloadWithoutUserExts", true);
-        }
-        
-        if (href.indexOf("?") !== -1) {
-            href = href.substring(0, href.indexOf("?"));
-        }
-        
-        href += "?" + params.toString();
-        
-        // Give Mac native menus extra time to update shortcut highlighting.
-        // Prevents the menu highlighting from getting messed up after reload.
-        window.setTimeout(function () {
-            browserReload(href);
-        }, 100);
-    }
-    
+
+
+    /** Reload Without Extensions commnad handler **/
+    var handleReloadWithoutExts = _.partial(handleReload, true);
+
+    /** Do some initialization when the DOM is ready **/
     AppInit.htmlReady(function () {
         // If in Reload Without User Extensions mode, update UI and log console message
         var params      = new UrlParams(),
@@ -1587,29 +1690,14 @@ define(function (require, exports, module) {
     // Exported for unit testing only
     exports._parseDecoratedPath = _parseDecoratedPath;
 
-    // Register global commands
-    CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
-    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
-    // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
-    // File > New should open a new blank tab, and handleFileNewInProject should
-    // be called from a "+" button in the project
-    CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,  Commands.FILE_NEW_UNTITLED, handleFileNew);
-    CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
-    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
-    CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
-    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
-    CommandManager.register(Strings.CMD_FILE_SAVE_AS,       Commands.FILE_SAVE_AS, handleFileSaveAs);
-    CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
-    CommandManager.register(Strings.CMD_FILE_DELETE,        Commands.FILE_DELETE, handleFileDelete);
-    
-    CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
-    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,    Commands.FILE_CLOSE_LIST, handleFileCloseList);
-
+    // Set some command strings
+    var quitString  = Strings.CMD_QUIT,
+        showInOS    = Strings.CMD_SHOW_IN_OS;
     if (brackets.platform === "win") {
-        CommandManager.register(Strings.CMD_EXIT,           Commands.FILE_QUIT, handleFileQuit);
-    } else {
-        CommandManager.register(Strings.CMD_QUIT,           Commands.FILE_QUIT, handleFileQuit);
+        quitString  = Strings.CMD_EXIT;
+        showInOS    = Strings.CMD_SHOW_IN_EXPLORER;
+    } else if (brackets.platform === "mac") {
+        showInOS    = Strings.CMD_SHOW_IN_FINDER;
     }
     
     // In-browser, we can't veto closing the way we do in-shell. Best we can do is ugly confirmation dialog via beforeunload
@@ -1617,22 +1705,49 @@ define(function (require, exports, module) {
         $(window).on("beforeunload", handleBeforeUnload);
     }
 
-    CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
-    CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
-    CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
-    CommandManager.register(Strings.CMD_SHOW_IN_OS,         Commands.NAVIGATE_SHOW_IN_OS, handleShowInOS);
+    // Deprecated commands
+    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);
+    CommandManager.register(Strings.CMD_FILE_OPEN,                   Commands.FILE_OPEN,                      handleDocumentOpen);
     
+    // New commands
+    CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, handleFileAddToWorkingSetAndOpen);
+    CommandManager.register(Strings.CMD_FILE_OPEN,                   Commands.CMD_OPEN,                       handleFileOpen);
+    
+    // File Commands
+    CommandManager.register(Strings.CMD_FILE_NEW_UNTITLED,           Commands.FILE_NEW_UNTITLED,              handleFileNew);
+    CommandManager.register(Strings.CMD_FILE_NEW,                    Commands.FILE_NEW,                       handleFileNewInProject);
+    CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,             Commands.FILE_NEW_FOLDER,                handleNewFolderInProject);
+    CommandManager.register(Strings.CMD_FILE_SAVE,                   Commands.FILE_SAVE,                      handleFileSave);
+    CommandManager.register(Strings.CMD_FILE_SAVE_ALL,               Commands.FILE_SAVE_ALL,                  handleFileSaveAll);
+    CommandManager.register(Strings.CMD_FILE_SAVE_AS,                Commands.FILE_SAVE_AS,                   handleFileSaveAs);
+    CommandManager.register(Strings.CMD_FILE_RENAME,                 Commands.FILE_RENAME,                    handleFileRename);
+    CommandManager.register(Strings.CMD_FILE_DELETE,                 Commands.FILE_DELETE,                    handleFileDelete);
+    
+    // Close Commands
+    CommandManager.register(Strings.CMD_FILE_CLOSE,                  Commands.FILE_CLOSE,                     handleFileClose);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,              Commands.FILE_CLOSE_ALL,                 handleFileCloseAll);
+    CommandManager.register(Strings.CMD_FILE_CLOSE_LIST,             Commands.FILE_CLOSE_LIST,                handleFileCloseList);
+    
+    // Traversal
+    CommandManager.register(Strings.CMD_NEXT_DOC,                    Commands.NAVIGATE_NEXT_DOC,              handleGoNextDoc);
+    CommandManager.register(Strings.CMD_PREV_DOC,                    Commands.NAVIGATE_PREV_DOC,              handleGoPrevDoc);
+
+    // Special Commands
+    CommandManager.register(showInOS,                                Commands.NAVIGATE_SHOW_IN_OS,            handleShowInOS);
+    CommandManager.register(quitString,                              Commands.FILE_QUIT,                      handleFileQuit);
+    CommandManager.register(Strings.CMD_SHOW_IN_TREE,                Commands.NAVIGATE_SHOW_IN_FILE_TREE,     handleShowInTree);
+
     // These commands have no UI representation and are only used internally
     CommandManager.registerInternal(Commands.APP_ABORT_QUIT,            handleAbortQuit);
     CommandManager.registerInternal(Commands.APP_BEFORE_MENUPOPUP,      handleBeforeMenuPopup);
     CommandManager.registerInternal(Commands.FILE_CLOSE_WINDOW,         handleFileCloseWindow);
     CommandManager.registerInternal(Commands.APP_RELOAD,                handleReload);
     CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReloadWithoutExts);
-    
+
     // Listen for changes that require updating the editor titlebar
     $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-    $(DocumentManager).on("fileNameChange", updateDocumentTitle);
-    $(EditorManager).on("currentlyViewedFileChange", updateDocumentTitle);
+    $(DocumentManager).on("fileNameChange", handleCurrentFileChange);
+    $(MainViewManager).on("currentFileChange", handleCurrentFileChange);
 
     // Reset the untitled document counter before changing projects
     $(ProjectManager).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });

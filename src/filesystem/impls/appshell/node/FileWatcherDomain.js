@@ -28,6 +28,7 @@
 
 var fspath = require("path"),
     fs = require("fs"),
+    os = require("os"),
     fsevents;
 
 /*
@@ -58,7 +59,11 @@ var fspath = require("path"),
 if (process.platform === "darwin") {
     fsevents = require("fsevents");
 } else if (process.platform === "win32") {
-    fsevents = require("fsevents_win/fsevents_win");
+    var version = os.release();
+    // XP will use node's built in file watcher module.
+    if (version && version.length > 0 && version[0] !== "5") {
+        fsevents = require("fsevents_win/fsevents_win");
+    }
 }
 
 var _domainManager,

@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         
         FileUtils           = brackets.getModule("file/FileUtils"),
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
+        Strings             = brackets.getModule("strings"),
         UnitTestReporter    = brackets.getModule("test/UnitTestReporter");
 
     var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
@@ -73,12 +74,10 @@ define(function (require, exports, module) {
      * @param {!number} openOffset The offset index location within openFile to open an inline editor.
      * @param {?boolean} expectInline Use false to verify that an inline editor should not be opened. Omit otherwise.
      */
-    var _initInlineTest = function (openFile, openOffset, expectInline, workingSet) {
-        var allFiles,
-            inlineOpened = null,
-            spec = this;
+    var _initInlineTest = function (openFile, openOffset, expectInline, filesToOpen) {
+        var spec = this;
         
-        workingSet = workingSet || [];
+        filesToOpen = filesToOpen || [];
         expectInline = (expectInline !== undefined) ? expectInline : true;
         
         runs(function () {
@@ -88,8 +87,8 @@ define(function (require, exports, module) {
         SpecRunnerUtils.loadProjectInTestWindow(tempPath);
         
         runs(function () {
-            workingSet.push(openFile);
-            waitsForDone(SpecRunnerUtils.openProjectFiles(workingSet), "openProjectFiles");
+            filesToOpen.push(openFile);
+            waitsForDone(SpecRunnerUtils.openProjectFiles(filesToOpen), "openProjectFiles");
         });
         
         if (openOffset !== undefined) {
@@ -212,23 +211,23 @@ define(function (require, exports, module) {
                    
                     // regexp token
                     promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[0]);
-                    expect(promise).toBeNull();
+                    expect(promise).toBe(Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND);
                     
                     // multi-line comment
                     promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[1]);
-                    expect(promise).toBeNull();
+                    expect(promise).toBe(Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND);
                     
                     // single-line comment
                     promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[2]);
-                    expect(promise).toBeNull();
+                    expect(promise).toBe(Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND);
                     
                     // string, double quotes
                     promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[3]);
-                    expect(promise).toBeNull();
+                    expect(promise).toBe(Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND);
                     
                     // string, single quotes
                     promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[4]);
-                    expect(promise).toBeNull();
+                    expect(promise).toBe(Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND);
                 });
             });
 

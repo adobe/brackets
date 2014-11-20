@@ -45,6 +45,9 @@ define(function ConsoleAgent(require, exports, module) {
             level = "warn";
         }
         var text = "ConsoleAgent: " + message.text;
+        if (message.url) {
+            text += " (url: " + message.url + ")";
+        }
         if (message.stackTrace) {
             var callFrame = message.stackTrace[0];
             text += " in " + callFrame.functionName + ":" + callFrame.columnNumber;

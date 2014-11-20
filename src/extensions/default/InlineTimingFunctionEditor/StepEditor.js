@@ -27,23 +27,17 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager   = brackets.getModule("editor/EditorManager"),
-        KeyEvent        = brackets.getModule("utils/KeyEvent"),
-        Strings         = brackets.getModule("strings");
+    var KeyEvent    = brackets.getModule("utils/KeyEvent"),
+        Strings     = brackets.getModule("strings");
 
-    var TimingFunctionUtils            = require("TimingFunctionUtils"),
-        InlineTimingFunctionEditor     = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor;
+    var TimingFunctionUtils = require("TimingFunctionUtils");
     
     /** Mustache template that forms the bare DOM structure of the UI */
     var StepEditorTemplate   = require("text!StepEditorTemplate.html");
     
     /** @const @type {number} */
-    var STEP_LINE       =   1,
-        DASH_LINE       =   2,
-        HEIGHT_MAIN     = 150,    // height of main grid
-        WIDTH_MAIN      = 150;    // width of main grid
-
-    var animationRequest = null;
+    var STEP_LINE   = 1,
+        DASH_LINE   = 2;
 
     /**
      * StepParameters object constructor
@@ -170,9 +164,9 @@ define(function (require, exports, module) {
                 p = [];
 
             var defaultSettings = {
-                bgColor:        "#fff",
+                bgColor:        "transparent",
                 borderColor:    "#bbb",
-                stepColor:      "#1461fc",
+                stepColor:      "#2893ef",
                 dashColor:      "#b8b8b8",
                 borderWidth:    0.00667,
                 stepLineWidth:  0.02,
@@ -310,6 +304,16 @@ define(function (require, exports, module) {
         // current step function params
         this._stepParams = this._getStepParams(stepMatch);
 
+        this.hint = {};
+        this.hint.elem = $(".hint", this.$element);
+        // If function was auto-corrected, then originalString holds the original function,
+        // and an informational message needs to be shown
+        if (stepMatch.originalString) {
+            TimingFunctionUtils.showHideHint(this.hint, true, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")");
+        } else {
+            TimingFunctionUtils.showHideHint(this.hint, false);
+        }
+
         this.canvas = this.$element.find(".steps")[0];
 
         this.canvas.stepEditor = this;
@@ -355,6 +359,7 @@ define(function (require, exports, module) {
             this._stepParams.count.toString() + ", " +
             this._stepParams.timing + ")";
         this._callback(stepFuncVal);
+        TimingFunctionUtils.showHideHint(this.hint, false);
     };
 
     /**
@@ -423,6 +428,13 @@ define(function (require, exports, module) {
     StepEditor.prototype.handleExternalUpdate = function (stepMatch) {
         this._stepParams = this._getStepParams(stepMatch);
         this._updateCanvas();
+        // If function was auto-corrected, then originalString holds the original function,
+        // and an informational message needs to be shown
+        if (stepMatch.originalString) {
+            TimingFunctionUtils.showHideHint(this.hint, true, stepMatch.originalString, "steps(" + this._stepParams.count.toString() + ", " + this._stepParams.timing + ")");
+        } else {
+            TimingFunctionUtils.showHideHint(this.hint, false);
+        }
     };
 
     

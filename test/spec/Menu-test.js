@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets, $, beforeFirst, afterLast */
+/*global define, describe, it, expect, runs, $, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -182,7 +182,7 @@ define(function (require, exports, module) {
                     var openEvent = false;
                     var cmenu = Menus.registerContextMenu("test-cmenu51");
                     CommandManager.register("Brackets Test Command Custom 51", "Menu-test.command51", function () {});
-                    var menuItem = cmenu.addMenuItem("Menu-test.command51");
+                    cmenu.addMenuItem("Menu-test.command51");
 
                     testWindow.$(cmenu).on("beforeContextMenuOpen", function () {
                         openEvent = true;
@@ -222,7 +222,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var cmenu = Menus.registerContextMenu("test-cmenu52");
                     CommandManager.register("Brackets Test Command Custom 52", "Menu-test.command52", function () {});
-                    var menuItem = cmenu.addMenuItem("Menu-test.command52");
+                    cmenu.addMenuItem("Menu-test.command52");
                     var winWidth = $(testWindow).width();
                     var winHeight = $(testWindow).height();
 
@@ -247,7 +247,7 @@ define(function (require, exports, module) {
             it("close context menu", function () {
                 var cmenu = Menus.registerContextMenu("test-cmenu53");
                 CommandManager.register("Brackets Test Command Custom 53", "Menu-test.command53", function () {});
-                var menuItem = cmenu.addMenuItem("Menu-test.command53");
+                cmenu.addMenuItem("Menu-test.command53");
 
                 cmenu.open({ pageX: 0, pageY: 0 });
 
@@ -266,7 +266,7 @@ define(function (require, exports, module) {
             it("close context menu using Esc key", function () {
                 var cmenu = Menus.registerContextMenu("test-cmenu54");
                 CommandManager.register("Brackets Test Command Custom 54", "Menu-test.command54", function () {});
-                var menuItem = cmenu.addMenuItem("Menu-test.command54");
+                cmenu.addMenuItem("Menu-test.command54");
 
                 cmenu.open({ pageX: 0, pageY: 0 });
 
@@ -282,6 +282,24 @@ define(function (require, exports, module) {
                 // verify all dropdowns are closed
                 $menus = testWindow.$(".dropdown.open");
                 expect($menus.length).toBe(0);
+            });
+            it("check for context menu to have the right status", function () {
+                var cmenu = Menus.registerContextMenu("test-cmenu55");
+                CommandManager.register("Brackets Test Command Custom 55", "Menu-test.command55", function () {});
+                cmenu.addMenuItem("Menu-test.command55");
+
+                cmenu.open({pageX: 0, pageY: 0});
+                
+                // verify dropdown is open
+                var isOpen = cmenu.isOpen();
+                expect(isOpen).toBe(true);
+
+                // verify close event
+                cmenu.close();
+
+                // verify all dropdowns are closed
+                isOpen = cmenu.isOpen();
+                expect(isOpen).toBe(false);
             });
         });
     });
@@ -769,7 +787,7 @@ define(function (require, exports, module) {
                     var menuId = "menu-custom-removeMenuDivider-4";
                     var menu = Menus.addMenu("Custom", menuId);
                     var menuItemId = "menu-test-removeMenuDivider1";
-                    var menuItem = menu.addMenuItem(menuItemId);
+                    menu.addMenuItem(menuItemId);
                     
                     menu.removeMenuDivider(menuItemId);
                     expect(menu).toBeTruthy();   // Verify that we got this far...
@@ -935,7 +953,7 @@ define(function (require, exports, module) {
                     var openEvent = false;
                     var cmenu = Menus.registerContextMenu("test-cmenu51");
                     CommandManager.register("Brackets Test Command Custom 51", "Menu-test.command51", function () {});
-                    var menuItem = cmenu.addMenuItem("Menu-test.command51");
+                    cmenu.addMenuItem("Menu-test.command51");
 
                     testWindow.$(cmenu).on("beforeContextMenuOpen", function () {
                         openEvent = true;
@@ -975,7 +993,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var cmenu = Menus.registerContextMenu("test-cmenu52");
                     CommandManager.register("Brackets Test Command Custom 52", "Menu-test.command52", function () {});
-                    var menuItem = cmenu.addMenuItem("Menu-test.command52");
+                    cmenu.addMenuItem("Menu-test.command52");
                     var winWidth = $(testWindow).width();
                     var winHeight = $(testWindow).height();
                     
@@ -1000,7 +1018,7 @@ define(function (require, exports, module) {
             it("close context menu", function () {
                 var cmenu = Menus.registerContextMenu("test-cmenu53");
                 CommandManager.register("Brackets Test Command Custom 53", "Menu-test.command53", function () {});
-                var menuItem = cmenu.addMenuItem("Menu-test.command53");
+                cmenu.addMenuItem("Menu-test.command53");
 
                 cmenu.open({pageX: 0, pageY: 0});
 
@@ -1019,7 +1037,7 @@ define(function (require, exports, module) {
             it("close context menu using Esc key", function () {
                 var cmenu = Menus.registerContextMenu("test-cmenu54");
                 CommandManager.register("Brackets Test Command Custom 54", "Menu-test.command54", function () {});
-                var menuItem = cmenu.addMenuItem("Menu-test.command54");
+                cmenu.addMenuItem("Menu-test.command54");
 
                 cmenu.open({pageX: 0, pageY: 0});
 
@@ -1035,6 +1053,25 @@ define(function (require, exports, module) {
                 // verify all dropdowns are closed
                 $menus = testWindow.$(".dropdown.open");
                 expect($menus.length).toBe(0);
+            });
+            
+            it("check for context menu to have the right status", function () {
+                var cmenu = Menus.registerContextMenu("test-cmenu55");
+                CommandManager.register("Brackets Test Command Custom 55", "Menu-test.command55", function () {});
+                cmenu.addMenuItem("Menu-test.command55");
+
+                cmenu.open({pageX: 0, pageY: 0});
+                
+                // verify dropdown is open
+                var isOpen = cmenu.isOpen();
+                expect(isOpen).toBe(true);
+
+                // verify close event
+                cmenu.close();
+
+                // verify all dropdowns are closed
+                isOpen = cmenu.isOpen();
+                expect(isOpen).toBe(false);
             });
         });
     });

@@ -431,27 +431,6 @@ define({
     "LANGUAGE_CANCEL"                           : "Откажи",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "језик система",
     
-    // Locales (used by Debug > Switch Language)
-    "LOCALE_CS"                                 : "чешки",
-    "LOCALE_DE"                                 : "немачки",
-    "LOCALE_EN"                                 : "енглески",
-    "LOCALE_ES"                                 : "шпански",
-    "LOCALE_FI"                                 : "фински",
-    "LOCALE_FR"                                 : "француски",
-    "LOCALE_IT"                                 : "италијански",
-    "LOCALE_JA"                                 : "јапански",
-    "LOCALE_NB"                                 : "норвешки",
-    "LOCALE_PL"                                 : "пољски",
-    "LOCALE_PT_BR"                              : "португалски, Бразил",
-    "LOCALE_PT_PT"                              : "португалски",
-    "LOCALE_RU"                                 : "руски",
-    "LOCALE_SK"                                 : "словачки",
-	"LOCALE_SR"									: "српски",
-    "LOCALE_SV"                                 : "шведски",
-    "LOCALE_TR"                                 : "турски",
-    "LOCALE_ZH_CN"                              : "кинески, поједностављен",
-    "LOCALE_HU"                                 : "мађарски",
-    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Тренутна боја",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Оригинална боја",

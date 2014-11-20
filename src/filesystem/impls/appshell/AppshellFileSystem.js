@@ -33,18 +33,41 @@ define(function (require, exports, module) {
         FileSystemError     = require("filesystem/FileSystemError"),
         NodeDomain          = require("utils/NodeDomain");
     
+    /**
+     * @const
+     */
     var FILE_WATCHER_BATCH_TIMEOUT = 200;   // 200ms - granularity of file watcher changes
+
+    /**
+     * Callback to notify FileSystem of watcher changes
+     * @type {?function(string, FileSystemStats=)}
+     */
+    var _changeCallback;
     
-    var _changeCallback,            // Callback to notify FileSystem of watcher changes
-        _offlineCallback,           // Callback to notify FileSystem that watchers are offline
-        _changeTimeout,             // Timeout used to batch up file watcher changes
-        _pendingChanges = {};       // Pending file watcher changes
+    /**
+     * Callback to notify FileSystem if watchers stop working entirely
+     * @type {?function()}
+     */
+    var _offlineCallback;
+    
+    /** Timeout used to batch up file watcher changes (setTimeout() return value) */
+    var _changeTimeout;
+    
+    /**
+     * Pending file watcher changes - map from fullPath to flag indicating whether we need to pass stats
+     * to _changeCallback() for this path.
+     * @type {!Object.<string, boolean>}
+     */
+    var _pendingChanges = {};
     
     var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
         _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath       = "node/FileWatcherDomain",
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
         _nodeDomain     = new NodeDomain("fileWatcher", _domainPath);
+    
+    var _isRunningOnWindowsXP = navigator.userAgent.indexOf("Windows NT 5.") >= 0;
+    
     
     // If the connection closes, notify the FileSystem that watchers have gone offline.
     $(_nodeDomain.connection).on("close", function (event, promise) {
@@ -71,7 +94,8 @@ define(function (require, exports, module) {
                         if (needsStats) {
                             exports.stat(path, function (err, stats) {
                                 if (err) {
-                                    console.warn("Unable to stat changed path: ", path, err);
+                                    // warning has been removed due to spamming the console - see #7332
+                                    // console.warn("Unable to stat changed path: ", path, err);
                                     return;
                                 }
                                 _changeCallback(path, stats);
@@ -103,7 +127,7 @@ define(function (require, exports, module) {
         if (event === "change") {
             // Only register change events if filename is passed
             if (filename) {
-                // an existing file was created; stats are needed
+                // an existing file was modified; stats are needed
                 change = path + filename;
                 _enqueueChange(change, true);
             }
@@ -139,7 +163,7 @@ define(function (require, exports, module) {
         case appshell.fs.ERR_CANT_WRITE:
             return FileSystemError.NOT_WRITABLE;
         case appshell.fs.ERR_UNSUPPORTED_ENCODING:
-            return FileSystemError.NOT_READABLE;
+            return FileSystemError.UNSUPPORTED_ENCODING;
         case appshell.fs.ERR_OUT_OF_SPACE:
             return FileSystemError.OUT_OF_SPACE;
         case appshell.fs.ERR_FILE_EXISTS:
@@ -340,42 +364,35 @@ define(function (require, exports, module) {
      */
     function readFile(path, options, callback) {
         var encoding = options.encoding || "utf8";
-        
-        // Execute the read and stat calls in parallel. Callback early if the
-        // read call completes first with an error; otherwise wait for both
-        // to finish.
-        var done = false, data, stat, err;
 
+        // callback to be executed when the call to stat completes
+        //  or immediately if a stat object was passed as an argument
+        function doReadFile(stat) {
+            if (stat.size > (FileUtils.MAX_FILE_SIZE)) {
+                callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
+            } else {
+                appshell.fs.readFile(path, encoding, function (_err, _data) {
+                    if (_err) {
+                        callback(_mapError(_err));
+                    } else {
+                        callback(null, _data, stat);
+                    }
+                });
+            }
+        }
+        
         if (options.stat) {
-            done = true;
-            stat = options.stat;
+            doReadFile(options.stat);
         } else {
             exports.stat(path, function (_err, _stat) {
-                if (done) {
-                    callback(_err, _err ? null : data, _stat);
+                if (_err) {
+                    callback(_err);
                 } else {
-                    done = true;
-                    stat = _stat;
-                    err = _err;
+                    doReadFile(_stat);
                 }
             });
         }
-        
-        appshell.fs.readFile(path, encoding, function (_err, _data) {
-            if (_err) {
-                callback(_mapError(_err));
-                return;
-            }
-            
-            if (done) {
-                callback(err, err ? null : _data, stat);
-            } else {
-                done = true;
-                data = _data;
-            }
-        });
     }
-    
     /**
      * Write data to the file at the given path, calling back asynchronously with
      * either a FileSystemError string or the FileSystemStats object associated
@@ -390,7 +407,7 @@ define(function (require, exports, module) {
      * 
      * @param {string} path
      * @param {string} data
-     * @param {{encoding : string=, mode : number=, expectedHash : object=}} options
+     * @param {{encoding : string=, mode : number=, expectedHash : object=, expectedContents : string=}} options
      * @param {function(?string, FileSystemStats=, boolean)} callback
      */
     function writeFile(path, data, options, callback) {
@@ -422,8 +439,21 @@ define(function (require, exports, module) {
             
             if (options.hasOwnProperty("expectedHash") && options.expectedHash !== stats._hash) {
                 console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
-                callback(FileSystemError.CONTENTS_MODIFIED);
-                return;
+
+                if (options.hasOwnProperty("expectedContents")) {
+                    appshell.fs.readFile(path, encoding, function (_err, _data) {
+                        if (_err || _data !== options.expectedContents) {
+                            callback(FileSystemError.CONTENTS_MODIFIED);
+                            return;
+                        }
+                    
+                        _finishWrite(false);
+                    });
+                    return;
+                } else {
+                    callback(FileSystemError.CONTENTS_MODIFIED);
+                    return;
+                }
             }
             
             _finishWrite(false);
@@ -472,11 +502,15 @@ define(function (require, exports, module) {
      * cleared when the offlineCallback is called.
      * 
      * @param {function(?string, FileSystemStats=)} changeCallback
-     * @param {function()=} callback
+     * @param {function()=} offlineCallback
      */
     function initWatchers(changeCallback, offlineCallback) {
         _changeCallback = changeCallback;
         _offlineCallback = offlineCallback;
+        
+        if (_isRunningOnWindowsXP && _offlineCallback) {
+            _offlineCallback();
+        }
     }
     
     /**
@@ -491,6 +525,10 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function watchPath(path, callback) {
+        if (_isRunningOnWindowsXP) {
+            callback(FileSystemError.NOT_SUPPORTED);
+            return;
+        }
         appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
             if (err || isNetworkDrive) {
                 callback(FileSystemError.UNKNOWN);
@@ -526,6 +564,7 @@ define(function (require, exports, module) {
         _nodeDomain.exec("unwatchAll")
             .then(callback, callback);
     }
+
     
     // Export public API
     exports.showOpenDialog  = showOpenDialog;
@@ -550,7 +589,7 @@ define(function (require, exports, module) {
      *
      * @type {boolean}
      */
-    exports.recursiveWatch = appshell.platform === "mac" || appshell.platform === "win";
+    exports.recursiveWatch = (appshell.platform === "mac" || appshell.platform === "win");
     
     /**
      * Indicates whether or not the filesystem should expect and normalize UNC

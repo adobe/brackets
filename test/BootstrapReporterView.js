@@ -22,14 +22,11 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true, forin: true */
-/*global jasmine, $, define, document, require */
+/*global $, define, document */
 define(function (require, exports, module) {
     'use strict';
     
     var _ = require("thirdparty/lodash");
-    
-    var UrlParams       = require("utils/UrlParams").UrlParams,
-        SpecRunnerUtils = require("spec/SpecRunnerUtils");
 
     var BootstrapReporterView = function (doc, reporter) {
         doc = doc || document;
@@ -67,9 +64,7 @@ define(function (require, exports, module) {
             $badgePassed = $('<span class="badge badge-success" style="display:none"/>'),
             $badgeFailed = $('<span class="badge badge-important" style="display:none"/>'),
             $anchor = $('<a href="?spec=' + encodeURIComponent(suiteName) + '">' + suiteName + '</a>').append($badgeAll).append($badgePassed).append($badgeFailed),
-            $listItem = $('<li/>').append($anchor),
-            self = this,
-            active;
+            $listItem = $('<li/>').append($anchor);
         
         this._topLevelSuiteMap[suiteName] = {
             $badgeAll: $badgeAll,
@@ -106,8 +101,7 @@ define(function (require, exports, module) {
     };
     
     BootstrapReporterView.prototype._handleRunnerStart = function (event, reporter) {
-        var topLevelData,
-            self = this;
+        var topLevelData;
         
         // create top level suite list navigation
         this._createSuiteList(reporter.suites, reporter.sortedNames, reporter.totalSpecCount);

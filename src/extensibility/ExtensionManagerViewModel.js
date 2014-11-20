@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, window, $, brackets, Mustache */
+/*global define, $ */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -31,7 +31,6 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
-        Package          = require("extensibility/Package"),
         registry_utils   = require("extensibility/registry_utils"),
         Strings          = require("strings");
 
@@ -45,13 +44,13 @@ define(function (require, exports, module) {
     var _searchFields = [["metadata", "name"], ["metadata", "title"], ["metadata", "description"],
                          ["metadata", "author", "name"], ["metadata", "keywords"], ["owner"]];
     /**
-     * @constructor
      * The base model for the ExtensionManagerView. Keeps track of the extensions that are currently visible
      * and manages sorting/filtering them. Must be disposed with dispose() when done.
      * Events:
-     *     change - triggered when the data for a given extension changes. Second parameter is the extension id.
-     *     filter - triggered whenever the filtered set changes (including on initialize).
+     * - change - triggered when the data for a given extension changes. Second parameter is the extension id.
+     * - filter - triggered whenever the filtered set changes (including on initialize).
      *
+     * @constructor
      */
     function ExtensionManagerViewModel() {
         this._handleStatusChange = this._handleStatusChange.bind(this);
@@ -68,6 +67,12 @@ define(function (require, exports, module) {
      */
     ExtensionManagerViewModel.prototype.SOURCE_REGISTRY = "registry";
     
+    /**
+     * @type {string}
+     * Constant indicating that this model/view should initialize from the main extension registry with only themes.
+     */
+    ExtensionManagerViewModel.prototype.SOURCE_THEMES = "themes";
+
     /**
      * @type {string}
      * Constant indicating that this model/view should initialize from the list of locally installed extensions.
@@ -158,7 +163,7 @@ define(function (require, exports, module) {
      */
     ExtensionManagerViewModel.prototype.initialize = function () {
         var self = this;
-
+        
         this._initializeFromSourcePromise = this._initializeFromSource().always(function () {
             self._updateMessage();
         });
@@ -288,14 +293,15 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @constructor
      * The model for the ExtensionManagerView that is responsible for handling registry-based extensions. 
      * This extends ExtensionManagerViewModel.
      * Must be disposed with dispose() when done.
      *
      * Events:
-     *     change - triggered when the data for a given extension changes. Second parameter is the extension id.
-     *     filter - triggered whenever the filtered set changes (including on initialize).
+     * - change - triggered when the data for a given extension changes. Second parameter is the extension id.
+     * - filter - triggered whenever the filtered set changes (including on initialize).
+     *
+     * @constructor
      */
     function RegistryViewModel() {
         ExtensionManagerViewModel.call(this);
@@ -325,7 +331,7 @@ define(function (require, exports, module) {
                 // Sort the registry by last published date and store the sorted list of IDs.
                 self.sortedFullSet = registry_utils.sortRegistry(self.extensions, "registryInfo")
                     .filter(function (entry) {
-                        return entry.registryInfo !== undefined;
+                        return entry.registryInfo !== undefined && entry.registryInfo.metadata.theme === undefined;
                     })
                     .map(function (entry) {
                         return entry.registryInfo.metadata.name;
@@ -355,17 +361,25 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @constructor
      * The model for the ExtensionManagerView that is responsible for handling previously-installed extensions. 
      * This extends ExtensionManagerViewModel.
      * Must be disposed with dispose() when done.
      *
      * Events:
-     *     change - triggered when the data for a given extension changes. Second parameter is the extension id.
-     *     filter - triggered whenever the filtered set changes (including on initialize).
+     * - change - triggered when the data for a given extension changes. Second parameter is the extension id.
+     * - filter - triggered whenever the filtered set changes (including on initialize).
+     *
+     * @constructor
      */
     function InstalledViewModel() {
         ExtensionManagerViewModel.call(this);
+
+        // when registry is downloaded, sort extensions again - those with updates will be before others
+        var self = this;
+        $(ExtensionManager).on("registryDownload", function () {
+            self._sortFullSet();
+            self._setInitialFilter();
+        });
     }
     
     InstalledViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
@@ -405,17 +419,22 @@ define(function (require, exports, module) {
         var self = this;
         
         this.sortedFullSet = this.sortedFullSet.sort(function (key1, key2) {
-            var metadata1 = self.extensions[key1].installInfo.metadata,
-                metadata2 = self.extensions[key2].installInfo.metadata,
-                id1 = (metadata1.title || metadata1.name).toLowerCase(),
-                id2 = (metadata2.title || metadata2.name).toLowerCase();
-            if (id1 < id2) {
+            // before sorting by name, put first extensions that have updates
+            var ua1 = self.extensions[key1].installInfo.updateAvailable,
+                ua2 = self.extensions[key2].installInfo.updateAvailable;
+
+            if (ua1 && !ua2) {
                 return -1;
-            } else if (id1 === id2) {
-                return 0;
-            } else {
+            } else if (!ua1 && ua2) {
                 return 1;
             }
+
+            var metadata1 = self.extensions[key1].installInfo.metadata,
+                metadata2 = self.extensions[key2].installInfo.metadata,
+                id1 = (metadata1.title || metadata1.name).toLocaleLowerCase(),
+                id2 = (metadata2.title || metadata2.name).toLocaleLowerCase();
+
+            return id1.localeCompare(id2);
         });
     };
     
@@ -427,7 +446,7 @@ define(function (require, exports, module) {
         var self = this;
         this.notifyCount = 0;
         this.sortedFullSet.forEach(function (key) {
-            if (self.extensions[key].installInfo.updateAvailable) {
+            if (self.extensions[key].installInfo.updateCompatible && !ExtensionManager.isMarkedForUpdate(key)) {
                 self.notifyCount++;
             }
         });
@@ -481,6 +500,74 @@ define(function (require, exports, module) {
         return entry;
     };
 
+    /**
+     * The model for the ExtensionManagerView that is responsible for handling registry-based theme extensions. 
+     * This extends ExtensionManagerViewModel.
+     * Must be disposed with dispose() when done.
+     *
+     * Events:
+     * - change - triggered when the data for a given extension changes. Second parameter is the extension id.
+     * - filter - triggered whenever the filtered set changes (including on initialize).
+     *
+     * @constructor
+     */
+    function ThemesViewModel() {
+        ExtensionManagerViewModel.call(this);
+    }
+
+    // Inheritance setup
+    ThemesViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
+    ThemesViewModel.prototype.constructor = ThemesViewModel;
+
+    /**
+     * @type {string}
+     * ThemeViewModels always have a source of SOURCE_THEMES.
+     */
+    ThemesViewModel.prototype.source = ExtensionManagerViewModel.prototype.SOURCE_THEMES;
+
+    /**
+     * Initializes the model from the remote extension registry.
+     * @return {$.Promise} a promise that's resolved with the registry JSON data.
+     */
+    ThemesViewModel.prototype._initializeFromSource = function () {
+        var self = this;
+        return ExtensionManager.downloadRegistry()
+            .done(function () {
+                self.extensions = ExtensionManager.extensions;
+
+                // Sort the registry by last published date and store the sorted list of IDs.
+                self.sortedFullSet = registry_utils.sortRegistry(self.extensions, "registryInfo")
+                    .filter(function (entry) {
+                        return entry.registryInfo !== undefined && entry.registryInfo.metadata.theme;
+                    })
+                    .map(function (entry) {
+                        return entry.registryInfo.metadata.name;
+                    });
+                self._setInitialFilter();
+            })
+            .fail(function () {
+                self.extensions = [];
+                self.sortedFullSet = [];
+                self.filterSet = [];
+            });
+    };
+
+    /**
+     * @private
+     * Finds the theme extension metadata by id. If there is no theme extension matching the given id,
+     * this returns `null`.
+     * @param {string} id of the theme extension
+     * @return {Object?} extension metadata or null if there's no matching extension
+     */
+    ThemesViewModel.prototype._getEntry = function (id) {
+        var entry = this.extensions[id];
+        if (entry) {
+            return entry.registryInfo;
+        }
+        return entry;
+    };
+
     exports.RegistryViewModel = RegistryViewModel;
+    exports.ThemesViewModel = ThemesViewModel;
     exports.InstalledViewModel = InstalledViewModel;
 });

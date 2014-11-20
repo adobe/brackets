@@ -34,17 +34,18 @@ define(function (require, exports, module) {
         Dialogs,
         EditorManager,
         DocumentManager,
+        MainViewManager,
         FileSystem;
 
     describe("CloseOthers", function () {
-		var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
-			testPath      = extensionPath + "/unittest-files/",
-			testWindow,
-			$,
-			docSelectIndex,
-			cmdToRun,
-			brackets;
-		
+        var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
+            testPath      = extensionPath + "/unittest-files/",
+            testWindow,
+            $,
+            docSelectIndex,
+            cmdToRun,
+            brackets;
+        
         function createUntitled(count) {
             function doCreateUntitled(content) {
                 runs(function () {
@@ -84,12 +85,13 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow = w;
                     $ = testWindow.$;
-					brackets		= testWindow.brackets;
+                    brackets		= testWindow.brackets;
                     DocumentManager = testWindow.brackets.test.DocumentManager;
+                    MainViewManager = testWindow.brackets.test.MainViewManager;
                     CommandManager  = testWindow.brackets.test.CommandManager;
                     EditorManager   = testWindow.brackets.test.EditorManager;
                     Dialogs			= testWindow.brackets.test.Dialogs;
-					Commands        = testWindow.brackets.test.Commands;
+                    Commands        = testWindow.brackets.test.Commands;
                     FileSystem      = testWindow.brackets.test.FileSystem;
                 });
             });
@@ -108,7 +110,7 @@ define(function (require, exports, module) {
                 });
 
                 var promise = CommandManager.execute(Commands.FILE_SAVE_ALL);
-                waitsForDone(promise, "FILE_SAVE_ALL", 60000);
+                waitsForDone(promise, "FILE_SAVE_ALL", 5000);
             });
         });
         
@@ -127,16 +129,21 @@ define(function (require, exports, module) {
 
 
         function runCloseOthers() {
-            var ws = DocumentManager.getWorkingSet(),
+            var ws = MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE),
                 promise;
 
             if (ws.length > docSelectIndex) {
                 DocumentManager.getDocumentForPath(ws[docSelectIndex].fullPath).done(function (doc) {
-                    DocumentManager.setCurrentDocument(doc);
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                 });
 
-                promise = CommandManager.execute(cmdToRun);
-                waitsForDone(promise, cmdToRun);
+                runs(function () {
+                    promise = CommandManager.execute(cmdToRun);
+                    waitsForDone(promise, cmdToRun);
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)).toEqual(ws[docSelectIndex].fullPath, "Path of document in editor after close others command should be the document that was selected");
+                });
             }
         }
 
@@ -144,21 +151,21 @@ define(function (require, exports, module) {
             docSelectIndex = 2;
             cmdToRun       = "file.close_others";
 
-            runs(runCloseOthers);
-			
-			runs(function () {
-				expect(DocumentManager.getWorkingSet().length).toEqual(1);
-			});
+            runCloseOthers();
+            
+            runs(function () {
+                expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(1);
+            });
         });
 
         it("Close others above", function () {
             docSelectIndex = 2;
             cmdToRun       = "file.close_above";
 
-            runs(runCloseOthers);
+            runCloseOthers();
 
             runs(function () {
-                expect(DocumentManager.getWorkingSet().length).toEqual(3);
+                expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(3);
             });
         });
 
@@ -166,10 +173,10 @@ define(function (require, exports, module) {
             docSelectIndex = 1;
             cmdToRun       = "file.close_below";
 
-            runs(runCloseOthers);
+            runCloseOthers();
 
             runs(function () {
-                expect(DocumentManager.getWorkingSet().length).toEqual(2);
+                expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(2);
             });
         });
     });

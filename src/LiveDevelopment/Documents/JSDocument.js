@@ -28,7 +28,7 @@
 /**
  * JSDocument manages a single JavaScript source document
  *
- * # EDITING
+ * __EDITING__
  *
  * Editing the document will cause the script to be reloaded via the
  * ScriptAgent, which updates the implementation of all functions without
@@ -36,7 +36,7 @@
  * and a rerender method must be attached to every canvas that clears and
  * renders the canvas.
  *
- * # HIGHLIGHTING
+ * __HIGHLIGHTING__
  *
  * JSDocument supports highlighting nodes from the HighlightAgent. Support
  * for highlighting the nodes that were created / touched by the current
@@ -49,9 +49,10 @@ define(function JSDocumentModule(require, exports, module) {
     var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
     var HighlightAgent = require("LiveDevelopment/Agents/HighlightAgent");
 
-    /** Constructor
-     *
-     * @param {Document} the source document
+    /**
+     * @constructor
+     * @param {!Document} doc The source document from Brackets
+     * @param {!Editor} editor The editor for this document
      */
     var JSDocument = function JSDocument(doc, editor) {
         if (!editor) {

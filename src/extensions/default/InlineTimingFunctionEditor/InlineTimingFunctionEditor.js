@@ -49,7 +49,7 @@ define(function (require, exports, module) {
         this._endBookmark = endBookmark;
         this._isOwnChange = false;
         this._isHostChange = false;
-        this._origin = "*InlineTimingFunctionEditor_" + (lastOriginId++);
+        this._origin = "+InlineTimingFunctionEditor_" + (lastOriginId++);
 
         this._handleTimingFunctionChange = this._handleTimingFunctionChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
@@ -121,17 +121,19 @@ define(function (require, exports, module) {
         // instead of two bookmarks to track the range. (In our current old version of
         // CodeMirror v2, markText() isn't robust enough for this case.)
         var line = this.hostEditor.document.getLine(start.line),
-            matches = TimingFunctionUtils.timingFunctionMatch(line.substr(start.ch), true);
+            matches = TimingFunctionUtils.timingFunctionMatch(line.substr(start.ch), true),
+            originalLength;
 
         // No longer have a match
         if (!matches) {
             return null;
         }
         
+        originalLength = ((matches.originalString && matches.originalString.length) || matches[0].length);
         // Note that end.ch is exclusive, so we don't need to add 1 before comparing to
         // the matched length here.
-        if (end.ch === undefined || (end.ch - start.ch) !== matches[0].length) {
-            end.ch = start.ch + matches[0].length;
+        if (end.ch === undefined || (end.ch - start.ch) !== originalLength) {
+            end.ch = start.ch + originalLength;
             this._endBookmark.clear();
             this._endBookmark = this.hostEditor._codeMirror.setBookmark(end);
         }
@@ -143,7 +145,8 @@ define(function (require, exports, module) {
             return {
                 start: start,
                 end:   end,
-                match: matches
+                match: matches,
+                originalLength: originalLength
             };
         }
     };
@@ -153,7 +156,8 @@ define(function (require, exports, module) {
      * @param {!string} timingFunctionString
      */
     InlineTimingFunctionEditor.prototype._handleTimingFunctionChange = function (timingFunctionString) {
-        var timingFunctionMatch = TimingFunctionUtils.timingFunctionMatch(timingFunctionString, true);
+        var self                = this,
+            timingFunctionMatch = TimingFunctionUtils.timingFunctionMatch(timingFunctionString, true);
         if (timingFunctionMatch !== this._timingFunction) {
             var range = this.getCurrentRange();
             if (!range) {
@@ -162,14 +166,14 @@ define(function (require, exports, module) {
 
             // Don't push the change back into the host editor if it came from the host editor.
             if (!this._isHostChange) {
-                // Replace old timingFunction in code with the editor's timing function, and select it
                 this._isOwnChange = true;
-                this.hostEditor.document.replaceRange(timingFunctionString, range.start, range.end, this._origin);
-                this._isOwnChange = false;
-                this.hostEditor.setSelection(range.start, {
-                    line: range.start.line,
-                    ch: range.start.ch + timingFunctionString.length
+                this.hostEditor.document.batchOperation(function () {
+                    // Replace old timingFunction in code with the editor's timing function, and select it
+                    self.hostEditor.document.replaceRange(timingFunctionString, range.start, range.end, self._origin);
+                    var newEnd = { line: range.start.line, ch: range.start.ch + timingFunctionString.length };
+                    self.hostEditor.setSelection(range.start, newEnd, false, 0, self._origin);
                 });
+                this._isOwnChange = false;
             }
             
             this._timingFunction = timingFunctionMatch;

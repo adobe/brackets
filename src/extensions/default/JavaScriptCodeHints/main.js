@@ -31,30 +31,64 @@ define(function (require, exports, module) {
 
     var CodeHintManager      = brackets.getModule("editor/CodeHintManager"),
         EditorManager        = brackets.getModule("editor/EditorManager"),
-        DocumentManager      = brackets.getModule("document/DocumentManager"),
         Commands             = brackets.getModule("command/Commands"),
         CommandManager       = brackets.getModule("command/CommandManager"),
-        Menus                = brackets.getModule("command/Menus"),
+        LanguageManager      = brackets.getModule("language/LanguageManager"),
         AppInit              = brackets.getModule("utils/AppInit"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
-        PerfUtils            = brackets.getModule("utils/PerfUtils"),
         StringMatch          = brackets.getModule("utils/StringMatch"),
-        LanguageManager      = brackets.getModule("language/LanguageManager"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
+        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         ParameterHintManager = require("ParameterHintManager"),
         HintUtils            = require("HintUtils"),
         ScopeManager         = require("ScopeManager"),
         Session              = require("Session"),
         Acorn                = require("thirdparty/acorn/acorn");
 
-    var session      = null,  // object that encapsulates the current session state
-        cachedCursor = null,  // last cursor of the current hinting session
-        cachedHints  = null,  // sorted hints for the current hinting session
-        cachedType   = null,  // describes the lookup type and the object context
-        cachedToken  = null,  // the token used in the current hinting session
-        matcher      = null,  // string matcher for hints
-        ignoreChange;         // can ignore next "change" event if true;
+    var session        = null,  // object that encapsulates the current session state
+        cachedCursor   = null,  // last cursor of the current hinting session
+        cachedHints    = null,  // sorted hints for the current hinting session
+        cachedType     = null,  // describes the lookup type and the object context
+        cachedToken    = null,  // the token used in the current hinting session
+        matcher        = null,  // string matcher for hints
+        jsHintsEnabled = true,  // preference setting to enable/disable the hint session
+        noHintsOnDot   = false, // preference setting to prevent hints on dot
+        ignoreChange;           // can ignore next "change" event if true;
 
+    
+    // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
+    PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", []);
+    
+    // This preference controls when Tern will time out when trying to understand files
+    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 30000);
+    
+    // This preference controls whether to prevent hints from being displayed when dot is typed
+    PreferencesManager.definePreference("jscodehints.noHintsOnDot", "boolean", false);
+    
+    // This preference controls whether to create a session and process all JS files or not.
+    PreferencesManager.definePreference("codehint.JSHints", "boolean", true);
+
+    /**
+     * Check whether any of code hints preferences for JS Code Hints is disabled
+     * @return {boolean} enabled/disabled
+     */
+    function _areHintsEnabled() {
+        return (PreferencesManager.get("codehint.JSHints") !== false) &&
+            (PreferencesManager.get("showCodeHints") !== false);
+    }
+
+    PreferencesManager.on("change", "codehint.JSHints", function () {
+        jsHintsEnabled = _areHintsEnabled();
+    });
+    
+    PreferencesManager.on("change", "showCodeHints", function () {
+        jsHintsEnabled = _areHintsEnabled();
+    });
+    
+    PreferencesManager.on("change", "jscodehints.noHintsOnDot", function () {
+        noHintsOnDot = !!PreferencesManager.get("jscodehints.noHintsOnDot");
+    });
+    
     /**
      * Sets the configuration, generally for testing/debugging use.
      * Configuration keys are merged into the current configuration.
@@ -301,8 +335,7 @@ define(function (require, exports, module) {
      * @return {boolean} - true if the document is a html file
      */
     function isHTMLFile(document) {
-        var languageID = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
-        return languageID === "html";
+        return LanguageManager.getLanguageForPath(document.file.fullPath).getId() === "html";
     }
     
     function isInlineScript(editor) {
@@ -398,7 +431,7 @@ define(function (require, exports, module) {
      * @return {boolean} - can the provider provide hints for this session?
      */
     JSHints.prototype.hasHints = function (editor, key) {
-        if (session && HintUtils.hintableKey(key)) {
+        if (session && HintUtils.hintableKey(key, !noHintsOnDot)) {
             
             if (isHTMLFile(session.editor.document)) {
                 if (!isInlineScript(session.editor)) {
@@ -413,9 +446,6 @@ define(function (require, exports, module) {
                 if (session.isFunctionName()) {
                     return false;
                 }
-                var offset = session.getOffset(),
-                    type    = session.getType(),
-                    query   = session.getQuery();
 
                 if (this.needNewHints(session)) {
                     resetCachedHintContext();
@@ -439,7 +469,7 @@ define(function (require, exports, module) {
         var cursor = session.getCursor(),
             token = session.getToken(cursor);
 
-        if (token && HintUtils.hintableKey(key) && HintUtils.hintable(token)) {
+        if (token && HintUtils.hintableKey(key, !noHintsOnDot) && HintUtils.hintable(token)) {
             var type    = session.getType(),
                 query   = session.getQuery();
 
@@ -453,7 +483,7 @@ define(function (require, exports, module) {
             // type has changed since the last hint computation
             if (this.needNewHints(session)) {
                 if (key) {
-                    ScopeManager.handleFileChange({from: cursor, to: cursor, text: [key]});
+                    ScopeManager.handleFileChange([{from: cursor, to: cursor, text: [key]}]);
                     ignoreChange = true;
                 }
 
@@ -500,7 +530,6 @@ define(function (require, exports, module) {
         var hint        = $hintObj.data("token"),
             completion  = hint.value,
             cursor      = session.getCursor(),
-            token       = session.getToken(cursor),
             query       = session.getQuery(),
             start       = {line: cursor.line, ch: cursor.ch - query.length},
             end         = {line: cursor.line, ch: cursor.ch},
@@ -557,8 +586,8 @@ define(function (require, exports, module) {
          * When the editor is changed, reset the hinting session and cached 
          * information, and reject any pending deferred requests.
          * 
-         * @param {Editor} editor - editor context to be initialized.
-         * @param {Editor} previousEditor - the previous editor.
+         * @param {!Editor} editor - editor context to be initialized.
+         * @param {?Editor} previousEditor - the previous editor.
          */
         function initializeSession(editor, previousEditor) {
             session = new Session(editor);
@@ -569,16 +598,20 @@ define(function (require, exports, module) {
         }
 
         /*
-         * Install editor change listeners
+         * Connects to the given editor, creating a new Session & adding listeners
          * 
-         * @param {Editor} editor - editor context on which to listen for
-         *      changes
-         * @param {Editor} previousEditor - the previous editor
+         * @param {?Editor} editor - editor context on which to listen for
+         *      changes. If null, 'session' is cleared.
+         * @param {?Editor} previousEditor - the previous editor
          */
         function installEditorListeners(editor, previousEditor) {
             // always clean up cached scope and hint info
             resetCachedHintContext();
 
+            if (!jsHintsEnabled) {
+                return;
+            }
+            
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, previousEditor);
                 $(editor)
@@ -589,7 +622,6 @@ define(function (require, exports, module) {
                         }
                         ignoreChange = false;
                     });
-
                 ParameterHintManager.installListeners(editor);
             } else {
                 session = null;
@@ -619,6 +651,21 @@ define(function (require, exports, module) {
          * @param {Editor} previous - the previous editor context
          */
         function handleActiveEditorChange(event, current, previous) {
+            // Uninstall "languageChanged" event listeners on previous editor's document & put them on current editor's doc
+            if (previous) {
+                $(previous.document)
+                    .off(HintUtils.eventName("languageChanged"));
+            }
+            if (current) {
+                $(current.document)
+                    .on(HintUtils.eventName("languageChanged"), function () {
+                        // If current doc's language changed, reset our state by treating it as if the user switched to a
+                        // different document altogether
+                        uninstallEditorListeners(current);
+                        installEditorListeners(current);
+                    });
+            }
+            
             uninstallEditorListeners(previous);
             installEditorListeners(current, previous);
         }
@@ -632,7 +679,7 @@ define(function (require, exports, module) {
 
                         
             // Only provide jump-to-definition results when cursor is in JavaScript content
-            if (session.editor.getModeForSelection() !== "javascript") {
+            if (!session || session.editor.getModeForSelection() !== "javascript") {
                 return null;
             }
 
@@ -700,7 +747,6 @@ define(function (require, exports, module) {
                     var cursor = {line: end.line, ch: end.ch},
                         prev = session._getPreviousToken(cursor),
                         next,
-                        token,
                         offset;
     
                     // see if the selection is preceded by a '.', indicating we're in a member expr

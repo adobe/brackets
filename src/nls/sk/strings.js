@@ -416,29 +416,6 @@ define({
     "LANGUAGE_CANCEL"                           : "Zrušiť",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Predvolený v systéme",
     
-    /**
-     * Jazyky
-     */
-    "LOCALE_CS"                                 : "Český",
-    "LOCALE_DE"                                 : "Nemecký",
-    "LOCALE_EN"                                 : "Anglický",
-    "LOCALE_ES"                                 : "Španielsky",
-    "LOCALE_FI"                                 : "Fínsky",
-    "LOCALE_FR"                                 : "Francúzky",
-    "LOCALE_IT"                                 : "Talianský",
-    "LOCALE_JA"                                 : "Japonský",
-    "LOCALE_NB"                                 : "Nórsky",
-    "LOCALE_PL"                                 : "Poľský",
-    "LOCALE_PT_BR"                              : "Portugalský, Brazília",
-    "LOCALE_PT_PT"                              : "Portugalský",
-    "LOCALE_RU"                                 : "Ruský",
-	"LOCALE_SR"                                 : "Srbčina",
-    "LOCALE_SV"                                 : "Švédsky",
-    "LOCALE_TR"                                 : "Turecký",
-    "LOCALE_ZH_CN"                              : "Čínsky, zjednodušený",
-    "LOCALE_HU"                                 : "Maďarský",
-    "LOCALE_SK"                                 : "Slovenský",
-    
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuálna farba",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Pôvodná farba",

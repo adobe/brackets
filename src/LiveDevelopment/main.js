@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global brackets, define, $, less, window */
+/*global define, $, less, window */
 
 /**
  * main integrates LiveDevelopment into Brackets
@@ -32,8 +32,6 @@
  *
  *  "Go Live": open or close a Live Development session and visualize the status
  *  "Highlight": toggle source highlighting
- *
- * @require DocumentManager
  */
 define(function main(require, exports, module) {
     "use strict";
@@ -52,7 +50,6 @@ define(function main(require, exports, module) {
         ExtensionUtils      = require("utils/ExtensionUtils"),
         StringUtils         = require("utils/StringUtils");
 
-    var prefs;
     var params = new UrlParams();
     var config = {
         experimental: false, // enable experimental features
@@ -67,7 +64,6 @@ define(function main(require, exports, module) {
             showInfo: true
         }
     };
-    var _checkMark = "✓"; // Check mark character
     // Status labels/styles are ordered: error, not connected, progress1, progress2, connected.
     var _statusTooltip = [
         Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
@@ -83,7 +79,6 @@ define(function main(require, exports, module) {
     var _allStatusStyles = _statusStyle.join(" ");
 
     var _$btnGoLive; // reference to the GoLive button
-    var _$btnHighlight; // reference to the HighlightButton
 
     /** Load Live Development LESS Style */
     function _loadStyles() {
@@ -120,17 +115,23 @@ define(function main(require, exports, module) {
         }
     }
 
-    /** Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status */
+    /**
+     * Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status
+     *
+     * Stop Live Dev when in an active state (ACTIVE, OUT_OF_SYNC, SYNC_ERROR).
+     * Start Live Dev when in an inactive state (ERROR, INACTIVE).
+     * Do nothing when in a connecting state (CONNECTING, LOADING_AGENTS).
+     */
     function _handleGoLiveCommand() {
         if (brackets.unsupportedInBrowser()) {
             return;
         }
         
-        if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
+        if (LiveDevelopment.status >= LiveDevelopment.STATUS_ACTIVE) {
             LiveDevelopment.close();
-        } else {
-            if (!params.get("skipLiveDevelopmentInfo") && !prefs.getValue("afterFirstLaunch")) {
-                prefs.setValue("afterFirstLaunch", "true");
+        } else if (LiveDevelopment.status <= LiveDevelopment.STATUS_INACTIVE) {
+            if (!params.get("skipLiveDevelopmentInfo") && !PreferencesManager.getViewState("livedev.afterFirstLaunch")) {
+                PreferencesManager.setViewState("livedev.afterFirstLaunch", "true");
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_INFO,
                     Strings.LIVE_DEVELOPMENT_INFO_TITLE,
@@ -217,7 +218,7 @@ define(function main(require, exports, module) {
         } else {
             LiveDevelopment.hideHighlight();
         }
-        prefs.setValue("highlight", config.highlight);
+        PreferencesManager.setViewState("livedev.highlight", config.highlight);
     }
     
     /** Setup window references to useful LiveDevelopment modules */
@@ -225,6 +226,13 @@ define(function main(require, exports, module) {
         window.ld = LiveDevelopment;
         window.i = Inspector;
         window.report = function report(params) { window.params = params; console.info(params); };
+    }
+
+    /** force reload the live preview */
+    function _handleReloadLivePreviewCommand() {
+        if (LiveDevelopment.status >= LiveDevelopment.STATUS_ACTIVE) {
+            LiveDevelopment.reload();
+        }
     }
 
     /** Initialize LiveDevelopment */
@@ -260,13 +268,23 @@ define(function main(require, exports, module) {
     });
     
     // init prefs
-    prefs = PreferencesManager.getPreferenceStorage(module, {highlight: true});
+    PreferencesManager.stateManager.definePreference("livedev.highlight", "boolean", true)
+        .on("change", function () {
+            config.highlight = PreferencesManager.getViewState("livedev.highlight");
+            _updateHighlightCheckmark();
+        });
     
-    config.highlight = prefs.getValue("highlight");
+    PreferencesManager.convertPreferences(module, {
+        "highlight": "user livedev.highlight",
+        "afterFirstLaunch": "user livedev.afterFirstLaunch"
+    }, true);
+    
+    config.highlight = PreferencesManager.getViewState("livedev.highlight");
    
     // init commands
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
     CommandManager.register(Strings.CMD_LIVE_HIGHLIGHT, Commands.FILE_LIVE_HIGHLIGHT, _handlePreviewHighlightCommand);
+    CommandManager.register(Strings.CMD_RELOAD_LIVE_PREVIEW, Commands.CMD_RELOAD_LIVE_PREVIEW, _handleReloadLivePreviewCommand);
     CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(false);
 
     // Export public functions

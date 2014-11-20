@@ -23,23 +23,19 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, $, brackets, waitsForDone, spyOn, tinycolor, KeyEvent */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, $, brackets, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
     
     var main            = require("main"),
-        NodeConnection  = brackets.getModule("utils/NodeConnection"),
         FileUtils       = brackets.getModule("file/FileUtils"),
-        SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         StaticServer    = require("StaticServer");
     
-    var testFolder     = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files";
+    var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files";
     
     var CONNECT_TIMEOUT = 20000;
-    
-    var LOCALHOST_PORT_PARSER_RE = /http:\/\/127\.0\.0\.1:(\d+)\//;
-            
+
     function makeBaseUrl(serverInfo) {
         return "http://" + serverInfo.address + ":" + serverInfo.port;
     }
@@ -93,7 +89,7 @@ define(function (require, exports, module) {
             it("should start a static server on the given folder", function () {
                 var serverInfo, path = testFolder + "/folder1";
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path)
+                    nodeConnection.domains.staticServer.getServer(path, 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -110,10 +106,59 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should start the server on the given port", function () {
+                var serverInfo,
+                    path = testFolder + "/folder1";
+
+                runs(function () {
+                    nodeConnection.domains.staticServer.getServer(path, 54321)
+                        .done(function (info) {
+                            serverInfo = info;
+                        });
+                });
+
+                waitsFor(function () { return serverInfo; }, "waiting for static server to start");
+                runs(function () {
+                    expect(serverInfo.port).toBe(54321);
+
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
+                                 "waiting for static server to close");
+                });
+            });
+
+            it("should start a static server using a random port when the given port is already in use", function () {
+                var serverInfo1, serverInfo2,
+                    path1 = testFolder + "/folder1", path2 = testFolder + "/folder2";
+
+                runs(function () {
+                    nodeConnection.domains.staticServer.getServer(path1, 54321)
+                        .done(function (info) {
+                            serverInfo1 = info;
+                        });
+                    nodeConnection.domains.staticServer.getServer(path2, 54321)
+                        .done(function (info) {
+                            serverInfo2 = info;
+                        });
+                });
+
+                waitsFor(function () { return serverInfo1 && serverInfo2; }, "waiting for static servers to start");
+
+                runs(function () {
+                    expect(serverInfo1.port).toBe(54321);
+                    expect(serverInfo2.port).not.toBe(54321);
+                    expect(serverInfo2.port).toBeGreaterThan(0);
+
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path1),
+                                 "waiting for static server 1 to close");
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path2),
+                                 "waiting for static server 2 to close");
+                });
+            });
+
             it("should serve the text of a file in the given folder", function () {
                 var serverInfo, text, path = testFolder + "/folder1";
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path)
+                    nodeConnection.domains.staticServer.getServer(path, 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -141,11 +186,11 @@ define(function (require, exports, module) {
                 var serverInfo1, serverInfo2,
                     path1 = testFolder + "/folder1", path2 = testFolder + "/folder2";
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path1)
+                    nodeConnection.domains.staticServer.getServer(path1, 0)
                         .done(function (info) {
                             serverInfo1 = info;
                         });
-                    nodeConnection.domains.staticServer.getServer(path2)
+                    nodeConnection.domains.staticServer.getServer(path2, 0)
                         .done(function (info) {
                             serverInfo2 = info;
                         });
@@ -168,11 +213,11 @@ define(function (require, exports, module) {
                     path1 = testFolder + "/folder1", path2 = testFolder + "/folder2",
                     text1, text2;
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path1)
+                    nodeConnection.domains.staticServer.getServer(path1, 0)
                         .done(function (info) {
                             serverInfo1 = info;
                         });
-                    nodeConnection.domains.staticServer.getServer(path2)
+                    nodeConnection.domains.staticServer.getServer(path2, 0)
                         .done(function (info) {
                             serverInfo2 = info;
                         });
@@ -212,7 +257,7 @@ define(function (require, exports, module) {
                     timeout = 500;
                 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path)
+                    nodeConnection.domains.staticServer.getServer(path, 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -268,7 +313,7 @@ define(function (require, exports, module) {
                     requestId;
                 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path)
+                    nodeConnection.domains.staticServer.getServer(path, 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -318,7 +363,7 @@ define(function (require, exports, module) {
                     requestId;
                 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path)
+                    nodeConnection.domains.staticServer.getServer(path, 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -365,7 +410,7 @@ define(function (require, exports, module) {
                     requestId;
                 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path)
+                    nodeConnection.domains.staticServer.getServer(path, 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -427,7 +472,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path)
+                    nodeConnection.domains.staticServer.getServer(path, 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -455,9 +500,6 @@ define(function (require, exports, module) {
                 waitsFor(function () { return text; }, "waiting for text from server");
 
                 runs(function () {
-                    var expectedWarning = "writeFilteredResponse: Missing callback for " +
-                        path + "/index.txt. This command must only be called after a requestFilter event has fired for a path.";
-
                     // verify console warning
                     expect(logs.length).toBe(2);
 
@@ -486,7 +528,7 @@ define(function (require, exports, module) {
                     timeout = 500;
                 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path)
+                    nodeConnection.domains.staticServer.getServer(path, 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -549,7 +591,8 @@ define(function (require, exports, module) {
                     baseUrl: "http://localhost/",
                     nodeDomain: mockNodeDomain,
                     pathResolver: pathResolver,
-                    root: projectPath
+                    root: projectPath,
+                    port: 0
                 };
 
             it("should translate local paths to server paths", function () {
@@ -558,7 +601,6 @@ define(function (require, exports, module) {
                     fileRelPath     = "subdir/index.html",
                     file1Path       = projectPath + fileRelPath,
                     file2Path       = outsidePath + fileRelPath,
-                    file1FileUrl    = encodeURI(fileProtocol + projectPath + fileRelPath),
                     file2FileUrl    = encodeURI(fileProtocol + outsidePath + fileRelPath),
                     file1ServerUrl  = config.baseUrl + encodeURI(fileRelPath),
                     server          = new StaticServer(config);

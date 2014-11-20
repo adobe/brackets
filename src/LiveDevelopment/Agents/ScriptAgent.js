@@ -40,15 +40,6 @@ define(function ScriptAgent(require, exports, module) {
     var _idToScript; // id -> script info
     var _insertTrace; // the last recorded trace of a DOM insertion
 
-    /** Add a call stack trace to a node
-     * @param {integer} node id
-     * @param [{Debugger.CallFrame}] call stack
-     */
-    function _addTraceToNode(nodeId, trace) {
-        var node = DOMAgent.nodeWithId(nodeId);
-        node.trace = trace;
-    }
-
     // TODO: should the parameter to this be an ID rather than a URL?
     /** Get the script information for a given url
      * @param {string} url
@@ -117,10 +108,27 @@ define(function ScriptAgent(require, exports, module) {
 
     }
 
-    /** Initialize the agent */
-    function load() {
+    function _reset() {
         _urlToScript = {};
         _idToScript = {};
+    }
+
+    /**
+     * @private
+     * WebInspector Event: Page.frameNavigated
+     * @param {jQuery.Event} event
+     * @param {frame: Frame} res
+     */
+    function _onFrameNavigated(event, res) {
+        // Clear maps when navigating to a new page, but not if an iframe was loaded
+        if (!res.frame.parentId) {
+            _reset();
+        }
+    }
+
+    /** Initialize the agent */
+    function load() {
+        _reset();
         _load = new $.Deferred();
 
         var enableResult = new $.Deferred();
@@ -131,6 +139,7 @@ define(function ScriptAgent(require, exports, module) {
             });
         });
 
+        $(Inspector.Page).on("frameNavigated.ScriptAgent", _onFrameNavigated);
         $(DOMAgent).on("getDocument.ScriptAgent", _onGetDocument);
         $(Inspector.Debugger)
             .on("scriptParsed.ScriptAgent", _onScriptParsed)
@@ -143,6 +152,8 @@ define(function ScriptAgent(require, exports, module) {
 
     /** Clean up */
     function unload() {
+        _reset();
+        $(Inspector.Page).off(".ScriptAgent");
         $(DOMAgent).off(".ScriptAgent");
         $(Inspector.Debugger).off(".ScriptAgent");
         $(Inspector.DOM).off(".ScriptAgent");

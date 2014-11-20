@@ -38,31 +38,31 @@ define(function (require, exports, module) {
     
     /**
      * Map of all registered global commands
-     * @type Object.<commandID: string, Command>
+     * @type {Object.<commandID: string, Command>}
      */
     var _commands = {};
     
     /**
      * Temporary copy of commands map for restoring after testing
      * TODO (issue #1039): implement separate require contexts for unit tests
-     * @type Object.<commandID: string, Command>
+     * @type {Object.<commandID: string, Command>}
      */
     var _commandsOriginal = {};
     
     /**
+     * Events:
+     * - enabledStateChange
+     * - checkedStateChange
+     * - keyBindingAdded
+     * - keyBindingRemoved
+     *
      * @constructor
      * @private
-     *
      * @param {string} name - text that will be displayed in the UI to represent command
      * @param {string} id
      * @param {function} commandFn - the function that is called when the command is executed.
      *
      * TODO: where should this be triggered, The Command or Exports?
-     * Events:
-     *      enabledStateChange
-     *      checkedStateChange
-     *      keyBindingAdded
-     *      keyBindingRemoved
      */
     function Command(name, id, commandFn) {
         this._name = name;
@@ -72,7 +72,10 @@ define(function (require, exports, module) {
         this._enabled = true;
     }
 
-    /** @return {Command} */
+    /**
+     * Get command id
+     * @return {string}
+     */
     Command.prototype.getID = function () {
         return this._id;
     };
@@ -97,7 +100,10 @@ define(function (require, exports, module) {
         }
     };
 
-    /** @return {boolean} */
+    /**
+     * Is command enabled?
+     * @return {boolean}
+     */
     Command.prototype.getEnabled = function () {
         return this._enabled;
     };
@@ -130,7 +136,10 @@ define(function (require, exports, module) {
         }
     };
 
-    /** @return {boolean} */
+    /**
+     * Is command checked?
+     * @return {boolean}
+     */
     Command.prototype.getChecked = function () {
         return this._checked;
     };
@@ -154,7 +163,10 @@ define(function (require, exports, module) {
         }
     };
 
-    /** @return {string} */
+    /**
+     * Get command name
+     * @return {string}
+     */
     Command.prototype.getName = function () {
         return this._name;
     };

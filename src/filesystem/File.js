@@ -28,12 +28,10 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemEntry = require("filesystem/FileSystemEntry"),
-        FileSystemError = require("filesystem/FileSystemError");
+    var FileSystemEntry = require("filesystem/FileSystemEntry");
     
     
     /*
-     * @constructor
      * Model for a File.
      *
      * This class should *not* be instantiated directly. Use FileSystem.getFileForPath,
@@ -41,6 +39,7 @@ define(function (require, exports, module) {
      *
      * See the FileSystem class for more details.
      *
+     * @constructor
      * @param {!string} fullPath The full path for this File.
      * @param {!FileSystem} fileSystem The file system associated with this File.
      */
@@ -150,6 +149,7 @@ define(function (require, exports, module) {
         // Request a consistency check if the write is not blind
         if (!options.blind) {
             options.expectedHash = this._hash;
+            options.expectedContents = this._contents;
         }
         
         // Block external change events until after the write has finished
