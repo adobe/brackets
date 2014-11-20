@@ -28,12 +28,13 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Menus             = require("command/Menus"),
+    var KeyBindingManager = require("command/KeyBindingManager"),
+        Menus             = require("command/Menus"),
+        KeyEvent          = require("utils/KeyEvent"),
         StringUtils       = require("utils/StringUtils"),
-        PopUpManager      = require("widgets/PopUpManager"),
+        ValidationUtils   = require("utils/ValidationUtils"),
         ViewUtils         = require("utils/ViewUtils"),
-        KeyBindingManager = require("command/KeyBindingManager"),
-        KeyEvent          = require("utils/KeyEvent");
+        PopUpManager      = require("widgets/PopUpManager");
     
     var CodeHintListHTML  = require("text!htmlContent/code-hint-list.html");
 
@@ -64,7 +65,10 @@ define(function (require, exports, module) {
          *
          * @type {number}
          */
-        this.maxResults = Math.min((maxResults > 0 && maxResults) || 1000, 1000);
+        this.maxResults = Math.min(
+            (maxResults > 0 && ValidationUtils.isInteger(maxResults) && maxResults) || 1000,
+            1000
+        );
 
         /**
          * Is the list currently open?
