@@ -379,6 +379,30 @@ define(function (require, exports, module) {
             expect(fn1).not.toHaveBeenCalled();
         });
         
+        it("duplicate one() listeners both run and both detach first time", function () {
+            dispatcher.one("foo", fn1).one("foo", fn1);
+            
+            dispatcher.trigger("foo");
+            expect(fn1.callCount).toBe(2);
+            dispatcher.trigger("foo");
+            expect(fn1.callCount).toBe(2);
+        });
+        
+        it("off() given a function should work with one()", function () {
+            dispatcher.one("foo", fn1).one("foo", fn2);
+            dispatcher.off("foo", fn1);
+            dispatcher.trigger("foo");
+            expect(fn1).not.toHaveBeenCalled();
+            expect(fn2).toHaveBeenCalled();  // ensure other fn's one() wrappers remain unaffected
+        });
+        
+        it("off() given a namespace should work with one()", function () {
+            dispatcher.one("foo.1", fn1);
+            dispatcher.off(".1");
+            dispatcher.trigger("foo");
+            expect(fn1).not.toHaveBeenCalled();
+        });
+        
         
         it("triggerWithArray() util accepts an array of event arguments", function () {
             dispatcher.on("foo", fn1);

@@ -80,7 +80,7 @@ define(function (require, exports, module) {
     /**
      * Adds the given handler function to 'events': a space-separated list of one or more event names, each
      * with an optional ".namespace" (used by off() - see below). If the handler is already listening to this
-     * event, another copy is added.
+     * event, a duplicate copy is added.
      * @param {string} events
      * @param {!function(!{type:string, target:!Object}, ...)} fn
      */
@@ -122,8 +122,7 @@ define(function (require, exports, module) {
      * Removes one or more handler functions based on the space-separated 'events' list. Each item in
      * 'events' can be: bare event name, bare .namespace, or event.namespace pair. This yields a set of
      * matching handlers. If 'fn' is ommitted, all these handlers are removed. If 'fn' is provided,
-     * only handlers exactly equal to 'fn' are removed (there may still be >1, if duplicates were
-     * added).
+     * only handlers exactly equal to 'fn' are removed (there may still be >1, if duplicates were added).
      * @param {string} events
      * @param {?function(!{type:string, target:!Object}, ...)} fn
      */
@@ -144,9 +143,10 @@ define(function (require, exports, module) {
             
             // Walk backwards so it's easy to remove items
             for (k = handlerList.length - 1; k >= 0; k--) {
-                // Look at ns & fn only - caller has already taken care of eventName
+                // Look at ns & fn only - doRemove() has already taken care of eventName
                 if (!eventRec.ns || eventRec.ns === handlerList[k].ns) {
-                    if (!fn || fn === handlerList[k].handler) {
+                    var handler = handlerList[k].handler;
+                    if (!fn || fn === handler || fn._eventOnceWrapper === handler) {
                         handlerList.splice(k, 1);
                     }
                 }
@@ -183,7 +183,7 @@ define(function (require, exports, module) {
      * @param {?function(!{type:string, target:!Object}, ...)} fn
      */
     var one = function (events, fn) {
-        // Tie wrapper uniqueness to fn uniqueness, so ...
+        // Wrap fn in a self-detaching handler; saved on the original fn so off() can detect it later
         if (!fn._eventOnceWrapper) {
             fn._eventOnceWrapper = function (event) {
                 // Note: this wrapper is reused for all attachments of the same fn, so it shouldn't reference
