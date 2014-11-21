@@ -746,7 +746,7 @@ define(function (require, exports, module) {
         initialString = prefix + initialString;
         
         var $field = this.$searchField;
-        $field.val(initialString);
+        $field.val(initialString).focus();
         $field.get(0).setSelectionRange(prefix.length, initialString.length);
         
         // Kick smart-autocomplete to update (it only listens for keyboard events)
