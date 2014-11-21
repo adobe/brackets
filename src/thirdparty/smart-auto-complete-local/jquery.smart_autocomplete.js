@@ -260,7 +260,8 @@
           if(options.alignResultsContainer){
             results_container.css({ 
                   position: "absolute",
-                  top: function(){ return $(context).offset().top + $(context).height(); }, 
+                  // Explicitly add 2 pixels to "top" for the bottom edge of the focus ring around the search field.
+                  top: function(){ return $(context).offset().top + $(context).height() + 2; }, 
                   left: function(){ return $(context).offset().left; }, 
                   width: function(){ return $(context).width(); }, 
                   zIndex: 1000
