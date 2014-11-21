@@ -286,7 +286,7 @@ define({
     "CMD_RELOAD_LIVE_PREVIEW"             : "Force Reload Live Preview",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
-    "CMD_FILE_DELETE"                     : "Delete",
+    "CMD_FILE_DELETE"                     : "මකන්න",
     "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
     "CMD_EXTENSION_MANAGER"               : "Extension Manager\u2026",
     "CMD_FILE_REFRESH"                    : "Refresh File Tree",
@@ -374,7 +374,7 @@ define({
     
     // Help menu commands
     "HELP_MENU"                           : "උදව්",
-    "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
+    "CMD_CHECK_FOR_UPDATE"                : "යාවත්කාලින කිරීම සදහා පරීක්ෂා කරන්න", //Check for Updates
     "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} Support",
     "CMD_SUGGEST"                         : "Suggest a Feature",
@@ -383,7 +383,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
-    "CMD_ABOUT"                           : "About {APP_TITLE}",
+    "CMD_ABOUT"                           : "{APP_TITLE} පිළිබදව", //About {APP_TITLE}
     "CMD_OPEN_PREFERENCES"                : "Open Preferences File",
 
     // Strings for main-view.html
