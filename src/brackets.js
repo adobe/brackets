@@ -306,11 +306,7 @@ define(function (require, exports, module) {
                     // See if any startup files were passed to the application
                     if (brackets.app.getPendingFilesToOpen) {
                         brackets.app.getPendingFilesToOpen(function (err, paths) {
-                            try {
                                 DragAndDrop.openDroppedFiles(paths);
-                            } catch (errr) {
-                                console.log(errr);
-                            }
                         });
                     }
                 });
