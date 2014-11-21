@@ -1659,12 +1659,17 @@ define(function (require, exports, module) {
     }
     
     /**
-     * removes strings from the content 
+     * removes strings from the content
      * @param {!string} content to reduce
      * @return {string} reduced content 
      */
     function _removeStrings(content) {
-        return content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, "");
+        // First remove escaped quotes so we can balance unescaped quotes
+        // since JavaScript doesn't support negative lookbehind
+        var s = content.replace(/\\\"|\\\'/g, "");
+
+        // Now remove strings
+        return s.replace(/\"(.*?)\"|\'(.*?)\'/g, "");
     }
     
     /**

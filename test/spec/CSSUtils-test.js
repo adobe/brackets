@@ -692,6 +692,37 @@ define(function (require, exports, module) {
                 expect(selector).toEqual(".foo");
             });
         });
+        
+        describe("reduceStyleSheetForRegExParsing", function () {
+            it("should remove css comment in a line", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(".test { color: #123; /* unbalanced paren :) */ margin: 0; }");
+                expect(result).toEqual(".test { color: #123;  margin: 0; }");
+            });
+            it("should remove css comment across newlines", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(".foo {\n  background-color: rgb(0, 63, 255); /* start of comment\n end of comment */\n  margin: 0;\n}\n");
+                expect(result).toEqual(".foo {\n  background-color: rgb(0, 63, 255); \n  margin: 0;\n}\n");
+            });
+            it("should remove multiple css comments", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(".test { color: hsl(0, 100%, 50%); /* unbalanced paren :) */ margin: 0; } .foo { background-color: orange; /* comment */ margin: 1px; }");
+                expect(result).toEqual(".test { color: hsl(0, 100%, 50%);  margin: 0; } .foo { background-color: orange;  margin: 1px; }");
+            });
+            it("should remove css string with single quotes", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(".test { content: '('; background-image: url('bg.svg'); padding: 0; }");
+                expect(result).toEqual(".test { content: ; background-image: url(); padding: 0; }");
+            });
+            it("should remove css string with double quotes", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing('.test-content { border: 0; background-image: url("bg.svg"); content: ">"; }');
+                expect(result).toEqual('.test-content { border: 0; background-image: url(); content: ; }');
+            });
+            it("should remove both comment and css content property", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(".test { color: #123; /* unbalanced paren :-) */ margin: 0; content: ')'; padding: 0; }");
+                expect(result).toEqual(".test { color: #123;  margin: 0; content: ; padding: 0; }");
+            });
+            it("should otherwise not alter stylesheet text", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(".test { color: #1254ef; margin: 0.1em; filter: blur(); }");
+                expect(result).toEqual(".test { color: #1254ef; margin: 0.1em; filter: blur(); }");
+            });
+        });
     }); // describe("CSSUtils")
 
     

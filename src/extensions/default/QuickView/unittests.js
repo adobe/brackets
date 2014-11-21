@@ -329,7 +329,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("Should should convert gradients arguments from pixel to percent", function () {
+            it("Should convert gradients arguments from pixel to percent", function () {
                 runs(function () {
                     // linear gradient in px
                     checkGradientAtPos("-webkit-linear-gradient(top, rgba(0,0,0,0) 0%, green 50%, red 100%)", 163, 40);
@@ -337,6 +337,14 @@ define(function (require, exports, module) {
                     checkGradientAtPos("repeating-linear-gradient(red, blue 50%, red 100%)", 164, 40);
                     // repeating radial-gradient in pixels (no prefix)
                     checkGradientAtPos("repeating-radial-gradient(red, blue 50%, red 100%)", 165, 40);
+                });
+            });
+            
+            it("Should not go into infinite loop on unbalanced parens", function () {
+                runs(function () {
+                    // no preview, and no infinite loop
+                    expectNoPreviewAtPos(189, 30);
+                    expectNoPreviewAtPos(190, 40);
                 });
             });
         });
