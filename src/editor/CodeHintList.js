@@ -43,6 +43,8 @@ define(function (require, exports, module) {
      *
      * @constructor
      * @param {Editor} editor
+     * @param {boolean} insertHintOnTab Whether pressing tab inserts the selected hint
+     * @param {number} maxResults Maximum hints displayed at once. Defaults to 1000
      */
     function CodeHintList(editor, insertHintOnTab, maxResults) {
 
