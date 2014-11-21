@@ -553,7 +553,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Command to go to the first Error/Warning */
+    /** Command to go to the first Problem */
     function handleGotoFirstProblem() {
         run();
         if (_gotoEnabled) {
