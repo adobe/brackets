@@ -96,10 +96,10 @@ define(function (require, exports, module) {
     var _inlineDocsProviders = [];
     
     /**
-     * Registered jump-to-definition providers. 
+     * Registered jump-to-definition providers sorted descending by priority. 
      * @see {@link #registerJumpToDefProvider}.
      * @private
-     * @type {Array.<function(...)>}
+     * @type {Array.<{priority:number, provider:function(...)}>}
      */
     var _jumpToDefProviders = [];
     
@@ -431,12 +431,16 @@ define(function (require, exports, module) {
      * the current editor and cursor location. 
      * 
      * @param {function(!Editor, !{line:number, ch:number}):?$.Promise} provider
+     * @param {number=} priority 
      * The provider returns a promise that is resolved whenever it's done handling the operation,
      * or returns null to indicate the provider doesn't want to respond to this case. It is entirely
      * up to the provider to open the file containing the definition, select the appropriate text, etc.
      */
-    function registerJumpToDefProvider(provider) {
-        _jumpToDefProviders.push(provider);
+    function registerJumpToDefProvider(provider, priority) {
+        if (priority === undefined) {
+            priority = 0;
+        }
+        _insertProviderSorted(_jumpToDefProviders, provider, priority);
     }
     
     /**
@@ -713,7 +717,7 @@ define(function (require, exports, module) {
             
             // Run through providers until one responds
             for (i = 0; i < providers.length && !promise; i++) {
-                var provider = providers[i];
+                var provider = providers[i].provider;
                 promise = provider(editor, pos);
             }
 
