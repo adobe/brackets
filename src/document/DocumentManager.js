@@ -633,42 +633,44 @@ define(function (require, exports, module) {
     }
     
     
-    // Set up event dispatcher
+    // Set up event dispatch
     EventDispatcher.makeEventDispatcher(exports);
     
-    /**
-     * Creates a deprecation warning event handler
-     * @param {!string} eventName - the event being deprecated. 
-     *  The Event Name doesn't change just which object dispatches it
-     */
-    function _deprecateEvent(eventName) {
-        DeprecationWarning.deprecateEvent(exports,
-                                          MainViewManager,
-                                          eventName,
-                                          eventName,
-                                          "DocumentManager." + eventName,
-                                          "MainViewManager." + eventName);
-    }
+    // This deprecated event is dispatched manually from "currentFileChange" below
+    EventDispatcher.markDeprecated(exports, "currentDocumentChange", "MainViewManager.currentFileChange");
     
+    // These deprecated events are automatically dispatched by DeprecationWarning, set up in AppInit.extensionsLoaded()
+    EventDispatcher.markDeprecated(exports, "workingSetAdd",        "MainViewManager.workingSetAdd");
+    EventDispatcher.markDeprecated(exports, "workingSetAddList",    "MainViewManager.workingSetAddList");
+    EventDispatcher.markDeprecated(exports, "workingSetRemove",     "MainViewManager.workingSetRemove");
+    EventDispatcher.markDeprecated(exports, "workingSetRemoveList", "MainViewManager.workingSetRemoveList");
+    EventDispatcher.markDeprecated(exports, "workingSetSort",       "MainViewManager.workingSetSort");
+
     /* 
-     * Setup an extensionsLoaded handler to register the proxying listeners that
-     * convert newer events to deprecated events. This way the deprecated events
-     * are dispatched after all core new-event listeners are done. If we registered
-     * these proxies during module init instead, we'd be creating a channel for
-     * extensions to get events before some core listeners may have run, which
-     * could cause bugs (e.g. WorkingSetView needs to process these events before
-     * the Extension Highlighter extension).
+     * After extensionsLoaded, register the proxying listeners that convert newer events to
+     * deprecated events. This ensures that extension listeners still run later than core
+     * listeners. If we registered these proxies earlier, extensions would get the deprecated
+     * event before some core listeners may have run, which could cause bugs (e.g. WorkingSetView
+     * needs to process these events before the Extension Highlighter extension).
      */
     AppInit.extensionsLoaded(function () {
-        _deprecateEvent("workingSetAdd");
-        _deprecateEvent("workingSetAddList");
-        _deprecateEvent("workingSetRemove");
-        _deprecateEvent("workingSetRemoveList");
-        _deprecateEvent("workingSetSort");
-        
-        // One more deprecated event that we dispatch more manually (see below)
-        EventDispatcher.markDeprecated(exports, "currentDocumentChange", "MainViewManager.currentFileChange");
+        // Listens for the given event on MainViewManager, and triggers a copy of the event
+        // on DocumentManager whenever it occurs
+        function _proxyDeprecatedEvent(eventName) {
+            DeprecationWarning.deprecateEvent(exports,
+                                              MainViewManager,
+                                              eventName,
+                                              eventName,
+                                              "DocumentManager." + eventName,
+                                              "MainViewManager." + eventName);
+        }
+        _proxyDeprecatedEvent("workingSetAdd");
+        _proxyDeprecatedEvent("workingSetAddList");
+        _proxyDeprecatedEvent("workingSetRemove");
+        _proxyDeprecatedEvent("workingSetRemoveList");
+        _proxyDeprecatedEvent("workingSetSort");
     });
+    
     
     PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);
 
