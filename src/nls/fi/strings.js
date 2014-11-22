@@ -32,8 +32,8 @@ define({
 
     // General file io error strings
     "GENERIC_ERROR"                     : "(virhe {0})",
-    "NOT_FOUND_ERR"                     : "Tiedostoa ei löytynyt.",
-    "NOT_READABLE_ERR"                  : "Tiedostoa ei voi lukea.",
+    "NOT_FOUND_ERR"                     : "Tiedostoa tai hakemistoa ei löytynyt.",
+    "NOT_READABLE_ERR"                  : "Tiedostoa tai hakemistoa ei voi lukea.",
     "EXCEEDS_MAX_FILE_SIZE"             : "Yli {0} Mt:n tiedostoja ei voi voi avata {APP_NAME}issa.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Kohdehakemistoa ei voi muuttaa.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Sinulla ei ole oikeuksia tehdä muutoksia.",
@@ -48,7 +48,6 @@ define({
     "FILENAMES_LEDE"                    : "Tiedostonimet",
     "FILENAME"                          : "tiedostonimi",
     "DIRECTORY_NAME"                    : "hakemiston nimi",
-
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Virhe ladattaessa projektia",
@@ -295,7 +294,6 @@ define({
     "LINTER_TIMED_OUT"                      : "{0} on aikakatkaistu {1} ms:n odotuksen jälkeen",
     "LINTER_FAILED"                         : "{0} keskeytyi virheeseen: {1}",
 
-
     /**
      * Command Name Constants
      */
@@ -396,7 +394,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Pika-avaus",
     "CMD_GOTO_LINE"                       : "Siirry riville",
     "CMD_GOTO_DEFINITION"                 : "Etsi määrittely nopeasti",
-    "CMD_GOTO_FIRST_PROBLEM"              : "Siirry ensimmäiseen virheeseen tai varoitukseen",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Siirry ensimmäiseen ongelmaan",
     "CMD_TOGGLE_QUICK_EDIT"               : "Pikamuokkaus",
     "CMD_TOGGLE_QUICK_DOCS"               : "Pikadokumentaatio",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Edellinen vastine",
@@ -628,4 +626,4 @@ define({
     "DOCS_MORE_LINK"                            : "Lue lisää"
 });
 
-/* Last translated for 893c065b715c211526dcd010c0294e12a8683995 */
+/* Last translated for c292e896761bc7d451a9e3b95bedd20d6b355d77 */
