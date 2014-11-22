@@ -82,7 +82,7 @@ define(function (require, exports, module) {
             var result = this.props.parentPath + this.props.name;
 
             // Add trailing slash for directories
-            if (!FileTreeViewModel.isFile(this.props.entry) && _.last(result) !== "/") {
+            if (!FileTreeViewModel.isFile(this.props.entry) && result.charAt(result.length) !== "/") {
                 result += "/";
             }
 

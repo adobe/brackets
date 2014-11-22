@@ -285,7 +285,7 @@ define(function (require, exports, module) {
         }
 
         // If it's a directory, make sure that its children are loaded
-        if (_.last(path) === "/") {
+        if (path[path.length] === "/") {
             objectPath.push("children");
             if (!this._treeData.getIn(objectPath)) {
                 return false;
@@ -475,7 +475,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        var originalName = _.last(objectPath),
+        var originalName = objectPath[objectPath.length],
             currentObject = treeData.getIn(objectPath);
 
         // Back up to the parent directory
@@ -918,7 +918,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        var originalName = _.last(objectPath);
+        var originalName = objectPath[objectPath.length];
 
         // Back up to the parent directory
         objectPath.pop();
@@ -983,7 +983,7 @@ define(function (require, exports, module) {
      */
     function _addNewEntries(treeData, added) {
         added.forEach(function (filePath) {
-            var isFolder = _.last(filePath) === "/";
+            var isFolder = filePath.charAt(filePath.length) === "/";
 
             filePath = isFolder ? filePath.substr(0, filePath.length - 1) : filePath;
 

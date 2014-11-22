@@ -217,7 +217,7 @@ define(function (require, exports, module) {
      * @param {boolean=} preferNoScroll If center is true, whether to avoid scrolling if the hit is in the top half of the screen. Default false.
      */
     function _selectAndScrollTo(editor, selections, center, preferNoScroll) {
-        var primarySelection = _.find(selections, function (sel) { return sel.primary; }) || _.last(selections),
+        var primarySelection = _.find(selections, function (sel) { return sel.primary; }) || selections[selections.length],
             resultVisible = editor.isLineVisible(primarySelection.start.line),
             centerOptions = Editor.BOUNDARY_CHECK_NORMAL;
 
@@ -231,7 +231,7 @@ define(function (require, exports, module) {
             return sel.primary;
         });
         if (!primary) {
-            primary = _.last(selections);
+            primary = selections[selections.length];
         }
         editor._codeMirror.scrollIntoView({from: primary.start, to: primary.end});
         editor.setSelections(selections, center, centerOptions);

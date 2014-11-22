@@ -1023,7 +1023,7 @@ define(function (require, exports, module) {
      */
     function createNewItem(baseDir, initialName, skipRename, isFolder) {
         if (typeof baseDir === "string") {
-            if (_.last(baseDir) !== "/") {
+            if (baseDir.charAt(baseDir.length) !== "/") {
                 baseDir += "/";
             }
         } else {
