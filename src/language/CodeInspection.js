@@ -474,11 +474,11 @@ define(function (require, exports, module) {
     function updateListeners() {
         if (_enabled) {
             // register our event listeners
-            $(MainViewManager)
+            MainViewManager
                 .on("currentFileChange.codeInspection", function () {
                     run();
                 });
-            $(DocumentManager)
+            DocumentManager
                 .on("currentDocumentLanguageChanged.codeInspection", function () {
                     run();
                 })
@@ -488,8 +488,8 @@ define(function (require, exports, module) {
                     }
                 });
         } else {
-            $(DocumentManager).off(".codeInspection");
-            $(MainViewManager).off(".codeInspection");
+            DocumentManager.off(".codeInspection");
+            MainViewManager.off(".codeInspection");
         }
     }
 

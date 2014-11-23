@@ -60,6 +60,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var AppInit                 = require("utils/AppInit"),
+        EventDispatcher         = require("utils/EventDispatcher"),
         PreferencesManager      = require("preferences/PreferencesManager");
     
     var $mainView;
@@ -226,6 +227,11 @@ define(function (require, exports, module) {
             console.error("Resizable panels must have a DOM id to use as a preferences key:", element);
             return;
         }
+        // Detect legacy cases where panels in the editor area are created without using WorkspaceManager APIs
+        if ($parent[0] && $parent.is(".content") && !createdByWorkspaceManager) {
+            console.error("Resizable panels within the editor area should be created via WorkspaceManager.createBottomPanel(). \nElement:", element);
+            return;
+        }
         
         if (minSize === undefined) {
             minSize = DEFAULT_MIN_SIZE;
@@ -240,12 +246,6 @@ define(function (require, exports, module) {
         }
         // Important so min/max sizes behave predictably
         $element.css("box-sizing", "border-box");
-        
-        // Detect legacy cases where panels in the editor area are created without using WorkspaceManager APIs
-        if ($parent[0] && $parent.is(".content") && !createdByWorkspaceManager) {
-            console.warn("Deprecated: resizable panels should be created via WorkspaceManager.createBottomPanel(). Using Resizer directly will stop working in the future. \nElement:", element);
-            $(exports).triggerHandler("deprecatedPanelAdded", [$element]);
-        }
         
         function adjustSibling(size) {
             if (forceLeft !== undefined) {
@@ -546,6 +546,8 @@ define(function (require, exports, module) {
     }
     
     PreferencesManager.convertPreferences(module, {"panelState": "user"}, true, _isPanelPreferences);
+    
+    EventDispatcher.makeEventDispatcher(exports);
     
     exports.makeResizable   = makeResizable;
     exports.removeSizable   = removeSizable;

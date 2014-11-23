@@ -238,15 +238,15 @@ define(function (require, exports, module) {
         }
         
         // wire up an event handler to monitor when panes are created
-        $(MainViewManager).on("paneCreate", function (evt, paneId) {
+        MainViewManager.on("paneCreate", function (evt, paneId) {
             WorkingSetView.createWorkingSetViewForPane($workingSetViewsContainer, paneId);
         });
         
-        $(MainViewManager).on("paneLayoutChange", function () {
+        MainViewManager.on("paneLayoutChange", function () {
             _updateUIStates();
         });
         
-        $(MainViewManager).on("workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList workingSetUpdate", function () {
+        MainViewManager.on("workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList workingSetUpdate", function () {
             _updateWorkingSetState();
         });
         
@@ -262,7 +262,7 @@ define(function (require, exports, module) {
         $splitViewMenu.attr("title", Strings.SPLITVIEW_MENU_TOOLTIP);
     });
     
-    $(ProjectManager).on("projectOpen", _updateProjectTitle);
+    ProjectManager.on("projectOpen", _updateProjectTitle);
     
     /**
      * Register Command Handlers

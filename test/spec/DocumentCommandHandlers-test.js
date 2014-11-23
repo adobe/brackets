@@ -1286,8 +1286,8 @@ define(function (require, exports, module) {
                     activeEditorChangeListener = jasmine.createSpy();
 
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.on("currentDocumentChange", docChangeListener);
+                    EditorManager.on("activeEditorChange", activeEditorChangeListener);
                     
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
@@ -1305,8 +1305,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(2);
                     expect(activeEditorChangeListener.callCount).toBe(2);
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.off("currentDocumentChange", docChangeListener);
+                    EditorManager.off("activeEditorChange", activeEditorChangeListener);
                 });
             });
             
@@ -1316,8 +1316,8 @@ define(function (require, exports, module) {
                     activeEditorChangeListener = jasmine.createSpy();
 
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.on("currentDocumentChange", docChangeListener);
+                    EditorManager.on("activeEditorChange", activeEditorChangeListener);
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz.png" });
                     waitsForDone(promise, Commands.FILE_OPEN);
@@ -1334,8 +1334,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(0);
                     expect(activeEditorChangeListener.callCount).toBe(0);
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.off("currentDocumentChange", docChangeListener);
+                    EditorManager.off("activeEditorChange", activeEditorChangeListener);
                 });
     
             });
@@ -1346,8 +1346,8 @@ define(function (require, exports, module) {
                     activeEditorChangeListener = jasmine.createSpy();
 
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.on("currentDocumentChange", docChangeListener);
+                    EditorManager.on("activeEditorChange", activeEditorChangeListener);
                     
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
@@ -1365,8 +1365,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(2);
                     expect(activeEditorChangeListener.callCount).toBe(2);
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.off("currentDocumentChange", docChangeListener);
+                    EditorManager.off("activeEditorChange", activeEditorChangeListener);
                 });
             });
             

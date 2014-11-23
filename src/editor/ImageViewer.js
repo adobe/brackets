@@ -141,7 +141,7 @@ define(function (require, exports, module) {
         });
         
         // make sure we always show the right file name
-        $(DocumentManager).on("fileNameChange", _.bind(this._onFilenameChange, this));
+        DocumentManager.on("fileNameChange.ImageView", _.bind(this._onFilenameChange, this));
        
         this.$imageTip.hide();
         this.$imageGuides.hide();
@@ -384,7 +384,7 @@ define(function (require, exports, module) {
      */
     ImageView.prototype.destroy = function () {
         delete _viewers[this.file.fullPath];
-        $(DocumentManager).off("fileNameChange", _.bind(this._onFilenameChange, this));
+        DocumentManager.off(".ImageView");
         this.$image.off(".ImageView");
         this.$el.remove();
     };

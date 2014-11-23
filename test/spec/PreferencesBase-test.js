@@ -511,7 +511,7 @@ define(function (require, exports, module) {
                 
                 storage.data = data2;
                 var events = [];
-                $(scope).on("change", function (e, data) {
+                scope.on("change", function (e, data) {
                     events.push(data);
                 });
                 scope.load();

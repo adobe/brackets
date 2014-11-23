@@ -72,14 +72,14 @@
  *    - _workingSetDisableAutoSort -- When the working set is reordered by manually dragging a file. 
  *          (e, paneId:string) For Internal Use Only.
  *
- * These are jQuery events, so to listen for them you do something like this:
- *    `$(MainViewManager).on("eventname", handler);`
- *
+ * To listen for events, do something like this: (see EventDispatcher for details on this pattern)
+ *    `MainViewManager.on("eventname", handler);`
  */
 define(function (require, exports, module) {
     "use strict";
     
     var _                   = require("thirdparty/lodash"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         Strings             = require("strings"),
         AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
@@ -363,11 +363,11 @@ define(function (require, exports, module) {
             
             _activePaneId = newPaneId;
             
-            $(exports).triggerHandler("activePaneChange", [newPaneId, oldPaneId]);
-            $(exports).triggerHandler("currentFileChange", [_getPane(ACTIVE_PANE).getCurrentlyViewedFile(),
+            exports.trigger("activePaneChange", newPaneId, oldPaneId);
+            exports.trigger("currentFileChange", _getPane(ACTIVE_PANE).getCurrentlyViewedFile(),
                                                             newPaneId,
                                                             oldPane.getCurrentlyViewedFile(),
-                                                            oldPaneId]);
+                                                            oldPaneId);
             
             _makePaneMostRecent(_activePaneId);
             focusActivePane();
@@ -704,7 +704,7 @@ define(function (require, exports, module) {
         //  the same location in the working set as the file that was renamed
         if (result === pane.ITEM_FOUND_NEEDS_SORT) {
             console.warn("pane.reorderItem returned pane.ITEM_FOUND_NEEDS_SORT which shouldn't happen " + file);
-            $(exports).triggerHandler("workingSetSort", [pane.id]);
+            exports.trigger("workingSetSort", pane.id);
         } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
 
@@ -715,7 +715,7 @@ define(function (require, exports, module) {
                 _mruList.push(entry);
             }
 
-            $(exports).triggerHandler("workingSetAdd", [file, index, pane.id]);
+            exports.trigger("workingSetAdd", file, index, pane.id);
         }
     }
 
@@ -734,7 +734,7 @@ define(function (require, exports, module) {
             _mruList.push(_makeMRUListEntry(file, pane.id));
         });
         
-        $(exports).triggerHandler("workingSetAddList", [uniqueFileList, pane.id]);
+        exports.trigger("workingSetAddList", uniqueFileList, pane.id);
         
         //  find all of the files that could be added but were not 
         var unsolvedList = fileList.filter(function (item) {
@@ -784,7 +784,7 @@ define(function (require, exports, module) {
 
         if (pane.removeView(file)) {
             _removeFileFromMRU(pane.id, file);
-            $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw, pane.id]);
+            exports.trigger("workingSetRemove", file, suppressRedraw, pane.id);
         }
     }
     
@@ -813,7 +813,7 @@ define(function (require, exports, module) {
                     return true;
                 });
             
-                $(exports).triggerHandler("workingSetMove", [file, sourcePane.id, destinationPane.id]);
+                exports.trigger("workingSetMove", file, sourcePane.id, destinationPane.id);
                 result.resolve();
             });
         
@@ -853,7 +853,7 @@ define(function (require, exports, module) {
     function _sortWorkingSet(paneId, compareFn) {
         _forEachPaneOrPanes(paneId, function (pane) {
             pane.sortViewList(compareFn);
-            $(exports).triggerHandler("workingSetSort", [pane.id]);
+            exports.trigger("workingSetSort", pane.id);
         });
     }
     
@@ -869,8 +869,8 @@ define(function (require, exports, module) {
         var pane = _getPane(paneId);
 
         pane.moveWorkingSetItem(fromIndex, toIndex);
-        $(exports).triggerHandler("workingSetSort", [pane.id]);
-        $(exports).triggerHandler("_workingSetDisableAutoSort", [pane.id]);
+        exports.trigger("workingSetSort", pane.id);
+        exports.trigger("_workingSetDisableAutoSort", pane.id);
     }
 
     /**
@@ -884,8 +884,8 @@ define(function (require, exports, module) {
         var pane = _getPane(paneId);
 
         pane.swapViewListIndexes(index1, index2);
-        $(exports).triggerHandler("workingSetSort", [pane.id]);
-        $(exports).triggerHandler("_workingSetDisableAutoSort", [pane.id]);
+        exports.trigger("workingSetSort", pane.id);
+        exports.trigger("_workingSetDisableAutoSort", pane.id);
     }
     
     /**
@@ -1040,23 +1040,23 @@ define(function (require, exports, module) {
             newPane = new Pane(paneId, _$el);
             _panes[paneId] = newPane;
             
-            $(exports).triggerHandler("paneCreate", [newPane.id]);
+            exports.trigger("paneCreate", newPane.id);
             
             newPane.$el.on("click.mainview dragover.mainview", function () {
                 setActivePaneId(newPane.id);
             });
 
-            $(newPane).on("viewListChange.mainview", function () {
+            newPane.on("viewListChange.mainview", function () {
                 _updatePaneHeaders();
-                $(exports).triggerHandler("workingSetUpdate", [newPane.id]);
+                exports.trigger("workingSetUpdate", newPane.id);
             });
-            $(newPane).on("currentViewChange.mainview", function (e, newView, oldView) {
+            newPane.on("currentViewChange.mainview", function (e, newView, oldView) {
                 _updatePaneHeaders();
                 if (_activePaneId === newPane.id) {
-                    $(exports).triggerHandler("currentFileChange",
-                                              [newView && newView.getFile(),
+                    exports.trigger("currentFileChange",
+                                               newView && newView.getFile(),
                                                newPane.id, oldView && oldView.getFile(),
-                                               newPane.id]);
+                                               newPane.id);
                 }
             });
         }
@@ -1110,7 +1110,7 @@ define(function (require, exports, module) {
         //  the percentages are reset as well
         _initialLayout();
         
-        $(exports).triggerHandler("paneLayoutChange", [_orientation]);
+        exports.trigger("paneLayoutChange", _orientation);
         
         // if new pane was created, and original pane is not empty, make new pane the active pane
         if (newPane && getCurrentlyViewedFile(firstPane.id)) {
@@ -1270,17 +1270,17 @@ define(function (require, exports, module) {
             Resizer.removeSizable(firstPane.$el);
             firstPane.mergeFrom(secondPane);
         
-            $(exports).triggerHandler("workingSetRemoveList", [fileList, secondPane.id]);
+            exports.trigger("workingSetRemoveList", fileList, secondPane.id);
 
             setActivePaneId(firstPane.id);
             
             secondPane.$el.off(".mainview");
-            $(secondPane).off(".mainview");
+            secondPane.off(".mainview");
 
             secondPane.destroy();
             delete _panes[SECOND_PANE];
-            $(exports).triggerHandler("paneDestroy", secondPane.id);
-            $(exports).triggerHandler("workingSetAddList", [fileList, firstPane.id]);
+            exports.trigger("paneDestroy", secondPane.id);
+            exports.trigger("workingSetAddList", fileList, firstPane.id);
 
             _mruList.forEach(function (record) {
                 if (record.paneId === secondPane.id) {
@@ -1293,7 +1293,7 @@ define(function (require, exports, module) {
             // this will set the remaining pane to 100%
             _initialLayout();
             
-            $(exports).triggerHandler("paneLayoutChange", [_orientation]);
+            exports.trigger("paneLayoutChange", _orientation);
 
             // if the current view before the merger was in the pane
             //  that went away then reopen it so that it's now the current view again
@@ -1315,7 +1315,7 @@ define(function (require, exports, module) {
         _forEachPaneOrPanes(paneId, function (pane) {
             if (pane.removeView(file, options.noOpenNextFile)) {
                 _removeFileFromMRU(pane.id, file);
-                $(exports).triggerHandler("workingSetRemove", [file, false, pane.id]);
+                exports.trigger("workingSetRemove", file, false, pane.id);
                 return false;
             }
         });
@@ -1334,7 +1334,7 @@ define(function (require, exports, module) {
                 _removeFileFromMRU(pane.id, file);
             });
 
-            $(exports).triggerHandler("workingSetRemoveList", [closedList, pane.id]);
+            exports.trigger("workingSetRemoveList", closedList, pane.id);
         });
     }
     
@@ -1351,7 +1351,7 @@ define(function (require, exports, module) {
             });
 
             pane._reset();
-            $(exports).triggerHandler("workingSetRemoveList", [closedList, pane.id]);
+            exports.trigger("workingSetRemoveList", closedList, pane.id);
         });
     }
 
@@ -1491,7 +1491,7 @@ define(function (require, exports, module) {
                 
                 if (_orientation) {
                     _$el.addClass("split-" + _orientation.toLowerCase());
-                    $(exports).triggerHandler("paneLayoutChange", _orientation);
+                    exports.trigger("paneLayoutChange", _orientation);
                 }
 
                 _.forEach(_panes, function (pane) {
@@ -1500,7 +1500,7 @@ define(function (require, exports, module) {
                     fileList.forEach(function (file) {
                         _mruList.push(_makeMRUListEntry(file, pane.id));
                     });
-                    $(exports).triggerHandler("workingSetAddList", [fileList, pane.id]);
+                    exports.trigger("workingSetAddList", fileList, pane.id);
                 });
                 
                 promises = [];
@@ -1590,7 +1590,7 @@ define(function (require, exports, module) {
         // This ensures that unit tests that use this function 
         //  get an event handler for workspace events and we don't listen
         //  to the event before we've been initialized
-        $(WorkspaceManager).on("workspaceUpdateLayout", _updateLayout);
+        WorkspaceManager.on("workspaceUpdateLayout", _updateLayout);
     }
     
     /** 
@@ -1634,6 +1634,7 @@ define(function (require, exports, module) {
         return result;
     }
     
+    
     /** 
      * Setup a ready event to initialize ourself
      */
@@ -1641,12 +1642,14 @@ define(function (require, exports, module) {
         _initialize($("#editor-holder"));
     });
     
-    // Event handlers
-    $(ProjectManager).on("projectOpen",                       _loadViewState);
-    $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
-    $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
-    $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
+    // Event handlers - not safe to call on() directly, due to circular dependencies
+    EventDispatcher.on_duringInit(ProjectManager, "projectOpen",                       _loadViewState);
+    EventDispatcher.on_duringInit(ProjectManager, "beforeProjectClose beforeAppClose", _saveViewState);
+    EventDispatcher.on_duringInit(EditorManager, "activeEditorChange",                 _activeEditorChange);
+    EventDispatcher.on_duringInit(DocumentManager, "pathDeleted",                      _removeDeletedFileFromMRU);
     
+    
+    EventDispatcher.makeEventDispatcher(exports);
     
     // Unit Test Helpers
     exports._initialize                   = _initialize;

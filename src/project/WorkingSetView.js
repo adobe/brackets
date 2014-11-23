@@ -1364,18 +1364,18 @@ define(function (require, exports, module) {
         this.$openFilesList = this.$el.find("ul");
         
         // Register listeners
-        $(MainViewManager).on(this._makeEventName("workingSetAdd"), _.bind(this._handleFileAdded, this));
-        $(MainViewManager).on(this._makeEventName("workingSetAddList"), _.bind(this._handleFileListAdded, this));
-        $(MainViewManager).on(this._makeEventName("workingSetRemove"), _.bind(this._handleFileRemoved, this));
-        $(MainViewManager).on(this._makeEventName("workingSetRemoveList"), _.bind(this._handleRemoveList, this));
-        $(MainViewManager).on(this._makeEventName("workingSetSort"), _.bind(this._handleWorkingSetSort, this));
-        $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
-        $(MainViewManager).on(this._makeEventName("paneLayoutChange"), _.bind(this._handlePaneLayoutChange, this));
-        $(MainViewManager).on(this._makeEventName("workingSetUpdate"), _.bind(this._handleWorkingSetUpdate, this));
+        MainViewManager.on(this._makeEventName("workingSetAdd"), _.bind(this._handleFileAdded, this));
+        MainViewManager.on(this._makeEventName("workingSetAddList"), _.bind(this._handleFileListAdded, this));
+        MainViewManager.on(this._makeEventName("workingSetRemove"), _.bind(this._handleFileRemoved, this));
+        MainViewManager.on(this._makeEventName("workingSetRemoveList"), _.bind(this._handleRemoveList, this));
+        MainViewManager.on(this._makeEventName("workingSetSort"), _.bind(this._handleWorkingSetSort, this));
+        MainViewManager.on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
+        MainViewManager.on(this._makeEventName("paneLayoutChange"), _.bind(this._handlePaneLayoutChange, this));
+        MainViewManager.on(this._makeEventName("workingSetUpdate"), _.bind(this._handleWorkingSetUpdate, this));
 
-        $(DocumentManager).on(this._makeEventName("dirtyFlagChange"), _.bind(this._handleDirtyFlagChanged, this));
+        DocumentManager.on(this._makeEventName("dirtyFlagChange"), _.bind(this._handleDirtyFlagChanged, this));
 
-        $(FileViewController).on(this._makeEventName("documentSelectionFocusChange") + " " + this._makeEventName("fileViewFocusChange"), _.bind(this._updateListSelection, this));
+        FileViewController.on(this._makeEventName("documentSelectionFocusChange") + " " + this._makeEventName("fileViewFocusChange"), _.bind(this._updateListSelection, this));
         
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow(this.$openFilesContainer[0], null, true);
@@ -1398,15 +1398,15 @@ define(function (require, exports, module) {
         ViewUtils.removeScrollerShadow(this.$openFilesContainer[0], null);
         this.$openFilesContainer.off(".workingSetView");
         this.$el.remove();
-        $(MainViewManager).off(this._makeEventName(""));
-        $(DocumentManager).off(this._makeEventName(""));
-        $(FileViewController).off(this._makeEventName(""));
+        MainViewManager.off(this._makeEventName(""));
+        DocumentManager.off(this._makeEventName(""));
+        FileViewController.off(this._makeEventName(""));
     };
     
     /**
      * paneDestroy event handler
      */
-    $(MainViewManager).on("paneDestroy", function (e, paneId) {
+    MainViewManager.on("paneDestroy", function (e, paneId) {
         var view = _views[paneId];
         delete _views[view.paneId];
         view.destroy();

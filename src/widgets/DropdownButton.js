@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var DropdownEventHandler    = require("utils/DropdownEventHandler").DropdownEventHandler,
+        EventDispatcher         = require("utils/EventDispatcher"),
         WorkspaceManager        = require("view/WorkspaceManager"),
         Menus                   = require("command/Menus"),
         ViewUtils               = require("utils/ViewUtils"),
@@ -76,6 +77,7 @@ define(function (require, exports, module) {
             .text(label)
             .on("click", this._onClick);
     }
+    EventDispatcher.makeEventDispatcher(DropdownButton.prototype);
     
     /**
      * Items in dropdown list - may be changed any time dropdown isn't open
@@ -180,7 +182,7 @@ define(function (require, exports, module) {
         
         // Also trigger listRendered handler so that custom event handlers can be
         // set up for any custom UI in the list.
-        $(this).triggerHandler("listRendered", [parent]);
+        this.trigger("listRendered", parent);
         
         // Also need to re-register mouse event handlers with the updated list.
         if (this._dropdownEventHandler) {
@@ -277,7 +279,7 @@ define(function (require, exports, module) {
         this._dropdownEventHandler.open();
 
         window.document.body.addEventListener("mousedown", this._onClickOutside, true);
-        $(WorkspaceManager).on("workspaceUpdateLayout", this.closeDropdown);
+        WorkspaceManager.on("workspaceUpdateLayout", this.closeDropdown);
         
         // Manage focus
         this._lastFocus = window.document.activeElement;
@@ -291,7 +293,7 @@ define(function (require, exports, module) {
      */
     DropdownButton.prototype._onDropdownClose = function () {
         window.document.body.removeEventListener("mousedown", this._onClickOutside, true);
-        $(WorkspaceManager).off("workspaceUpdateLayout", this.closeDropdown);
+        WorkspaceManager.off("workspaceUpdateLayout", this.closeDropdown);
         
         // Restore focus to old pos, unless "select" handler changed it
         if (window.document.activeElement === this.$dropdown[0]) {
@@ -341,7 +343,7 @@ define(function (require, exports, module) {
      */
     DropdownButton.prototype._onSelect = function ($link) {
         var itemIndex = Number($link.data("index"));
-        $(this).triggerHandler("select", [this.items[itemIndex], itemIndex]);
+        this.trigger("select", this.items[itemIndex], itemIndex);
     };
     
     

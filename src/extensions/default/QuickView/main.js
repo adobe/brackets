@@ -705,11 +705,11 @@ define(function (require, exports, module) {
         hidePreview();
 
         if (previous && previous.document) {
-            $(previous.document).off("change", hidePreview);
+            previous.document.off("change", hidePreview);
         }
 
         if (current && current.document) {
-            $(current.document).on("change", hidePreview);
+            current.document.on("change", hidePreview);
         }
     }
 
@@ -731,7 +731,7 @@ define(function (require, exports, module) {
 
                 // Setup doc "change" listener
                 onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
-                $(EditorManager).on("activeEditorChange", onActiveEditorChange);
+                EditorManager.on("activeEditorChange", onActiveEditorChange);
 
             } else {
                 editorHolder.removeEventListener("mousemove", handleMouseMove, true);
@@ -740,7 +740,7 @@ define(function (require, exports, module) {
 
                 // Cleanup doc "change" listener
                 onActiveEditorChange(null, null, EditorManager.getActiveEditor());
-                $(EditorManager).off("activeEditorChange", onActiveEditorChange);
+                EditorManager.off("activeEditorChange", onActiveEditorChange);
 
                 hidePreview();
             }

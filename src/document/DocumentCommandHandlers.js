@@ -1333,7 +1333,7 @@ define(function (require, exports, module) {
                 // Give everyone a chance to save their state - but don't let any problems block
                 // us from quitting
                 try {
-                    $(ProjectManager).triggerHandler("beforeAppClose");
+                    ProjectManager.trigger("beforeAppClose");
                 } catch (ex) {
                     console.error(ex);
                 }
@@ -1363,7 +1363,7 @@ define(function (require, exports, module) {
      * Implementation for native APP_BEFORE_MENUPOPUP callback to trigger beforeMenuPopup event
      */
     function handleBeforeMenuPopup() {
-        $(PopUpManager).triggerHandler("beforeMenuPopup");
+        PopUpManager.trigger("beforeMenuPopup");
     }
 
     /** 
@@ -1561,7 +1561,7 @@ define(function (require, exports, module) {
             // Give everyone a chance to save their state - but don't let any problems block
             // us from quitting
             try {
-                $(ProjectManager).triggerHandler("beforeAppClose");
+                ProjectManager.trigger("beforeAppClose");
             } catch (ex) {
                 console.error(ex);
             }
@@ -1703,10 +1703,10 @@ define(function (require, exports, module) {
     CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReloadWithoutExts);
 
     // Listen for changes that require updating the editor titlebar
-    $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-    $(DocumentManager).on("fileNameChange", handleCurrentFileChange);
-    $(MainViewManager).on("currentFileChange", handleCurrentFileChange);
+    DocumentManager.on("dirtyFlagChange", handleDirtyChange);
+    DocumentManager.on("fileNameChange", handleCurrentFileChange);
+    MainViewManager.on("currentFileChange", handleCurrentFileChange);
 
     // Reset the untitled document counter before changing projects
-    $(ProjectManager).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });
+    ProjectManager.on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });
 });
