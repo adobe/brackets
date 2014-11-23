@@ -25,20 +25,20 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
 
     // General file io error strings
 	"GENERIC_ERROR": "(エラー {0})",
-	"NOT_FOUND_ERR": "ファイルが見つかりません。",
-	"NOT_READABLE_ERR": "ファイルを読み取れません。",
+	"NOT_FOUND_ERR": "ファイルまたはディレクトリが見つかりません。",
+	"NOT_READABLE_ERR": "ファイルまたはディレクトリを読み込めませんでした。",
+	"EXCEEDS_MAX_FILE_SIZE": "{0} MB を超えるサイズのファイルは {APP_NAME} で開くことはできません。",
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
 	"CONTENTS_MODIFIED_ERR": "このファイルは {APP_NAME} 以外で変更されています。",
 	"UNSUPPORTED_ENCODING_ERR": "{APP_NAME} は現在 UTF-8 でエンコードされたテキストファイルのみをサポートしています。",
-	"UNSUPPORTED_FILE_TYPE_ERR": "ファイルはサポートされているファイルタイプではありません。",
 	"FILE_EXISTS_ERR": "ファイルまたはディレクトリは既に存在しています。",
 	"FILE": "ファイル",
 	"FILE_TITLE": "ファイル",
@@ -48,7 +48,6 @@ define({
 	"FILENAMES_LEDE": "ファイル名",
 	"FILENAME": "ファイル名",
 	"DIRECTORY_NAME": "ディレクトリ名",
-    
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "プロジェクトを読み込む際にエラーが発生しました。",
@@ -75,6 +74,17 @@ define({
 	"ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span> を作成する際にエラーが発生しました。{2}",
 	"ERROR_MIXED_DRAGDROP": "他のファイルを開いている間はフォルダーを開くことはできません。",
 
+    // User key map error strings
+	"ERROR_KEYMAP_TITLE": "ユーザーキーマップを読み込む際にエラーが発生しました",
+	"ERROR_KEYMAP_CORRUPT": "キーマップファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。",
+	"ERROR_LOADING_KEYMAP": "キーマップファイルが UTF-8 でエンコードされた有効なテキストファイルではないため、読み込めません",
+	"ERROR_RESTRICTED_COMMANDS": "次のコマンドにショートカットを割り当て直すことはできません : {0}",
+	"ERROR_RESTRICTED_SHORTCUTS": "次のショートカットを割り当て直すことはできません : {0}",
+	"ERROR_MULTIPLE_SHORTCUTS": "次のコマンドに複数のショートカットを割り当て直しています : {0}",
+	"ERROR_DUPLICATE_SHORTCUTS": "次のショートカットの複数のバインディングがあります : {0}",
+	"ERROR_INVALID_SHORTCUTS": "次のショートカットは無効です : {0}",
+	"ERROR_NONEXISTENT_COMMANDS": "存在しないコマンドにショートカットを割り当てています : {0}",
+
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",
 	"ERROR_PREFS_CORRUPT": "環境設定ファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。変更を反映するには、{APP_NAME} を再起動する必要があります。",
@@ -82,7 +92,7 @@ define({
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",
 	"ERROR_IN_BROWSER": "{APP_NAME} は HTML で構築されていますが、デスクトップアプリとして実行することで、ローカルファイルを編集することができます。{APP_NAME} を実行するために、<b>github.com/adobe/brackets-shell</b> リポジトリのアプリケーションシェルを使用してください。",
-    
+
     // ProjectManager max files error string
 	"ERROR_MAX_FILES_TITLE": "ファイルのインデックス時にエラーが発生しました。",
 	"ERROR_MAX_FILES": "このプロジェクトには 30,000 個以上のファイルが含まれています。複数のファイルを操作する機能が無効になるか、プロジェクトが空であるかのように動作します。<a href='https://github.com/adobe/brackets/wiki/Large-Projects'>大きいプロジェクトの操作方法の詳細を表示</a>。",
@@ -91,7 +101,7 @@ define({
 	"ERROR_LAUNCHING_BROWSER_TITLE": "ブラウザーの起動時にエラーが発生しました。",
 	"ERROR_CANT_FIND_CHROME": "Google Chrome ブラウザーが見つかりません。インストールされていることを確認してください。",
 	"ERROR_LAUNCHING_BROWSER": "ブラウザーの起動時にエラーが発生しました。(エラー {0})",
-    
+
 	"LIVE_DEVELOPMENT_ERROR_TITLE": "ライブプレビューのエラーが発生しました。",
 	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "ブラウザーに接続しています",
 	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "ライブプレビューに接続するには、リモートデバッグを有効にして Chrome を再起動する必要があります。<br /><br />Chrome を再起動してリモートデバッグを有効にしますか？<br /><br />",
@@ -102,7 +112,7 @@ define({
 	"LIVE_DEVELOPMENT_INFO_TITLE": "ライブプレビューへようこそ",
 	"LIVE_DEVELOPMENT_INFO_MESSAGE": "ライブプレビューにより {APP_NAME} がブラウザーに接続しました。ブラウザーで HTML ファイルのプレビューが起動し、コードを編集すると直ちにプレビューが更新されます。<br /><br />この初期バージョンの {APP_NAME} では、<strong>Google Chrome</strong> でのみライブプレビューが機能し、<strong>CSS または HTML ファイル</strong>の編集時にのみライブ更新が行われます。 JavaScript ファイルへの変更は、保存時に自動的にリロードされます。<br /><br />(このメッセージは一度しか表示されません。)",
 	"LIVE_DEVELOPMENT_TROUBLESHOOTING": "詳しくは、<a href='{0}' title='{0}'>ライブプレビューの接続エラーに関するトラブルシューティング</a>を参照してください。",
-    
+
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "ライブプレビュー",
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "ライブプレビュー : 接続中\u2026",
 	"LIVE_DEV_STATUS_TIP_PROGRESS2": "ライブプレビュー : 初期化中\u2026",
@@ -114,7 +124,7 @@ define({
 	"LIVE_DEV_DETACHED_TARGET_CLOSED": "ブラウザーでページが閉じられたため、ライブプレビューはキャンセルされました",
 	"LIVE_DEV_NAVIGATED_AWAY": "ブラウザーで現在のプロジェクトに含まれないページに移動したため、ライブプレビューはキャンセルされました",
 	"LIVE_DEV_CLOSED_UNKNOWN_REASON": "不明な原因 ({0}) によってライブプレビューはキャンセルされました",
-    
+
 	"SAVE_CLOSE_TITLE": "変更を保存",
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
 	"SAVE_CLOSE_MULTI_MESSAGE": "以下のファイルに対する変更を保存しますか？",
@@ -125,7 +135,7 @@ define({
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> はディスク上で変更されています。<br /><br />ファイルを保存し、これらの変更を上書きしますか。",
 	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
 	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
-    
+
     // Generic dialog/button labels
 	"DONE": "完了",
 	"OK": "OK",
@@ -137,7 +147,7 @@ define({
 	"DELETE": "削除",
 	"BUTTON_YES": "はい",
 	"BUTTON_NO": "いいえ",
-    
+
     // Find, Replace, Find in Files
 	"FIND_MATCH_INDEX": "{0} / {1}",
 	"FIND_NO_RESULTS": "該当なし",
@@ -185,10 +195,10 @@ define({
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Ctrl / Command キーをクリックしてすべて展開 / 折りたたみ",
 	"REPLACE_IN_FILES_ERRORS_TITLE": "置換エラー",
 	"REPLACE_IN_FILES_ERRORS": "次のファイルは検索の後で変更されているか、書き込むことができないため、変更されていません。",
-    
+
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "更新情報を取得する際にエラーが発生しました。",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "サーバーから最新の更新情報を取得する際にエラーが発生しました。インターネット接続を確認してリトライしてください。",
-    
+
     // File exclusion filters
 	"NEW_FILE_FILTER": "新規除外セット\u2026",
 	"CLEAR_FILE_FILTER": "ファイルを除外しない",
@@ -236,8 +246,8 @@ define({
 	"SPLITVIEW_MENU_TOOLTIP": "エディターを垂直方向 / 水平方向に分割",
 	"GEAR_MENU_TOOLTIP": "ワーキングセットを構成",
 
-	"SPLITVIEW_INFO_TITLE": "!能=[7765195] Already Open_=!",
-	"SPLITVIEW_MULTIPANE_WARNING": "!能=[7765196] The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)_=!",
+	"SPLITVIEW_INFO_TITLE": "既に開かれています",
+	"SPLITVIEW_MULTIPANE_WARNING": "ファイルは他のペインで既に開かれています。{APP_NAME} ではまもなく複数のペインで同じファイルを開くことが可能になる予定です。それまでは、ファイルは既に開かれているペインで表示されます。<br /><br />(このメッセージは一度しか表示されません。)",
 
     /**
      * Keyboard modifier names
@@ -245,7 +255,7 @@ define({
 	"KEYBOARD_CTRL": "Ctrl",
 	"KEYBOARD_SHIFT": "Shift",
 	"KEYBOARD_SPACE": "Space",
-    
+
     /**
      * StatusBar strings
      */
@@ -283,12 +293,11 @@ define({
 	"NOTHING_TO_LINT": "Lint チェックするファイルがありません",
 	"LINTER_TIMED_OUT": "{0} は {1} ミリ秒待機した後でタイムアウトしました",
 	"LINTER_FAILED": "{0} は次のエラーにより終了しました : {1}",
-    
-    
+
     /**
      * Command Name Constants
      */
- 
+
     // File menu commands
 	"FILE_MENU": "ファイル",
 	"CMD_FILE_NEW_UNTITLED": "新規作成",
@@ -343,7 +352,7 @@ define({
 	"CMD_OPEN_LINE_BELOW": "下の行を開く",
 	"CMD_TOGGLE_CLOSE_BRACKETS": "自動閉じカッコ",
 	"CMD_SHOW_CODE_HINTS": "コードヒントを表示",
-    
+
     // Search menu commands
 	"FIND_MENU": "検索",
 	"CMD_FIND": "検索",
@@ -359,7 +368,7 @@ define({
 	"CMD_REPLACE_IN_FILES": "ファイルを横断して置換",
 	"CMD_REPLACE_IN_SELECTED": "選択したファイルまたはフォルダーで置換",
 	"CMD_REPLACE_IN_SUBTREE": "置換対象\u2026",
-    
+
     // View menu commands
 	"VIEW_MENU": "表示",
 	"CMD_HIDE_SIDEBAR": "サイドバーを隠す",
@@ -385,7 +394,7 @@ define({
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
 	"CMD_GOTO_DEFINITION": "定義をクイック検索",
-	"CMD_GOTO_FIRST_PROBLEM": "最初のエラーまたは警告に移動",
+	"CMD_GOTO_FIRST_PROBLEM": "!能=[7150671] Go to First Problem_=!",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
 	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",
@@ -397,7 +406,7 @@ define({
 	"CMD_SHOW_IN_EXPLORER": "エクスプローラーで表示",
 	"CMD_SHOW_IN_FINDER": "Finder で表示",
 	"CMD_SHOW_IN_OS": "OS で表示",
-    
+
     // Help menu commands
 	"HELP_MENU": "ヘルプ",
 	"CMD_CHECK_FOR_UPDATE": "更新をチェックする",
@@ -411,9 +420,11 @@ define({
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
 	"CMD_OPEN_PREFERENCES": "環境設定ファイルを開く",
+	"CMD_OPEN_KEYMAP": "ユーザーキーマップを開く",
 
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "試験ビルド",
+	"RELEASE_BUILD": "ビルド",
 	"DEVELOPMENT_BUILD": "開発ビルド",
 	"RELOAD_FROM_DISK": "ディスクから再読み込み",
 	"KEEP_CHANGES_IN_EDITOR": "エディター内の変更を保持する",
@@ -440,8 +451,8 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
-	"EMPTY_VIEW_HEADER": "<em>このビューにフォーカスがあるときにファイルを選択</em>",
-    
+	"EMPTY_VIEW_HEADER": "<em>このペインにフォーカスがあるときにファイルを開く</em>",
+
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "現在のテーマ",
 	"USE_THEME_SCROLLBARS": "テーマスクロールバーを使用",
@@ -451,7 +462,7 @@ define({
 
     // CSS Quick Edit
 	"BUTTON_NEW_RULE": "新規ルール",
-    
+
     // Extension Management strings
 	"INSTALL": "インストール",
 	"UPDATE": "更新",
@@ -542,14 +553,15 @@ define({
 	"EXTENSIONS_AVAILABLE_TITLE": "入手可能",
 	"EXTENSIONS_THEMES_TITLE": "テーマ",
 	"EXTENSIONS_UPDATES_TITLE": "アップデート",
-    
+
 	"INLINE_EDITOR_NO_MATCHES": "一致するものがありません。",
+	"INLINE_EDITOR_HIDDEN_MATCHES": "一致項目はすべて縮小されています。一致項目を表示するには、右側にリストされているファイルを展開してください。",
 	"CSS_QUICK_EDIT_NO_MATCHES": "選択に一致する既存の CSS ルールがありません。<br>「新規ルール」をクリックしてルールを作成してください。",
 	"CSS_QUICK_EDIT_NO_STYLESHEETS": "プロジェクトにはスタイルシートがありません。<br>スタイルシートを作成して CSS ルールに追加してください。",
 
     // Custom Viewers
 	"IMAGE_VIEWER_LARGEST_ICON": "最大",
-    
+
     /**
      * Unit names
      */
@@ -571,20 +583,20 @@ define({
 	"CMD_RESTART_NODE": "Node を再起動",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
 	"CMD_OPEN_BRACKETS_SOURCE": "オープン Brackets ソース",
-    
+
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",
 	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
 	"LANGUAGE_CANCEL": "キャンセル",
 	"LANGUAGE_SYSTEM_DEFAULT": "システムのデフォルト",
-    
+
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "時間",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "進行",
 	"BEZIER_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 選択したポイントを移動<br><kbd class='text'>Shift</kbd> 10 単位ずつ移動<br><kbd class='text'>Tab</kbd> ポイントを切り替え",
 	"STEPS_EDITOR_INFO": "<kbd>↑</kbd><kbd>↓</kbd> 手順を増減<br><kbd>←</kbd><kbd>→</kbd> 「開始」または「終了」",
 	"INLINE_TIMING_EDITOR_INVALID": "古い値 <code>{0}</code> が無効なため、表示されている関数は <code>{1}</code> に変更されました。ドキュメントは最初の編集内容で更新されます。",
-    
+
     // extensions/default/InlineColorEditor
 	"COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "現在の色",
 	"COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP": "元の色",
@@ -593,23 +605,23 @@ define({
 	"COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLa 形式",
 	"COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} ({1} 回使用)",
 	"COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1} 回使用)",
-    
+
     // extensions/default/JavaScriptCodeHints
 	"CMD_JUMPTO_DEFINITION": "定義にジャンプ",
 	"CMD_SHOW_PARAMETER_HINT": "パラメーターヒントを表示",
 	"NO_ARGUMENTS": "<パラメーターがありません>",
 	"DETECTED_EXCLUSION_TITLE": "JavaScript ファイルの推論問題",
-	"DETECTED_EXCLUSION_INFO": "Brackets で処理中に問題が発生しました : <br><br>{0}<br><br>このファイルはコードヒントとしては処理されず、定義に移動します。これを戻すには、プロジェクトで <code>.brackets.json</code> を開いて jscodehints.detectedExclusions からファイルを削除してください。",
-    
+	"DETECTED_EXCLUSION_INFO": "Brackets で <span class='dialog-filename'>{0}</span> の処理中に問題が発生しました。<br><br>このファイルはコードヒント、定義にジャンプ、またはクイック編集では処理されません。このファイルを再度有効にするには、プロジェクトで <code>.brackets.json</code> を開いて <code>jscodehints.detectedExclusions</code> を編集してください。<br><br>これは、Brackets のバグである可能性があります。このファイルのコピーをご提供いただける場合は、ここで名付けたファイルへのリンクを記載して<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>バグを登録</a>してください。",
+
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
-    
+
     // extensions/default/QuickView
 	"CMD_ENABLE_QUICK_VIEW": "ホバー・クイックビュー",
-    
+
     // extensions/default/RecentProjects
 	"CMD_TOGGLE_RECENT_PROJECTS": "最近使用したプロジェクト",
-    
+
     // extensions/default/WebPlatformDocs
 	"DOCS_MORE_LINK": "詳細"
 });

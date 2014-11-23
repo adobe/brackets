@@ -25,9 +25,9 @@
 /*global define */
 
 define(function (require, exports, module) {
-    
+
     "use strict";
-    
+
     // Registry for languages that have specific per-language URLs or file paths that we use
     // elsewhere in Brackets.
     //
@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         "da": true,
         "de": true,
         "es": true,
-		"fa-ir": true,
+        "fa-ir": true,
         "fi": true,
         "fr": true,
         "hr": true,

@@ -56,7 +56,12 @@ define(function (require, exports, module) {
     additionalGlobals.VERSION_PATCH = parsedVersion[3];
 
     var isDevBuild = !StringUtils.endsWith(decodeURI(window.location.pathname), "/www/index.html");
-    additionalGlobals.BUILD_TYPE    = (isDevBuild ? strings.DEVELOPMENT_BUILD : strings.EXPERIMENTAL_BUILD);
+    if (isDevBuild) {
+        additionalGlobals.BUILD_TYPE = strings.DEVELOPMENT_BUILD;
+    } else {
+        var isReleaseBuild = (brackets.platform === "mac" || brackets.platform === "win");
+        additionalGlobals.BUILD_TYPE = (isReleaseBuild ? strings.RELEASE_BUILD : strings.EXPERIMENTAL_BUILD);
+    }
     
     // Insert application strings
     _.forEach(strings, function (value, key) {

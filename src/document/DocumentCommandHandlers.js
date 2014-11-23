@@ -244,12 +244,13 @@ define(function (require, exports, module) {
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
      * @param {string=} paneId, the id oi the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE. 
+     * @param {{*}=} options, command options
      * @return {$.Promise} a jQuery promise that will either
      * - be resolved with a file for the specified file path or
      * - be rejected with FileSystemError if the file can not be read.
      * If paneId is undefined, the ACTIVE_PANE constant
      */
-    function _doOpen(fullPath, silent, paneId) {
+    function _doOpen(fullPath, silent, paneId, options) {
         var result = new $.Deferred();
         
         // workaround for https://github.com/adobe/brackets/issues/6001
@@ -288,7 +289,7 @@ define(function (require, exports, module) {
             });
 
             var file = FileSystem.getFileForPath(fullPath);
-            MainViewManager._open(paneId, file)
+            MainViewManager._open(paneId, file, options)
                 .done(function () {
                     result.resolve(file);
                 })
@@ -314,10 +315,11 @@ define(function (require, exports, module) {
      * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @param {boolean=} silent - If true, don't show error message
      * @param {string=}  paneId - the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE
+     * @param {{*}=} options - options to pass to MainViewManager._open
      * @return {$.Promise} a jQuery promise resolved with a Document object or 
      *                      rejected with an err 
      */
-    function _doOpenWithOptionalPath(fullPath, silent, paneId) {
+    function _doOpenWithOptionalPath(fullPath, silent, paneId, options) {
         var result;
         paneId = paneId || MainViewManager.ACTIVE_PANE;
         if (!fullPath) {
@@ -341,7 +343,7 @@ define(function (require, exports, module) {
                         });
                         MainViewManager.addListToWorkingSet(paneId, filesToOpen);
                         
-                        _doOpen(paths[paths.length - 1], silent, paneId)
+                        _doOpen(paths[paths.length - 1], silent, paneId, options)
                             .done(function (file) {
                                 _defaultOpenDialogFullPath =
                                     FileUtils.getDirectoryPath(
@@ -357,7 +359,7 @@ define(function (require, exports, module) {
                 }
             });
         } else {
-            result = _doOpen(fullPath, silent, paneId);
+            result = _doOpen(fullPath, silent, paneId, options);
         }
         
         return result.promise();
@@ -414,9 +416,11 @@ define(function (require, exports, module) {
             paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE,
             result = new $.Deferred();
         
-        _doOpenWithOptionalPath(fileInfo.path, silent, paneId)
+        _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
             .done(function (file) {
-                MainViewManager.setActivePaneId(paneId);
+                if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
+                    MainViewManager.setActivePaneId(paneId);
+                }
 
                 // If a line and column number were given, position the editor accordingly.
                 if (fileInfo.line !== null) {
@@ -869,7 +873,7 @@ define(function (require, exports, module) {
             // explictly allow "blind" writes to the filesystem in this case,
             // ignoring warnings about the contents being modified outside of
             // the editor.
-            FileUtils.writeText(newFile, doc.getText(), true)
+            FileUtils.writeText(newFile, doc.getText(true), true)
                 .done(function () {
                     // If there were unsaved changes before Save As, they don't stay with the old
                     // file anymore - so must revert the old doc to match disk content.
@@ -1329,7 +1333,7 @@ define(function (require, exports, module) {
                 // Give everyone a chance to save their state - but don't let any problems block
                 // us from quitting
                 try {
-                    $(ProjectManager).triggerHandler("beforeAppClose");
+                    ProjectManager.trigger("beforeAppClose");
                 } catch (ex) {
                     console.error(ex);
                 }
@@ -1359,7 +1363,7 @@ define(function (require, exports, module) {
      * Implementation for native APP_BEFORE_MENUPOPUP callback to trigger beforeMenuPopup event
      */
     function handleBeforeMenuPopup() {
-        $(PopUpManager).triggerHandler("beforeMenuPopup");
+        PopUpManager.trigger("beforeMenuPopup");
     }
 
     /** 
@@ -1557,7 +1561,7 @@ define(function (require, exports, module) {
             // Give everyone a chance to save their state - but don't let any problems block
             // us from quitting
             try {
-                $(ProjectManager).triggerHandler("beforeAppClose");
+                ProjectManager.trigger("beforeAppClose");
             } catch (ex) {
                 console.error(ex);
             }
@@ -1699,10 +1703,10 @@ define(function (require, exports, module) {
     CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReloadWithoutExts);
 
     // Listen for changes that require updating the editor titlebar
-    $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-    $(DocumentManager).on("fileNameChange", handleCurrentFileChange);
-    $(MainViewManager).on("currentFileChange", handleCurrentFileChange);
+    DocumentManager.on("dirtyFlagChange", handleDirtyChange);
+    DocumentManager.on("fileNameChange", handleCurrentFileChange);
+    MainViewManager.on("currentFileChange", handleCurrentFileChange);
 
     // Reset the untitled document counter before changing projects
-    $(ProjectManager).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });
+    ProjectManager.on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });
 });

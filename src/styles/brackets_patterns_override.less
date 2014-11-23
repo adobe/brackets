@@ -43,7 +43,12 @@ a {
 }
 
 a:hover {
+    color: @bc-text-link;
     text-decoration: underline;
+    
+    .dark & {
+        color: @dark-bc-text-link;
+    }
 }
 
 a:focus {
@@ -75,6 +80,28 @@ a:focus {
     }
 }
 
+/* working set drag ghost styles */
+
+.wsv-drag-ghost {
+    letter-spacing: .01em;
+    position: absolute;
+    z-index: @z-index-brackets-drag-ghost;
+    background-color: transparent;
+
+    text-shadow: 0px 1px 2px @bc-shadow-large;
+    
+    .dark & {
+        text-shadow: 0px 1px 2px @dark-bc-shadow-large;
+    }
+}
+
+.wsv-drag-ghost.dragging-current-file {
+    background-color: @bc-sidebar-selection;
+}
+
+#working-set-list-container .drag-show-as-selected {
+    background-color: @bc-sidebar-selection;
+}
 
 /* Toolbar-related styles */
 
@@ -259,6 +286,10 @@ a:focus {
     -webkit-transform-origin: 0 0;
     border: none;
     border-radius: @bc-border-radius;
+
+    .dark & {
+        border: 1px solid rgba(255, 255, 255, 0.09) !important;
+    }
 }
 
 @-webkit-keyframes dropdown {

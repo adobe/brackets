@@ -61,9 +61,9 @@ define(function (require, exports, module) {
     
     /** Remove the listeners that were tracking potential search result changes */
     function _removeListeners() {
-        $(DocumentModule).off("documentChange", _documentChangeHandler);
+        DocumentModule.off("documentChange", _documentChangeHandler);
         FileSystem.off("change", _fileSystemChangeHandler);
-        $(DocumentManager).off("fileNameChange", _fileNameChangeHandler);
+        DocumentManager.off("fileNameChange", _fileNameChangeHandler);
     }
     
     /** Add listeners to track events that might change the search result set */
@@ -72,9 +72,9 @@ define(function (require, exports, module) {
             // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
             _removeListeners();
         
-            $(DocumentModule).on("documentChange", _documentChangeHandler);
+            DocumentModule.on("documentChange", _documentChangeHandler);
             FileSystem.on("change", _fileSystemChangeHandler);
-            $(DocumentManager).on("fileNameChange",  _fileNameChangeHandler);
+            DocumentManager.on("fileNameChange",  _fileNameChangeHandler);
         }
     }
     
@@ -127,7 +127,9 @@ define(function (require, exports, module) {
 
             // We have the max hits in just this 1 file. Stop searching this file.
             // This fixed issue #1829 where code hangs on too many hits.
-            if (matches.length >= SearchModel.MAX_TOTAL_RESULTS) {
+            // Adds one over MAX_TOTAL_RESULTS in order to know if the search has exceeded
+            // or is equal to MAX_TOTAL_RESULTS. Additional result removed in SearchModel
+            if (matches.length > SearchModel.MAX_TOTAL_RESULTS) {
                 queryExpr.lastIndex = 0;
                 break;
             }

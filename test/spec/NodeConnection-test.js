@@ -24,7 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, ArrayBuffer, DataView, jasmine */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, ArrayBuffer, DataView, jasmine */
 
 define(function (require, exports, module) {
     "use strict";
@@ -107,7 +107,7 @@ define(function (require, exports, module) {
         
         afterEach(function () {
             _connectionsToAutoDisconnect.forEach(function (c) {
-                $(c).off("close");
+                c.off("close");
                 c.disconnect();
             });
         });
@@ -195,7 +195,7 @@ define(function (require, exports, module) {
         it("should receive events", function () {
             var connection = createConnection();
             var spy = jasmine.createSpy();
-            $(connection).one(
+            connection.one(
                 "test:eventOne",
                 spy
             );
@@ -364,7 +364,7 @@ define(function (require, exports, module) {
             );
             
             var reconnectResolved = false, closeHandlerCalled = false;
-            $(connectionOne).on("close", function (e, reconnectPromise) {
+            connectionOne.on("close", function (e, reconnectPromise) {
                 closeHandlerCalled = true;
                 reconnectPromise.then(function () {
                     reconnectResolved = true;

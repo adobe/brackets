@@ -139,13 +139,13 @@ define(function ScriptAgent(require, exports, module) {
             });
         });
 
-        $(Inspector.Page).on("frameNavigated.ScriptAgent", _onFrameNavigated);
-        $(DOMAgent).on("getDocument.ScriptAgent", _onGetDocument);
-        $(Inspector.Debugger)
+        Inspector.Page.on("frameNavigated.ScriptAgent", _onFrameNavigated);
+        DOMAgent.on("getDocument.ScriptAgent", _onGetDocument);
+        Inspector.Debugger
             .on("scriptParsed.ScriptAgent", _onScriptParsed)
             .on("scriptFailedToParse.ScriptAgent", _onScriptFailedToParse)
             .on("paused.ScriptAgent", _onPaused);
-        $(Inspector.DOM).on("childNodeInserted.ScriptAgent", _onChildNodeInserted);
+        Inspector.DOM.on("childNodeInserted.ScriptAgent", _onChildNodeInserted);
 
         return $.when(_load.promise(), enableResult.promise());
     }
@@ -153,10 +153,10 @@ define(function ScriptAgent(require, exports, module) {
     /** Clean up */
     function unload() {
         _reset();
-        $(Inspector.Page).off(".ScriptAgent");
-        $(DOMAgent).off(".ScriptAgent");
-        $(Inspector.Debugger).off(".ScriptAgent");
-        $(Inspector.DOM).off(".ScriptAgent");
+        Inspector.Page.off(".ScriptAgent");
+        DOMAgent.off(".ScriptAgent");
+        Inspector.Debugger.off(".ScriptAgent");
+        Inspector.DOM.off(".ScriptAgent");
     }
 
     // Export public functions

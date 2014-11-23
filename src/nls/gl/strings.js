@@ -38,9 +38,12 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Os permisos non permiten facer modificacións.",
     "CONTENTS_MODIFIED_ERR"             : "O arquivo foi modificado fóra de {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} actualmente só soporta arquivos codificados como UTF-8.",
+    "UNSUPPORTED_FILE_TYPE_ERR"         : "Este tipo de arquivo non é soportado.",
     "FILE_EXISTS_ERR"                   : "O arquivo xa existe.",
     "FILE"                              : "arquivo",
+    "FILE_TITLE"                        : "Arquivo",
     "DIRECTORY"                         : "directorio",
+    "DIRECTORY_TITLE"                   : "Directorio",
     "DIRECTORY_NAMES_LEDE"              : "nomes de directorios",
     "FILENAMES_LEDE"                    : "nomes de arquivos",
     "FILENAME"                          : "Nome de arquivo",
@@ -70,6 +73,7 @@ define({
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "Xa existe un arquivo ou directorio co nome <span class='dialog-filename'>{0}</span>.",
     "ERROR_CREATING_FILE_TITLE"         : "Erro creando {0}",
     "ERROR_CREATING_FILE"               : "Houbo un erro ó intentar crear o {0} <span class='dialog-filename'>{1}</span>. {2}",
+    "ERROR_MIXED_DRAGDROP"              : "Non se pode abrir o cartafol ó mesmo tempo que hai abertos outros arquivos.",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Erro lendo os axustes",
@@ -81,7 +85,7 @@ define({
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Erro indexando arquivos",
-    "ERROR_MAX_FILES"                   : "Acadouse o número máximo de arquivos indexável. Pode que as accións que buscan arquivos no índice funcionen de maneira incorrecta.",
+    "ERROR_MAX_FILES"                   : "Este proxecto contén máis de 30.000 arquivos. Funcións que operan sobre múltiples arquivos poden estar deshabilitadas ou funcionar igual que si o proxecto estivese baleiro. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Ler máis acerca de cómo traballar con proxectos grandes</a>.",
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Erro iniciando navegador",
@@ -106,7 +110,7 @@ define({
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Vista Previa en Vivo (garda o arquivo para actualizar)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Vista Previa en Vivo (non se está actualizando debido a un erro de sintaxis)",
     
-    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Vista Previa en Vivo detiuse porque abríronse as ferramentas de desenrolo",
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Vista Previa en Vivo detiuse porque abríronse as ferramentas de desenvolvemento",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Vista Previa en Vivo detiuse porque cerrouse a páxina no navegador",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Vista Previa en Vivo detiuse porque accediuse a unha páxina que non é parte do proxecto actual",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Vista Previa en Vivo detiuse por motivos descoñecidos ({0})",
@@ -135,8 +139,7 @@ define({
     "BUTTON_NO"                         : "Non",
     
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} resultados",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 resultado",
+    "FIND_MATCH_INDEX"                  : "{0} de {1}",
     "FIND_NO_RESULTS"                   : "Non hai resultados",
     "FIND_QUERY_PLACEHOLDER"            : "Atopado\u2026",
     "REPLACE_PLACEHOLDER"               : "Reemplazar con\u2026",
@@ -220,6 +223,24 @@ define({
     "WORKING_FILES"     : "Área de traballo",
     
     /**
+     * MainViewManager
+     */
+    "TOP"               : "Arriba",
+    "BOTTOM"            : "Abaixo",
+    "LEFT"              : "Esquerda",
+    "RIGHT"             : "Dereita",
+
+    "CMD_SPLITVIEW_NONE"        : "Non Dividir",
+    "CMD_SPLITVIEW_VERTICAL"    : "División Vertical",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "División Horizontal",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Dividir o editor vertical ou horizontalmente",
+    "GEAR_MENU_TOOLTIP"         : "Configurar espacio de traballo",
+
+    "SPLITVIEW_INFO_TITLE"              : "Xa está aberto",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "O arquivo xa está aberto noutro panel. {APP_NAME} pronto soportará abrir o mesmo arquivo noutro panel. Ata entón, o arquivo amosarase no panel que xa está aberto en.<br /><br />(Só verás esta mensaxe unha vez.)",
+
+    
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
@@ -246,6 +267,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensións deshabilitadas",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "SOB",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Fai click para intercambiar entre o modo insertar (INS) e o modo sobrescribir (SOB)",
+    "STATUSBAR_LANG_TOOLTIP"                : "Fai click para cambiar o tipo de arquivo",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Fai click para amosar/ocultar o panel de reportes.",
+    "STATUSBAR_DEFAULT_LANG"                : "(por defecto)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Marcar como predeterminado para os arquivos .{0}",
     
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "Problemas de {0}",
@@ -283,6 +309,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Gardar todo",
     "CMD_FILE_SAVE_AS"                    : "Gardar como\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Vista Previa en Vivo",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Forzar Recargar a Vista Previa en Vivo",
     "CMD_PROJECT_SETTINGS"                : "Configuración do proxecto\u2026",
     "CMD_FILE_RENAME"                     : "Renomear",
     "CMD_FILE_DELETE"                     : "Eliminar",
@@ -352,6 +379,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nome",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por Tipo",
     "CMD_SORT_WORKINGSET_AUTO"            : "Ordenación automática",
+    "CMD_THEMES"                          : "Temas\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navegación",
@@ -378,7 +406,7 @@ define({
     "CMD_SUPPORT"                         : "Soporte de {APP_NAME}",
     "CMD_SUGGEST"                         : "Suxerir unha mellora",
     "CMD_RELEASE_NOTES"                   : "Notas da versión",
-    "CMD_GET_INVOLVED"                    : "Involúcrese",
+    "CMD_GET_INVOLVED"                    : "Involúcrate",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir cartafol de extensións",
     "CMD_HOMEPAGE"                        : "Páxina principal de {APP_TITLE}",
     "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
@@ -387,14 +415,14 @@ define({
     
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
-    "DEVELOPMENT_BUILD"                    : "versión de desenrolo",
+    "DEVELOPMENT_BUILD"                    : "versión de desenvolvemento",
     "RELOAD_FROM_DISK"                     : "Volver a cargar dende disco",
     "KEEP_CHANGES_IN_EDITOR"               : "Conservar os cambios do editor",
     "CLOSE_DONT_SAVE"                      : "Pechar (Non gardar)",
     "RELAUNCH_CHROME"                      : "Reiniciar Chrome",
     "ABOUT"                                : "Acerca de\u2026",
     "CLOSE"                                : "Pechar",
-    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "Versión {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "construír marca de tempo: ",
     "ABOUT_TEXT_LINE3"                     : "Os avisos, termos e condicións pertencentes a software de terceiros atópanse en <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> e inclúense aquí como referencia.",
     "ABOUT_TEXT_LINE4"                     : "Podes atopar a documentación e código fonte en <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
@@ -413,6 +441,14 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "A URL base non pode conter hashes como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Os caracteres especiais como '{0}' deben codificarse en formato %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Erro descoñecido analizando a URL base",
+    "EMPTY_VIEW_HEADER"                    : "<em>Selecciona un arquivo mentres esta vista está activa</em>",
+
+    // Strings for themes-settings.html and themes-general.html 
+    "CURRENT_THEME"                        : "Tema actual",
+    "USE_THEME_SCROLLBARS"                 : "Usar scrollbars do tema",
+    "FONT_SIZE"                            : "Tamaño de letra",
+    "FONT_FAMILY"                          : "Tipo de letra",
+    "THEMES_SETTINGS"                      : "Preferencias dos temas",
     
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nova regra",
@@ -435,6 +471,8 @@ define({
     "CANCELING_INSTALL"                    : "Cancelando\u2026",
     "CANCELING_HUNG"                       : "A instalación está tardando demasiado; cancelando. Pode que se producira un erro interno.",
     "INSTALL_CANCELED"                     : "Instalación cancelada.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Ver descripción completa",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Ver descripción corta",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "O contido descargado non é un arquivo zip válido.",
     "INVALID_PACKAGE_JSON"                 : "O arquivo package.json non é válido (error: {0}).",
@@ -460,7 +498,11 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Xestor de extensións",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Non se puido acceder o rexistro de extensións. Volve a intentalo máis tarde, por favor.",
+    "INSTALL_EXTENSION_DRAG"               : "Arrastra .zip aquí ou",
+    "INSTALL_EXTENSION_DROP"               : "Solta .zip para instalar",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "A Instalación/Actualizacións foi abortada polos seguintes erros:",
     "INSTALL_FROM_URL"                     : "Instalar dende URL\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Validando\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Data",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Esta extensión necesita unha versión máis actualizada de {APP_NAME}.",
@@ -471,6 +513,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "Máis información...",
     "EXTENSION_ERROR"                      : "Erro na extensión",
     "EXTENSION_KEYWORDS"                   : "Palabras clave",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Traducido a {0} linguas, incluída a túa",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Traducido a {0} linguas",
+    "EXTENSION_TRANSLATED_LANGS"           : "Esta extensión foi traducida ás seguintes linguas: {0}",
     "EXTENSION_INSTALLED"                  : "Instalada",
     "EXTENSION_UPDATE_INSTALLED"           : "A actualización de esta extensión descargouse e instalarase despois de recargar {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Buscar",
@@ -493,9 +538,10 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Non se puido eliminar a extensión {{0}} porque no se atopa instalada.",
     "NO_EXTENSIONS"                        : "Aínda non hai ningunha extensión instalada.<br />Fai click na pestana Dispoñibles para comenzar.",
     "NO_EXTENSION_MATCHES"                 : "Non hai extensións que coincidan coa túa busca.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Ten cuidado ó instalar extensións dende unha fonte descoñecida.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: Estas extensións poden provir de diferentes autores a {APP_NAME}. As extensións non son revisadas e teñen todos os privilexios locais. Ten coidado cando instales extensións de unha fonte descoñecida.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Instaladas",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dispoñibles",
+    "EXTENSIONS_THEMES_TITLE"              : "Temas",
     "EXTENSIONS_UPDATES_TITLE"             : "Actualizacións",
     
     "INLINE_EDITOR_NO_MATCHES"             : "Non hai coincidencias dispoñibles.",
@@ -512,7 +558,7 @@ define({
     "UNIT_PIXELS"                          : "píxeles",
 
     // extensions/default/DebugCommands
-    "DEBUG_MENU"                                : "Desenrolo",
+    "DEBUG_MENU"                                : "Desenvolvemento",
     "ERRORS"                                    : "Erros",
     "CMD_SHOW_DEV_TOOLS"                        : "Amosar ferramentas para desenvolvedores",
     "CMD_REFRESH_WINDOW"                        : "Recargar con extensións",
@@ -525,7 +571,8 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Amosar estado de Node en Consola",
     "CMD_RESTART_NODE"                          : "Reiniciar Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Amosar erros na barra de estado",
-    
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Abrir código de Brackets",
+
     "LANGUAGE_TITLE"                            : "Cambiar idioma",
     "LANGUAGE_MESSAGE"                          : "Idioma:",
     "LANGUAGE_SUBMIT"                           : "Reiniciar {APP_NAME}",
@@ -552,7 +599,9 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Saltar á definición",
     "CMD_SHOW_PARAMETER_HINT"                   : "Amosar suxerencias de parámetros",
     "NO_ARGUMENTS"                              : "<non hay parámetros>",
-    
+    "DETECTED_EXCLUSION_TITLE"                  : "Problema de inferencia con un arquivo JavaScript",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets atopouse con problemas procesando:<br><br>{0}<br><br>Este arquivo non volverá a ser procesado para as suxerencias de código e saltar á definición. Para reactivarlo, abre <code>.brackets.json</code> no seu proxecto e elimina o arquivo de jscodehints.detectedExclusions.",
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
     
@@ -566,4 +615,4 @@ define({
     "DOCS_MORE_LINK"                            : "Máis"
 });
 
-/* Last translated for 3a762c3cf91d6f65a5bb19aeb2056afacd777c71 */
+/* Last translated for a4e9a06605cfca5dff5ab5dbacfb1d97c604b6f0 */

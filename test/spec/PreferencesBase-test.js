@@ -726,7 +726,7 @@ define(function (require, exports, module) {
                 
                 storage.data = data2;
                 var events1 = [];
-                $(scope).on("change", function (e, data) {
+                scope.on("change", function (e, data) {
                     events1.push(data);
                 });
                 scope.load();
@@ -755,7 +755,7 @@ define(function (require, exports, module) {
 
                 storage.data = data3;
                 var events2 = [];
-                $(scope).on("change", function (e, data) {
+                scope.on("change", function (e, data) {
                     events2.push(data);
                 });
                 scope.load();

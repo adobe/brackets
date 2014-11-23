@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         MainViewManager = require("view/MainViewManager"),
         FileSystem      = require("filesystem/FileSystem"),
         FileUtils       = require("file/FileUtils"),
+        FindBar         = require("search/FindBar").FindBar,
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
         StringUtils     = require("utils/StringUtils"),
@@ -71,19 +72,50 @@ define(function (require, exports, module) {
         return replaceWith;
     }
     
-    /*
-     * Returns the string used to prepopulate the find bar
-     * @param {!Editor} editor
-     * @return {string} first line of primary selection to populate the find bar
+    /**
+     * Gets you the right query and replace text to prepopulate the Find Bar.
+     * @param {?FindBar} currentFindBar The currently open Find Bar, if any
+     * @param {?Editor} The active editor, if any
+     * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
      */
-    function getInitialQueryFromSelection(editor) {
-        var selectionText = editor.getSelectedText();
-        if (selectionText) {
-            return selectionText
-                .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
-                .split("\n")[0];
+    function getInitialQuery(currentFindBar, editor) {
+        var query = "",
+            replaceText = "";
+
+        /*
+         * Returns the string used to prepopulate the find bar
+         * @param {!Editor} editor
+         * @return {string} first line of primary selection to populate the find bar
+         */
+        function getInitialQueryFromSelection(editor) {
+            var selectionText = editor.getSelectedText();
+            if (selectionText) {
+                return selectionText
+                    .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
+                    .split("\n")[0];
+            }
+            return "";
         }
-        return "";
+
+        if (currentFindBar && !currentFindBar.isClosed()) {
+            // The modalBar was already up. When creating the new modalBar, copy the
+            // current query instead of using the passed-in selected text.
+            query = currentFindBar.getQueryInfo().query;
+            replaceText = currentFindBar.getReplaceText();
+        } else {
+            var openedFindBar = FindBar._bars && _.find(FindBar._bars, function (bar) {
+                    return !bar.isClosed();
+                });
+
+            if (openedFindBar) {
+                query = openedFindBar.getQueryInfo().query;
+                replaceText = openedFindBar.getReplaceText();
+            } else if (editor) {
+                query = getInitialQueryFromSelection(editor);
+            }
+        }
+
+        return {query: query, replaceText: replaceText};
     }
 
     /**
@@ -244,6 +276,16 @@ define(function (require, exports, module) {
                         var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
                         // newDoc might be null if the replacement failed.
                         if (newDoc) {
+                            // @todo change the `_edit` call to this:
+                            //     
+                            ///    CommandManager.execute(Commands.FILE_OPEN, {fullPath: firstPath});
+                            //
+                            // The problem with doing that is that the promise returned by this
+                            // function has already been resolved by `Async.doInParallel()` and
+                            // `CommandManager.execute` is an asynchronous operation.
+                            // An asynchronous open can't be waited on (since the promise has been  
+                            //  resolved already) so use the synchronous version so that the next `done`
+                            //  handler is blocked until the open completes
                             MainViewManager._edit(MainViewManager.ACTIVE_PANE, newDoc);
                         }
                     }
@@ -311,7 +353,7 @@ define(function (require, exports, module) {
     }
 
     exports.parseDollars                    = parseDollars;
-    exports.getInitialQueryFromSelection    = getInitialQueryFromSelection;
+    exports.getInitialQuery                 = getInitialQuery;
     exports.hasCheckedMatches               = hasCheckedMatches;
     exports.performReplacements             = performReplacements;
     exports.labelForScope                   = labelForScope;
