@@ -611,27 +611,6 @@ define(function (require, exports, module) {
         });
     
     /**
-     * @private
-     * Examine each preference key for migration of the working set files.
-     * If the key has a prefix of "files_/", then it is a working set files 
-     * preference from old preference model.
-     *
-     * @param {string} key The key of the preference to be examined
-     *      for migration of working set files.
-     * @return {?string} - the scope to which the preference is to be migrated
-     */
-    function _checkPreferencePrefix(key) {
-        var pathPrefix = "files_";
-        if (key.indexOf(pathPrefix) === 0) {
-            // Get the project path from the old preference key by stripping "files_".
-            var projectPath = key.substr(pathPrefix.length);
-            return "user project.files " + projectPath;
-        }
-        
-        return null;
-    }
-    
-    /**
      * Creates a deprecation warning event handler
      * @param {!string} eventName - the event being deprecated. 
      *  The Event Name doesn't change just which object dispatches it
@@ -645,7 +624,7 @@ define(function (require, exports, module) {
                                           "MainViewManager." + eventName);
     }
     
-    /* 
+    /*
      * Setup an extensionsLoaded handler to register deprecated events.  
      * We do this so these events are added to the end of the event
      * handler chain which gives the system a chance to process them
@@ -665,8 +644,6 @@ define(function (require, exports, module) {
         _deprecateEvent("workingSetSort");
     });
     
-    PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);
-
     // Handle file saves that may affect preferences
     $(exports).on("documentSaved", function (e, doc) {
         PreferencesManager.fileChanged(doc.file.fullPath);

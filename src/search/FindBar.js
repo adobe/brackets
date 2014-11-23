@@ -485,7 +485,6 @@ define(function (require, exports, module) {
     
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
     PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
-    PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"}, true);
     
     exports.FindBar = FindBar;
 });
