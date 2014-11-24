@@ -83,6 +83,7 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
     
     var AppInit             = require("utils/AppInit"),
+        Async               = require("utils/Async"),
         EventDispatcher     = require("utils/EventDispatcher"),
         DocumentModule      = require("document/Document"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
@@ -355,23 +356,24 @@ define(function (require, exports, module) {
                 var result = new Promise(function (resolve, reject) {
 
                     // create a new document
-                    FileUtils.readAsText(file)
-                        .then(function (args) {
-                            var rawText       = args[0],
-                                readTimestamp = args[1];
-                            delete getDocumentForPath._pendingDocumentPromises[file.id];
-                            
-                            doc = new DocumentModule.Document(file, readTimestamp, rawText);
+                    var promise = FileUtils.readAsText(file);
+                    Async.promiseAlways(promise, function () {
+                        delete getDocumentForPath._pendingDocumentPromises[file.id];
+                    });
+                    promise.then(function (args) {
+                        var rawText       = args[0],
+                            readTimestamp = args[1];
 
-                            // This is a good point to clean up any old dangling Documents
-                            _gcDocuments();
+                        doc = new DocumentModule.Document(file, readTimestamp, rawText);
 
-                            resolve(doc);
-                        })
-                        .catch(function (fileError) {
-                            delete getDocumentForPath._pendingDocumentPromises[file.id];
-                            reject(fileError);
-                        });
+                        // This is a good point to clean up any old dangling Documents
+                        _gcDocuments();
+
+                        resolve(doc);
+                    });
+                    promise.catch(function (fileError) {
+                        reject(fileError);
+                    });
                 });
                 
                 // log this document's Promise as pending

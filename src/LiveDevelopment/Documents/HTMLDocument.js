@@ -267,8 +267,7 @@ define(function HTMLDocumentModule(require, exports, module) {
                         console.log(delta);
                     });
                 }
-            },
-            null
+            }
         );
     };
 
@@ -334,8 +333,7 @@ define(function HTMLDocumentModule(require, exports, module) {
             applyEditsPromise.then(
                 function () {
                     self._compareWithBrowser(change);
-                },
-                null
+                }
             );
         }
         

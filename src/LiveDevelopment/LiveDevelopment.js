@@ -654,11 +654,10 @@ define(function LiveDevelopment(require, exports, module) {
                     Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                     _makeTroubleshootingMessage(Strings.LIVE_DEV_LOADING_ERROR_MESSAGE)
                 );
-                _loadAgentsPromise = null;
-            })
-            .then(function () {
-                _loadAgentsPromise = null;
             });
+        Async.promiseAlways(_loadAgentsPromise, function () {
+            _loadAgentsPromise = null;
+        });
 
         return _loadAgentsPromise;
     }

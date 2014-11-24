@@ -860,14 +860,14 @@ define(function (require, exports, module) {
                         fileOpenPromise = handleFileAddToWorkingSetAndOpen({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
                     }
 
+                    // always configure editor after file is opened
+                    fileOpenPromise.then(_configureEditorAndResolve, _configureEditorAndResolve);
+
                     // Same name as before - just do a regular Save
                     if (path === origPath) {
                         doSave(doc).then(resolve, reject);
                         return;
                     }
-
-                    // always configure editor after file is opened
-                    fileOpenPromise.then(_configureEditorAndResolve, _configureEditorAndResolve);
                 }
                 
                 doc.isSaving = true;    // mark that we're saving the document
@@ -879,33 +879,30 @@ define(function (require, exports, module) {
                 // explictly allow "blind" writes to the filesystem in this case,
                 // ignoring warnings about the contents being modified outside of
                 // the editor.
-                FileUtils.writeText(newFile, doc.getText(), true)
-                    .then(function () {
-                        // If there were unsaved changes before Save As, they don't stay with the old
-                        // file anymore - so must revert the old doc to match disk content.
-                        // Only do this if the doc was dirty: doRevert on a file that is not dirty and
-                        // not in the working set has the side effect of adding it to the working set.
-                        if (doc.isDirty && !(doc.isUntitled())) {
-                            // if the file is dirty it must be in the working set
-                            // doRevert is side effect free in this case
-                            doRevert(doc).then(openNewFile, openNewFile);
-                        } else {
-                            openNewFile();
-                        }
-
-                        // mark that we're done saving the document
-                        doc.isSaving = false;
-                    })
-                    .catch(function (error) {
-                        _showSaveFileError(error, path)
-                            .then(function () {
-                                reject(error);
-                            });
-
-                        // mark that we're done saving the document
-                        doc.isSaving = false;
-                    });
-            
+                var promise = FileUtils.writeText(newFile, doc.getText(), true);
+                promise.then(function () {
+                    // If there were unsaved changes before Save As, they don't stay with the old
+                    // file anymore - so must revert the old doc to match disk content.
+                    // Only do this if the doc was dirty: doRevert on a file that is not dirty and
+                    // not in the working set has the side effect of adding it to the working set.
+                    if (doc.isDirty && !(doc.isUntitled())) {
+                        // if the file is dirty it must be in the working set
+                        // doRevert is side effect free in this case
+                        doRevert(doc).then(openNewFile, openNewFile);
+                    } else {
+                        openNewFile();
+                    }
+                });
+                promise.catch(function (error) {
+                    _showSaveFileError(error, path)
+                        .then(function () {
+                            reject(error);
+                        });
+                });
+                Async.promiseAlways(promise, function () {
+                    // mark that we're done saving the document
+                    doc.isSaving = false;
+                });
             }
 
             if (doc) {

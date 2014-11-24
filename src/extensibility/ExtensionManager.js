@@ -204,33 +204,31 @@ define(function (require, exports, module) {
         
         pendingDownloadRegistry = new Promise(function (resolve, reject) {
             
-            Promise.resolve(
+            var promise = Promise.resolve(
                 $.ajax({
                     url: brackets.config.extension_registry,
                     dataType: "json",
                     cache: false
                 })
-            )
-                .then(function (data) {
-                    Object.keys(data).forEach(function (id) {
-                        if (!extensions[id]) {
-                            extensions[id] = {};
-                        }
-                        extensions[id].registryInfo = data[id];
-                        synchronizeEntry(id);
-                    });
-                    exports.trigger("registryDownload");
-                    resolve();
-
-                    // Make sure to clean up the pending registry so that new requests can be made.
-                    pendingDownloadRegistry = null;
-                })
-                .catch(function () {
-                    reject();
-
-                    // Make sure to clean up the pending registry so that new requests can be made.
-                    pendingDownloadRegistry = null;
+            );
+            promise.then(function (data) {
+                Object.keys(data).forEach(function (id) {
+                    if (!extensions[id]) {
+                        extensions[id] = {};
+                    }
+                    extensions[id].registryInfo = data[id];
+                    synchronizeEntry(id);
                 });
+                exports.trigger("registryDownload");
+                resolve();
+            });
+            promise.catch(function () {
+                reject();
+            });
+            Async.promiseAlways(promise, function () {
+                // Make sure to clean up the pending registry so that new requests can be made.
+                pendingDownloadRegistry = null;
+            });
         });
         
         return pendingDownloadRegistry;

@@ -135,8 +135,7 @@ define(function main(require, exports, module) {
                 ).then(
                     function (id) {
                         LiveDevelopment.open();
-                    },
-                    null
+                    }
                 );
             } else {
                 LiveDevelopment.open();
