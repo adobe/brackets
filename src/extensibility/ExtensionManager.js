@@ -385,14 +385,13 @@ define(function (require, exports, module) {
      *     rejected with an error if there's a problem with the removal.
      */
     function remove(id) {
-<<<<<<< HEAD
         return new Promise(function (resolve, reject) {
             if (extensions[id] && extensions[id].installInfo) {
                 Package.remove(extensions[id].installInfo.path)
                     .then(function () {
                         extensions[id].installInfo = null;
                         resolve();
-                        $(exports).triggerHandler("statusChange", [id]);
+                        exports.trigger("statusChange", [id]);
                     })
                     .catch(function (err) {
                         reject(err);
@@ -401,23 +400,6 @@ define(function (require, exports, module) {
                 reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
             }
         });
-=======
-        var result = new $.Deferred();
-        if (extensions[id] && extensions[id].installInfo) {
-            Package.remove(extensions[id].installInfo.path)
-                .done(function () {
-                    extensions[id].installInfo = null;
-                    result.resolve();
-                    exports.trigger("statusChange", id);
-                })
-                .fail(function (err) {
-                    result.reject(err);
-                });
-        } else {
-            result.reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
-        }
-        return result.promise();
->>>>>>> origin/master
     }
 
     /**
