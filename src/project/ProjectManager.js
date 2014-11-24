@@ -826,7 +826,7 @@ define(function (require, exports, module) {
                     // close all the old files
                     MainViewManager._closeAll(MainViewManager.ALL_PANES);
 
-                    var fnUnwatchProjectRootAlways = function () {
+                    Async.promiseAlways(_unwatchProjectRoot(), function () {
                         // Done closing old project (if any)
                         if (model.projectRoot) {
                             LanguageManager._resetPathLanguageOverrides();
@@ -835,8 +835,7 @@ define(function (require, exports, module) {
                         }
 
                         startLoadResolve();
-                    };
-                    _unwatchProjectRoot().then(fnUnwatchProjectRootAlways, fnUnwatchProjectRootAlways);
+                    });
                 }
             });
 
@@ -864,7 +863,7 @@ define(function (require, exports, module) {
 
                         _projectWarnedForTooManyFiles = false;
 
-                        var fnSetProjectRootAlways = function () {
+                        Async.promiseAlways(_setProjectRoot(rootEntry), function () {
                             model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
 
                             if (projectRootChanged) {
@@ -889,8 +888,7 @@ define(function (require, exports, module) {
                                 resultResolve();
                             }
                             PerfUtils.addMeasurement(perfTimerName);
-                        };
-                        _setProjectRoot(rootEntry).then(fnSetProjectRootAlways, fnSetProjectRootAlways);
+                        });
 
                     } else {
                         console.log("error loading project");

@@ -440,7 +440,7 @@ define(function (require, exports, module) {
         findExternalChanges(allDocs)
             .then(function () {
                 // 2) Check un-open working set entries for deletion (& "close" if needed)
-                var fnSyncUnopenAlways = function () {
+                Async.promiseAlways(syncUnopenWorkingSet(), function () {
                     // If we were unable to check any un-open files for deletion, silently ignore
                     // (after logging to console). This doesn't have any bearing on syncing truly
                     // open Documents (which we've already successfully checked).
@@ -451,13 +451,13 @@ define(function (require, exports, module) {
                     // and we still continue onto phase 4 and try to process those files anyway.
                     // (We'll retry the auto-reloads next time window is activated... and evenually
                     // we'll also be double checking before each Save).
-                    var fnReloadAlways = function () {
+                    Async.promiseAlways(reloadChangedDocs(), function () {
                         // 4) Close clean docs as needed
                         // This phase completes synchronously
                         closeDeletedDocs();
 
                         // 5) Prompt for dirty editors (conflicts)
-                        var fnPresentConflictsAlways = function () {
+                        Async.promiseAlways(presentConflicts(title), function () {
                             if (_restartPending) {
                                 // Restart the sync if needed
                                 _restartPending = false;
@@ -475,15 +475,9 @@ define(function (require, exports, module) {
                                 // (Any errors that ocurred during presentConflicts() have already
                                 // shown UI & been dismissed, so there's no fail() handler here)
                             }
-                        };
-                        
-                        presentConflicts(title).then(fnPresentConflictsAlways, fnPresentConflictsAlways);
-                    };
-                    
-                    reloadChangedDocs().then(fnReloadAlways, fnReloadAlways);
-                };
-                
-                syncUnopenWorkingSet().then(fnSyncUnopenAlways, fnSyncUnopenAlways);
+                        });
+                    });
+                });
             })
             .catch(function () {   // onReject
                 // Unable to fetch timestamps for some reason - silently ignore (after logging to console)

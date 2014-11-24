@@ -234,7 +234,8 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
-    var Commands            = require("command/Commands"),
+    var Async               = require("utils/Async"),
+        Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         EditorManager       = require("editor/EditorManager"),
         Strings             = require("strings"),
@@ -461,10 +462,9 @@ define(function (require, exports, module) {
                     }
                 });
                 
-                var fnHintsPromiseAlways = function () {
+                Async.promiseAlways(hintsPromise.promise, function () {
                     hintsPromise = {};
-                };
-                hintsPromise.promise.then(fnHintsPromiseAlways, fnHintsPromiseAlways);
+                });
             }
         }
     }

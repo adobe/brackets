@@ -82,18 +82,6 @@ define(function (require, exports, module) {
     _addScopePromises.push(userScopeLoading);
 
     // Set up the .brackets.json file handling
-    var fnUserScopeAlways = function () {
-        _addScopePromises.push(manager.addScope("project", projectScope, {
-            before: "user"
-        }));
-
-        // Session Scope is for storing prefs in memory only but with the highest precedence.
-        _addScopePromises.push(manager.addScope("session", new PreferencesBase.MemoryStorage()));
-
-        Async.waitForAll(_addScopePromises)
-            .then(_prefManagerReadyResolve, _prefManagerReadyResolve);
-    };
-    
     userScopeLoading
         .catch(function (err) {
             _addScopePromises.push(manager.addScope("user", new PreferencesBase.MemoryStorage(), {
@@ -104,8 +92,18 @@ define(function (require, exports, module) {
                 userScopeCorrupt = true;
             }
         });
-    userScopeLoading
-        .then(fnUserScopeAlways, fnUserScopeAlways);
+    
+    Async.promiseAlways(userScopeLoading, function () {
+        _addScopePromises.push(manager.addScope("project", projectScope, {
+            before: "user"
+        }));
+
+        // Session Scope is for storing prefs in memory only but with the highest precedence.
+        _addScopePromises.push(manager.addScope("session", new PreferencesBase.MemoryStorage()));
+
+        Async.waitForAll(_addScopePromises)
+            .then(_prefManagerReadyResolve, _prefManagerReadyResolve);
+    });
     
     // "State" is stored like preferences but it is not generally intended to be user-editable.
     // It's for more internal, implicit things like window size, working set, etc.

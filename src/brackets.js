@@ -243,14 +243,15 @@ define(function (require, exports, module) {
         }
 
         // Load default languages and preferences
-        var fnLoadLanguagesPreferenceAlways = function () {
+        var loadLanguagesPreferencesPromise = Async.waitForAll([LanguageManager.ready, PreferencesManager.ready]);
+        Async.promiseAlways(loadLanguagesPreferencesPromise, function () {
             // Load all extensions. This promise will complete even if one or more
             // extensions fail to load.
             var extensionPathOverride = params.get("extensions");  // used by unit tests
             var extensionLoaderPromise = ExtensionLoader.init(extensionPathOverride ? extensionPathOverride.split(",") : null);
             
             // Load the initial project after extensions have loaded
-            var fnExtensionLoaderAlways = function () {
+            Async.promiseAlways(extensionLoaderPromise, function () {
                 
                 // Signal that extensions are loaded
                 AppInit._dispatchReady(AppInit.EXTENSIONS_LOADED);
@@ -259,7 +260,7 @@ define(function (require, exports, module) {
                 ViewCommandHandlers.restoreFontSize();
                 var initialProjectPath = ProjectManager.getInitialProjectPath();
                 
-                var fnOpenProjectAlways = function () {
+                Async.promiseAlways(ProjectManager.openProject(initialProjectPath), function () {
                     _initTest();
                     
                     // If this is the first launch, and we have an index.html file in the project folder (which should be
@@ -286,7 +287,7 @@ define(function (require, exports, module) {
                         }
                     });
                     
-                    var fnFirstLaunchAlways = function () {
+                    Async.promiseAlways(firstLaunchPromise, function () {
                         // Signal that Brackets is loaded
                         AppInit._dispatchReady(AppInit.APP_READY);
                         
@@ -302,8 +303,7 @@ define(function (require, exports, module) {
                                     CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
                                 });
                         }
-                    };
-                    firstLaunchPromise.then(fnFirstLaunchAlways, fnFirstLaunchAlways);
+                    });
                     
                     // See if any startup files were passed to the application
                     if (brackets.app.getPendingFilesToOpen) {
@@ -311,14 +311,9 @@ define(function (require, exports, module) {
                             DragAndDrop.openDroppedFiles(paths);
                         });
                     }
-                };
-                ProjectManager.openProject(initialProjectPath).then(fnOpenProjectAlways, fnOpenProjectAlways);
-            };
-            extensionLoaderPromise.then(fnExtensionLoaderAlways, fnExtensionLoaderAlways);
-        };
-        Async
-            .waitForAll([LanguageManager.ready, PreferencesManager.ready])
-            .then(fnLoadLanguagesPreferenceAlways, fnLoadLanguagesPreferenceAlways);
+                });
+            });
+        });
         
         // Check for updates
         if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
@@ -462,12 +457,11 @@ define(function (require, exports, module) {
     // Wait for view state to load.
     var viewStateTimer = PerfUtils.markStart("User viewstate loading");
     
-    var fnUserScopeLoadingAlways = function () {
+    Async.promiseAlways(PreferencesManager._smUserScopeLoading, function () {
         PerfUtils.addMeasurement(viewStateTimer);
         // Dispatch htmlReady event
         _beforeHTMLReady();
         AppInit._dispatchReady(AppInit.HTML_READY);
         $(window.document).ready(_onReady);
-    };
-    PreferencesManager._smUserScopeLoading.then(fnUserScopeLoadingAlways, fnUserScopeLoadingAlways);
+    });
 });
