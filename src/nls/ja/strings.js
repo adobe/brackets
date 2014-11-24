@@ -32,8 +32,8 @@ define({
 
     // General file io error strings
 	"GENERIC_ERROR": "(エラー {0})",
-	"NOT_FOUND_ERR": "ファイルが見つかりません。",
-	"NOT_READABLE_ERR": "ファイルを読み取れません。",
+	"NOT_FOUND_ERR": "ファイルまたはディレクトリが見つかりません。",
+	"NOT_READABLE_ERR": "ファイルまたはディレクトリを読み込めませんでした。",
 	"EXCEEDS_MAX_FILE_SIZE": "{0} MB を超えるサイズのファイルは {APP_NAME} で開くことはできません。",
 	"NO_MODIFICATION_ALLOWED_ERR": "対象ディレクトリは変更できません。",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "ファイルを変更する権限がありません。",
@@ -394,7 +394,7 @@ define({
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
 	"CMD_GOTO_DEFINITION": "定義をクイック検索",
-	"CMD_GOTO_FIRST_PROBLEM": "最初のエラーまたは警告に移動",
+	"CMD_GOTO_FIRST_PROBLEM": "!能=[7150671] Go to First Problem_=!",
 	"CMD_TOGGLE_QUICK_EDIT": "クイック編集",
 	"CMD_TOGGLE_QUICK_DOCS": "クイックドキュメント",
 	"CMD_QUICK_EDIT_PREV_MATCH": "前の候補に移動",

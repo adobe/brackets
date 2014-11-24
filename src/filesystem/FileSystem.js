@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 /**
  * FileSystem is a model object representing a complete file system. This object creates
@@ -96,7 +96,8 @@ define(function (require, exports, module) {
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex"),
         FileSystemError = require("filesystem/FileSystemError"),
-        WatchedRoot     = require("filesystem/WatchedRoot");
+        WatchedRoot     = require("filesystem/WatchedRoot"),
+        EventDispatcher = require("utils/EventDispatcher");
     
     /**
      * The FileSystem is not usable until init() signals its callback.
@@ -115,6 +116,7 @@ define(function (require, exports, module) {
         // Initialize the queue of pending external changes
         this._externalChanges = [];
     }
+    EventDispatcher.makeEventDispatcher(FileSystem.prototype);
     
     /**
      * The low-level file system implementation used by this object. 
@@ -671,7 +673,7 @@ define(function (require, exports, module) {
      * @param {string} newPath The entry's current fullPath
      */
     FileSystem.prototype._fireRenameEvent = function (oldPath, newPath) {
-        $(this).trigger("rename", [oldPath, newPath]);
+        this.trigger("rename", oldPath, newPath);
     };
 
     /**
@@ -684,7 +686,7 @@ define(function (require, exports, module) {
      *      is a set of removed entries from the directory.
      */
     FileSystem.prototype._fireChangeEvent = function (entry, added, removed) {
-        $(this).trigger("change", [entry, added, removed]);
+        this.trigger("change", entry, added, removed);
     };
     
     /**
@@ -994,7 +996,7 @@ define(function (require, exports, module) {
      * @param {function} handler The handler for the event
      */
     exports.on = function (event, handler) {
-        $(_instance).on(event, handler);
+        _instance.on(event, handler);
     };
     
     /**
@@ -1004,7 +1006,7 @@ define(function (require, exports, module) {
      * @param {function} handler The handler for the event
      */
     exports.off = function (event, handler) {
-        $(_instance).off(event, handler);
+        _instance.off(event, handler);
     };
     
     // Export the FileSystem class as "private" for unit testing only.

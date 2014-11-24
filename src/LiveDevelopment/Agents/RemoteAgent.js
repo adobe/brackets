@@ -35,9 +35,8 @@
 define(function RemoteAgent(require, exports, module) {
     "use strict";
 
-    var $exports = $(exports);
-
     var LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
+        EventDispatcher = require("utils/EventDispatcher"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
         RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
 
@@ -49,7 +48,7 @@ define(function RemoteAgent(require, exports, module) {
         // res = {nodeId, name, value}
         var matches = /^data-ld-(.*)/.exec(res.name);
         if (matches) {
-            $exports.triggerHandler(matches[1], res);
+            exports.trigger(matches[1], res);
         }
     }
 
@@ -124,8 +123,8 @@ define(function RemoteAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        $(Inspector.Page).on("frameStartedLoading.RemoteAgent", _stopKeepAliveInterval);
-        $(Inspector.DOM).on("attributeModified.RemoteAgent", _onAttributeModified);
+        Inspector.Page.on("frameStartedLoading.RemoteAgent", _stopKeepAliveInterval);
+        Inspector.DOM.on("attributeModified.RemoteAgent", _onAttributeModified);
 
         return new Promise(function (resolve, reject) {
             // WebInspector Event: Page.frameNavigated
@@ -153,17 +152,20 @@ define(function RemoteAgent(require, exports, module) {
                 });
             }
             
-            $(Inspector.Page).on("frameNavigated.RemoteAgent", _onFrameNavigated);
+            Inspector.Page.on("frameNavigated.RemoteAgent", _onFrameNavigated);
         });
     }
 
     /** Clean up */
     function unload() {
-        $(Inspector.Page).off(".RemoteAgent");
-        $(Inspector.DOM).off(".RemoteAgent");
+        Inspector.Page.off(".RemoteAgent");
+        Inspector.DOM.off(".RemoteAgent");
         _stopKeepAliveInterval();
     }
-
+    
+    
+    EventDispatcher.makeEventDispatcher(exports);
+    
     // Export public functions
     exports.call = call;
     exports.load = load;

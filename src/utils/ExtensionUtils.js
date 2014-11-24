@@ -72,7 +72,7 @@ define(function (require, exports, module) {
     /**
      * getModuleUrl returns different urls for win platform
      * so that's why we need a different check here
-     * @see getModuleUrl()
+     * @see #getModuleUrl
      * @param {!string} pathOrUrl that should be checked if it's absolute
      * @return {!boolean} returns true if pathOrUrl is absolute url on win platform
      *                    or when it's absolute path on other platforms

@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     require("spec/EditorCommandHandlers-test");
     require("spec/EditorOptionHandlers-test");
     require("spec/EditorManager-test");
+    require("spec/EventDispatcher-test");
     require("spec/ExtensionInstallation-test");
     require("spec/ExtensionLoader-test");
     require("spec/ExtensionManager-test");

@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var Strings                   = require("strings"),
+        EventDispatcher           = require("utils/EventDispatcher"),
         StringUtils               = require("utils/StringUtils"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
         registry_utils            = require("extensibility/registry_utils"),
@@ -43,6 +44,7 @@ define(function (require, exports, module) {
      */
     function ExtensionManagerView() {
     }
+    EventDispatcher.makeEventDispatcher(ExtensionManagerView.prototype);
     
     /**
      * Initializes the view to show a set of extensions.
@@ -147,7 +149,7 @@ define(function (require, exports, module) {
         var self = this;
 
         // Listen for model data and filter changes.
-        $(this.model)
+        this.model
             .on("filter", function () {
                 self._render();
             })
@@ -367,7 +369,7 @@ define(function (require, exports, module) {
             $item.appendTo(self._$table);
         });
         
-        $(this).triggerHandler("render");
+        this.trigger("render");
     };
     
     /**

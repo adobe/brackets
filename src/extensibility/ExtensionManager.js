@@ -39,6 +39,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                   = require("thirdparty/lodash"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         Package             = require("extensibility/Package"),
         AppInit             = require("utils/AppInit"),
         Async               = require("utils/Async"),
@@ -148,7 +149,7 @@ define(function (require, exports, module) {
             }
         }
 
-        $(exports).triggerHandler("registryUpdate", [id]);
+        exports.trigger("registryUpdate", id);
     }
 
 
@@ -218,7 +219,7 @@ define(function (require, exports, module) {
                         extensions[id].registryInfo = data[id];
                         synchronizeEntry(id);
                     });
-                    $(exports).triggerHandler("registryDownload");
+                    exports.trigger("registryDownload");
                     resolve();
 
                     // Make sure to clean up the pending registry so that new requests can be made.
@@ -272,7 +273,7 @@ define(function (require, exports, module) {
             };
             synchronizeEntry(id);
             loadTheme(id);
-            $(exports).triggerHandler("statusChange", [id]);
+            exports.trigger("statusChange", id);
         }
 
         ExtensionUtils.loadPackageJson(path)
@@ -384,6 +385,7 @@ define(function (require, exports, module) {
      *     rejected with an error if there's a problem with the removal.
      */
     function remove(id) {
+<<<<<<< HEAD
         return new Promise(function (resolve, reject) {
             if (extensions[id] && extensions[id].installInfo) {
                 Package.remove(extensions[id].installInfo.path)
@@ -399,6 +401,23 @@ define(function (require, exports, module) {
                 reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
             }
         });
+=======
+        var result = new $.Deferred();
+        if (extensions[id] && extensions[id].installInfo) {
+            Package.remove(extensions[id].installInfo.path)
+                .done(function () {
+                    extensions[id].installInfo = null;
+                    result.resolve();
+                    exports.trigger("statusChange", id);
+                })
+                .fail(function (err) {
+                    result.reject(err);
+                });
+        } else {
+            result.reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
+        }
+        return result.promise();
+>>>>>>> origin/master
     }
 
     /**
@@ -452,7 +471,7 @@ define(function (require, exports, module) {
         } else {
             delete _idsToRemove[id];
         }
-        $(exports).triggerHandler("statusChange", [id]);
+        exports.trigger("statusChange", id);
     }
 
     /**
@@ -491,7 +510,7 @@ define(function (require, exports, module) {
             var id = installationResult.name;
             delete _idsToRemove[id];
             _idsToUpdate[id] = installationResult;
-            $(exports).triggerHandler("statusChange", [id]);
+            exports.trigger("statusChange", id);
         }
     }
 
@@ -509,7 +528,7 @@ define(function (require, exports, module) {
             FileSystem.getFileForPath(installationResult.localPath).unlink();
         }
         delete _idsToUpdate[id];
-        $(exports).triggerHandler("statusChange", [id]);
+        exports.trigger("statusChange", id);
     }
 
     /**
@@ -767,9 +786,12 @@ define(function (require, exports, module) {
     });
 
     // Listen to extension load and loadFailed events
-    $(ExtensionLoader)
+    ExtensionLoader
         .on("load", _handleExtensionLoad)
         .on("loadFailed", _handleExtensionLoad);
+    
+    
+    EventDispatcher.makeEventDispatcher(exports);
 
     // Public exports
     exports.downloadRegistry        = downloadRegistry;

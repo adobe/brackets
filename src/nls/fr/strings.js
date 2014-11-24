@@ -32,8 +32,8 @@ define({
 
     // General file io error strings
 	"GENERIC_ERROR": "(Erreur {0})",
-	"NOT_FOUND_ERR": "Fichier introuvable.",
-	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
+	"NOT_FOUND_ERR": "Fichier/répertoire introuvable.",
+	"NOT_READABLE_ERR": "Impossible de lire le fichier/répertoire.",
 	"EXCEEDS_MAX_FILE_SIZE": "Les fichiers dont la taille excède {0} Mo ne peuvent pas être ouverts dans {APP_NAME}.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
@@ -394,7 +394,7 @@ define({
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
-	"CMD_GOTO_FIRST_PROBLEM": "Aller à la première erreur/au premier avertissement",
+	"CMD_GOTO_FIRST_PROBLEM": "[7150671] !é=Go to First Problem=!",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
 	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",

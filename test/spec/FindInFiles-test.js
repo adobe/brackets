@@ -769,7 +769,7 @@ define(function (require, exports, module) {
                 gotChange = false;
                 oldResults = null;
                 wasQuickChange = false;
-                $(FindInFiles.searchModel).on("change.FindInFilesTest", function (event, quickChange) {
+                FindInFiles.searchModel.on("change.FindInFilesTest", function (event, quickChange) {
                     gotChange = true;
                     wasQuickChange = quickChange;
                 });
@@ -785,7 +785,7 @@ define(function (require, exports, module) {
             });
             
             afterEach(function () {
-                $(FindInFiles.searchModel).off(".FindInFilesTest");
+                FindInFiles.searchModel.off(".FindInFilesTest");
                 waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
             });
             

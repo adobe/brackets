@@ -29,6 +29,9 @@ maxerr: 50, browser: true */
 define(function (require, exports, module) {
     "use strict";
     
+    var EventDispatcher = require("utils/EventDispatcher");
+    
+    
     /**
      * Connection attempts to make before failing
      * @type {number}
@@ -133,6 +136,7 @@ define(function (require, exports, module) {
         this._pendingInterfaceRefreshPromises = [];
         this._pendingCommandPromises = [];
     }
+    EventDispatcher.makeEventDispatcher(NodeConnection.prototype);
     
     /**
      * @type {Object}
@@ -275,11 +279,11 @@ define(function (require, exports, module) {
                 function success() {
                     self._ws.onclose = function () {
                         if (self._autoReconnect) {
-                            var $promise = self.connect(true);
-                            $(self).triggerHandler("close", [$promise]);
+                            var promise = self.connect(true);
+                            self.trigger("close", [promise]);
                         } else {
                             self._cleanup();
-                            $(self).triggerHandler("close");
+                            self.trigger("close");
                         }
                     };
                     resolve();
@@ -491,19 +495,13 @@ define(function (require, exports, module) {
         
         switch (m.type) {
         case "event":
-            var $this = $(this);
-
             if (m.message.domain === "base" && m.message.event === "newDomains") {
                 this._refreshInterface();
             }
             
-            // Event type for backwards compatibility for original design: "domain.event"
-            $this.triggerHandler(m.message.domain + "." + m.message.event,
-                                   m.message.parameters);
-
             // Event type "domain:event"
-            $this.triggerHandler(m.message.domain + ":" + m.message.event,
-                                   m.message.parameters);
+            EventDispatcher.triggerWithArray(this, m.message.domain + ":" + m.message.event,
+                                             m.message.parameters);
             break;
         case "commandResponse":
             responsePromise = this._pendingCommandPromises[m.message.id];

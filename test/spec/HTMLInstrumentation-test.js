@@ -914,7 +914,7 @@ define(function (require, exports, module) {
                     editor = SpecRunnerUtils.createMockEditor(docText, "html").editor;
                     expect(editor).toBeTruthy();
 
-                    $(editor).on("change.instrtest", function (event, editor, change) {
+                    editor.on("change.instrtest", function (event, editor, change) {
                         changeList = change;
                     });
                     

@@ -487,9 +487,9 @@ define(function (require, exports, module) {
         _picker.$button.addClass("file-filter-picker no-focus");
         
         // Set up mouse click event listeners for 'Delete' and 'Edit' buttons
-        $(_picker).on("listRendered", _handleListRendered);
+        _picker.on("listRendered", _handleListRendered);
         
-        $(_picker).on("select", function (event, item, itemIndex) {
+        _picker.on("select", function (event, item, itemIndex) {
             if (itemIndex === 0) {
                 // Close the dropdown first before opening the edit filter dialog 
                 // so that it will restore focus to the DOM element that has focus

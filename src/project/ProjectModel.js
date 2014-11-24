@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var InMemoryFile        = require("document/InMemoryFile"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         FileUtils           = require("file/FileUtils"),
         _                   = require("thirdparty/lodash"),
         FileSystem          = require("filesystem/FileSystem"),
@@ -92,7 +93,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * See shouldShow
+     * @see #shouldShow
      */
     function _shouldShowName(name) {
         return !name.match(_exclusionListRegEx);
@@ -206,6 +207,12 @@ define(function (require, exports, module) {
      *
      * The ProjectModel provides methods for accessing information about the current open project.
      * It also manages the view model to display a FileTreeView of the project.
+     * 
+     * Events:
+     * - EVENT_CHANGE (`change`) - Fired when there's a change that should refresh the UI
+     * - EVENT_SHOULD_SELECT (`select`) - Fired when a selection has been made in the file tree and the file tree should be selected
+     * - EVENT_SHOULD_FOCUS (`focus`)
+     * - ERROR_CREATION (`creationError`) - Triggered when there's a problem creating a file
      */
     function ProjectModel(initial) {
         initial = initial || {};
@@ -218,10 +225,11 @@ define(function (require, exports, module) {
         }
         this._viewModel = new FileTreeViewModel.FileTreeViewModel();
         this._viewModel.on(FileTreeViewModel.EVENT_CHANGE, function () {
-            $(this).trigger(EVENT_CHANGE);
+            this.trigger(EVENT_CHANGE);
         }.bind(this));
         this._selections = {};
     }
+    EventDispatcher.makeEventDispatcher(ProjectModel.prototype);
 
     /**
      * @type {Directory}
@@ -243,7 +251,7 @@ define(function (require, exports, module) {
      * @type {string}
      * 
      * Encoded URL
-     * @see getBaseUrl(), setBaseUrl()
+     * @see {@link ProjectModel#getBaseUrl}, {@link ProjectModel#setBaseUrl}
      */
     ProjectModel.prototype._projectBaseUrl = "";
 
@@ -473,26 +481,6 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Adds an event listener for this ProjectModel. See jQuery's documentation for .on.
-     *
-     * Available events:
-     *
-     * * EVENT_CHANGE (`change`) - Fired when there's a change that should refresh the UI
-     * * EVENT_SHOULD_SELECT (`select`) - Specifies that a selection has been made in the file tree and that the file tree should be selected
-     * * ERROR_CREATION (`creationError`) - Triggered when there is a problem creating a file.
-     */
-    ProjectModel.prototype.on = function (event, handler) {
-        $(this).on(event, handler);
-    };
-
-    /**
-     * Removes an event listener for this ProjectModel. See jQuery's documentation for .off.
-     */
-    ProjectModel.prototype.off = function (event, handler) {
-        $(this).off(event, handler);
-    };
-
-    /**
      * Sets the project root (effectively resetting this ProjectModel).
      *
      * @param {Directory} projectRoot new project root
@@ -666,14 +654,14 @@ define(function (require, exports, module) {
 
         if (path) {
             if (!doNotOpen) {
-                $(this).trigger(EVENT_SHOULD_SELECT, {
+                this.trigger(EVENT_SHOULD_SELECT, {
                     path: path,
                     previousPath: previousSelection,
                     hadFocus: this._focused
                 });
             }
             
-            $(this).trigger(EVENT_SHOULD_FOCUS);
+            this.trigger(EVENT_SHOULD_FOCUS);
         }
     };
     
@@ -702,7 +690,7 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype.selectInWorkingSet = function (path) {
         this.performRename();
-        $(this).trigger(EVENT_SHOULD_SELECT, {
+        this.trigger(EVENT_SHOULD_SELECT, {
             path: path,
             add: true
         });
@@ -971,7 +959,7 @@ define(function (require, exports, module) {
                 self.selectInWorkingSet(entry.fullPath);
             }
         }).catch(function (error) {
-            $(self).trigger(ERROR_CREATION, {
+            self.trigger(ERROR_CREATION, {
                 type: error,
                 name: name,
                 isFolder: isFolder
@@ -1231,7 +1219,7 @@ define(function (require, exports, module) {
      * Returns the full path to the welcome project, which we open on first launch.
      *
      * @param {string} sampleUrl URL for getting started project
-     * @param {string} initialPath Path to Brackets directory (see FileUtils.getNativeBracketsDirectoryPath())
+     * @param {string} initialPath Path to Brackets directory (see {@link FileUtils::#getNativeBracketsDirectoryPath})
      * @return {!string} fullPath reference
      */
     function _getWelcomeProjectPath(sampleUrl, initialPath) {

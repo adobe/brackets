@@ -387,7 +387,7 @@ define(function (require, exports, module) {
         this.$browseExtensionsButton.on("click", function () {
             NativeApp.openURLInDefaultBrowser(brackets.config.extension_listing_url);
         });
-        $(document.body).on("keyup.installDialog", this._handleKeyUp.bind(this));
+        $(window.document.body).on("keyup.installDialog", this._handleKeyUp.bind(this));
         
         this._enterState(STATE_START);
         if (urlToInstall) {

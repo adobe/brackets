@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
@@ -215,7 +216,7 @@ define(function (require, exports, module) {
         
         // Destroy the previous editor if we had one and clear out the filename info.
         if (this.editor) {
-            $(this.editor).off(".InlineTextEditor");
+            this.editor.off(".InlineTextEditor");
             this.editor.destroy(); // remove from DOM and release ref on Document
             this.editor = null;
             this.$filename.off(".InlineTextEditor")
@@ -263,14 +264,14 @@ define(function (require, exports, module) {
 
         // Always update the widget height when an inline editor completes a
         // display update
-        $(this.editor).on("update.InlineTextEditor", function (event, editor) {
+        this.editor.on("update.InlineTextEditor", function (event, editor) {
             self.sizeInlineWidgetToContents();
         });
 
         // Size editor to content whenever text changes (via edits here or any
         // other view of the doc: Editor fires "change" any time its text
         // changes, regardless of origin)
-        $(this.editor).on("change.InlineTextEditor", function (event, editor) {
+        this.editor.on("change.InlineTextEditor", function (event, editor) {
             if (self.hostEditor.isFullyVisible()) {
                 self.sizeInlineWidgetToContents();
                 self._updateLineRange(editor);
@@ -278,7 +279,7 @@ define(function (require, exports, module) {
         });
         
         // If Document's file is deleted, or Editor loses sync with Document, delegate to this._onLostContent()
-        $(this.editor).on("lostContent.InlineTextEditor", function () {
+        this.editor.on("lostContent.InlineTextEditor", function () {
             self._onLostContent.apply(self, arguments);
         });
         
@@ -337,8 +338,10 @@ define(function (require, exports, module) {
         this.close();
     };
     
-    // consolidate all dirty document updates
-    $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
+    
+    // Consolidate all dirty document updates
+    // Due to circular dependencies, not safe to call on() directly
+    EventDispatcher.on_duringInit(DocumentManager, "dirtyFlagChange", _dirtyFlagChangeHandler);
 
     exports.InlineTextEditor = InlineTextEditor;
 

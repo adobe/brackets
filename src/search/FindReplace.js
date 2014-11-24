@@ -611,7 +611,7 @@ define(function (require, exports, module) {
         });
         findBar.open();
 
-        $(findBar)
+        findBar
             .on("queryChange.FindReplace", function (e) {
                 handleQueryChange(editor, state);
             })
@@ -625,7 +625,7 @@ define(function (require, exports, module) {
                 // Dispose highlighting UI (important to restore normal selection color as soon as focus goes back to the editor)
                 toggleHighlighting(editor, false);
 
-                $(findBar).off(".FindReplace");
+                findBar.off(".FindReplace");
                 findBar = null;
             });
         
@@ -689,7 +689,7 @@ define(function (require, exports, module) {
         
         openSearchBar(editor, true);
         
-        $(findBar)
+        findBar
             .on("doReplace.FindReplace", function (e) {
                 doReplace(editor, false);
             })
@@ -728,7 +728,7 @@ define(function (require, exports, module) {
         }
     }
 
-    $(MainViewManager).on("currentFileChange", _handleFileChanged);
+    MainViewManager.on("currentFileChange", _handleFileChanged);
 
     CommandManager.register(Strings.CMD_FIND,                   Commands.CMD_FIND,                  _launchFind);
     CommandManager.register(Strings.CMD_FIND_NEXT,              Commands.CMD_FIND_NEXT,             _findNext);

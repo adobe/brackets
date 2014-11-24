@@ -38,12 +38,11 @@
 define(function DOMAgent(require, exports, module) {
     "use strict";
 
-    var $exports = $(exports);
-
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var EditAgent = require("LiveDevelopment/Agents/EditAgent");
-    var DOMNode = require("LiveDevelopment/Agents/DOMNode");
-    var DOMHelpers = require("LiveDevelopment/Agents/DOMHelpers");
+    var Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        EventDispatcher = require("utils/EventDispatcher"),
+        EditAgent       = require("LiveDevelopment/Agents/EditAgent"),
+        DOMNode         = require("LiveDevelopment/Agents/DOMNode"),
+        DOMHelpers      = require("LiveDevelopment/Agents/DOMHelpers");
 
     var _idToNode;          // {nodeId -> node}
     var _pendingRequests;   // {integer} number of pending requests before initial loading is complete
@@ -167,7 +166,7 @@ define(function DOMAgent(require, exports, module) {
     function _onLoadEventFired(event, res) {
         // res = {timestamp}
         Inspector.DOM.getDocument(function onGetDocument(res) {
-            $exports.triggerHandler("getDocument", res);
+            exports.trigger("getDocument", res);
             // res = {root}
             _idToNode = {};
             _pendingRequests = 0;
@@ -261,10 +260,10 @@ define(function DOMAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        $(Inspector.Page)
+        Inspector.Page
             .on("frameNavigated.DOMAgent", _onFrameNavigated)
             .on("loadEventFired.DOMAgent", _onLoadEventFired);
-        $(Inspector.DOM)
+        Inspector.DOM
             .on("documentUpdated.DOMAgent", _onDocumentUpdated)
             .on("childNodeCountUpdated.DOMAgent", _onChildNodeCountUpdated)
             .on("childNodeInserted.DOMAgent", _onChildNodeInserted)
@@ -304,9 +303,12 @@ define(function DOMAgent(require, exports, module) {
 
     /** Clean up */
     function unload() {
-        $(Inspector.Page).off(".DOMAgent");
-        $(Inspector.DOM).off(".DOMAgent");
+        Inspector.Page.off(".DOMAgent");
+        Inspector.DOM.off(".DOMAgent");
     }
+    
+    
+    EventDispatcher.makeEventDispatcher(exports);
 
     // Export private functions
     exports.nodeBeforeLocation = nodeBeforeLocation;
