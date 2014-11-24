@@ -57,6 +57,10 @@ li.jstree-closed > ul { display:none; }
     @jstree-icon-text-overlap: 2px;
     padding-left: (@jstree-sprite-size - @jstree-icon-backindent - @jstree-icon-text-overlap);
     display: block;
+    
+    /* Explicitly remove the focus ring to fix https://github.com/adobe/brackets/issues/9987 */
+    box-shadow: none;
+    outline: none;
 }
 
 .jstree li {
