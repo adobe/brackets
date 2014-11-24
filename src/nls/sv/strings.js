@@ -426,6 +426,7 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimental build",
+    "RELEASE_BUILD"                        : "build",
     "DEVELOPMENT_BUILD"                    : "development build",
     "RELOAD_FROM_DISK"                     : "Ladda om",
     "KEEP_CHANGES_IN_EDITOR"               : "Behåll ändringar i editorn",
@@ -627,4 +628,4 @@ define({
     "DOCS_MORE_LINK"                            : "Läs mer"
 });
 
-/* Last translated for d57d327df4f042f2e87f3acc80bd9d01575c5c34 */
+/* Last translated for 893c065b715c211526dcd010c0294e12a8683995 */

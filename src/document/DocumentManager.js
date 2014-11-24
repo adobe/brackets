@@ -72,8 +72,8 @@
  * 
  *    - pathDeleted -- When a file or folder has been deleted. The 2nd arg is the path that was deleted.
  *
- * These are jQuery events, so to listen for them you do something like this:
- *    $(DocumentManager).on("eventname", handler);
+ * To listen for events, do something like this: (see EventDispatcher for details on this pattern)
+ *    DocumentManager.on("eventname", handler);
  *
  * Document objects themselves also dispatch some events - see Document docs for details.
  */
@@ -83,6 +83,7 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
     
     var AppInit             = require("utils/AppInit"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         DocumentModule      = require("document/Document"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
         MainViewManager     = require("view/MainViewManager"),
@@ -115,7 +116,7 @@ define(function (require, exports, module) {
     /**
      * Returns the existing open Document for the given file, or null if the file is not open ('open'
      * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
-     * it; see {@link getDocumentForPath()} for details.
+     * it; see {@link #getDocumentForPath} for details.
      * @param {!string} fullPath
      * @return {?Document}
      */
@@ -474,12 +475,12 @@ define(function (require, exports, module) {
      */
     function notifyFileDeleted(file) {
         // Notify all editors to close as well
-        $(exports).triggerHandler("pathDeleted", file.fullPath);
+        exports.trigger("pathDeleted", file.fullPath);
         
         var doc = getOpenDocumentForPath(file.fullPath);
         
         if (doc) {
-            $(doc).triggerHandler("deleted");
+            doc.trigger("deleted");
         }
         
         // At this point, all those other views SHOULD have released the Doc
@@ -505,7 +506,7 @@ define(function (require, exports, module) {
             // For images not open in the workingset,
             // FileSyncManager.syncOpenDocuments() will 
             //  not tell us to close those views
-            $(exports).triggerHandler("pathDeleted", fullPath);
+            exports.trigger("pathDeleted", fullPath);
         }
     }
 
@@ -525,8 +526,8 @@ define(function (require, exports, module) {
             doc._notifyFilePathChanged();
         });
         
-        // Send a "fileNameChanged" event. This will trigger the views to update.
-        $(exports).triggerHandler("fileNameChange", [oldName, newName]);
+        // Send a "fileNameChange" event. This will trigger the views to update.
+        exports.trigger("fileNameChange", oldName, newName);
     }
     
     
@@ -560,7 +561,7 @@ define(function (require, exports, module) {
     }
     
     // For compatibility
-    $(DocumentModule)
+    DocumentModule
         .on("_afterDocumentCreate", function (event, doc) {
             if (_openDocuments[doc.file.id]) {
                 console.error("Document for this path already in _openDocuments!");
@@ -568,7 +569,7 @@ define(function (require, exports, module) {
             }
 
             _openDocuments[doc.file.id] = doc;
-            $(exports).triggerHandler("afterDocumentCreate", doc);
+            exports.trigger("afterDocumentCreate", doc);
         })
         .on("_beforeDocumentDelete", function (event, doc) {
             if (!_openDocuments[doc.file.id]) {
@@ -576,14 +577,14 @@ define(function (require, exports, module) {
                 return true;
             }
 
-            $(exports).triggerHandler("beforeDocumentDelete", doc);
+            exports.trigger("beforeDocumentDelete", doc);
             delete _openDocuments[doc.file.id];
         })
         .on("_documentRefreshed", function (event, doc) {
-            $(exports).triggerHandler("documentRefreshed", doc);
+            exports.trigger("documentRefreshed", doc);
         })
         .on("_dirtyFlagChange", function (event, doc) {
-            $(exports).triggerHandler("dirtyFlagChange", doc);
+            exports.trigger("dirtyFlagChange", doc);
             if (doc.isDirty) {
                 MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
                 
@@ -607,7 +608,7 @@ define(function (require, exports, module) {
             }
         })
         .on("_documentSaved", function (event, doc) {
-            $(exports).triggerHandler("documentSaved", doc);
+            exports.trigger("documentSaved", doc);
         });
     
     /**
@@ -631,48 +632,54 @@ define(function (require, exports, module) {
         return null;
     }
     
-    /**
-     * Creates a deprecation warning event handler
-     * @param {!string} eventName - the event being deprecated. 
-     *  The Event Name doesn't change just which object dispatches it
-     */
-    function _deprecateEvent(eventName) {
-        DeprecationWarning.deprecateEvent(exports,
-                                          MainViewManager,
-                                          eventName,
-                                          eventName,
-                                          "DocumentManager." + eventName,
-                                          "MainViewManager." + eventName);
-    }
     
+    // Set up event dispatch
+    EventDispatcher.makeEventDispatcher(exports);
+    
+    // This deprecated event is dispatched manually from "currentFileChange" below
+    EventDispatcher.markDeprecated(exports, "currentDocumentChange", "MainViewManager.currentFileChange");
+    
+    // These deprecated events are automatically dispatched by DeprecationWarning, set up in AppInit.extensionsLoaded()
+    EventDispatcher.markDeprecated(exports, "workingSetAdd",        "MainViewManager.workingSetAdd");
+    EventDispatcher.markDeprecated(exports, "workingSetAddList",    "MainViewManager.workingSetAddList");
+    EventDispatcher.markDeprecated(exports, "workingSetRemove",     "MainViewManager.workingSetRemove");
+    EventDispatcher.markDeprecated(exports, "workingSetRemoveList", "MainViewManager.workingSetRemoveList");
+    EventDispatcher.markDeprecated(exports, "workingSetSort",       "MainViewManager.workingSetSort");
+
     /* 
-     * Setup an extensionsLoaded handler to register deprecated events.  
-     * We do this so these events are added to the end of the event
-     * handler chain which gives the system a chance to process them
-     * before they are dispatched to extensions.  
-     * 
-     * Extensions that listen to the new MainViewManager working set events 
-     * are always added to the end so this effectively puts the legacy events 
-     * at the end of the event list. This prevents extensions from 
-     * handling the event too soon. (e.g.  workingSetListView needs to 
-     * process these events before the Extension Highlighter extension)
+     * After extensionsLoaded, register the proxying listeners that convert newer events to
+     * deprecated events. This ensures that extension listeners still run later than core
+     * listeners. If we registered these proxies earlier, extensions would get the deprecated
+     * event before some core listeners may have run, which could cause bugs (e.g. WorkingSetView
+     * needs to process these events before the Extension Highlighter extension).
      */
     AppInit.extensionsLoaded(function () {
-        _deprecateEvent("workingSetAdd");
-        _deprecateEvent("workingSetAddList");
-        _deprecateEvent("workingSetRemove");
-        _deprecateEvent("workingSetRemoveList");
-        _deprecateEvent("workingSetSort");
+        // Listens for the given event on MainViewManager, and triggers a copy of the event
+        // on DocumentManager whenever it occurs
+        function _proxyDeprecatedEvent(eventName) {
+            DeprecationWarning.deprecateEvent(exports,
+                                              MainViewManager,
+                                              eventName,
+                                              eventName,
+                                              "DocumentManager." + eventName,
+                                              "MainViewManager." + eventName);
+        }
+        _proxyDeprecatedEvent("workingSetAdd");
+        _proxyDeprecatedEvent("workingSetAddList");
+        _proxyDeprecatedEvent("workingSetRemove");
+        _proxyDeprecatedEvent("workingSetRemoveList");
+        _proxyDeprecatedEvent("workingSetSort");
     });
+    
     
     PreferencesManager.convertPreferences(module, {"files_": "user"}, true, _checkPreferencePrefix);
 
     // Handle file saves that may affect preferences
-    $(exports).on("documentSaved", function (e, doc) {
+    exports.on("documentSaved", function (e, doc) {
         PreferencesManager.fileChanged(doc.file.fullPath);
     });
     
-    $(MainViewManager).on("currentFileChange", function (e, newFile, newPaneId, oldFile) {
+    MainViewManager.on("currentFileChange", function (e, newFile, newPaneId, oldFile) {
         var newDoc = null,
             oldDoc = null;
 
@@ -685,21 +692,17 @@ define(function (require, exports, module) {
         }
         
         if (oldDoc) {
-            $(oldDoc).off("languageChanged.DocumentManager");
+            oldDoc.off("languageChanged.DocumentManager");
         }
         
         if (newDoc !== oldDoc) {
-            var count = DeprecationWarning.getEventHandlerCount(exports, "currentDocumentChange");
-            if (count > 0) {
-                DeprecationWarning.deprecationWarning("The Event 'DocumentManager.currentDocumentChange' has been deprecated.  Please use 'MainViewManager.currentFileChange' instead.", true);
-            }
-
-            $(exports).triggerHandler("currentDocumentChange", [newDoc, oldDoc]);
+            // Dispatch deprecated event with doc args (not File args as the new event uses)
+            exports.trigger("currentDocumentChange", newDoc, oldDoc);
         }
 
         if (newDoc) {
-            $(newDoc).on("languageChanged.DocumentManager", function (data) {
-                $(exports).trigger("currentDocumentLanguageChanged", data);
+            newDoc.on("languageChanged.DocumentManager", function (data) {
+                exports.trigger("currentDocumentLanguageChanged", data);
             });
         }
     
@@ -736,6 +739,6 @@ define(function (require, exports, module) {
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
     // Handle Language change events
-    $(LanguageManager).on("languageAdded", _handleLanguageAdded);
-    $(LanguageManager).on("languageModified", _handleLanguageModified);
+    LanguageManager.on("languageAdded", _handleLanguageAdded);
+    LanguageManager.on("languageModified", _handleLanguageModified);
 });

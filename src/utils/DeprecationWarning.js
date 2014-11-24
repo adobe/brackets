@@ -21,7 +21,7 @@
  * 
  */
 
-/*global define, console, $ */
+/*global define, console */
 
 /**
  *  Utilities functions to display deprecation warning in the console.
@@ -29,6 +29,9 @@
  */
 define(function (require, exports, module) {
     "use strict";
+    
+    var EventDispatcher = require("utils/EventDispatcher");
+    
     
     var displayedWarnings = {};
 
@@ -91,36 +94,11 @@ define(function (require, exports, module) {
 
     
     /**
-     * Counts the number of event handlers listening for the specified event on the specified object
-     * @param {!Object} object - the object with the old event to dispatch
-     * @param {!string} name - the name of the  event
-     * @return {!number} count of event handlers
-     */
-    function getEventHandlerCount(object, name) {
-        var count = 0,
-            events = $._data(object, "events");
-        
-        // If there are there any listeners then display a deprecation warning
-        if (events && events.hasOwnProperty(name)) {
-            var listeners = events[name];
-            count = listeners.length;
-            
-            if (listeners.hasOwnProperty("delegateCount")) {
-                // we need to subtract 1 since delegateCount is counted 
-                //  in the length computed above.
-                count += (listeners.delegateCount - 1);
-            }
-        }
-        
-        return count;
-    }
-    
-    /**
      * Show a deprecation warning if there are listeners for the event
      * 
      * ```
-     *    DeprecationWarning.deprecateEvent($(exports), 
-     *                                      $(MainViewManager), 
+     *    DeprecationWarning.deprecateEvent(exports, 
+     *                                      MainViewManager, 
      *                                      "workingSetAdd", 
      *                                      "workingSetAdd", 
      *                                      "DocumentManager.workingSetAdd", 
@@ -135,21 +113,13 @@ define(function (require, exports, module) {
      * @param {string=} canonicalInboundName - the canonical name of the new event  
      */
     function deprecateEvent(outbound, inbound, oldEventName, newEventName, canonicalOutboundName, canonicalInboundName) {
+        // Mark deprecated so EventDispatcher.on() will emit warnings
+        EventDispatcher.markDeprecated(outbound, oldEventName, canonicalInboundName);
+        
         // create an event handler for the new event to listen for 
-        $(inbound).on(newEventName, function () {
-            // Get the jQuery event data from the outbound object -- usually the module's exports
-            var listenerCount = getEventHandlerCount(outbound, oldEventName);
-            if (listenerCount > 0) {
-                var message = "The Event " + (canonicalOutboundName || oldEventName) + " has been deprecated. Use " + (canonicalInboundName || newEventName) + " instead.";
-                // We only want to show the deprecation warning once
-                if (!displayedWarnings[message]) {
-                    displayedWarnings[message] = true;
-                    console.warn(message);
-                }
-            }
-
-            // dispatch the event even if there are no listeners just in case the jQuery data is wrong for some reason
-            $(outbound).trigger(oldEventName, Array.prototype.slice.call(arguments, 1));
+        inbound.on(newEventName, function () {
+            // Dispatch the event in case anyone is still listening
+            EventDispatcher.triggerWithArray(outbound, oldEventName, Array.prototype.slice.call(arguments, 1));
         });
     }
     
@@ -174,6 +144,5 @@ define(function (require, exports, module) {
     // Define public API
     exports.deprecationWarning   = deprecationWarning;
     exports.deprecateEvent       = deprecateEvent;
-    exports.getEventHandlerCount = getEventHandlerCount;
     exports.deprecateConstant      = deprecateConstant;
 });

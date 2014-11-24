@@ -937,7 +937,7 @@ define(function (require, exports, module) {
     }
     
     // Listen for a change of project to invalidate our file list
-    $(ProjectManager).on("projectOpen", function () {
+    ProjectManager.on("projectOpen", function () {
         fileList = null;
     });
 
@@ -949,4 +949,10 @@ define(function (require, exports, module) {
     exports.beginSearch             = beginSearch;
     exports.addQuickOpenPlugin      = addQuickOpenPlugin;
     exports.highlightMatch          = highlightMatch;
+    
+    // Convenience exports for functions that most QuickOpen plugins would need.
+    exports.stringMatch             = StringMatch.stringMatch;
+    exports.SearchResult            = StringMatch.SearchResult;
+    exports.basicMatchSort          = StringMatch.basicMatchSort;
+    exports.multiFieldSort          = StringMatch.multiFieldSort;
 });

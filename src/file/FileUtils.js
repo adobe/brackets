@@ -521,6 +521,19 @@ define(function (require, exports, module) {
         return 0;
     }
 
+    /**
+     * @param {string} path Native path in the format used by FileSystemEntry.fullPath
+     * @return {string} URI-encoded version suitable for appending to 'file:///`. It's not safe to use encodeURI()
+     *     directly since it doesn't escape chars like "#".
+     */
+    function encodeFilePath(path) {
+        var pathArray = path.split("/");
+        pathArray = pathArray.map(function (subPath) {
+            return encodeURIComponent(subPath);
+        });
+        return pathArray.join("/");
+    }
+
     // Asynchronously loading Dialogs to avoid the circular dependency
     require(["widgets/Dialogs"], function (dialogsModule) {
         Dialogs = dialogsModule;
@@ -554,4 +567,5 @@ define(function (require, exports, module) {
     exports.compareFilenames               = compareFilenames;
     exports.comparePaths                   = comparePaths;
     exports.MAX_FILE_SIZE                  = MAX_FILE_SIZE;
+    exports.encodeFilePath                 = encodeFilePath;
 });

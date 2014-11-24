@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var AppInit         = require("utils/AppInit"),
+        EventDispatcher = require("utils/EventDispatcher"),
         CommandManager  = require("command/CommandManager"),
         KeyEvent        = require("utils/KeyEvent");
     
@@ -153,19 +154,22 @@ define(function (require, exports, module) {
      * @param {ContextMenu} contextMenu
      */
     function listenToContextMenu(contextMenu) {
-        $(contextMenu).on("beforeContextMenuOpen", _beforeMenuPopup);
+        contextMenu.on("beforeContextMenuOpen", _beforeMenuPopup);
     }
 
     AppInit.htmlReady(function () {
         // Register for events
         window.document.body.addEventListener("keydown", _keydownCaptureListener, true);
-        $(exports).on("beforeMenuPopup", _beforeMenuPopup);
+        exports.on("beforeMenuPopup", _beforeMenuPopup);
         
         // Close all popups when a command is executed
-        $(CommandManager).on("beforeExecuteCommand", function (jqEvent, commandId) {
+        CommandManager.on("beforeExecuteCommand", function (event, commandId) {
             removeCurrentPopUp();
         });
     });
+    
+    
+    EventDispatcher.makeEventDispatcher(exports);
     
     exports.addPopUp            = addPopUp;
     exports.removePopUp         = removePopUp;

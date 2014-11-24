@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, $, jasmine */
+/*global define, describe, it, expect, beforeEach, afterEach, jasmine */
 
 define(function (require, exports, module) {
     'use strict';
@@ -98,7 +98,7 @@ define(function (require, exports, module) {
             it("should trigger a synchronous Document change event when an edit is performed", function () {
                 var changeFired = false;
                 function changeHandler(event, doc, changeList) {
-                    $(myDocument).off("change", changeHandler);
+                    myDocument.off("change", changeHandler);
                     changeFired = true;
                     expect(doc).toBe(myDocument);
                     expect(changeList.length).toBe(1);
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
                     expect(changeList[0].to).toEqual({line: 1, ch: 0});
                     expect(changeList[0].text).toEqual(["new content"]);
                 }
-                $(myDocument).on("change", changeHandler);
+                myDocument.on("change", changeHandler);
                 myEditor._codeMirror.setValue("new content");
                 expect(changeFired).toBe(true);
             });
@@ -114,7 +114,7 @@ define(function (require, exports, module) {
             it("should send an array of multiple change records for an operation", function () {
                 var cm = myEditor._codeMirror,
                     changeHandler = jasmine.createSpy();
-                $(myDocument).on("change", changeHandler);
+                myDocument.on("change", changeHandler);
                 cm.operation(function () {
                     cm.replaceRange("inserted", {line: 1, ch: 0});
                     cm.replaceRange("", {line: 0, ch: 0}, {line: 0, ch: 4});

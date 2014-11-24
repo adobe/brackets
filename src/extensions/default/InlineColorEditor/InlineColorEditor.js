@@ -188,7 +188,7 @@ define(function (require, exports, module) {
         
         var doc = this.hostEditor.document;
         doc.addRef();
-        $(doc).on("change", this._handleHostDocumentChange);
+        doc.on("change", this._handleHostDocumentChange);
         
         this.hostEditor.setInlineWidgetHeight(this, this.colorEditor.getRootElement().outerHeight(), true);
         
@@ -210,7 +210,7 @@ define(function (require, exports, module) {
         }
 
         var doc = this.hostEditor.document;
-        $(doc).off("change", this._handleHostDocumentChange);
+        doc.off("change", this._handleHostDocumentChange);
         doc.releaseRef();
     };
 
