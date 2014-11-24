@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load JSLint, a non-module lib
-    require("thirdparty/jslint/jslint");
+    require("thirdparty/jslint");
     
     // Load dependent modules
     var CodeInspection     = brackets.getModule("language/CodeInspection"),
