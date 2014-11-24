@@ -394,7 +394,7 @@ define({
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",
 	"CMD_GOTO_DEFINITION": "Accès rapide à la définition",
-	"CMD_GOTO_FIRST_PROBLEM": "[7150671] !é=Go to First Problem=!",
+	"CMD_GOTO_FIRST_PROBLEM": "Accéder au premier problème",
 	"CMD_TOGGLE_QUICK_EDIT": "Edition rapide",
 	"CMD_TOGGLE_QUICK_DOCS": "Documentation rapide",
 	"CMD_QUICK_EDIT_PREV_MATCH": "Correspondance précédente",
