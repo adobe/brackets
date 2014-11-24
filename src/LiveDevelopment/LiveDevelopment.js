@@ -858,14 +858,13 @@ define(function LiveDevelopment(require, exports, module) {
             }
 
             // Disconnect WebSocket if connected
-            var fnAlways = function () {
+            Async.promiseAlways(closePromise, function () {
                 if (Inspector.connected()) {
                     Inspector.disconnect().then(resolve, resolve);
                 } else {
                     resolve();
                 }
-            };
-            closePromise.then(fnAlways, fnAlways);
+            });
         });
     }
 
@@ -887,11 +886,10 @@ define(function LiveDevelopment(require, exports, module) {
                 };
             });
 
-            var fnAlways = function () {
+            Async.promiseAlways(_closePromise, function () {
                 _closePromise = null;
                 _closeCallbacks = {};
-            };
-            _closePromise.then(fnAlways, fnAlways);
+            });
         }
 
         /*
@@ -1361,11 +1359,10 @@ define(function LiveDevelopment(require, exports, module) {
                     };
                 });
                 
-                var fnAlways = function () {
+                Async.promiseAlways(_openPromise, function () {
                     _openPromise = null;
                     _openCallbacks = {};
-                };
-                _openPromise.then(fnAlways, fnAlways);
+                });
             }
         }
         

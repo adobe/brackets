@@ -46,6 +46,18 @@ define(function (require, exports, module) {
     
 
     /**
+     * Helper function to ease converting from jQuery Deferreds to ES6 Promises.
+     * 
+     * @param {!Promise} promise
+     * @param {!function()} fn Function to always be executed
+     * @return {Promise} For chaining
+     */
+    function promiseAlways(promise, fn) {
+        promise.then(fn, fn);
+        return promise;
+    }
+    
+    /**
      * Executes a series of tasks in parallel, returning a "master" Promise that is resolved once
      * all the tasks have resolved. If one or more tasks fail, behavior depends on the failFast
      * flag:
@@ -110,7 +122,7 @@ define(function (require, exports, module) {
                             hasFailed = true;
                         }
                     });
-                    var fnAlways = function () {
+                    promiseAlways(itemPromise, function () {
                         numCompleted++;
                         if (numCompleted === items.length) {
                             if (hasFailed) {
@@ -119,8 +131,7 @@ define(function (require, exports, module) {
                                 resolve();
                             }
                         }
-                    };
-                    itemPromise.then(fnAlways, fnAlways);
+                    });
                 });
             }
         });
@@ -341,10 +352,9 @@ define(function (require, exports, module) {
                 }
             }, timeout);
 
-            var fnAlways = function () {
+            promiseAlways(promise, function () {
                 window.clearTimeout(timer);
-            };
-            promise.then(fnAlways, fnAlways);
+            });
 
             // If the wrapper was already rejected due to timeout, the Promise's calls to resolve/reject
             // won't do anything
@@ -401,7 +411,7 @@ define(function (require, exports, module) {
                     results.push(result);
                 });
 
-                var fnAlways = function () {
+                promiseAlways(promise, function () {
                     count++;
                     if (count === promises.length) {
                         if (failOnReject && sawRejects) {
@@ -410,8 +420,7 @@ define(function (require, exports, module) {
                             resolve(results);
                         }
                     }
-                };
-                promise.then(fnAlways, fnAlways);
+                });
             });
         });
     }
@@ -577,25 +586,12 @@ define(function (require, exports, module) {
         if (this._queue.length) {
             var op = this._queue.shift();
             this._curPromise = op();
-            var fnAlways = function () {
+            promiseAlways(this._curPromise, function () {
                 self._curPromise = null;
                 self._doNext();
-            };
-            this._curPromise.then(fnAlways, fnAlways);
+            });
         }
     };
-    
-    /**
-     * Helper function to ease converting from jQuery Deferreds to ES6 Promises.
-     * 
-     * @param {!Promise} promise
-     * @param {!function()} fn Function to always be executed
-     * @return {Promise} For chaining
-     */
-    function promiseAlways(promise, fn) {
-        promise.then(fn, fn);
-        return promise;
-    }
     
     // Define public API
     exports.doInParallel        = doInParallel;

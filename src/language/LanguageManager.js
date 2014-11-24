@@ -1074,7 +1074,7 @@ define(function (require, exports, module) {
     }, false);
     
     // Get the object for HTML
-    var fnAlways = function () {
+    Async.promiseAlways(_ready, function () {
         var html = getLanguage("html");
         
         // The htmlmixed mode uses the xml mode internally for the HTML parts, so we map it to HTML
@@ -1111,8 +1111,7 @@ define(function (require, exports, module) {
             _updateFromPrefs(_EXTENSION_MAP_PREF);
             _updateFromPrefs(_NAME_MAP_PREF);
         });
-    };
-    _ready.then(fnAlways, fnAlways);
+    });
     
     // Private for unit tests
     exports._EXTENSION_MAP_PREF         = _EXTENSION_MAP_PREF;

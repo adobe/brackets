@@ -477,11 +477,10 @@ define(function (require, exports, module) {
      *      of the `FindInFiles.ERROR_*` constants.
      */
     function doReplace(results, replaceText, options) {
-        var fnAlways = function () {
+        return Async.promiseAlways(FindUtils.performReplacements(results, replaceText, options), function () {
             // For UI integration testing only
             exports._replaceDone = true;
-        };
-        return FindUtils.performReplacements(results, replaceText, options).then(fnAlways, fnAlways);
+        });
     }
     
     /**
@@ -602,13 +601,12 @@ define(function (require, exports, module) {
             addPromise = _addSearchResultsForEntry(entry);
         }
         
-        var fnAlways = function () {
+        Async.promiseAlways(addPromise, function () {
             // Restore the results if needed
             if (resultsChanged) {
                 searchModel.fireChanged();
             }
-        };
-        addPromise.then(fnAlways, fnAlways);
+        });
     };
     
     // Public exports

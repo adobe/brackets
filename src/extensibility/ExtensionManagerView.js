@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Strings                   = require("strings"),
+    var Async                     = require("utils/Async"),
+        Strings                   = require("strings"),
         EventDispatcher           = require("utils/EventDispatcher"),
         StringUtils               = require("utils/StringUtils"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
@@ -66,15 +67,15 @@ define(function (require, exports, module) {
         this._$table = $("<table class='table'/>").appendTo(this.$el);
         
         return new Promise(function (resolve, reject) {
-            var fnAlways = function () {
-                self._render();
-                resolve();
-            };
-            self.model.initialize()
+            var modelInitPromise = self.model.initialize();
+            modelInitPromise
                 .then(function () {
                     self._setupEventHandlers();
-                })
-                .then(fnAlways, fnAlways);
+                });
+            Async.promiseAlways(modelInitPromise, function () {
+                self._render();
+                resolve();
+            });
         });
     };
     

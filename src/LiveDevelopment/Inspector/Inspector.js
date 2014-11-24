@@ -356,10 +356,9 @@ define(function Inspector(require, exports, module) {
             });
         });
         
-        var fnAlways = function () {
+        Async.promiseAlways(connectPromise, function () {
             _connectCallbacks = {};
-        };
-        connectPromise.then(fnAlways, fnAlways);
+        });
         
         return connectPromise;
     }

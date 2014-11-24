@@ -29,7 +29,8 @@ maxerr: 50, browser: true */
 define(function (require, exports, module) {
     "use strict";
     
-    var EventDispatcher = require("utils/EventDispatcher");
+    var Async           = require("utils/Async"),
+        EventDispatcher = require("utils/EventDispatcher");
     
     
     /**
@@ -71,10 +72,9 @@ define(function (require, exports, module) {
             promiseReject("timeout");
         }, delay);
         
-        var fnAlways = function () {
+        Async.promiseAlways(promise, function () {
             clearTimeout(timer);
-        };
-        promise.then(fnAlways, fnAlways);
+        });
     }
     
     /**

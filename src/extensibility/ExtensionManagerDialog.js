@@ -359,12 +359,11 @@ define(function (require, exports, module) {
                 promise = view.initialize(model),
                 lastNotifyCount;
             
-            var fnAlways = function () {
+            Async.promiseAlways(promise, function () {
                 views[index] = view;
                 lastNotifyCount = model.notifyCount;
                 updateNotificationIcon(index);
-            };
-            promise.then(fnAlways, fnAlways);
+            });
             
             model.on("change", function () {
                 if (lastNotifyCount !== model.notifyCount) {
@@ -376,7 +375,7 @@ define(function (require, exports, module) {
             return promise;
         }, true);
         
-        var fnAlwaysModelInit = function () {
+        Async.promiseAlways(modelInitPromise, function () {
             $(".spinner", $dlg).remove();
             
             views.forEach(function (view) {
@@ -427,8 +426,7 @@ define(function (require, exports, module) {
             } else { // Otherwise show the first tab
                 $dlg.find(".nav-tabs a:first").tab("show");
             }
-        };
-        modelInitPromise.then(fnAlwaysModelInit, fnAlwaysModelInit);
+        });
     
         // Handle the 'Install from URL' button.
         $(".extension-manager-dialog .install-from-url")

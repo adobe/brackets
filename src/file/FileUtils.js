@@ -33,7 +33,8 @@ define(function (require, exports, module) {
 
     require("utils/Global");
     
-    var FileSystemError     = require("filesystem/FileSystemError"),
+    var Async               = require("utils/Async"),
+        FileSystemError     = require("filesystem/FileSystemError"),
         LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
@@ -82,10 +83,9 @@ define(function (require, exports, module) {
             });
         });
 
-        var fnAlways = function () {
+        Async.promiseAlways(result, function () {
             PerfUtils.addMeasurement(perfTimerName);
-        };
-        result.then(fnAlways, fnAlways);
+        });
 
         return result;
     }

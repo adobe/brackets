@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Dialogs                = require("widgets/Dialogs"),
+    var Async                  = require("utils/Async"),
+        Dialogs                = require("widgets/Dialogs"),
         File                   = require("filesystem/File"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),
@@ -441,10 +442,9 @@ define(function (require, exports, module) {
         var promise = this.pendingInstall.promise,
             self = this;
         
-        var fnAlways = function () {
+        Async.promiseAlways(this.pendingInstall.promise, function () {
             self.pendingInstall = null;
-        };
-        this.pendingInstall.promise.then(fnAlways, fnAlways);
+        });
         
         return promise;
     };

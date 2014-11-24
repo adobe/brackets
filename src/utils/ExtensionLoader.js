@@ -416,10 +416,9 @@ define(function (require, exports, module) {
             return loadAllExtensionsInNativeDirectory(extensionPath);
         }, false);
         
-        var fnAlways = function () {
+        Async.promiseAlways(promise, function () {
             _init = true;
-        };
-        promise.then(fnAlways, fnAlways);
+        });
         
         return promise;
     }

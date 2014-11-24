@@ -329,28 +329,29 @@ define(function (require, exports, module) {
 
             PerfUtils.markStart(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS);
             
-            var fnAlways = function () {
-                // Reset ChangedDocumentTracker now that the cache is up to date.
-                _changedDocumentTracker.reset();
+            Async.promiseAlways(
+                Async.doInParallel(fileInfos, function (fileInfo) {
+                    return new Promise(function (oneResultResolve, oneResultReject) {
+                        _getFunctionsForFile(fileInfo)
+                            .then(function (docInfo) {
+                                docEntries.push(docInfo);
+                                oneResultResolve();
+                            })
+                            .catch(function (error) {
+                                // If one file fails, continue to search
+                                oneResultResolve();
+                            });
+                    });
 
-                PerfUtils.addMeasurement(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS);
-                resultResolve(docEntries);
-            };
+                }),
+                function () {
+                    // Reset ChangedDocumentTracker now that the cache is up to date.
+                    _changedDocumentTracker.reset();
 
-            Async.doInParallel(fileInfos, function (fileInfo) {
-                return new Promise(function (oneResultResolve, oneResultReject) {
-                    _getFunctionsForFile(fileInfo)
-                        .then(function (docInfo) {
-                            docEntries.push(docInfo);
-                            oneResultResolve();
-                        })
-                        .catch(function (error) {
-                            // If one file fails, continue to search
-                            oneResultResolve();
-                        });
-                });
-
-            }).then(fnAlways, fnAlways);
+                    PerfUtils.addMeasurement(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS);
+                    resultResolve(docEntries);
+                }
+            );
         });
     }
     

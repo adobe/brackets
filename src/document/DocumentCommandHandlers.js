@@ -297,10 +297,9 @@ define(function (require, exports, module) {
         });
         
         if (perfTimerName) {
-            var fnAlways = function (doc) {
+            Async.promiseAlways(result, function () {
                 PerfUtils.addMeasurement(perfTimerName);
-            };
-            result.then(fnAlways, fnAlways);
+            });
         }
         
         return result;
@@ -607,13 +606,12 @@ define(function (require, exports, module) {
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
         function createWithSuggestedName(suggestedName) {
-            
-            var fnAlways = function () {
-                fileNewInProgress = false;
-            };
-            
-            return ProjectManager.createNewItem(baseDirEntry, suggestedName, false, isFolder)
-                .then(fnAlways, fnAlways);
+            return Async.promiseAlways(
+                ProjectManager.createNewItem(baseDirEntry, suggestedName, false, isFolder),
+                function () {
+                    fileNewInProgress = false;
+                }
+            );
         }
         
         return _getUntitledFileSuggestion(baseDirEntry, Strings.UNTITLED, isFolder)
@@ -767,11 +765,7 @@ define(function (require, exports, module) {
             }
         });
         
-        var fnAlways = function () {
-            MainViewManager.focusActivePane();
-        };
-        
-        result.then(fnAlways, fnAlways);
+        Async.promiseAlways(result, MainViewManager.focusActivePane);
         
         return result;
     }
@@ -1586,7 +1580,7 @@ define(function (require, exports, module) {
             }
 
             // Disable the cache to make reloads work
-            var fnAlways = function () {
+            Async.promiseAlways(_disableCache(), function () {
                 // Remove all menus to assure every part of Brackets is reloaded
                 _.forEach(Menus.getAllMenus(), function (value, key) {
                     Menus.removeMenu(key);
@@ -1599,8 +1593,7 @@ define(function (require, exports, module) {
                 }
 
                 window.location.href = href;
-            };
-            _disableCache().then(fnAlways, fnAlways);
+            });
         }).catch(function () {
             _isReloading = false;
         });

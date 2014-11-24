@@ -49,7 +49,8 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
-    var DocumentManager     = require("document/DocumentManager"),
+    var Async               = require("utils/Async"),
+        DocumentManager     = require("document/DocumentManager"),
         EventDispatcher     = require("utils/EventDispatcher"),
         MainViewManager     = require("view/MainViewManager"),
         CommandManager      = require("command/CommandManager"),
@@ -176,10 +177,9 @@ define(function (require, exports, module) {
         }
         
         // clear after notification is done
-        var fnAlways = function () {
+        Async.promiseAlways(result, function () {
             _curDocChangedDueToMe = curDocChangedDueToMe;
-        };
-        result.then(fnAlways, fnAlways);
+        });
         
         return result;
     }

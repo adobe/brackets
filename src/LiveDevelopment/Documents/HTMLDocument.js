@@ -44,7 +44,8 @@
 define(function HTMLDocumentModule(require, exports, module) {
     "use strict";
 
-    var EditorManager       = require("editor/EditorManager"),
+    var Async               = require("utils/Async"),
+        EditorManager       = require("editor/EditorManager"),
         EventDispatcher     = require("utils/EventDispatcher"),
         HighlightAgent      = require("LiveDevelopment/Agents/HighlightAgent"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
@@ -314,12 +315,11 @@ define(function HTMLDocumentModule(require, exports, module) {
         if (result.edits) {
             applyEditsPromise = RemoteAgent.call("applyDOMEdits", result.edits);
     
-            var fnAlways = function () {
+            Async.promiseAlways(applyEditsPromise, function () {
                 if (!isNestedTimer) {
                     PerfUtils.addMeasurement(perfTimerName);
                 }
-            };
-            applyEditsPromise.then(fnAlways, fnAlways);
+            });
         }
 
         this.errors = result.errors || [];
