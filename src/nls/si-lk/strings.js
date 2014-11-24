@@ -126,7 +126,7 @@ define({
     "DONE"                              : "Done",
     "OK"                                : "OK",
     "CANCEL"                            : "Cancel",
-    "DONT_SAVE"                         : "Don't Save",
+    "DONT_SAVE"                         : "සුරකින්න එපා", //Don't Save
     "SAVE"                              : "සුරකින්න",
     "SAVE_AS"                           : "Save As\u2026",
     "SAVE_AND_OVERWRITE"                : "Overwrite",
@@ -375,8 +375,8 @@ define({
     // Help menu commands
     "HELP_MENU"                           : "උදව්",
     "CMD_CHECK_FOR_UPDATE"                : "යාවත්කාලින කිරීම සදහා පරීක්ෂා කරන්න", //Check for Updates
-    "CMD_HOW_TO_USE_BRACKETS"             : "How to Use {APP_NAME}",
-    "CMD_SUPPORT"                         : "{APP_NAME} Support",
+    "CMD_HOW_TO_USE_BRACKETS"             : "APP_NAME} භාවිතා කරන අයුරු", //How to Use {APP_NAME}
+    "CMD_SUPPORT"                         : "{APP_NAME} උදවු", //{APP_NAME} Support
     "CMD_SUGGEST"                         : "Suggest a Feature",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_GET_INVOLVED"                    : "Get Involved",
@@ -420,8 +420,8 @@ define({
     
     // Extension Management strings
     "INSTALL"                              : "Install",
-    "UPDATE"                               : "Update",
-    "REMOVE"                               : "Remove",
+    "UPDATE"                               : "යාවත්කලීන කරන්න", //Update
+    "REMOVE"                               : "ඉවත් කරන්න", //Remove
     "OVERWRITE"                            : "Overwrite",
     "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
     "CANT_UPDATE"                          : "The update isn't compatible with this version of {APP_NAME}.",
@@ -519,7 +519,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
     "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
-    "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
+    "CMD_SWITCH_LANGUAGE"                       : "භාෂාව මාරු කරන්න",
     "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
     "CMD_SHOW_PERF_DATA"                        : "Show Performance Data",
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Enable Node Debugger",
