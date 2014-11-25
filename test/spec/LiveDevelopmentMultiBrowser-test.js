@@ -40,9 +40,7 @@ define(function (require, exports, module) {
             DocumentManager,
             LiveDevelopment,
             LiveDevProtocol,
-            LiveHTMLDocument,
-            PreferencesManager,
-            editor;
+            PreferencesManager;
         
         var testFolder = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-MultiBrowser-test-files"),
             allSpacesRE = /\s+/gi;
