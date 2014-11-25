@@ -839,9 +839,9 @@ define(function (require, exports, module) {
         });
         
         $(ProjectManager).on("beforeAppClose", function () {
-//            if (brackets.platform === "win") {
+            if (brackets.platform === "win") {
                 ScopeManager.handleProjectClose(true);
-//            }
+            }
         });
 
         // immediately install the current editor
