@@ -837,6 +837,12 @@ define(function (require, exports, module) {
         ProjectManager.on("projectOpen", function () {
             ScopeManager.handleProjectOpen();
         });
+        
+        $(ProjectManager).on("beforeAppClose", function () {
+//            if (brackets.platform === "win") {
+                ScopeManager.handleProjectClose(true);
+//            }
+        });
 
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
