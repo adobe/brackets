@@ -48,7 +48,6 @@ define(function LiveCSSDocumentModule(require, exports, module) {
 
     var _               = require("thirdparty/lodash"),
         CSSUtils        = require("language/CSSUtils"),
-        EditorManager   = require("editor/EditorManager"),
         EventDispatcher = require("utils/EventDispatcher"),
         LiveDocument    = require("LiveDevelopment/MultiBrowserImpl/documents/LiveDocument");
 
@@ -115,7 +114,6 @@ define(function LiveCSSDocumentModule(require, exports, module) {
     LiveCSSDocument.prototype.updateHighlight = function () {
         if (this.isHighlightEnabled() && this.editor) {
             var editor = this.editor,
-                codeMirror = editor._codeMirror,
                 selectors = [];
             _.each(this.editor.getSelections(), function (sel) {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, (sel.reversed ? sel.end : sel.start));

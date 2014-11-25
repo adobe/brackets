@@ -21,6 +21,7 @@
  * 
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
 /*jslint evil: true */
 
 // This is the script that Brackets live development injects into HTML pages in order to

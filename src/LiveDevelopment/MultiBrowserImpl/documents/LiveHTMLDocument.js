@@ -35,10 +35,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var DocumentManager     = require("document/DocumentManager"),
-        EventDispatcher     = require("utils/EventDispatcher"),
+    var EventDispatcher     = require("utils/EventDispatcher"),
         PerfUtils           = require("utils/PerfUtils"),
-        StringUtils         = require("utils/StringUtils"),
         _                   = require("thirdparty/lodash"),
         LiveDocument        = require("LiveDevelopment/MultiBrowserImpl/documents/LiveDocument"),
         HTMLInstrumentation = require("LiveDevelopment/MultiBrowserImpl/language/HTMLInstrumentation");
@@ -155,7 +153,6 @@ define(function (require, exports, module) {
             return;
         }
         var editor = this.editor,
-            codeMirror = editor._codeMirror,
             ids = [];
         _.each(this.editor.getSelections(), function (sel) {
             var tagID = HTMLInstrumentation._getTagIDAtDocumentPos(

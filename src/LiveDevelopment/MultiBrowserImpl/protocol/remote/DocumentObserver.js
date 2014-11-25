@@ -21,6 +21,9 @@
  * 
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*global setInterval, clearInterval */
+
 (function (global) {
     "use strict";
     
@@ -107,8 +110,7 @@
              * from previous status. It also updates stylesheets status. 
              */
             notifyStylesheetAdded : function () {
-                var i,
-                    added = {},
+                var added = {},
                     current,
                     newStatus;
                 
@@ -140,8 +142,7 @@
             notifyStylesheetRemoved : function () {
                 
                 var self = this;
-                var i,
-                    removed = {},
+                var removed = {},
                     newStatus,
                     current;
                 

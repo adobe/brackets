@@ -44,8 +44,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EventDispatcher = require("utils/EventDispatcher"),
-        NativeApp = require('utils/NativeApp');
+    var EventDispatcher = require("utils/EventDispatcher");
     
     // Text of the script we'll inject into the browser that handles protocol requests.
     var LiveDevProtocolRemote = require("text!LiveDevelopment/MultiBrowserImpl/protocol/remote/LiveDevProtocolRemote.js"),

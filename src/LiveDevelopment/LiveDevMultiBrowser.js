@@ -45,7 +45,6 @@
  * parameter. Currently only the "Inactive" status supports the reason parameter.
  * The status codes are:
  *
- * -1: Error
  *  0: Inactive
  *  1: Connecting (waiting for a browser connection)
  *  2: Active
@@ -64,7 +63,6 @@ define(function (require, exports, module) {
     "use strict";
 
     // Status Codes
-    var STATUS_ERROR         = exports.STATUS_ERROR          = -1;
     var STATUS_INACTIVE      = exports.STATUS_INACTIVE       =  0;
     var STATUS_CONNECTING    = exports.STATUS_CONNECTING     =  1;
     var STATUS_ACTIVE        = exports.STATUS_ACTIVE         =  2;
@@ -73,20 +71,14 @@ define(function (require, exports, module) {
     var STATUS_RELOADING     = exports.STATUS_RELOADING      =  5;
     var STATUS_RESTARTING    = exports.STATUS_RESTARTING     =  6;
 
-    var Async                = require("utils/Async"),
-        Dialogs              = require("widgets/Dialogs"),
+    var Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
-        EditorManager        = require("editor/EditorManager"),
         EventDispatcher      = require("utils/EventDispatcher"),
-        ExtensionUtils       = require("utils/ExtensionUtils"),
-        FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
-        NativeApp            = require("utils/NativeApp"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),
         Strings              = require("strings"),
-        StringUtils          = require("utils/StringUtils"),
         _                    = require("thirdparty/lodash"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         NodeSocketTransport  = require("LiveDevelopment/MultiBrowserImpl/transports/NodeSocketTransport"),
@@ -111,13 +103,6 @@ define(function (require, exports, module) {
      * @type {Object.<string: {LiveHTMLDocument|LiveCSSDocument}>}
      */
     var _relatedDocuments = {};
-    
-    /**
-     * @private
-     * Current transport for communicating with browser instances. See setTransport().
-     * @type {{start: function(string), send: function(number|Array.<number>, string), close: function(number)}}
-     */
-    var _transport;
     
     /**
      * @private
@@ -180,18 +165,6 @@ define(function (require, exports, module) {
         }
         
         return _server.get(path);
-    }
-    
-    /**
-     * Returns the live document for a given editor, or null if there is no live document for it.
-     * @param {Editor} editor
-     * @return {?LiveDocument}
-     */
-    function getLiveDocForEditor(editor) {
-        if (!editor) {
-            return null;
-        }
-        return getLiveDocForPath(editor.document.file.fullPath);
     }
 
     /**
@@ -572,7 +545,6 @@ define(function (require, exports, module) {
                     .on("ConnectionConnect.livedev", function (event, msg) {
                         // check for the first connection
                         if (_protocol.getConnectionIds().length === 1) {
-                            var doc = DocumentManager.getCurrentDocument();
                             // check the page that connection comes from matches the current live document session
                             if (_liveDocument && (msg.url === _resolveUrl(_liveDocument.doc.file.fullPath))) {
                                 _setStatus(STATUS_ACTIVE);

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, brackets */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -210,7 +210,6 @@ define(function (require, exports, module) {
         var self = this,
             startLine,
             endLine,
-            lineInfo,
             i,
             lineHandle;
         

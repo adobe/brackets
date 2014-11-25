@@ -29,8 +29,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var DocumentManager = require("document/DocumentManager"),
-        Tokenizer       = require("language/HTMLTokenizer").Tokenizer,
+    var Tokenizer       = require("language/HTMLTokenizer").Tokenizer,
         MurmurHash3     = require("thirdparty/murmurhash3_gc"),
         PerfUtils       = require("utils/PerfUtils");
     
