@@ -21,9 +21,7 @@
  * 
  */
 
-/*jslint evil: true */
-
-/*global $, brackets, define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, waitsForDone, runs, window, spyOn, jasmine */
+/*global define, describe, beforeEach, runs, afterEach, waitsFor, it, waitsForDone, expect */
 
 define(function (require, exports, module) {
     "use strict";
