@@ -63,6 +63,7 @@ define(function (require, exports, module) {
     require("spec/KeyBindingManager-test");
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
+    require("spec/LiveDevelopmentMultiBrowser-test");
     require("spec/LowLevelFileIO-test");
     require("spec/MainViewFactory-test");
     require("spec/MainViewManager-test");
