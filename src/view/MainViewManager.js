@@ -348,7 +348,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Switch active pane to the specified pane Id
+     * Switch active pane to the specified pane Id (or ACTIVE_PANE/ALL_PANES, in which case this
+     * call does nothing).
      * @param {!string} paneId - the id of the pane to activate
      */
     function setActivePaneId(newPaneId) {

@@ -258,16 +258,16 @@ define(function (require, exports, module) {
                 result = extensions.get("icons").map(function (callback) {
                     try {
                         var result = callback(data);
-                        if (!React.isValidComponent(result)) {
+                        if (result && !React.isValidComponent(result)) {
                             result = React.DOM.span({
                                 dangerouslySetInnerHTML: {
                                     __html: $(result)[0].outerHTML
                                 }
                             });
                         }
-                        return result;
+                        return result;  // by this point, returns either undefined or a React object
                     } catch (e) {
-                        console.warn("Exception thrown in FileTreeView icon provider:", e);
+                        console.error("Exception thrown in FileTreeView icon provider: " + e, e.stack);
                     }
                 }).filter(isDefined).toArray();
             }
@@ -296,7 +296,7 @@ define(function (require, exports, module) {
                     try {
                         return callback(data);
                     } catch (e) {
-                        console.warn("Exception thrown in FileTreeView addClass provider:", e);
+                        console.error("Exception thrown in FileTreeView addClass provider: " + e, e.stack);
                     }
                 }).filter(isDefined).toArray().join(" ");
             }
@@ -419,7 +419,7 @@ define(function (require, exports, module) {
         /**
          * Create the data object to pass to extensions.
          *
-         * @return {{name: {string}, isFile: {boolean}, fullPath: {string}}} Data for extensions
+         * @return {!{name:string, isFile:boolean, fullPath:string}} Data for extensions
          */
         getDataForExtension: function () {
             return {
@@ -1026,29 +1026,14 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Adds an icon provider. The icon provider is a function which takes a data object and
-     * returns a React.DOM.ins instance for the icons within the tree. The callback can
-     * alternatively return a string, DOM node or a jQuery object for the ins node to be added.
-     *
-     * The data object contains:
-     *
-     * * `name`: the file or directory name
-     * * `fullPath`: full path to the file or directory
-     * * `isFile`: true if it's a file, false if it's a directory
+     * @see {@link ProjectManager::#addIconProvider}
      */
     function addIconProvider(callback) {
         _addExtension("icons", callback);
     }
 
     /**
-     * Adds an additional classes provider which can return classes that should be added to a
-     * given file or directory in the tree.
-     *
-     * The data object contains:
-     *
-     * * `name`: the file or directory name
-     * * `fullPath`: full path to the file or directory
-     * * `isFile`: true if it's a file, false if it's a directory
+     * @see {@link ProjectManager::#addClassesProvider}
      */
     function addClassesProvider(callback) {
         _addExtension("addClass", callback);

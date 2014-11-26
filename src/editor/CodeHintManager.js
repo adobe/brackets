@@ -131,7 +131,7 @@
  *  1. hints, a sorted array hints that the provider could later insert
  *     into the editor;
  *  2. match, a string that the manager may use to emphasize substrings of
- *     hints in the hint list; and
+ *     hints in the hint list (case-insensitive); and
  *  3. selectInitial, a boolean that indicates whether or not the the
  *     first hint in the list should be selected by default.
  *  4. handleWideResults, a boolean (or undefined) that indicates whether
