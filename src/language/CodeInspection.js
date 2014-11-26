@@ -219,6 +219,7 @@ define(function (require, exports, module) {
                                 runPromise.resolve(scanResult);
                             })
                             .fail(function (err) {
+                                PerfUtils.finalizeMeasurement(perfTimerProvider);
                                 var errError = {
                                     pos: {line: -1, col: 0},
                                     message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
@@ -233,6 +234,7 @@ define(function (require, exports, module) {
                             PerfUtils.addMeasurement(perfTimerProvider);
                             runPromise.resolve(scanResult);
                         } catch (err) {
+                            PerfUtils.finalizeMeasurement(perfTimerProvider);
                             var errError = {
                                 pos: {line: -1, col: 0},
                                 message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
