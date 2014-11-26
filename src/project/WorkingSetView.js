@@ -1427,12 +1427,12 @@ define(function (require, exports, module) {
 
     
     /** 
-     * adds an icon provider to the view.  
-     * Icon providers are called when a working set item is created
-     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string|jQuery|DOMNode} callback
-     * The callback must return the html to place before the link of each WSV item. 
-     *  The return value can be a string representing the HTML, a jQuery object or undefined.
-     * if a falsy value is returned then nothing is prepended to the list item
+     * Adds an icon provider. The callback is invoked before each working set item is created, and can
+     * return content to prepend to the item.
+     * 
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode} callback
+     * Return a string representing the HTML, a jQuery object or DOM node, or undefined. If undefined,
+     * nothing is prepended to the list item.
      */
     function addIconProvider(callback) {
         if (!callback) {
@@ -1445,10 +1445,11 @@ define(function (require, exports, module) {
     }
     
     /** 
-     * adds a list item class provider to the view.  
-     * Class providers are called when a working set item is created
-     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string} callback
-     * The callback can return a string that contains the class (or classes) to add to the list item
+     * Adds a CSS class provider, invoked before each working set item is created or updated. When called
+     * to update an existing item, all previously applied classes have been cleared.
+     * 
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string} callback
+     * Return a string containing space-separated CSS class(es) to add, or undefined to leave CSS unchanged.
      */
     function addClassProvider(callback) {
         if (!callback) {
