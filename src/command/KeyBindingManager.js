@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileUtils           = require("file/FileUtils"),
@@ -82,6 +83,17 @@ define(function (require, exports, module) {
     var _commandMap  = {},
         _allCommands = [];
     
+    /**
+     * @private
+     * Maps key names to the corresponding unicode symols
+     * @type {{key: string, displayKey: string}}
+     */
+    var _displayKeyMap      = { "up":    "\u2191",
+                                "down":  "\u2193",
+                                "left":  "\u2190",
+                                "right": "\u2192",
+                                "-":     "\u2212" };
+
     var _specialCommands = [Commands.EDIT_UNDO, Commands.EDIT_REDO, Commands.EDIT_SELECT_ALL,
                             Commands.EDIT_CUT, Commands.EDIT_COPY, Commands.EDIT_PASTE],
         _reservedShortcuts = ["Ctrl-Z", "Ctrl-Y", "Ctrl-A", "Ctrl-X", "Ctrl-C", "Ctrl-V"],
@@ -411,7 +423,7 @@ define(function (require, exports, module) {
                 });
     
                 if (command) {
-                    $(command).triggerHandler("keyBindingRemoved", [{key: normalizedKey, displayKey: binding.displayKey}]);
+                    command.trigger("keyBindingRemoved", {key: normalizedKey, displayKey: binding.displayKey});
                 }
             }
         }
@@ -577,7 +589,7 @@ define(function (require, exports, module) {
         command = CommandManager.get(commandID);
         
         if (command) {
-            $(command).triggerHandler("keyBindingAdded", [result]);
+            command.trigger("keyBindingAdded", result);
         }
         
         return result;
@@ -896,18 +908,15 @@ define(function (require, exports, module) {
      * @private
      *
      * Gets the corresponding unicode symbol of an arrow key for display in the menu.
-     * @param {string} normalizedKey 
-     * @return {string} An empty string if normalizedKey does not have any arrow key. Otherwise, the name
-     *                  of the arrow key is replaced with the corresponding unicode symbol in the return string.
+     * @param {string} key The non-modifier key used in the shortcut. It does not need to be normalized.
+     * @return {string} An empty string if key is not one of those we want to show with the unicode symbol. 
+     *                  Otherwise, the corresponding unicode symbol is returned.
      */
-    function _getDisplayKey(normalizedKey) {
-        var displayKey = "";
-        if (/(Up|Down|Left|Right)$/i.test(normalizedKey)) {
-            normalizedKey = normalizedKey.replace(/Up$/i, "\u2191");
-            normalizedKey = normalizedKey.replace(/Down$/i, "\u2193");
-            normalizedKey = normalizedKey.replace(/Left$/i, "\u2190");
-            normalizedKey = normalizedKey.replace(/Right$/i, "\u2192");
-            displayKey = normalizedKey;
+    function _getDisplayKey(key) {
+        var displayKey = "",
+            match = key ? key.match(/(Up|Down|Left|Right|\-)$/i) : null;
+        if (match) {
+            displayKey = key.substr(0, match.index) + _displayKeyMap[match[0].toLowerCase()];
         }
         return displayKey;
     }
@@ -954,9 +963,13 @@ define(function (require, exports, module) {
                 return;
             }
 
+            // Skip this if the key is invalid.
             if (!normalizedKey) {
                 invalidKeys.push(key);
-            } else if (_isKeyAssigned(normalizedKey)) {
+                return;
+            }
+            
+            if (_isKeyAssigned(normalizedKey)) {
                 if (remappedKeys.indexOf(normalizedKey) !== -1) {
                     // JSON parser already removed all the duplicates that have the exact
                     // same case or order in their keys. So we're only detecting duplicate 
@@ -1183,12 +1196,13 @@ define(function (require, exports, module) {
         });
     }
     
-    $(CommandManager).on("commandRegistered", _handleCommandRegistered);
+    // Due to circular dependencies, not safe to call on() directly
+    EventDispatcher.on_duringInit(CommandManager, "commandRegistered", _handleCommandRegistered);
     CommandManager.register(Strings.CMD_OPEN_KEYMAP, Commands.FILE_OPEN_KEYMAP, _openUserKeyMap);
 
     // Asynchronously loading DocumentManager to avoid the circular dependency
     require(["document/DocumentManager"], function (DocumentManager) {
-        $(DocumentManager).on("documentSaved", function checkKeyMapUpdates(e, doc) {
+        DocumentManager.on("documentSaved", function checkKeyMapUpdates(e, doc) {
             if (doc && doc.file.fullPath === _userKeyMapFilePath) {
                 _loadUserKeyMap();
             }

@@ -442,7 +442,7 @@ define(function (require, exports, module) {
     }
 
     // Events listeners
-    $(ExtensionManager).on("registryDownload", _onRegistryDownloaded);
+    ExtensionManager.on("registryDownload", _onRegistryDownloaded);
 
     // Define public API
     exports.launchAutomaticUpdate = launchAutomaticUpdate;

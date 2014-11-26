@@ -296,7 +296,7 @@ define(function (require, exports, module) {
         
         // On dialog close: clean up listeners & models, and commit changes
         dialog.done(function () {
-            $(document).off(".extensionManager");
+            $(window.document).off(".extensionManager");
             
             models.forEach(function (model) {
                 model.dispose();
@@ -325,7 +325,7 @@ define(function (require, exports, module) {
 
         // Navigate through tabs via Ctrl-(Shift)-Tab
         // (focus may be on document.body if text in extension listing clicked - see #9511)
-        $(document).on("keyup.extensionManager", function (event) {
+        $(window.document).on("keyup.extensionManager", function (event) {
             if (event.keyCode === KeyEvent.DOM_VK_TAB && event.ctrlKey) {
                 var $tabs = $(".nav-tabs a", $dlg),
                     tabIndex = _activeTabIndex;
@@ -365,7 +365,7 @@ define(function (require, exports, module) {
                 updateNotificationIcon(index);
             });
             
-            $(model).on("change", function () {
+            model.on("change", function () {
                 if (lastNotifyCount !== model.notifyCount) {
                     lastNotifyCount = model.notifyCount;
                     updateNotificationIcon(index);
@@ -413,7 +413,7 @@ define(function (require, exports, module) {
             
             // Disable the search field when there are no items in the model
             models.forEach(function (model, index) {
-                $(model).on("change", function () {
+                model.on("change", function () {
                     if (_activeTabIndex === index) {
                         updateSearchDisabled();
                     }
@@ -428,7 +428,7 @@ define(function (require, exports, module) {
             }
         });
     
-        // Handle the install button.
+        // Handle the 'Install from URL' button.
         $(".extension-manager-dialog .install-from-url")
             .click(function () {
                 InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);

@@ -937,7 +937,7 @@ define(function (require, exports, module) {
     }
     
     // Listen for a change of project to invalidate our file list
-    $(ProjectManager).on("projectOpen", function () {
+    ProjectManager.on("projectOpen", function () {
         fileList = null;
     });
 
