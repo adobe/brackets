@@ -127,12 +127,12 @@ define(function (require, exports, module) {
      * @param {?function(!{type:string, target:!Object}, ...)} fn
      */
     var off = function (events, fn) {
+        if (!this._eventHandlers) {
+            return this;
+        }
+        
         var eventsList = events.split(/\s+/).map(splitNs),
             i;
-        
-        if (!this._eventHandlers) {
-            return;
-        }
         
         var removeAllMatches = function (eventRec, eventName) {
             var handlerList = this._eventHandlers[eventName],
