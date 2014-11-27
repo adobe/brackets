@@ -262,5 +262,12 @@
             "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip"
         ],
         "isBinary": true
+    },
+
+    "pascal": {
+        "name": "Pascal",
+        "mode": "pascal",
+        "fileExtensions": ["p", "pas", "pp"],
+        "blockComment": ["(*", "*)"]
     }
 }
