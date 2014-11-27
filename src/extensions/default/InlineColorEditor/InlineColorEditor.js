@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, window */
+/*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -150,16 +150,16 @@ define(function (require, exports, module) {
 
             // Don't push the change back into the host editor if it came from the host editor.
             if (!this._isHostChange) {
+                this._isOwnChange = true;
                 this.hostEditor.document.batchOperation(function () {
                     // Replace old color in code with the picker's color, and select it
-                    self._isOwnChange = true;
                     self.hostEditor.document.replaceRange(colorString, range.start, range.end, self._origin);
-                    self._isOwnChange = false;
                     self.hostEditor.setSelection(range.start, {
                         line: range.start.line,
                         ch: range.start.ch + colorString.length
                     });
                 });
+                this._isOwnChange = false;
             }
             
             this._color = colorString;
@@ -188,7 +188,7 @@ define(function (require, exports, module) {
         
         var doc = this.hostEditor.document;
         doc.addRef();
-        $(doc).on("change", this._handleHostDocumentChange);
+        doc.on("change", this._handleHostDocumentChange);
         
         this.hostEditor.setInlineWidgetHeight(this, this.colorEditor.getRootElement().outerHeight(), true);
         
@@ -210,7 +210,7 @@ define(function (require, exports, module) {
         }
 
         var doc = this.hostEditor.document;
-        $(doc).off("change", this._handleHostDocumentChange);
+        doc.off("change", this._handleHostDocumentChange);
         doc.releaseRef();
     };
 

@@ -22,22 +22,21 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, window, $, brackets, Mustache */
+/*global define, $, brackets, Mustache */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
     "use strict";
     
     var Strings                   = require("strings"),
+        EventDispatcher           = require("utils/EventDispatcher"),
         StringUtils               = require("utils/StringUtils"),
-        NativeApp                 = require("utils/NativeApp"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
-        CommandManager            = require("command/CommandManager"),
-        Commands                  = require("command/Commands"),
+        LocalizationUtils         = require("utils/LocalizationUtils"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
-    
+
     /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized
      * with initialize(). When the view is closed, dispose() must be called.
@@ -45,6 +44,7 @@ define(function (require, exports, module) {
      */
     function ExtensionManagerView() {
     }
+    EventDispatcher.makeEventDispatcher(ExtensionManagerView.prototype);
     
     /**
      * Initializes the view to show a set of extensions.
@@ -112,6 +112,31 @@ define(function (require, exports, module) {
      * The individual views for each item, keyed by the extension ID.
      */
     ExtensionManagerView.prototype._itemViews = null;
+
+    /**
+     * Toggles between truncated and full length extension descriptions
+     * @param {string} id The id of the extension clicked
+     * @param {JQueryElement} $element The DOM element of the extension clicked
+     * @param {boolean} showFull true if full length description should be shown, false for shortened version.
+     */
+    ExtensionManagerView.prototype._toggleDescription = function (id, $element, showFull) {
+        var description, linkTitle,
+            info = this.model._getEntry(id);
+
+        // Toggle between appropriate descriptions and link title,
+        // depending on if extension is installed or not
+        if (showFull) {
+            description = info.metadata.description;
+            linkTitle = Strings.VIEW_TRUNCATED_DESCRIPTION;
+        } else {
+            description = info.metadata.shortdescription;
+            linkTitle = Strings.VIEW_COMPLETE_DESCRIPTION;
+        }
+
+        $element.data("toggle-desc", showFull ? "trunc-desc" : "expand-desc")
+                .attr("title", linkTitle)
+                .prev(".ext-full-description").text(description);
+    };
     
     /**
      * @private
@@ -121,7 +146,7 @@ define(function (require, exports, module) {
         var self = this;
 
         // Listen for model data and filter changes.
-        $(this.model)
+        this.model
             .on("filter", function () {
                 self._render();
             })
@@ -156,8 +181,12 @@ define(function (require, exports, module) {
                     ExtensionManager.markForRemoval($target.attr("data-extension-id"), true);
                 } else if ($target.hasClass("undo-update")) {
                     ExtensionManager.removeUpdate($target.attr("data-extension-id"));
+                } else if ($target.data("toggle-desc") === "expand-desc") {
+                    this._toggleDescription($target.attr("data-extension-id"), $target, true);
+                } else if ($target.data("toggle-desc") === "trunc-desc") {
+                    this._toggleDescription($target.attr("data-extension-id"), $target, false);
                 }
-            })
+            }.bind(this))
             .on("click", "button.install", function (e) {
                 self._installUsingDialog($(e.target).attr("data-extension-id"));
             })
@@ -208,14 +237,74 @@ define(function (require, exports, module) {
             // (or registry is offline). These flags *should* always be ignored in that scenario, but just in case...
             context.isCompatible = context.isCompatibleLatest = true;
         }
-        
+
+        // Check if extension metadata contains localized content.
+        var lang            = brackets.getLocale(),
+            shortLang       = lang.split("-")[0];
+        if (info.metadata["package-i18n"]) {
+            [shortLang, lang].forEach(function (locale) {
+                if (info.metadata["package-i18n"].hasOwnProperty(locale)) {
+                    // only overlay specific properties with the localized values
+                    ["title", "description", "homepage", "keywords"].forEach(function (prop) {
+                        if (info.metadata["package-i18n"][locale].hasOwnProperty(prop)) {
+                            info.metadata[prop] = info.metadata["package-i18n"][locale][prop];
+                        }
+                    });
+                }
+            });
+        }
+
+        if (info.metadata.description !== undefined) {
+            info.metadata.shortdescription = StringUtils.truncate(info.metadata.description, 200);
+        }
+
         context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);
         context.isMarkedForUpdate = ExtensionManager.isMarkedForUpdate(info.metadata.name);
         
-        context.showInstallButton = (this.model.source === this.model.SOURCE_REGISTRY) && !context.updateAvailable;
+        context.showInstallButton = (this.model.source === this.model.SOURCE_REGISTRY || this.model.source === this.model.SOURCE_THEMES) && !context.updateAvailable;
         context.showUpdateButton = context.updateAvailable && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
 
         context.allowInstall = context.isCompatible && !context.isInstalled;
+
+        if (Array.isArray(info.metadata.i18n) && info.metadata.i18n.length > 0) {
+            context.translated = true;
+            context.translatedLangs =
+                info.metadata.i18n.map(function (value) {
+                    if (value === "root") {
+                        value = "en";
+                    }
+                    return { name: LocalizationUtils.getLocalizedLabel(value), locale: value };
+                })
+                .sort(function (lang1, lang2) {
+                    // List users language first
+                    var locales         = [lang1.locale, lang2.locale],
+                        userLangIndex   = locales.indexOf(lang);
+                    if (userLangIndex > -1) {
+                        return userLangIndex;
+                    }
+                    userLangIndex = locales.indexOf(shortLang);
+                    if (userLangIndex > -1) {
+                        return userLangIndex;
+                    }
+
+                    return lang1.name.localeCompare(lang2.name);
+                })
+                .map(function (value) {
+                    return value.name;
+                })
+                .join(", ");
+            context.translatedLangs = StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, context.translatedLangs);
+
+            // If the selected language is System Default, match both the short (2-char) language code
+            // and the long one
+            var translatedIntoUserLang =
+                (brackets.isLocaleDefault() && info.metadata.i18n.indexOf(shortLang) > -1) ||
+                info.metadata.i18n.indexOf(lang) > -1;
+            context.extensionTranslated = StringUtils.format(
+                translatedIntoUserLang ? Strings.EXTENSION_TRANSLATED_USER_LANG : Strings.EXTENSION_TRANSLATED_GENERAL,
+                info.metadata.i18n.length
+            );
+        }
 
         var isInstalledInUserFolder = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
         context.allowRemove = isInstalledInUserFolder;
@@ -263,8 +352,7 @@ define(function (require, exports, module) {
      * new items for entries that haven't yet been rendered, but will not re-render existing items.
      */
     ExtensionManagerView.prototype._render = function () {
-        var self = this,
-            $item;
+        var self = this;
         
         this._$table.empty();
         this._updateMessage();
@@ -278,7 +366,7 @@ define(function (require, exports, module) {
             $item.appendTo(self._$table);
         });
         
-        $(this).triggerHandler("render");
+        this.trigger("render");
     };
     
     /**

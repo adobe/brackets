@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, brackets */
 
 /**
  *  Utilities functions related to string manipulation
@@ -49,14 +49,6 @@ define(function (require, exports, module) {
         return str.replace(/\{(\d+)\}/g, function (match, num) {
             return typeof args[num] !== "undefined" ? args[num] : match;
         });
-    }
-
-    /**
-     * @deprecated Use lodash `escape()` instead.
-     */
-    function htmlEscape(str) {
-        console.warn("StringUtils.htmlEscape is deprecated. Use _.escape instead.");
-        return _.escape(str);
     }
 
     function regexEscape(str) {
@@ -169,12 +161,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Convert number of bytes into human readable format. 
+     * Converts number of bytes into human readable format.
      * If param bytes is negative it returns the number without any changes.
      *
-     * @param number bytes     Number of bytes to convert
-     * @param number precision Number of digits after the decimal separator
-     * @return string
+     * @param {number} bytes     Number of bytes to convert
+     * @param {number} precision Number of digits after the decimal separator
+     * @return {string}
      */
     function prettyPrintBytes(bytes, precision) {
         var kilobyte = 1024,
@@ -198,9 +190,29 @@ define(function (require, exports, module) {
         return returnVal;
     }
     
+    /**
+     * Truncate text to specified length.
+     * @param {string} str Text to be truncated.
+     * @param {number} len Length to which text should be truncated
+     * @return {?string} Returns truncated text only if it was changed
+     */
+    function truncate(str, len) {
+        // Truncate text to specified length
+        if (str.length > len) {
+            str = str.substr(0, len);
+
+            // To prevent awkwardly truncating in the middle of a word,
+            // attempt to truncate at the end of the last whole word
+            var lastSpaceChar = str.lastIndexOf(" ");
+            if (lastSpaceChar < len && lastSpaceChar > -1) {
+                str = str.substr(0, lastSpaceChar);
+            }
+            return str;
+        }
+    }
+
     // Define public API
     exports.format              = format;
-    exports.htmlEscape          = htmlEscape;
     exports.regexEscape         = regexEscape;
     exports.jQueryIdEscape      = jQueryIdEscape;
     exports.getLines            = getLines;
@@ -209,4 +221,5 @@ define(function (require, exports, module) {
     exports.breakableUrl        = breakableUrl;
     exports.endsWith            = endsWith;
     exports.prettyPrintBytes    = prettyPrintBytes;
+    exports.truncate            = truncate;
 });

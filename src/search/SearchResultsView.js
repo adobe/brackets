@@ -28,8 +28,9 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var CommandManager        = require("command/CommandManager"),
+        EventDispatcher       = require("utils/EventDispatcher"),
         Commands              = require("command/Commands"),
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
@@ -37,16 +38,16 @@ define(function (require, exports, module) {
         FileViewController    = require("project/FileViewController"),
         FileUtils             = require("file/FileUtils"),
         FindUtils             = require("search/FindUtils"),
-        PanelManager          = require("view/PanelManager"),
+        WorkspaceManager      = require("view/WorkspaceManager"),
         StringUtils           = require("utils/StringUtils"),
         Strings               = require("strings"),
         _                     = require("thirdparty/lodash"),
-        
+
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html"),
         searchSummaryTemplate = require("text!htmlContent/search-summary.html");
-    
-    
+
+
     /** 
      * @const 
      * The maximum results to show per page.
@@ -75,11 +76,12 @@ define(function (require, exports, module) {
     function SearchResultsView(model, panelID, panelName) {
         var panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
 
-        this._panel    = PanelManager.createBottomPanel(panelName, $(panelHtml), 100);
+        this._panel    = WorkspaceManager.createBottomPanel(panelName, $(panelHtml), 100);
         this._$summary = this._panel.$panel.find(".title");
         this._$table   = this._panel.$panel.find(".table-container");
         this._model    = model;
     }
+    EventDispatcher.makeEventDispatcher(SearchResultsView.prototype);
     
     /** @type {SearchModel} The search results model we're viewing. */
     SearchResultsView.prototype._model = null;
@@ -176,7 +178,7 @@ define(function (require, exports, module) {
             // Add the file to the working set on double click
             .on("dblclick.searchResults", ".table-container tr:not(.file-section)", function (e) {
                 var item = self._searchList[$(this).data("file-index")];
-                FileViewController.addToWorkingSetAndSelect(item.fullPath);
+                FileViewController.openFileAndAddToWorkingSet(item.fullPath);
             })
         
             // Add the click event listener directly on the table parent
@@ -212,7 +214,7 @@ define(function (require, exports, module) {
                             if (searchItem.collapsed !== collapsed) {
                                 searchItem.collapsed = collapsed;
                                 $(this).nextUntil(".file-section").toggle();
-                                $(this).find(".disclosure-triangle").toggleClass("expanded").toggleClass("collapsed");
+                                $(this).find(".disclosure-triangle").toggleClass("expanded");
                             }
                         });
 
@@ -237,6 +239,45 @@ define(function (require, exports, module) {
                 }
             });
         
+        function updateHeaderCheckbox($checkAll) {
+            var $allFileRows     = self._panel.$panel.find(".file-section"),
+                $checkedFileRows = $allFileRows.filter(function (index) {
+                    return $(this).find(".check-one-file").is(":checked");
+                });
+            if ($checkedFileRows.length === $allFileRows.length) {
+                $checkAll.prop("checked", true);
+            }
+        }
+        
+        function updateFileAndHeaderCheckboxes($clickedRow, isChecked) {
+            var $firstMatch = ($clickedRow.data("item-index") === 0) ? $clickedRow :
+                    $clickedRow.prevUntil(".file-section").last(),
+                $fileRow = $firstMatch.prev(),
+                $siblingRows = $fileRow.nextUntil(".file-section"),
+                $fileCheckbox = $fileRow.find(".check-one-file"),
+                $checkAll = self._panel.$panel.find(".check-all");
+        
+            if (isChecked) {
+                if (!$fileCheckbox.is(":checked")) {
+                    var $checkedSibilings = $siblingRows.filter(function (index) {
+                            return $(this).find(".check-one").is(":checked");
+                        });
+                    if ($checkedSibilings.length === $siblingRows.length) {
+                        $fileCheckbox.prop("checked", true);
+                        if (!$checkAll.is(":checked")) {
+                            updateHeaderCheckbox($checkAll);
+                        }
+                    }
+                }
+            } else {
+                if ($checkAll.is(":checked")) {
+                    $checkAll.prop("checked", false);
+                }
+                if ($fileCheckbox.is(":checked")) {
+                    $fileCheckbox.prop("checked", false);
+                }
+            }
+        }
         
         // Add the Click handlers for replace functionality if required
         if (this._model.isReplace) {
@@ -249,22 +290,42 @@ define(function (require, exports, module) {
                         });
                     });
                     self._$table.find(".check-one").prop("checked", isChecked);
+                    self._$table.find(".check-one-file").prop("checked", isChecked);
                     self._allChecked = isChecked;
+                })
+                .on("click.searchResults", ".check-one-file", function (e) {
+                    var isChecked = $(this).is(":checked"),
+                        $row = $(e.target).closest("tr"),
+                        item = self._searchList[$row.data("file-index")],
+                        $matchRows = $row.nextUntil(".file-section"),
+                        $checkAll = self._panel.$panel.find(".check-all");
+                    
+                    if (item) {
+                        self._model.results[item.fullPath].matches.forEach(function (match) {
+                            match.isChecked = isChecked;
+                        });
+                    }
+                    $matchRows.find(".check-one").prop("checked", isChecked);
+                    if (!isChecked) {
+                        if ($checkAll.is(":checked")) {
+                            $checkAll.prop("checked", false);
+                        }
+                    } else if (!$checkAll.is(":checked")) {
+                        updateHeaderCheckbox($checkAll);
+                    }
+                    e.stopPropagation();
                 })
                 .on("click.searchResults", ".check-one", function (e) {
                     var $row = $(e.target).closest("tr"),
                         item = self._searchList[$row.data("file-index")],
-                        match = self._model.results[item.fullPath].matches[$row.data("match-index")],
-                        $checkAll = self._panel.$panel.find(".check-all");
+                        match = self._model.results[item.fullPath].matches[$row.data("match-index")];
 
                     match.isChecked = $(this).is(":checked");
-                    if (!match.isChecked && $checkAll.is(":checked")) {
-                        $checkAll.prop("checked", false);
-                    }
+                    updateFileAndHeaderCheckboxes($row, match.isChecked);
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
-                    $(self).triggerHandler("replaceAll");
+                    self.trigger("replaceAll");
                 });
         }
     };
@@ -277,7 +338,6 @@ define(function (require, exports, module) {
     SearchResultsView.prototype._showSummary = function () {
         var count     = this._model.countFilesMatches(),
             lastIndex = this._getLastIndex(count.matches),
-            fileList  = Object.keys(this._model.results),
             filesStr,
             summary;
         
@@ -290,7 +350,7 @@ define(function (require, exports, module) {
         // This text contains some formatting, so all the strings are assumed to be already escaped
         summary = StringUtils.format(
             Strings.FIND_TITLE_SUMMARY,
-            this._model.foundMaximum ? Strings.FIND_IN_FILES_MORE_THAN : "",
+            this._model.exceedsMaximum ? Strings.FIND_IN_FILES_MORE_THAN : "",
             String(count.matches),
             (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
             filesStr
@@ -318,15 +378,16 @@ define(function (require, exports, module) {
      */
     SearchResultsView.prototype._render = function () {
         var searchItems, match, i, item, multiLine,
-            count          = this._model.countFilesMatches(),
-            searchFiles    = this._model.getSortedFiles(this._initialFilePath),
-            lastIndex      = this._getLastIndex(count.matches),
-            matchesCounter = 0,
-            showMatches    = false,
-            self           = this;
+            count            = this._model.countFilesMatches(),
+            searchFiles      = this._model.getSortedFiles(this._initialFilePath),
+            lastIndex        = this._getLastIndex(count.matches),
+            matchesCounter   = 0,
+            showMatches      = false,
+            allInFileChecked = true,
+            self             = this;
         
         this._showSummary();
-        this._searchList   = [];
+        this._searchList = [];
         
         // Iterates throuh the files to display the results sorted by filenamess. The loop ends as soon as
         // we filled the results for one page
@@ -361,23 +422,28 @@ define(function (require, exports, module) {
                 // Add a row for each match in the file
                 searchItems = [];
 
+                allInFileChecked = true;
                 // Add matches until we get to the last match of this item, or filling the page
                 while (i < item.matches.length && matchesCounter < lastIndex) {
                     match     = item.matches[i];
                     multiLine = match.start.line !== match.end.line;
                     
                     searchItems.push({
-                        fileIndex:  self._searchList.length,
-                        itemIndex:  searchItems.length,
-                        matchIndex: i,
-                        line:       match.start.line + 1,
-                        pre:        match.line.substr(0, match.start.ch),
-                        highlight:  match.line.substring(match.start.ch, multiLine ? undefined : match.end.ch),
-                        post:       multiLine ? "\u2026" : match.line.substr(match.end.ch),
-                        start:      match.start,
-                        end:        match.end,
-                        isChecked:  match.isChecked
+                        fileIndex:   self._searchList.length,
+                        itemIndex:   searchItems.length,
+                        matchIndex:  i,
+                        line:        match.start.line + 1,
+                        pre:         match.line.substr(0, match.start.ch),
+                        highlight:   match.line.substring(match.start.ch, multiLine ? undefined : match.end.ch),
+                        post:        multiLine ? "\u2026" : match.line.substr(match.end.ch),
+                        start:       match.start,
+                        end:         match.end,
+                        isChecked:   match.isChecked,
+                        isCollapsed: item.collapsed
                     });
+                    if (!match.isChecked) {
+                        allInFileChecked = false;
+                    }
                     matchesCounter++;
                     i++;
                 }
@@ -393,10 +459,12 @@ define(function (require, exports, module) {
                     );
 
                 self._searchList.push({
-                    fileIndex: self._searchList.length,
-                    filename:  displayFileName,
-                    fullPath:  fullPath,
-                    items:     searchItems
+                    fileIndex:   self._searchList.length,
+                    filename:    displayFileName,
+                    fullPath:    fullPath,
+                    isChecked:   allInFileChecked,
+                    items:       searchItems,
+                    isCollapsed: item.collapsed
                 });
             }
         });
@@ -409,16 +477,7 @@ define(function (require, exports, module) {
                 replace:       this._model.isReplace,
                 searchList:    this._searchList,
                 Strings:       Strings
-            }))
-            // Restore the collapsed files
-            .find(".file-section").each(function () {
-                var fullPath = self._searchList[$(this).data("file-index")].fullPath;
-
-                if (self._model.results[fullPath].collapsed) {
-                    self._model.results[fullPath].collapsed = false;
-                    $(this).trigger("click");
-                }
-            });
+            }));
         
         if (this._$selectedRow) {
             this._$selectedRow.removeClass("selected");
@@ -492,7 +551,7 @@ define(function (require, exports, module) {
         
         // Listen for user interaction events with the panel and change events from the model.
         this._addPanelListeners();
-        $(this._model).on("change.SearchResultsView", this._handleModelChange.bind(this));
+        this._model.on("change.SearchResultsView", this._handleModelChange.bind(this));
     };
     
     /**
@@ -503,8 +562,8 @@ define(function (require, exports, module) {
             this._$table.empty();
             this._panel.hide();
             this._panel.$panel.off(".searchResults");
-            $(this._model).off("change.SearchResultsView");
-            $(this).triggerHandler("close");
+            this._model.off("change.SearchResultsView");
+            this.trigger("close");
         }
     };
     

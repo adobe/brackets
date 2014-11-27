@@ -41,7 +41,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window, Mustache */
+/*global define, brackets, $, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -155,7 +155,7 @@ define(function (require, exports, module) {
      */
     function init() {
         // Load our stylesheet
-        ExtensionUtils.loadStyleSheet(module, "main.css");
+        ExtensionUtils.loadStyleSheet(module, "main.less");
         ExtensionUtils.addEmbeddedStyleSheet(Mustache.render(Localized, Strings));
     
         EditorManager.registerInlineEditProvider(inlineTimingFunctionEditorProvider);

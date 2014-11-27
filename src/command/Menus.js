@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, MouseEvent */
+/*global define, $, brackets, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -31,14 +31,17 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
 
     // Load dependent modules
-    var Global              = require("utils/Global"),
-        Commands            = require("command/Commands"),
+    var Commands            = require("command/Commands"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         KeyBindingManager   = require("command/KeyBindingManager"),
         StringUtils         = require("utils/StringUtils"),
         CommandManager      = require("command/CommandManager"),
         PopUpManager        = require("widgets/PopUpManager"),
         ViewUtils           = require("utils/ViewUtils"),
         DeprecationWarning  = require("utils/DeprecationWarning");
+
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
 
     /**
      * Brackets Application Menu Constants
@@ -58,13 +61,13 @@ define(function (require, exports, module) {
      * @enum {string}
      */
     var ContextMenuIds = {
-        EDITOR_MENU:               "editor-context-menu",
-        INLINE_EDITOR_MENU:        "inline-editor-context-menu",
-        PROJECT_MENU:              "project-context-menu",
-        WORKING_SET_MENU:          "working-set-context-menu",
-        WORKING_SET_SETTINGS_MENU: "working-set-settings-context-menu"
+        EDITOR_MENU:                    "editor-context-menu",
+        INLINE_EDITOR_MENU:             "inline-editor-context-menu",
+        PROJECT_MENU:                   "project-context-menu",
+        WORKING_SET_CONTEXT_MENU:       "workingset-context-menu",
+        WORKING_SET_CONFIG_MENU:        "workingset-configuration-menu",
+        SPLITVIEW_MENU:                 "splitview-menu"
     };
-
 
     /**
      * Brackets Application Menu Section Constants
@@ -91,10 +94,6 @@ define(function (require, exports, module) {
         EDIT_COMMENT_SELECTION:             {sectionMarker: Commands.EDIT_LINE_COMMENT},
         EDIT_CODE_HINTS_COMMANDS:           {sectionMarker: Commands.SHOW_CODE_HINTS},
         EDIT_TOGGLE_OPTIONS:                {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
-        
-        // DEPRECATED: Old Edit menu sections redirected to existing Edit menu section
-        EDIT_FIND_COMMANDS:                 {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
-        EDIT_REPLACE_COMMANDS:              {sectionMarker: Commands.TOGGLE_CLOSE_BRACKETS},
         
         FIND_FIND_COMMANDS:                 {sectionMarker: Commands.CMD_FIND},
         FIND_FIND_IN_COMMANDS:              {sectionMarker: Commands.CMD_FIND_IN_FILES},
@@ -311,7 +310,7 @@ define(function (require, exports, module) {
             this._keyBindingRemoved = this._keyBindingRemoved.bind(this);
 
             this._command = command;
-            $(this._command)
+            this._command
                 .on("enabledStateChange", this._enabledChanged)
                 .on("checkedStateChange", this._checkedChanged)
                 .on("nameChange", this._nameChanged)
@@ -552,18 +551,9 @@ define(function (require, exports, module) {
         var menuID = this.id,
             id,
             $menuItem,
-            $link,
             menuItem,
             name,
             commandID;
-        
-        if (relativeID === MenuSection.EDIT_FIND_COMMANDS) {
-            DeprecationWarning.deprecationWarning("Add " + command + " Command to the Find Menu instead of the Edit Menu.", true);
-            DeprecationWarning.deprecationWarning("Use MenuSection.FIND_FIND_COMMANDS instead of MenuSection.EDIT_FIND_COMMANDS.", true);
-        } else if (relativeID === MenuSection.EDIT_REPLACE_COMMANDS) {
-            DeprecationWarning.deprecationWarning("Add " + command + " Command to the Find Menu instead of the Edit Menu.", true);
-            DeprecationWarning.deprecationWarning("Use MenuSection.FIND_REPLACE_COMMANDS instead of MenuSection.EDIT_REPLACE_COMMANDS.", true);
-        }
         
         if (!command) {
             console.error("addMenuItem(): missing required parameters: command");
@@ -1001,6 +991,7 @@ define(function (require, exports, module) {
      *
      * Events:
      * - beforeContextMenuOpen
+     * - beforeContextMenuClose
      *
      * @constructor
      * @extends {Menu}
@@ -1031,6 +1022,7 @@ define(function (require, exports, module) {
     ContextMenu.prototype = Object.create(Menu.prototype);
     ContextMenu.prototype.constructor = ContextMenu;
     ContextMenu.prototype.parentClass = Menu.prototype;
+    EventDispatcher.makeEventDispatcher(ContextMenu.prototype);
 
 
     /**
@@ -1062,7 +1054,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        $(this).triggerHandler("beforeContextMenuOpen");
+        this.trigger("beforeContextMenuOpen");
 
         // close all other dropdowns
         closeAll();
@@ -1097,6 +1089,7 @@ define(function (require, exports, module) {
      * Closes the context menu.
      */
     ContextMenu.prototype.close = function () {
+        this.trigger("beforeContextMenuClose");
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
     };
 
@@ -1176,6 +1169,10 @@ define(function (require, exports, module) {
         return cmenu;
     }
 
+    // Deprecated menu ids
+    DeprecationWarning.deprecateConstant(ContextMenuIds, "WORKING_SET_MENU", "WORKING_SET_CONTEXT_MENU");
+    DeprecationWarning.deprecateConstant(ContextMenuIds, "WORKING_SET_SETTINGS_MENU", "WORKING_SET_CONFIG_MENU");
+    
     // Define public API
     exports.AppMenuBar = AppMenuBar;
     exports.ContextMenuIds = ContextMenuIds;

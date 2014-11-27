@@ -42,6 +42,8 @@ define(function (require, exports, module) {
     
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -143,15 +145,6 @@ define(function (require, exports, module) {
      * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
-        // Backwards compatibility (for now) for old fileTypes field, if newer languageIds not specified
-        if (pluginDef.fileTypes && !pluginDef.languageIds) {
-            console.warn("Using fileTypes for QuickOpen plugins is deprecated. Use languageIds instead.");
-            pluginDef.languageIds = pluginDef.fileTypes.map(function (extension) {
-                return LanguageManager.getLanguageForPath("file." + extension).getId();
-            });
-            delete pluginDef.fileTypes;
-        }
-        
         plugins.push(new QuickOpenPlugin(
             pluginDef.name,
             pluginDef.languageIds,
@@ -276,8 +269,7 @@ define(function (require, exports, module) {
      *      Or null if the query is invalid
      */
     function extractCursorPos(query) {
-        var regInfo = query.match(CURSOR_POS_EXP),
-            result;
+        var regInfo = query.match(CURSOR_POS_EXP);
         
         if (query.length <= 1 || !regInfo ||
                 (regInfo[1] && isNaN(regInfo[1])) ||
@@ -355,7 +347,7 @@ define(function (require, exports, module) {
                 // So we call `prepareClose()` first, and finish the close later.
                 doClose = false;
                 this.modalBar.prepareClose();
-                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
+                CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath})
                     .done(function () {
                         if (cursorPos) {
                             var editor = EditorManager.getCurrentFullEditor();
@@ -372,7 +364,7 @@ define(function (require, exports, module) {
 
         if (doClose) {
             this.close();
-            EditorManager.focusEditor();
+            MainViewManager.focusActivePane();
         }
     };
 
@@ -511,7 +503,7 @@ define(function (require, exports, module) {
         // So we wait until after this call chain is complete before actually closing the dialog.
         var self = this;
         setTimeout(function () {
-            self.modalBar.close(!scrollPos).done(function () {
+            self.modalBar.close(!!scrollPos).done(function () {
                 self._closeDeferred.resolve();
             });
 
@@ -679,7 +671,7 @@ define(function (require, exports, module) {
             displayName += '<span title="sp:' + sd.special + ', m:' + sd.match +
                 ', ls:' + sd.lastSegment + ', b:' + sd.beginning +
                 ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + ', nsos: ' +
-                sd.notStartingOnSpecial + '">(' + item.matchGoodness + ') </span>';
+                sd.notStartingOnSpecial + ', upper: ' + sd.upper + '">(' + item.matchGoodness + ') </span>';
         }
         
         // Put the path pieces together, highlighting the matched parts
@@ -754,7 +746,7 @@ define(function (require, exports, module) {
         initialString = prefix + initialString;
         
         var $field = this.$searchField;
-        $field.val(initialString);
+        $field.val(initialString).focus();
         $field.get(0).setSelectionRange(prefix.length, initialString.length);
         
         // Kick smart-autocomplete to update (it only listens for keyboard events)
@@ -876,7 +868,8 @@ define(function (require, exports, module) {
 
         // Return files that are non-binary, or binary files that have a custom viewer
         function _filter(file) {
-            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() || EditorManager.getCustomViewerForPath(file.fullPath);
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() ||
+                MainViewFactory.findSuitableFactoryForPath(file.fullPath);
         }
         
         // Start fetching the file list, which will be needed the first time the user enters
@@ -944,7 +937,7 @@ define(function (require, exports, module) {
     }
     
     // Listen for a change of project to invalidate our file list
-    $(ProjectManager).on("projectOpen", function () {
+    ProjectManager.on("projectOpen", function () {
         fileList = null;
     });
 
@@ -957,7 +950,7 @@ define(function (require, exports, module) {
     exports.addQuickOpenPlugin      = addQuickOpenPlugin;
     exports.highlightMatch          = highlightMatch;
     
-    // accessing these from this module will ultimately be deprecated
+    // Convenience exports for functions that most QuickOpen plugins would need.
     exports.stringMatch             = StringMatch.stringMatch;
     exports.SearchResult            = StringMatch.SearchResult;
     exports.basicMatchSort          = StringMatch.basicMatchSort;

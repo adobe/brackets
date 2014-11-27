@@ -56,8 +56,7 @@ define(function (require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager"),
         HTMLSimpleDOM   = require("./HTMLSimpleDOM"),
-        HTMLDOMDiff     = require("./HTMLDOMDiff"),
-        PerfUtils       = require("utils/PerfUtils");
+        HTMLDOMDiff     = require("./HTMLDOMDiff");
     
     var allowIncremental = true;
     
@@ -76,7 +75,7 @@ define(function (require, exports, module) {
     function _removeDocFromCache(evt, document) {
         if (_cachedValues.hasOwnProperty(document.file.fullPath)) {
             delete _cachedValues[document.file.fullPath];
-            $(document).off(".htmlInstrumentation");
+            document.off(".htmlInstrumentation");
         }
     }
     
@@ -137,7 +136,7 @@ define(function (require, exports, module) {
      *     given position.
      */
     function _getMarkerAtDocumentPos(editor, pos, preferParent, markCache) {
-        var i, marks, match;
+        var marks, match;
         
         markCache = markCache || {};
         marks = _getSortedTagMarks(editor._codeMirror.findMarksAt(pos), markCache);
@@ -162,7 +161,7 @@ define(function (require, exports, module) {
         
         return match.mark;
     }
-    
+
     /**
      * @private
      * Dumps the current list of mark ranges for instrumented tags to the console. Used for debugging.
@@ -180,6 +179,8 @@ define(function (require, exports, module) {
                         range.from.line + ":" + range.from.ch + " - " + range.to.line + ":" + range.to.ch);
         });
     }
+    // Workaround for JSHint to not complain about the unused function
+    void(_dumpMarks);
 
     /**
      * Get the instrumented tagID at the specified position. Returns -1 if
@@ -677,7 +678,7 @@ define(function (require, exports, module) {
         };
     }
     
-    $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
+    DocumentManager.on("beforeDocumentDelete", _removeDocFromCache);
     
     /**
      * Parses the document, returning an HTMLSimpleDOM structure and caching it as the
@@ -693,7 +694,7 @@ define(function (require, exports, module) {
      */
     function scanDocument(doc) {
         if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
-            $(doc).on("change.htmlInstrumentation", function () {
+            doc.on("change.htmlInstrumentation", function () {
                 if (_cachedValues[doc.file.fullPath]) {
                     _cachedValues[doc.file.fullPath].dirty = true;
                 }

@@ -238,6 +238,37 @@ define(function (require, exports, module) {
         }, false);
     }
     
+    /**
+     * Executes a series of tasks in serial (task N does not begin until task N-1 has completed).
+     * Returns a "master" Promise that is resolved when the first task has resolved. If all tasks
+     * fail, the master Promise is rejected.
+     *
+     * @param {!Array.<*>} items
+     * @param {!function(*, number):Promise} beginProcessItem
+     * @return {$.Promise}
+     */
+    function firstSequentially(items, beginProcessItem) {
+
+        var masterDeferred = new $.Deferred();
+
+        function doItem(i) {
+            if (i >= items.length) {
+                masterDeferred.reject();
+                return;
+            }
+
+            beginProcessItem(items[i], i)
+                .fail(function () {
+                    doItem(i + 1);
+                })
+                .done(function () {
+                    masterDeferred.resolve(items[i]);
+                });
+        }
+
+        doItem(0);
+        return masterDeferred.promise();
+    }
     
     /**
      * Executes a series of tasks in parallel, saving up error info from any that fail along the way.
@@ -337,11 +368,16 @@ define(function (require, exports, module) {
      * @param {boolean=} failOnReject       Whether to reject or not if one of the promises has been rejected.
      * @param {number=} timeout             Number of milliseconds to wait until rejecting the promise
      * 
-     * @return {$.Promise} Promise which will be completed once al the 
+     * @return {$.Promise} A Promise which will be resolved once all dependent promises are resolved. 
+     *                     It is resolved with an array of results from the successfully resolved dependent promises.
+     *                     The resulting array may not be in the same order or contain as many items as there were 
+     *                     promises to wait on and it will contain 'undefined' entries for those promises that resolve
+     *                     without a result.
      * 
      */
     function waitForAll(promises, failOnReject, timeout) {
         var masterDeferred = new $.Deferred(),
+            results = [],
             count = 0,
             sawRejects = false;
         
@@ -362,13 +398,16 @@ define(function (require, exports, module) {
                 .fail(function (err) {
                     sawRejects = true;
                 })
+                .done(function (result) {
+                    results.push(result);
+                })
                 .always(function () {
                     count++;
                     if (count === promises.length) {
                         if (failOnReject && sawRejects) {
                             masterDeferred.reject();
                         } else {
-                            masterDeferred.resolve();
+                            masterDeferred.resolve(results);
                         }
                     }
                 });
@@ -549,14 +588,15 @@ define(function (require, exports, module) {
     };
     
     // Define public API
-    exports.doInParallel   = doInParallel;
-    exports.doSequentially = doSequentially;
+    exports.doInParallel        = doInParallel;
+    exports.doSequentially      = doSequentially;
     exports.doSequentiallyInBackground   = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
-    exports.withTimeout    = withTimeout;
-    exports.waitForAll     = waitForAll;
-    exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
-    exports.chain          = chain;
-    exports.promisify      = promisify;
-    exports.PromiseQueue   = PromiseQueue;
+    exports.firstSequentially   = firstSequentially;
+    exports.withTimeout         = withTimeout;
+    exports.waitForAll          = waitForAll;
+    exports.ERROR_TIMEOUT       = ERROR_TIMEOUT;
+    exports.chain               = chain;
+    exports.promisify           = promisify;
+    exports.PromiseQueue        = PromiseQueue;
 });

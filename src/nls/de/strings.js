@@ -34,13 +34,16 @@ define({
     "GENERIC_ERROR"                     : "(Fehler {0})",
     "NOT_FOUND_ERR"                     : "Die Datei konnte nicht gefunden werden.",
     "NOT_READABLE_ERR"                  : "Die Datei konnte nicht gelesen werden.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "{APP_NAME} kann keine Dateien öffnen, die größer als {0} MB sind.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Der Ziel-Ordner kann nicht verändert werden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
     "CONTENTS_MODIFIED_ERR"             : "Die Datei wurde außerhalb von {APP_NAME} verändert.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} unterstützt derzeit nur UTF-8-kodierte Textdateien.",
     "FILE_EXISTS_ERR"                   : "Die Datei existiert bereits.",
     "FILE"                              : "Datei",
+    "FILE_TITLE"                        : "Datei",
     "DIRECTORY"                         : "Ordner",
+    "DIRECTORY_TITLE"                   : "Ordner",
     "DIRECTORY_NAMES_LEDE"              : "Ordnernamen",
     "FILENAMES_LEDE"                    : "Dateinamen",
     "FILENAME"                          : "Dateiname",
@@ -61,19 +64,31 @@ define({
     "ERROR_RELOADING_FILE"              : "Beim Laden der Änderungen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Fehler beim Speichern der Datei",
     "ERROR_SAVING_FILE"                 : "Beim Speichern der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Fehler beim Umbenennen der Datei",
-    "ERROR_RENAMING_FILE"               : "Beim Umbenennen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
-    "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen der Datei",
-    "ERROR_DELETING_FILE"               : "Beim Löschen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Fehler beim Umbenennen von {0}", // TODO: depends on {0} gender
+    "ERROR_RENAMING_FILE"               : "Beim Umbenennen von {2} <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}", // TODO: depends on {2} gender
+    "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen von {0}", // TODO: depends on {0} gender
+    "ERROR_DELETING_FILE"               : "Beim Löschen von {2} <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}", // TODO: depends on {2} gender
     "INVALID_FILENAME_TITLE"            : "Ungültiger {0}",
     "INVALID_FILENAME_MESSAGE"          : "{0} dürfen keine dem System vorbehaltenen Namen gebrauchen und nicht mit Punkten (.) enden oder die folgenden Zeichen enthalten: <span class='emphasized'>{1}</span>",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "Eine Datei oder ein Ordner mit dem Namen <span class='dialog-filename'>{0}</span> existiert bereits.",
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen von {0}", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE"               : "Beim Erstellen von {0} <span class='dialog-filename'>{1}</span> ist ein Fehler aufgetreten: {2}", // TODO: depends on {0} gender
+    "ERROR_MIXED_DRAGDROP"              : "Ein Ordner kann nicht zeitgleich mit anderen Dateien geöffnet werden.",
+
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "Fehler beim Einlesen der benutzerdefinierten Tastenbelegung",
+    "ERROR_KEYMAP_CORRUPT"              : "Ihre Tastenbelegungs-Datei enthält kein gültiges JSON. Die Datei wird geöffnet, damit sie das Format korrigieren können.",
+    "ERROR_LOADING_KEYMAP"              : "Ihre Tastenbelegungs-Datei ist keine gültige UTF-8-kodierte Textdatei und kann daher nicht geladen werden.",
+    "ERROR_RESTRICTED_COMMANDS"         : "Sie können die Tastenkürzel der folgenden Befehle nicht ändern: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Sie können die folgenden Tastenkürzel nicht ändern: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Sie ordnen diesen Befehlen mehrere Tastenkürzel zu: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Sie belegen diese Tastenkürzel mehrfach: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Diese Tastenkürzel sind ungültig: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Sie ordnen nicht existierenden Befehlen Tastenkürzel zu: {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Fehler beim Lesen der Einstellungen",
-    "ERROR_PREFS_CORRUPT"               : "Ihre Einstellungsdatei ist kein gültiges JSON. Die Datei wird geöffnet, damit Sie das Format korrigieren können. Sie müssen {APP_NAME} neu starten, damit die Änderungen wirksam werden.",
+    "ERROR_PREFS_CORRUPT"               : "Ihre Einstellungsdatei enthält kein gültiges JSON. Die Datei wird geöffnet, damit Sie das Format korrigieren können. Sie müssen {APP_NAME} neu starten, damit die Änderungen wirksam werden.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} kann derzeit leider noch nicht im Browser ausgeführt werden.",
@@ -81,7 +96,7 @@ define({
 
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Fehler beim Indizieren der Dateien",
-    "ERROR_MAX_FILES"                   : "Die maximal mögliche Anzahl indizierbarer Dateien wurde überschritten. Funktionen, die auf dem Index beruhen, werden möglicherweise nicht korrekt ausgeführt.",
+    "ERROR_MAX_FILES"                   : "Dieses Projekt besteht aus über 30.000 Dateien. Funktionen, die mit mehreren Dateien interagieren, wurden eventuell deaktiviert oder verhalten sich so, als ob das Projekt keine Dateien hätte. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Lies mehr über das Arbeiten mit großen Projekten</a>.",
 
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Fehler beim Starten des Browsers",
@@ -90,8 +105,8 @@ define({
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fehler bei der Live-Vorschau",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Verbinden zum Browser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Um die Live-Vorschau zu verwenden, muss Chrome mit aktiviertem Remote-Debugging neu gestartet werden.<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Laden der Live-Vorschau nicht möglich",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Um die Live-Vorschau zu verwenden, muss Chrome mit aktiviertem Remote-Debugging neu gestartet werden.<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?<br /><br />",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Laden der Live-Vorschau nicht möglich.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Öffnen Sie eine HTML-Datei oder stellen Sie sicher, dass sich eine index.html-Datei im Projekt befindet, um die Live-Vorschau zu starten.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Zum Starten der Live-Vorschau mit einer serverseitigen Datei müssen Sie eine Basis-URL für dieses Projekt angeben.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Ein Fehler ist beim Starten des HTTP-Servers oder der Live-Vorschau-Dateien aufgetreten. Bitte versuchen Sie es später erneut.",
@@ -135,8 +150,7 @@ define({
     "BUTTON_NO"                         : "Nein",
 
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} Ergebnisse",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 Ergebnis",
+    "FIND_MATCH_INDEX"                  : "{0} von {1}",
     "FIND_NO_RESULTS"                   : "Keine Ergebnisse",
     "FIND_QUERY_PLACEHOLDER"            : "Suchen\u2026",
     "REPLACE_PLACEHOLDER"               : "Ersetzen mit\u2026",
@@ -164,8 +178,8 @@ define({
     // Find and Replace
     "FIND_REPLACE_TITLE_LABEL"          : "Ersetze",
     "FIND_REPLACE_TITLE_WITH"           : "mit",
-    "FIND_TITLE_LABEL"                  : "",
-    "FIND_TITLE_SUMMARY"                : " gefunden &mdash; {0} {1} {2} in {3}",
+    "FIND_TITLE_LABEL"                  : "Gefunden:",
+    "FIND_TITLE_SUMMARY"                : "&ndash; {0} {1} {2} in {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",
@@ -177,7 +191,7 @@ define({
     "FIND_IN_FILES_MATCH"               : "Treffer",
     "FIND_IN_FILES_MATCHES"             : "Treffer",
     "FIND_IN_FILES_MORE_THAN"           : "Über ",
-    "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
+    "FIND_IN_FILES_PAGING"              : "{0}&ndash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Strg/Cmd + Klick, um alle aus-/einzuklappen",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Fehler beim Ersetzen",
@@ -220,6 +234,23 @@ define({
     "WORKING_FILES"    : "Offene Dateien",
 
     /**
+     * MainViewManager
+     */
+    "TOP"               : "Oben",
+    "BOTTOM"            : "Unten",
+    "LEFT"              : "Links",
+    "RIGHT"             : "Rechts",
+
+    "CMD_SPLITVIEW_NONE"        : "Nicht geteilt",
+    "CMD_SPLITVIEW_VERTICAL"    : "Vertikal geteilt",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Horizontal geteilt",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Teilen Sie den Editor vertikal oder horizontal",
+    "GEAR_MENU_TOOLTIP"         : "Projektdateien konfigurieren",
+
+    "SPLITVIEW_INFO_TITLE"              : "Bereits geöffnet",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Diese Datei ist bereits in einer anderen Ansicht geöffnet. Das Öffnen einer Datei in mehreren Ansichten wird {APP_NAME} bald unterstützen. Bis dahin wird die Datei in der Ansicht angezeigt, in der sie bereits geöffnet ist.<br /><br />(Sie sehen diese Nachricht nur einmal.)",
+
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Strg",
@@ -246,6 +277,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Erweiterungen deaktiviert",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Klicken, um zwischen den Cursor-Modi Einfügen (INS) und Überschreiben (OVR) umzuschalten",
+    "STATUSBAR_LANG_TOOLTIP"                : "Klicken, um den Dateityp zu ändern",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klicken, um Übersicht anzuzeigen/auszublenden.",
+    "STATUSBAR_DEFAULT_LANG"                : "(Standard)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Als Standard für .{0}-Dateien festlegen",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Probleme",
@@ -270,7 +306,7 @@ define({
     "CMD_FILE_NEW"                        : "Neue Datei",
     "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Zum Projekt hinzufügen",
+    "CMD_ADD_TO_WORKING_SET"              : "Im Projekt öffnen",
     "CMD_OPEN_DROPPED_FILES"              : "Abgelegte Dateien öffnen",
     "CMD_OPEN_FOLDER"                     : "Ordner öffnen\u2026",
     "CMD_FILE_CLOSE"                      : "Schließen",
@@ -283,6 +319,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_FILE_SAVE_AS"                    : "Speichern unter\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
+    "CMD_RELOAD_LIVE_PREVIEW"             : "Live-Vorschau neu laden",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
     "CMD_FILE_DELETE"                     : "Löschen",
@@ -338,9 +375,9 @@ define({
     "VIEW_MENU"                           : "Ansicht",
     "CMD_HIDE_SIDEBAR"                    : "Seitenleiste verbergen",
     "CMD_SHOW_SIDEBAR"                    : "Seitenleiste zeigen",
-    "CMD_INCREASE_FONT_SIZE"              : "Schriftart vergrößern",
-    "CMD_DECREASE_FONT_SIZE"              : "Schriftart verkleinern",
-    "CMD_RESTORE_FONT_SIZE"               : "Schriftart zurücksetzen",
+    "CMD_INCREASE_FONT_SIZE"              : "Schrift vergrößern",
+    "CMD_DECREASE_FONT_SIZE"              : "Schrift verkleinern",
+    "CMD_RESTORE_FONT_SIZE"               : "Schriftgröße zurücksetzen",
     "CMD_SCROLL_LINE_UP"                  : "Zeile hoch scrollen",
     "CMD_SCROLL_LINE_DOWN"                : "Zeile runter scrollen",
     "CMD_TOGGLE_LINE_NUMBERS"             : "Zeilennummern anzeigen",
@@ -348,10 +385,11 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Zeilenumbruch aktivieren",
     "CMD_LIVE_HIGHLIGHT"                  : "Live-Vorschau Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Beim Speichern linten",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatisch sortieren",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Nach Name sortieren",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Nach Typ sortieren",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatisch sortieren",
+    "CMD_THEMES"                          : "Designs\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
@@ -384,9 +422,11 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
     "CMD_ABOUT"                           : "Über {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Einstellungsdatei öffnen",
+    "CMD_OPEN_KEYMAP"                     : "Benutzerdefinierte Tastenbelegung öffnen",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
+    "RELEASE_BUILD"                        : "Build",
     "DEVELOPMENT_BUILD"                    : "Entwicklungs-Build",
     "RELOAD_FROM_DISK"                     : "Von der Festplatte neu laden",
     "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
@@ -394,7 +434,7 @@ define({
     "RELAUNCH_CHROME"                      : "Chrome neu starten",
     "ABOUT"                                : "Über",
     "CLOSE"                                : "Schließen",
-    "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "Release {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "Zeitpunkt des Builds: ",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> und sind hier durch Bezugnahme eingeschlossen.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
@@ -407,12 +447,20 @@ define({
     "GET_IT_NOW"                           : "Jetzt updaten!",
     "PROJECT_SETTINGS_TITLE"               : "Projekt-Einstellungen",
     "PROJECT_SETTING_BASE_URL"             : "Basis-URL für Live-Vorschau",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "(um einen lokalen Server zu verwenden, URL angeben)",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "(URL angeben, um einen lokalen Server zu verwenden)",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Das Protokoll {0} wird von der Live-Vorschau nicht unterstützt &ndash; bitte http: oder https: verwenden.",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Die Basis-URL kann keine Such-Parameter wie \"{0}\" enthalten.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
+    "EMPTY_VIEW_HEADER"                    : "<em>Öffnen Sie eine Datei, während diese Ansicht fokussiert ist</em>",
+
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Aktuelles Design",
+    "USE_THEME_SCROLLBARS"                 : "Scrollbars vom Design verwenden",
+    "FONT_SIZE"                            : "Schriftgröße",
+    "FONT_FAMILY"                          : "Schriftart",
+    "THEMES_SETTINGS"                      : "Design-Einstellungen",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Neue Regel",
@@ -435,6 +483,8 @@ define({
     "CANCELING_INSTALL"                    : "Abgebrochen\u2026",
     "CANCELING_HUNG"                       : "Das Abbrechen der Installation nimmt bereits einige Minuten in Anspruch. Ein interner Fehler könnte aufgetreten sein.",
     "INSTALL_CANCELED"                     : "Installation abgebrochen.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Komplette Beschreibung anzeigen",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Gekürzte Beschreibung anzeigen",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Der heruntergeladene Inhalt ist keine gültige ZIP-Datei.",
     "INVALID_PACKAGE_JSON"                 : "Die JSON-Paketdatei ist ungültig (Fehler: {0}).",
@@ -459,8 +509,12 @@ define({
     "UNKNOWN_ERROR"                        : "Unbekannter (interner) Fehler.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Erweiterungs-Verwaltung",
-    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf den Order der Erweiterungen. Bitte später erneut versuchen.",
-    "INSTALL_FROM_URL"                     : "Von URL installieren\u2026",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "Fehler beim Zugriff auf das Verzeichnis der Erweiterungen. Bitte später erneut versuchen.",
+    "INSTALL_EXTENSION_DRAG"               : ".zip hierhin ziehen oder",
+    "INSTALL_EXTENSION_DROP"               : ".zip zum Installieren ablegen",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Das Installieren/Aktualisieren schlug fehl, da die folgenden Fehler aufgetreten sind:",
+    "INSTALL_FROM_URL"                     : "von URL installieren\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Überprüfen\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Diese Erweiterung benötigt eine neuere Version von {APP_NAME}.",
@@ -471,6 +525,9 @@ define({
     "EXTENSION_MORE_INFO"                  : "Mehr Informationen\u2026",
     "EXTENSION_ERROR"                      : "Erweiterungs-Fehler",
     "EXTENSION_KEYWORDS"                   : "Schlüsselwörter",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "In {0} Sprachen, inklusive Ihrer, übersetzt",
+    "EXTENSION_TRANSLATED_GENERAL"         : "In {0} Sprachen übersetzt",
+    "EXTENSION_TRANSLATED_LANGS"           : "Die Erweiterung wurde in diese Sprachen übersetzt: {0}",
     "EXTENSION_INSTALLED"                  : "Installiert",
     "EXTENSION_UPDATE_INSTALLED"           : "Dieses Erweiterungs-Update wurde heruntergeladen und wird installiert, wenn {APP_NAME} neu geladen wird.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Suchen",
@@ -493,12 +550,14 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {0} konnte nicht entfernt werden, weil sie nicht installiert ist.",
     "NO_EXTENSIONS"                        : "Momentan sind keine Erweiterungen installiert.<br>Klicken Sie oben auf den Tab \"Verfügbar\", um zu beginnen.",
     "NO_EXTENSION_MATCHES"                 : "Keine Erweiterungen passen auf Ihre Suchanfrage.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Seien Sie vorsichtig, wenn sie Erweiterungen von einer unbekannten Quelle installieren.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "ACHTUNG: Diese Erweiterungen stammen nicht unbedingt von den Machern von {APP_NAME}. Erweiterungen werden nicht überprüft und haben uneingeschränkte lokale Rechte. Seien Sie vorsichtig, wenn Sie Erweiterungen aus unbekannter Quelle installieren.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installiert",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Verfügbar",
+    "EXTENSIONS_THEMES_TITLE"              : "Designs",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Keine Ergebnisse verfügbar.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "Alle Ergebnisse sind ausglendet. Klicken Sie auf die rechts gelisteten Dateien, um die dazugehörigen Ergebnisse anzuzeigen.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Es gibt keine CSS-Regeln, die zu Ihrer Auswahl passen.<br> Klicken Sie auf \"Neue Regel\", um eine neue Regel zu erstellen.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Es gibt keine Stylesheets in Ihrem Projekt.<br>Erstellen Sie eines, um CSS-Regeln hinzuzufügen.",
 
@@ -525,6 +584,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Node-Status in Konsole anzeigen",
     "CMD_RESTART_NODE"                          : "Node neu starten",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Zeige Fehler in der Statusleiste",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Brackets-Quellcode anzeigen",
 
     "LANGUAGE_TITLE"                            : "Sprache wechseln",
     "LANGUAGE_MESSAGE"                          : "Sprache:",
@@ -552,12 +612,14 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Springe zur Definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Parameter-Hinweis anzeigen",
     "NO_ARGUMENTS"                              : "<keine Parameter>",
+    "DETECTED_EXCLUSION_TITLE"                  : "Problem mit einer JavaScript-Datei",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets hat Probleme damit, <span class='dialog-filename'>{0}</span> zu verarbeiten.<br><br>Code-Vervollständigung, Springen zur Definition und Schnelles Bearbeiten werden für die Datei nicht mehr bereitgestellt. Öffnen Sie <code>.brackets.json</code> in diesem Projekt und entfernen Sie den Dateipfad von <code>jscodehints.detectedExclusions</code>, um diese Datei wieder einzuschließen.<br><br>Das ist wahrscheinlich ein Bug in Brackets. <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>Melden Sie den Fehler</a> bitte, falls Sie eine Kopie dieser Datei bereitstellen können. Verlinken Sie in diesem Fall die oben genannte Datei.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                : "Schnelle Farbansicht",
+    "CMD_ENABLE_QUICK_VIEW"                     : "Schnelle Farbansicht",
 
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Zuletzt verwendete Projekte",
@@ -566,4 +628,4 @@ define({
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
 
-/* Last translated for 3a762c3cf91d6f65a5bb19aeb2056afacd777c71 */
+/* Last translated for 893c065b715c211526dcd010c0294e12a8683995 */

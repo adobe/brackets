@@ -86,7 +86,7 @@
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["svg", "xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xbl", "mathml", "config", "plist"],
+        "fileExtensions": ["xml", "svg", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xbl", "mathml", "config", "plist", "xaml"],
         "blockComment": ["<!--", "-->"]
     },
 
@@ -109,7 +109,7 @@
     "cpp": {
         "name": "C++",
         "mode": ["clike", "text/x-c++src"],
-        "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii"],
+        "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii", "ino"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -165,7 +165,7 @@
         "name": "Ruby",
         "mode": "ruby",
         "fileExtensions": ["rb", "ru", "gemspec", "rake"],
-        "fileNames": ["Gemfile", "Rakefile", "Guardfile"],
+        "fileNames": ["Gemfile", "Rakefile", "Guardfile", "Vagrantfile"],
         "lineComment": ["#"]
     },
 
@@ -207,8 +207,13 @@
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
-        "fileExtensions": ["md", "markdown"],
+        "fileExtensions": ["md", "markdown", "mdown", "mkdn"],
         "blockComment": ["<!--", "-->"]
+    },
+
+    "gfm": {
+        "name": "Markdown (GitHub)",
+        "mode": "gfm"
     },
 
     "yaml": {
@@ -229,7 +234,7 @@
     "bash": {
         "name": "Bash",
         "mode": ["shell", "text/x-sh"],
-        "fileExtensions": ["sh", "command"],
+        "fileExtensions": ["sh", "command", "bash"],
         "lineComment": ["#"]
     },
   

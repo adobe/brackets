@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, window */
+/*global define, brackets, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -156,7 +156,8 @@ define(function (require, exports, module) {
      * @param {!string} timingFunctionString
      */
     InlineTimingFunctionEditor.prototype._handleTimingFunctionChange = function (timingFunctionString) {
-        var timingFunctionMatch = TimingFunctionUtils.timingFunctionMatch(timingFunctionString, true);
+        var self                = this,
+            timingFunctionMatch = TimingFunctionUtils.timingFunctionMatch(timingFunctionString, true);
         if (timingFunctionMatch !== this._timingFunction) {
             var range = this.getCurrentRange();
             if (!range) {
@@ -165,12 +166,14 @@ define(function (require, exports, module) {
 
             // Don't push the change back into the host editor if it came from the host editor.
             if (!this._isHostChange) {
-                // Replace old timingFunction in code with the editor's timing function, and select it
                 this._isOwnChange = true;
-                this.hostEditor.document.replaceRange(timingFunctionString, range.start, range.end, this._origin);
+                this.hostEditor.document.batchOperation(function () {
+                    // Replace old timingFunction in code with the editor's timing function, and select it
+                    self.hostEditor.document.replaceRange(timingFunctionString, range.start, range.end, self._origin);
+                    var newEnd = { line: range.start.line, ch: range.start.ch + timingFunctionString.length };
+                    self.hostEditor.setSelection(range.start, newEnd, false, 0, self._origin);
+                });
                 this._isOwnChange = false;
-                var newEnd = { line: range.start.line, ch: range.start.ch + timingFunctionString.length };
-                this.hostEditor.setSelection(range.start, newEnd, false, 0, this._origin);
             }
             
             this._timingFunction = timingFunctionMatch;
@@ -203,7 +206,7 @@ define(function (require, exports, module) {
         
         var doc = this.hostEditor.document;
         doc.addRef();
-        $(doc).on("change", this._handleHostDocumentChange);
+        doc.on("change", this._handleHostDocumentChange);
         
         this.hostEditor.setInlineWidgetHeight(this, this.timingFunctionEditor.getRootElement().outerHeight(), true);
         
@@ -227,7 +230,7 @@ define(function (require, exports, module) {
         }
 
         var doc = this.hostEditor.document;
-        $(doc).off("change", this._handleHostDocumentChange);
+        doc.off("change", this._handleHostDocumentChange);
         doc.releaseRef();
     };
 

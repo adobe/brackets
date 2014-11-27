@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global brackets, define, $, less, window */
+/*global define, $, less, window */
 
 /**
  * main integrates LiveDevelopment into Brackets
@@ -64,7 +64,6 @@ define(function main(require, exports, module) {
             showInfo: true
         }
     };
-    var _checkMark = "✓"; // Check mark character
     // Status labels/styles are ordered: error, not connected, progress1, progress2, connected.
     var _statusTooltip = [
         Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
@@ -80,7 +79,6 @@ define(function main(require, exports, module) {
     var _allStatusStyles = _statusStyle.join(" ");
 
     var _$btnGoLive; // reference to the GoLive button
-    var _$btnHighlight; // reference to the HighlightButton
 
     /** Load Live Development LESS Style */
     function _loadStyles() {
@@ -179,7 +177,7 @@ define(function main(require, exports, module) {
         _$btnGoLive.click(function onGoLive() {
             _handleGoLiveCommand();
         });
-        $(LiveDevelopment).on("statusChange", function statusChange(event, status, reason) {
+        LiveDevelopment.on("statusChange", function statusChange(event, status, reason) {
             // status starts at -1 (error), so add one when looking up name and style
             // See the comments at the top of LiveDevelopment.js for details on the
             // various status codes.
@@ -196,7 +194,7 @@ define(function main(require, exports, module) {
     
     /** Maintains state of the Live Preview menu item */
     function _setupGoLiveMenu() {
-        $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
+        LiveDevelopment.on("statusChange", function statusChange(event, status) {
             // Update the checkmark next to 'Live Preview' menu item
             // Add checkmark when status is STATUS_ACTIVE; otherwise remove it
             CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(status === LiveDevelopment.STATUS_ACTIVE);

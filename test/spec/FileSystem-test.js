@@ -385,7 +385,7 @@ define(function (require, exports, module) {
                     cb = errorCallback();
                 
                 runs(function () {
-                    $(fileSystem).one("rename", spy);
+                    fileSystem.one("rename", spy);
                     file.rename(newPath, cb);
                 });
                 waitsFor(function () { return cb.wasCalled && spy.wasCalled; });
@@ -835,7 +835,7 @@ define(function (require, exports, module) {
                     // Delay impl callback to happen after impl watcher notification
                     MockFileSystemImpl.when(implOpName, entry.fullPath, delay(250));
                     
-                    $(fileSystem).on(eventName, function (evt, entry) {
+                    fileSystem.on(eventName, function (evt, entry) {
                         expect(opDone).toBe(true);  // this is the important check: callback should have already run!
                         eventDone = true;
                     });
@@ -895,9 +895,6 @@ define(function (require, exports, module) {
             
             // Used for various tests below where two write operations (to two different files) overlap in various ways
             function dualWrite(cb1Delay, cb2Delay) {
-                var testFile1 = fileSystem.getFileForPath("/file1.txt"),
-                    testFile2 = fileSystem.getFileForPath("/file2.txt");
-                
                 runs(function () {
                     var write1Done = false, change1Done = false;
                     var write2Done = false, change2Done = false;
@@ -906,7 +903,7 @@ define(function (require, exports, module) {
                     MockFileSystemImpl.when("writeFile", "/file1.txt", delay(cb1Delay));
                     MockFileSystemImpl.when("writeFile", "/file2.txt", delay(cb2Delay));
                     
-                    $(fileSystem).on("change", function (evt, entry) {
+                    fileSystem.on("change", function (evt, entry) {
                         // change for file N should not precede write callback for write to N
                         expect(write1Done || entry.fullPath !== "/file1.txt").toBe(true);
                         expect(write2Done || entry.fullPath !== "/file2.txt").toBe(true);
@@ -1073,7 +1070,6 @@ define(function (require, exports, module) {
             it("should verify blind writes", function () {
                 var file = fileSystem.getFileForPath(filename),
                     cb1 = writeCallback(),
-                    cb2 = writeCallback(),
                     newFileContent = "Computer programming is an exact science",
                     checkedContent = file._contents = fileSystem._impl._model.readFile(filename);   // avoids having to use a callback
                 
@@ -1178,7 +1174,7 @@ define(function (require, exports, module) {
                     
                     savedHash = file._hash;
                     
-                    $(fileSystem).on("change", function (event, filename) {
+                    fileSystem.on("change", function (event, filename) {
                         fileChanged = true;
                     });
                     
@@ -1250,7 +1246,7 @@ define(function (require, exports, module) {
                     
                     savedHash = file._hash;
                     
-                    $(fileSystem).on("change", function (event, filename) {
+                    fileSystem.on("change", function (event, filename) {
                         fileChanged = true;
                     });
                     
@@ -1412,8 +1408,7 @@ define(function (require, exports, module) {
                 var file,
                     cb0 = readCallback(),
                     cb1 = errorCallback(),
-                    cb2 = readCallback(),
-                    savedHash;
+                    cb2 = readCallback();
                 
                 // confirm watched and empty cached data
                 runs(function () {
@@ -1462,8 +1457,7 @@ define(function (require, exports, module) {
             it("should unwatch when watchers go offline", function () {
                 var file,
                     cb0 = readCallback(),
-                    cb1 = readCallback(),
-                    savedHash;
+                    cb1 = readCallback();
 
                 // confirm watched and empty cached data
                 runs(function () {
@@ -1523,7 +1517,7 @@ define(function (require, exports, module) {
                 changeDone = false;
                 
                 runs(function () {
-                    $(fileSystem).on("change", function (event, entry, added, removed) {
+                    fileSystem.on("change", function (event, entry, added, removed) {
                         changedEntry = entry;
                         addedEntries = added;
                         removedEntries = removed;
@@ -1654,8 +1648,7 @@ define(function (require, exports, module) {
             it("should fire change event after rapid delete-add pair", function () {
                 var dirname = "/subdir/",
                     filename = "/subdir/file3.txt",
-                    dir,
-                    newfile;
+                    dir;
                 
                 runs(function () {
                     // Delay watcher change notifications so that the FS doesn't get a chance to

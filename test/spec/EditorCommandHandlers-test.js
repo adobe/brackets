@@ -22,19 +22,19 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs, $, waitsForDone, beforeFirst, afterLast */
+/*global define, describe, it, expect, beforeEach, afterEach, runs, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
     
-    var Editor                = require("editor/Editor").Editor,
-        EditorManager         = require("editor/EditorManager"),
-        EditorCommandHandlers = require("editor/EditorCommandHandlers"),
-        Commands              = require("command/Commands"),
-        CommandManager        = require("command/CommandManager"),
-        LanguageManager       = require("language/LanguageManager"),
-        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
-        _                     = require("thirdparty/lodash");
+    var EditorManager   = require("editor/EditorManager"),
+        Commands        = require("command/Commands"),
+        CommandManager  = require("command/CommandManager"),
+        LanguageManager = require("language/LanguageManager"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        _               = require("thirdparty/lodash");
+
+    require("editor/EditorCommandHandlers");
 
     describe("EditorCommandHandlers", function () {
         
@@ -131,7 +131,7 @@ define(function (require, exports, module) {
             var promise;
             
             runs(function () {
-                promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: testPath + "/test.html"});
+                promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/test.html"});
                 waitsForDone(promise, "Open into working set");
             });
             
@@ -509,7 +509,7 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 1, ch: 0}, end: {line: 1, ch: 0}},
                                             {start: {line: 3, ch: 0}, end: {line: 3, ch: 6}}]);
                     
-                    var lines = defaultContent.split("\n"), i;
+                    var lines = defaultContent.split("\n");
                     lines[1] = "//    function bar() {";
                     lines[3] = "//        a();";
                     var expectedText = lines.join("\n");
@@ -3752,14 +3752,37 @@ define(function (require, exports, module) {
                     lines[1] = lines[2];
                     lines[2] = temp;
                     var expectedText = lines.join("\n");
-                    
+
                     expect(myEditor.document.getText()).toEqual(expectedText);
                     expect(myEditor.getFirstVisibleLine()).toBe(0);
                     expect(myEditor.getLastVisibleLine()).toBe(2);
                 });
             });
         
-        
+            describe("Editor Navigation Commands", function () {
+                it("should jump to definition", function () {
+                    var promise,
+                        selection;
+                    runs(function () {
+                        promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/test.js"});
+                        waitsForDone(promise, "Open into working set");
+                    });
+                    runs(function () {
+                        myEditor = EditorManager.getCurrentFullEditor();
+                        myEditor.setCursorPos({line: 5, ch: 8});
+                        promise = CommandManager.execute(Commands.NAVIGATE_JUMPTO_DEFINITION);
+                        waitsForDone(promise, "Jump To Definition");
+                    });
+                    runs(function () {
+                        selection = myEditor.getSelection();
+                        expect(selection).toEqual({start: {line: 0, ch: 9},
+                                                   end: {line: 0, ch: 15},
+                                                   reversed: false});
+                    });
+                });
+            });
+            
+            
             describe("Open Line Above and Below - inline editor", function () {
                 
                 var content = ".testClass {\n" +

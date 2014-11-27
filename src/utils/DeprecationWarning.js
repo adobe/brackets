@@ -30,6 +30,9 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var EventDispatcher = require("utils/EventDispatcher");
+    
+    
     var displayedWarnings = {};
 
     /**
@@ -55,7 +58,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Show deprecation message with the call stack if it 
+     * Show deprecation warning with the call stack if it 
      * has never been displayed before.
      * @param {!string} message The deprecation message to be displayed.
      * @param {boolean=} oncePerCaller If true, displays the message once for each unique call location.
@@ -89,6 +92,57 @@ define(function (require, exports, module) {
         displayedWarnings[message][callerLocation] = true;
     }
 
+    
+    /**
+     * Show a deprecation warning if there are listeners for the event
+     * 
+     * ```
+     *    DeprecationWarning.deprecateEvent(exports, 
+     *                                      MainViewManager, 
+     *                                      "workingSetAdd", 
+     *                                      "workingSetAdd", 
+     *                                      "DocumentManager.workingSetAdd", 
+     *                                      "MainViewManager.workingSetAdd");
+     * ```
+     *
+     * @param {Object} outbound - the object with the old event to dispatch
+     * @param {Object} inbound - the object with the new event to map to the old event
+     * @param {string} oldEventName - the name of the old event
+     * @param {string} newEventName - the name of the new event
+     * @param {string=} canonicalOutboundName - the canonical name of the old event
+     * @param {string=} canonicalInboundName - the canonical name of the new event  
+     */
+    function deprecateEvent(outbound, inbound, oldEventName, newEventName, canonicalOutboundName, canonicalInboundName) {
+        // Mark deprecated so EventDispatcher.on() will emit warnings
+        EventDispatcher.markDeprecated(outbound, oldEventName, canonicalInboundName);
+        
+        // create an event handler for the new event to listen for 
+        inbound.on(newEventName, function () {
+            // Dispatch the event in case anyone is still listening
+            EventDispatcher.triggerWithArray(outbound, oldEventName, Array.prototype.slice.call(arguments, 1));
+        });
+    }
+    
+    
+    /**
+     * Create a deprecation warning and action for updated constants
+     * @param {!string} old Menu Id
+     * @param {!string} new Menu Id
+     */
+    function deprecateConstant(obj, oldId, newId) {
+        var warning     = "Use Menus." + newId + " instead of Menus." + oldId,
+            newValue    = obj[newId];
+        
+        Object.defineProperty(obj, oldId, {
+            get: function () {
+                deprecationWarning(warning, true);
+                return newValue;
+            }
+        });
+    }
+    
     // Define public API
-    exports.deprecationWarning = deprecationWarning;
+    exports.deprecationWarning   = deprecationWarning;
+    exports.deprecateEvent       = deprecateEvent;
+    exports.deprecateConstant      = deprecateConstant;
 });

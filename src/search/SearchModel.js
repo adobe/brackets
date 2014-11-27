@@ -21,14 +21,14 @@
  * 
  */
 
-/*global define, $ */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var _           = require("thirdparty/lodash"),
-        FileUtils   = require("file/FileUtils"),
-        StringUtils = require("utils/StringUtils");
+    var FileUtils   = require("file/FileUtils"),
+        EventDispatcher = require("utils/EventDispatcher"),
+        FindUtils   = require("search/FindUtils");
 
     /**
      * @constructor
@@ -40,6 +40,7 @@ define(function (require, exports, module) {
     function SearchModel() {
         this.clear();
     }
+    EventDispatcher.makeEventDispatcher(SearchModel.prototype);
 
     /** @const Constant used to define the maximum results found. 
      *  Note that this is a soft limit - we'll likely go slightly over it since
@@ -100,7 +101,13 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     SearchModel.prototype.foundMaximum = false;
-
+    
+    /**
+     * Whether or not we exceeded the maximum number of results in the search we did.
+     * @type {boolean}
+     */
+    SearchModel.prototype.exceedsMaximum = false;
+    
     /**
      * Clears out the model to an empty state.
      */
@@ -113,47 +120,25 @@ define(function (require, exports, module) {
         this.scope = null;
         this.numMatches = 0;
         this.foundMaximum = false;
+        this.exceedsMaximum = false;
+        this.fireChanged();
     };
     
     /**
-     * Sets the given query info and stores a compiled RegExp query in this.queryExpr. Returns info on whether the
-     * query was valid or not. If the query is invalid, then this.queryExpr will be null.
+     * Sets the given query info and stores a compiled RegExp query in this.queryExpr.
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo
-     * @return {{valid: boolean, empty: boolean, error: string}}
-     *      valid - set to true if query is a nonempty string or a valid regexp.
-     *      empty - set to true if query was empty.
-     *      error - set to an error string if valid is false and query is nonempty.
+     * @return {boolean} true if the query was valid and properly set, false if it was
+     *      invalid or empty.
      */
     SearchModel.prototype.setQueryInfo = function (queryInfo) {
-        this.queryInfo = queryInfo;
-        this.queryExpr = null;
-        
-        // TODO: only major difference between this one and the one in FindReplace is that 
-        // this always returns a regexp even for simple strings. Reconcile.
-        if (!queryInfo || !queryInfo.query) {
-            return {empty: true};
-        }
-
-        // For now, treat all matches as multiline (i.e. ^/$ match on every line, not the whole
-        // document). This is consistent with how single-file find works. Eventually we should add
-        // an option for this.
-        var flags = "gm";
-        if (!queryInfo.isCaseSensitive) {
-            flags += "i";
-        }
-        
-        // Is it a (non-blank) regex?
-        if (queryInfo.isRegexp) {
-            try {
-                this.queryExpr = new RegExp(queryInfo.query, flags);
-            } catch (e) {
-                return {valid: false, error: e.message};
-            }
+        var parsedQuery = FindUtils.parseQueryInfo(queryInfo);
+        if (parsedQuery.valid) {
+            this.queryInfo = queryInfo;
+            this.queryExpr = parsedQuery.queryExpr;
+            return true;
         } else {
-            // Query is a plain string. Turn it into a regexp
-            this.queryExpr = new RegExp(StringUtils.regexEscape(queryInfo.query), flags);
+            return false;
         }
-        return {valid: true};
     };
 
     /**
@@ -181,6 +166,13 @@ define(function (require, exports, module) {
         this.numMatches += resultInfo.matches.length;
         if (this.numMatches >= SearchModel.MAX_TOTAL_RESULTS) {
             this.foundMaximum = true;
+            
+            // Remove final result if there have been over MAX_TOTAL_RESULTS found
+            if (this.numMatches > SearchModel.MAX_TOTAL_RESULTS) {
+                this.results[fullpath].matches.pop();
+                this.numMatches--;
+                this.exceedsMaximum = true;
+            }
         }
     };
     
@@ -233,9 +225,9 @@ define(function (require, exports, module) {
      *      often, meaning that the view should buffer updates.
      */
     SearchModel.prototype.fireChanged = function (quickChange) {
-        $(this).triggerHandler("change", quickChange);
+        this.trigger("change", quickChange);
     };
-
+    
     // Public API
     exports.SearchModel = SearchModel;
 });

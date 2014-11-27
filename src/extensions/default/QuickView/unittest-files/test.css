@@ -73,7 +73,7 @@
     color: redsox;
     color: pinky;
     color: blue-cheese;
-    color: @bc-white;
+    color: @bc-bg-highlight;
 }
 
 .gradients {
@@ -178,4 +178,15 @@ background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3
     background: radial-gradient(red, white 50%, blue 100%);
     background :radial-gradient(red, white 50%, blue 100%);
     background:radial-gradient(red, white 50%, blue 100%);
+}
+
+.quotes {
+    background: url(img/don't.png);
+    background: url("img/don't.png");
+    background:url("data:image/svg+xml;utf8, <svg version='1.1' xmlns='http://www.w3.org/2000/svg'></svg>");
+}
+
+.unbalanced-parens {
+    background-image: linear-gradient(to bottom, #333, #CCC;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(51,51,51)), to(rgb(204,204,204));
 }

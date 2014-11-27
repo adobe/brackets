@@ -163,7 +163,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"          : "Заменить",
     "FIND_REPLACE_TITLE_WITH"           : "на",
     "FIND_TITLE_LABEL"                  : "Найдено",
-    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} в {3}",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} в {3}",
 	
     // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
@@ -532,7 +532,7 @@ define({
     "LANGUAGE_MESSAGE"                          : "Пожалуйста, выберите желаемый язык из списка ниже:",
     "LANGUAGE_SUBMIT"                           : "Перезагрузить {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Отмена",
-    "LANGUAGE_SYSTEM_DEFAULT"                   : "Система по умолчанию",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "По умолчанию",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Время",

@@ -37,19 +37,16 @@ define(function CSSAgent(require, exports, module) {
 
     require("thirdparty/path-utils/path-utils.min");
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var _ = require("thirdparty/lodash");
+
+    var Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        EventDispatcher = require("utils/EventDispatcher");
 
     /**
-     * Stylesheet urls
+     * Stylesheet details
      * @type {Object.<string, CSS.CSSStyleSheetHeader>}
      */
-    var _urlToStyle = {};
-    
-    /**
-     * Map of stylesheet ids to urls
-     * @type {Object.<string, string>}
-     */
-    var _styleSheetIdToUrl;
+    var _styleSheetDetails = {};
 
     /**
      * Is getAllStyleSheets() API defined? - This is undefined until we test for API
@@ -73,44 +70,51 @@ define(function CSSAgent(require, exports, module) {
      * @param {frame: Frame} res
      */
     function _onFrameNavigated(event, res) {
-        // Clear maps when navigating to a new page
-        _urlToStyle = {};
-        _styleSheetIdToUrl = {};
+        // Clear maps when navigating to a new page, but not if an iframe was loaded
+        if (!res.frame.parentId) {
+            _styleSheetDetails = {};
+        }
     }
 
     /**
-     * Get a style sheet for a url
+     * Get the style sheets for a url
      * @param {string} url
-     * @return {CSS.CSSStyleSheetHeader}
+     * @return {Object.<string, CSSStyleSheetHeader>}
      */
     function styleForURL(url) {
-        return _urlToStyle[_canonicalize(url)];
-    }
-
-    /**
-     * Use styleSheetAdded and styleSheetRemoved events.
-     * Get a list of all loaded stylesheet files by URL.
-     * @deprecated
-     */
-    function getStylesheetURLs() {
-        var urls = [], url;
-        for (url in _urlToStyle) {
-            if (_urlToStyle.hasOwnProperty(url)) {
-                urls.push(url);
+        var styleSheetId, styles = {};
+        url = _canonicalize(url);
+        for (styleSheetId in _styleSheetDetails) {
+            if (_styleSheetDetails[styleSheetId].canonicalizedURL === url) {
+                styles[styleSheetId] = _styleSheetDetails[styleSheetId];
             }
         }
-        return urls;
+        return styles;
     }
 
     /**
      * Reload a CSS style sheet from a document
      * @param {Document} document
+     * @param {string=} newContent new content of every stylesheet. Defaults to doc.getText() if omitted
      * @return {jQuery.Promise}
      */
-    function reloadCSSForDocument(doc) {
-        var style = styleForURL(doc.url);
-        console.assert(style, "Style Sheet for document not loaded: " + doc.url);
-        return Inspector.CSS.setStyleSheetText(style.styleSheetId, doc.getText());
+    function reloadCSSForDocument(doc, newContent) {
+        var styles = styleForURL(doc.url),
+            styleSheetId,
+            deferreds = [];
+
+        if (newContent === undefined) {
+            newContent = doc.getText();
+        }
+        for (styleSheetId in styles) {
+            deferreds.push(Inspector.CSS.setStyleSheetText(styles[styleSheetId].styleSheetId, newContent));
+        }
+        if (!deferreds.length) {
+            console.error("Style Sheet for document not loaded: " + doc.url);
+            return new $.Deferred().reject().promise();
+        }
+        // return master deferred
+        return $.when.apply($, deferreds);
     }
 
     /**
@@ -119,9 +123,7 @@ define(function CSSAgent(require, exports, module) {
      * @return {jQuery.Promise}
      */
     function clearCSSForDocument(doc) {
-        var style = styleForURL(doc.url);
-        console.assert(style, "Style Sheet for document not loaded: " + doc.url);
-        return Inspector.CSS.setStyleSheetText(style.styleSheetId, "");
+        return reloadCSSForDocument(doc, "");
     }
     
     /**
@@ -130,18 +132,23 @@ define(function CSSAgent(require, exports, module) {
      * @param {header: CSSStyleSheetHeader}
      */
     function _styleSheetAdded(event, res) {
-        var url = _canonicalize(res.header.sourceURL),
-            existing = _urlToStyle[url];
+        var url             = _canonicalize(res.header.sourceURL),
+            existing        = styleForURL(res.header.sourceURL),
+            styleSheetId    = res.header.styleSheetId,
+            duplicate;
         
         // detect duplicates
-        if (existing && existing.styleSheetId === res.header.styleSheetId) {
+        duplicate = _.some(existing, function (styleSheet) {
+            return styleSheet && styleSheet.styleSheetId === styleSheetId;
+        });
+        if (duplicate) {
             return;
         }
         
-        _urlToStyle[url] = res.header;
-        _styleSheetIdToUrl[res.header.styleSheetId] = url;
+        _styleSheetDetails[styleSheetId] = res.header;
+        _styleSheetDetails[styleSheetId].canonicalizedURL = url; // canonicalized URL
         
-        $(exports).triggerHandler("styleSheetAdded", [url, res.header]);
+        exports.trigger("styleSheetAdded", url, res.header);
     }
     
     /**
@@ -150,16 +157,11 @@ define(function CSSAgent(require, exports, module) {
      * @param {styleSheetId: StyleSheetId}
      */
     function _styleSheetRemoved(event, res) {
-        var url = _styleSheetIdToUrl[res.styleSheetId],
-            header = url && _urlToStyle[url];
+        var header = _styleSheetDetails[res.styleSheetId];
         
-        if (url) {
-            delete _urlToStyle[url];
-        }
+        delete _styleSheetDetails[res.styleSheetId];
         
-        delete _styleSheetIdToUrl[res.styleSheetId];
-        
-        $(exports).triggerHandler("styleSheetRemoved", [url, header]);
+        exports.trigger("styleSheetRemoved", header.canonicalizedURL, header);
     }
     
     /**
@@ -182,7 +184,7 @@ define(function CSSAgent(require, exports, module) {
             // If we have user agent string, and Chrome is >= 34, then don't use getAllStyleSheets
             if (uaMatch && parseInt(uaMatch[1], 10) >= 34) {
                 _getAllStyleSheetsNotFound = true;
-                $(Inspector.Page).off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+                Inspector.Page.off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
                 return;
             }
         }
@@ -198,7 +200,7 @@ define(function CSSAgent(require, exports, module) {
         }).fail(function (err) {
             // Disable getAllStyleSheets if the first call fails
             _getAllStyleSheetsNotFound = (err.code === -32601);
-            $(Inspector.Page).off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+            Inspector.Page.off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
         });
     }
 
@@ -209,26 +211,28 @@ define(function CSSAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        $(Inspector.Page).on("frameNavigated.CSSAgent", _onFrameNavigated);
-        $(Inspector.CSS).on("styleSheetAdded.CSSAgent", _styleSheetAdded);
-        $(Inspector.CSS).on("styleSheetRemoved.CSSAgent", _styleSheetRemoved);
+        Inspector.Page.on("frameNavigated.CSSAgent", _onFrameNavigated);
+        Inspector.CSS.on("styleSheetAdded.CSSAgent", _styleSheetAdded);
+        Inspector.CSS.on("styleSheetRemoved.CSSAgent", _styleSheetRemoved);
 
         // getAllStyleSheets was deleted beginning with Chrome 34
         if (!_getAllStyleSheetsNotFound) {
-            $(Inspector.Page).on("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+            Inspector.Page.on("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
         }
     }
 
     /** Clean up */
     function unload() {
-        $(Inspector.Page).off(".CSSAgent");
-        $(Inspector.CSS).off(".CSSAgent");
+        Inspector.Page.off(".CSSAgent");
+        Inspector.CSS.off(".CSSAgent");
     }
+    
+    
+    EventDispatcher.makeEventDispatcher(exports);
 
     // Export public functions
     exports.enable = enable;
     exports.styleForURL = styleForURL;
-    exports.getStylesheetURLs = getStylesheetURLs;
     exports.reloadCSSForDocument = reloadCSSForDocument;
     exports.clearCSSForDocument = clearCSSForDocument;
     exports.load = load;

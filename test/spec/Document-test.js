@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, jasmine, describe, beforeFirst, afterLast, beforeEach, afterEach, it, runs, waitsFor, expect, waitsForDone */
+/*global define, jasmine, describe, beforeFirst, afterLast, beforeEach, afterEach, it, runs, expect, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         EditorManager,       // loaded from brackets.test
         DocumentModule,      // loaded from brackets.test
         DocumentManager,     // loaded from brackets.test
+        MainViewManager,     // loaded from brackets.test
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
     
     
@@ -229,6 +230,7 @@ define(function (require, exports, module) {
                 EditorManager       = testWindow.brackets.test.EditorManager;
                 DocumentModule      = testWindow.brackets.test.DocumentModule;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
+                MainViewManager     = testWindow.brackets.test.MainViewManager;
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
@@ -241,7 +243,9 @@ define(function (require, exports, module) {
             EditorManager   = null;
             DocumentModule  = null;
             DocumentManager = null;
+            MainViewManager = null;
             SpecRunnerUtils.closeTestWindow();
+            testWindow = null;
         });
 
         afterEach(function () {
@@ -249,7 +253,7 @@ define(function (require, exports, module) {
 
             runs(function () {
                 expect(DocumentManager.getAllOpenDocuments().length).toBe(0);
-                $(DocumentModule).off(".docTest");
+                DocumentModule.off(".docTest");
             });
         });
         
@@ -259,20 +263,20 @@ define(function (require, exports, module) {
 
 
         describe("Dirty flag and undo", function () {
-            var promise, doc;
+            var promise;
             
             it("should not fire dirtyFlagChange when created", function () {
                 var dirtyFlagListener = jasmine.createSpy();
                 
                 runs(function () {
-                    $(DocumentManager).on("dirtyFlagChange", dirtyFlagListener);
+                    DocumentManager.on("dirtyFlagChange", dirtyFlagListener);
                     
                     promise = DocumentManager.getDocumentForPath(JS_FILE);
                     waitsForDone(promise, "Create Document");
                 });
                 runs(function () {
                     expect(dirtyFlagListener.callCount).toBe(0);
-                    $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
+                    DocumentManager.off("dirtyFlagChange", dirtyFlagListener);
                 });
             });
             
@@ -280,7 +284,7 @@ define(function (require, exports, module) {
                 var dirtyFlagListener = jasmine.createSpy();
                 
                 runs(function () {
-                    $(DocumentManager).on("dirtyFlagChange", dirtyFlagListener);
+                    DocumentManager.on("dirtyFlagChange", dirtyFlagListener);
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: JS_FILE});
                     waitsForDone(promise, "Open file");
@@ -302,7 +306,7 @@ define(function (require, exports, module) {
                     expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1); // still has undo history
                     expect(dirtyFlagListener.callCount).toBe(2);
                     
-                    $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
+                    DocumentManager.off("dirtyFlagChange", dirtyFlagListener);
                 });
             });
             
@@ -311,14 +315,14 @@ define(function (require, exports, module) {
                     changeListener    = jasmine.createSpy();
                 
                 runs(function () {
-                    $(DocumentManager).on("dirtyFlagChange", dirtyFlagListener);
+                    DocumentManager.on("dirtyFlagChange", dirtyFlagListener);
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: JS_FILE});
                     waitsForDone(promise, "Open file");
                 });
                 runs(function () {
                     var doc = DocumentManager.getOpenDocumentForPath(JS_FILE);
-                    $(doc).on("change", changeListener);
+                    doc.on("change", changeListener);
                     
                     expect(doc.isDirty).toBe(false);
                     expect(doc._masterEditor._codeMirror.historySize().undo).toBe(0);
@@ -337,8 +341,8 @@ define(function (require, exports, module) {
                     expect(dirtyFlagListener.callCount).toBe(2);
                     expect(changeListener.callCount).toBe(2);
                     
-                    $(doc).off("change", changeListener);
-                    $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
+                    doc.off("change", changeListener);
+                    DocumentManager.off("dirtyFlagChange", dirtyFlagListener);
                 });
             });
             
@@ -347,14 +351,14 @@ define(function (require, exports, module) {
                     changeListener    = jasmine.createSpy();
                 
                 runs(function () {
-                    $(DocumentManager).on("dirtyFlagChange", dirtyFlagListener);
+                    DocumentManager.on("dirtyFlagChange", dirtyFlagListener);
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: JS_FILE});
                     waitsForDone(promise, "Open file");
                 });
                 runs(function () {
                     var doc = DocumentManager.getOpenDocumentForPath(JS_FILE);
-                    $(doc).on("change", changeListener);
+                    doc.on("change", changeListener);
                     
                     expect(doc.isDirty).toBe(false);
                     expect(doc._masterEditor._codeMirror.historySize().undo).toBe(0);
@@ -365,8 +369,8 @@ define(function (require, exports, module) {
                     expect(dirtyFlagListener.callCount).toBe(0);  // isDirty hasn't changed
                     expect(changeListener.callCount).toBe(1);     // but still counts as a content change
                     
-                    $(doc).off("change", changeListener);
-                    $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
+                    doc.off("change", changeListener);
+                    DocumentManager.off("dirtyFlagChange", dirtyFlagListener);
                 });
             });
             
@@ -376,14 +380,14 @@ define(function (require, exports, module) {
                     doc;
                 
                 runs(function () {
-                    $(DocumentManager).on("dirtyFlagChange", dirtyFlagListener);
+                    DocumentManager.on("dirtyFlagChange", dirtyFlagListener);
                     
                     promise = DocumentManager.getDocumentForPath(JS_FILE)
                         .done(function (result) { doc = result; });
                     waitsForDone(promise, "Create Document");
                 });
                 runs(function () {
-                    $(doc).on("change", changeListener);
+                    doc.on("change", changeListener);
                     
                     expect(doc._masterEditor).toBeFalsy();
                     expect(doc.isDirty).toBe(false);
@@ -393,8 +397,9 @@ define(function (require, exports, module) {
                     expect(dirtyFlagListener.callCount).toBe(0);
                     expect(changeListener.callCount).toBe(1);   // resetting text is still a content change
                     
-                    $(doc).off("change", changeListener);
-                    $(DocumentManager).off("dirtyFlagChange", dirtyFlagListener);
+                    doc.off("change", changeListener);
+                    DocumentManager.off("dirtyFlagChange", dirtyFlagListener);
+                    doc = null;
                 });
             });
         });
@@ -422,8 +427,8 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    $(DocumentModule).on("documentChange.docTest", docChangeListener);
-                    $(doc).on("change", changeListener);
+                    DocumentModule.on("documentChange.docTest", docChangeListener);
+                    doc.on("change", changeListener);
                     
                     expect(doc._masterEditor).toBeFalsy();
 
@@ -447,8 +452,8 @@ define(function (require, exports, module) {
                     doc.setText("first edit");
                     expect(doc._masterEditor).toBeTruthy();
                     
-                    $(DocumentModule).on("documentChange.docTest", docChangeListener);
-                    $(doc).on("change", changeListener);
+                    DocumentModule.on("documentChange.docTest", docChangeListener);
+                    doc.on("change", changeListener);
 
                     doc.refreshText("New content", Date.now());
                     
@@ -459,7 +464,7 @@ define(function (require, exports, module) {
             
             it("should *not* fire documentChange when a document is first created", function () {
                 runs(function () {
-                    $(DocumentModule).on("documentChange.docTest", docChangeListener);
+                    DocumentModule.on("documentChange.docTest", docChangeListener);
                     waitsForDone(DocumentManager.getDocumentForPath(JS_FILE));
                 });
                 
@@ -480,7 +485,7 @@ define(function (require, exports, module) {
                     cssMasterEditor;
                 
                 runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: HTML_FILE});
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: HTML_FILE});
                     waitsForDone(promise, "Open into working set");
                 });
                 runs(function () {
@@ -489,7 +494,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "Open inline editor");
                 });
                 runs(function () {
-                    expect(DocumentManager.findInWorkingSet(CSS_FILE)).toBe(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, CSS_FILE)).toBe(-1);
                     expect(DocumentManager.getOpenDocumentForPath(CSS_FILE)).toBeTruthy();
                     
                     // Force creation of master editor for CSS file

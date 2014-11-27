@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, FileError, brackets, unescape, window */
+/*global define, $, brackets, unescape, window */
 
 /**
  * Set of utilites for working with files and text content.
@@ -36,11 +36,29 @@ define(function (require, exports, module) {
     var FileSystemError     = require("filesystem/FileSystemError"),
         LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        StringUtils         = require("utils/StringUtils"),
+        Dialogs;            // This will be loaded asynchronously
 
+    
+    /**
+     * @const {Number} Maximium file size (in megabytes)
+     *   (for display strings)
+     *   This must be a hard-coded value since this value
+     *   tells how low-level APIs should behave which cannot
+     *   have a load order dependency on preferences manager
+     */
+    var MAX_FILE_SIZE_MB = 16;
+    
+    /**
+     * @const {Number} Maximium file size (in bytes)
+     *   This must be a hard-coded value since this value
+     *   tells how low-level APIs should behave which cannot
+     *   have a load order dependency on preferences manager
+     */
+    var MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
+    
     
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
@@ -149,6 +167,10 @@ define(function (require, exports, module) {
         return text.replace(findAnyEol, eolStr);
     }
 
+    /**
+     * @param {!FileSystemError} name
+     * @return {!string} User-friendly, localized error message
+     */
     function getFileErrorString(name) {
         // There are a few error codes that we have specific error messages for. The rest are
         // displayed with a generic "(error N)" message.
@@ -164,6 +186,8 @@ define(function (require, exports, module) {
             result = Strings.CONTENTS_MODIFIED_ERR;
         } else if (name === FileSystemError.UNSUPPORTED_ENCODING) {
             result = Strings.UNSUPPORTED_ENCODING_ERR;
+        } else if (name === FileSystemError.EXCEEDS_MAX_FILE_SIZE) {
+            result = StringUtils.format(Strings.EXCEEDS_MAX_FILE_SIZE, MAX_FILE_SIZE_MB);
         } else {
             result = StringUtils.format(Strings.GENERIC_ERROR, name);
         }
@@ -171,6 +195,11 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+     * Shows an error dialog indicating that the given file could not be opened due to the given error
+     * @param {!FileSystemError} name
+     * @return {!Dialog}
+     */
     function showFileOpenError(name, path) {
         return Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
@@ -245,19 +274,6 @@ define(function (require, exports, module) {
         } else {
             return path;
         }
-    }
-    
-    /**
-     * Warning: Contrary to the name, this does NOT return a canonical path. The canonical format
-     * used by Directory.fullPath actually DOES include the trailing "/"
-     * @deprecated
-     * 
-     * @param {string} path
-     * @return {string}
-     */
-    function canonicalizeFolderPath(path) {
-        console.error("Warning: FileUtils.canonicalizeFolderPath() is deprecated. Use paths ending in '/' if possible, like Directory.fullPath");
-        return stripTrailingSlash(path);
     }
     
     /**
@@ -387,7 +403,7 @@ define(function (require, exports, module) {
      * File extensions - hard-coded for now, but may want to make these preferences
      * @const {Array.<string>}
      */
-    var _staticHtmlFileExts = ["htm", "html"],
+    var _staticHtmlFileExts = ["htm", "html", "xhtml"],
         _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
 
     /**
@@ -417,6 +433,16 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Determines if file extension is a CSS preprocessor file extension that Brackets supports.
+     * @param {string} filePath could be a path, a file name
+     * @return {boolean} true if LanguageManager identifies filePath as less or scss language.
+     */
+    function isCSSPreprocessorFile(filePath) {
+        var languageId = LanguageManager.getLanguageForPath(filePath).getId();
+        return (languageId === "less" || languageId === "scss");
+    }
+    
+    /**
      * Get the parent directory of a file. If a directory is passed in the directory is returned.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the path to the parent directory of a file or the path of a directory,
@@ -427,12 +453,11 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
      * Get the file name without the extension.
      * @param {string} filename File name of a file or directory
      * @return {string} Returns the file name without the extension
      */
-    function _getFilenameWithoutExtension(filename) {
+    function getFilenameWithoutExtension(filename) {
         var index = filename.lastIndexOf(".");
         return index === -1 ? filename : filename.slice(0, index);
     }
@@ -448,21 +473,23 @@ define(function (require, exports, module) {
     function compareFilenames(filename1, filename2, extFirst) {
         var ext1   = getFileExtension(filename1),
             ext2   = getFileExtension(filename2),
-            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), undefined, {numeric: true}),
+            lang   = brackets.getLocale(),
+            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), lang, {numeric: true}),
             cmpNames;
         
         if (brackets.platform === "win") {
-            filename1 = _getFilenameWithoutExtension(filename1);
-            filename2 = _getFilenameWithoutExtension(filename2);
+            filename1 = getFilenameWithoutExtension(filename1);
+            filename2 = getFilenameWithoutExtension(filename2);
         }
-        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), undefined, {numeric: true});
+        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), lang, {numeric: true});
         
         return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
     }
     
     /**
-     * Compares two paths segment-by-segment, used for sorting. Sorts folders before files,
-     * and sorts files based on `compareFilenames()`.
+     * Compares two paths segment-by-segment, used for sorting. When two files share a path prefix,
+     * the less deeply nested one is sorted earlier in the list. Sorts files within the same parent
+     * folder based on `compareFilenames()`.
      * @param {string} path1
      * @param {string} path2
      * @return {number} -1, 0, or 1 depending on whether path1 is less than, equal to, or greater than
@@ -487,12 +514,30 @@ define(function (require, exports, module) {
                 } else if (index >= folders1 && index >= folders2) {
                     return compareFilenames(entryName1, entryName2);
                 }
-                return (index >= folders1 && index < folders2) ? 1 : -1;
+                return (index >= folders1 && index < folders2) ? -1 : 1;
             }
             index++;
         }
         return 0;
     }
+
+    /**
+     * @param {string} path Native path in the format used by FileSystemEntry.fullPath
+     * @return {string} URI-encoded version suitable for appending to 'file:///`. It's not safe to use encodeURI()
+     *     directly since it doesn't escape chars like "#".
+     */
+    function encodeFilePath(path) {
+        var pathArray = path.split("/");
+        pathArray = pathArray.map(function (subPath) {
+            return encodeURIComponent(subPath);
+        });
+        return pathArray.join("/");
+    }
+
+    // Asynchronously loading Dialogs to avoid the circular dependency
+    require(["widgets/Dialogs"], function (dialogsModule) {
+        Dialogs = dialogsModule;
+    });
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -509,15 +554,18 @@ define(function (require, exports, module) {
     exports.convertWindowsPathToUnixPath   = convertWindowsPathToUnixPath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
-    exports.canonicalizeFolderPath         = canonicalizeFolderPath;
     exports.stripTrailingSlash             = stripTrailingSlash;
+    exports.isCSSPreprocessorFile          = isCSSPreprocessorFile;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getBaseName                    = getBaseName;
     exports.getRelativeFilename            = getRelativeFilename;
+    exports.getFilenameWithoutExtension    = getFilenameWithoutExtension;
     exports.getFileExtension               = getFileExtension;
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
     exports.comparePaths                   = comparePaths;
+    exports.MAX_FILE_SIZE                  = MAX_FILE_SIZE;
+    exports.encodeFilePath                 = encodeFilePath;
 });

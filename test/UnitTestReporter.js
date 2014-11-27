@@ -37,8 +37,10 @@ define(function (require, exports, module) {
     "use strict";
     
     var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        Global = require("utils/Global"),
         BuildInfoUtils = require("utils/BuildInfoUtils");
+
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
 
     var activeReporter;
     

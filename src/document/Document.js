@@ -23,12 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
     
     var EditorManager       = require("editor/EditorManager"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         FileUtils           = require("file/FileUtils"),
         InMemoryFile        = require("document/InMemoryFile"),
         PerfUtils           = require("utils/PerfUtils"),
@@ -65,6 +66,9 @@ define(function (require, exports, module) {
      *
      * __deleted__ -- When the file for this document has been deleted. All views onto the document should
      * be closed. The document will no longer be editable or dispatch "change" events.
+     * 
+     * __languageChanged__ -- When the value of getLanguage() has changed. 2nd argument is the old value,
+     * 3rd argument is the new value.
      *
      * @constructor
      * @param {!File} file  Need not lie within the project.
@@ -72,14 +76,12 @@ define(function (require, exports, module) {
      * @param {!string} rawText  Text content of the file.
      */
     function Document(file, initialTimestamp, rawText) {
-        if (!(this instanceof Document)) {  // error if constructor called without 'new'
-            throw new Error("Document constructor must be called with 'new'");
-        }
-        
         this.file = file;
         this._updateLanguage();
         this.refreshText(rawText, initialTimestamp, true);
     }
+    
+    EventDispatcher.makeEventDispatcher(Document.prototype);
     
     /**
      * Number of clients who want this Document to stay alive. The Document is listed in
@@ -156,14 +158,14 @@ define(function (require, exports, module) {
      * @type {FileUtils.LINE_ENDINGS_CRLF|FileUtils.LINE_ENDINGS_LF}
      */
     Document.prototype._lineEndings = null;
-
+    
     /** Add a ref to keep this Document alive */
     Document.prototype.addRef = function () {
         //console.log("+++REF+++ "+this);
         
         if (this._refCount === 0) {
             //console.log("+++ adding to open list");
-            if ($(exports).triggerHandler("_afterDocumentCreate", this)) {
+            if (exports.trigger("_afterDocumentCreate", this)) {
                 return;
             }
         }
@@ -180,7 +182,7 @@ define(function (require, exports, module) {
         }
         if (this._refCount === 0) {
             //console.log("--- removing from open list");
-            if ($(exports).triggerHandler("_beforeDocumentDelete", this)) {
+            if (exports.trigger("_beforeDocumentDelete", this)) {
                 return;
             }
         }
@@ -198,7 +200,7 @@ define(function (require, exports, module) {
         } else {
             this._text = null;
             this._masterEditor = masterEditor;
-            $(masterEditor).on("change", this._handleEditorChange.bind(this));
+            masterEditor.on("change", this._handleEditorChange.bind(this));
         }
     };
     
@@ -224,7 +226,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._ensureMasterEditor = function () {
         if (!this._masterEditor) {
-            EditorManager._createFullEditorForDocument(this);
+            EditorManager._createUnattachedMasterEditor(this);
         }
     };
     
@@ -282,8 +284,8 @@ define(function (require, exports, module) {
      * @param {Object} changeList Changelist in CodeMirror format
      */
     Document.prototype._notifyDocumentChange = function (changeList) {
-        $(this).triggerHandler("change", [this, changeList]);
-        $(exports).triggerHandler("documentChange", [this, changeList]);
+        this.trigger("change", this, changeList);
+        exports.trigger("documentChange", this, changeList);
     };
     
     /**
@@ -332,7 +334,7 @@ define(function (require, exports, module) {
             this._lineEndings = FileUtils.getPlatformLineEndings();
         }
         
-        $(exports).triggerHandler("_documentRefreshed", this);
+        exports.trigger("_documentRefreshed", this);
 
         PerfUtils.addMeasurement(perfTimerName);
     };
@@ -417,7 +419,7 @@ define(function (require, exports, module) {
             
             // Notify if isDirty just changed (this also auto-adds us to working set if needed)
             if (wasDirty !== this.isDirty) {
-                $(exports).triggerHandler("_dirtyFlagChange", [this]);
+                exports.trigger("_dirtyFlagChange", this);
             }
         }
         
@@ -433,7 +435,7 @@ define(function (require, exports, module) {
         if (this._masterEditor) {
             this._masterEditor._codeMirror.markClean();
         }
-        $(exports).triggerHandler("_dirtyFlagChange", this);
+        exports.trigger("_dirtyFlagChange", this);
     };
     
     /**
@@ -464,7 +466,7 @@ define(function (require, exports, module) {
             } else {
                 console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
             }
-            $(exports).triggerHandler("_documentSaved", thisDoc);
+            exports.trigger("_documentSaved", thisDoc);
         });
     };
     
@@ -670,16 +672,15 @@ define(function (require, exports, module) {
     Document.prototype.getLanguage = function () {
         return this.language;
     };
-
+    
     /**
-     * Updates the language according to the file extension
+     * Updates the language to match the current mapping given by LanguageManager
      */
     Document.prototype._updateLanguage = function () {
         var oldLanguage = this.language;
         this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
-        
         if (oldLanguage && oldLanguage !== this.language) {
-            $(this).triggerHandler("languageChanged", [oldLanguage, this.language]);
+            this.trigger("languageChanged", oldLanguage, this.language);
         }
     };
     
@@ -697,7 +698,10 @@ define(function (require, exports, module) {
     Document.prototype.isUntitled = function () {
         return this.file instanceof InMemoryFile;
     };
-
+    
+    // We dispatch events from the module level, and the instance level. Instance events are wired up
+    // in the Document constructor.
+    EventDispatcher.makeEventDispatcher(exports);
 
     // Define public API
     exports.Document = Document;

@@ -41,7 +41,7 @@ define(function (require, exports, module) {
         NodeConnection       = require("utils/NodeConnection"),
         PreferencesManager   = require("preferences/PreferencesManager");
     
-    PreferencesManager.definePreference("proxy", "string");
+    PreferencesManager.definePreference("proxy", "string", undefined);
     
     var Errors = {
         ERROR_LOADING: "ERROR_LOADING",
@@ -160,6 +160,8 @@ define(function (require, exports, module) {
                 nameHint: nameHint
             })
                 .done(function (result) {
+                    result.keepFile = false;
+                    
                     if (result.installationStatus !== InstallationStatuses.INSTALLED || _doUpdate) {
                         d.resolve(result);
                     } else {
@@ -273,6 +275,53 @@ define(function (require, exports, module) {
         });
     }
     
+    /**
+     * On success, resolves with an extension metadata object; at that point, the extension has already
+     * started running in Brackets. On failure (including validation errors), rejects with an error object.
+     * 
+     * An error object consists of either a string error code OR an array where the first entry is the error
+     * code and the remaining entries are further info. The error code string is one of either
+     * ExtensionsDomain.Errors or Package.Errors. Use formatError() to convert an error object to a friendly,
+     * localized error message.
+     * 
+     * @param {string} path Absolute path to the package zip file
+     * @param {?string} filenameHint Hint for the extension folder's name (used in favor of
+     *          path's filename if present, and if no package metadata present).
+     * @return {$.Promise} A promise that is rejected if there are errors during
+     *          install or the extension is disabled.
+     */
+    function installFromPath(path, filenameHint) {
+        var d = new $.Deferred();
+
+        install(path, filenameHint)
+            .done(function (result) {
+                result.keepFile = true;
+                
+                var installationStatus = result.installationStatus;
+                if (installationStatus === InstallationStatuses.ALREADY_INSTALLED ||
+                        installationStatus === InstallationStatuses.NEEDS_UPDATE ||
+                        installationStatus === InstallationStatuses.SAME_VERSION ||
+                        installationStatus === InstallationStatuses.OLDER_VERSION) {
+                    d.resolve(result);
+                } else {
+                    if (result.errors && result.errors.length > 0) {
+                        // Validation errors - for now, only return the first one
+                        d.reject(result.errors[0]);
+                    } else if (result.disabledReason) {
+                        // Extension valid but left disabled (wrong API version, extension name collision, etc.)
+                        d.reject(result.disabledReason);
+                    } else {
+                        // Success! Extension is now running in Brackets
+                        d.resolve(result);
+                    }
+                }
+            })
+            .fail(function (err) {
+                d.reject(err);
+            });
+
+        return d.promise();
+    }
     
     /**
      * On success, resolves with an extension metadata object; at that point, the extension has already
@@ -303,34 +352,20 @@ define(function (require, exports, module) {
             .done(function (downloadResult) {
                 state = STATE_INSTALLING;
                 
-                install(downloadResult.localPath, downloadResult.filenameHint)
+                installFromPath(downloadResult.localPath, downloadResult.filenameHint)
                     .done(function (result) {
                         var installationStatus = result.installationStatus;
-                        if (installationStatus === InstallationStatuses.ALREADY_INSTALLED ||
-                                installationStatus === InstallationStatuses.NEEDS_UPDATE ||
-                                installationStatus === InstallationStatuses.SAME_VERSION ||
-                                installationStatus === InstallationStatuses.OLDER_VERSION) {
-                            // We don't delete the file in this case, because it will be needed
-                            // if the user is going to install the update.
-                            state = STATE_SUCCEEDED;
-                            result.localPath = downloadResult.localPath;
-                            d.resolve(result);
-                        } else {
+
+                        state = STATE_SUCCEEDED;
+                        result.localPath = downloadResult.localPath;
+                        result.keepFile = false;
+
+                        if (installationStatus === InstallationStatuses.INSTALLED) {
+                            // Delete temp file
                             FileSystem.getFileForPath(downloadResult.localPath).unlink();
-                            if (result.errors && result.errors.length > 0) {
-                                // Validation errors - for now, only return the first one
-                                state = STATE_FAILED;
-                                d.reject(result.errors[0]);
-                            } else if (result.disabledReason) {
-                                // Extension valid but left disabled (wrong API version, extension name collision, etc.)
-                                state = STATE_FAILED;
-                                d.reject(result.disabledReason);
-                            } else {
-                                // Success! Extension is now running in Brackets
-                                state = STATE_SUCCEEDED;
-                                d.resolve(result);
-                            }
                         }
+
+                        d.resolve(result);
                     })
                     .fail(function (err) {
                         // File IO errors, internal error in install()/validate(), or extension startup crashed
@@ -359,7 +394,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Converts an error object as returned by install() or installFromURL() into a flattened, localized string.
+     * Converts an error object as returned by install(), installFromPath() or
+     * installFromURL() into a flattened, localized string.
+     *
      * @param {string|Array.<string>} error
      * @return {string}
      */
@@ -421,9 +458,6 @@ define(function (require, exports, module) {
             })
             .fail(function (error) {
                 d.reject(error);
-            })
-            .always(function () {
-                FileSystem.getFileForPath(path).unlink();
             });
         return d.promise();
     }
@@ -465,6 +499,7 @@ define(function (require, exports, module) {
     exports._getNodeConnectionDeferred = _getNodeConnectionDeferred;
 
     exports.installFromURL = installFromURL;
+    exports.installFromPath = installFromPath;
     exports.validate = validate;
     exports.install = install;
     exports.remove = remove;

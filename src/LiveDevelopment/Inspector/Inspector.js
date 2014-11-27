@@ -24,7 +24,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, WebSocket, FileError, window, XMLHttpRequest */
+/*global define, $, WebSocket, FileError, XMLHttpRequest */
 
  /**
  * Inspector manages the connection to Chrome/Chromium's remote debugger.
@@ -83,10 +83,8 @@
 define(function Inspector(require, exports, module) {
     "use strict";
 
-    var Async = require("utils/Async");
-
-    // jQuery exports object for events
-    var $exports = $(exports);
+    var Async           = require("utils/Async"),
+        EventDispatcher = require("utils/EventDispatcher");
 
     /**
      * Map message IDs to the callback function and original JSON message
@@ -183,7 +181,7 @@ define(function Inspector(require, exports, module) {
     /** WebSocket did close */
     function _onDisconnect() {
         _socket = undefined;
-        $exports.triggerHandler("disconnect");
+        exports.trigger("disconnect");
     }
 
     /** WebSocket reported an error */
@@ -192,7 +190,7 @@ define(function Inspector(require, exports, module) {
             _connectDeferred.reject();
             _connectDeferred = null;
         }
-        $exports.triggerHandler("error", [error]);
+        exports.trigger("error", error);
     }
 
     /** WebSocket did open */
@@ -201,7 +199,7 @@ define(function Inspector(require, exports, module) {
             _connectDeferred.resolve();
             _connectDeferred = null;
         }
-        $exports.triggerHandler("connect");
+        exports.trigger("connect");
     }
 
     /** Received message from the WebSocket
@@ -227,14 +225,14 @@ define(function Inspector(require, exports, module) {
                 domain = domainAndMethod[0],
                 method = domainAndMethod[1];
 
-            $(exports[domain]).triggerHandler(method, response.params);
+            EventDispatcher.triggerWithArray(exports[domain], method, response.params);
         }
 
         // Always fire event handlers for all messages/errors
-        $exports.triggerHandler("message", [response]);
+        exports.trigger("message", response);
 
         if (response.error) {
-            $exports.triggerHandler("error", [response.error, msgText]);
+            exports.trigger("error", response.error, msgText);
         }
     }
 
@@ -266,22 +264,6 @@ define(function Inspector(require, exports, module) {
         request.send(null);
 
         return def.promise();
-    }
-
-    /** Register a handler to be called when the given event is triggered
-     * @param {string} event name
-     * @param {function} handler function
-     */
-    function on(name, handler) {
-        $exports.on(name, handler);
-    }
-
-    /** Remove the given or all event handler(s) for the given event or remove all event handlers
-     * @param {string} optional event name
-     * @param {function} optional handler function
-     */
-    function off(name, handler) {
-        $exports.off(name, handler);
     }
 
     /**
@@ -395,17 +377,22 @@ define(function Inspector(require, exports, module) {
         var InspectorText = require("text!LiveDevelopment/Inspector/Inspector.json"),
             InspectorJSON = JSON.parse(InspectorText);
         
-        var i, j, domain, domainDef, command;
+        var i, j, domain, command;
         for (i in InspectorJSON.domains) {
             domain = InspectorJSON.domains[i];
-            exports[domain.domain] = {};
+            var exportedDomain = {};
+            exports[domain.domain] = exportedDomain;
+            EventDispatcher.makeEventDispatcher(exportedDomain);
             for (j in domain.commands) {
                 command = domain.commands[j];
-                exports[domain.domain][command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
+                exportedDomain[command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
             }
         }
     }
-
+    
+    
+    EventDispatcher.makeEventDispatcher(exports);
+    
     // Export public functions
     exports.connect              = connect;
     exports.connected            = connected;
@@ -414,8 +401,6 @@ define(function Inspector(require, exports, module) {
     exports.getDebuggableWindows = getDebuggableWindows;
     exports.getUserAgent         = getUserAgent;
     exports.init                 = init;
-    exports.off                  = off;
-    exports.on                   = on;
     exports.send                 = send;
     exports.setUserAgent         = setUserAgent;
 });

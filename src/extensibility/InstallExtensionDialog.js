@@ -29,10 +29,9 @@ define(function (require, exports, module) {
     "use strict";
     
     var Dialogs                = require("widgets/Dialogs"),
+        File                   = require("filesystem/File"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),
-        Commands               = require("command/Commands"),
-        CommandManager         = require("command/CommandManager"),
         FileSystem             = require("filesystem/FileSystem"),
         KeyEvent               = require("utils/KeyEvent"),
         Package                = require("extensibility/Package"),
@@ -285,7 +284,7 @@ define(function (require, exports, module) {
         } else if (this._state === STATE_ALREADY_INSTALLED) {
             // If we were prompting the user about overwriting a previous installation,
             // and the user cancels, we can delete the downloaded file.
-            if (this._installResult && this._installResult.localPath) {
+            if (this._installResult && this._installResult.localPath && !this._installResult.keepFile) {
                 var filename = this._installResult.localPath;
                 FileSystem.getFileForPath(filename).unlink();
             }
@@ -388,7 +387,7 @@ define(function (require, exports, module) {
         this.$browseExtensionsButton.on("click", function () {
             NativeApp.openURLInDefaultBrowser(brackets.config.extension_listing_url);
         });
-        $(document.body).on("keyup.installDialog", this._handleKeyUp.bind(this));
+        $(window.document.body).on("keyup.installDialog", this._handleKeyUp.bind(this));
         
         this._enterState(STATE_START);
         if (urlToInstall) {
@@ -404,13 +403,34 @@ define(function (require, exports, module) {
     
     
     /** Mediates between this module and the Package extension-installation utils. Mockable for unit-testing. */
-    function InstallerFacade() { }
+    function InstallerFacade(isLocalFile) {
+        this._isLocalFile = isLocalFile;
+    }
+
     InstallerFacade.prototype.install = function (url) {
         if (this.pendingInstall) {
             console.error("Extension installation already pending");
             return new $.Deferred().reject("DOWNLOAD_ID_IN_USE").promise();
         }
-        this.pendingInstall = Package.installFromURL(url);
+
+        if (this._isLocalFile) {
+            var deferred = new $.Deferred();
+
+            this.pendingInstall = {
+                promise: deferred.promise(),
+                cancel: function () {
+                    // Can't cancel local zip installs
+                }
+            };
+
+            Package.installFromPath(url).then(function (installationResult) {
+                // Flag to keep zip files for local file installation
+                installationResult.keepFile = true;
+                deferred.resolve(installationResult);
+            }, deferred.reject);
+        } else {
+            this.pendingInstall = Package.installFromURL(url);
+        }
         
         // Store now since we'll null pendingInstall immediately if the promise was resolved synchronously
         var promise = this.pendingInstall.promise;
@@ -440,14 +460,16 @@ define(function (require, exports, module) {
     /**
      * @private
      * Show the installation dialog and automatically begin installing the given URL.
-     * @param {string=} urlToInstall If specified, immediately starts installing the given file as if the user had
+     * @param {(string|File)=} urlOrFileToInstall If specified, immediately starts installing the given file as if the user had
      *     specified it.
      * @return {$.Promise} A promise object that will be resolved when the selected extension
      *     has finished installing, or rejected if the dialog is cancelled.
      */
-    function installUsingDialog(urlToInstall, _isUpdate) {
-        var dlg = new InstallExtensionDialog(new InstallerFacade(), _isUpdate);
-        return dlg.show(urlToInstall);
+    function installUsingDialog(urlOrFileToInstall, _isUpdate) {
+        var isLocalFile = (urlOrFileToInstall instanceof File),
+            dlg = new InstallExtensionDialog(new InstallerFacade(isLocalFile), _isUpdate);
+
+        return dlg.show(urlOrFileToInstall.fullPath || urlOrFileToInstall);
     }
     
     /**

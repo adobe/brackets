@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define */
 
 /**
  * NetworkAgent tracks all resources loaded by the remote debugger. Use
@@ -71,7 +71,10 @@ define(function NetworkAgent(require, exports, module) {
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
         // res = {frame}
-        _reset();
+        // Clear log when navigating to a new page, but not if an iframe was loaded
+        if (!res.frame.parentId) {
+            _reset();
+        }
         _logURL(res.frame.url);
     }
     
@@ -85,15 +88,15 @@ define(function NetworkAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        $(Inspector.Page).on("frameNavigated.NetworkAgent", _onFrameNavigated);
-        $(Inspector.Network).on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
+        Inspector.Page.on("frameNavigated.NetworkAgent", _onFrameNavigated);
+        Inspector.Network.on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
     }
 
     /** Unload the agent */
     function unload() {
         _reset();
-        $(Inspector.Page).off(".NetworkAgent");
-        $(Inspector.Network).off(".NetworkAgent");
+        Inspector.Page.off(".NetworkAgent");
+        Inspector.Network.off(".NetworkAgent");
     }
 
     // Export public functions

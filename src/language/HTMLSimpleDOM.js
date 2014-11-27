@@ -29,10 +29,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var DocumentManager = require("document/DocumentManager"),
-        Tokenizer       = require("language/HTMLTokenizer").Tokenizer,
-        MurmurHash3     = require("thirdparty/murmurhash3_gc"),
-        PerfUtils       = require("utils/PerfUtils");
+    var Tokenizer   = require("language/HTMLTokenizer").Tokenizer,
+        MurmurHash3 = require("thirdparty/murmurhash3_gc"),
+        PerfUtils   = require("utils/PerfUtils");
     
     var seed = Math.floor(Math.random() * 65535);
     
@@ -281,7 +280,10 @@ define(function (require, exports, module) {
         // Appropriate timer is used, and the other is discarded.
         var timerBuildFull = "HTMLInstr. Build DOM Full";
         var timerBuildPart = "HTMLInstr. Build DOM Partial";
-        PerfUtils.markStart([timerBuildFull, timerBuildPart]);
+        var timers; // timer handles
+        timers = PerfUtils.markStart([timerBuildFull, timerBuildPart]);
+        timerBuildFull = timers[0];
+        timerBuildPart = timers[1];
         
         function closeTag(endIndex, endPos) {
             lastClosedTag = stack[stack.length - 1];

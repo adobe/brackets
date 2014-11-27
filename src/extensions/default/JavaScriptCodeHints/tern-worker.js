@@ -80,7 +80,11 @@ var config = {};
              */
             function _reportError(e, file) {
                 if (e instanceof Infer.TimedOut) {
-                    _log("Timeout during Tern processing of " + file);
+                    // Post a message back to the main thread with timedout info
+                    self.postMessage({
+                        type: MessageIds.TERN_INFERENCE_TIMEDOUT,
+                        file: file
+                    });
                 } else {
                     _log("Error thrown in tern_worker:" + e.message + "\n" + e.stack);
                 }
@@ -123,22 +127,6 @@ var config = {};
                     ternServer.addFile(file);
                 });
                 
-            }
-
-            /**
-             * Create a "full" update object.
-             *
-             * @param {string} path - full path of the file.
-             * @param {string} text - full text of the file.
-             * @return {{type: string, name: string, offsetLines: number, text: string}} -
-             * "full" update.
-
-             */
-            function createFullUpdate(path, text) {
-                return {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
-                        name: path,
-                        offsetLines: 0,
-                        text: text};
             }
 
             /**
@@ -210,8 +198,7 @@ var config = {};
                             self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG, file: fileInfo.name, offset: offset});
                             return;
                         }
-                        var isFunc = false,
-                            response = {type: MessageIds.TERN_JUMPTODEF_MSG,
+                        var response = {type: MessageIds.TERN_JUMPTODEF_MSG,
                                               file: fileInfo.name,
                                               resultFile: data.file,
                                               offset: offset,

@@ -139,6 +139,16 @@ define(function (require, exports, module) {
                 queryInlineAtPos(testCSSInfo, 3, false);
             });
             
+            it("should open docs for a vendor-prefixed CSS property", function () {
+                /* css -webkit- prefixed property */
+                queryInlineAtPos(testCSSInfo, 6, true, "animation");
+            });
+
+            it("should not open docs for an invalid CSS property (looking like a vendor-prefixed one)", function () {
+                /* css property invalidly prefixed */
+                queryInlineAtPos(testCSSInfo, 7, false);
+            });
+
         });
             
         describe("InlineDocsProvider parsing in HTML", function () {
@@ -175,8 +185,8 @@ define(function (require, exports, module) {
                 
                 valuesArr.forEach(function (value) {
                     values.push({
-                        TITLE: value[0] || undefined,
-                        DESCRIPTION: value[1] || undefined
+                        title: value[0] || undefined,
+                        description: value[1] || undefined
                     });
                 });
                 
@@ -193,12 +203,11 @@ define(function (require, exports, module) {
                     ),
                     viewer = new InlineDocsViewer(prop, details),
                     $a,
-                    title,
                     href,
                     $links = viewer.$htmlContent.find("a:not(.close)");
                 
-                // 7 links in description.html, 1 "more info" link in template
-                expect($links.length).toBe(8);
+                // 8 links in description.html, 1 "more info" link in template
+                expect($links.length).toBe(9);
                 
                 $links.each(function (i, anchor) {
                     $a = $(anchor);
