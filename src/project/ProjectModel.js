@@ -357,7 +357,6 @@ define(function (require, exports, module) {
 
     /* Additional Stuff */
     ProjectModel.prototype.getFeature = function getFeature(name) {
-        // return "SWAG";
         return this["_project"+name];
     }
 
