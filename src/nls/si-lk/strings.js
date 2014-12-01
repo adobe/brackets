@@ -216,7 +216,7 @@ define({
      * ProjectManager
      */
     "PROJECT_LOADING"   : "Loading\u2026",
-    "UNTITLED"          : "Untitled",
+    "UNTITLED"          : "නමක් නොමැත",
     "WORKING_FILES"     : "Working Files",
 
     /**
