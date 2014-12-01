@@ -48,7 +48,7 @@ define({
     
 
     // Project error strings
-    "ERROR_LOADING_PROJECT"             : "ව්‍යාපෘතිය ප්‍රවේශනය කිරීමේදී වරදක් පැන නඟී",
+    "ERROR_LOADING_PROJECT"             : "ව්\u200dයාපෘතිය ප්\u200dරවේශනය කිරීමේදී වරදක් පැන නඟී",
     "OPEN_DIALOG_ERROR"                 : "ගොනුවක් විවෘත කිරීමේ සංවාද කොටුව පෙන්වීමේදී වරදක්  පැන නඟී. (වරද {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "An error occurred when trying to load the directory <span class='dialog-filename'>{0}</span>. (error {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "An error occurred when reading the contents of the directory <span class='dialog-filename'>{0}</span>. (error {1})",
@@ -84,8 +84,8 @@ define({
     "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
 
     // Live Preview error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "බ්‍රවුසරය පණගැන්වීමේ දෝශයක්", //Error Launching Browser
-    "ERROR_CANT_FIND_CHROME"            : "ගූගල් ක්‍රොම් වෙබ් බ්‍රවුසරය සොයා ගැනීමට නොමැත. කරුණාකර එය ස්ථාපනය කර ඇති බව තහවුරු කරගන්න.",//The Google Chrome browser could not be found. Please make sure it is installed.
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "බ්\u200dරවුසරය පණගැන්වීමේ දෝශයක්", //Error Launching Browser
+    "ERROR_CANT_FIND_CHROME"            : "ගූගල් ක්\u200dරොම් වෙබ් බ්\u200dරවුසරය සොයා ගැනීමට නොමැත. කරුණාකර එය ස්ථාපනය කර ඇති බව තහවුරු කරගන්න.",//The Google Chrome browser could not be found. Please make sure it is installed.
     "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview Error",
