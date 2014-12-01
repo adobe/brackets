@@ -48,8 +48,8 @@ define({
     
 
     // Project error strings
-    "ERROR_LOADING_PROJECT"             : "Error loading project",
-    "OPEN_DIALOG_ERROR"                 : "An error occurred when showing the open file dialog. (error {0})",
+    "ERROR_LOADING_PROJECT"             : "ව්‍යාපෘතිය ප්‍රවේශනය කිරීමේදී වරදක් පැන නඟී",
+    "OPEN_DIALOG_ERROR"                 : "ගොනුවක් විවෘත කිරීමේ සංවාද කොටුව පෙන්වීමේදී වරදක්  පැන නඟී. (වරද {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "An error occurred when trying to load the directory <span class='dialog-filename'>{0}</span>. (error {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "An error occurred when reading the contents of the directory <span class='dialog-filename'>{0}</span>. (error {1})",
 
@@ -84,7 +84,7 @@ define({
     "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
 
     // Live Preview error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error Launching Browser",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "බ්‍රවුසරය පණගැන්වීමේ දෝශයක්", //Error Launching Browser
     "ERROR_CANT_FIND_CHROME"            : "The Google Chrome browser could not be found. Please make sure it is installed.",
     "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
     
@@ -381,7 +381,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
-    "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
+    "CMD_HOMEPAGE"                        : "{APP_TITLE} නිවස්න පිටුව",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "{APP_TITLE} පිළිබදව", //About {APP_TITLE}
     "CMD_OPEN_PREFERENCES"                : "Open Preferences File",
@@ -419,7 +419,7 @@ define({
     "BUTTON_NEW_RULE"                      : "New Rule",
     
     // Extension Management strings
-    "INSTALL"                              : "Install",
+    "INSTALL"                              : "ස්ථාපනය කරන්න", //Install
     "UPDATE"                               : "යාවත්කලීන කරන්න", //Update
     "REMOVE"                               : "ඉවත් කරන්න", //Remove
     "OVERWRITE"                            : "Overwrite",
@@ -435,7 +435,7 @@ define({
     "INSTALL_FAILED"                       : "Installation failed.",
     "CANCELING_INSTALL"                    : "Canceling\u2026",
     "CANCELING_HUNG"                       : "Canceling the install is taking a long time. An internal error may have occurred.",
-    "INSTALL_CANCELED"                     : "Installation canceled.",
+    "INSTALL_CANCELED"                     : "ස්ථාපනය නවතා දමන ලදී.",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "The downloaded content is not a valid zip file.",
     "INVALID_PACKAGE_JSON"                 : "The package.json file is not valid (error was: {0}).",
