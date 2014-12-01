@@ -256,12 +256,6 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype._projectBaseUrl = "";
 
-    /* Addtional Stuff */
-    ProjectModel.prototype._projectautoSave = false;
-    ProjectModel.prototype._projectautoInt = 0;
-    ProjectModel.prototype._projectautoDir = "";
-    ProjectModel.prototype._projectlineColor = false;
-
     /**
      * @private
      * @type {{selected: ?string, context: ?string, previousContext: ?string, rename: ?Object}}
@@ -352,17 +346,6 @@ define(function (require, exports, module) {
         this._projectBaseUrl = projectBaseUrl;
         return projectBaseUrl;
     };
-
-
-    /* Additional Stuff */
-    ProjectModel.prototype.getFeature = function getFeature(name) {
-        return this["_project"+name];
-    }
-
-    ProjectModel.prototype.setFeature = function setFeature(name, value) {
-        this["_project"+name] = value;
-        return value;
-    }
 
     /**
      * Returns true if absPath lies within the project, false otherwise.
