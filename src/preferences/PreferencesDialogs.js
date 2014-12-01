@@ -86,7 +86,7 @@ define(function (require, exports, module) {
      * @return {Dialog} A Dialog object with an internal promise that will be resolved with the ID
      *      of the clicked button when the dialog is dismissed. Never rejected.
      */
-    function showProjectPreferencesDialog(baseUrl, errorMessage) {
+    function showProjectPreferencesDialog(baseUrl, autoSave, lineColor, autoInt, autoDir, errorMessage) {
         var $baseUrlControl,
             $autoSaveControl,
             $lineColorControl, 
@@ -108,8 +108,10 @@ define(function (require, exports, module) {
             baseUrl      : baseUrl,
             errorMessage : errorMessage,
             Strings      : Strings,
-            autoSave     : true,
-            lineColor    : true
+            autoSave     : autoSave,
+            lineColor    : lineColor,
+            autoInt      : autoInt,
+            autoDir      : autoDir
         };
         
         // Changed the Settings Template to V2
@@ -124,32 +126,34 @@ define(function (require, exports, module) {
                     ProjectManager.setBaseUrl(baseUrlValue); // shouldn't this be result??
                 } else {
                     // Re-invoke dialog with result (error message)
-                    showProjectPreferencesDialog(baseUrlValue, result);
+                    showProjectPreferencesDialog(baseUrlValue, autoSave, lineColor, autoInt, autoDir, result);
                 }
 
                 // additional stuff here
-                var autoSaveValue = $autoSaveControl.val();
-                var lineColorValue = $lineColorControl.val();
+                var autoSaveValue = $autoSaveControl.is(':checked');
+                var lineColorValue = $lineColorControl.is(':checked');
                 var autoIntValue = $autoIntControl.val();
-                var autoDirControl = $autoDirControl.val();
+                var autoDirValue = $autoDirControl.val();
 
                 // Save everything
-                // TODO : validate data !
-                ProjectManager.setBaseUrl(baseUrlValue);
-                ProjectManager.setBaseUrl(baseUrlValue);
-
+                // TODO : validate data
+                ProjectManager.setFeature("autoSave", autoSaveValue);
+                ProjectManager.setFeature("lineColor", lineColorValue);
+                ProjectManager.setFeature("autoInt", autoIntValue);
+                ProjectManager.setFeature("autoDir", autoDirValue);
             }
         });
 
         // Give focus to first control
         $baseUrlControl = dialog.getElement().find(".url");
-
+        
         // Additional Stuff
         $autoSaveControl = dialog.getElement().find("#autoSave");
         $lineColorControl = dialog.getElement().find("#lineColor");
         $autoIntControl = dialog.getElement().find("#autoInt");
         $autoDirControl = dialog.getElement().find("#autoDir");
-
+        
+        // Focus on URL
         $baseUrlControl.focus();
 
         return dialog;

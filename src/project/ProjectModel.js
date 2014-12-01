@@ -127,6 +127,7 @@ define(function (require, exports, module) {
         return _.last(path) !== "/";
     }
 
+
     /**
      * @private
      *
@@ -261,7 +262,7 @@ define(function (require, exports, module) {
     ProjectModel.prototype._projectautoInt = 0;
     ProjectModel.prototype._projectautoDir = "";
     ProjectModel.prototype._projectlineColor = false;
-
+    
     /**
      * @private
      * @type {{selected: ?string, context: ?string, previousContext: ?string, rename: ?Object}}
@@ -356,12 +357,13 @@ define(function (require, exports, module) {
 
     /* Additional Stuff */
     ProjectModel.prototype.getFeature = function getFeature(name) {
+        // return "SWAG";
         return this["_project"+name];
     }
 
     ProjectModel.prototype.setFeature = function setFeature(name, value) {
         this["_project"+name] = value;
-        return value;
+        //return "SWAG";
     }
 
     /**

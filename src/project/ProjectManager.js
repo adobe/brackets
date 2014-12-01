@@ -473,12 +473,13 @@ define(function (require, exports, module) {
      * Additional Project information
      * General purpose
      */
-    function setFeatures(name, value) {
+     
+    function setFeature(name, value) {
 
         var context = _getProjectViewStateContext();
-        projectValue = model.setFeature(name, value);
+        value = model.setFeature(name, value);
 
-        PreferencesManager.setViewState("project."+name, projectValue, context);
+        PreferencesManager.setViewState("project."+name, value, context);
 
     }
 
@@ -1024,7 +1025,15 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function _projectSettings() {
-        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl()).getPromise();
+
+        var baseUrl = getBaseUrl(),
+            autoSave = getFeature("autoSave"),
+            lineColor = getFeature("lineColor"),
+            autoInt = getFeature("autoInt"),
+            autoDir = getFeature("autoDir");
+
+
+        return PreferencesDialogs.showProjectPreferencesDialog(baseUrl, autoSave, lineColor, autoInt, autoDir).getPromise();
     }
 
     /**
