@@ -887,6 +887,15 @@ define(function (require, exports, module) {
                         _setProjectRoot(rootEntry).always(function () {
                             model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
 
+                            // Get additional preferences
+
+                            console.log(PreferencesManager.getViewState("project.autoInt", context))
+
+                            model.setFeature("autoSave", PreferencesManager.getViewState("project.autoSave", context));
+                            model.setFeature("lineColor", PreferencesManager.getViewState("project.lineColor", context));
+                            model.setFeature("autoInt", PreferencesManager.getViewState("project.autoInt", context));
+                            model.setFeature("autoDir", PreferencesManager.getViewState("project.autoDir", context));
+
                             if (projectRootChanged) {
                                 _reloadProjectPreferencesScope();
                                 PreferencesManager._setCurrentEditingFile(rootPath);

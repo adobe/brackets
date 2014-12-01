@@ -363,7 +363,7 @@ define(function (require, exports, module) {
 
     ProjectModel.prototype.setFeature = function setFeature(name, value) {
         this["_project"+name] = value;
-        //return "SWAG";
+        return value;
     }
 
     /**
