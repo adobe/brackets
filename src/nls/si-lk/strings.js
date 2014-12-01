@@ -85,7 +85,7 @@ define({
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "බ්‍රවුසරය පණගැන්වීමේ දෝශයක්", //Error Launching Browser
-    "ERROR_CANT_FIND_CHROME"            : "The Google Chrome browser could not be found. Please make sure it is installed.",
+    "ERROR_CANT_FIND_CHROME"            : "ගූගල් ක්‍රොම් වෙබ් බ්‍රවුසරය සොයා ගැනීමට නොමැත. කරුණාකර එය ස්ථාපනය කර ඇති බව තහවුරු කරගන්න.",//The Google Chrome browser could not be found. Please make sure it is installed.
     "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview Error",
