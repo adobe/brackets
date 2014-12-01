@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var InMemoryFile        = require("document/InMemoryFile"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         FileUtils           = require("file/FileUtils"),
         _                   = require("thirdparty/lodash"),
         FileSystem          = require("filesystem/FileSystem"),
@@ -207,6 +208,12 @@ define(function (require, exports, module) {
      *
      * The ProjectModel provides methods for accessing information about the current open project.
      * It also manages the view model to display a FileTreeView of the project.
+     * 
+     * Events:
+     * - EVENT_CHANGE (`change`) - Fired when there's a change that should refresh the UI
+     * - EVENT_SHOULD_SELECT (`select`) - Fired when a selection has been made in the file tree and the file tree should be selected
+     * - EVENT_SHOULD_FOCUS (`focus`)
+     * - ERROR_CREATION (`creationError`) - Triggered when there's a problem creating a file
      */
     function ProjectModel(initial) {
         initial = initial || {};
@@ -219,10 +226,11 @@ define(function (require, exports, module) {
         }
         this._viewModel = new FileTreeViewModel.FileTreeViewModel();
         this._viewModel.on(FileTreeViewModel.EVENT_CHANGE, function () {
-            $(this).trigger(EVENT_CHANGE);
+            this.trigger(EVENT_CHANGE);
         }.bind(this));
         this._selections = {};
     }
+    EventDispatcher.makeEventDispatcher(ProjectModel.prototype);
 
     /**
      * @type {Directory}
@@ -454,13 +462,13 @@ define(function (require, exports, module) {
             try {
                 filteredFilesDeferred.resolve(result);
             } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
+                console.error("Unhandled exception in getAllFiles handler: " + e, e.stack);
             }
         }).fail(function (err) {
             try {
                 filteredFilesDeferred.reject(err);
             } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
+                console.error("Unhandled exception in getAllFiles handler: " + e, e.stack);
             }
         });
 
@@ -474,26 +482,6 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype._resetCache = function _resetCache() {
         this._allFilesCachePromise = null;
-    };
-
-    /**
-     * Adds an event listener for this ProjectModel. See jQuery's documentation for .on.
-     *
-     * Available events:
-     *
-     * * EVENT_CHANGE (`change`) - Fired when there's a change that should refresh the UI
-     * * EVENT_SHOULD_SELECT (`select`) - Specifies that a selection has been made in the file tree and that the file tree should be selected
-     * * ERROR_CREATION (`creationError`) - Triggered when there is a problem creating a file.
-     */
-    ProjectModel.prototype.on = function (event, handler) {
-        $(this).on(event, handler);
-    };
-
-    /**
-     * Removes an event listener for this ProjectModel. See jQuery's documentation for .off.
-     */
-    ProjectModel.prototype.off = function (event, handler) {
-        $(this).off(event, handler);
     };
 
     /**
@@ -668,14 +656,14 @@ define(function (require, exports, module) {
 
         if (path) {
             if (!doNotOpen) {
-                $(this).trigger(EVENT_SHOULD_SELECT, {
+                this.trigger(EVENT_SHOULD_SELECT, {
                     path: path,
                     previousPath: previousSelection,
                     hadFocus: this._focused
                 });
             }
             
-            $(this).trigger(EVENT_SHOULD_FOCUS);
+            this.trigger(EVENT_SHOULD_FOCUS);
         }
     };
     
@@ -704,7 +692,7 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype.selectInWorkingSet = function (path) {
         this.performRename();
-        $(this).trigger(EVENT_SHOULD_SELECT, {
+        this.trigger(EVENT_SHOULD_SELECT, {
             path: path,
             add: true
         });
@@ -973,7 +961,7 @@ define(function (require, exports, module) {
                 self.selectInWorkingSet(entry.fullPath);
             }
         }).fail(function (error) {
-            $(self).trigger(ERROR_CREATION, {
+            self.trigger(ERROR_CREATION, {
                 type: error,
                 name: name,
                 isFolder: isFolder
@@ -1142,7 +1130,7 @@ define(function (require, exports, module) {
             if (!added && !removed) {
                 entry.getContents(function (err, contents) {
                     if (err) {
-                        console.error("Unexpected error refreshing file tree for directory", entry.fullPath, err);
+                        console.error("Unexpected error refreshing file tree for directory " + entry.fullPath + ": " + err, err.stack);
                         return;
                     }
                     self._viewModel.setDirectoryContents(self.makeProjectRelativeIfPossible(entry.fullPath), contents);

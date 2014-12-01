@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileUtils           = require("file/FileUtils"),
@@ -422,7 +423,7 @@ define(function (require, exports, module) {
                 });
     
                 if (command) {
-                    $(command).triggerHandler("keyBindingRemoved", [{key: normalizedKey, displayKey: binding.displayKey}]);
+                    command.trigger("keyBindingRemoved", {key: normalizedKey, displayKey: binding.displayKey});
                 }
             }
         }
@@ -588,7 +589,7 @@ define(function (require, exports, module) {
         command = CommandManager.get(commandID);
         
         if (command) {
-            $(command).triggerHandler("keyBindingAdded", [result]);
+            command.trigger("keyBindingAdded", result);
         }
         
         return result;
@@ -1195,12 +1196,13 @@ define(function (require, exports, module) {
         });
     }
     
-    $(CommandManager).on("commandRegistered", _handleCommandRegistered);
+    // Due to circular dependencies, not safe to call on() directly
+    EventDispatcher.on_duringInit(CommandManager, "commandRegistered", _handleCommandRegistered);
     CommandManager.register(Strings.CMD_OPEN_KEYMAP, Commands.FILE_OPEN_KEYMAP, _openUserKeyMap);
 
     // Asynchronously loading DocumentManager to avoid the circular dependency
     require(["document/DocumentManager"], function (DocumentManager) {
-        $(DocumentManager).on("documentSaved", function checkKeyMapUpdates(e, doc) {
+        DocumentManager.on("documentSaved", function checkKeyMapUpdates(e, doc) {
             if (doc && doc.file.fullPath === _userKeyMapFilePath) {
                 _loadUserKeyMap();
             }
