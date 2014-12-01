@@ -453,14 +453,6 @@ define({
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
     "EMPTY_VIEW_HEADER"                    : "<em>Open a file while this pane has focus</em>",
 
-    // Additional PROJECT STUFF
-    "PROJECT_SETTING_AUTO_SAVE"            : "Enable AutoSave feature",
-    "PROJECT_SETTING_AUTO_INT"             : "AutoSave Interval",
-    "PROJECT_SETTING_AUTO_INT_HINT"        : "Enter the interval in seconds",
-    "PROJECT_SETTING_AUTO_DIR"             : "AutoSave Directory",
-    "PROJECT_SETTING_AUTO_DIR_HINT"        : "Enter the location for auto saves",
-    "PROJECT_SETTING_LINE_COLOR"           : "Enable LineColoring",
-
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Current Theme",
     "USE_THEME_SCROLLBARS"                 : "Use Theme Scrollbars",

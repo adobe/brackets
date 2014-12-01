@@ -470,24 +470,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Additional Project information
-     * General purpose
-     */
-    function setFeatures(name, value) {
-
-        var context = _getProjectViewStateContext();
-        projectValue = model.setFeature(name, value);
-
-        PreferencesManager.setViewState("project."+name, projectValue, context);
-
-    }
-
-    function getFeature(name) {
-        return model.getFeature(name);
-    }
-
-
-    /**
      * Returns true if absPath lies within the project, false otherwise.
      * Does not support paths containing ".."
      * @param {string|FileSystemEntry} absPathOrEntry
@@ -1409,10 +1391,6 @@ define(function (require, exports, module) {
     exports.getProjectRoot                = getProjectRoot;
     exports.getBaseUrl                    = getBaseUrl;
     exports.setBaseUrl                    = setBaseUrl;
-
-    exports.setFeature                    = setFeature;
-    exports.getFeature                    = getFeature;
-
     exports.isWithinProject               = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow                    = ProjectModel.shouldShow;
