@@ -462,13 +462,13 @@ define(function (require, exports, module) {
             try {
                 filteredFilesDeferred.resolve(result);
             } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
+                console.error("Unhandled exception in getAllFiles handler: " + e, e.stack);
             }
         }).fail(function (err) {
             try {
                 filteredFilesDeferred.reject(err);
             } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
+                console.error("Unhandled exception in getAllFiles handler: " + e, e.stack);
             }
         });
 
@@ -1130,7 +1130,7 @@ define(function (require, exports, module) {
             if (!added && !removed) {
                 entry.getContents(function (err, contents) {
                     if (err) {
-                        console.error("Unexpected error refreshing file tree for directory", entry.fullPath, err);
+                        console.error("Unexpected error refreshing file tree for directory " + entry.fullPath + ": " + err, err.stack);
                         return;
                     }
                     self._viewModel.setDirectoryContents(self.makeProjectRelativeIfPossible(entry.fullPath), contents);
