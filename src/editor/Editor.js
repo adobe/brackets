@@ -603,7 +603,7 @@ define(function (require, exports, module) {
                 }
                 
                 var cursor = sel.start,
-                    jump   = cursor.ch % indentUnit,
+                    jump   = (indentUnit === 0) ? 1 : cursor.ch % indentUnit,
                     line   = instance.getLine(cursor.line);
 
                 // Don't do any soft tab handling if there are non-whitespace characters before the cursor in
@@ -611,8 +611,10 @@ define(function (require, exports, module) {
                 if (line.substr(0, cursor.ch).search(/\S/) !== -1) {
                     jump = null;
                 } else if (direction === 1) { // right
-                    jump = indentUnit - jump;
-
+                    if (indentUnit) {
+                        jump = indentUnit - jump;
+                    }
+                    
                     // Don't jump if it would take us past the end of the line, or if there are
                     // non-whitespace characters within the jump distance.
                     if (cursor.ch + jump > line.length || line.substr(cursor.ch, jump).search(/\S/) !== -1) {
