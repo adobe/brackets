@@ -1062,7 +1062,8 @@ define(function (require, exports, module) {
          * @param {Object=} context Optional context object to change the preference lookup
          */
         get: function (id, context) {
-            return this.base.get(this.prefix + id, context);
+            context = context || {};
+            return this.base.get(this.prefix + id, this.base._getContext(context));
         },
         
         /**

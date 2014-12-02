@@ -422,9 +422,13 @@ define(function (require, exports, module) {
         var ctx = {};
         if (filename) {
             ctx.path = filename;
+        } else {
+            ctx.path = currentFilename;
         }
         if (languageId) {
             ctx.language = languageId;
+        } else {
+            ctx.language = currentLanguageId;
         }
         ctx.scopeOrder = _includeProjectScope(ctx.path) ?
                         scopeOrderWithProject :
