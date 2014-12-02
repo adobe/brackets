@@ -1401,7 +1401,7 @@ define(function (require, exports, module) {
                     oneFileResult.resolve();
                 })
                 .fail(function (error) {
-                    console.warn("Unable to read " + fullPath + " during CSS rule search: " + error);
+                    console.warn("Unable to read " + fullPath + " during CSS rule search:", error);
                     oneFileResult.resolve();  // still resolve, so the overall result doesn't reject
                 });
         

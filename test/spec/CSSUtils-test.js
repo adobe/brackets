@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsForDone, runs, beforeFirst, afterLast, spyOn */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsForDone, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -1866,7 +1866,7 @@ define(function (require, exports, module) {
         }); // describe("Nested rules following an @include block")
         
         
-        describe("CSS Intgration Tests", function () {
+        describe("CSS Integration Tests", function () {
             this.category = "integration";
             
             var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
@@ -1919,7 +1919,6 @@ define(function (require, exports, module) {
                 });
                 
                 it("should continue search despite unreadable files (issue #10013)", function () {
-                    var rules;
                     runs(function () {
                         // Add a nonexistent CSS file to the ProjectManager.getAllFiles() result, which will force a file IO error
                         // when we try to read the file later. Similar errors may arise in real-world for non-UTF files, etc.
