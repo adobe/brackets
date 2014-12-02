@@ -584,7 +584,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if (data[this.projectPath] && data[this.projectPath][id]) {
+            if (data[this.projectPath] && (data[this.projectPath][id] !== undefined)) {
                 return data[this.projectPath][id];
             }
             return;
@@ -603,7 +603,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if (data[this.projectPath] && data[this.projectPath][id]) {
+            if (data[this.projectPath] && (data[this.projectPath][id] !== undefined)) {
                 return this.projectPath;
             }
 
@@ -699,7 +699,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if (data[context.language] && data[context.language][id]) {
+            if (data[context.language] && (data[context.language][id] !== undefined)) {
                 return data[context.language][id];
             }
             return;
@@ -719,7 +719,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if (data[context.language] && data[context.language][id]) {
+            if (data[context.language] && (data[context.language][id] !== undefined)) {
                 return context.language;
             }
 
