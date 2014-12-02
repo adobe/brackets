@@ -236,7 +236,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Handles message Document.Related from the browser.
+     * Handles message DocumentRelated from the browser.
      * @param {$.Event} event
      * @param {Object} msg
      */
