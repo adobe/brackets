@@ -34,6 +34,52 @@
 
     
     /**
+     * Retrieves related documents (external CSS and JS files)
+     * 
+     * @return {{scripts: object, stylesheets: object}} Related scripts and stylesheets
+     */
+    function related() {
+
+        var rel = {
+            scripts: {},
+            stylesheets: {}
+        };
+        var i;
+        // iterate on document scripts (HTMLCollection doesn't provide forEach iterator).
+        for (i = 0; i < _document.scripts.length; i++) {
+            // add only external scripts
+            if (_document.scripts[i].src) {
+                rel.scripts[_document.scripts[i].src] = true;
+            }
+        }
+          
+        var s, j;
+        //traverse @import rules
+        var traverseRules = function _traverseRules(sheet, base) {
+            var i;
+            if (sheet.href && sheet.cssRules) {
+                if (rel.stylesheets[sheet.href] === undefined) {
+                    rel.stylesheets[sheet.href] = [];
+                }
+                rel.stylesheets[sheet.href].push(base);
+                
+                
+                for (i = 0; i < sheet.cssRules.length; i++) {
+                    if (sheet.cssRules[i].href) {
+                        traverseRules(sheet.cssRules[i].styleSheet, base);
+                    }
+                }
+            }
+        };
+        //iterate on document.stylesheets (StyleSheetList doesn't provide forEach iterator).
+        for (j = 0; j < document.styleSheets.length; j++) {
+            s = document.styleSheets[j];
+            traverseRules(s, s.href);
+        }
+        return rel;
+    }
+    
+    /**
      * Common functions.
      */
     var Utils = {
@@ -236,51 +282,6 @@
         }
     }
     
-    /**
-     * Retrieves related documents (external CSS and JS files)
-     * 
-     * @return {{scripts: object, stylesheets: object}} Related scripts and stylesheets
-     */
-    function related() {
-
-        var rel = {
-            scripts: {},
-            stylesheets: {}
-        };
-        var i;
-        // iterate on document scripts (HTMLCollection doesn't provide forEach iterator).
-        for (i = 0; i < _document.scripts.length; i++) {
-            // add only external scripts
-            if (_document.scripts[i].src) {
-                rel.scripts[_document.scripts[i].src] = true;
-            }
-        }
-          
-        var s, j;
-        //traverse @import rules
-        var traverseRules = function _traverseRules(sheet, base) {
-            var i;
-            if (sheet.href && sheet.cssRules) {
-                if (rel.stylesheets[sheet.href] === undefined) {
-                    rel.stylesheets[sheet.href] = [];
-                }
-                rel.stylesheets[sheet.href].push(base);
-                
-                
-                for (i = 0; i < sheet.cssRules.length; i++) {
-                    if (sheet.cssRules[i].href) {
-                        traverseRules(sheet.cssRules[i].styleSheet, base);
-                    }
-                }
-            }
-        };
-        //iterate on document.stylesheets (StyleSheetList doesn't provide forEach iterator).
-        for (j = 0; j < document.styleSheets.length; j++) {
-            s = document.styleSheets[j];
-            traverseRules(s, s.href);
-        }
-        return rel;
-    }
     
     /**
      * Start listening for events and send initial related documents message.
