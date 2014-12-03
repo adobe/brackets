@@ -222,6 +222,12 @@ define(function (require, exports, module) {
                 this.props.actions.setContext(this.myPath());
                 return false;
             }
+            // Return true only for mouse down in rename mode.
+            if (this.props.entry.get("rename")) {
+                e.stopPropagation();
+                return true;
+            }
+            return false;
         }
     };
 

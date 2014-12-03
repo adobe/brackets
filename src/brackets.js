@@ -421,7 +421,7 @@ define(function (require, exports, module) {
             // Text fields should always be focusable.
             var $target = $(e.target),
                 isFormElement =
-                    $target.is("input") || 
+                    $target.is("input") ||
                     $target.is("textarea") ||
                     $target.is("select");
 
