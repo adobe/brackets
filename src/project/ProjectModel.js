@@ -373,6 +373,30 @@ define(function (require, exports, module) {
         }
         return absPath;
     };
+    
+    /**
+     * Returns a valid directory within the project, either the path (or Directory object)
+     * provided or the project root.
+     * 
+     * @param {string|Directory} path Directory path to verify against the project
+     * @return {string} A directory path within the project.
+     */
+    ProjectModel.prototype.getDirectoryInProject = function (path) {
+        if (path && typeof path === "string") {
+            if (_.last(path) !== "/") {
+                path += "/";
+            }
+        } else if (path && path.isDirectory) {
+            path = path.fullPath;
+        } else {
+            path = null;
+        }
+        
+        if (!path || (typeof path !== "string") || !this.isWithinProject(path)) {
+            path = this.projectRoot.fullPath;
+        }
+        return path;
+    };
 
     /**
      * @private
