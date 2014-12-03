@@ -102,7 +102,7 @@ define(function (require, exports, module) {
      * Constants
      * @type {number}
      */
-    var MIN_SPACE_UNITS         =  0,
+    var MIN_SPACE_UNITS         =  1,
         MIN_TAB_SIZE            =  1,
         DEFAULT_SPACE_UNITS     =  4,
         DEFAULT_TAB_SIZE        =  4,
