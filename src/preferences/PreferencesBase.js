@@ -503,22 +503,22 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Determines if there are likely to be any changes based on a change
-         * to the default filename used in lookups.
+         * Determines if there are likely to be any changes based on the change
+         * of context.
          * 
-         * @param {string} filename New filename
-         * @param {string} oldFilename Old filename
+         * @param {{path: string, language: string}} oldContext Old context
+         * @param {{path: string, language: string}} newContext New context
          * @return {Array.<string>} List of changed IDs
          */
-        defaultFilenameChanged: function (filename, oldFilename) {
+        contextChanged: function (oldContext, newContext) {
             var changes = [],
                 data    = this.data;
             
             _.each(this._layers, function (layer) {
-                if (layer.defaultFilenameChanged && data[layer.key]) {
-                    var changesInLayer = layer.defaultFilenameChanged(data[layer.key],
-                                                                      filename,
-                                                                      oldFilename);
+                if (data[layer.key] && oldContext[layer.key] !== newContext[layer.key]) {
+                    var changesInLayer = layer.contextChanged(data[layer.key],
+                                                              oldContext,
+                                                              newContext);
                     if (changesInLayer) {
                         changes.push(changesInLayer);
                     }
@@ -584,7 +584,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if (data[this.projectPath] && data[this.projectPath][id]) {
+            if (data[this.projectPath] && (data[this.projectPath][id] !== undefined)) {
                 return data[this.projectPath][id];
             }
             return;
@@ -603,7 +603,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if (data[this.projectPath] && data[this.projectPath][id]) {
+            if (data[this.projectPath] && (data[this.projectPath][id] !== undefined)) {
                 return this.projectPath;
             }
 
@@ -673,6 +673,150 @@ define(function (require, exports, module) {
     
     
     /**
+     * @constructor
+     * 
+     * Create a language layer object. Language Layer is completely stateless, it
+     * only knows how look up and process prefs set in the language layer. Desired
+     * language id should be specified in the "language" field of the context. 
+     */
+    function LanguageLayer() {
+    }
+   
+    LanguageLayer.prototype = {
+        key: "language",
+        
+        /**
+         * Retrieve the current value based on the specified context. If the context
+         * does contain language field, undefined is returned.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {{language: string}} context Context to operate with
+         * @return {*|undefined} property value
+         */
+        get: function (data, id, context) {
+            if (!data || !context.language) {
+                return;
+            }
+
+            if (data[context.language] && (data[context.language][id] !== undefined)) {
+                return data[context.language][id];
+            }
+            return;
+        },
+        
+        /**
+         * Gets the location in which the given pref was set, if it was set within
+         * this language layer for the current language.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {{language: string}} context Context to operate with
+         * @return {string|undefined} the Layer ID, in this case the current language
+         */
+        getPreferenceLocation: function (data, id, context) {
+            if (!data || !context.language) {
+                return;
+            }
+
+            if (data[context.language] && (data[context.language][id] !== undefined)) {
+                return context.language;
+            }
+
+            return;
+        },
+        /**
+         * Retrieves the keys provided by this layer object. If the context is
+         * empty, it will return all the keys provided in all the layerIDs
+         * (languages).
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {{language: string}} context Context to operate with
+         * @return {Array<{string}>|undefined} An array of pref ids
+         */
+        getKeys: function (data, context) {
+            if (!data) {
+                return;
+            }
+            
+            // do not upset other layers if context for the this one is not specified
+            if (!_.isEmpty(context)) {
+                if (data[context.language]) {
+                    return _.keys(data[context.language]);
+                } else {
+                    return [];
+                }
+            } else {
+                return _.union.apply(null, _.map(_.values(data), _.keys));
+            }
+        },
+
+        /**
+         * Sets the preference value in the given data structure for the layerID
+         * provided. If no layerID is provided, then it will be determined using
+         * getPreferenceLocation. If a layerID is located, but it does not
+         * exist, it will be created.
+         * 
+         * This function returns whether or not a value was set.
+         * 
+         * @param {Object} data The preference data from the Scope
+         * @param {string} id Preference ID to look up
+         * @param {Object} value New value to assign to the preference
+         * @param {{language: string}} context Context to operate with
+         * @param {string=} layerID Language to be used for setting value
+         * @return {boolean} True if the value was set
+         */
+        set: function (data, id, value, context, layerID) {
+            if (!layerID) {
+                layerID = this.getPreferenceLocation(data, id, context);
+            }
+
+            if (!layerID) {
+                return false;
+            }
+
+            var section = data[layerID];
+            if (!section) {
+                data[layerID] = section = {};
+            }
+            if (!_.isEqual(section[id], value)) {
+                if (value === undefined) {
+                    delete section[id];
+                    if (_.isEmpty(section)) {
+                        delete data[layerID];
+                    }
+                } else {
+                    section[id] = _.cloneDeep(value);
+                }
+                return true;
+            }
+            return false;
+        },
+        
+        /**
+         * Determines if there are preference IDs that could change as a result
+         * of the context change. This implementation considers only changes in
+         * language.
+         * 
+         * @param {Object} data Data in the Scope
+         * @param {{language: string}} oldContext Old context
+         * @param {{language: string}} newContext New context
+         * @return {Array.<string>|undefined} list of preference IDs that could have changed
+         */
+        contextChanged: function (data, oldContext, newContext) {
+            // this function is called only if the language has changed
+            if (newContext.language === undefined) {
+                return _.keys(data[oldContext.language]);
+            }
+            if (oldContext.language === undefined) {
+                return _.keys(data[newContext.language]);
+            }
+            
+            return _.union(_.keys(data[newContext.language]), _.keys(data[oldContext.language]));
+        }
+    };
+    
+    /**
      * Provides layered preferences based on file globs, generally following the model provided
      * by [EditorConfig](http://editorconfig.org/). In usage, it looks something like this
      * (switching to single line comments because the glob interferes with the multiline comment):
@@ -731,7 +875,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context.filename);
+            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context[this.key]);
             if (!relativeFilename) {
                 return;
             }
@@ -790,7 +934,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context.filename);
+            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context[this.key]);
             
             if (relativeFilename) {
                 var glob = _findMatchingGlob(data, relativeFilename);
@@ -818,20 +962,20 @@ define(function (require, exports, module) {
         
         /**
          * Determines if there are preference IDs that could change as a result of
-         * a change to the default filename.
+         * a change in the context. This implementation considers only the path portion
+         * of the context and looks up matching globes if any.
          * 
          * @param {Object} data Data in the Scope
-         * @param {string} filename New filename
-         * @param {string} oldFilename Old filename
+         * @param {{path: string}} oldContext Old context
+         * @param {{path: string}} newContext New context
          * @return {Array.<string>} list of preference IDs that could have changed
          */
-        defaultFilenameChanged: function (data, filename, oldFilename) {
+        contextChanged: function (data, oldContext, newContext) {
             var newGlob = _findMatchingGlob(data,
-                              FileUtils.getRelativeFilename(this.prefFilePath, filename)),
+                              FileUtils.getRelativeFilename(this.prefFilePath, newContext[this.key])),
                 oldGlob = _findMatchingGlob(data,
-                              FileUtils.getRelativeFilename(this.prefFilePath, oldFilename));
-            
-            
+                              FileUtils.getRelativeFilename(this.prefFilePath, oldContext[this.key]));
+                        
             if (newGlob === oldGlob) {
                 return;
             }
@@ -918,7 +1062,8 @@ define(function (require, exports, module) {
          * @param {Object=} context Optional context object to change the preference lookup
          */
         get: function (id, context) {
-            return this.base.get(this.prefix + id, context);
+            context = context || {};
+            return this.base.get(this.prefix + id, this.base._getContext(context));
         },
         
         /**
@@ -1051,14 +1196,14 @@ define(function (require, exports, module) {
      * It also provides the ability to register preferences, which gives a fine-grained
      * means for listening for changes and will ultimately allow for automatic UI generation.
      * 
-     * The contextNormalizer is used to customize get/set contexts based on the needs of individual
+     * The contextBuilder is used to construct get/set contexts based on the needs of individual
      * context systems. It can be passed in at construction time or set later.
      * 
      * @constructor
      * @param {function=} contextNormalizer function that is passed the context used for get or set to adjust for specific PreferencesSystem behavior
      */
-    function PreferencesSystem(contextNormalizer) {
-        this.contextNormalizer = contextNormalizer;
+    function PreferencesSystem(contextBuilder) {
+        this.contextBuilder = contextBuilder;
         
         this._knownPrefs = {};
         this._scopes = {
@@ -1067,7 +1212,7 @@ define(function (require, exports, module) {
         
         this._scopes["default"].load();
         
-        this._defaultContext = {
+        this._defaults = {
             scopeOrder: ["default"],
             _shadowScopeOrder: [{
                 id: "default",
@@ -1162,7 +1307,7 @@ define(function (require, exports, module) {
          * @param {string} before Id of the scope to add it before
          */
         _pushToScopeOrder: function (id, before) {
-            var defaultScopeOrder = this._defaultContext.scopeOrder,
+            var defaultScopeOrder = this._defaults.scopeOrder,
                 index = _.findIndex(defaultScopeOrder, function (id) {
                     return id === before;
                 });
@@ -1185,7 +1330,7 @@ define(function (require, exports, module) {
          * @param {Object} shadowEntry Shadow entry of the resolved scope
          */
         _tryAddToScopeOrder: function (shadowEntry) {
-            var shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+            var shadowScopeOrder = this._defaults._shadowScopeOrder,
                 index = _.findIndex(shadowScopeOrder, function (entry) {
                     return entry === shadowEntry;
                 }),
@@ -1244,7 +1389,7 @@ define(function (require, exports, module) {
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
         _addToScopeOrder: function (id, scope, promise, addBefore) {
-            var shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+            var shadowScopeOrder = this._defaults._shadowScopeOrder,
                 shadowEntry,
                 index,
                 isPending = false,
@@ -1315,7 +1460,7 @@ define(function (require, exports, module) {
          *
          */
         addToScopeOrder: function (id, addBefore) {
-            var shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+            var shadowScopeOrder = this._defaults._shadowScopeOrder,
                 index = _.findIndex(shadowScopeOrder, function (entry) {
                     return entry.id === id;
                 }),
@@ -1334,7 +1479,7 @@ define(function (require, exports, module) {
         removeFromScopeOrder: function (id) {
             var scope = this._scopes[id];
             if (scope) {
-                _.pull(this._defaultContext.scopeOrder, id);
+                _.pull(this._defaults.scopeOrder, id);
                 scope.off(".prefsys");
                 this.trigger(SCOPEORDER_CHANGE, {
                     id: id,
@@ -1359,12 +1504,15 @@ define(function (require, exports, module) {
          */
         _getContext: function (context) {
             if (context) {
-                if (this.contextNormalizer) {
-                    context = this.contextNormalizer(context);
+                if (this.contextBuilder) {
+                    context = this.contextBuilder(context);
+                }
+                if (!context.scopeOrder) {
+                    context.scopeOrder = this._defaults.scopeOrder;
                 }
                 return context;
             }
-            return this._defaultContext;
+            return { scopeOrder: this._defaults.scopeOrder };
         },
         
         /**
@@ -1421,10 +1569,10 @@ define(function (require, exports, module) {
             }
 
             this.removeFromScopeOrder(id);
-            shadowIndex = _.findIndex(this._defaultContext._shadowScopeOrder, function (entry) {
+            shadowIndex = _.findIndex(this._defaults._shadowScopeOrder, function (entry) {
                 return entry.id === id;
             });
-            this._defaultContext._shadowScopeOrder.splice(shadowIndex, 1);
+            this._defaults._shadowScopeOrder.splice(shadowIndex, 1);
             delete this._scopes[id];
         },
         
@@ -1435,11 +1583,11 @@ define(function (require, exports, module) {
          * If the context contains a scopeOrder, that will be used. If not,
          * the default scopeOrder is used.
          * 
-         * @param {{scopeOrder: ?Array.<string>, filename: ?string} context 
+         * @param {{scopeOrder: ?Array.<string>} context 
          * @return {Array.<string>} list of scopes in the correct order for traversal
          */
         _getScopeOrder: function (context) {
-            return context.scopeOrder || this._defaultContext.scopeOrder;
+            return context.scopeOrder || this._defaults.scopeOrder;
         },
         
         /**
@@ -1606,27 +1754,22 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Sets the default filename used for computing preferences when there are PathLayers.
-         * This should be the filename of the file being edited.
-         * 
-         * @param {string} filename New filename used to resolve preferences
+         * Signals the context change to all the scopes within the preferences
+         * layer.  PreferencesManager is in charge of computing the context and
+         * signaling the changes to PreferencesSystem.
+         *
+         * @param {{path: string, language: string}} oldContext Old context
+         * @param {{path: string, language: string}} newContext New context
          */
-        setDefaultFilename: function (filename) {
-            var oldFilename = this._defaultContext.filename;
-            if (oldFilename === filename) {
-                return;
-            }
-            
+        signalContextChanged: function (oldContext, newContext) {
             var changes = [];
             
             _.each(this._scopes, function (scope) {
-                var changedInScope = scope.defaultFilenameChanged(filename, oldFilename);
+                var changedInScope = scope.contextChanged(oldContext, newContext);
                 if (changedInScope) {
                     changes.push(changedInScope);
                 }
             });
-            
-            this._defaultContext.filename = filename;
             
             changes = _.union.apply(null, changes);
             if (changes.length > 0) {
@@ -1634,21 +1777,6 @@ define(function (require, exports, module) {
                     ids: changes
                 });
             }
-        },
-        
-        /**
-         * Augments the context object passed in with information from the default context.
-         * For example, if you want to create a context for a specific file while maintaining
-         * the default scopeOrder, you can pass in an object with just the filename and the
-         * scopeOrder will be added.
-         * 
-         * *This method changes the object passed in.*
-         * 
-         * @param {Object} context context object to augment
-         * @return {Object} the same context object that was passed in.
-         */
-        buildContext: function (context) {
-            return _.defaults(context, this._defaultContext);
         },
         
         /**
@@ -1793,10 +1921,11 @@ define(function (require, exports, module) {
     
     
     // Public interface
-    exports.PreferencesSystem  = PreferencesSystem;
-    exports.Scope              = Scope;
-    exports.MemoryStorage      = MemoryStorage;
-    exports.PathLayer          = PathLayer;
-    exports.ProjectLayer       = ProjectLayer;
-    exports.FileStorage        = FileStorage;
+    exports.PreferencesSystem   = PreferencesSystem;
+    exports.Scope               = Scope;
+    exports.MemoryStorage       = MemoryStorage;
+    exports.PathLayer           = PathLayer;
+    exports.ProjectLayer        = ProjectLayer;
+    exports.LanguageLayer       = LanguageLayer;
+    exports.FileStorage         = FileStorage;
 });
