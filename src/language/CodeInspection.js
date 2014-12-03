@@ -162,7 +162,7 @@ define(function (require, exports, module) {
      */
     function getProvidersForPath(filePath) {
         var providers = _providers[LanguageManager.getLanguageForPath(filePath).getId()];
-        return providers && providers.slice(0) || [];
+        return (providers && providers.slice(0)) || [];
     }
 
     /**
