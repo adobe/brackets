@@ -161,7 +161,7 @@ define(function (require, exports, module) {
      * @return ?{Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} provider
      */
     function getProvidersForPath(filePath) {
-        return _providers[LanguageManager.getLanguageForPath(filePath).getId()] || [];
+        return _providers[LanguageManager.getLanguageForPath(filePath).getId()].slice(0) || [];
     }
 
     /**
