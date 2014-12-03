@@ -12,7 +12,7 @@
         "javascript": {
             "linting.prefer": "JSLint, JSHint",
             "linting.preferredOnly": true,
-            "linting.firstOnly" false
+            "linting.firstOnly": false
         }
     },
     "path": {
