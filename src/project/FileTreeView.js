@@ -224,6 +224,7 @@ define(function (require, exports, module) {
             }
             // Return true only for mouse down in rename mode.
             if (this.props.entry.get("rename")) {
+                e.stopPropagation();
                 return true;
             }
             return false;
