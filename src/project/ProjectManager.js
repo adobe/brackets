@@ -864,13 +864,13 @@ define(function (require, exports, module) {
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectWarnedForTooManyFiles = false;
-
+                        
                         _setProjectRoot(rootEntry).always(function () {
                             model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
 
                             if (projectRootChanged) {
                                 _reloadProjectPreferencesScope();
-                                PreferencesManager._setCurrentEditingFile(rootPath);
+                                PreferencesManager._setCurrentFile(rootPath);
                             }
 
                             // If this is the most current welcome project, record it. In future launches, we want

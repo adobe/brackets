@@ -145,6 +145,11 @@ define(function (require, exports, module) {
             expect(fn4).not.toHaveBeenCalled();
         });
         
+        it("should detach by .namespace when no listeners present (and still chain)", function () {
+            dispatcher.off(".1").on("foo.1", fn1);
+            dispatcher.trigger("foo");
+            expect(fn1).toHaveBeenCalled();
+        });
         
         it("should no-op detach by event alone when no handlers for any event", function () {
             dispatcher.off("foo");  // shouldn't throw

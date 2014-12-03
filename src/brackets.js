@@ -421,10 +421,7 @@ define(function (require, exports, module) {
             // Text fields should always be focusable.
             var $target = $(e.target),
                 isFormElement =
-                    $target.is("input[type=text]") ||
-                    $target.is("input[type=number]") ||
-                    $target.is("input[type=password]") ||
-                    $target.is("input:not([type])") || // input with no type attribute defaults to text
+                    $target.is("input") || 
                     $target.is("textarea") ||
                     $target.is("select");
 
