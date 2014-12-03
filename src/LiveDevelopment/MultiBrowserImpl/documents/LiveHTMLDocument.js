@@ -149,7 +149,7 @@ define(function (require, exports, module) {
      * Update the highlights in the browser based on the cursor position.
      */
     LiveHTMLDocument.prototype.updateHighlight = function () {
-        if (!this.editor || !this.isHighlightEnabled) {
+        if (!this.editor || !this.isHighlightEnabled()) {
             return;
         }
         var editor = this.editor,

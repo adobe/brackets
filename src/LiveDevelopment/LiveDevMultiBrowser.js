@@ -74,6 +74,7 @@ define(function (require, exports, module) {
     var Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
+        EditorManager        = require("editor/EditorManager"),
         EventDispatcher      = require("utils/EventDispatcher"),
         FileUtils            = require("file/FileUtils"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
@@ -806,6 +807,70 @@ define(function (require, exports, module) {
         _setStatus(STATUS_INACTIVE);
     }
 
+    function getLiveDocForEditor(editor) {
+        if (!editor) {
+            return null;
+        }
+        return getLiveDocForPath(editor.document.file.fullPath);
+    }
+    
+    /**
+     *  Enable highlighting 
+     */
+    function showHighlight() {
+        var doc = getLiveDocForEditor(EditorManager.getActiveEditor());
+        
+        if (doc && doc.updateHighlight) {
+            doc.updateHighlight();
+        }
+    }
+
+    /**
+     * Hide any active highlighting
+     */
+    function hideHighlight() {
+        if (_protocol) {
+            _protocol.evaluate("_LD.hideHighlight()");
+        }
+    }
+    
+    /**
+     * Redraw highlights 
+     */
+    function redrawHighlight() {
+        if (_protocol) {
+            _protocol.evaluate("_LD.redrawHighlights()");
+        }
+    }
+    
+    /**
+     * Originally unload and reload agents. It doesn't apply for this new implementation.
+     * @return {jQuery.Promise} Already resolved promise.
+     */
+    function reconnect() {
+        return $.Deferred().resolve();
+    }
+    
+    /**
+     * Reload current page in all connected browsers.
+     */
+    function reload() {
+        if (_protocol) {
+            _protocol.reload();
+        }
+    }
+    
+    /**
+     * Returns current project server config. Copied from original LiveDevelopment.
+     */
+    function getCurrentProjectServerConfig() {
+        return {
+            baseUrl: ProjectManager.getBaseUrl(),
+            pathResolver: ProjectManager.makeProjectRelativeIfPossible,
+            root: ProjectManager.getProjectRoot().fullPath
+        };
+    }
+    
     /**
      * @private
      * Returns the base URL of the current server serving the active live document, or null if
@@ -831,9 +896,15 @@ define(function (require, exports, module) {
     // Export public functions
     exports.open                = open;
     exports.close               = close;
+    exports.reconnect           = reconnect;
+    exports.reload              = reload;
     exports.getLiveDocForPath   = getLiveDocForPath;
+    exports.showHighlight       = showHighlight;
+    exports.hideHighlight       = hideHighlight;
+    exports.redrawHighlight     = redrawHighlight;
     exports.init                = init;
     exports.isActive            = isActive;
     exports.getServerBaseUrl    = getServerBaseUrl;
+    exports.getCurrentProjectServerConfig = getCurrentProjectServerConfig;
     exports.setTransport        = setTransport;
 });
