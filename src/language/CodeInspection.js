@@ -161,7 +161,7 @@ define(function (require, exports, module) {
      * @return ?{Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} provider
      */
     function getProvidersForPath(filePath) {
-        return _providers[LanguageManager.getLanguageForPath(filePath).getId()];
+        return _providers[LanguageManager.getLanguageForPath(filePath).getId()].slice(0) || [];
     }
 
     /**
@@ -645,9 +645,10 @@ define(function (require, exports, module) {
     exports._PREF_ASYNC_TIMEOUT     = PREF_ASYNC_TIMEOUT;
 
     // Public API
-    exports.register       = register;
-    exports.Type           = Type;
-    exports.toggleEnabled  = toggleEnabled;
-    exports.inspectFile    = inspectFile;
-    exports.requestRun     = run;
+    exports.register            = register;
+    exports.Type                = Type;
+    exports.toggleEnabled       = toggleEnabled;
+    exports.inspectFile         = inspectFile;
+    exports.requestRun          = run;
+    exports.getProvidersForPath = getProvidersForPath;
 });
