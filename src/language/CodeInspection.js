@@ -161,7 +161,6 @@ define(function (require, exports, module) {
      * @return {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>}
      */
     function getProvidersForPath(filePath) {
-        
         var language = LanguageManager.getLanguageForPath(filePath).getId(),
             prefPreferredProviders,
             prefPreferredOnly,
