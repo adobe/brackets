@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         FileSystem       = require("filesystem/FileSystem"),
         StringUtils      = require("utils/StringUtils"),
-        Strings,
+        Strings          = require("strings"),
         _                = require("thirdparty/lodash");
 
     describe("Code Inspection", function () {
@@ -112,7 +112,6 @@ define(function (require, exports, module) {
                     // Load module instances from brackets.test
                     $ = testWindow.$;
                     brackets = testWindow.brackets;
-                    Strings = testWindow.require("strings");
                     CommandManager = brackets.test.CommandManager;
                     DocumentManager = brackets.test.DocumentManager;
                     EditorManager = brackets.test.EditorManager;
@@ -168,6 +167,23 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(codeInspector.scanFile).toHaveBeenCalled();
                 });
+            });
+
+            it("should get the correct linter given a file path", function () {
+                var codeInspector1 = createCodeInspector("text linter 1", successfulLintResult());
+                var codeInspector2 = createCodeInspector("text linter 2", successfulLintResult());
+
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("javascript", codeInspector2);
+
+                var providers = CodeInspection.getProvidersForPath("test.js");
+                expect(providers.length).toBe(2);
+                expect(providers[0]).toBe(codeInspector1);
+                expect(providers[1]).toBe(codeInspector2);
+            });
+
+            it("should return an empty array if no providers are registered", function () {
+                expect(CodeInspection.getProvidersForPath("test.js").length).toBe(0);
             });
 
             it("should run two linters", function () {
@@ -308,45 +324,45 @@ define(function (require, exports, module) {
                     var providers;
                     
                     setAtLocation("prefer", "html3, html4");
-                    providers = CodeInspection._getProvidersForPath("my/index.html");
+                    providers = CodeInspection.getProvidersForPath("my/index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html3", "html4", "html1", "html2", "html5"]);
 
                     setAtLocation("prefer", "html5,       html6");
-                    providers = CodeInspection._getProvidersForPath("index.html");
+                    providers = CodeInspection.getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html5", "html1", "html2", "html3", "html4"]);
 
                     setAtLocation("firstOnly", true);
-                    providers = CodeInspection._getProvidersForPath("index.html");
+                    providers = CodeInspection.getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html5"]);
 
                     setAtLocation("prefer", " html19, html100  ");
                     setAtLocation("firstOnly", true);
-                    providers = CodeInspection._getProvidersForPath("index.html");
+                    providers = CodeInspection.getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html1"]);
                     
                     setAtLocation("preferredOnly", true);
-                    providers = CodeInspection._getProvidersForPath("test.html");
+                    providers = CodeInspection.getProvidersForPath("test.html");
                     expect(providers).toEqual([]);
 
                     setAtLocation("prefer", "html2,    html1");
                     setAtLocation("preferredOnly", true);
                     setAtLocation("firstOnly", false);
-                    providers = CodeInspection._getProvidersForPath("c:/temp/another.html");
+                    providers = CodeInspection.getProvidersForPath("c:/temp/another.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html2", "html1"]);
                     
                     setAtLocation("prefer", undefined);
                     setAtLocation("preferredOnly", undefined);
                     setAtLocation("firstOnly", true);
-                    providers = CodeInspection._getProvidersForPath("test/index.html");
+                    providers = CodeInspection.getProvidersForPath("test/index.html");
                     expect(_.pluck(providers, "name")).toEqual(["html1"]);
                     
                     setAtLocation("firstOnly", undefined);
-                    providers = CodeInspection._getProvidersForPath("index.html");
+                    providers = CodeInspection.getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html1", "html2", "html3", "html4", "html5"]);
                 });
@@ -578,7 +594,7 @@ define(function (require, exports, module) {
                     expect(asyncProvider.filesCalledOn).toEqual([noErrorsJS]);
                     
                     // "Modify" the file
-                    $(DocumentManager).triggerHandler("documentSaved", DocumentManager.getCurrentDocument());
+                    DocumentManager.trigger("documentSaved", DocumentManager.getCurrentDocument());
                     expect(asyncProvider.futures[noErrorsJS].length).toBe(2);
                     
                     // Finish old (stale) linting session - verify results not shown
@@ -607,7 +623,7 @@ define(function (require, exports, module) {
                     expect(asyncProvider.filesCalledOn).toEqual([noErrorsJS]);
                     
                     // "Modify" the file
-                    $(DocumentManager).triggerHandler("documentSaved", DocumentManager.getCurrentDocument());
+                    DocumentManager.trigger("documentSaved", DocumentManager.getCurrentDocument());
                     expect(asyncProvider.futures[noErrorsJS].length).toBe(2);
                     
                     // Finish new (current) linting session - verify results are shown

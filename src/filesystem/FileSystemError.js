@@ -51,7 +51,7 @@ define(function (require, exports, module) {
         ALREADY_EXISTS              : "AlreadyExists",
         CONTENTS_MODIFIED           : "ContentsModified",
         ROOT_NOT_WATCHED            : "RootNotBeingWatched",
-        UNSUPPORTED_FILETYPE        : "UnsupportedFileType"
+        EXCEEDS_MAX_FILE_SIZE       : "ExceedsMaxFileSize"
         
         // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
     };

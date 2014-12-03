@@ -238,6 +238,37 @@ define(function (require, exports, module) {
         }, false);
     }
     
+    /**
+     * Executes a series of tasks in serial (task N does not begin until task N-1 has completed).
+     * Returns a "master" Promise that is resolved when the first task has resolved. If all tasks
+     * fail, the master Promise is rejected.
+     *
+     * @param {!Array.<*>} items
+     * @param {!function(*, number):Promise} beginProcessItem
+     * @return {$.Promise}
+     */
+    function firstSequentially(items, beginProcessItem) {
+
+        var masterDeferred = new $.Deferred();
+
+        function doItem(i) {
+            if (i >= items.length) {
+                masterDeferred.reject();
+                return;
+            }
+
+            beginProcessItem(items[i], i)
+                .fail(function () {
+                    doItem(i + 1);
+                })
+                .done(function () {
+                    masterDeferred.resolve(items[i]);
+                });
+        }
+
+        doItem(0);
+        return masterDeferred.promise();
+    }
     
     /**
      * Executes a series of tasks in parallel, saving up error info from any that fail along the way.
@@ -557,14 +588,15 @@ define(function (require, exports, module) {
     };
     
     // Define public API
-    exports.doInParallel   = doInParallel;
-    exports.doSequentially = doSequentially;
+    exports.doInParallel        = doInParallel;
+    exports.doSequentially      = doSequentially;
     exports.doSequentiallyInBackground   = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
-    exports.withTimeout    = withTimeout;
-    exports.waitForAll     = waitForAll;
-    exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
-    exports.chain          = chain;
-    exports.promisify      = promisify;
-    exports.PromiseQueue   = PromiseQueue;
+    exports.firstSequentially   = firstSequentially;
+    exports.withTimeout         = withTimeout;
+    exports.waitForAll          = waitForAll;
+    exports.ERROR_TIMEOUT       = ERROR_TIMEOUT;
+    exports.chain               = chain;
+    exports.promisify           = promisify;
+    exports.PromiseQueue        = PromiseQueue;
 });

@@ -124,10 +124,12 @@ define(function (require, exports, module) {
                                 errorArray.forEach(function (errorObj) {
                                     ids.push(errorObj.item);
                                     if (errorObj.error && errorObj.error.forEach) {
-                                        console.error("Errors for ", errorObj.item);
+                                        console.error("Errors for", errorObj.item);
                                         errorObj.error.forEach(function (error) {
                                             console.error(Package.formatError(error));
                                         });
+                                    } else {
+                                        console.error("Error for", errorObj.item, errorObj);
                                     }
                                 });
                                 Dialogs.showModalDialog(
@@ -292,8 +294,10 @@ define(function (require, exports, module) {
         // Open the dialog
         dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(dialogTemplate, context));
         
-        // When dialog closes, dismiss models and commit changes
+        // On dialog close: clean up listeners & models, and commit changes
         dialog.done(function () {
+            $(window.document).off(".extensionManager");
+            
             models.forEach(function (model) {
                 model.dispose();
             });
@@ -319,8 +323,9 @@ define(function (require, exports, module) {
                 setActiveTab($(this));
             });
 
-        // navigate through tabs via Ctrl-(Shift)-Tab
-        $dlg.on("keyup", function (event) {
+        // Navigate through tabs via Ctrl-(Shift)-Tab
+        // (focus may be on document.body if text in extension listing clicked - see #9511)
+        $(window.document).on("keyup.extensionManager", function (event) {
             if (event.keyCode === KeyEvent.DOM_VK_TAB && event.ctrlKey) {
                 var $tabs = $(".nav-tabs a", $dlg),
                     tabIndex = _activeTabIndex;
@@ -360,7 +365,7 @@ define(function (require, exports, module) {
                 updateNotificationIcon(index);
             });
             
-            $(model).on("change", function () {
+            model.on("change", function () {
                 if (lastNotifyCount !== model.notifyCount) {
                     lastNotifyCount = model.notifyCount;
                     updateNotificationIcon(index);
@@ -408,7 +413,7 @@ define(function (require, exports, module) {
             
             // Disable the search field when there are no items in the model
             models.forEach(function (model, index) {
-                $(model).on("change", function () {
+                model.on("change", function () {
                     if (_activeTabIndex === index) {
                         updateSearchDisabled();
                     }
@@ -423,7 +428,7 @@ define(function (require, exports, module) {
             }
         });
     
-        // Handle the install button.
+        // Handle the 'Install from URL' button.
         $(".extension-manager-dialog .install-from-url")
             .click(function () {
                 InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);

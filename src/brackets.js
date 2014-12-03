@@ -135,8 +135,6 @@ define(function (require, exports, module) {
     require("extensibility/ExtensionManagerDialog");
     require("editor/ImageViewer");
     
-    // Deprecated modules loaded just so extensions can still use them for now
-    require("utils/CollectionUtils");
     // Compatibility shims for filesystem API migration
     require("project/FileIndexManager");
     require("file/NativeFileSystem");
@@ -293,13 +291,24 @@ define(function (require, exports, module) {
                         PerfUtils.addMeasurement("Application Startup");
                         
                         if (PreferencesManager._isUserScopeCorrupt()) {
-                            Dialogs.showModalDialog(
-                                DefaultDialogs.DIALOG_ID_ERROR,
-                                Strings.ERROR_PREFS_CORRUPT_TITLE,
-                                Strings.ERROR_PREFS_CORRUPT
-                            )
+                            var userPrefFullPath = PreferencesManager.getUserPrefFile();
+                            // user scope can get corrupt only if the file exists, is readable,
+                            // but malformed. no need to check for its existance.
+                            var info = MainViewManager.findInAllWorkingSets(userPrefFullPath);
+                            var paneId;
+                            if (info.length) {
+                                paneId = info[0].paneId;
+                            }
+                            FileViewController.openFileAndAddToWorkingSet(userPrefFullPath, paneId)
                                 .done(function () {
-                                    CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+                                    Dialogs.showModalDialog(
+                                        DefaultDialogs.DIALOG_ID_ERROR,
+                                        Strings.ERROR_PREFS_CORRUPT_TITLE,
+                                        Strings.ERROR_PREFS_CORRUPT
+                                    ).done(function () {
+                                        // give the focus back to the editor with the pref file
+                                        MainViewManager.focusActivePane();
+                                    });
                                 });
                         }
                         
@@ -411,10 +420,7 @@ define(function (require, exports, module) {
             // Text fields should always be focusable.
             var $target = $(e.target),
                 isFormElement =
-                    $target.is("input[type=text]") ||
-                    $target.is("input[type=number]") ||
-                    $target.is("input[type=password]") ||
-                    $target.is("input:not([type])") || // input with no type attribute defaults to text
+                    $target.is("input") || 
                     $target.is("textarea") ||
                     $target.is("select");
 
@@ -447,7 +453,7 @@ define(function (require, exports, module) {
         var real_windowOpen = window.open;
         window.open = function (url) {
             // Allow file:// URLs, relative URLs (implicitly file: also), and about:blank
-            if (!url.match(/^file:\/\//) && url !== "about:blank" && url.indexOf(":") !== -1) {
+            if (!url.match(/^file:\/\//) && !url.match(/^about:blank/) && url.indexOf(":") !== -1) {
                 throw new Error("Brackets-shell is not a secure general purpose web browser. Use NativeApp.openURLInDefaultBrowser() to open URLs in the user's main browser");
             }
             return real_windowOpen.apply(window, arguments);

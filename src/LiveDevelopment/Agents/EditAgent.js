@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define */
 
 /**
  * EditAgent propagates changes from the in-document editor to the source
@@ -105,7 +105,7 @@ define(function EditAgent(require, exports, module) {
 
         // detach from DOM change events
         if (res.value === "0") {
-            $(Inspector.DOM).off(".EditAgent");
+            Inspector.DOM.off(".EditAgent");
             return;
         }
 
@@ -118,17 +118,17 @@ define(function EditAgent(require, exports, module) {
         _editedNode = node;
 
         // attach to character data modified events
-        $(Inspector.DOM).on("characterDataModified.EditAgent", _onCharacterDataModified);
+        Inspector.DOM.on("characterDataModified.EditAgent", _onCharacterDataModified);
     }
 
     /** Initialize the agent */
     function load() {
-        $(RemoteAgent).on("edit.EditAgent", _onRemoteEdit);
+        RemoteAgent.on("edit.EditAgent", _onRemoteEdit);
     }
 
     /** Initialize the agent */
     function unload() {
-        $(RemoteAgent).off(".EditAgent");
+        RemoteAgent.off(".EditAgent");
     }
 
     // Export public functions

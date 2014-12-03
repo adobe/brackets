@@ -28,8 +28,9 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var CommandManager        = require("command/CommandManager"),
+        EventDispatcher       = require("utils/EventDispatcher"),
         Commands              = require("command/Commands"),
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
@@ -41,12 +42,12 @@ define(function (require, exports, module) {
         StringUtils           = require("utils/StringUtils"),
         Strings               = require("strings"),
         _                     = require("thirdparty/lodash"),
-        
+
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html"),
         searchSummaryTemplate = require("text!htmlContent/search-summary.html");
-    
-    
+
+
     /** 
      * @const 
      * The maximum results to show per page.
@@ -80,6 +81,7 @@ define(function (require, exports, module) {
         this._$table   = this._panel.$panel.find(".table-container");
         this._model    = model;
     }
+    EventDispatcher.makeEventDispatcher(SearchResultsView.prototype);
     
     /** @type {SearchModel} The search results model we're viewing. */
     SearchResultsView.prototype._model = null;
@@ -212,7 +214,7 @@ define(function (require, exports, module) {
                             if (searchItem.collapsed !== collapsed) {
                                 searchItem.collapsed = collapsed;
                                 $(this).nextUntil(".file-section").toggle();
-                                $(this).find(".disclosure-triangle").toggleClass("expanded").toggleClass("collapsed");
+                                $(this).find(".disclosure-triangle").toggleClass("expanded");
                             }
                         });
 
@@ -323,7 +325,7 @@ define(function (require, exports, module) {
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
-                    $(self).triggerHandler("replaceAll");
+                    self.trigger("replaceAll");
                 });
         }
     };
@@ -348,7 +350,7 @@ define(function (require, exports, module) {
         // This text contains some formatting, so all the strings are assumed to be already escaped
         summary = StringUtils.format(
             Strings.FIND_TITLE_SUMMARY,
-            this._model.foundMaximum ? Strings.FIND_IN_FILES_MORE_THAN : "",
+            this._model.exceedsMaximum ? Strings.FIND_IN_FILES_MORE_THAN : "",
             String(count.matches),
             (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
             filesStr
@@ -385,7 +387,7 @@ define(function (require, exports, module) {
             self             = this;
         
         this._showSummary();
-        this._searchList   = [];
+        this._searchList = [];
         
         // Iterates throuh the files to display the results sorted by filenamess. The loop ends as soon as
         // we filled the results for one page
@@ -427,16 +429,17 @@ define(function (require, exports, module) {
                     multiLine = match.start.line !== match.end.line;
                     
                     searchItems.push({
-                        fileIndex:  self._searchList.length,
-                        itemIndex:  searchItems.length,
-                        matchIndex: i,
-                        line:       match.start.line + 1,
-                        pre:        match.line.substr(0, match.start.ch),
-                        highlight:  match.line.substring(match.start.ch, multiLine ? undefined : match.end.ch),
-                        post:       multiLine ? "\u2026" : match.line.substr(match.end.ch),
-                        start:      match.start,
-                        end:        match.end,
-                        isChecked:  match.isChecked
+                        fileIndex:   self._searchList.length,
+                        itemIndex:   searchItems.length,
+                        matchIndex:  i,
+                        line:        match.start.line + 1,
+                        pre:         match.line.substr(0, match.start.ch),
+                        highlight:   match.line.substring(match.start.ch, multiLine ? undefined : match.end.ch),
+                        post:        multiLine ? "\u2026" : match.line.substr(match.end.ch),
+                        start:       match.start,
+                        end:         match.end,
+                        isChecked:   match.isChecked,
+                        isCollapsed: item.collapsed
                     });
                     if (!match.isChecked) {
                         allInFileChecked = false;
@@ -456,11 +459,12 @@ define(function (require, exports, module) {
                     );
 
                 self._searchList.push({
-                    fileIndex: self._searchList.length,
-                    filename:  displayFileName,
-                    fullPath:  fullPath,
-                    isChecked: allInFileChecked,
-                    items:     searchItems
+                    fileIndex:   self._searchList.length,
+                    filename:    displayFileName,
+                    fullPath:    fullPath,
+                    isChecked:   allInFileChecked,
+                    items:       searchItems,
+                    isCollapsed: item.collapsed
                 });
             }
         });
@@ -473,16 +477,7 @@ define(function (require, exports, module) {
                 replace:       this._model.isReplace,
                 searchList:    this._searchList,
                 Strings:       Strings
-            }))
-            // Restore the collapsed files
-            .find(".file-section").each(function () {
-                var fullPath = self._searchList[$(this).data("file-index")].fullPath;
-
-                if (self._model.results[fullPath].collapsed) {
-                    self._model.results[fullPath].collapsed = false;
-                    $(this).trigger("click");
-                }
-            });
+            }));
         
         if (this._$selectedRow) {
             this._$selectedRow.removeClass("selected");
@@ -556,7 +551,7 @@ define(function (require, exports, module) {
         
         // Listen for user interaction events with the panel and change events from the model.
         this._addPanelListeners();
-        $(this._model).on("change.SearchResultsView", this._handleModelChange.bind(this));
+        this._model.on("change.SearchResultsView", this._handleModelChange.bind(this));
     };
     
     /**
@@ -567,8 +562,8 @@ define(function (require, exports, module) {
             this._$table.empty();
             this._panel.hide();
             this._panel.$panel.off(".searchResults");
-            $(this._model).off("change.SearchResultsView");
-            $(this).triggerHandler("close");
+            this._model.off("change.SearchResultsView");
+            this.trigger("close");
         }
     };
     

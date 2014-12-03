@@ -21,12 +21,13 @@
  * 
  */
 
-/*global define, $ */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
     
     var FileUtils   = require("file/FileUtils"),
+        EventDispatcher = require("utils/EventDispatcher"),
         FindUtils   = require("search/FindUtils");
 
     /**
@@ -39,6 +40,7 @@ define(function (require, exports, module) {
     function SearchModel() {
         this.clear();
     }
+    EventDispatcher.makeEventDispatcher(SearchModel.prototype);
 
     /** @const Constant used to define the maximum results found. 
      *  Note that this is a soft limit - we'll likely go slightly over it since
@@ -99,7 +101,13 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     SearchModel.prototype.foundMaximum = false;
-
+    
+    /**
+     * Whether or not we exceeded the maximum number of results in the search we did.
+     * @type {boolean}
+     */
+    SearchModel.prototype.exceedsMaximum = false;
+    
     /**
      * Clears out the model to an empty state.
      */
@@ -112,6 +120,7 @@ define(function (require, exports, module) {
         this.scope = null;
         this.numMatches = 0;
         this.foundMaximum = false;
+        this.exceedsMaximum = false;
         this.fireChanged();
     };
     
@@ -157,6 +166,13 @@ define(function (require, exports, module) {
         this.numMatches += resultInfo.matches.length;
         if (this.numMatches >= SearchModel.MAX_TOTAL_RESULTS) {
             this.foundMaximum = true;
+            
+            // Remove final result if there have been over MAX_TOTAL_RESULTS found
+            if (this.numMatches > SearchModel.MAX_TOTAL_RESULTS) {
+                this.results[fullpath].matches.pop();
+                this.numMatches--;
+                this.exceedsMaximum = true;
+            }
         }
     };
     
@@ -209,9 +225,9 @@ define(function (require, exports, module) {
      *      often, meaning that the view should buffer updates.
      */
     SearchModel.prototype.fireChanged = function (quickChange) {
-        $(this).triggerHandler("change", quickChange);
+        this.trigger("change", quickChange);
     };
-
+    
     // Public API
     exports.SearchModel = SearchModel;
 });

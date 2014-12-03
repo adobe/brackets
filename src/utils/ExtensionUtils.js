@@ -72,7 +72,7 @@ define(function (require, exports, module) {
     /**
      * getModuleUrl returns different urls for win platform
      * so that's why we need a different check here
-     * @see getModuleUrl()
+     * @see #getModuleUrl
      * @param {!string} pathOrUrl that should be checked if it's absolute
      * @return {!boolean} returns true if pathOrUrl is absolute url on win platform
      *                    or when it's absolute path on other platforms
@@ -122,7 +122,12 @@ define(function (require, exports, module) {
             if (err) {
                 result.reject(err);
             } else {
-                result.resolve(tree.toCSS());
+                try {
+                    result.resolve(tree.toCSS());
+                } catch (toCSSError) {
+                    console.error(toCSSError.filename + ":" + toCSSError.line + " " + toCSSError.message);
+                    result.reject(toCSSError);
+                }
             }
         });
         

@@ -262,7 +262,8 @@ define(function (require, exports, module) {
             it("can set values in any of the patterns", function () {
                 var data = {
                     "html": {
-                        spaceUnits: 2
+                        spaceUnits: 2,
+                        niceBooleanOption: true
                     },
                     "css": {
                         spaceUnits: 3
@@ -277,7 +278,8 @@ define(function (require, exports, module) {
                 
                 expect(data).toEqual({
                     "html": {
-                        spaceUnits: 2
+                        spaceUnits: 2,
+                        niceBooleanOption: true
                     },
                     "css": {
                         spaceUnits: 3
@@ -293,7 +295,8 @@ define(function (require, exports, module) {
                 expect(layer.set(data, "spaceUnits", 11, {}, "html")).toBe(true);
                 expect(data).toEqual({
                     "html": {
-                        spaceUnits: 11
+                        spaceUnits: 11,
+                        niceBooleanOption: true
                     },
                     "css": {
                         spaceUnits: 3
@@ -301,13 +304,44 @@ define(function (require, exports, module) {
                 });
                 
                 expect(layer.set(data, "spaceUnits", 12, {language: "css"})).toBe(true);
+                expect(data).toEqual({
+                    "html": {
+                        spaceUnits: 11,
+                        niceBooleanOption: true
+                    },
+                    "css": {
+                        spaceUnits: 12
+                    }
+                });
                 
+                expect(layer.set(data, "niceBooleanOption", false, {language: "html"})).toBe(true);
+                expect(data).toEqual({
+                    "html": {
+                        spaceUnits: 11,
+                        niceBooleanOption: false
+                    },
+                    "css": {
+                        spaceUnits: 12
+                    }
+                });
+                
+                expect(layer.set(data, "niceBooleanOption", undefined, {language: "html"})).toBe(true);
+                expect(layer.set(data, "niceBooleanOption", false, {language: "css"}, "css")).toBe(true);
+                expect(layer.set(data, "niceBooleanOption", undefined, {language: "javascript"}, "javascript")).toBe(false);
+                expect(layer.set(data, "niceBooleanOption", true, {language: "php"}, "php")).toBe(true);
                 expect(data).toEqual({
                     "html": {
                         spaceUnits: 11
                     },
                     "css": {
-                        spaceUnits: 12
+                        spaceUnits: 12,
+                        niceBooleanOption: false
+                    },
+                    "javascript": {
+                        
+                    },
+                    "php": {
+                        niceBooleanOption: true
                     }
                 });
                 
@@ -486,6 +520,9 @@ define(function (require, exports, module) {
                     language: {
                         html: {
                             spaceUnits: 2
+                        },
+                        javascript: {
+                            someBooleanOption: false
                         }
                     }
                 };
@@ -500,6 +537,8 @@ define(function (require, exports, module) {
                 
                 expect(scope.get("spaceUnits")).toBe(4);
                 expect(scope.get("spaceUnits", {language: "html"})).toBe(2);
+                
+                expect(scope.get("someBooleanOption", {language: "javascript"})).toBe(false);
             });
             
             it("can look up the location of a preference", function () {
@@ -560,7 +599,8 @@ define(function (require, exports, module) {
                     },
                     language: {
                         html: {
-                            spaceUnits: 11
+                            spaceUnits: 11,
+                            niceBooleanOption: false
                         },
                         css: {
                             spaceUnits: 13
@@ -643,6 +683,9 @@ define(function (require, exports, module) {
                     layerID: "*.html"
                 })).toBe(true);
                 expect(Object.keys(data.path["*.html"])).toEqual([]);
+                
+                expect(scope.get("niceBooleanOption", {language: "html"})).toBe(false);
+                
             });
             
             it("can return its keys", function () {
@@ -721,19 +764,24 @@ define(function (require, exports, module) {
                         "**.md": {
                             statusBarElephants: true
                         }
+                    },
+                    language: {
+                        javascript: {
+                            niceBooleanOption: true
+                        }
                     }
                 };
                 
                 storage.data = data2;
                 var events1 = [];
-                $(scope).on("change", function (e, data) {
+                scope.on("change", function (e, data) {
                     events1.push(data);
                 });
                 scope.load();
                 
                 expect(events1.length).toBe(1);
                 expect(events1[0].ids.sort()).toEqual(
-                    ["spaceUnits", "cursorSize", "statusBarElephants", "trafficLight"].sort()
+                    ["spaceUnits", "niceBooleanOption", "cursorSize", "statusBarElephants", "trafficLight"].sort()
 
                 );
                 var data3 = {
@@ -755,13 +803,13 @@ define(function (require, exports, module) {
 
                 storage.data = data3;
                 var events2 = [];
-                $(scope).on("change", function (e, data) {
+                scope.on("change", function (e, data) {
                     events2.push(data);
                 });
                 scope.load();
 
                 expect(events2.length).toBe(1);
-                expect(events2[0].ids.sort()).toEqual(["spaceUnits", "statusBarElephants", "trafficLight", "spaceshipColor"].sort());
+                expect(events2[0].ids.sort()).toEqual(["niceBooleanOption", "spaceUnits", "statusBarElephants", "trafficLight", "spaceshipColor"].sort());
 
             });
         });

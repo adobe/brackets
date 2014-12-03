@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var InMemoryFile        = require("document/InMemoryFile"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         FileUtils           = require("file/FileUtils"),
         _                   = require("thirdparty/lodash"),
         FileSystem          = require("filesystem/FileSystem"),
@@ -92,7 +93,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * See shouldShow
+     * @see #shouldShow
      */
     function _shouldShowName(name) {
         return !name.match(_exclusionListRegEx);
@@ -207,6 +208,12 @@ define(function (require, exports, module) {
      *
      * The ProjectModel provides methods for accessing information about the current open project.
      * It also manages the view model to display a FileTreeView of the project.
+     * 
+     * Events:
+     * - EVENT_CHANGE (`change`) - Fired when there's a change that should refresh the UI
+     * - EVENT_SHOULD_SELECT (`select`) - Fired when a selection has been made in the file tree and the file tree should be selected
+     * - EVENT_SHOULD_FOCUS (`focus`)
+     * - ERROR_CREATION (`creationError`) - Triggered when there's a problem creating a file
      */
     function ProjectModel(initial) {
         initial = initial || {};
@@ -219,10 +226,11 @@ define(function (require, exports, module) {
         }
         this._viewModel = new FileTreeViewModel.FileTreeViewModel();
         this._viewModel.on(FileTreeViewModel.EVENT_CHANGE, function () {
-            $(this).trigger(EVENT_CHANGE);
+            this.trigger(EVENT_CHANGE);
         }.bind(this));
         this._selections = {};
     }
+    EventDispatcher.makeEventDispatcher(ProjectModel.prototype);
 
     /**
      * @type {Directory}
@@ -244,7 +252,7 @@ define(function (require, exports, module) {
      * @type {string}
      * 
      * Encoded URL
-     * @see getBaseUrl(), setBaseUrl()
+     * @see {@link ProjectModel#getBaseUrl}, {@link ProjectModel#setBaseUrl}
      */
     ProjectModel.prototype._projectBaseUrl = "";
 
@@ -306,12 +314,13 @@ define(function (require, exports, module) {
     /**
      * Tracks the scroller position.
      * 
+     * @param {int} scrollWidth Width of the tree container
      * @param {int} scrollTop Top of scroll position
      * @param {int} scrollLeft Left of scroll position
      * @param {int} offsetTop Top of scroller element
      */
-    ProjectModel.prototype.setScrollerInfo = function (scrollTop, scrollLeft, offsetTop) {
-        this._viewModel.setSelectionScrollerInfo(scrollTop, scrollLeft, offsetTop);
+    ProjectModel.prototype.setScrollerInfo = function (scrollWidth, scrollTop, scrollLeft, offsetTop) {
+        this._viewModel.setSelectionScrollerInfo(scrollWidth, scrollTop, scrollLeft, offsetTop);
     };
 
     /**
@@ -453,13 +462,13 @@ define(function (require, exports, module) {
             try {
                 filteredFilesDeferred.resolve(result);
             } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
+                console.error("Unhandled exception in getAllFiles handler: " + e, e.stack);
             }
         }).fail(function (err) {
             try {
                 filteredFilesDeferred.reject(err);
             } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
+                console.error("Unhandled exception in getAllFiles handler: " + e, e.stack);
             }
         });
 
@@ -473,26 +482,6 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype._resetCache = function _resetCache() {
         this._allFilesCachePromise = null;
-    };
-
-    /**
-     * Adds an event listener for this ProjectModel. See jQuery's documentation for .on.
-     *
-     * Available events:
-     *
-     * * EVENT_CHANGE (`change`) - Fired when there's a change that should refresh the UI
-     * * EVENT_SHOULD_SELECT (`select`) - Specifies that a selection has been made in the file tree and that the file tree should be selected
-     * * ERROR_CREATION (`creationError`) - Triggered when there is a problem creating a file.
-     */
-    ProjectModel.prototype.on = function (event, handler) {
-        $(this).on(event, handler);
-    };
-
-    /**
-     * Removes an event listener for this ProjectModel. See jQuery's documentation for .off.
-     */
-    ProjectModel.prototype.off = function (event, handler) {
-        $(this).off(event, handler);
     };
 
     /**
@@ -611,24 +600,21 @@ define(function (require, exports, module) {
     ProjectModel.prototype.showInTree = function (path) {
         var d = new $.Deferred();
         path = _getPathFromFSObject(path);
-
-        var projectRelative = this.makeProjectRelativeIfPossible(path);
-
-        // Not in project?
-        if (projectRelative[0] === "/") {
-            d.resolve();
-        } else {
-            var parentDirectory = FileUtils.getDirectoryPath(path),
-                self = this;
-            this.setDirectoryOpen(parentDirectory, true).then(function () {
-                if (_pathIsFile(path)) {
-                    self.setSelected(path);
-                }
-                d.resolve();
-            }, function (err) {
-                d.reject(err);
-            });
+        
+        if (!this.isWithinProject(path)) {
+            return d.resolve().promise();
         }
+
+        var parentDirectory = FileUtils.getDirectoryPath(path),
+            self = this;
+        this.setDirectoryOpen(parentDirectory, true).then(function () {
+            if (_pathIsFile(path)) {
+                self.setSelected(path);
+            }
+            d.resolve();
+        }, function (err) {
+            d.reject(err);
+        });
         return d.promise();
     };
 
@@ -649,29 +635,38 @@ define(function (require, exports, module) {
             return;
         }
 
-        this.performRename();
-
         var oldProjectPath = this.makeProjectRelativeIfPossible(this._selections.selected),
             pathInProject = this.makeProjectRelativeIfPossible(path);
+
+        if (path && !this._viewModel.isFilePathVisible(pathInProject)) {
+            path = null;
+            pathInProject = null;
+        }
+        
+        this.performRename();
 
         this._viewModel.moveMarker("selected", oldProjectPath, pathInProject);
         if (this._selections.context) {
             this._viewModel.moveMarker("context", this.makeProjectRelativeIfPossible(this._selections.context), null);
             delete this._selections.context;
         }
+        
+        var previousSelection = this._selections.selected;
         this._selections.selected = path;
 
         if (path) {
-            $(this).trigger(EVENT_SHOULD_FOCUS);
-
             if (!doNotOpen) {
-                $(this).trigger(EVENT_SHOULD_SELECT, {
-                    path: path
+                this.trigger(EVENT_SHOULD_SELECT, {
+                    path: path,
+                    previousPath: previousSelection,
+                    hadFocus: this._focused
                 });
             }
+            
+            this.trigger(EVENT_SHOULD_FOCUS);
         }
     };
-
+    
     /**
      * Gets the currently selected file or directory.
      *
@@ -697,7 +692,7 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype.selectInWorkingSet = function (path) {
         this.performRename();
-        $(this).trigger(EVENT_SHOULD_SELECT, {
+        this.trigger(EVENT_SHOULD_SELECT, {
             path: path,
             add: true
         });
@@ -708,21 +703,30 @@ define(function (require, exports, module) {
      * open/selected file.
      *
      * @param {string} path full path of file or directory to which the context should be setBaseUrl
+     * @param {boolean} _doNotRename True if this context change should not cause a rename operation to finish. This is a special case that goes with context menu handling.
+     * @param {boolean} _saveContext True if the current context should be saved (see comment below)
      */
-    ProjectModel.prototype.setContext = function (path) {
+    ProjectModel.prototype.setContext = function (path, _doNotRename, _saveContext) {
         // This bit is not ideal: when the user right-clicks on an item in the file tree
         // and there is already a context menu up, the FileTreeView sends a signal to set the
         // context to the new element but the PopupManager follows that with a message that it's
         // closing the context menu (because it closes the previous one and then opens the new
         // one.) This timing means that we need to provide some special case handling here.
-        if (!path) {
-            this._selections.previousContext = this._selections.context;
+        if (_saveContext) {
+            if (!path) {
+                this._selections.previousContext = this._selections.context;
+            } else {
+                this._selections.previousContext = path;
+            }
         } else {
-            this._selections.previousContext = path;
+            delete this._selections.previousContext;
         }
 
         path = _getPathFromFSObject(path);
-        this.performRename();
+        
+        if (!_doNotRename) {
+            this.performRename();
+        }
         var currentContext = this._selections.context;
         this._selections.context = path;
         this._viewModel.moveMarker("context", this.makeProjectRelativeIfPossible(currentContext),
@@ -771,7 +775,13 @@ define(function (require, exports, module) {
         if (this._selections.rename && this._selections.rename.path === path) {
             return;
         }
-
+        
+        var projectRelativePath = this.makeProjectRelativeIfPossible(path);
+        
+        if (!this._viewModel.isFilePathVisible(projectRelativePath)) {
+            this.showInTree(path);
+        }
+        
         if (path !== this._selections.context) {
             this.setContext(path);
         } else {
@@ -779,7 +789,7 @@ define(function (require, exports, module) {
         }
 
         this._viewModel.moveMarker("rename", null,
-                                   this.makeProjectRelativeIfPossible(path));
+                                   projectRelativePath);
         var d = new $.Deferred();
         this._selections.rename = {
             deferred: d,
@@ -899,6 +909,10 @@ define(function (require, exports, module) {
         
         delete this._selections.rename;
         delete this._selections.context;
+        if (this._selections.selected === oldPath) {
+            this._selections.selected = newPath;
+        }
+        
         viewModel.moveMarker("rename", oldProjectPath, null);
         viewModel.moveMarker("context", oldProjectPath, null);
         viewModel.moveMarker("creating", oldProjectPath, null);
@@ -906,6 +920,7 @@ define(function (require, exports, module) {
         if (renameInfo.type === FILE_CREATING) {
             this.createAtPath(newPath).done(function (entry) {
                 viewModel.renameItem(oldProjectPath, newName);
+                
                 renameInfo.deferred.resolve(entry);
             }).fail(function (error) {
                 self._viewModel.deleteAtPath(self.makeProjectRelativeIfPossible(renameInfo.path));
@@ -917,8 +932,13 @@ define(function (require, exports, module) {
                 renameInfo.deferred.resolve({
                     newPath: newPath
                 });
-            }).fail(function (error) {
-                renameInfo.deferred.reject(error);
+            }).fail(function (errorType) {
+                var errorInfo = {
+                    type: errorType,
+                    isFolder: isFolder,
+                    fullPath: oldPath
+                };
+                renameInfo.deferred.reject(errorInfo);
             });
         }
     };
@@ -938,10 +958,10 @@ define(function (require, exports, module) {
 
         return doCreate(path, isFolder).done(function (entry) {
             if (!isFolder) {
-                self.setSelected(entry.fullPath);
+                self.selectInWorkingSet(entry.fullPath);
             }
         }).fail(function (error) {
-            $(self).trigger(ERROR_CREATION, {
+            self.trigger(ERROR_CREATION, {
                 type: error,
                 name: name,
                 isFolder: isFolder
@@ -1043,9 +1063,9 @@ define(function (require, exports, module) {
             });
         }
     };
-
+    
     /**
-     * Refreshes the contents of the tree.
+     * Clears caches and refreshes the contents of the tree.
      *
      * @return {$.Promise} resolved when the tree has been refreshed
      */
@@ -1056,7 +1076,7 @@ define(function (require, exports, module) {
             selections  = this._selections,
             viewModel   = this._viewModel,
             deferred    = new $.Deferred();
-
+        
         this.setProjectRoot(projectRoot).then(function () {
             self.reopenNodes(openNodes).then(function () {
                 if (selections.selected) {
@@ -1106,9 +1126,18 @@ define(function (require, exports, module) {
             ];
         } else {
             // Special case: a directory passed in without added and removed values
-            // appears to be new.
+            // needs to be updated.
             if (!added && !removed) {
-                this._viewModel.ensureDirectoryExists(this.makeProjectRelativeIfPossible(entry.fullPath));
+                entry.getContents(function (err, contents) {
+                    if (err) {
+                        console.error("Unexpected error refreshing file tree for directory " + entry.fullPath + ": " + err, err.stack);
+                        return;
+                    }
+                    self._viewModel.setDirectoryContents(self.makeProjectRelativeIfPossible(entry.fullPath), contents);
+                });
+                
+                // Exit early because we can't update the viewModel until we get the directory contents.
+                return;
             }
         }
 
@@ -1119,6 +1148,20 @@ define(function (require, exports, module) {
         }
 
         if (removed) {
+            if (this._selections.selected &&
+                    _.find(removed, { fullPath: this._selections.selected })) {
+                this.setSelected(null);
+            }
+            
+            if (this._selections.rename &&
+                    _.find(removed, { fullPath: this._selections.rename.path })) {
+                this.cancelRename();
+            }
+            
+            if (this._selections.context &&
+                    _.find(removed, { fullPath: this._selections.context })) {
+                this.setContext(null);
+            }
             changes.removed = removed.map(function (entry) {
                 return self.makeProjectRelativeIfPossible(entry.fullPath);
             });
@@ -1181,7 +1224,7 @@ define(function (require, exports, module) {
      * Returns the full path to the welcome project, which we open on first launch.
      *
      * @param {string} sampleUrl URL for getting started project
-     * @param {string} initialPath Path to Brackets directory (see FileUtils.getNativeBracketsDirectoryPath())
+     * @param {string} initialPath Path to Brackets directory (see {@link FileUtils::#getNativeBracketsDirectoryPath})
      * @return {!string} fullPath reference
      */
     function _getWelcomeProjectPath(sampleUrl, initialPath) {

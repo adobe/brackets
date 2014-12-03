@@ -34,6 +34,7 @@ define({
     "GENERIC_ERROR"                     : "(Fehler {0})",
     "NOT_FOUND_ERR"                     : "Die Datei konnte nicht gefunden werden.",
     "NOT_READABLE_ERR"                  : "Die Datei konnte nicht gelesen werden.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "{APP_NAME} kann keine Dateien öffnen, die größer als {0} MB sind.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Der Ziel-Ordner kann nicht verändert werden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
     "CONTENTS_MODIFIED_ERR"             : "Die Datei wurde außerhalb von {APP_NAME} verändert.",
@@ -72,10 +73,22 @@ define({
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "Eine Datei oder ein Ordner mit dem Namen <span class='dialog-filename'>{0}</span> existiert bereits.",
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen von {0}", // TODO: depends on {0} gender
     "ERROR_CREATING_FILE"               : "Beim Erstellen von {0} <span class='dialog-filename'>{1}</span> ist ein Fehler aufgetreten: {2}", // TODO: depends on {0} gender
+    "ERROR_MIXED_DRAGDROP"              : "Ein Ordner kann nicht zeitgleich mit anderen Dateien geöffnet werden.",
+
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "Fehler beim Einlesen der benutzerdefinierten Tastenbelegung",
+    "ERROR_KEYMAP_CORRUPT"              : "Ihre Tastenbelegungs-Datei enthält kein gültiges JSON. Die Datei wird geöffnet, damit sie das Format korrigieren können.",
+    "ERROR_LOADING_KEYMAP"              : "Ihre Tastenbelegungs-Datei ist keine gültige UTF-8-kodierte Textdatei und kann daher nicht geladen werden.",
+    "ERROR_RESTRICTED_COMMANDS"         : "Sie können die Tastenkürzel der folgenden Befehle nicht ändern: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Sie können die folgenden Tastenkürzel nicht ändern: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Sie ordnen diesen Befehlen mehrere Tastenkürzel zu: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Sie belegen diese Tastenkürzel mehrfach: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Diese Tastenkürzel sind ungültig: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Sie ordnen nicht existierenden Befehlen Tastenkürzel zu: {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Fehler beim Lesen der Einstellungen",
-    "ERROR_PREFS_CORRUPT"               : "Ihre Einstellungsdatei ist kein gültiges JSON. Die Datei wird geöffnet, damit Sie das Format korrigieren können. Sie müssen {APP_NAME} neu starten, damit die Änderungen wirksam werden.",
+    "ERROR_PREFS_CORRUPT"               : "Ihre Einstellungsdatei enthält kein gültiges JSON. Die Datei wird geöffnet, damit Sie das Format korrigieren können. Sie müssen {APP_NAME} neu starten, damit die Änderungen wirksam werden.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} kann derzeit leider noch nicht im Browser ausgeführt werden.",
@@ -92,8 +105,8 @@ define({
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fehler bei der Live-Vorschau",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Verbinden zum Browser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Um die Live-Vorschau zu verwenden, muss Chrome mit aktiviertem Remote-Debugging neu gestartet werden.<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?",
-    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Laden der Live-Vorschau nicht möglich",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Um die Live-Vorschau zu verwenden, muss Chrome mit aktiviertem Remote-Debugging neu gestartet werden.<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?<br /><br />",
+    "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Laden der Live-Vorschau nicht möglich.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Öffnen Sie eine HTML-Datei oder stellen Sie sicher, dass sich eine index.html-Datei im Projekt befindet, um die Live-Vorschau zu starten.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Zum Starten der Live-Vorschau mit einer serverseitigen Datei müssen Sie eine Basis-URL für dieses Projekt angeben.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Ein Fehler ist beim Starten des HTTP-Servers oder der Live-Vorschau-Dateien aufgetreten. Bitte versuchen Sie es später erneut.",
@@ -221,6 +234,23 @@ define({
     "WORKING_FILES"    : "Offene Dateien",
 
     /**
+     * MainViewManager
+     */
+    "TOP"               : "Oben",
+    "BOTTOM"            : "Unten",
+    "LEFT"              : "Links",
+    "RIGHT"             : "Rechts",
+
+    "CMD_SPLITVIEW_NONE"        : "Nicht geteilt",
+    "CMD_SPLITVIEW_VERTICAL"    : "Vertikal geteilt",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Horizontal geteilt",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Teilen Sie den Editor vertikal oder horizontal",
+    "GEAR_MENU_TOOLTIP"         : "Projektdateien konfigurieren",
+
+    "SPLITVIEW_INFO_TITLE"              : "Bereits geöffnet",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Diese Datei ist bereits in einer anderen Ansicht geöffnet. Das Öffnen einer Datei in mehreren Ansichten wird {APP_NAME} bald unterstützen. Bis dahin wird die Datei in der Ansicht angezeigt, in der sie bereits geöffnet ist.<br /><br />(Sie sehen diese Nachricht nur einmal.)",
+
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Strg",
@@ -276,7 +306,7 @@ define({
     "CMD_FILE_NEW"                        : "Neue Datei",
     "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Zum Projekt hinzufügen",
+    "CMD_ADD_TO_WORKING_SET"              : "Im Projekt öffnen",
     "CMD_OPEN_DROPPED_FILES"              : "Abgelegte Dateien öffnen",
     "CMD_OPEN_FOLDER"                     : "Ordner öffnen\u2026",
     "CMD_FILE_CLOSE"                      : "Schließen",
@@ -355,10 +385,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Zeilenumbruch aktivieren",
     "CMD_LIVE_HIGHLIGHT"                  : "Live-Vorschau Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Beim Speichern linten",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Nach Name sortieren",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Nach Typ sortieren",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatisch sortieren",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Nach Hinzufügen-Datum sortieren",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Nach Name sortieren",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Nach Typ sortieren",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatisch sortieren",
     "CMD_THEMES"                          : "Designs\u2026",
 
     // Navigate menu Commands
@@ -392,9 +422,11 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
     "CMD_ABOUT"                           : "Über {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Einstellungsdatei öffnen",
+    "CMD_OPEN_KEYMAP"                     : "Benutzerdefinierte Tastenbelegung öffnen",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
+    "RELEASE_BUILD"                        : "Build",
     "DEVELOPMENT_BUILD"                    : "Entwicklungs-Build",
     "RELOAD_FROM_DISK"                     : "Von der Festplatte neu laden",
     "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
@@ -402,7 +434,7 @@ define({
     "RELAUNCH_CHROME"                      : "Chrome neu starten",
     "ABOUT"                                : "Über",
     "CLOSE"                                : "Schließen",
-    "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_LINE1"                     : "Release {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"           : "Zeitpunkt des Builds: ",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> und sind hier durch Bezugnahme eingeschlossen.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
@@ -421,6 +453,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
+    "EMPTY_VIEW_HEADER"                    : "<em>Öffnen Sie eine Datei, während diese Ansicht fokussiert ist</em>",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Aktuelles Design",
@@ -524,6 +557,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Keine Ergebnisse verfügbar.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "Alle Ergebnisse sind ausglendet. Klicken Sie auf die rechts gelisteten Dateien, um die dazugehörigen Ergebnisse anzuzeigen.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Es gibt keine CSS-Regeln, die zu Ihrer Auswahl passen.<br> Klicken Sie auf \"Neue Regel\", um eine neue Regel zu erstellen.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Es gibt keine Stylesheets in Ihrem Projekt.<br>Erstellen Sie eines, um CSS-Regeln hinzuzufügen.",
 
@@ -550,6 +584,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Node-Status in Konsole anzeigen",
     "CMD_RESTART_NODE"                          : "Node neu starten",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Zeige Fehler in der Statusleiste",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Brackets-Quellcode anzeigen",
 
     "LANGUAGE_TITLE"                            : "Sprache wechseln",
     "LANGUAGE_MESSAGE"                          : "Sprache:",
@@ -578,7 +613,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Parameter-Hinweis anzeigen",
     "NO_ARGUMENTS"                              : "<keine Parameter>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problem mit einer JavaScript-Datei",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets hat Probleme damit, diese Datei zu verarbeiten:<br><br>{0}<br><br>Code-Vervollständigung und das Springen zur Definition werden für die Datei nicht mehr bereitgestellt. Öffnen Sie <code>.brackets.json</code> in diesem Projekt und entfernen Sie den Dateipfad von jscodehints.detectedExclusions, um diese Features zu reaktivieren.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets hat Probleme damit, <span class='dialog-filename'>{0}</span> zu verarbeiten.<br><br>Code-Vervollständigung, Springen zur Definition und Schnelles Bearbeiten werden für die Datei nicht mehr bereitgestellt. Öffnen Sie <code>.brackets.json</code> in diesem Projekt und entfernen Sie den Dateipfad von <code>jscodehints.detectedExclusions</code>, um diese Datei wieder einzuschließen.<br><br>Das ist wahrscheinlich ein Bug in Brackets. <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>Melden Sie den Fehler</a> bitte, falls Sie eine Kopie dieser Datei bereitstellen können. Verlinken Sie in diesem Fall die oben genannte Datei.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -593,4 +628,4 @@ define({
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
 
-/* Last translated for 8712385a6bf12277e6d0788d408e630a40c95a14 */
+/* Last translated for 893c065b715c211526dcd010c0294e12a8683995 */

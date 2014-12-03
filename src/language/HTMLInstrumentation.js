@@ -75,7 +75,7 @@ define(function (require, exports, module) {
     function _removeDocFromCache(evt, document) {
         if (_cachedValues.hasOwnProperty(document.file.fullPath)) {
             delete _cachedValues[document.file.fullPath];
-            $(document).off(".htmlInstrumentation");
+            document.off(".htmlInstrumentation");
         }
     }
     
@@ -678,7 +678,7 @@ define(function (require, exports, module) {
         };
     }
     
-    $(DocumentManager).on("beforeDocumentDelete", _removeDocFromCache);
+    DocumentManager.on("beforeDocumentDelete", _removeDocFromCache);
     
     /**
      * Parses the document, returning an HTMLSimpleDOM structure and caching it as the
@@ -694,7 +694,7 @@ define(function (require, exports, module) {
      */
     function scanDocument(doc) {
         if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
-            $(doc).on("change.htmlInstrumentation", function () {
+            doc.on("change.htmlInstrumentation", function () {
                 if (_cachedValues[doc.file.fullPath]) {
                     _cachedValues[doc.file.fullPath].dirty = true;
                 }

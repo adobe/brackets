@@ -145,15 +145,6 @@ define(function (require, exports, module) {
      * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
-        // Backwards compatibility (for now) for old fileTypes field, if newer languageIds not specified
-        if (pluginDef.fileTypes && !pluginDef.languageIds) {
-            console.warn("Using fileTypes for QuickOpen plugins is deprecated. Use languageIds instead.");
-            pluginDef.languageIds = pluginDef.fileTypes.map(function (extension) {
-                return LanguageManager.getLanguageForPath("file." + extension).getId();
-            });
-            delete pluginDef.fileTypes;
-        }
-        
         plugins.push(new QuickOpenPlugin(
             pluginDef.name,
             pluginDef.languageIds,
@@ -680,7 +671,7 @@ define(function (require, exports, module) {
             displayName += '<span title="sp:' + sd.special + ', m:' + sd.match +
                 ', ls:' + sd.lastSegment + ', b:' + sd.beginning +
                 ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + ', nsos: ' +
-                sd.notStartingOnSpecial + '">(' + item.matchGoodness + ') </span>';
+                sd.notStartingOnSpecial + ', upper: ' + sd.upper + '">(' + item.matchGoodness + ') </span>';
         }
         
         // Put the path pieces together, highlighting the matched parts
@@ -755,7 +746,7 @@ define(function (require, exports, module) {
         initialString = prefix + initialString;
         
         var $field = this.$searchField;
-        $field.val(initialString);
+        $field.val(initialString).focus();
         $field.get(0).setSelectionRange(prefix.length, initialString.length);
         
         // Kick smart-autocomplete to update (it only listens for keyboard events)
@@ -946,7 +937,7 @@ define(function (require, exports, module) {
     }
     
     // Listen for a change of project to invalidate our file list
-    $(ProjectManager).on("projectOpen", function () {
+    ProjectManager.on("projectOpen", function () {
         fileList = null;
     });
 
@@ -959,7 +950,7 @@ define(function (require, exports, module) {
     exports.addQuickOpenPlugin      = addQuickOpenPlugin;
     exports.highlightMatch          = highlightMatch;
     
-    // accessing these from this module will ultimately be deprecated
+    // Convenience exports for functions that most QuickOpen plugins would need.
     exports.stringMatch             = StringMatch.stringMatch;
     exports.SearchResult            = StringMatch.SearchResult;
     exports.basicMatchSort          = StringMatch.basicMatchSort;

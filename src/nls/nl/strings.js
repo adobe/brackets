@@ -203,7 +203,7 @@ define({
     "FILE_MENU"                           : "Bestand",
     "CMD_FILE_NEW_UNTITLED"               : "Nieuw",
     "CMD_FILE_NEW"                        : "Nieuw bestand",
-    "CMD_FILE_NEW_FOLDER"                 : "Map openen",
+    "CMD_FILE_NEW_FOLDER"                 : "Nieuwe map",
     "CMD_FILE_OPEN"                       : "Bestand openen\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Voeg toe aan werkset",
     "CMD_OPEN_FOLDER"                     : "Open Map\u2026",

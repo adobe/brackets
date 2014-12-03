@@ -593,13 +593,7 @@ define(function (require, exports, module) {
         state.searchStartPos = editor.getCursorPos(false, "start");
         
         // Prepopulate the search field
-        var initialQuery;
-        if (findBar) {
-            // Use the previous query. This can happen if the user switches from Find to Replace.
-            initialQuery = findBar.getQueryInfo().query;
-        } else {
-            initialQuery = FindUtils.getInitialQueryFromSelection(editor);
-        }
+        var initialQuery = FindUtils.getInitialQuery(findBar, editor);
         
         // Close our previous find bar, if any. (The open() of the new findBar will
         // take care of closing any other find bar instances.)
@@ -611,12 +605,13 @@ define(function (require, exports, module) {
         findBar = new FindBar({
             multifile: false,
             replace: replace,
-            initialQuery: initialQuery,
+            initialQuery: initialQuery.query,
+            initialReplaceText: initialQuery.replaceText,
             queryPlaceholder: Strings.FIND_QUERY_PLACEHOLDER
         });
         findBar.open();
 
-        $(findBar)
+        findBar
             .on("queryChange.FindReplace", function (e) {
                 handleQueryChange(editor, state);
             })
@@ -630,7 +625,7 @@ define(function (require, exports, module) {
                 // Dispose highlighting UI (important to restore normal selection color as soon as focus goes back to the editor)
                 toggleHighlighting(editor, false);
 
-                $(findBar).off(".FindReplace");
+                findBar.off(".FindReplace");
                 findBar = null;
             });
         
@@ -694,7 +689,7 @@ define(function (require, exports, module) {
         
         openSearchBar(editor, true);
         
-        $(findBar)
+        findBar
             .on("doReplace.FindReplace", function (e) {
                 doReplace(editor, false);
             })
@@ -733,7 +728,7 @@ define(function (require, exports, module) {
         }
     }
 
-    $(MainViewManager).on("currentFileChange", _handleFileChanged);
+    MainViewManager.on("currentFileChange", _handleFileChanged);
 
     CommandManager.register(Strings.CMD_FIND,                   Commands.CMD_FIND,                  _launchFind);
     CommandManager.register(Strings.CMD_FIND_NEXT,              Commands.CMD_FIND_NEXT,             _findNext);

@@ -158,9 +158,9 @@ define(function (require, exports, module) {
      * Decision is made depending on the file extension.
      *
      * @param {!string} filePath
-     * @return ?{Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} provider
+     * @return {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>}
      */
-    function _getProvidersForPath(filePath) {
+    function getProvidersForPath(filePath) {
         
         var language = LanguageManager.getLanguageForPath(filePath).getId(),
             prefPreferredProviders,
@@ -171,6 +171,9 @@ define(function (require, exports, module) {
             installedProviders = _providers[language],
             providers,
             context = PreferencesManager._buildContext(filePath, language);
+        
+        // ensure there is an instance and that a copy is returned, always
+        installedProviders = (installedProviders && installedProviders.slice(0)) || [];
       
         prefPreferredProviders  = prefs.get("prefer", context);
         prefPreferredOnly       = prefs.get("preferredOnly", context);
@@ -219,7 +222,7 @@ define(function (require, exports, module) {
         var response = new $.Deferred(),
             results = [];
 
-        providerList = (providerList || _getProvidersForPath(file.fullPath)) || [];
+        providerList = providerList || getProvidersForPath(file.fullPath);
 
         if (!providerList.length) {
             response.resolve(null);
@@ -255,6 +258,7 @@ define(function (require, exports, module) {
                                 runPromise.resolve(scanResult);
                             })
                             .fail(function (err) {
+                                PerfUtils.finalizeMeasurement(perfTimerProvider);
                                 var errError = {
                                     pos: {line: -1, col: 0},
                                     message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
@@ -269,6 +273,7 @@ define(function (require, exports, module) {
                             PerfUtils.addMeasurement(perfTimerProvider);
                             runPromise.resolve(scanResult);
                         } catch (err) {
+                            PerfUtils.finalizeMeasurement(perfTimerProvider);
                             var errError = {
                                 pos: {line: -1, col: 0},
                                 message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
@@ -359,7 +364,7 @@ define(function (require, exports, module) {
         }
 
         var currentDoc = DocumentManager.getCurrentDocument(),
-            providerList = currentDoc && _getProvidersForPath(currentDoc.file.fullPath);
+            providerList = currentDoc && getProvidersForPath(currentDoc.file.fullPath);
 
         if (providerList && providerList.length) {
             var numProblems = 0;
@@ -502,11 +507,11 @@ define(function (require, exports, module) {
     function updateListeners() {
         if (_enabled) {
             // register our event listeners
-            $(MainViewManager)
+            MainViewManager
                 .on("currentFileChange.codeInspection", function () {
                     run();
                 });
-            $(DocumentManager)
+            DocumentManager
                 .on("currentDocumentLanguageChanged.codeInspection", function () {
                     run();
                 })
@@ -516,8 +521,8 @@ define(function (require, exports, module) {
                     }
                 });
         } else {
-            $(DocumentManager).off(".codeInspection");
-            $(MainViewManager).off(".codeInspection");
+            DocumentManager.off(".codeInspection");
+            MainViewManager.off(".codeInspection");
         }
     }
 
@@ -581,7 +586,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Command to go to the first Error/Warning */
+    /** Command to go to the first Problem */
     function handleGotoFirstProblem() {
         run();
         if (_gotoEnabled) {
@@ -629,7 +634,7 @@ define(function (require, exports, module) {
                     $selectedRow.nextUntil(".inspector-section").toggle();
 
                     var $triangle = $(".disclosure-triangle", $selectedRow);
-                    $triangle.toggleClass("expanded").toggleClass("collapsed");
+                    $triangle.toggleClass("expanded");
                 } else {
                     // This is a problem marker row, show the result on click
                     // Grab the required position data
@@ -668,13 +673,13 @@ define(function (require, exports, module) {
 
     // Testing
     exports._unregisterAll          = _unregisterAll;
-    exports._getProvidersForPath    = _getProvidersForPath;
     exports._PREF_ASYNC_TIMEOUT     = PREF_ASYNC_TIMEOUT;
 
     // Public API
-    exports.register       = register;
-    exports.Type           = Type;
-    exports.toggleEnabled  = toggleEnabled;
-    exports.inspectFile    = inspectFile;
-    exports.requestRun     = run;
+    exports.register            = register;
+    exports.Type                = Type;
+    exports.toggleEnabled       = toggleEnabled;
+    exports.inspectFile         = inspectFile;
+    exports.requestRun          = run;
+    exports.getProvidersForPath = getProvidersForPath;
 });

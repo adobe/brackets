@@ -38,8 +38,8 @@
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than
  *      a project being opened (e.g. from the Refresh command)
  *
- * These are jQuery events, so to listen for them you do something like this:
- *    $(ProjectManager).on("eventname", handler);
+ * To listen for events, do something like this: (see EventDispatcher for details on this pattern)
+ *    ProjectManager.on("eventname", handler);
  */
 define(function (require, exports, module) {
     "use strict";
@@ -50,6 +50,7 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
+        Async               = require("utils/Async"),
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -58,7 +59,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
-        DeprecationWarning  = require("utils/DeprecationWarning"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         LanguageManager     = require("language/LanguageManager"),
         Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
@@ -71,7 +72,8 @@ define(function (require, exports, module) {
         Urls                = require("i18n!nls/urls"),
         FileSyncManager     = require("project/FileSyncManager"),
         ProjectModel        = require("project/ProjectModel"),
-        FileTreeView        = require("project/FileTreeView");
+        FileTreeView        = require("project/FileTreeView"),
+        ViewUtils           = require("utils/ViewUtils");
 
     /**
      * @private
@@ -95,6 +97,7 @@ define(function (require, exports, module) {
         _fileSystemRename,
         _showErrorDialog,
         _saveTreeState,
+        renameItemInline,
         _renderTree;
 
     /**
@@ -120,6 +123,15 @@ define(function (require, exports, module) {
      * @type {jQueryObject}
      */
     var $projectTreeContainer;
+    
+    /**
+     * @private
+     * 
+     * Reference to the container of the React component. Everything in this
+     * node is managed by React.
+     * @type {Element}
+     */
+    var fileTreeViewContainer;
 
     /**
      * @private
@@ -176,6 +188,21 @@ define(function (require, exports, module) {
             }
         }, 10);
     }
+    
+    /**
+     * @private
+     * 
+     * Reverts to the previous selection (useful if there's an error).
+     * 
+     * @param {string|File} previousPath The previously selected path.
+     * @param {boolean} switchToWorkingSet True if we need to switch focus to the Working Set
+     */
+    function _revertSelection(previousPath, switchToWorkingSet) {
+        model.setSelected(previousPath);
+        if (switchToWorkingSet) {
+            FileViewController.setFileViewFocus(FileViewController.WORKING_SET_VIEW);
+        }
+    }
 
     /**
      * @constructor
@@ -214,9 +241,9 @@ define(function (require, exports, module) {
         // activity.
         this.model.on(ProjectModel.EVENT_SHOULD_SELECT, function (e, data) {
             if (data.add) {
-                FileViewController.openFileAndAddToWorkingSet(data.path);
+                FileViewController.openFileAndAddToWorkingSet(data.path).fail(_.partial(_revertSelection, data.previousPath, !data.hadFocus));
             } else {
-                FileViewController.openAndSelectDocument(data.path, FileViewController.PROJECT_MANAGER);
+                FileViewController.openAndSelectDocument(data.path, FileViewController.PROJECT_MANAGER).fail(_.partial(_revertSelection, data.previousPath, !data.hadFocus));
             }
         });
 
@@ -268,7 +295,11 @@ define(function (require, exports, module) {
      * See `ProjectModel.startRename`
      */
     ActionCreator.prototype.startRename = function (path) {
-        return this.model.startRename(path);
+        // This is very not Flux-like, which is a sign that Flux may not be the
+        // right choice here *or* that this architecture needs to evolve subtly
+        // in how errors are reported (more like the create case).
+        // See #9284.
+        renameItemInline(path);
     };
 
     /**
@@ -372,27 +403,26 @@ define(function (require, exports, module) {
     /**
      * @private
      *
+     * Handler for changes in the focus between working set and file tree view.
+     */
+    function _fileViewControllerChange() {
+        actionCreator.setFocused(_hasFileSelectionFocus());
+        _renderTree();
+    }
+
+    /**
+     * @private
+     *
      * Handler for changes in document selection.
      */
     function _documentSelectionFocusChange() {
         var curFullPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE);
         if (curFullPath && _hasFileSelectionFocus()) {
             actionCreator.setSelected(curFullPath, true);
-            actionCreator.setFocused(true);
         } else {
             actionCreator.setSelected(null);
-            actionCreator.setFocused(false);
         }
-    }
-
-    /**
-     * @private
-     *
-     * Handler for changes in the focus between working set and file tree view.
-     */
-    function _fileViewControllerChange() {
-        actionCreator.setFocused(_hasFileSelectionFocus());
-        $projectTreeContainer.trigger("scroll");
+        _fileViewControllerChange();
     }
 
     /**
@@ -576,17 +606,6 @@ define(function (require, exports, module) {
     };
 
     /**
-     * @deprecated Use LanguageManager.getLanguageForPath(fullPath).isBinary()
-     * Returns true if fileName's extension doesn't belong to binary (e.g. archived)
-     * @param {string} fileName
-     * @return {boolean}
-     */
-    function isBinaryFile(fileName) {
-        DeprecationWarning.deprecationWarning("ProjectManager.isBinaryFile() called for " + fileName + ". Use LanguageManager.getLanguageForPath(fileName).isBinary() instead.");
-        return LanguageManager.getLanguageForPath(fileName).isBinary();
-    }
-
-    /**
      * @private
      *
      * Rerender the file tree view.
@@ -598,7 +617,8 @@ define(function (require, exports, module) {
         if (!projectRoot) {
             return;
         }
-        FileTreeView.render($projectTreeContainer[0], model._viewModel, projectRoot, actionCreator, forceRender);
+        model.setScrollerInfo($projectTreeContainer[0].scrollWidth, $projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
+        FileTreeView.render(fileTreeViewContainer, model._viewModel, projectRoot, actionCreator, forceRender, brackets.platform);
     };
 
     /**
@@ -646,6 +666,53 @@ define(function (require, exports, module) {
         } else {
             return path;
         }
+    }
+
+    /**
+     * After failing to load a project, this function determines which project path to fallback to.
+     * @return {$.Promise} Promise that resolves to a project path {string}
+     */
+    function _getFallbackProjectPath() {
+        var fallbackPaths = [],
+            recentProjects = PreferencesManager.getViewState("recentProjects") || [],
+            deferred = new $.Deferred();
+
+        // Build ordered fallback path array
+        if (recentProjects.length > 1) {
+            // *Most* recent project is the one that just failed to load, so use second most recent
+            fallbackPaths.push(recentProjects[1]);
+        }
+
+        // Next is Getting Started project
+        fallbackPaths.push(_getWelcomeProjectPath());
+
+        // Helper func for Async.firstSequentially()
+        function processItem(path) {
+            var deferred = new $.Deferred(),
+                fileEntry = FileSystem.getDirectoryForPath(path);
+
+            fileEntry.exists(function (err, exists) {
+                if (!err && exists) {
+                    deferred.resolve();
+                } else {
+                    deferred.reject();
+                }
+            });
+            
+            return deferred.promise();
+        }
+
+        // Find first path that exists
+        Async.firstSequentially(fallbackPaths, processItem)
+            .done(function (fallbackPath) {
+                deferred.resolve(fallbackPath);
+            })
+            .fail(function () {
+                // Last resort is Brackets source folder which is guaranteed to exist
+                deferred.resolve(FileUtils.getNativeBracketsDirectoryPath());
+            });
+        
+        return deferred.promise();
     }
 
     /**
@@ -754,7 +821,7 @@ define(function (require, exports, module) {
 
             // About to close current project (if any)
             if (model.projectRoot) {
-                $(exports).triggerHandler("beforeProjectClose", model.projectRoot);
+                exports.trigger("beforeProjectClose", model.projectRoot);
             }
 
             // close all the old files
@@ -765,7 +832,7 @@ define(function (require, exports, module) {
                 if (model.projectRoot) {
                     LanguageManager._resetPathLanguageOverrides();
                     PreferencesManager._reloadUserPrefs(model.projectRoot);
-                    $(exports).triggerHandler("projectClose", model.projectRoot);
+                    exports.trigger("projectClose", model.projectRoot);
                 }
 
                 startLoad.resolve();
@@ -815,18 +882,17 @@ define(function (require, exports, module) {
 
                             if (projectRootChanged) {
                                 // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
-                                var promises = [];
-                                $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [model.projectRoot]);
-                                $.when.apply($, promises).then(result.resolve, result.reject);
+                                exports.trigger("projectOpen", model.projectRoot);
+                                result.resolve();
                             } else {
-                                $(exports).triggerHandler("projectRefresh", model.projectRoot);
+                                exports.trigger("projectRefresh", model.projectRoot);
                                 result.resolve();
                             }
                             PerfUtils.addMeasurement(perfTimerName);
                         });
                     } else {
                         console.log("error loading project");
-                        _showErrorDialog(ERR_TYPE_LOADING_PROJECT_NATIVE, null, rootPath, err || FileSystemError.NOT_FOUND)
+                        _showErrorDialog(ERR_TYPE_LOADING_PROJECT_NATIVE, true, err || FileSystemError.NOT_FOUND, rootPath)
                             .done(function () {
                                 // Reset _projectRoot to null so that the following _loadProject call won't
                                 // run the 'beforeProjectClose' event a second time on the original project,
@@ -837,11 +903,13 @@ define(function (require, exports, module) {
                                 // project directory.
                                 // TODO (issue #267): When Brackets supports having no project directory
                                 // defined this code will need to change
-                                _loadProject(_getWelcomeProjectPath()).always(function () {
-                                    // Make sure not to reject the original deferred until the fallback
-                                    // project is loaded, so we don't violate expectations that there is always
-                                    // a current project before continuing after _loadProject().
-                                    result.reject();
+                                _getFallbackProjectPath().done(function (path) {
+                                    _loadProject(path).always(function () {
+                                        // Make sure not to reject the original deferred until the fallback
+                                        // project is loaded, so we don't violate expectations that there is always
+                                        // a current project before continuing after _loadProject().
+                                        result.reject();
+                                    });
                                 });
                             });
                     }
@@ -853,21 +921,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @private
-     * @type {?$.Promise} Resolves when the currently running instance of
-     *      _refreshFileTreeInternal completes, or null if there is no currently
-     *      running instance.
-     */
-    var _refreshFileTreePromise = null;
-
-    /**
-     * @type {boolean} If refreshFileTree is called before _refreshFileTreePromise
-     *      has resolved then _refreshPending is set, which indicates that
-     *      refreshFileTree should be called again once the promise resolves.
-     */
-    var _refreshPending = false;
-
-    /**
      * @const
      * @private
      * @type {number} Minimum delay in milliseconds between calls to refreshFileTree
@@ -876,38 +929,16 @@ define(function (require, exports, module) {
 
     /**
      * Refresh the project's file tree, maintaining the current selection.
-     *
-     * @return {$.Promise} A promise object that will be resolved when the
-     *  project tree is reloaded, or rejected if the project path
-     *  fails to reload. If the previous selected entry is not found,
-     *  the promise is still resolved.
+     * 
+     * Note that the original implementation of this returned a promise to be resolved when the refresh is complete.
+     * That use is deprecated and `refreshFileTree` is now a "fire and forget" kind of function.
      */
-    function refreshFileTree() {
-        if (!_refreshFileTreePromise) {
-            var internalRefreshPromise  = model.refresh(),
-                deferred                = new $.Deferred();
-
-            _refreshFileTreePromise = deferred.promise();
-
-            _refreshFileTreePromise.always(function () {
-                _refreshFileTreePromise = null;
-
-                if (_refreshPending) {
-                    _refreshPending = false;
-                    refreshFileTree();
-                }
-            });
-
-            // Wait at least one second before resolving the promise
-            window.setTimeout(function () {
-                internalRefreshPromise.then(deferred.resolve, deferred.reject);
-            }, _refreshDelay);
-        } else {
-            _refreshPending = true;
-        }
-
-        return _refreshFileTreePromise;
-    }
+    var refreshFileTree = function refreshFileTree() {
+        FileSystem.clearAllCaches();
+        return new $.Deferred().resolve().promise();
+    };
+    
+    refreshFileTree = _.debounce(refreshFileTree, _refreshDelay);
 
     /**
      * Expands tree nodes to show the given file or folder and selects it. Silently no-ops if the
@@ -1058,6 +1089,20 @@ define(function (require, exports, module) {
         FileSyncManager.syncOpenDocuments();
 
         model.handleFSEvent(entry, added, removed);
+        
+        // @TODO: DocumentManager should implement its own fsChange  handler
+        //          we can clean up the calls to DocumentManager.notifyPathDeleted
+        //          and privatize DocumentManager.notifyPathDeleted as well
+        //        We can also remove the _fileSystemRename handler below and move
+        //          it to DocumentManager
+        if (removed) {
+            removed.forEach(function (file) {
+                // The call to syncOpenDocuemnts above will not nofify
+                //  document manager about deleted images that are 
+                //  not in the working set -- try to clean that up here
+                DocumentManager.notifyPathDeleted(file.fullPath);
+            });
+        }
     };
 
     /**
@@ -1089,16 +1134,6 @@ define(function (require, exports, module) {
         _renderTree();
     }
     
-    /**
-     * @private
-     * 
-     * Updates the scroller positioning on scroll or sidebar changes.
-     */
-    function _updateScrollerInfo() {
-        model.setScrollerInfo($projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
-    }
-    
-    
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
@@ -1106,25 +1141,38 @@ define(function (require, exports, module) {
         $projectTreeContainer.css("overflow", "auto");
         $projectTreeContainer.css("position", "relative");
         
+        fileTreeViewContainer = $("<div>").appendTo($projectTreeContainer)[0];
+        
         model.setSelectionWidth($projectTreeContainer.width());
         
         $(".main-view").click(function (jqEvent) {
-            if (jqEvent.target.className !== "rename-input") {
+            if (!jqEvent.target.classList.contains("jstree-rename-input")) {
                 forceFinishRename();
                 actionCreator.setContext(null);
             }
         });
+        
+        $("#working-set-list-container").on("contentChanged", function () {
+            $projectTreeContainer.trigger("contentChanged");
+        });
 
-        $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuOpen", function () {
+        Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuOpen", function () {
             actionCreator.restoreContext();
         });
 
-        $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuClose", function () {
-            actionCreator.setContext(null);
+        Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuClose", function () {
+            model.setContext(null, false, true);
         });
 
         $projectTreeContainer.on("contextmenu", function () {
             forceFinishRename();
+        });
+        
+        // When a context menu item is selected, we need to clear the context
+        // because we don't get a beforeContextMenuClose event since Bootstrap
+        // handles this directly.
+        $("#project-context-menu").on("click.dropdown-menu", function () {
+            model.setContext(null, true);
         });
 
         $projectTreeContainer.on("scroll", function () {
@@ -1133,10 +1181,12 @@ define(function (require, exports, module) {
                 Menus.closeAll();
                 actionCreator.setContext(null);
             }
-            _updateScrollerInfo();
+            _renderTree();
         });
         
         _renderTree();
+        
+        ViewUtils.addScrollerShadow($projectTreeContainer[0]);
     });
 
     /**
@@ -1170,6 +1220,9 @@ define(function (require, exports, module) {
         return null;
     }
 
+    
+    EventDispatcher.makeEventDispatcher(exports);
+
     // Init default project path to welcome project
     PreferencesManager.stateManager.definePreference("projectPath", "string", _getWelcomeProjectPath());
 
@@ -1180,15 +1233,15 @@ define(function (require, exports, module) {
         "projectBaseUrl_": "user"
     }, true, _checkPreferencePrefix);
 
-    $(exports).on("projectOpen", _reloadProjectPreferencesScope);
-    $(exports).on("projectOpen", _saveProjectPath);
+    exports.on("projectOpen", _reloadProjectPreferencesScope);
+    exports.on("projectOpen", _saveProjectPath);
+    exports.on("beforeAppClose", _unwatchProjectRoot);
 
-    // Event Handlers
-    $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
-    $(FileViewController).on("fileViewFocusChange", _fileViewControllerChange);
-    $(MainViewManager).on("currentFileChange", _currentFileChange);
-    $(exports).on("beforeAppClose", _unwatchProjectRoot);
-
+    // Due to circular dependencies, not safe to call on() directly for other modules' events
+    EventDispatcher.on_duringInit(FileViewController, "documentSelectionFocusChange", _documentSelectionFocusChange);
+    EventDispatcher.on_duringInit(FileViewController, "fileViewFocusChange", _fileViewControllerChange);
+    EventDispatcher.on_duringInit(MainViewManager, "currentFileChange", _currentFileChange);
+    
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
@@ -1217,38 +1270,38 @@ define(function (require, exports, module) {
      * @param {FileSystemEntry} entry file or directory filesystem object to rename
      * @return {$.Promise} a promise resolved when the rename is done.
      */
-    function renameItemInline(entry) {
-        var d = new $.Deferred(),
-            isFolder = entry.isDirectory;
+    renameItemInline = function (entry) {
+        var d = new $.Deferred();
         
-        actionCreator.startRename(entry)
+        model.startRename(entry)
             .done(function () {
                 d.resolve();
             })
-            .fail(function (err) {
+            .fail(function (errorInfo) {
                 // Need to do display the error message on the next event loop turn
                 // because some errors can come up synchronously and then the dialog
                 // is not displayed.
                 window.setTimeout(function () {
-                    if (err === ProjectModel.ERROR_INVALID_FILENAME) {
-                        _showErrorDialog(ERR_TYPE_INVALID_FILENAME, isFolder, ProjectModel._invalidChars);
+                    if (errorInfo.type === ProjectModel.ERROR_INVALID_FILENAME) {
+                        _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
                     } else {
-                        var errString = err === FileSystemError.ALREADY_EXISTS ?
+                        var errString = errorInfo.type === FileSystemError.ALREADY_EXISTS ?
                                 Strings.FILE_EXISTS_ERR :
-                                FileUtils.getFileErrorString(err);
+                                FileUtils.getFileErrorString(errorInfo.type);
 
-                        _showErrorDialog(ERR_TYPE_RENAME, isFolder, errString, entry.fullPath);
+                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, errString, errorInfo.fullPath);
                     }
                 }, 10);
-                d.reject(err);
+                d.reject(errorInfo);
             });
         return d.promise();
-    }
+    };
 
     /**
      * Returns an Array of all files for this project, optionally including
      * files in the working set that are *not* under the project root. Files are
-     * filtered out by ProjectModel.shouldShow().
+     * filtered first by ProjectModel.shouldShow(), then by the custom filter
+     * argument (if one was provided). The list is unsorted.
      *
      * @param {function (File, number):boolean=} filter Optional function to filter
      *          the file list (does not filter directory traversal). API matches Array.filter().
@@ -1289,29 +1342,28 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Adds an icon provider. The icon provider is a function which takes a data object and
-     * returns a React.DOM.ins instance, a string, a DOM node or a jQuery instance
-     * for the icons within the tree.
+     * Adds an icon provider. The callback is invoked before each tree item is rendered, and can
+     * return content to prepend to the item.
      *
-     * The data object contains:
-     *
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode|React.DOM.ins} callback
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
+     * Return a string of HTML text, a React.DOM.ins instance, a jQuery object, or a DOM node; or undefined
+     * to prepend nothing.
      */
     function addIconProvider(callback) {
         return FileTreeView.addIconProvider(callback);
     }
 
     /**
-     * Adds an additional classes provider which can return classes that should be added to a
-     * given file or directory in the tree.
+     * Adds a CSS class provider, invoked before each tree item is rendered.
      *
-     * The data object contains:
-     *
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string} callback
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
+     * Return a string containing space-separated CSS class(es) to add, or undefined to leave CSS unchanged.
      */
     function addClassesProvider(callback) {
         return FileTreeView.addClassesProvider(callback);
@@ -1326,10 +1378,10 @@ define(function (require, exports, module) {
     function rerenderTree() {
         _renderTree(true);
     }
-
+    
+    
     // Private API helpful in testing
     exports._actionCreator                 = actionCreator;
-    
     
     // Private API for use with SidebarView
     exports._setFileTreeSelectionWidth    = _setFileTreeSelectionWidth;
@@ -1341,7 +1393,6 @@ define(function (require, exports, module) {
     exports.isWithinProject               = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow                    = ProjectModel.shouldShow;
-    exports.isBinaryFile                  = isBinaryFile;
     exports.openProject                   = openProject;
     exports.getSelectedItem               = getSelectedItem;
     exports.getContext                    = getContext;
