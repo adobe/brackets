@@ -235,7 +235,7 @@ define(function (require, exports, module) {
             });
         });
         
-        this.trigger("errorStatusChanged", [!!this.errors.length]);
+        this.trigger("errorStatusChanged", !!this.errors.length);
     };
     
     /**
@@ -271,7 +271,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     LiveDocument.prototype.isHighlightEnabled = function () {
-        return PreferencesManager.getViewState("livedev2.highlight");
+        return PreferencesManager.getViewState("livedev.highlight");
     };
     
     /**
