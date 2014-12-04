@@ -162,14 +162,16 @@ define(function (require, exports, module) {
      */
     function getProvidersForPath(filePath) {
         var language = LanguageManager.getLanguageForPath(filePath).getId(),
-            prefPreferredProviders,
+            installedProviders = _providers[language],
+            context = PreferencesManager._buildContext(filePath, language);
+
+        var prefPreferredProviders,
             prefPreferredOnly,
             prefFirstOnly,
             preferredProviderNames,
-            preferredProviders,
-            installedProviders = _providers[language],
-            providers,
-            context = PreferencesManager._buildContext(filePath, language);
+            preferredProviders;
+        
+        var providers;
         
         // ensure there is an instance and that a copy is returned, always
         installedProviders = (installedProviders && installedProviders.slice(0)) || [];
