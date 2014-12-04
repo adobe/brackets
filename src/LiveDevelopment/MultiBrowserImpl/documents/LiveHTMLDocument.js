@@ -122,7 +122,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the instrumented version of the file. 
-     * @returns {{body: string}}
+     * @return {body: string} instrumented doc
      */
     LiveHTMLDocument.prototype.getResponseData = function (enabled) {
         var body;

@@ -766,7 +766,7 @@ define(function (require, exports, module) {
     /**
      * Sets the current transport mechanism to be used by the live development protocol
      * (e.g. socket server, iframe postMessage, etc.)
-     * @param {{launch: function(string), send: function(number|Array.<number>, string), close: function(number), getRemoteScript: function(): ?string}} transport
+     * @param {launch: function(string), send: function(number|Array.<number>, string), close: function(number), getRemoteScript: function(): ?string} transport
      *      The low-level transport. Must provide the following methods:
      *
      *      launch(url): Opens the url in the target browser.
