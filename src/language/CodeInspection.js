@@ -183,10 +183,9 @@ define(function (require, exports, module) {
         if (prefPreferredProviders) {
             preferredProviderNames = prefPreferredProviders.split(/\s*,\s*/);
             preferredProviders = _.reduce(preferredProviderNames, function (result, key) {
-                var idx = -1;
-                idx = _.findIndex(installedProviders, function (elem) { return elem.name === key; });
-                if (idx > -1) {
-                    result.push(installedProviders[idx]);
+                var provider = _.find(installedProviders, {name: key});
+                if (provider) {
+                    result.push(provider);
                 }
                 return result;
             }, []);
