@@ -75,9 +75,12 @@ define(function (require, exports, module) {
     /**
      * Constants for the preferences defined in this file.
      */
-    var PREF_ENABLED = "enabled",
-        PREF_COLLAPSED = "collapsed",
-        PREF_ASYNC_TIMEOUT = "asyncTimeout";
+    var PREF_ENABLED            = "enabled",
+        PREF_COLLAPSED          = "collapsed",
+        PREF_ASYNC_TIMEOUT      = "asyncTimeout",
+        PREF_PREFER_PROVIDERS   = "prefer",
+        PREF_PREFERRED_ONLY     = "preferredOnly",
+        PREF_FIRST_ONLY         = "firstOnly";
     
     var prefs = PreferencesManager.getExtensionPrefs("linting");
     
@@ -161,16 +164,16 @@ define(function (require, exports, module) {
      * @return {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>}
      */
     function getProvidersForPath(filePath) {
-        var language = LanguageManager.getLanguageForPath(filePath).getId(),
-            installedProviders = _providers[language],
+        var language            = LanguageManager.getLanguageForPath(filePath).getId(),
+            context             = PreferencesManager._buildContext(filePath, language),
+            installedProviders  = _providers[language],
             preferredProviders,
-            context = PreferencesManager._buildContext(filePath, language);
 
-        var prefPreferredProviderNames  = prefs.get("prefer", context),
-            prefPreferredOnly           = prefs.get("preferredOnly", context),
-            prefFirstOnly               = prefs.get("firstOnly", context);
+            prefPreferredProviderNames  = prefs.get(PREF_PREFER_PROVIDERS, context),
+            prefPreferredOnly           = prefs.get(PREF_PREFERRED_ONLY, context),
+            prefFirstOnly               = prefs.get(PREF_FIRST_ONLY, context),
         
-        var providers;
+            providers;
         
         // ensure there is an instance and that a copy is returned, always
         installedProviders = (installedProviders && installedProviders.slice(0)) || [];
@@ -607,7 +610,7 @@ define(function (require, exports, module) {
         });
     
     prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000);
-    
+        
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         // Create bottom panel to list error details
@@ -671,6 +674,9 @@ define(function (require, exports, module) {
     // Testing
     exports._unregisterAll          = _unregisterAll;
     exports._PREF_ASYNC_TIMEOUT     = PREF_ASYNC_TIMEOUT;
+    exports._PREF_PREFER_PROVIDERS  = PREF_PREFER_PROVIDERS;
+    exports._PREF_PREFERRED_ONLY    = PREF_PREFERRED_ONLY;
+    exports._PREF_FIRST_ONLY        = PREF_FIRST_ONLY;
 
     // Public API
     exports.register            = register;
