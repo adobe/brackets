@@ -177,7 +177,7 @@ define(function (require, exports, module) {
         
         if (prefPreferredProviderNames && prefPreferredProviderNames.length) {
             if (typeof prefPreferredProviderNames === "string") {
-                prefPreferredProviderNames = [prefPreferredProviderNames]
+                prefPreferredProviderNames = [prefPreferredProviderNames];
             }
             preferredProviders = _.reduce(prefPreferredProviderNames, function (result, key) {
                 var provider = _.find(installedProviders, {name: key});
