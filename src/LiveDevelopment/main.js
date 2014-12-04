@@ -68,9 +68,8 @@ define(function main(require, exports, module) {
         }
     };
     // Status labels/styles are ordered: error, not connected, progress1, progress2, connected.
-    var _statusTooltip,
-        _statusStyle,
-        _allStatusStyles;
+    var _status,
+        _allStatusStyles = ["warning", "info", "success", "out-of-sync", "sync-error"].join(" ");
 
     var _$btnGoLive; // reference to the GoLive button
     
@@ -180,7 +179,7 @@ define(function main(require, exports, module) {
             // status starts at -1 (error), so add one when looking up name and style
             // See the comments at the top of LiveDevelopment.js for details on the
             // various status codes.
-            _setLabel(_$btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
+            _setLabel(_$btnGoLive, null, _status[status + 1].style, _status[status + 1].tooltip);
             _showStatusChangeReason(reason);
             if (config.autoconnect) {
                 window.sessionStorage.setItem("live.enabled", status === 3);
@@ -188,7 +187,7 @@ define(function main(require, exports, module) {
         });
 
         // Initialize tooltip for 'not connected' state
-        _setLabel(_$btnGoLive, null, _statusStyle[1], _statusTooltip[1]);
+        _setLabel(_$btnGoLive, null, _status[1].style, _status[1].tooltip);
     }
     
     /** Maintains state of the Live Preview menu item */
@@ -226,31 +225,28 @@ define(function main(require, exports, module) {
             // set implemenation
             LiveDevImpl = MultiBrowserLiveDev;
             // update styles for UI status 
-            _statusTooltip = [
-                Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
-                Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
-                Strings.LIVE_DEV_STATUS_TIP_PROGRESS1,
-                Strings.LIVE_DEV_STATUS_TIP_CONNECTED,
-                Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC,
-                Strings.LIVE_DEV_STATUS_TIP_SYNC_ERROR,
-                Strings.LIVE_DEV_STATUS_TIP_PROGRESS1,
-                Strings.LIVE_DEV_STATUS_TIP_PROGRESS1
+            _status = [
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "warning" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_CONNECTED, style: "success" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC, style: "out-of-sync" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_SYNC_ERROR, style: "sync-error" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" }
             ];
-            _statusStyle = ["warning", "", "info", "success", "out-of-sync", "sync-error", "info", "info"];  // Status indicator's CSS class
         } else {
             LiveDevImpl = LiveDevelopment;
-            _statusTooltip = [
-                Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
-                Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
-                Strings.LIVE_DEV_STATUS_TIP_PROGRESS1,
-                Strings.LIVE_DEV_STATUS_TIP_PROGRESS2,
-                Strings.LIVE_DEV_STATUS_TIP_CONNECTED,
-                Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC,
-                Strings.LIVE_DEV_STATUS_TIP_SYNC_ERROR
+            _status = [
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "warning" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS2, style: "info" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_CONNECTED, style: "success" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC, style: "out-of-sync" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_SYNC_ERROR, style: "sync-error" }
             ];
-            _statusStyle = ["warning", "", "info", "info", "success", "out-of-sync", "sync-error"];  // Status indicator's CSS class
         }
-        _allStatusStyles = _statusStyle.join(" ");
     }
     
     /** Setup window references to useful LiveDevelopment modules */
