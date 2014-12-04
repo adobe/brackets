@@ -323,12 +323,12 @@ define(function (require, exports, module) {
                 runs(function () {
                     var providers;
                     
-                    setAtLocation("prefer", "html3, html4");
+                    setAtLocation("prefer", ["html3", "html4"]);
                     providers = CodeInspection.getProvidersForPath("my/index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html3", "html4", "html1", "html2", "html5"]);
 
-                    setAtLocation("prefer", "html5,       html6");
+                    setAtLocation("prefer", ["html5", "html6"]);
                     providers = CodeInspection.getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html5", "html1", "html2", "html3", "html4"]);
@@ -338,7 +338,7 @@ define(function (require, exports, module) {
                     expect(providers).toNotBe(null);
                     expect(_.pluck(providers, "name")).toEqual(["html5"]);
 
-                    setAtLocation("prefer", " html19, html100  ");
+                    setAtLocation("prefer", ["html19", "html100"]);
                     setAtLocation("firstOnly", true);
                     providers = CodeInspection.getProvidersForPath("index.html");
                     expect(providers).toNotBe(null);
@@ -348,7 +348,7 @@ define(function (require, exports, module) {
                     providers = CodeInspection.getProvidersForPath("test.html");
                     expect(providers).toEqual([]);
 
-                    setAtLocation("prefer", "html2,    html1");
+                    setAtLocation("prefer", ["html2", "html1"]);
                     setAtLocation("preferredOnly", true);
                     setAtLocation("firstOnly", false);
                     providers = CodeInspection.getProvidersForPath("c:/temp/another.html");

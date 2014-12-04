@@ -163,26 +163,20 @@ define(function (require, exports, module) {
     function getProvidersForPath(filePath) {
         var language = LanguageManager.getLanguageForPath(filePath).getId(),
             installedProviders = _providers[language],
+            preferredProviders,
             context = PreferencesManager._buildContext(filePath, language);
 
-        var prefPreferredProviders,
-            prefPreferredOnly,
-            prefFirstOnly,
-            preferredProviderNames,
-            preferredProviders;
+        var prefPreferredProviderNames  = prefs.get("prefer", context),
+            prefPreferredOnly           = prefs.get("preferredOnly", context),
+            prefFirstOnly               = prefs.get("firstOnly", context);
         
         var providers;
         
         // ensure there is an instance and that a copy is returned, always
         installedProviders = (installedProviders && installedProviders.slice(0)) || [];
-      
-        prefPreferredProviders  = prefs.get("prefer", context);
-        prefPreferredOnly       = prefs.get("preferredOnly", context);
-        prefFirstOnly           = prefs.get("firstOnly", context);
-
-        if (prefPreferredProviders) {
-            preferredProviderNames = prefPreferredProviders.split(/\s*,\s*/);
-            preferredProviders = _.reduce(preferredProviderNames, function (result, key) {
+        
+        if (prefPreferredProviderNames instanceof Array) {
+            preferredProviders = _.reduce(prefPreferredProviderNames, function (result, key) {
                 var provider = _.find(installedProviders, {name: key});
                 if (provider) {
                     result.push(provider);
