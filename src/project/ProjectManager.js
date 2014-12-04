@@ -1022,13 +1022,7 @@ define(function (require, exports, module) {
      *  filename.
      */
     function createNewItem(baseDir, initialName, skipRename, isFolder) {
-        if (typeof baseDir === "string") {
-            if (_.last(baseDir) !== "/") {
-                baseDir += "/";
-            }
-        } else {
-            baseDir = baseDir.fullPath;
-        }
+        baseDir = model.getDirectoryInProject(baseDir);
 
         if (skipRename) {
             return model.createAtPath(baseDir + initialName, isFolder);

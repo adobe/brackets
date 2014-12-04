@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileTreeViewModel   = require("project/FileTreeViewModel"),
-        Async               = require("utils/Async");
+        Async               = require("utils/Async"),
+        PerfUtils           = require("utils/PerfUtils");
 
     // Constants
     var EVENT_CHANGE            = "change",
@@ -373,6 +374,30 @@ define(function (require, exports, module) {
         }
         return absPath;
     };
+    
+    /**
+     * Returns a valid directory within the project, either the path (or Directory object)
+     * provided or the project root.
+     * 
+     * @param {string|Directory} path Directory path to verify against the project
+     * @return {string} A directory path within the project.
+     */
+    ProjectModel.prototype.getDirectoryInProject = function (path) {
+        if (path && typeof path === "string") {
+            if (_.last(path) !== "/") {
+                path += "/";
+            }
+        } else if (path && path.isDirectory) {
+            path = path.fullPath;
+        } else {
+            path = null;
+        }
+        
+        if (!path || (typeof path !== "string") || !this.isWithinProject(path)) {
+            path = this.projectRoot.fullPath;
+        }
+        return path;
+    };
 
     /**
      * @private
@@ -401,11 +426,16 @@ define(function (require, exports, module) {
                 };
 
             this._allFilesCachePromise = deferred.promise();
+            
+            var projectIndexTimer = PerfUtils.markStart("Creating project files cache: " +
+                                                        this.projectRoot.fullPath);
 
             this.projectRoot.visit(allFilesVisitor, function (err) {
                 if (err) {
+                    PerfUtils.finalizeMeasurement(projectIndexTimer);
                     deferred.reject(err);
                 } else {
+                    PerfUtils.addMeasurement(projectIndexTimer);
                     deferred.resolve(allFiles);
                 }
             }.bind(this));
