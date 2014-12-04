@@ -34,13 +34,9 @@ define(function (require, exports, module) {
 
         var testWindow,
             brackets,
-            CommandManager,
-            Commands,
-            EditorManager,
             DocumentManager,
             LiveDevelopment,
-            LiveDevProtocol,
-            PreferencesManager;
+            LiveDevProtocol;
         
         var testFolder = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-MultiBrowser-test-files"),
             allSpacesRE = /\s+/gi;
@@ -57,13 +53,9 @@ define(function (require, exports, module) {
                         testWindow = w;
                         // Load module instances from brackets.test
                         brackets = testWindow.brackets;
-                        CommandManager = brackets.test.CommandManager;
-                        Commands = brackets.test.Commands;
-                        EditorManager = brackets.test.EditorManager;
                         DocumentManager = brackets.test.DocumentManager;
                         LiveDevelopment = brackets.test.LiveDevMultiBrowser;
                         LiveDevProtocol = require("LiveDevelopment/MultiBrowserImpl/protocol/LiveDevProtocol");
-                        PreferencesManager = brackets.test.PreferencesManager;
                     });
                 });
 
