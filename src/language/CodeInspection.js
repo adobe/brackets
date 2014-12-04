@@ -175,7 +175,10 @@ define(function (require, exports, module) {
         // ensure there is an instance and that a copy is returned, always
         installedProviders = (installedProviders && installedProviders.slice(0)) || [];
         
-        if (prefPreferredProviderNames instanceof Array) {
+        if (prefPreferredProviderNames && prefPreferredProviderNames.length) {
+            if (typeof prefPreferredProviderNames === "string") {
+                prefPreferredProviderNames = [prefPreferredProviderNames]
+            }
             preferredProviders = _.reduce(prefPreferredProviderNames, function (result, key) {
                 var provider = _.find(installedProviders, {name: key});
                 if (provider) {
