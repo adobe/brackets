@@ -124,7 +124,7 @@ define(function (require, exports, module) {
      * Returns the instrumented version of the file. By default, just returns
      * the document text. Should be overridden by subclasses for cases if instrumentation
      * is necessary for the subclass's document type.
-     * @return {body: string} document body
+     * @return {{body: string}} document body
      */
     LiveDocument.prototype.getResponseData = function (enabled) {
         return {

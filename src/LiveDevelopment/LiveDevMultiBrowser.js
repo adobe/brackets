@@ -766,26 +766,27 @@ define(function (require, exports, module) {
     /**
      * Sets the current transport mechanism to be used by the live development protocol
      * (e.g. socket server, iframe postMessage, etc.)
-     * @param {launch: function(string), send: function(number|Array.<number>, string), close: function(number), getRemoteScript: function(): ?string} transport
-     *      The low-level transport. Must provide the following methods:
+     * The low-level transport. Must provide the following methods:
      *
-     *      launch(url): Opens the url in the target browser.
-     *      send(idOrArray, string): Dispatches the given protocol message (provided as a JSON string) to the given client ID
-     *          or array of client IDs. (See the "connect" message for an explanation of client IDs.)
-     *      close(id): Closes the connection to the given client ID.
-     *      getRemoteScript(): Returns a script that should be injected into the page's HTML in order to handle the remote side
-     *          of the transport. Should include the "<script>" tags. Should return null if no injection is necessary.
+     * - start(): Initiates transport (eg. creates Web Socket server).
+     * - send(idOrArray, string): Dispatches the given protocol message (provided as a JSON string) to the given client ID
+     *   or array of client IDs. (See the "connect" message for an explanation of client IDs.)
+     * - close(id): Closes the connection to the given client ID.
+     * - getRemoteScript(): Returns a script that should be injected into the page's HTML in order to handle the remote side
+     *   of the transport. Should include the "<script>" tags. Should return null if no injection is necessary.
      *
-     *      It must also dispatch the following jQuery events:
+     * It must also dispatch the following jQuery events:
      *
-     *      "connect": When a target browser connects back to the transport. Must provide two parameters: 
-     *          clientID - a unique number representing this connection
-     *          url - the URL of the page in the target browser that's connecting to us
-     *      "message": When a message is received by the transport. Must provide two parameters:
-     *          clientID - the ID of the client sending the message
-     *          message - the text of the message as a JSON string
-     *      "close": When the remote browser closes the connection. Must provide one parameter:
-     *          clientID - the ID of the client closing the connection
+     * - "connect": When a target browser connects back to the transport. Must provide two parameters: 
+     *   - clientID - a unique number representing this connection
+     *   - url - the URL of the page in the target browser that's connecting to us
+     * - "message": When a message is received by the transport. Must provide two parameters:
+     *   - clientID - the ID of the client sending the message
+     *   - message - the text of the message as a JSON string
+     * - "close": When the remote browser closes the connection. Must provide one parameter:
+     *   - clientID - the ID of the client closing the connection
+     * 
+     * @param {{launch: function(string), send: function(number|Array.<number>, string), close: function(number), getRemoteScript: function(): ?string}} transport
      */
     function setTransport(transport) {
         _protocol.setTransport(transport);
