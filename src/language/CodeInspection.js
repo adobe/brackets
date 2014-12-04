@@ -182,7 +182,7 @@ define(function (require, exports, module) {
             if (typeof prefPreferredProviderNames === "string") {
                 prefPreferredProviderNames = [prefPreferredProviderNames];
             }
-            preferredProviders = _.reduce(prefPreferredProviderNames, function (result, key) {
+            preferredProviders = prefPreferredProviderNames.reduce(function (result, key) {
                 var provider = _.find(installedProviders, {name: key});
                 if (provider) {
                     result.push(provider);
