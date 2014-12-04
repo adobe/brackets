@@ -98,6 +98,27 @@ define(function (require, exports, module) {
             it("won't create a relative path to a file outside the project", function () {
                 expect(pm.makeProjectRelativeIfPossible("/some/other/project/README.md")).toBe("/some/other/project/README.md");
             });
+            
+            it("will return a directory within the project", function () {
+                expect(pm.getDirectoryInProject("/foo/bar/project/baz/")).toBe("/foo/bar/project/baz/");
+                expect(pm.getDirectoryInProject("/foo/bar/project/baz")).toBe("/foo/bar/project/baz/");
+                expect(pm.getDirectoryInProject({
+                    fullPath: "/foo/bar/project/foo2/",
+                    isDirectory: true
+                })).toBe("/foo/bar/project/foo2/");
+            });
+            
+            it("will default to project root when getDirectoryInProject", function () {
+                expect(pm.getDirectoryInProject()).toBe("/foo/bar/project/");
+                expect(pm.getDirectoryInProject(null)).toBe("/foo/bar/project/");
+                expect(pm.getDirectoryInProject("")).toBe("/foo/bar/project/");
+                expect(pm.getDirectoryInProject({
+                    isFile: true,
+                    isDirectory: false,
+                    fullPath: "/foo/bar/project/README.txt"
+                })).toBe("/foo/bar/project/");
+                expect(pm.getDirectoryInProject("/other/project/")).toBe("/foo/bar/project/");
+            });
         });
         
         describe("All Files Cache", function () {
