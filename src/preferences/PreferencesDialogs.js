@@ -40,6 +40,14 @@ define(function (require, exports, module) {
         Strings                = require("strings"),
         SettingsDialogTemplate = require("text!htmlContent/project-settings-dialog.html");
 
+        /* New SettingsDialogTemplate with additional fields
+         * 1) Toggle auto-save feature
+         * 2) Toggle new-lines coloration feature
+         * 3) Define the location for auto-save
+         * 4) Set the duration/interval of auto-saves
+         */
+    var SettingsDialogTemplateV2 = require("text!htmlContent/project-settings-dialog-v2.html");
+
     /**
      * Validate that text string is a valid base url which should map to a server folder
      * @param {string} url
@@ -78,8 +86,12 @@ define(function (require, exports, module) {
      * @return {Dialog} A Dialog object with an internal promise that will be resolved with the ID
      *      of the clicked button when the dialog is dismissed. Never rejected.
      */
-    function showProjectPreferencesDialog(baseUrl, errorMessage) {
+    function showProjectPreferencesDialog(baseUrl, autoSave, lineColor, autoInt, autoDir, errorMessage) {
         var $baseUrlControl,
+            $autoSaveControl,
+            $lineColorControl, 
+            $autoIntControl,
+            $autoDirControl,
             dialog;
         
         // Title
@@ -95,26 +107,53 @@ define(function (require, exports, module) {
             title        : title,
             baseUrl      : baseUrl,
             errorMessage : errorMessage,
-            Strings      : Strings
+            Strings      : Strings,
+            autoSave     : autoSave,
+            lineColor    : lineColor,
+            autoInt      : autoInt,
+            autoDir      : autoDir
         };
         
-        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, templateVars));
+        // Changed the Settings Template to V2
+        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplateV2, templateVars));
         
         dialog.done(function (id) {
+
             if (id === Dialogs.DIALOG_BTN_OK) {
                 var baseUrlValue = $baseUrlControl.val();
                 var result = _validateBaseUrl(baseUrlValue);
                 if (result === "") {
-                    ProjectManager.setBaseUrl(baseUrlValue);
+                    ProjectManager.setBaseUrl(baseUrlValue); // shouldn't this be result??
                 } else {
                     // Re-invoke dialog with result (error message)
-                    showProjectPreferencesDialog(baseUrlValue, result);
+                    showProjectPreferencesDialog(baseUrlValue, autoSave, lineColor, autoInt, autoDir, result);
                 }
+
+                // additional stuff here
+                var autoSaveValue = $autoSaveControl.is(':checked');
+                var lineColorValue = $lineColorControl.is(':checked');
+                var autoIntValue = $autoIntControl.val();
+                var autoDirValue = $autoDirControl.val();
+
+                // Save everything
+                // TODO : validate data
+                ProjectManager.setFeature("autoSave", autoSaveValue);
+                ProjectManager.setFeature("lineColor", lineColorValue);
+                ProjectManager.setFeature("autoInt", autoIntValue);
+                ProjectManager.setFeature("autoDir", autoDirValue);
             }
         });
 
         // Give focus to first control
         $baseUrlControl = dialog.getElement().find(".url");
+        
+        // Additional Stuff
+        $autoSaveControl = dialog.getElement().find("#autoSave");
+        $lineColorControl = dialog.getElement().find("#lineColor");
+        $autoIntControl = dialog.getElement().find("#autoInt");
+        $autoDirControl = dialog.getElement().find("#autoDir");
+        
+        // Focus on URL
         $baseUrlControl.focus();
 
         return dialog;

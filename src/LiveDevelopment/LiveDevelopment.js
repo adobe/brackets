@@ -1269,7 +1269,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         if (showBaseUrlPrompt) {
             // Prompt for a base URL
-            PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
+            PreferencesDialogs.showProjectPreferencesDialog("", "","","","", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
                         // If base url is specifed, then re-invoke _prepareServer() to continue

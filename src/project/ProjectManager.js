@@ -470,6 +470,25 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Additional Project information
+     * General purpose
+     */
+     
+    function setFeature(name, value) {
+
+        var context = _getProjectViewStateContext();
+        value = model.setFeature(name, value);
+
+        PreferencesManager.setViewState("project."+name, value, context);
+
+    }
+
+    function getFeature(name) {
+        return model.getFeature(name);
+    }
+
+
+    /**
      * Returns true if absPath lies within the project, false otherwise.
      * Does not support paths containing ".."
      * @param {string|FileSystemEntry} absPathOrEntry
@@ -868,6 +887,15 @@ define(function (require, exports, module) {
                         _setProjectRoot(rootEntry).always(function () {
                             model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
 
+                            // Get additional preferences
+
+                            console.log(PreferencesManager.getViewState("project.autoInt", context))
+
+                            model.setFeature("autoSave", PreferencesManager.getViewState("project.autoSave", context));
+                            model.setFeature("lineColor", PreferencesManager.getViewState("project.lineColor", context));
+                            model.setFeature("autoInt", PreferencesManager.getViewState("project.autoInt", context));
+                            model.setFeature("autoDir", PreferencesManager.getViewState("project.autoDir", context));
+
                             if (projectRootChanged) {
                                 _reloadProjectPreferencesScope();
                                 PreferencesManager._setCurrentFile(rootPath);
@@ -1006,7 +1034,15 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function _projectSettings() {
-        return PreferencesDialogs.showProjectPreferencesDialog(getBaseUrl()).getPromise();
+
+        var baseUrl = getBaseUrl(),
+            autoSave = getFeature("autoSave"),
+            lineColor = getFeature("lineColor"),
+            autoInt = getFeature("autoInt"),
+            autoDir = getFeature("autoDir");
+
+
+        return PreferencesDialogs.showProjectPreferencesDialog(baseUrl, autoSave, lineColor, autoInt, autoDir).getPromise();
     }
 
     /**
@@ -1384,6 +1420,10 @@ define(function (require, exports, module) {
     exports.getProjectRoot                = getProjectRoot;
     exports.getBaseUrl                    = getBaseUrl;
     exports.setBaseUrl                    = setBaseUrl;
+
+    exports.setFeature                    = setFeature;
+    exports.getFeature                    = getFeature;
+
     exports.isWithinProject               = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow                    = ProjectModel.shouldShow;
