@@ -54,10 +54,13 @@ define(function (require, exports, module) {
     var POSITION_BOTTOM = "bottom";
     var POSITION_LEFT = "left";
     var POSITION_RIGHT = "right";
-	
+    
     // Minimum size (height or width) for autodiscovered resizable panels
     var DEFAULT_MIN_SIZE = 100;
     
+    // Constants for the preferences referred to in this file
+    var WORD_WRAP = "wordWrap";
+
     // Load dependent modules
     var AppInit                 = require("utils/AppInit"),
         EventDispatcher         = require("utils/EventDispatcher"),
@@ -135,6 +138,30 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Because of the resizing performance issue we need to make the width of the codemirror 
+     *  fixed size (3000px) in each pane to prevent rendering while resizing. 
+     * Note: Slow resizing is still there in warp mode or in horizontal split.
+     * @param {boolean} false if we want the normal width
+     */
+    function makeEditorsFixedWidth(makeFixed) {
+        var warpMode = PreferencesManager.get(WORD_WRAP);
+        if(warpMode) {
+            // we shouldn't fix it in warp mode
+            return;
+        }
+
+        var $firstPane = $("#first-pane>.pane-content>.CodeMirror");
+        var $secondPane = $("#second-pane>.pane-content>.CodeMirror");
+        if (makeFixed) {
+            $firstPane.addClass("fixedWidth");
+            $secondPane.addClass("fixedWidth");
+        } else {
+            $firstPane.removeClass("fixedWidth");
+            $secondPane.removeClass("fixedWidth");
+        }
+    }
+
+    /**
      * Adds resizing and (optionally) expand/collapse capabilities to a given html element. The element's size
      * & visibility are automatically saved & restored as a view-state preference.
      *
@@ -182,7 +209,7 @@ define(function (require, exports, module) {
             $resizableElement   = $($element.find(".resizable-content:first")[0]),
             $body               = $(window.document.body),
             elementID           = $element.attr("id"),
-            elementPrefs        = PreferencesManager.getViewState(elementID) || {},
+            elementPrefs        = PreferencesManager.getViewState(elementID) || {},
             animationRequest    = null,
             directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
             directionIncrement  = (position === POSITION_TOP || position === POSITION_LEFT) ? 1 : -1,
@@ -340,6 +367,9 @@ define(function (require, exports, module) {
         
 
         $resizer.on("mousedown.resizer", function (e) {
+            // we change the editors' width to fixed size to prevent rendering contents
+            makeEditorsFixedWidth(true);
+
             var $resizeShield   = $("<div class='resizing-container " + direction + "-resizing' />"),
                 startPosition   = e[directionProperty],
                 startSize       = $element.is(":visible") ? elementSizeFunction.apply($element) : 0,
@@ -417,7 +447,7 @@ define(function (require, exports, module) {
                 }
                                    
                 e.preventDefault();
-                
+              
                 if (animationRequest === null) {
                     animationRequest = window.requestAnimationFrame(doRedraw);
                 }
@@ -438,9 +468,12 @@ define(function (require, exports, module) {
             }
             
             function endResize(e) {
+                // restoring the width to default value
+                makeEditorsFixedWidth(false);
+
                 if (isResizing) {
                     
-                    var elementSize	= elementSizeFunction.apply($element);
+                    var elementSize = elementSizeFunction.apply($element);
                     if ($element.is(":visible")) {
                         elementPrefs.size = elementSize;
                         if ($resizableElement.length) {
@@ -471,7 +504,7 @@ define(function (require, exports, module) {
             
             e.preventDefault();
         });
-		
+        
         // Panel preferences initialization
         if (elementPrefs) {
             
@@ -495,7 +528,7 @@ define(function (require, exports, module) {
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {
         var minSize = DEFAULT_MIN_SIZE;
-		
+        
         $mainView = $(".main-view");
         
         $(".vert-resizable").each(function (index, element) {
@@ -503,7 +536,7 @@ define(function (require, exports, module) {
             if ($(element).data().minsize !== undefined) {
                 minSize = $(element).data().minsize;
             }
-			
+            
             if ($(element).hasClass("top-resizer")) {
                 makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, minSize, $(element).hasClass("collapsible"));
             }
