@@ -627,4 +627,4 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "بیشتر بخوانید"
 });
-/* Last translated for 2467f386b17b03a7039148298fe785d54d1e6b8d */
+/* Last translated for c292e896761bc7d451a9e3b95bedd20d6b355d77 */
