@@ -1880,6 +1880,10 @@
         ],
         "commands": [
             {
+                "name": "enable",
+                "description": "Enable DOM agent."
+            },
+            {
                 "name": "getDocument",
                 "returns": [
                     { "name": "root", "$ref": "Node", "description": "Resulting node." }

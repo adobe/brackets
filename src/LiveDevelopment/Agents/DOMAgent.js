@@ -290,6 +290,12 @@ define(function DOMAgent(require, exports, module) {
         }
     }
 
+    /** Enable the domain */
+    function enable() {
+        return Inspector.DOM.enable();
+    }
+
+
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
@@ -315,6 +321,7 @@ define(function DOMAgent(require, exports, module) {
     EventDispatcher.makeEventDispatcher(exports);
 
     // Export private functions
+    exports.enable = enable;
     exports.nodeBeforeLocation = nodeBeforeLocation;
     exports.allNodesAtLocation = allNodesAtLocation;
     exports.nodeAtLocation = nodeAtLocation;
