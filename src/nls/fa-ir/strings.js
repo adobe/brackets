@@ -31,7 +31,6 @@ define({
      */
 
     // General file io error strings
-     "APP_NAME"                         : "براکتس",
     "GENERIC_ERROR"                     : "(خطا {0})",
     "NOT_FOUND_ERR"                     : "پرونده پیدا نشد.",
     "NOT_READABLE_ERR"                  : "پرونده قابل خواندن نیست.",
