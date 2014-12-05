@@ -295,6 +295,11 @@ define(function DOMAgent(require, exports, module) {
         return Inspector.DOM.enable();
     }
 
+    /** Disable the domain */
+    function disable() {
+        return Inspector.DOM.disable();
+    }
+
 
     /** Initialize the agent */
     function load() {
@@ -322,6 +327,7 @@ define(function DOMAgent(require, exports, module) {
 
     // Export private functions
     exports.enable = enable;
+    exports.disable = disable;
     exports.nodeBeforeLocation = nodeBeforeLocation;
     exports.allNodesAtLocation = allNodesAtLocation;
     exports.nodeAtLocation = nodeAtLocation;

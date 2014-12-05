@@ -1881,7 +1881,11 @@
         "commands": [
             {
                 "name": "enable",
-                "description": "Enable DOM agent."
+                "description": "Enables DOM agent for the given page."
+            },
+            {
+                "name": "disable",
+                "description": "Disables DOM agent for the given page."
             },
             {
                 "name": "getDocument",
