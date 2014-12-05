@@ -99,7 +99,7 @@ define(function (require, exports, module) {
         afterEach(function () {
             $.mockjaxClear(mockId);
             ExtensionManager._reset();
-            $(ExtensionManager).off(".unit-test");
+            ExtensionManager.off(".unit-test");
             brackets.config.extension_registry = origRegistryURL;
             brackets.config.extension_url = origExtensionUrl;
         });
@@ -107,13 +107,13 @@ define(function (require, exports, module) {
         function mockLoadExtensions(names, fail) {
             var numStatusChanges = 0;
             runs(function () {
-                $(ExtensionManager).on("statusChange.mock-load", function () {
+                ExtensionManager.on("statusChange.mock-load", function () {
                     numStatusChanges++;
                 });
                 var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                 names = names || ["default/mock-extension-1", "dev/mock-extension-2", "user/mock-legacy-extension"];
                 names.forEach(function (name) {
-                    $(ExtensionLoader).triggerHandler(fail ? "loadFailed" : "load", mockPath + "/" + name);
+                    ExtensionLoader.trigger(fail ? "loadFailed" : "load", mockPath + "/" + name);
                 });
             });
             
@@ -121,7 +121,7 @@ define(function (require, exports, module) {
             waitsFor(function () { return numStatusChanges === names.length; }, "ExtensionManager status changes");
             
             runs(function () {
-                $(ExtensionManager).off(".mock-load");
+                ExtensionManager.off(".mock-load");
             });
         }
         
@@ -223,7 +223,7 @@ define(function (require, exports, module) {
                 var registryUpdateSpy;
                 runs(function () {
                     registryUpdateSpy = jasmine.createSpy();
-                    $(ExtensionManager).on("registryUpdate", registryUpdateSpy);
+                    ExtensionManager.on("registryUpdate", registryUpdateSpy);
                     waitsForDone(ExtensionManager.downloadRegistry(), "fetching registry");
                 });
                 mockLoadExtensions();
@@ -321,7 +321,7 @@ define(function (require, exports, module) {
             it("should raise a statusChange event when an extension is loaded", function () {
                 var spy = jasmine.createSpy();
                 runs(function () {
-                    $(ExtensionManager).on("statusChange.unit-test", spy);
+                    ExtensionManager.on("statusChange.unit-test", spy);
                     mockLoadExtensions(["default/mock-extension-1"]);
                 });
                 runs(function () {
@@ -332,7 +332,7 @@ define(function (require, exports, module) {
             it("should raise a statusChange event when a legacy extension is loaded, with its path as the id", function () {
                 var spy = jasmine.createSpy();
                 runs(function () {
-                    $(ExtensionManager).on("statusChange.unit-test", spy);
+                    ExtensionManager.on("statusChange.unit-test", spy);
                     mockLoadExtensions(["user/mock-legacy-extension"]);
                 });
                 runs(function () {
@@ -346,7 +346,7 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/mock-extension-3"]);
                 });
                 runs(function () {
-                    $(ExtensionManager).on("statusChange.unit-test", spy);
+                    ExtensionManager.on("statusChange.unit-test", spy);
                     waitsForDone(ExtensionManager.remove("mock-extension-3"));
                 });
                 runs(function () {
@@ -703,7 +703,7 @@ define(function (require, exports, module) {
                 
                 it("should trigger filter event when filter changes", function () {
                     var gotEvent = false;
-                    $(model).on("filter", function () {
+                    model.on("filter", function () {
                         gotEvent = true;
                     });
                     model.filter("uniq1");
@@ -778,7 +778,7 @@ define(function (require, exports, module) {
                 it("should raise an event when an extension is installed", function () {
                     var calledId;
                     runs(function () {
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                     });
@@ -800,7 +800,7 @@ define(function (require, exports, module) {
                 it("should raise an event when an extension is removed", function () {
                     var calledId;
                     runs(function () {
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                         waitsForDone(ExtensionManager.remove("registered-extension"));
@@ -813,7 +813,7 @@ define(function (require, exports, module) {
                 it("should mark an extension for removal and raise an event without actually removing it", function () {
                     var id = "registered-extension", calledId;
                     runs(function () {
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                         ExtensionManager.markForRemoval(id, true);
@@ -828,7 +828,7 @@ define(function (require, exports, module) {
                     var id = "registered-extension", calledId;
                     runs(function () {
                         ExtensionManager.markForRemoval(id, true);
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                         ExtensionManager.markForRemoval(id, false);
@@ -843,7 +843,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         ExtensionManager.markForRemoval("registered-extension", true);
                         ExtensionManager.markForRemoval("Z-capital-extension", false);
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             removedIds[id] = true;
                             removedPaths[removedPath] = true;
                         });
@@ -863,7 +863,7 @@ define(function (require, exports, module) {
                 it("should mark an extension for update and raise an event", function () {
                     var id = "registered-extension", calledId;
                     runs(function () {
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                         ExtensionManager.updateFromDownload({
@@ -883,7 +883,7 @@ define(function (require, exports, module) {
                         file = FileSystem.getFileForPath(filename),
                         calledId;
                     runs(function () {
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                         ExtensionManager.updateFromDownload({
@@ -903,7 +903,7 @@ define(function (require, exports, module) {
                 it("should change an extension marked for removal to update raise an event", function () {
                     var id = "registered-extension", calledId;
                     runs(function () {
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                         ExtensionManager.markForRemoval(id, true);

@@ -161,7 +161,8 @@ define(function (require, exports, module) {
      * @return ?{Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} provider
      */
     function getProvidersForPath(filePath) {
-        return _providers[LanguageManager.getLanguageForPath(filePath).getId()];
+        var providers = _providers[LanguageManager.getLanguageForPath(filePath).getId()];
+        return (providers && providers.slice(0)) || [];
     }
 
     /**
@@ -219,6 +220,7 @@ define(function (require, exports, module) {
                                 runPromise.resolve(scanResult);
                             })
                             .fail(function (err) {
+                                PerfUtils.finalizeMeasurement(perfTimerProvider);
                                 var errError = {
                                     pos: {line: -1, col: 0},
                                     message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
@@ -233,6 +235,7 @@ define(function (require, exports, module) {
                             PerfUtils.addMeasurement(perfTimerProvider);
                             runPromise.resolve(scanResult);
                         } catch (err) {
+                            PerfUtils.finalizeMeasurement(perfTimerProvider);
                             var errError = {
                                 pos: {line: -1, col: 0},
                                 message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
@@ -474,11 +477,11 @@ define(function (require, exports, module) {
     function updateListeners() {
         if (_enabled) {
             // register our event listeners
-            $(MainViewManager)
+            MainViewManager
                 .on("currentFileChange.codeInspection", function () {
                     run();
                 });
-            $(DocumentManager)
+            DocumentManager
                 .on("currentDocumentLanguageChanged.codeInspection", function () {
                     run();
                 })
@@ -488,8 +491,8 @@ define(function (require, exports, module) {
                     }
                 });
         } else {
-            $(DocumentManager).off(".codeInspection");
-            $(MainViewManager).off(".codeInspection");
+            DocumentManager.off(".codeInspection");
+            MainViewManager.off(".codeInspection");
         }
     }
 
@@ -553,7 +556,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Command to go to the first Error/Warning */
+    /** Command to go to the first Problem */
     function handleGotoFirstProblem() {
         run();
         if (_gotoEnabled) {
@@ -643,9 +646,10 @@ define(function (require, exports, module) {
     exports._PREF_ASYNC_TIMEOUT     = PREF_ASYNC_TIMEOUT;
 
     // Public API
-    exports.register       = register;
-    exports.Type           = Type;
-    exports.toggleEnabled  = toggleEnabled;
-    exports.inspectFile    = inspectFile;
-    exports.requestRun     = run;
+    exports.register            = register;
+    exports.Type                = Type;
+    exports.toggleEnabled       = toggleEnabled;
+    exports.inspectFile         = inspectFile;
+    exports.requestRun          = run;
+    exports.getProvidersForPath = getProvidersForPath;
 });

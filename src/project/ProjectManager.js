@@ -38,8 +38,8 @@
  *    - projectRefresh     -- when project tree is re-rendered for a reason other than
  *      a project being opened (e.g. from the Refresh command)
  *
- * These are jQuery events, so to listen for them you do something like this:
- *    $(ProjectManager).on("eventname", handler);
+ * To listen for events, do something like this: (see EventDispatcher for details on this pattern)
+ *    ProjectManager.on("eventname", handler);
  */
 define(function (require, exports, module) {
     "use strict";
@@ -59,6 +59,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         LanguageManager     = require("language/LanguageManager"),
         Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
@@ -820,7 +821,7 @@ define(function (require, exports, module) {
 
             // About to close current project (if any)
             if (model.projectRoot) {
-                $(exports).triggerHandler("beforeProjectClose", model.projectRoot);
+                exports.trigger("beforeProjectClose", model.projectRoot);
             }
 
             // close all the old files
@@ -831,7 +832,7 @@ define(function (require, exports, module) {
                 if (model.projectRoot) {
                     LanguageManager._resetPathLanguageOverrides();
                     PreferencesManager._reloadUserPrefs(model.projectRoot);
-                    $(exports).triggerHandler("projectClose", model.projectRoot);
+                    exports.trigger("projectClose", model.projectRoot);
                 }
 
                 startLoad.resolve();
@@ -863,13 +864,13 @@ define(function (require, exports, module) {
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectWarnedForTooManyFiles = false;
-
+                        
                         _setProjectRoot(rootEntry).always(function () {
                             model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
 
                             if (projectRootChanged) {
                                 _reloadProjectPreferencesScope();
-                                PreferencesManager._setCurrentEditingFile(rootPath);
+                                PreferencesManager._setCurrentFile(rootPath);
                             }
 
                             // If this is the most current welcome project, record it. In future launches, we want
@@ -881,11 +882,10 @@ define(function (require, exports, module) {
 
                             if (projectRootChanged) {
                                 // Allow asynchronous event handlers to finish before resolving result by collecting promises from them
-                                var promises = [];
-                                $(exports).triggerHandler({ type: "projectOpen", promises: promises }, [model.projectRoot]);
-                                $.when.apply($, promises).then(result.resolve, result.reject);
+                                exports.trigger("projectOpen", model.projectRoot);
+                                result.resolve();
                             } else {
-                                $(exports).triggerHandler("projectRefresh", model.projectRoot);
+                                exports.trigger("projectRefresh", model.projectRoot);
                                 result.resolve();
                             }
                             PerfUtils.addMeasurement(perfTimerName);
@@ -1022,13 +1022,7 @@ define(function (require, exports, module) {
      *  filename.
      */
     function createNewItem(baseDir, initialName, skipRename, isFolder) {
-        if (typeof baseDir === "string") {
-            if (_.last(baseDir) !== "/") {
-                baseDir += "/";
-            }
-        } else {
-            baseDir = baseDir.fullPath;
-        }
+        baseDir = model.getDirectoryInProject(baseDir);
 
         if (skipRename) {
             return model.createAtPath(baseDir + initialName, isFolder);
@@ -1156,11 +1150,11 @@ define(function (require, exports, module) {
             $projectTreeContainer.trigger("contentChanged");
         });
 
-        $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuOpen", function () {
+        Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuOpen", function () {
             actionCreator.restoreContext();
         });
 
-        $(Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)).on("beforeContextMenuClose", function () {
+        Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuClose", function () {
             model.setContext(null, false, true);
         });
 
@@ -1220,6 +1214,9 @@ define(function (require, exports, module) {
         return null;
     }
 
+    
+    EventDispatcher.makeEventDispatcher(exports);
+
     // Init default project path to welcome project
     PreferencesManager.stateManager.definePreference("projectPath", "string", _getWelcomeProjectPath());
 
@@ -1230,15 +1227,15 @@ define(function (require, exports, module) {
         "projectBaseUrl_": "user"
     }, true, _checkPreferencePrefix);
 
-    $(exports).on("projectOpen", _reloadProjectPreferencesScope);
-    $(exports).on("projectOpen", _saveProjectPath);
+    exports.on("projectOpen", _reloadProjectPreferencesScope);
+    exports.on("projectOpen", _saveProjectPath);
+    exports.on("beforeAppClose", _unwatchProjectRoot);
 
-    // Event Handlers
-    $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
-    $(FileViewController).on("fileViewFocusChange", _fileViewControllerChange);
-    $(MainViewManager).on("currentFileChange", _currentFileChange);
-    $(exports).on("beforeAppClose", _unwatchProjectRoot);
-
+    // Due to circular dependencies, not safe to call on() directly for other modules' events
+    EventDispatcher.on_duringInit(FileViewController, "documentSelectionFocusChange", _documentSelectionFocusChange);
+    EventDispatcher.on_duringInit(FileViewController, "fileViewFocusChange", _fileViewControllerChange);
+    EventDispatcher.on_duringInit(MainViewManager, "currentFileChange", _currentFileChange);
+    
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
@@ -1339,29 +1336,28 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Adds an icon provider. The icon provider is a function which takes a data object and
-     * returns a React.DOM.ins instance, a string, a DOM node or a jQuery instance
-     * for the icons within the tree.
+     * Adds an icon provider. The callback is invoked before each tree item is rendered, and can
+     * return content to prepend to the item.
      *
-     * The data object contains:
-     *
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode|React.DOM.ins} callback
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
+     * Return a string of HTML text, a React.DOM.ins instance, a jQuery object, or a DOM node; or undefined
+     * to prepend nothing.
      */
     function addIconProvider(callback) {
         return FileTreeView.addIconProvider(callback);
     }
 
     /**
-     * Adds an additional classes provider which can return classes that should be added to a
-     * given file or directory in the tree.
+     * Adds a CSS class provider, invoked before each tree item is rendered.
      *
-     * The data object contains:
-     *
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string} callback
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
+     * Return a string containing space-separated CSS class(es) to add, or undefined to leave CSS unchanged.
      */
     function addClassesProvider(callback) {
         return FileTreeView.addClassesProvider(callback);
@@ -1376,10 +1372,10 @@ define(function (require, exports, module) {
     function rerenderTree() {
         _renderTree(true);
     }
-
+    
+    
     // Private API helpful in testing
     exports._actionCreator                 = actionCreator;
-    
     
     // Private API for use with SidebarView
     exports._setFileTreeSelectionWidth    = _setFileTreeSelectionWidth;

@@ -324,14 +324,14 @@ define(function (require, exports, module) {
         var self = this;
         this._ranges.forEach(function (range, index) {
             // Update list item as TextRange changes
-            $(range.textRange).on("change", function () {
+            range.textRange.on("change", function () {
                 _updateRangeLabel(range.$listItem, range);
             }).on("contentChange", function () {
                 _updateRangeLabel(range.$listItem, range, self._labelCB);
             });
             
             // If TextRange lost sync, remove it from the list (and close the widget if no other ranges are left)
-            $(range.textRange).on("lostSync", function () {
+            range.textRange.on("lostSync", function () {
                 self._removeRange(range);
             });
         });
@@ -415,7 +415,7 @@ define(function (require, exports, module) {
         
         // Clear our listeners on the previous editor since it'll be destroyed in setInlineContent().
         if (this.editor) {
-            $(this.editor).off(".MultiRangeInlineEditor");
+            this.editor.off(".MultiRangeInlineEditor");
         }
 
         this._selectedRangeIndex = newIndex;
@@ -449,7 +449,7 @@ define(function (require, exports, module) {
             this.editor.refresh();
             
             // Ensure the cursor position is visible in the host editor as the user is arrowing around.
-            $(this.editor).on("cursorActivity.MultiRangeInlineEditor", this._ensureCursorVisible.bind(this));
+            this.editor.on("cursorActivity.MultiRangeInlineEditor", this._ensureCursorVisible.bind(this));
             
             // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
             this.sizeInlineWidgetToContents();

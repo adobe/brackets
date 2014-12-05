@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define */
 
 /**
  * HTMLDocument manages a single HTML source document
@@ -45,6 +45,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     "use strict";
 
     var EditorManager       = require("editor/EditorManager"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         HighlightAgent      = require("LiveDevelopment/Agents/HighlightAgent"),
         HTMLInstrumentation = require("language/HTMLInstrumentation"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
@@ -68,11 +69,12 @@ define(function HTMLDocumentModule(require, exports, module) {
         this._instrumentationEnabled = false;
         
         this._onActiveEditorChange = this._onActiveEditorChange.bind(this);
-        $(EditorManager).on("activeEditorChange", this._onActiveEditorChange);
+        EditorManager.on("activeEditorChange", this._onActiveEditorChange);
         
         // Attach now
         this.attachToEditor(editor);
     };
+    EventDispatcher.makeEventDispatcher(HTMLDocument.prototype);
     
     /**
      * Enable or disable instrumented HTML
@@ -116,14 +118,14 @@ define(function HTMLDocumentModule(require, exports, module) {
      */
     HTMLDocument.prototype.close = function close() {
         if (this.editor) {
-            $(this.editor).off(".HTMLDocument");
+            this.editor.off(".HTMLDocument");
         }
 
         if (this.doc) {
             this.doc.releaseRef();
         }
 
-        $(EditorManager).off("activeEditorChange", this._onActiveEditorChange);
+        EditorManager.off("activeEditorChange", this._onActiveEditorChange);
 
         // Experimental code
         if (LiveDevelopment.config.experimental) {
@@ -142,21 +144,21 @@ define(function HTMLDocumentModule(require, exports, module) {
         
         // Performance optimization to use closures instead of Function.bind()
         // to improve responsiveness during cursor movement and keyboard events
-        $(this.editor).on("cursorActivity.HTMLDocument", function (event, editor) {
+        this.editor.on("cursorActivity.HTMLDocument", function (event, editor) {
             self._onCursorActivity(event, editor);
         });
 
-        $(this.editor).on("change.HTMLDocument", function (event, editor, change) {
+        this.editor.on("change.HTMLDocument", function (event, editor, change) {
             self._onChange(event, editor, change);
         });
 
-        $(this.editor).on("beforeDestroy.HTMLDocument", function (event, editor) {
+        this.editor.on("beforeDestroy.HTMLDocument", function (event, editor) {
             self._onDestroy(event, editor);
         });
         
         // Experimental code
         if (LiveDevelopment.config.experimental) {
-            $(HighlightAgent).on("highlight.HTMLDocument", function (event, node) {
+            HighlightAgent.on("highlight.HTMLDocument", function (event, node) {
                 self._onHighlight(event, node);
             });
         }
@@ -173,7 +175,7 @@ define(function HTMLDocumentModule(require, exports, module) {
     HTMLDocument.prototype.detachFromEditor = function () {
         if (this.editor) {
             HighlightAgent.hide();
-            $(this.editor).off(".HTMLDocument");
+            this.editor.off(".HTMLDocument");
             this._removeHighlight();
             this.editor = null;
         }
@@ -317,7 +319,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         }
 
         this.errors = result.errors || [];
-        $(this).triggerHandler("statusChanged", [this]);
+        this.trigger("statusChanged", this);
         
         // Debug-only: compare in-memory vs. in-browser DOM
         // edit this file or set a conditional breakpoint at the top of this function:

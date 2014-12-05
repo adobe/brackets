@@ -32,8 +32,8 @@ define({
 
     // General file io error strings
     "GENERIC_ERROR"                     : "(error {0})",
-    "NOT_FOUND_ERR"                     : "The file could not be found.",
-    "NOT_READABLE_ERR"                  : "The file could not be read.",
+    "NOT_FOUND_ERR"                     : "The file/directory could not be found.",
+    "NOT_READABLE_ERR"                  : "The file/directory could not be read.",
     "EXCEEDS_MAX_FILE_SIZE"             : "Files larger than {0} MB cannot be opened in {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
@@ -394,7 +394,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
-    "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Error/Warning",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Problem",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",

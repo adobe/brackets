@@ -191,6 +191,7 @@ define(function (require, exports, module) {
             KeyBindingManager       : KeyBindingManager,
             LanguageManager         : LanguageManager,
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            LiveDevMultiBrowser     : require("LiveDevelopment/LiveDevMultiBrowser"),
             LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
             MainViewManager         : MainViewManager,
             MainViewFactory         : require("view/MainViewFactory"),
@@ -291,13 +292,24 @@ define(function (require, exports, module) {
                         PerfUtils.addMeasurement("Application Startup");
                         
                         if (PreferencesManager._isUserScopeCorrupt()) {
-                            Dialogs.showModalDialog(
-                                DefaultDialogs.DIALOG_ID_ERROR,
-                                Strings.ERROR_PREFS_CORRUPT_TITLE,
-                                Strings.ERROR_PREFS_CORRUPT
-                            )
+                            var userPrefFullPath = PreferencesManager.getUserPrefFile();
+                            // user scope can get corrupt only if the file exists, is readable,
+                            // but malformed. no need to check for its existance.
+                            var info = MainViewManager.findInAllWorkingSets(userPrefFullPath);
+                            var paneId;
+                            if (info.length) {
+                                paneId = info[0].paneId;
+                            }
+                            FileViewController.openFileAndAddToWorkingSet(userPrefFullPath, paneId)
                                 .done(function () {
-                                    CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+                                    Dialogs.showModalDialog(
+                                        DefaultDialogs.DIALOG_ID_ERROR,
+                                        Strings.ERROR_PREFS_CORRUPT_TITLE,
+                                        Strings.ERROR_PREFS_CORRUPT
+                                    ).done(function () {
+                                        // give the focus back to the editor with the pref file
+                                        MainViewManager.focusActivePane();
+                                    });
                                 });
                         }
                         
@@ -409,10 +421,7 @@ define(function (require, exports, module) {
             // Text fields should always be focusable.
             var $target = $(e.target),
                 isFormElement =
-                    $target.is("input[type=text]") ||
-                    $target.is("input[type=number]") ||
-                    $target.is("input[type=password]") ||
-                    $target.is("input:not([type])") || // input with no type attribute defaults to text
+                    $target.is("input") ||
                     $target.is("textarea") ||
                     $target.is("select");
 

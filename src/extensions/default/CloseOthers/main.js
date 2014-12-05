@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, brackets */
 
 define(function (require, exports, module) {
     "use strict";
@@ -181,7 +181,7 @@ define(function (require, exports, module) {
     initializeCommands();
 
     // Add a context menu open handler
-    $(workingSetListCmenu).on("beforeContextMenuOpen", contextMenuOpenHandler);
+    workingSetListCmenu.on("beforeContextMenuOpen", contextMenuOpenHandler);
 
     prefs.on("change", prefChangeHandler);
 });
