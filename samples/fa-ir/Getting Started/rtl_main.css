@@ -14,9 +14,6 @@ body {
     margin: 0 auto;
     padding: 2em 2em 4em;
     max-width: 800px;
-    direction: rtl;
-    text-align: right;
-    font-family: "tahoma", Helvetica, Arial, sans-serif;
     font-size: 16px;
     line-height: 1.5em;
     color: #545454;
@@ -73,4 +70,10 @@ img {
     100% {
         filter: grayscale(0%);
     }
+}
+/*Starting custom rules.*/
+.rtl{
+    direction: rtl;
+    text-align: right;
+    font-family: "tahoma", Helvetica, Arial, sans-serif;
 }
