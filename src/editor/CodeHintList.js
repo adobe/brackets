@@ -44,7 +44,7 @@ define(function (require, exports, module) {
      * @constructor
      * @param {Editor} editor
      * @param {boolean} insertHintOnTab Whether pressing tab inserts the selected hint
-     * @param {number} maxResults Maximum hints displayed at once. Defaults to 1000
+     * @param {number} maxResults Maximum hints displayed at once. Defaults to 50
      */
     function CodeHintList(editor, insertHintOnTab, maxResults) {
 
@@ -67,10 +67,7 @@ define(function (require, exports, module) {
          *
          * @type {number}
          */
-        this.maxResults = Math.min(
-            (maxResults > 0 && ValidationUtils.isInteger(maxResults) && maxResults) || 1000,
-            1000
-        );
+        this.maxResults = ValidationUtils.isIntegerInRange(maxResults, 1, 1000) ? maxResults : 50;
 
         /**
          * Is the list currently open?
