@@ -81,21 +81,15 @@ define(function (require, exports, module) {
     var _testWindow = null;
     function _runUnitTests(spec) {
         var queryString = spec ? "?spec=" + spec : "";
-        if (_testWindow) {
-            try {
-                if (_testWindow.location.search !== queryString) {
-                    _testWindow.location.href = "../test/SpecRunner.html" + queryString;
-                } else {
-                    _testWindow.location.reload(true);
-                }
-            } catch (e) {
-                _testWindow = null;  // the window was probably closed
+        if (_testWindow && !_testWindow.closed) {
+            if (_testWindow.location.search !== queryString) {
+                _testWindow.location.href = "../test/SpecRunner.html" + queryString;
+            } else {
+                _testWindow.location.reload(true);
             }
-        }
-        
-        if (!_testWindow) {
+        } else {
             _testWindow = window.open("../test/SpecRunner.html" + queryString, "brackets-test", "width=" + $(window).width() + ",height=" + $(window).height());
-            _testWindow.location.reload(true); // if it was opened before, we need to reload because it will be cached
+            _testWindow.location.reload(true); // if it had been opened earlier, force a reload because it will be cached
         }
     }
     
