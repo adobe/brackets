@@ -760,6 +760,116 @@ define(function (require, exports, module) {
             
         });
         
+        describe("handle AltGr key", function () {
+            var commandCalled, ctrlAlt1Event, rightAltEvents;
+            var ctrlEvent = {
+                ctrlKey: true,
+                keyIdentifier: "Control",
+                keyCode: 17,
+                immediatePropagationStopped: false,
+                propagationStopped: false,
+                defaultPrevented: false,
+                stopImmediatePropagation: function () {
+                    this.immediatePropagationStopped = true;
+                },
+                stopPropagation: function () {
+                    this.propagationStopped = true;
+                },
+                preventDefault: function () {
+                    this.defaultPrevented = true;
+                }
+            };
+            
+            function makeRightAltKeyEvents() {
+                var altGrEvents = [],
+                    altEvent = _.cloneDeep(ctrlEvent),
+                    ctrlAltEvent = _.cloneDeep(ctrlEvent);
+                
+                altEvent.keyIdentifier = "Alt";
+                altEvent.altKey = true;
+                altEvent.keyCode = 18;
+                ctrlAltEvent.altKey = true;
+                
+                altGrEvents.push(_.cloneDeep(ctrlEvent));
+                altGrEvents.push(altEvent);
+                altGrEvents.push(ctrlAltEvent);
+                
+                return altGrEvents;
+            }
+            
+            function makeCtrlAlt1KeyEvent() {
+                return {
+                    ctrlKey: true,
+                    altKey: true,
+                    keyCode: "1".charCodeAt(0),
+                    immediatePropagationStopped: false,
+                    propagationStopped: false,
+                    defaultPrevented: false,
+                    stopImmediatePropagation: function () {
+                        this.immediatePropagationStopped = true;
+                    },
+                    stopPropagation: function () {
+                        this.propagationStopped = true;
+                    },
+                    preventDefault: function () {
+                        this.defaultPrevented = true;
+                    }
+                };
+            }
+            
+            beforeEach(function () {
+                commandCalled = false;
+                ctrlAlt1Event = makeCtrlAlt1KeyEvent();
+                rightAltEvents = makeRightAltKeyEvents();
+                CommandManager.register("FakeUnitTestCommand", "unittest.fakeCommand", function () {
+                    commandCalled = true;
+                });
+                KeyBindingManager.addBinding("unittest.fakeCommand", "Ctrl-Alt-1");
+            });
+            
+            it("should block command execution if right Alt key is pressed", function () {
+                // First, modify platform to "win" since right Alt key detection is done only on Windows.
+                brackets.platform = "win";
+                
+                // Simulate a right Alt key down with the specific sequence of keydown events.
+                rightAltEvents.forEach(function (e) {
+                    KeyBindingManager._handleKeyEvent(e);
+                });
+                
+                // Simulate the command shortcut
+                KeyBindingManager._handleKeyEvent(ctrlAlt1Event);
+                expect(commandCalled).toBe(false);
+                
+                // In this case, the event should not have been stopped, because KBM didn't handle it.
+                expect(ctrlAlt1Event.immediatePropagationStopped).toBe(false);
+                expect(ctrlAlt1Event.propagationStopped).toBe(false);
+                expect(ctrlAlt1Event.defaultPrevented).toBe(false);
+                
+                // Now explicitly remove the keyup event listener created by _detectAltGrKeyDown function
+                // and restore the platform.
+                KeyBindingManager._onCtrlUp(ctrlEvent);
+                brackets.platform = "test";
+            });
+            
+            it("should not block command execution when the right Alt key is not used", function () {
+                // First, modify platform to "win" since right Alt key detection is done only on Windows.
+                brackets.platform = "win";
+
+                // Simulate the command shortcut
+                KeyBindingManager._handleKeyEvent(ctrlAlt1Event);
+                expect(commandCalled).toBe(true);
+
+                // In this case, the event should have been stopped (but not immediately) because
+                // KBM handled it.
+                expect(ctrlAlt1Event.immediatePropagationStopped).toBe(false);
+                expect(ctrlAlt1Event.propagationStopped).toBe(true);
+                expect(ctrlAlt1Event.defaultPrevented).toBe(true);
+
+                // Restore the platform.
+                brackets.platform = "test";
+            });
+        });
+
         describe("global hooks", function () {
             var commandCalled, hook1Called, hook2Called, ctrlAEvent;
             

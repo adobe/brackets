@@ -125,6 +125,78 @@ define(function (require, exports, module) {
      */
     var _globalKeydownHooks = [];
 
+    
+    /**
+     * @private
+     * Flags used to determine whether right Alt key is pressed. When it is pressed, 
+     * the following three keydown events are triggered in that specific order. In the case of
+     * left Alt key down with or without Control key down, we don't get the same keydown events and/or 
+     * not in that order.
+     *    1. _ctrlDown - flag used to record { ctrlKey: true, keyIdentifier: "Control", ... } keydown event
+     *    2. _altDown - flag used to record { altKey: true, keyIdentifier: "Alt", ... } keydown event
+     *    3. _altGrDown - flag used to record { ctrlKey: true, altKey: true, keyIdentifier: "Control", ... } keydown event
+     * @type {boolean}
+     */
+    var _ctrlDown = false,
+        _altDown = false,
+        _altGrDown = false;
+
+    /**
+     * @private
+     * Detects the release of AltGr key by checking all keyup events
+     * until we receive one with ctrl key code. Once detected, reset 
+     * all the flags and also remove this event listener.
+     *
+     * @param {!KeyboardEvent} e keyboard event object
+     */
+    var _onCtrlUp = function (e) {
+        var key = e.keyCode || e.which;
+        if (_altGrDown && key === KeyEvent.DOM_VK_CONTROL) {
+            _enabled = true;
+            _ctrlDown = false;
+            _altDown = false;
+            _altGrDown = false;
+            $(window).off("keyup", _onCtrlUp);
+        }
+    };
+    
+    /**
+     * @private
+     * Detects whether AltGr key is pressed. When it is pressed, the first keydown event has 
+     * ctrlKey === true with keyIdentifier === "Control". Then, another keydown event with 
+     * altKey === true and keyIdentifier === "Alt" is sent. Subsequently, the third keydown
+     * event with altKey === true, ctrlKey === true and keyIdentifier === "Control" is sent.
+     * After third keydown event, we can tell it is AltGr key and not other combination of 
+     * ctrl and alt keydown. If the user keep holding AltGr key down, then the second and third 
+     * keydown events are repeatedly sent out alternately.
+     *
+     * Once we detect the AltGr key down, then disable KeyBindingManager and set up a keyup
+     * event listener to detect the release of the altGr key so that we can re-enable KeyBindingManager.
+     *
+     * @param {!KeyboardEvent} e keyboard event object
+     */
+    function _detectAltGrKeyDown(e) {
+        if (brackets.platform !== "win") {
+            return;
+        }
+        
+        if (!_altGrDown) {
+            if (!_ctrlDown && e.ctrlKey && e.keyIdentifier === "Control") {
+                _ctrlDown = true;
+            } else if (_ctrlDown && e.altKey && e.ctrlKey && e.keyIdentifier === "Alt") {
+                _altDown = true;
+            } else if (_ctrlDown && _altDown &&
+                            e.altKey && e.ctrlKey && e.keyIdentifier === "Control") {
+                _altGrDown = true;
+                _enabled = false;
+                $(window).on("keyup", _onCtrlUp);
+            } else {
+                _ctrlDown = false;
+                _altDown = false;
+            }
+        }
+    }
+    
     /**
      * @private
      */
@@ -628,7 +700,6 @@ define(function (require, exports, module) {
      * Enable or disable key bindings. Clients such as dialogs may wish to disable
      * global key bindings temporarily.
      *
-     * @param {string} A key-description string.
      * @return {boolean} true if the key was processed, false otherwise
      */
     function setEnabled(value) {
@@ -796,6 +867,7 @@ define(function (require, exports, module) {
                 break;
             }
         }
+        _detectAltGrKeyDown(event);
         if (!handled && _handleKey(_translateKeyboardEvent(event))) {
             event.stopPropagation();
             event.preventDefault();
@@ -1252,6 +1324,7 @@ define(function (require, exports, module) {
     exports._getDisplayKey = _getDisplayKey;
     exports._loadUserKeyMap = _loadUserKeyMap;
     exports._initCommandAndKeyMaps = _initCommandAndKeyMaps;
+    exports._onCtrlUp = _onCtrlUp;
 
     // Define public API
     exports.getKeymap = getKeymap;
