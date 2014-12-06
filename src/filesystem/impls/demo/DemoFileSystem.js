@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemError = require("filesystem/FileSystemError");
+    var FileSystemError = require("filesystem/FileSystemError"),
+        FileSystemStats = require("filesystem/FileSystemStats");
     
     
     function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
@@ -41,23 +42,56 @@ define(function (require, exports, module) {
         throw new Error();
     }
     
-    function _makeFakeStat(file) {
-        return {
-            isFile: function () {
-                return file;
-            },
-            isDirectory: function () {
-                return !file;
-            },
-            mtime: new Date(0)
-        };
+    var demoContent = {
+        "index.html": "<html>\n<head>\n    <title>Hello, world!</title>\n</head>\n<body>\n    Welcome to Brackets!\n</body>\n</html>",
+        "main.css": ".hello {\n    content: 'world!';\n}"
+    };
+    
+    function _stripTrailingSlash(path) {
+        return path[path.length - 1] === "/" ? path.substr(0, path.length - 1) : path;
     }
     
+    function _getDemoData(fullPath) {
+        var prefix = "/Getting Started/";
+        if (fullPath.substr(0, prefix.length) !== prefix) {
+            return null;
+        }
+        var suffix = _stripTrailingSlash(fullPath.substr(prefix.length));
+        if (!suffix) {
+            return demoContent;
+        }
+        
+        var segments = suffix.split("/");
+        var dir = demoContent;
+        var i;
+        for (i = 0; i < segments.length; i++) {
+            if (!dir) { return null; }
+            dir = dir[segments[i]];
+        }
+        return dir;
+    }
+    
+    function _makeStat(demoData) {
+        var options = {
+            isFile: typeof demoData === "string",
+            mtime: new Date(0),
+            hash: 0
+        };
+        if (options.isFile) {
+            options.size = demoData.length;
+        }
+        return new FileSystemStats(options);
+    }
+    function _nameFromPath(path) {
+        var segments = _stripTrailingSlash(path).split("/");
+        return segments[segments.length - 1];
+    }
+    
+    
     function stat(path, callback) {
-        if (path === "/Getting Started/index.html" || path === "/Getting Started/main.css") {
-            callback(null, _makeFakeStat(true));
-        } else if (path === "/Getting Started/") {
-            callback(null, _makeFakeStat(false));
+        var result = _getDemoData(path);
+        if (result || result === "") {
+            callback(null, _makeStat(result));
         } else {
             callback(FileSystemError.NOT_FOUND);
         }
@@ -74,12 +108,18 @@ define(function (require, exports, module) {
     }
     
     function readdir(path, callback) {
-        if (path === "/Getting Started/") {
-            callback(null,
-                     ["index.html", "main.css"],
-                     [_makeFakeStat(), _makeFakeStat()]);
-        } else {
+        var storeData = _getDemoData(path);
+        if (!storeData) {
             callback(FileSystemError.NOT_FOUND);
+        } else if (typeof storeData === "string") {
+            callback(FileSystemError.INVALID_PARAMS);
+        } else {
+            var names = Object.keys(storeData);
+            var stats = [];
+            names.forEach(function (name) {
+                stats.push(_makeStat(storeData[name]));
+            });
+            callback(null, names, stats);
         }
     }
     
@@ -98,12 +138,14 @@ define(function (require, exports, module) {
             callback = options;
         }
         
-        if (path === "/Getting Started/index.html") {
-            callback(null, "<html>\n<head>\n    <title>Hello, world!</title>\n</head>\n<body>\n    Welcome to Brackets!\n</body>\n</html>", _makeFakeStat());
-        } else if (path === "/Getting Started/main.css") {
-            callback(null, ".hello {\n    content: 'world!';\n}", _makeFakeStat());
-        } else {
+        var storeData = _getDemoData(path);
+        if (!storeData && storeData !== "") {
             callback(FileSystemError.NOT_FOUND);
+        } else if (typeof storeData !== "string") {
+            callback(FileSystemError.INVALID_PARAMS);
+        } else {
+            var name = _nameFromPath(path);
+            callback(null, storeData, _makeStat(storeData[name]));
         }
     }
     
