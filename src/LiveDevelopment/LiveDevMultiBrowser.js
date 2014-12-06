@@ -77,6 +77,7 @@ define(function (require, exports, module) {
         EditorManager        = require("editor/EditorManager"),
         EventDispatcher      = require("utils/EventDispatcher"),
         FileUtils            = require("file/FileUtils"),
+        MainViewManager      = require("view/MainViewManager"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),
         Strings              = require("strings"),
@@ -658,9 +659,10 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * MainViewManager.currentFileChange event handler.
      * When switching documents, close the current preview and open a new one.
      */
-    function _onDocumentChange() {
+    function _onFileChange() {
         var doc = DocumentManager.getCurrentDocument();
         if (!isActive() || !doc) {
             return;
@@ -796,10 +798,13 @@ define(function (require, exports, module) {
      * Initialize the LiveDevelopment module.
      */
     function init() {
-        DocumentManager.on("currentDocumentChange", _onDocumentChange)
+        MainViewManager
+            .on("currentFileChange", _onFileChange);
+        DocumentManager
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
-        ProjectManager.on("beforeProjectClose beforeAppClose", close);
+        ProjectManager
+            .on("beforeProjectClose beforeAppClose", close);
         
         // Default transport for live connection messages - can be changed
         setTransport(NodeSocketTransport);
