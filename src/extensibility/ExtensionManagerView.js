@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Strings                   = require("strings"),
+    var _                         = require("thirdparty/lodash"),
+        Strings                   = require("strings"),
         EventDispatcher           = require("utils/EventDispatcher"),
         StringUtils               = require("utils/StringUtils"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
@@ -210,7 +211,7 @@ define(function (require, exports, module) {
         
         // Start with the basic info from the given entry, either the installation info or the
         // registry info depending on what we're listing.
-        var context = $.extend({}, info);
+        var context = _.clone(info);
         
         // Normally we would merge the strings into the context we're passing into the template,
         // but since we're instantiating the template for every item, it seems wrong to take the hit

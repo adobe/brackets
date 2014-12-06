@@ -261,7 +261,7 @@ define(function (require, exports, module) {
      * @return {string} the property name of the current rule.
      */
     function _getPropNameStartingFromPropValue(ctx) {
-        var ctxClone = $.extend({}, ctx),
+        var ctxClone = _.clone(ctx),
             propName = "";
         do {
             // If we're no longer in the property value before seeing a colon, then we don't
@@ -428,9 +428,9 @@ define(function (require, exports, module) {
      *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function _getRuleInfoStartingFromPropValue(ctx, editor) {
-        var propNamePos = $.extend({}, ctx.pos),
-            backwardPos = $.extend({}, ctx.pos),
-            forwardPos  = $.extend({}, ctx.pos),
+        var propNamePos = _.clone(ctx.pos),
+            backwardPos = _.clone(ctx.pos),
+            forwardPos  = _.clone(ctx.pos),
             propNameCtx = TokenUtils.getInitialContext(editor._codeMirror, propNamePos),
             backwardCtx,
             forwardCtx,
@@ -526,8 +526,8 @@ define(function (require, exports, module) {
      *                   end: {line: number, ch: number}}}} A CSS context info object.
      */
     function _getImportUrlInfo(ctx, editor) {
-        var backwardPos = $.extend({}, ctx.pos),
-            forwardPos  = $.extend({}, ctx.pos),
+        var backwardPos = _.clone(ctx.pos),
+            forwardPos  = _.clone(ctx.pos),
             backwardCtx,
             forwardCtx,
             index = 0,
@@ -596,7 +596,7 @@ define(function (require, exports, module) {
     function getInfoAtPos(editor, constPos) {
         // We're going to be changing pos a lot, but we don't want to mess up
         // the pos the caller passed in so we use extend to make a safe copy of it.	
-        var pos = $.extend({}, constPos),
+        var pos = _.clone(constPos),
             ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
             mode = editor.getModeForSelection();
         
@@ -1495,7 +1495,7 @@ define(function (require, exports, module) {
      */
     function findSelectorAtDocumentPos(editor, pos) {
         var cm = editor._codeMirror;
-        var ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
+        var ctx = TokenUtils.getInitialContext(cm, _.clone(pos));
         var selector = "", foundChars = false;
         var isPreprocessorDoc = FileUtils.isCSSPreprocessorFile(editor.document.file.fullPath);
         var selectorArray = [];
@@ -1605,7 +1605,7 @@ define(function (require, exports, module) {
         selector = _stripAtRules(selector);
         
         // Reset the context to original scan position
-        ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
+        ctx = TokenUtils.getInitialContext(cm, _.clone(pos));
         
         // special case - we aren't in a selector and haven't found any chars,
         // look at the next immediate token to see if it is non-whitespace. 
@@ -1615,7 +1615,7 @@ define(function (require, exports, module) {
                 (isPreprocessorDoc && (ctx.token.string === "" || /\s+/.test(ctx.token.string)))) {
             if (TokenUtils.moveNextToken(ctx) && ctx.token.type !== "comment" && _hasNonWhitespace(ctx.token.string)) {
                 foundChars = true;
-                ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
+                ctx = TokenUtils.getInitialContext(cm, _.clone(pos));
             }
         }
         

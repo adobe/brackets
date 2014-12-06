@@ -30,7 +30,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var HTMLInstrumentation = require("language/HTMLInstrumentation"),
+    var _                   = require("thirdparty/lodash"),
+        HTMLInstrumentation = require("language/HTMLInstrumentation"),
         HTMLSimpleDOM       = require("language/HTMLSimpleDOM"),
         RemoteFunctions     = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
@@ -319,7 +320,7 @@ define(function (require, exports, module) {
             newNode.content = node.content;
             if (node.children) {
                 newNode.tag = node.tag;
-                newNode.attributes = $.extend({}, node.attributes);
+                newNode.attributes = _.clone(node.attributes);
                 newNode.children = node.children.map(function (child) {
                     return doClone(newNode, child);
                 });

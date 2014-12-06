@@ -23,11 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var _   = require("thirdparty/lodash");
     
     /**
      * @private
@@ -40,7 +42,7 @@ define(function (require, exports, module) {
      */
     function generateAttributeEdits(oldNode, newNode) {
         // shallow copy the old attributes object so that we can modify it
-        var oldAttributes = $.extend({}, oldNode.attributes),
+        var oldAttributes = _.clone(oldNode.attributes),
             newAttributes = newNode.attributes,
             edits = [];
         

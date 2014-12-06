@@ -331,7 +331,7 @@ define(function (require, exports, module) {
      *      languages currently defined.
      */
     function getLanguages() {
-        return $.extend({}, _languages); // copy to prevent modification
+        return _.clone(_languages); // copy to prevent modification
     }
     
     /**

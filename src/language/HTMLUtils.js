@@ -23,12 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var _          = require("thirdparty/lodash"),
+        CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror"),
         TokenUtils = require("utils/TokenUtils");
     
     // Constants
@@ -135,7 +136,7 @@ define(function (require, exports, module) {
     function getTagAttributes(editor, pos) {
         var attrs       = [],
             backwardCtx = TokenUtils.getInitialContext(editor._codeMirror, pos),
-            forwardCtx  = $.extend({}, backwardCtx);
+            forwardCtx  = _.clone(backwardCtx);
         
         if (editor.getModeForSelection() === "html") {
             if (backwardCtx.token && !tagPrefixedRegExp.test(backwardCtx.token.type)) {
@@ -312,7 +313,7 @@ define(function (require, exports, module) {
     function getTagInfo(editor, constPos) {
         // We're going to be changing pos a lot, but we don't want to mess up
         // the pos the caller passed in so we use extend to make a safe copy of it.	
-        var pos = $.extend({}, constPos),
+        var pos = _.clone(constPos),
             ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
             offset = TokenUtils.offsetInToken(ctx),
             tagInfo,

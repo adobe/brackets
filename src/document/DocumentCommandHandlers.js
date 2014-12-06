@@ -1637,7 +1637,7 @@ define(function (require, exports, module) {
         }, 100);
     }
 
-    /** Reload Without Extensions commnad handler **/
+    /** Reload Without Extensions command handler **/
     var handleReloadWithoutExts = _.partial(handleReload, true);
 
     /** Do some initialization when the DOM is ready **/
