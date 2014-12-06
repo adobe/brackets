@@ -1268,6 +1268,8 @@ define(function (require, exports, module) {
             if (_ternWorker) {
                 if (terminateNow) {
                     _ternWorker.terminate();
+                    _ternWorker = null;
+                    resolvedFiles = {};
                 } else if (addFilesPromise) {
                     // If we're in the middle of added files, don't terminate 
                     // until we're done or we might get NPEs
