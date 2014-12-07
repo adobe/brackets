@@ -1004,7 +1004,7 @@ define(function (require, exports, module) {
             if (io !== -1) {
                 var dirSplit = displayPaths[io].split("/");
                 if (dirSplit.length > 3) {
-                    displayPaths[io] = dirSplit[0] + "/\u2026/" + dirSplit[dirSplit.length - 1];
+                    displayPaths[io] = dirSplit[0] + "/\u2026/" + _.last(dirSplit);
                 }
 
                 var $dir = $("<span class='directory'/>").html(" &mdash; " + displayPaths[io]);

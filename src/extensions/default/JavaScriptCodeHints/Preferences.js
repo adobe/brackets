@@ -66,7 +66,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var StringUtils      = brackets.getModule("utils/StringUtils");
+    var _           = brackets.getModule("thirdparty/lodash"),
+        StringUtils = brackets.getModule("utils/StringUtils");
 
     /**
      *  Convert an array of strings with optional wildcards, to an equivalent
@@ -94,7 +95,7 @@ define(function (require, exports, module) {
             settings.forEach(function (value, index) {
 
                 if (typeof value === "string") {
-                    var isRegExp = value[0] === '/' && value[value.length - 1] === '/';
+                    var isRegExp = value[0] === '/' && _.last(value) === '/';
 
                     if (isRegExp) {
                         value = value.substring(1, value.length - 1);

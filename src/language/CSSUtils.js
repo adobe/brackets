@@ -315,7 +315,7 @@ define(function (require, exports, module) {
                 } else {
                     // current value does not end with a comma (and optional ws) so prepend
                     // to last stack item (e.g. "rgba(50" get broken into 2 tokens)
-                    propValues[propValues.length - 1] = curValue + propValues[propValues.length - 1];
+                    propValues[propValues.length - 1] = curValue + _.last(propValues);
                 }
             }
         }
@@ -1742,7 +1742,7 @@ define(function (require, exports, module) {
         
         var docLines = doc.getText().split("\n"),
             lastDocLine = docLines.length - 1,
-            lastDocChar = docLines[docLines.length - 1].length;
+            lastDocChar = _.last(docLines).length;
         doc.replaceRange(newRule, {line: lastDocLine, ch: lastDocChar});
         return {
             range: {

@@ -29,7 +29,8 @@ define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
-    var SpecRunnerUtils   = brackets.getModule("spec/SpecRunnerUtils"),
+    var _                 = brackets.getModule("thirdparty/lodash"),
+        SpecRunnerUtils   = brackets.getModule("spec/SpecRunnerUtils"),
         KeyEvent          = brackets.getModule("utils/KeyEvent"),
         testContentCSS    = require("text!unittest-files/unittests.css"),
         testContentHTML   = require("text!unittest-files/unittests.html"),
@@ -731,7 +732,7 @@ define(function (require, exports, module) {
                         if (opts.exact) {
                             var result = colorEditor._hsv[opts.param];
                             // Because of #2201, this is sometimes a string with a percentage value.
-                            if (typeof result === "string" && result.charAt(result.length - 1) === "%") {
+                            if (typeof result === "string" && _.last(result) === "%") {
                                 result = Number(result.substr(0, result.length - 1));
                             }
                             return result;

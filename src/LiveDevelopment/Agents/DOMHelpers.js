@@ -30,6 +30,8 @@
  */
 define(function DOMHelpersModule(require, exports, module) {
     "use strict";
+    
+    var _ = require("thirdparty/lodash");
 
     /** Test if the given character is a quote character
      * {char} source character
@@ -50,7 +52,7 @@ define(function DOMHelpersModule(require, exports, module) {
      * @param {string} source string
      */
     function _removeQuotes(src) {
-        if (_isQuote(src[0]) && src[src.length - 1] === src[0]) {
+        if (_isQuote(src[0]) && _.last(src) === src[0]) {
             var q = src[0];
             src = src.substr(1, src.length - 2);
             src = src.replace("\\" + q, q);

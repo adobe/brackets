@@ -281,7 +281,7 @@ define(function (require, exports, module) {
                     return cur.some(function (keyword) {
                         return keyword.toLowerCase().indexOf(query) !== -1;
                     });
-                } else if (fieldSpec[fieldSpec.length - 1] === "owner") {
+                } else if (_.last(fieldSpec) === "owner") {
                     // Special handling: ignore the authentication source when querying,
                     // since it's not useful to search on
                     var components = cur.split(":");

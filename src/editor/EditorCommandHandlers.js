@@ -930,7 +930,7 @@ define(function (require, exports, module) {
                     // same line and it would just collapse to the same location. But if this was
                     // primary, make sure the last selection we did operate on ends up as primary.
                     if (sel.primary) {
-                        edits[edits.length - 1].selections[0].primary = true;
+                        _.last(edits).selections[0].primary = true;
                     }
                 }
             });

@@ -357,7 +357,7 @@ define(function (require, exports, module) {
                         });
                         MainViewManager.addListToWorkingSet(paneId, filesToOpen);
                         
-                        _doOpen(paths[paths.length - 1], silent, paneId, options)
+                        _doOpen(_.last(paths), silent, paneId, options)
                             .done(function (file) {
                                 _defaultOpenDialogFullPath =
                                     FileUtils.getDirectoryPath(

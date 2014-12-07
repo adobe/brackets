@@ -231,7 +231,7 @@ define(function (require, exports, module) {
             context.isCompatibleLatest = latestVerCompatInfo.isLatestVersion;
             if (!context.isCompatibleLatest) {
                 var installWarningBase = context.requiresNewer ? Strings.EXTENSION_LATEST_INCOMPATIBLE_NEWER : Strings.EXTENSION_LATEST_INCOMPATIBLE_OLDER;
-                context.installWarning = StringUtils.format(installWarningBase, entry.registryInfo.versions[entry.registryInfo.versions.length - 1].version, latestVerCompatInfo.compatibleVersion);
+                context.installWarning = StringUtils.format(installWarningBase, _.last(entry.registryInfo.versions).version, latestVerCompatInfo.compatibleVersion);
             }
         } else {
             // We should only get here when viewing the Installed tab and some extensions don't exist in the registry

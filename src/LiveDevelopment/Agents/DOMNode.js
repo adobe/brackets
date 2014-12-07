@@ -35,7 +35,8 @@
 define(function DOMNodeModule(require, exports, module) {
     "use strict";
 
-    var DOMHelpers = require("LiveDevelopment/Agents/DOMHelpers");
+    var _           = require("thirdparty/lodash"),
+        DOMHelpers  = require("LiveDevelopment/Agents/DOMHelpers");
 
     /** Fill a string to the given length (used for debug output)
      * @param {string} source string
@@ -332,7 +333,7 @@ define(function DOMNodeModule(require, exports, module) {
         var node = this.previousSibling();
         if (node) {
             if (node.children.length > 0) {
-                node = node.children[node.children.length - 1];
+                node = _.last(node.children);
             }
         } else {
             node = this.parent;

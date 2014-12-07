@@ -230,7 +230,7 @@ define(function (require, exports, module) {
 
         if (bindings.length > 0) {
             // add the latest key binding
-            binding = bindings[bindings.length - 1];
+            binding = _.last(bindings);
             _addKeyBindingToMenuItem($(_getHTMLMenuItem(menuItem.id)), binding.key, binding.displayKey);
         }
 
@@ -614,7 +614,7 @@ define(function (require, exports, module) {
                 displayStr = "";
 
             if (bindings && bindings.length > 0) {
-                binding = bindings[bindings.length - 1];
+                binding = _.last(bindings);
                 bindingStr = binding.displayKey || binding.key;
             }
 

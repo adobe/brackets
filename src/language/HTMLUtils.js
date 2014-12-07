@@ -52,7 +52,7 @@ define(function (require, exports, module) {
     function _extractAttrVal(ctx) {
         var attrValue = ctx.token.string,
             startChar = attrValue.charAt(0),
-            endChar = attrValue.charAt(attrValue.length - 1),
+            endChar = _.last(attrValue),
             offset = TokenUtils.offsetInToken(ctx),
             foundEqualSign = false;
         

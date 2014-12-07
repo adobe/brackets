@@ -328,7 +328,7 @@ define(function (require, exports, module) {
                         // in the match list, we'll start over at the starting special
                         // (which is generally the beginning of the string, or the
                         // beginning of the last segment of the string)
-                        item = result[result.length - 1];
+                        item = _.last(result);
                         if (!item) {
                             strCounter = specials[startingSpecial] + 1;
                             return true;

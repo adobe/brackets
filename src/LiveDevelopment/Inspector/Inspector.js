@@ -83,7 +83,8 @@
 define(function Inspector(require, exports, module) {
     "use strict";
 
-    var Async           = require("utils/Async"),
+    var _               = require("thirdparty/lodash"),
+        Async           = require("utils/Async"),
         EventDispatcher = require("utils/EventDispatcher");
 
     /**
@@ -133,7 +134,7 @@ define(function Inspector(require, exports, module) {
 
         // extract the parameters, the callback function, and the message id
         args = Array.prototype.slice.call(arguments, 2);
-        if (typeof args[args.length - 1] === "function") {
+        if (typeof _.last(args) === "function") {
             callback = args.pop();
         } else {
             var deferred = new $.Deferred();

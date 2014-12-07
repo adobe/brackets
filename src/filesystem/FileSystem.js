@@ -92,7 +92,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Directory       = require("filesystem/Directory"),
+    var _               = require("thirdparty/lodash"),
+        Directory       = require("filesystem/Directory"),
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex"),
         FileSystemError = require("filesystem/FileSystemError"),
@@ -465,7 +466,7 @@ define(function (require, exports, module) {
     };
 
     function _ensureTrailingSlash(path) {
-        if (path[path.length - 1] !== "/") {
+        if (_.last(path) !== "/") {
             path += "/";
         }
 

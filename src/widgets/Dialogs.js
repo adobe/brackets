@@ -33,10 +33,11 @@ define(function (require, exports, module) {
     
     require("utils/Global");
 
-    var KeyBindingManager = require("command/KeyBindingManager"),
-        KeyEvent          = require("utils/KeyEvent"),
-        Strings           = require("strings"),
-        DialogTemplate    = require("text!htmlContent/dialog-template.html");
+    var _                   = require("thirdparty/lodash"),
+        KeyBindingManager   = require("command/KeyBindingManager"),
+        KeyEvent            = require("utils/KeyEvent"),
+        Strings             = require("strings"),
+        DialogTemplate      = require("text!htmlContent/dialog-template.html");
     
     /**
      * Dialog Buttons IDs
@@ -118,7 +119,7 @@ define(function (require, exports, module) {
 
         if ($(event.target).closest($dlg).length) {
             // If it's the first or last tabbable element, focus the last/first element
-            if ((!event.shiftKey && event.target === $inputs[$inputs.length - 1]) ||
+            if ((!event.shiftKey && event.target === _.last($inputs)) ||
                     (event.shiftKey && event.target === $inputs[0])) {
                 $inputs.filter(event.shiftKey ? ":last" : ":first").focus();
                 stopEvent();

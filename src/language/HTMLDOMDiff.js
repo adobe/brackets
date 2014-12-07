@@ -287,7 +287,7 @@ define(function (require, exports, module) {
             // the text nodes between elements in the new DOM are merged together).
             // The check below looks to see if we're already in the process of adding
             // a textReplace edit following the same element.
-            var previousEdit = newEdits.length > 0 && newEdits[newEdits.length - 1];
+            var previousEdit = newEdits.length > 0 && _.last(newEdits);
             if (previousEdit && previousEdit.type === "textReplace" &&
                     previousEdit.afterID === textAfterID) {
                 oldIndex++;
