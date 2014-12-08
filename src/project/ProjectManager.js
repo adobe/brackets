@@ -605,6 +605,8 @@ define(function (require, exports, module) {
         return null;
     };
 
+    var _RENDER_DEBOUNCE_TIME = 100;
+
     /**
      * @private
      *
@@ -620,6 +622,8 @@ define(function (require, exports, module) {
         model.setScrollerInfo($projectTreeContainer[0].scrollWidth, $projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
         FileTreeView.render(fileTreeViewContainer, model._viewModel, projectRoot, actionCreator, forceRender, brackets.platform);
     };
+
+    _renderTree = _.debounce(_renderTree, _RENDER_DEBOUNCE_TIME);
 
     /**
      * @private
@@ -1375,7 +1379,8 @@ define(function (require, exports, module) {
     
     
     // Private API helpful in testing
-    exports._actionCreator                 = actionCreator;
+    exports._actionCreator                = actionCreator;
+    exports._RENDER_DEBOUNCE_TIME         = _RENDER_DEBOUNCE_TIME;
     
     // Private API for use with SidebarView
     exports._setFileTreeSelectionWidth    = _setFileTreeSelectionWidth;
