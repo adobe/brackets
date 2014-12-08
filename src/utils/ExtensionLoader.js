@@ -404,7 +404,7 @@ define(function (require, exports, module) {
                     "HtmlEntityCodeHints",
                     "InlineColorEditor",
                     "InlineTimingFunctionEditor",
-                    //"JavaScriptCodeHints",
+                    "JavaScriptCodeHints",
                     "JavaScriptQuickEdit",
                     "JSLint",
                     "LESSSupport",

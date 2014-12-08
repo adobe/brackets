@@ -46,7 +46,8 @@ define(function (require, exports, module) {
     //  - object = nested folder containing more entries
     var demoContent = {
         "index.html": "<html>\n<head>\n    <title>Hello, world!</title>\n</head>\n<body>\n    Welcome to Brackets!\n</body>\n</html>",
-        "main.css": ".hello {\n    content: 'world!';\n}"
+        "main.css": ".hello {\n    content: 'world!';\n}",
+        "main.js": "function sayHello() {\n    console.log('Hello, world!');\n}"
     };
     
     
