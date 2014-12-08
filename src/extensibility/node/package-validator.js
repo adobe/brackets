@@ -232,6 +232,29 @@ function validatePackageJSON(path, packageJSON, options, callback) {
                 }
             }
             
+            // normalize translated author and contributors
+            if (metadata["package-i18n"]) {
+                Object.keys(metadata["package-i18n"]).forEach(function (lang) {
+                    var packageLang = metadata["package-i18n"][lang];
+
+                    if (packageLang.author) {
+                        packageLang.author = parsePersonString(packageLang.author);
+                    }
+
+                    if (packageLang.contributors) {
+                        if (packageLang.contributors.map) {
+                            packageLang.contributors = packageLang.contributors.map(function (person) {
+                                return parsePersonString(person);
+                            });
+                        } else {
+                            packageLang.contributors = [
+                                parsePersonString(packageLang.contributors)
+                            ];
+                        }
+                    }
+                });
+            }
+
             if (metadata.engines && metadata.engines.brackets) {
                 var range = metadata.engines.brackets;
                 if (!semver.validRange(range)) {

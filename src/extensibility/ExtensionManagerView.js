@@ -222,7 +222,7 @@ define(function (require, exports, module) {
         context.isInstalled = !!entry.installInfo;
         context.failedToStart = (entry.installInfo && entry.installInfo.status === ExtensionManager.START_FAILED);
         context.hasVersionInfo = !!info.versions;
-                
+
         if (entry.registryInfo) {
             var latestVerCompatInfo = ExtensionManager.getCompatibilityInfo(entry.registryInfo, brackets.metadata.apiVersion);
             context.isCompatible = latestVerCompatInfo.isCompatible;
@@ -250,6 +250,12 @@ define(function (require, exports, module) {
                             info.metadata[prop] = info.metadata["package-i18n"][locale][prop];
                         }
                     });
+                    if (info.metadata["package-i18n"][locale].hasOwnProperty("author")) {
+                        info.metadata.author = info.metadata["package-i18n"][locale].author;
+                    }
+                    if (info.metadata["package-i18n"][locale].hasOwnProperty("contributors")) {
+                        info.metadata.contributors = info.metadata["package-i18n"][locale].contributors;
+                    }
                 }
             });
         }
@@ -396,6 +402,6 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype.filter = function (query) {
         this.model.filter(query);
     };
-        
+
     exports.ExtensionManagerView = ExtensionManagerView;
 });
