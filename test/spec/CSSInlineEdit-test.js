@@ -101,7 +101,12 @@ define(function (require, exports, module) {
         }
 
         function inlineEditorFileName(inlineWidget) {
-            return inlineWidget.$header.find("a.filename");
+            var name = inlineWidget.$header.find("a.filename")[0].text;
+            if (name[0] === "•") {
+                // remove dirty dot
+                name = name.slice(1);
+            }
+            return name;
         }
 
         function getRelatedFiles(inlineWidget) {
@@ -185,7 +190,7 @@ define(function (require, exports, module) {
                     inlineWidgets = getInlineEditorWidgets();
 
                     // Check Inline Editor 1
-                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.css : 1");
+                    expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test.css : 1");
 
                     var ranges = inlineWidgets[0]._ranges[0];
                     var document = ranges.textRange.document;
@@ -198,7 +203,7 @@ define(function (require, exports, module) {
                     expectListItem(files.eq(1), ".standard", "test2.css", 1);
 
                     // Check Inline Editor 2
-                    expect(inlineEditorFileName(inlineWidgets[1])[0].text).toEqual("test.css : 8");
+                    expect(inlineEditorFileName(inlineWidgets[1])).toEqual("test.css : 8");
 
                     ranges = inlineWidgets[1]._ranges[0];
                     document = ranges.textRange.document;
@@ -250,7 +255,7 @@ define(function (require, exports, module) {
                     var availableFilesInDropdown = dropdownMenu().children();
                     checkAvailableStylesheets(availableFilesInDropdown);
 
-                    expect(inlineEditorFileName(inlineWidget)[0].text).toEqual("test.less : 5");
+                    expect(inlineEditorFileName(inlineWidget)).toEqual("test.less : 5");
 
                     var range = inlineWidget._ranges[0].textRange;
                     var document = range.document;
@@ -275,7 +280,7 @@ define(function (require, exports, module) {
                     var availableFilesInDropdown = dropdownMenu().children();
                     checkAvailableStylesheets(availableFilesInDropdown);
                     
-                    expect(inlineEditorFileName(inlineWidget)[0].text).toEqual("test.css : 8");
+                    expect(inlineEditorFileName(inlineWidget)).toEqual("test.css : 8");
 
                     var range = inlineWidget._ranges[0].textRange;
                     var document = range.document;
@@ -300,7 +305,7 @@ define(function (require, exports, module) {
                     var inlineWidget = getInlineEditorWidgets()[0];
                     expect(inlineWidget._ranges.length).toBe(2);
 
-                    expect(inlineEditorFileName(inlineWidget)[0].text).toEqual("test.css : 8");
+                    expect(inlineEditorFileName(inlineWidget)).toEqual("test.css : 8");
                     
                     var $ruleListSections = getRuleListSections(inlineWidget);
                     expect($ruleListSections.eq(0).text()).toBe("test.css (1)");
@@ -318,7 +323,7 @@ define(function (require, exports, module) {
                     expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);  // test2.css is expanded
                     
                     // File in collapsed section is still selected - selection unchanged
-                    expect(inlineEditorFileName(inlineWidget)[0].text).toEqual("test.css : 8");
+                    expect(inlineEditorFileName(inlineWidget)).toEqual("test.css : 8");
 
                     // Close the inline editor
                     waitsForDone(inlineWidget.close());
@@ -357,7 +362,7 @@ define(function (require, exports, module) {
                     expect($ruleListSections.eq(0).find(".disclosure-triangle:not(.expanded)").length).toBe(1);  // test.css is collapsed
                     expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);   // test2.css is expanded
 
-                    expect(inlineEditorFileName(inlineWidget)[0].text).toEqual("test2.css : 8");
+                    expect(inlineEditorFileName(inlineWidget)).toEqual("test2.css : 8");
                     
                     expect(inlineWidget.$htmlContent.find(".related-container").length).toBe(1);
                     
@@ -366,7 +371,7 @@ define(function (require, exports, module) {
                     expect($ruleListSections.eq(0).find(".disclosure-triangle.expanded").length).toBe(1); // test.css now expanded
                     expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);  // test2.css still expanded
                     
-                    expect(inlineEditorFileName(inlineWidget)[0].text).toEqual("test2.css : 8");
+                    expect(inlineEditorFileName(inlineWidget)).toEqual("test2.css : 8");
                 });
             });
 
@@ -399,7 +404,7 @@ define(function (require, exports, module) {
                     expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);  // test2.css now expanded
                     
                     expect(inlineWidget._getSelectedRange()).toBeTruthy();
-                    expect(inlineEditorFileName(inlineWidget)[0].text).toEqual("test2.css : 8");
+                    expect(inlineEditorFileName(inlineWidget)).toEqual("test2.css : 8");
                 });
             });
 
@@ -415,7 +420,7 @@ define(function (require, exports, module) {
                     var inlineWidget = getInlineEditorWidgets()[0];
                     expect(inlineWidget._ranges.length).toBe(1);
 
-                    expect(inlineEditorFileName(inlineWidget)[0].text).toEqual("test.less : 5");
+                    expect(inlineEditorFileName(inlineWidget)).toEqual("test.less : 5");
                     
                     expect(inlineWidget.$htmlContent.find(".related-container").length).toBe(0);    // rule list hidden
                 });
@@ -434,7 +439,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var inlineWidgets = getInlineEditorWidgets();
 
-                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.scss : 57");
+                    expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test.scss : 57");
 
                     var document = inlineWidgets[0].editor.document;
                     // modify scss to add it to the working set
@@ -486,7 +491,7 @@ define(function (require, exports, module) {
 
                     var availableFilesInDropdown = dropdownMenu().children();
                     checkAvailableStylesheets(availableFilesInDropdown);
-                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.less : 5");
+                    expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test.less : 5");
 
                     var ranges = inlineWidgets[0]._ranges[0];
 
@@ -508,7 +513,7 @@ define(function (require, exports, module) {
 
                     var availableFilesInDropdown = dropdownMenu().children();
                     checkAvailableStylesheets(availableFilesInDropdown);
-                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.less : 9");
+                    expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test.less : 9");
 
                     var ranges = inlineWidgets[0]._ranges[0];
 
@@ -530,7 +535,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 11");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 11");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -551,7 +556,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 44");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 44");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -572,7 +577,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 51");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 51");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -595,7 +600,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 45");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 45");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -616,7 +621,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 17");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 17");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -637,7 +642,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 33");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 33");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -658,7 +663,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 22");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 22");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -679,7 +684,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 29");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 29");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -702,7 +707,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 55");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 55");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -723,7 +728,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 55");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 55");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -745,7 +750,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 65");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 65");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -768,7 +773,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 86");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 86");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -789,7 +794,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 120");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 120");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -810,7 +815,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 126");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 126");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -834,7 +839,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test2.less : 109");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test2.less : 109");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 
@@ -869,7 +874,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var inlineWidgets = getInlineEditorWidgets();
-                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.scss : 5");
+                    expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test.scss : 5");
 
                     var ranges = inlineWidgets[0]._ranges[0];
 
@@ -891,7 +896,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var inlineWidgets = getInlineEditorWidgets();
-                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.scss : 11");
+                    expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test.scss : 11");
 
                     var ranges = inlineWidgets[0]._ranges[0];
 
@@ -913,7 +918,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var inlineWidgets = getInlineEditorWidgets();
-                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.scss : 20");
+                    expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test.scss : 20");
 
                     var ranges = inlineWidgets[0]._ranges[0];
 
@@ -935,7 +940,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var inlineWidgets = getInlineEditorWidgets();
-                    expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.scss : 37");
+                    expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test.scss : 37");
 
                     var ranges = inlineWidgets[0]._ranges[0];
 
@@ -957,7 +962,7 @@ define(function (require, exports, module) {
 
                     runs(function () {
                         var inlineWidgets = getInlineEditorWidgets();
-                        expect(inlineEditorFileName(inlineWidgets[0])[0].text).toEqual("test.scss : 41");
+                        expect(inlineEditorFileName(inlineWidgets[0])).toEqual("test.scss : 41");
 
                         var ranges = inlineWidgets[0]._ranges[0];
 

@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var Commands            = require("command/Commands"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -213,7 +214,7 @@ define(function (require, exports, module) {
             }
         });
 
-        $(exports).triggerHandler("fontSizeChange", [fontSize, oldValue]);
+        exports.trigger("fontSizeChange", fontSize, oldValue);
         prefs.set("fontSize", fontSize);
     }
 
@@ -243,7 +244,7 @@ define(function (require, exports, module) {
             _addDynamicFontFamily(fontFamily);
         }
 
-        $(exports).triggerHandler("fontFamilyChange", [fontFamily, oldValue]);
+        exports.trigger("fontFamilyChange", fontFamily, oldValue);
         prefs.set("fontFamily", fontFamily);
 
         if (editor) {
@@ -491,11 +492,14 @@ define(function (require, exports, module) {
     prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
 
     // Update UI when opening or closing a document
-    $(MainViewManager).on("currentFileChange", _updateUI);
+    MainViewManager.on("currentFileChange", _updateUI);
 
     // Update UI when Brackets finishes loading
     AppInit.appReady(init);
-
+    
+    
+    EventDispatcher.makeEventDispatcher(exports);
+    
     exports.restoreFontSize = restoreFontSize;
     exports.restoreFonts    = restoreFonts;
     exports.getFontSize     = getFontSize;

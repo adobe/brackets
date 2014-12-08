@@ -125,7 +125,6 @@ define(function (require, exports, module) {
                 try {
                     result.resolve(tree.toCSS());
                 } catch (toCSSError) {
-                    console.error(toCSSError.filename + ":" + toCSSError.line + " " + toCSSError.message);
                     result.reject(toCSSError);
                 }
             }
@@ -219,6 +218,16 @@ define(function (require, exports, module) {
                 }
             })
             .fail(result.reject);
+        
+        // Summarize error info to console for easier debugging
+        result.fail(function (error, textStatus, httpError) {
+            if (error.readyState !== undefined) {
+                // If first arg is a jQXHR object, the real error info is in the next two args
+                console.error("[Extension] Unable to read stylesheet " + path + ":", textStatus, httpError);
+            } else {
+                console.error("[Extension] Unable to process stylesheet " + path, error);
+            }
+        });
         
         return result.promise();
     }

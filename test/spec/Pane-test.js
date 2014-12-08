@@ -457,19 +457,19 @@ define(function (require, exports, module) {
             it("should dispatch events when a file is removed", function () {
                 var eventHandler = jasmine.createSpy();
                 
-                $(myPane).on("viewListChange.test", eventHandler);
+                myPane.on("viewListChange.test", eventHandler);
                 
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
                 myPane._handleFileDeleted(undefined, myView.getFullPath());
 
                 expect(eventHandler).toHaveBeenCalled();
-                $(myPane).off(".test");
+                myPane.off(".test");
             });
             it("should dispatch events when file is renamed", function () {
                 var eventHandler = jasmine.createSpy();
                 
-                $(myPane).on("viewListChange.test", eventHandler);
+                myPane.on("viewListChange.test", eventHandler);
                 
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
@@ -480,30 +480,30 @@ define(function (require, exports, module) {
                 myPane._handleFileNameChange(undefined, oldPath, myView.getFullPath());
 
                 expect(eventHandler).toHaveBeenCalled();
-                $(myPane).off(".test");
+                myPane.off(".test");
             });
             it("should dispatch events when the view has changed", function () {
                 var eventHandler = jasmine.createSpy();
                 
-                $(myPane).on("currentViewChange.test", eventHandler);
+                myPane.on("currentViewChange.test", eventHandler);
                 
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
 
                 expect(eventHandler).toHaveBeenCalled();
-                $(myPane).off(".test");
+                myPane.off(".test");
             });
             it("should dispatch events when all views are closed", function () {
                 var eventHandler = jasmine.createSpy();
                 
-                $(myPane).on("currentViewChange.test", eventHandler);
+                myPane.on("currentViewChange.test", eventHandler);
                 
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
                 myPane._reset();
 
                 expect(eventHandler.callCount).toBe(2);
-                $(myPane).off(".test");
+                myPane.off(".test");
             });
         });
     });

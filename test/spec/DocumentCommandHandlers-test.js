@@ -41,7 +41,6 @@ define(function (require, exports, module) {
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
         FileUtils                = require("file/FileUtils"),
         FileSystemError          = require("filesystem/FileSystemError");
-                    
     
     describe("DocumentCommandHandlers", function () {
         this.category = "integration";
@@ -54,6 +53,7 @@ define(function (require, exports, module) {
         var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
         var TEST_JS_NEW_CONTENT = "hello world";
         var TEST_JS_SECOND_NEW_CONTENT = "hello world 2";
+        var WINDOW_TITLE_DOT = brackets.platform === "mac" ? "\u2014" : "-";
         
         beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -641,7 +641,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.document.title).toBe(brackets.config.app_title);
+                    expect(testWindow.document.title).toBe("DocumentCommandHandlers-test-files " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
                 });
             });
 
@@ -657,7 +657,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.document.title).toBe(brackets.config.app_title);
+                    expect(testWindow.document.title).toBe("DocumentCommandHandlers-test-files " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
                 });
             });
         });
@@ -1123,8 +1123,7 @@ define(function (require, exports, module) {
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
                     
                     // verify no dot in titlebar
-                    var expectedTitle = (brackets.platform === "mac" ? ("test.js — " + brackets.config.app_title) : ("test.js - " + brackets.config.app_title));
-                    expect(testWindow.document.title).toBe(expectedTitle);
+                    expect(testWindow.document.title).toBe("test.js (DocumentCommandHandlers-test-files) " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
                 });
             });
             
@@ -1139,8 +1138,8 @@ define(function (require, exports, module) {
                     expect(doc.isDirty).toBe(true);
                     
                     // verify dot in titlebar
-                    var expectedTitle = (brackets.platform === "mac" ? ("• test.js — " + brackets.config.app_title) : ("• test.js - " + brackets.config.app_title));
-                    expect(testWindow.document.title).toBe(expectedTitle);
+                    expect(testWindow.document.title).toBe("• test.js (DocumentCommandHandlers-test-files) " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
+
                 });
             });
 
@@ -1286,8 +1285,8 @@ define(function (require, exports, module) {
                     activeEditorChangeListener = jasmine.createSpy();
 
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.on("currentDocumentChange", docChangeListener);
+                    EditorManager.on("activeEditorChange", activeEditorChangeListener);
                     
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
@@ -1305,8 +1304,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(2);
                     expect(activeEditorChangeListener.callCount).toBe(2);
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.off("currentDocumentChange", docChangeListener);
+                    EditorManager.off("activeEditorChange", activeEditorChangeListener);
                 });
             });
             
@@ -1316,8 +1315,8 @@ define(function (require, exports, module) {
                     activeEditorChangeListener = jasmine.createSpy();
 
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.on("currentDocumentChange", docChangeListener);
+                    EditorManager.on("activeEditorChange", activeEditorChangeListener);
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz.png" });
                     waitsForDone(promise, Commands.FILE_OPEN);
@@ -1334,8 +1333,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(0);
                     expect(activeEditorChangeListener.callCount).toBe(0);
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.off("currentDocumentChange", docChangeListener);
+                    EditorManager.off("activeEditorChange", activeEditorChangeListener);
                 });
     
             });
@@ -1346,8 +1345,8 @@ define(function (require, exports, module) {
                     activeEditorChangeListener = jasmine.createSpy();
 
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.on("currentDocumentChange", docChangeListener);
+                    EditorManager.on("activeEditorChange", activeEditorChangeListener);
                     
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
@@ -1365,8 +1364,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(2);
                     expect(activeEditorChangeListener.callCount).toBe(2);
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.off("currentDocumentChange", docChangeListener);
+                    EditorManager.off("activeEditorChange", activeEditorChangeListener);
                 });
             });
             

@@ -304,12 +304,12 @@ define(function (require, exports, module) {
                 cssInlineEditor.$htmlContent
                     .on("focusin", _updateCommands)
                     .on("focusout", _updateCommands);
-                $(cssInlineEditor).on("add", function () {
+                cssInlineEditor.on("add", function () {
                     inlineEditorDeferred.resolve();
                 });
-                $(cssInlineEditor).on("close", function () {
+                cssInlineEditor.on("close", function () {
                     newRuleButton.closeDropdown();
-                    $(hostEditor).off("scroll", _onHostEditorScroll);
+                    hostEditor.off("scroll", _onHostEditorScroll);
                 });
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
@@ -319,7 +319,7 @@ define(function (require, exports, module) {
                 $header.append(newRuleButton.$button);
                 _newRuleHandlers.push({inlineEditor: cssInlineEditor, handler: _handleNewRuleClick});
                 
-                $(hostEditor).on("scroll", _onHostEditorScroll);
+                hostEditor.on("scroll", _onHostEditorScroll);
                 
                 result.resolve(cssInlineEditor);
                 
@@ -352,15 +352,15 @@ define(function (require, exports, module) {
                             } else {
                                 // Fill out remaining dropdown attributes otherwise
                                 newRuleButton.items = cssFileInfos;
-                                $(newRuleButton).on("select", _onDropdownSelect);
+                                newRuleButton.on("select", _onDropdownSelect);
                             }
                         }
                         
                         _updateCommands();
                     });
             })
-            .fail(function () {
-                console.log("Error in findMatchingRules()");
+            .fail(function (error) {
+                console.warn("Error in findMatchingRules()", error);
                 result.reject();
             });
         

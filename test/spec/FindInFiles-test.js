@@ -292,7 +292,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should ignore binary files", function () {
+            it("should ignore known binary file types", function () {
                 var $dlg, actualMessage, expectedMessage,
                     exists = false,
                     done = false,
@@ -347,6 +347,19 @@ define(function (require, exports, module) {
                 runs(function () {
                     // Set project back to main test folder
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+
+            it("should ignore unreadable files", function () {
+                // Add a nonexistent file to the ProjectManager.getAllFiles() result, which will force a file IO error
+                // when we try to read the file later. Similar errors may arise in real-world for non-UTF files, etc.
+                SpecRunnerUtils.injectIntoGetAllFiles(testWindow, testPath + "/doesNotExist.txt");
+                
+                openSearchBar();
+                executeSearch("foo");
+
+                runs(function () {
+                    expect(Object.keys(FindInFiles.searchModel.results).length).toBe(3);
                 });
             });
 
@@ -769,7 +782,7 @@ define(function (require, exports, module) {
                 gotChange = false;
                 oldResults = null;
                 wasQuickChange = false;
-                $(FindInFiles.searchModel).on("change.FindInFilesTest", function (event, quickChange) {
+                FindInFiles.searchModel.on("change.FindInFilesTest", function (event, quickChange) {
                     gotChange = true;
                     wasQuickChange = quickChange;
                 });
@@ -785,7 +798,7 @@ define(function (require, exports, module) {
             });
             
             afterEach(function () {
-                $(FindInFiles.searchModel).off(".FindInFilesTest");
+                FindInFiles.searchModel.off(".FindInFilesTest");
                 waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
             });
             

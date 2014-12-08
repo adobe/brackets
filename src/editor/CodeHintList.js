@@ -28,12 +28,13 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Menus             = require("command/Menus"),
+    var KeyBindingManager = require("command/KeyBindingManager"),
+        Menus             = require("command/Menus"),
+        KeyEvent          = require("utils/KeyEvent"),
         StringUtils       = require("utils/StringUtils"),
-        PopUpManager      = require("widgets/PopUpManager"),
+        ValidationUtils   = require("utils/ValidationUtils"),
         ViewUtils         = require("utils/ViewUtils"),
-        KeyBindingManager = require("command/KeyBindingManager"),
-        KeyEvent          = require("utils/KeyEvent");
+        PopUpManager      = require("widgets/PopUpManager");
     
     var CodeHintListHTML  = require("text!htmlContent/code-hint-list.html");
 
@@ -42,8 +43,10 @@ define(function (require, exports, module) {
      *
      * @constructor
      * @param {Editor} editor
+     * @param {boolean} insertHintOnTab Whether pressing tab inserts the selected hint
+     * @param {number} maxResults Maximum hints displayed at once. Defaults to 1000
      */
-    function CodeHintList(editor, insertHintOnTab) {
+    function CodeHintList(editor, insertHintOnTab, maxResults) {
 
         /**
          * The list of hints to display
@@ -60,11 +63,14 @@ define(function (require, exports, module) {
         this.selectedIndex = -1;
 
         /**
-         * The maximum number of hints to display
+         * The maximum number of hints to display. Can be overriden via maxCodeHints pref
          *
          * @type {number}
          */
-        this.maxResults = 999;
+        this.maxResults = Math.min(
+            (maxResults > 0 && ValidationUtils.isInteger(maxResults) && maxResults) || 1000,
+            1000
+        );
 
         /**
          * Is the list currently open?
@@ -215,7 +221,7 @@ define(function (require, exports, module) {
             }
         } else {
             this.hints.some(function (item, index) {
-                if (index > self.maxResults) {
+                if (index >= self.maxResults) {
                     return true;
                 }
                 

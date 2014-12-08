@@ -47,7 +47,7 @@ define(function (require, exports, module) {
      * Live preview server that uses a built-in HTTP server to serve static
      * and instrumented files.
      *
-     * @param {!{baseUrl: string, root: string, pathResolver: function(string), nodeConnection: NodeConnection}} config
+     * @param {!{baseUrl: string, root: string, pathResolver: function(string), nodeDomain: NodeDomain}} config
      *    Configuration parameters for this server:
      *        baseUrl        - Optional base URL (populated by the current project)
      *        pathResolver   - Function to covert absolute native paths to project relative paths
@@ -221,14 +221,14 @@ define(function (require, exports, module) {
      * See BaseServer#start. Starts listenting to StaticServerDomain events.
      */
     StaticServer.prototype.start = function () {
-        $(this._nodeDomain).on("requestFilter", this._onRequestFilter);
+        this._nodeDomain.on("requestFilter", this._onRequestFilter);
     };
 
     /**
      * See BaseServer#stop. Remove event handlers from StaticServerDomain.
      */
     StaticServer.prototype.stop = function () {
-        $(this._nodeDomain).off("requestFilter", this._onRequestFilter);
+        this._nodeDomain.off("requestFilter", this._onRequestFilter);
     };
 
     module.exports = StaticServer;

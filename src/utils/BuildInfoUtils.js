@@ -94,7 +94,7 @@ define(function (require, exports, module) {
         
         _loadSHA(bracketsGitRoot).done(function (data) {
             // Found a repository
-            result.resolve(data.branch, data.sha, true);
+            result.resolve(data.branch || "HEAD", data.sha || "unknown", true);
         }).fail(function () {
             // If package.json has repository data, Brackets is running from the installed /www folder
             result.resolve(brackets.metadata.repository.branch, brackets.metadata.repository.SHA, false);

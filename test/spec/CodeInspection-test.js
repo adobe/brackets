@@ -166,6 +166,23 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should get the correct linter given a file path", function () {
+                var codeInspector1 = createCodeInspector("text linter 1", successfulLintResult());
+                var codeInspector2 = createCodeInspector("text linter 2", successfulLintResult());
+
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("javascript", codeInspector2);
+
+                var providers = CodeInspection.getProvidersForPath("test.js");
+                expect(providers.length).toBe(2);
+                expect(providers[0]).toBe(codeInspector1);
+                expect(providers[1]).toBe(codeInspector2);
+            });
+
+            it("should return an empty array if no providers are registered", function () {
+                expect(CodeInspection.getProvidersForPath("test.js").length).toBe(0);
+            });
+
             it("should run two linters", function () {
                 var codeInspector1 = createCodeInspector("text linter 1", successfulLintResult());
                 var codeInspector2 = createCodeInspector("text linter 2", successfulLintResult());
@@ -509,7 +526,7 @@ define(function (require, exports, module) {
                     expect(asyncProvider.filesCalledOn).toEqual([noErrorsJS]);
                     
                     // "Modify" the file
-                    $(DocumentManager).triggerHandler("documentSaved", DocumentManager.getCurrentDocument());
+                    DocumentManager.trigger("documentSaved", DocumentManager.getCurrentDocument());
                     expect(asyncProvider.futures[noErrorsJS].length).toBe(2);
                     
                     // Finish old (stale) linting session - verify results not shown
@@ -538,7 +555,7 @@ define(function (require, exports, module) {
                     expect(asyncProvider.filesCalledOn).toEqual([noErrorsJS]);
                     
                     // "Modify" the file
-                    $(DocumentManager).triggerHandler("documentSaved", DocumentManager.getCurrentDocument());
+                    DocumentManager.trigger("documentSaved", DocumentManager.getCurrentDocument());
                     expect(asyncProvider.futures[noErrorsJS].length).toBe(2);
                     
                     // Finish new (current) linting session - verify results are shown

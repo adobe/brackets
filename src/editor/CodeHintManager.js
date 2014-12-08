@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 /*
  * __CodeHintManager Overview:__
@@ -131,7 +131,7 @@
  *  1. hints, a sorted array hints that the provider could later insert
  *     into the editor;
  *  2. match, a string that the manager may use to emphasize substrings of
- *     hints in the hint list; and
+ *     hints in the hint list (case-insensitive); and
  *  3. selectInitial, a boolean that indicates whether or not the the
  *     first hint in the list should be selected by default.
  *  4. handleWideResults, a boolean (or undefined) that indicates whether
@@ -254,6 +254,7 @@ define(function (require, exports, module) {
 
     PreferencesManager.definePreference("showCodeHints", "boolean", true);
     PreferencesManager.definePreference("insertHintOnTab", "boolean", false);
+    PreferencesManager.definePreference("maxCodeHints", "integer", 50);
 
     PreferencesManager.on("change", "showCodeHints", function () {
         codeHintsEnabled = PreferencesManager.get("showCodeHints");
@@ -484,7 +485,8 @@ define(function (require, exports, module) {
 
         // If a provider is found, initialize the hint list and update it
         if (sessionProvider) {
-            var insertHintOnTab;
+            var insertHintOnTab,
+                maxCodeHints = PreferencesManager.get("maxCodeHints");
             if (sessionProvider.insertHintOnTab !== undefined) {
                 insertHintOnTab = sessionProvider.insertHintOnTab;
             } else {
@@ -493,7 +495,7 @@ define(function (require, exports, module) {
 
             sessionEditor = editor;
 
-            hintList = new CodeHintList(sessionEditor, insertHintOnTab);
+            hintList = new CodeHintList(sessionEditor, insertHintOnTab, maxCodeHints);
             hintList.onSelect(function (hint) {
                 var restart = sessionProvider.insertHint(hint),
                     previousEditor = sessionEditor;
@@ -582,10 +584,10 @@ define(function (require, exports, module) {
     /**
      * Handle a selection change event in the editor. If the selection becomes a
      * multiple selection, end our current session.
-     * @param {Event} jqEvent
+     * @param {BracketsEvent} event
      * @param {Editor} editor
      */
-    function _handleCursorActivity(jqEvent, editor) {
+    function _handleCursorActivity(event, editor) {
         if (_inSession(editor)) {
             if (editor.getSelections().length > 1) {
                 _endSession();
@@ -668,32 +670,32 @@ define(function (require, exports, module) {
 
     function activeEditorChangeHandler(event, current, previous) {
         if (current) {
-            $(current).on("editorChange", _handleChange);
-            $(current).on("keydown",  _handleKeydownEvent);
-            $(current).on("keypress", _handleKeypressEvent);
-            $(current).on("keyup",    _handleKeyupEvent);
-            $(current).on("cursorActivity", _handleCursorActivity);
+            current.on("editorChange", _handleChange);
+            current.on("keydown",  _handleKeydownEvent);
+            current.on("keypress", _handleKeypressEvent);
+            current.on("keyup",    _handleKeyupEvent);
+            current.on("cursorActivity", _handleCursorActivity);
         }
 
         if (previous) {
             //Removing all old Handlers
-            $(previous).off("editorChange", _handleChange);
-            $(previous).off("keydown",  _handleKeydownEvent);
-            $(previous).off("keypress", _handleKeypressEvent);
-            $(previous).off("keyup",    _handleKeyupEvent);
-            $(previous).off("cursorActivity", _handleCursorActivity);
+            previous.off("editorChange", _handleChange);
+            previous.off("keydown",  _handleKeydownEvent);
+            previous.off("keypress", _handleKeypressEvent);
+            previous.off("keyup",    _handleKeyupEvent);
+            previous.off("cursorActivity", _handleCursorActivity);
         }
     }
 
     activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
 
-    $(EditorManager).on("activeEditorChange", activeEditorChangeHandler);
+    EditorManager.on("activeEditorChange", activeEditorChangeHandler);
 
     // Dismiss code hints before executing any command since the command
     // may make the current hinting session irrevalent after execution.
     // For example, when the user hits Ctrl+K to open Quick Doc, it is
     // pointless to keep the hint list since the user wants to view the Quick Doc.
-    $(CommandManager).on("beforeExecuteCommand", _endSession);
+    CommandManager.on("beforeExecuteCommand", _endSession);
 
     CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
 
