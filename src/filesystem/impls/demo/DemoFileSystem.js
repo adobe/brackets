@@ -23,29 +23,36 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, appshell, $, window */
+/*global define, window, PathUtils */
 
 define(function (require, exports, module) {
     "use strict";
     
     var FileSystemError = require("filesystem/FileSystemError"),
-        FileSystemStats = require("filesystem/FileSystemStats");
+        FileSystemStats = require("filesystem/FileSystemStats"),
+        AjaxFileSystem  = require("filesystem/impls/demo/AjaxFileSystem");
     
     
-    function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
-        // FIXME
-        throw new Error();
-    }
+    // Brackets uses FileSystem to read from various internal paths that are not in the user's project storage. We
+    // redirect core-extension access to a simple $.ajax() to read from the source code location we're running from,
+    // and for now we ignore we possibility of user-installable extensions or persistent user preferences.
+    var CORE_EXTENSIONS_PREFIX = PathUtils.directory(window.location.href) + "extensions/default/";
+//    var USER_EXTENSIONS_PREFIX = "/.brackets.user.extensions$/";
+//    var CONFIG_PREFIX = "/.$brackets.config$/";
     
-    function showSaveDialog(title, initialPath, proposedNewFilename, callback) {
-        // FIXME
-        throw new Error();
-    }
     
+    // Static, hardcoded file tree structure to serve up. Key is entry name, and value is either:
+    //  - string = file
+    //  - object = nested folder containing more entries
     var demoContent = {
         "index.html": "<html>\n<head>\n    <title>Hello, world!</title>\n</head>\n<body>\n    Welcome to Brackets!\n</body>\n</html>",
         "main.css": ".hello {\n    content: 'world!';\n}"
     };
+    
+    
+    function _startsWith(path, prefix) {
+        return (path.substr(0, prefix.length) === prefix);
+    }
     
     function _stripTrailingSlash(path) {
         return path[path.length - 1] === "/" ? path.substr(0, path.length - 1) : path;
@@ -89,6 +96,11 @@ define(function (require, exports, module) {
     
     
     function stat(path, callback) {
+        if (_startsWith(path, CORE_EXTENSIONS_PREFIX)) {
+            AjaxFileSystem.stat(path, callback);
+            return;
+        }
+        
         var result = _getDemoData(path);
         if (result || result === "") {
             callback(null, _makeStat(result));
@@ -108,6 +120,11 @@ define(function (require, exports, module) {
     }
     
     function readdir(path, callback) {
+        if (_startsWith(path, CORE_EXTENSIONS_PREFIX)) {
+            callback("Directory listing unavailable: " + path);
+            return;
+        }
+        
         var storeData = _getDemoData(path);
         if (!storeData) {
             callback(FileSystemError.NOT_FOUND);
@@ -137,6 +154,11 @@ define(function (require, exports, module) {
         if (typeof options === "function") {
             callback = options;
         }
+
+        if (_startsWith(path, CORE_EXTENSIONS_PREFIX)) {
+            AjaxFileSystem.readFile(path, callback);
+            return;
+        }
         
         var storeData = _getDemoData(path);
         if (!storeData && storeData !== "") {
@@ -148,6 +170,7 @@ define(function (require, exports, module) {
             callback(null, storeData, _makeStat(storeData[name]));
         }
     }
+    
     
     function writeFile(path, data, options, callback) {
         callback("Cannot save to HTTP demo server");
@@ -177,6 +200,17 @@ define(function (require, exports, module) {
     function unwatchAll(callback) {
         callback();
     }
+    
+    function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
+        // FIXME
+        throw new Error();
+    }
+    
+    function showSaveDialog(title, initialPath, proposedNewFilename, callback) {
+        // FIXME
+        throw new Error();
+    }
+
     
     // Export public API
     exports.showOpenDialog  = showOpenDialog;

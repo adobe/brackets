@@ -40,7 +40,7 @@ define(function (require, exports, module) {
     
         // User-level preferences
 //        userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
-        userPrefFile = "/&&&doesnt_exist&&&/" + SETTINGS_FILENAME;
+        userPrefFile = "/$.brackets.config$/" + SETTINGS_FILENAME;
     
     /**
      * A deferred object which is used to indicate PreferenceManager readiness during the start-up.
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
     // It's for more internal, implicit things like window size, working set, etc.
     var stateManager = new PreferencesBase.PreferencesSystem();
 //    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
-    var userStateFile = "/&&&doesnt_exist&&&/" + STATE_FILENAME;
+    var userStateFile = "/$.brackets.config$/" + STATE_FILENAME;
     var smUserScope = new PreferencesBase.Scope(new PreferencesBase.FileStorage(userStateFile, true));
     var stateProjectLayer = new PreferencesBase.ProjectLayer();
     smUserScope.addLayer(stateProjectLayer);

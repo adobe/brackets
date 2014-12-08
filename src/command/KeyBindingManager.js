@@ -52,7 +52,7 @@ define(function (require, exports, module) {
     
     var KEYMAP_FILENAME     = "keymap.json",
 //        _userKeyMapFilePath = brackets.app.getApplicationSupportDirectory() + "/" + KEYMAP_FILENAME;
-        _userKeyMapFilePath = "/&&&doesnt_exist&&&/" + KEYMAP_FILENAME;
+        _userKeyMapFilePath = "/$.brackets.config$/" + KEYMAP_FILENAME;
 
     /**
      * @private

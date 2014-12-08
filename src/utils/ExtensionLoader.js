@@ -78,7 +78,7 @@ define(function (require, exports, module) {
      */
     function getUserExtensionPath() {
         if (brackets.inBrowser) {  // TODO: how will user-installed extensions work in-browser?
-            return "&&&does_not_exist&&&";
+            return "$.brackets.user.extensions$";
         }
         
         return brackets.app.getApplicationSupportDirectory() + "/extensions/user";
@@ -398,7 +398,7 @@ define(function (require, exports, module) {
 //                    "test-server-file-system",  // uncomment (and update the root main.js) to test your own FileSystem back-end
                     "CloseOthers",
                     "CSSCodeHints",
-                    //"DarkTheme", - FIXME: does this work?
+                    "DarkTheme",        // Note: only themes ending in -Theme work with AjaxFileSystem
                     //"DebugCommands",
                     "HTMLCodeHints",
                     "HtmlEntityCodeHints",
@@ -408,7 +408,7 @@ define(function (require, exports, module) {
                     "JavaScriptQuickEdit",
                     "JSLint",
                     "LESSSupport",
-                    //"LightTheme", - FIXME: does this work?
+                    "LightTheme",       // Note: only themes ending in -Theme work with AjaxFileSystem
                     "QuickOpenCSS",
                     "QuickOpenHTML",
                     "QuickOpenJavaScript",
