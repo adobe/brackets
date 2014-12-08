@@ -99,7 +99,7 @@ define({
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Virhe käynnistettäessä selainta",
-    "ERROR_CANT_FIND_CHROME"            : "Google Chrome -selainta ei löydy. Varmista, että se on asennettu.",
+    "ERROR_CANT_FIND_CHROME"            : "Google Chrome \u2011selainta ei löydy. Varmista, että se on asennettu.",
     "ERROR_LAUNCHING_BROWSER"           : "Tapahtui virhe käynnistettäessä selainta. (virhe {0})",
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Esikatselun virhe",
@@ -438,7 +438,7 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentaatio ja lähdekoodi osoitteessa <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "He tekivät tämän \u2764:lla ja JavaScriptillä:",
     "ABOUT_TEXT_LINE6"                     : "Monet ihmiset (mutta meillä on ongelmia ladata näitä tietoja nyt).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform -dokumentit ja graafinen Web Platform -logo on lisensoitu Creative Commons Attribution -lisenssillä, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform \u2011dokumentit ja graafinen Web Platform \u2011logo on lisensoitu Creative Commons Attribution \u2011lisenssillä, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Uusi {APP_NAME}-versio on saatavilla! Saat lisätietoja napsauttamalla tästä.",
     "UPDATE_AVAILABLE_TITLE"               : "Päivitys saatavilla",
     "UPDATE_MESSAGE"                       : "Hei, uusi {APP_NAME}-versio on saatavilla. Tässä on joitakin uusista ominaisuuksista:",
