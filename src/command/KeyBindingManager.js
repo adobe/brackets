@@ -1204,6 +1204,9 @@ define(function (require, exports, module) {
     require(["document/DocumentManager"], function (DocumentManager) {
         DocumentManager.on("documentSaved", function checkKeyMapUpdates(e, doc) {
             if (doc && doc.file.fullPath === _userKeyMapFilePath) {
+                // Get all commands again to ensure that we also have all the commands
+                // from any extensions installed during the current session.
+                _allCommands = CommandManager.getAll();
                 _loadUserKeyMap();
             }
         });
@@ -1242,8 +1245,14 @@ define(function (require, exports, module) {
             _showErrors = false;
         }
         
-        _initCommandAndKeyMaps();
-        _loadUserKeyMap();
+        // Although we're handling user key map in extensionsLoaded event,
+        // some extensions may take longer time to asychronously register
+        // all the commands and their key bindings. So wait for another 500 ms 
+        // before applying the user key map.
+        window.setTimeout(function () {
+            _initCommandAndKeyMaps();
+            _loadUserKeyMap();
+        }, 500);
     });
 
     // unit test only
