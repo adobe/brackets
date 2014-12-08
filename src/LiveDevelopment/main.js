@@ -220,7 +220,6 @@ define(function main(require, exports, module) {
     // since UI status are slightly different btw implementations, it also set 
     // the corresponding style values.
     function _setImplementation(multibrowser) {
-        console.log('set implementation ' + multibrowser);
         if (multibrowser) {
             // set implemenation
             LiveDevImpl = MultiBrowserLiveDev;
