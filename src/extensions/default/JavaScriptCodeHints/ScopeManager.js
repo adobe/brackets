@@ -1245,10 +1245,9 @@ define(function (require, exports, module) {
          * Do some cleanup when a project is closed.
          *
          * We can clean up the web worker we use to calculate hints now, since
-         * we know we will need to re-init it in any new project that is opened.
-         * @param {boolean=} terminateNow true if Brackets is quitting and need to terminate tern worker immediately.
+         * we know we will need to re-init it in any new project that is opened.  
          */
-        function closeWorker(terminateNow) {
+        function closeWorker() {
             function terminateWorker() {
                 var worker = _ternWorker;
                 
@@ -1266,11 +1265,7 @@ define(function (require, exports, module) {
             }
             
             if (_ternWorker) {
-                if (terminateNow) {
-                    _ternWorker.terminate();
-                    _ternWorker = null;
-                    resolvedFiles = {};
-                } else if (addFilesPromise) {
+                if (addFilesPromise) {
                     // If we're in the middle of added files, don't terminate 
                     // until we're done or we might get NPEs
                     addFilesPromise.done(terminateWorker).fail(terminateWorker);
@@ -1487,11 +1482,10 @@ define(function (require, exports, module) {
      *
      * We can clean up the web worker we use to calculate hints now, since
      * we know we will need to re-init it in any new project that is opened.  
-     * @param {boolean=} quitting true if Brackets is quitting and need to terminate tern worker immediately.
      */
-    function handleProjectClose(quitting) {
+    function handleProjectClose() {
         if (currentWorker) {
-            currentWorker.closeWorker(quitting);
+            currentWorker.closeWorker();
             currentWorker = null;
         }
     }
