@@ -195,7 +195,7 @@ define(function (require, exports, module) {
             return promise.state() === "rejected";
         }, "failure " + operationName, timeout);
     };
-
+    
     /**
      * Get or create a NativeFileSystem rooted at the system root.
      * @return {$.Promise} A promise resolved when the native file system is found or rejected when an error occurs.
