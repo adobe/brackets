@@ -838,12 +838,6 @@ define(function (require, exports, module) {
             ScopeManager.handleProjectOpen();
         });
         
-        $(ProjectManager).on("beforeAppClose", function () {
-            if (brackets.platform === "win") {
-                ScopeManager.handleProjectClose(true);
-            }
-        });
-
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
 
