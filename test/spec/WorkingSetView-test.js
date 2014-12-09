@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, waitsForTime */
+/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, waits */
 
 define(function (require, exports, module) {
     "use strict";
@@ -269,7 +269,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.FILE_RENAME);
             });
 
-            waitsForTime(ProjectManager._RENDER_DEBOUNCE_TIME);
+            waits(ProjectManager._RENDER_DEBOUNCE_TIME);
 
             runs(function () {
                 expect($("#project-files-container ul input").val()).toBe(fileName);
