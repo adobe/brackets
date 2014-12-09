@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     var CommandManager      = require("command/CommandManager"),
         Dialogs             = require("widgets/Dialogs"),
         KeyBindingManager   = require("command/KeyBindingManager"),
+        KeyEvent            = require("utils/KeyEvent"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         Strings             = require("strings"),
         _                   = require("thirdparty/lodash");
@@ -765,7 +766,7 @@ define(function (require, exports, module) {
             var ctrlEvent = {
                 ctrlKey: true,
                 keyIdentifier: "Control",
-                keyCode: 17,
+                keyCode: KeyEvent.DOM_VK_CONTROL,
                 immediatePropagationStopped: false,
                 propagationStopped: false,
                 defaultPrevented: false,
@@ -787,7 +788,7 @@ define(function (require, exports, module) {
                 
                 altEvent.keyIdentifier = "Alt";
                 altEvent.altKey = true;
-                altEvent.keyCode = 18;
+                altEvent.keyCode = KeyEvent.DOM_VK_ALT;
                 ctrlAltEvent.altKey = true;
                 
                 altGrEvents.push(_.cloneDeep(ctrlEvent));

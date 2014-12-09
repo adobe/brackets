@@ -163,9 +163,9 @@ define(function (require, exports, module) {
     /**
      * @private
      * Detects whether AltGr key is pressed. When it is pressed, the first keydown event has 
-     * ctrlKey === true with keyIdentifier === "Control". Then, another keydown event with 
-     * altKey === true and keyIdentifier === "Alt" is sent. Subsequently, the third keydown
-     * event with altKey === true, ctrlKey === true and keyIdentifier === "Control" is sent.
+     * ctrlKey === true with keyIdentifier === "Control". The next keydown event with 
+     * altKey === true and keyIdentifier === "Alt" is sent. The next keydown event with 
+     * altKey === true, ctrlKey === true and keyIdentifier === "Control" is sent.
      * After third keydown event, we can tell it is AltGr key and not other combination of 
      * ctrl and alt keydown. If the user keep holding AltGr key down, then the second and third 
      * keydown events are repeatedly sent out alternately.
@@ -183,10 +183,11 @@ define(function (require, exports, module) {
         if (!_altGrDown) {
             if (!_ctrlDown && e.ctrlKey && e.keyIdentifier === "Control") {
                 _ctrlDown = true;
-            } else if (_ctrlDown && e.altKey && e.ctrlKey && e.keyIdentifier === "Alt") {
+            } else if (_ctrlDown && !_altDown &&
+                        e.altKey && e.ctrlKey && e.keyIdentifier === "Alt") {
                 _altDown = true;
             } else if (_ctrlDown && _altDown &&
-                            e.altKey && e.ctrlKey && e.keyIdentifier === "Control") {
+                        e.altKey && e.ctrlKey && e.keyIdentifier === "Control") {
                 _altGrDown = true;
                 _enabled = false;
                 $(window).on("keyup", _onCtrlUp);
@@ -693,17 +694,6 @@ define(function (require, exports, module) {
             return (promise.state() !== "rejected");
         }
         return false;
-    }
-
-    // TODO (issue #414): Replace this temporary fix with a more robust solution to handle focus and modality
-    /**
-     * Enable or disable key bindings. Clients such as dialogs may wish to disable
-     * global key bindings temporarily.
-     *
-     * @return {boolean} true if the key was processed, false otherwise
-     */
-    function setEnabled(value) {
-        _enabled = value;
     }
 
     /**
@@ -1328,7 +1318,6 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.getKeymap = getKeymap;
-    exports.setEnabled = setEnabled;
     exports.addBinding = addBinding;
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
