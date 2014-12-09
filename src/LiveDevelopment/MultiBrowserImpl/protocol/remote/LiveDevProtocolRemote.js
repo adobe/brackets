@@ -272,10 +272,8 @@
         },
         
         onClose: function () {
-            // TODO: This is absolutely temporary solution. It shows a message 
-            // when the connection has been closed. UX decision to be taken on what to do when 
-            // the session is explicitly closed from the Editor side. 
-            alert("Live Preview has been closed.");
+            // TODO: This is absolutely temporary solution.
+            document.title = "(Brackets Live Preview has been closed) " + document.title;
         },
         
         setDocumentObserver: function (documentOberver) {
