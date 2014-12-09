@@ -1081,7 +1081,9 @@ define(function LiveDevelopment(require, exports, module) {
         });
 
         // Domains for some agents must be enabled first before loading
-        var enablePromise = Inspector.Page.enable().then(_enableAgents);
+        var enablePromise = Inspector.Page.enable().then(function () {
+            Inspector.DOM.enable().then(_enableAgents);
+        });
         
         enablePromise.then(function () {
             // Some agents (e.g. DOMAgent and RemoteAgent) require us to

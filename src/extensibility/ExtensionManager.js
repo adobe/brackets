@@ -699,6 +699,8 @@ define(function (require, exports, module) {
                     // Async.doInParallel() fails if some are successful, so write errors
                     // to console and always resolve
                     errorArray.forEach(function (errorObj) {
+                        // If we rejected without an error argument, it means it was no problem
+                        // (e.g. same version of extension is already installed)
                         if (errorObj.error) {
                             if (errorObj.error.forEach) {
                                 console.error("Errors for", errorObj.item);
@@ -709,13 +711,6 @@ define(function (require, exports, module) {
                                 console.error("Error for", errorObj.item, errorObj);
                             }
                         }
-                    });
-                });
-
-                Async.promiseAlways(zipFilesPromise, function () {
-                    getFilesResolve({
-                        installZips: installZips,
-                        updateZips:  updateZips
                     });
                 });
             });

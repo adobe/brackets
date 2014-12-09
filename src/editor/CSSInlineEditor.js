@@ -363,8 +363,8 @@ define(function (require, exports, module) {
                             _updateCommands();
                         });
                 })
-                .catch(function () {
-                    console.log("Error in findMatchingRules()");
+                .catch(function (error) {
+                    console.warn("Error in findMatchingRules()", error);
                     reject();
                 });
         });

@@ -524,7 +524,8 @@ define(function (require, exports, module) {
          */
         function _removeSearchResultsForEntry(entry) {
             Object.keys(searchModel.results).forEach(function (fullPath) {
-                if (fullPath.indexOf(entry.fullPath) === 0) {
+                if (fullPath === entry.fullPath ||
+                        (entry.isDirectory && fullPath.indexOf(entry.fullPath) === 0)) {
                     searchModel.removeResults(fullPath);
                     resultsChanged = true;
                 }

@@ -868,7 +868,7 @@ define(function (require, exports, module) {
 
                             if (projectRootChanged) {
                                 _reloadProjectPreferencesScope();
-                                PreferencesManager._setCurrentEditingFile(rootPath);
+                                PreferencesManager._setCurrentFile(rootPath);
                             }
 
                             // If this is the most current welcome project, record it. In future launches, we want
@@ -1018,13 +1018,7 @@ define(function (require, exports, module) {
      *  filename.
      */
     function createNewItem(baseDir, initialName, skipRename, isFolder) {
-        if (typeof baseDir === "string") {
-            if (_.last(baseDir) !== "/") {
-                baseDir += "/";
-            }
-        } else {
-            baseDir = baseDir.fullPath;
-        }
+        baseDir = model.getDirectoryInProject(baseDir);
 
         if (skipRename) {
             return model.createAtPath(baseDir + initialName, isFolder);
@@ -1336,29 +1330,28 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Adds an icon provider. The icon provider is a function which takes a data object and
-     * returns a React.DOM.ins instance, a string, a DOM node or a jQuery instance
-     * for the icons within the tree.
+     * Adds an icon provider. The callback is invoked before each tree item is rendered, and can
+     * return content to prepend to the item.
      *
-     * The data object contains:
-     *
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode|React.DOM.ins} callback
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
+     * Return a string of HTML text, a React.DOM.ins instance, a jQuery object, or a DOM node; or undefined
+     * to prepend nothing.
      */
     function addIconProvider(callback) {
         return FileTreeView.addIconProvider(callback);
     }
 
     /**
-     * Adds an additional classes provider which can return classes that should be added to a
-     * given file or directory in the tree.
+     * Adds a CSS class provider, invoked before each tree item is rendered.
      *
-     * The data object contains:
-     *
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string} callback
      * * `name`: the file or directory name
      * * `fullPath`: full path to the file or directory
      * * `isFile`: true if it's a file, false if it's a directory
+     * Return a string containing space-separated CSS class(es) to add, or undefined to leave CSS unchanged.
      */
     function addClassesProvider(callback) {
         return FileTreeView.addClassesProvider(callback);

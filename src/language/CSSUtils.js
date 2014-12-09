@@ -1400,7 +1400,8 @@ define(function (require, exports, module) {
                             oneFileResolve();
                         })
                         .catch(function (error) {
-                            oneFileReject(error);
+                            console.warn("Unable to read " + fullPath + " during CSS rule search:", error);
+                            oneFileResolve();  // still resolve, so the overall result doesn't reject
                         });
                 });
             }

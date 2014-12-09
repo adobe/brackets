@@ -355,8 +355,8 @@ define(function (require, exports, module) {
         $indentWidthLabel
             .on("click", function () {
                 // update the input value before displaying
-                var current = EditorManager.getActiveEditor();
-                $indentWidthInput.val(_getIndentSize(current));
+                var fullPath = EditorManager.getActiveEditor().document.file.fullPath;
+                $indentWidthInput.val(_getIndentSize(fullPath));
 
                 $indentWidthLabel.addClass("hidden");
                 $indentWidthInput.removeClass("hidden");
@@ -364,13 +364,13 @@ define(function (require, exports, module) {
         
                 $indentWidthInput
                     .on("blur", function () {
-                        _changeIndentWidth(current, $indentWidthInput.val());
+                        _changeIndentWidth(fullPath, $indentWidthInput.val());
                     })
                     .on("keyup", function (event) {
                         if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                             $indentWidthInput.blur();
                         } else if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                            _changeIndentWidth(current, false);
+                            _changeIndentWidth(fullPath, false);
                         }
                     });
             });

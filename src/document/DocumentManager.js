@@ -698,17 +698,21 @@ define(function (require, exports, module) {
             oldDoc.off("languageChanged.DocumentManager");
         }
         
+        if (newDoc) {
+            PreferencesManager._setCurrentLanguage(newDoc.getLanguage().getId());
+            newDoc.on("languageChanged.DocumentManager", function (e, oldLang, newLang) {
+                PreferencesManager._setCurrentLanguage(newLang.getId());
+                exports.trigger("currentDocumentLanguageChanged", [oldLang, newLang]);
+            });
+        } else {
+            PreferencesManager._setCurrentLanguage(undefined);
+        }
+    
         if (newDoc !== oldDoc) {
             // Dispatch deprecated event with doc args (not File args as the new event uses)
             exports.trigger("currentDocumentChange", newDoc, oldDoc);
         }
 
-        if (newDoc) {
-            newDoc.on("languageChanged.DocumentManager", function (data) {
-                exports.trigger("currentDocumentLanguageChanged", data);
-            });
-        }
-    
     });
     
     // Deprecated APIs   

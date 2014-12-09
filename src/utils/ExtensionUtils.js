@@ -93,41 +93,42 @@ define(function (require, exports, module) {
      * @return {!Promise} A promise object that is resolved with CSS code if the LESS code can be parsed
      */
     function parseLessCode(code, url) {
-        var options;
-        
-        if (url) {
-            var dir  = url.slice(0, url.lastIndexOf("/") + 1),
-                file = url.slice(dir.length);
-            
-            options = {
-                filename: file,
-                paths:    [dir],
-                rootpath: dir
-            };
+        return new Promise(function (resolve, reject) {
+            var options;
 
-            if (isAbsolutePathOrUrl(url)) {
-                options.currentFileInfo = {
-                    currentDirectory: dir,
-                    entryPath: dir,
-                    filename: url,
-                    rootFilename: url,
+            if (url) {
+                var dir  = url.slice(0, url.lastIndexOf("/") + 1),
+                    file = url.slice(dir.length);
+
+                options = {
+                    filename: file,
+                    paths:    [dir],
                     rootpath: dir
                 };
-            }
-        }
-        
-        var parser = new less.Parser(options);
-        parser.parse(code, function onParse(err, tree) {
-            if (err) {
-                result.reject(err);
-            } else {
-                try {
-                    result.resolve(tree.toCSS());
-                } catch (toCSSError) {
-                    console.error(toCSSError.filename + ":" + toCSSError.line + " " + toCSSError.message);
-                    result.reject(toCSSError);
+
+                if (isAbsolutePathOrUrl(url)) {
+                    options.currentFileInfo = {
+                        currentDirectory: dir,
+                        entryPath: dir,
+                        filename: url,
+                        rootFilename: url,
+                        rootpath: dir
+                    };
                 }
             }
+
+            var parser = new less.Parser(options);
+            parser.parse(code, function onParse(err, tree) {
+                if (err) {
+                    reject(err);
+                } else {
+                    try {
+                        resolve(tree.toCSS());
+                    } catch (toCSSError) {
+                        reject(toCSSError);
+                    }
+                }
+            });
         });
     }
     
@@ -193,7 +194,7 @@ define(function (require, exports, module) {
      */
     function loadStyleSheet(module, path) {
         
-        return new Promise(function (outerResolve, outerReject) {
+        var result = new Promise(function (outerResolve, outerReject) {
             loadFile(module, path)
                 .then(function (content) {
                     var url = this.url;
@@ -219,6 +220,18 @@ define(function (require, exports, module) {
                 })
                 .catch(outerReject);
         });
+        
+        // Summarize error info to console for easier debugging
+        result.catch(function (error, textStatus, httpError) {
+            if (error.readyState !== undefined) {
+                // If first arg is a jQXHR object, the real error info is in the next two args
+                console.error("[Extension] Unable to read stylesheet " + path + ":", textStatus, httpError);
+            } else {
+                console.error("[Extension] Unable to process stylesheet " + path, error);
+            }
+        });
+        
+        return result;
     }
     
     /**

@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileTreeViewModel   = require("project/FileTreeViewModel"),
-        Async               = require("utils/Async");
+        Async               = require("utils/Async"),
+        PerfUtils           = require("utils/PerfUtils");
 
     // Constants
     var EVENT_CHANGE            = "change",
@@ -372,6 +373,30 @@ define(function (require, exports, module) {
         }
         return absPath;
     };
+    
+    /**
+     * Returns a valid directory within the project, either the path (or Directory object)
+     * provided or the project root.
+     * 
+     * @param {string|Directory} path Directory path to verify against the project
+     * @return {string} A directory path within the project.
+     */
+    ProjectModel.prototype.getDirectoryInProject = function (path) {
+        if (path && typeof path === "string") {
+            if (_.last(path) !== "/") {
+                path += "/";
+            }
+        } else if (path && path.isDirectory) {
+            path = path.fullPath;
+        } else {
+            path = null;
+        }
+        
+        if (!path || (typeof path !== "string") || !this.isWithinProject(path)) {
+            path = this.projectRoot.fullPath;
+        }
+        return path;
+    };
 
     /**
      * @private
@@ -399,10 +424,16 @@ define(function (require, exports, module) {
                 };
 
             this._allFilesCachePromise = new Promise(function (resolve, reject) {
+            
+                var projectIndexTimer = PerfUtils.markStart("Creating project files cache: " +
+                                                            this.projectRoot.fullPath);
+
                 this.projectRoot.visit(allFilesVisitor, function (err) {
                     if (err) {
+                        PerfUtils.finalizeMeasurement(projectIndexTimer);
                         reject(err);
                     } else {
+                        PerfUtils.addMeasurement(projectIndexTimer);
                         resolve(allFiles);
                     }
                 }.bind(this));
@@ -459,13 +490,13 @@ define(function (require, exports, module) {
                 try {
                     resolve(result);
                 } catch (e) {
-                    console.warn("Unhandled exception in getAllFiles handler: ", e);
+                    console.error("Unhandled exception in getAllFiles handler: " + e, e.stack);
                 }
             }).catch(function (err) {
                 try {
                     reject(err);
                 } catch (e) {
-                    console.warn("Unhandled exception in getAllFiles handler: ", e);
+                    console.error("Unhandled exception in getAllFiles handler: " + e, e.stack);
                 }
             });
         });
@@ -1126,7 +1157,7 @@ define(function (require, exports, module) {
             if (!added && !removed) {
                 entry.getContents(function (err, contents) {
                     if (err) {
-                        console.error("Unexpected error refreshing file tree for directory", entry.fullPath, err);
+                        console.error("Unexpected error refreshing file tree for directory " + entry.fullPath + ": " + err, err.stack);
                         return;
                     }
                     self._viewModel.setDirectoryContents(self.makeProjectRelativeIfPossible(entry.fullPath), contents);
