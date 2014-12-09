@@ -79,8 +79,7 @@ define(function (require, exports, module) {
         PREF_COLLAPSED          = "collapsed",
         PREF_ASYNC_TIMEOUT      = "asyncTimeout",
         PREF_PREFER_PROVIDERS   = "prefer",
-        PREF_PREFERRED_ONLY     = "preferredOnly",
-        PREF_FIRST_ONLY         = "firstOnly";
+        PREF_PREFERRED_ONLY     = "usePreferredOnly";
     
     var prefs = PreferencesManager.getExtensionPrefs("linting");
     
@@ -171,7 +170,6 @@ define(function (require, exports, module) {
 
             prefPreferredProviderNames  = prefs.get(PREF_PREFER_PROVIDERS, context),
             prefPreferredOnly           = prefs.get(PREF_PREFERRED_ONLY, context),
-            prefFirstOnly               = prefs.get(PREF_FIRST_ONLY, context),
         
             providers;
         
@@ -196,9 +194,6 @@ define(function (require, exports, module) {
             }
         } else {
             providers = installedProviders;
-        }
-        if (prefFirstOnly === true) { // implies suppressing others
-            return providers.slice(0, 1);
         }
         return providers;
     }
@@ -676,7 +671,6 @@ define(function (require, exports, module) {
     exports._PREF_ASYNC_TIMEOUT     = PREF_ASYNC_TIMEOUT;
     exports._PREF_PREFER_PROVIDERS  = PREF_PREFER_PROVIDERS;
     exports._PREF_PREFERRED_ONLY    = PREF_PREFERRED_ONLY;
-    exports._PREF_FIRST_ONLY        = PREF_FIRST_ONLY;
 
     // Public API
     exports.register            = register;
