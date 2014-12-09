@@ -35,7 +35,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var EventDispatcher     = require("utils/EventDispatcher"),
+    var Async               = require("utils/Async"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         PerfUtils           = require("utils/PerfUtils"),
         _                   = require("thirdparty/lodash"),
         LiveDocument        = require("LiveDevelopment/MultiBrowserImpl/documents/LiveDocument"),
@@ -211,7 +212,7 @@ define(function (require, exports, module) {
         if (result.edits) {
             applyEditsPromise = this.protocol.evaluate("_LD.applyDOMEdits(" + JSON.stringify(result.edits) + ")");
     
-            applyEditsPromise.always(function () {
+            Async.promiseAlways(applyEditsPromise, function () {
                 if (!isNestedTimer) {
                     PerfUtils.addMeasurement(perfTimerName);
                 }
@@ -227,7 +228,7 @@ define(function (require, exports, module) {
         if (this._debug) {
             console.log("Edits applied to browser were:");
             console.log(JSON.stringify(result.edits, null, 2));
-            applyEditsPromise.done(function () {
+            applyEditsPromise.then(function () {
                 self._compareWithBrowser(change);
             });
         }

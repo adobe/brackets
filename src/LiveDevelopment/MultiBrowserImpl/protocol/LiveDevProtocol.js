@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define, Promise */
 
 /**
  * Provides the protocol that Brackets uses to talk to a browser instance for live development.
@@ -77,7 +77,7 @@ define(function (require, exports, module) {
      * A map of response IDs to deferreds, for messages that are awaiting responses.
      * @type {Object}
      */
-    var _responseDeferreds = {};
+    var _responsePromises = {};
     
     /**
      * Returns an array of the client IDs that are being managed by this live document.
@@ -101,15 +101,15 @@ define(function (require, exports, module) {
     function _receive(clientId, msgStr) {
         var msg = JSON.parse(msgStr),
             event = msg.method || "event",
-            deferred;
+            promise;
         if (msg.id) {
-            deferred = _responseDeferreds[msg.id];
-            if (deferred) {
-                delete _responseDeferreds[msg.id];
+            promise = _responsePromises[msg.id];
+            if (promise) {
+                delete _responsePromises[msg.id];
                 if (msg.error) {
-                    deferred.reject(msg);
+                    promise.reject(msg);
                 } else {
-                    deferred.resolve(msg);
+                    promise.resolve(msg);
                 }
             }
         } else {
@@ -126,18 +126,25 @@ define(function (require, exports, module) {
      * @param {Object} msg The message to send.
      * @param {number|Array.<number>} idOrArray ID or IDs of the client(s) that should
      *     receive the message.
-     * @return {$.Promise} A promise that's fulfilled when the response to the message is received.
+     * @return {Promise} A promise that's fulfilled when the response to the message is received.
      */
     function _send(msg, clients) {
-        var id = _nextMsgId++,
-            result = new $.Deferred();
+        var result, resultResolve, resultReject,
+            id = _nextMsgId++;
+        
+        result = new Promise(function (resolve, reject) {
+            resultResolve = resolve;
+            resultReject  = reject;
+        });
+        result.resolve = resultResolve;
+        result.reject  = resultReject;
         
         // broadcast if there are no specific clients
         clients = clients || getConnectionIds();
         msg.id = id;
-        _responseDeferreds[id] = result;
+        _responsePromises[id] = result;
         _transport.send(clients, JSON.stringify(msg));
-        return result.promise();
+        return result;
     }
     
      /**
@@ -232,7 +239,7 @@ define(function (require, exports, module) {
      * @param {number|Array.<number>} clients A client ID or array of client IDs that should evaluate
      *      the script.
      * @param {string} script The script to evalute.
-     * @return {$.Promise} A promise that's resolved with the return value from the first client that responds
+     * @return {Promise} A promise that's resolved with the return value from the first client that responds
      *      to the evaluation.
      */
     function evaluate(script, clients) {
@@ -253,7 +260,7 @@ define(function (require, exports, module) {
      * @param {string} text The new text of the stylesheet
      * @param {number|Array.<number>} clients A client ID or array of client IDs that should evaluate
      *      the script.
-     * @return {$.Promise} A promise that's resolved with the return value from the first client that responds
+     * @return {Promise} A promise that's resolved with the return value from the first client that responds
      *      to the evaluation.
      */
     function setStylesheetText(url, text, clients) {
@@ -272,7 +279,7 @@ define(function (require, exports, module) {
      * Protocol method. Rretrieves the content of a given stylesheet (for unit testing)
      * @param {number|Array.<number>} clients A client ID or array of client IDs that should navigate to the given URL.
      * @param {string} url Absolute URL that identifies the stylesheet.
-     * @return {$.Promise} A promise that's resolved with the return value from the first client that responds
+     * @return {Promise} A promise that's resolved with the return value from the first client that responds
      *      to the method.
      */
     function getStylesheetText(url, clients) {
@@ -291,7 +298,7 @@ define(function (require, exports, module) {
      * Protocol method. Reloads the page that is currently loaded into the browser, optionally ignoring cache.
      * @param {number|Array.<number>} clients A client ID or array of client IDs that should reload the page.
      * @param {boolean} ignoreCache If true, browser cache is ignored.
-     * @return {$.Promise} A promise that's resolved with the return value from the first client that responds
+     * @return {Promise} A promise that's resolved with the return value from the first client that responds
      *      to the method.
      */
     function reload(ignoreCache, clients) {
@@ -310,7 +317,7 @@ define(function (require, exports, module) {
      * Protocol method. Navigates current page to the given URL. 
      * @param {number|Array.<number>} clients A client ID or array of client IDs that should navigate to the given URL.
      * @param {string} url URL to navigate the page to.
-     * @return {$.Promise} A promise that's resolved with the return value from the first client that responds
+     * @return {Promise} A promise that's resolved with the return value from the first client that responds
      *      to the method.
      */
     function navigate(url, clients) {

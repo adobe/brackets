@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define, Promise */
 
 /**
  * LiveCSSDocument manages a single CSS source document
@@ -168,14 +168,12 @@ define(function LiveCSSDocumentModule(require, exports, module) {
 
     // Only used for unit testing.
     LiveCSSDocument.prototype.getSourceFromBrowser = function () {
-        var deferred = new $.Deferred();
-        
-        this.protocol.getStylesheetText(this.doc.url)
-            .then(function (res) {
-                deferred.resolve(res.text);
-            }, deferred.reject);
-        
-        return deferred.promise();
+        return new Promise(function (resolve, reject) {
+            this.protocol.getStylesheetText(this.doc.url)
+                .then(function (res) {
+                    resolve(res.text);
+                }, reject);
+        });
     };
 
     // Export the class

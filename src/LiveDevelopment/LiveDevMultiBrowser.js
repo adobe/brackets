@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define, $, Promise */
 
 /**
  * LiveDevelopment allows Brackets to launch a browser with a "live preview" that's
@@ -309,7 +309,7 @@ define(function (require, exports, module) {
 
         var docPromise = DocumentManager.getDocumentForPath(path);
 
-        docPromise.done(function (doc) {
+        docPromise.then(function (doc) {
             if ((_classForDocument(doc) === LiveCSSDocument) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
                 var liveDoc = _createLiveDocument(doc, null, roots);
@@ -367,75 +367,74 @@ define(function (require, exports, module) {
         if (doc) {
             refPath = doc.file.fullPath;
             if (FileUtils.isStaticHtmlFileExt(refPath) || FileUtils.isServerHtmlFileExt(refPath)) {
-                return new $.Deferred().resolve(doc);
+                return Promise.resolve(doc);
             }
         }
 
-        var result = new $.Deferred();
+        return new Promise(function (resolve, reject) {
 
-        var baseUrl = ProjectManager.getBaseUrl(),
-            hasOwnServerForLiveDevelopment = (baseUrl && baseUrl.length);
+            var baseUrl = ProjectManager.getBaseUrl(),
+                hasOwnServerForLiveDevelopment = (baseUrl && baseUrl.length);
 
-        ProjectManager.getAllFiles().done(function (allFiles) {
-            var projectRoot = ProjectManager.getProjectRoot().fullPath,
-                containingFolder,
-                indexFileFound = false,
-                stillInProjectTree = true;
-            
-            if (refPath) {
-                containingFolder = FileUtils.getDirectoryPath(refPath);
-            } else {
-                containingFolder = projectRoot;
-            }
-            
-            var filteredFiltered = allFiles.filter(function (item) {
-                var parent = FileUtils.getDirectoryPath(item.fullPath);
-                
-                return (containingFolder.indexOf(parent) === 0);
-            });
-            
-            var filterIndexFile = function (fileInfo) {
-                if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
-                    if (FileUtils.getFilenameWithoutExtension(fileInfo.name) === "index") {
-                        if (hasOwnServerForLiveDevelopment) {
-                            if ((FileUtils.isServerHtmlFileExt(fileInfo.name)) ||
-                                    (FileUtils.isStaticHtmlFileExt(fileInfo.name))) {
+            ProjectManager.getAllFiles().then(function (allFiles) {
+                var projectRoot = ProjectManager.getProjectRoot().fullPath,
+                    containingFolder,
+                    indexFileFound = false,
+                    stillInProjectTree = true;
+
+                if (refPath) {
+                    containingFolder = FileUtils.getDirectoryPath(refPath);
+                } else {
+                    containingFolder = projectRoot;
+                }
+
+                var filteredFiltered = allFiles.filter(function (item) {
+                    var parent = FileUtils.getDirectoryPath(item.fullPath);
+
+                    return (containingFolder.indexOf(parent) === 0);
+                });
+
+                var filterIndexFile = function (fileInfo) {
+                    if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
+                        if (FileUtils.getFilenameWithoutExtension(fileInfo.name) === "index") {
+                            if (hasOwnServerForLiveDevelopment) {
+                                if ((FileUtils.isServerHtmlFileExt(fileInfo.name)) ||
+                                        (FileUtils.isStaticHtmlFileExt(fileInfo.name))) {
+                                    return true;
+                                }
+                            } else if (FileUtils.isStaticHtmlFileExt(fileInfo.name)) {
                                 return true;
                             }
-                        } else if (FileUtils.isStaticHtmlFileExt(fileInfo.name)) {
-                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                };
+
+                while (!indexFileFound && stillInProjectTree) {
+                    i = _.findIndex(filteredFiltered, filterIndexFile);
+
+                    // We found no good match
+                    if (i === -1) {
+                        // traverse the directory tree up one level
+                        containingFolder = FileUtils.getDirectoryPath(containingFolder);
+                        // Are we still inside the project?
+                        if (containingFolder.indexOf(projectRoot) === -1) {
+                            stillInProjectTree = false;
                         }
                     } else {
-                        return false;
+                        indexFileFound = true;
                     }
                 }
-            };
 
-            while (!indexFileFound && stillInProjectTree) {
-                i = _.findIndex(filteredFiltered, filterIndexFile);
-
-                // We found no good match
-                if (i === -1) {
-                    // traverse the directory tree up one level
-                    containingFolder = FileUtils.getDirectoryPath(containingFolder);
-                    // Are we still inside the project?
-                    if (containingFolder.indexOf(projectRoot) === -1) {
-                        stillInProjectTree = false;
-                    }
-                } else {
-                    indexFileFound = true;
+                if (i !== -1) {
+                    DocumentManager.getDocumentForPath(filteredFiltered[i].fullPath).then(resolve, resolve);
+                    return;
                 }
-            }
 
-            if (i !== -1) {
-                DocumentManager.getDocumentForPath(filteredFiltered[i].fullPath).then(result.resolve, result.resolve);
-                return;
-            }
-            
-            result.resolve(null);
+                resolve(null);
+            });
         });
-
-        return result.promise();
     }
 
     /**
@@ -617,44 +616,44 @@ define(function (require, exports, module) {
      * vs. a user server when there is an app server set in File > Project Settings).
      */
     function _prepareServer(doc) {
-        var deferred = new $.Deferred(),
-            showBaseUrlPrompt = false;
-        
-        _server = LiveDevServerManager.getServer(doc.file.fullPath);
 
-        // Optionally prompt for a base URL if no server was found but the
-        // file is a known server file extension
-        showBaseUrlPrompt = !_server && FileUtils.isServerHtmlFileExt(doc.file.fullPath);
+        return new Promise(function (resolve, reject) {
+            var showBaseUrlPrompt = false;
 
-        if (showBaseUrlPrompt) {
-            // Prompt for a base URL
-            PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
-                .done(function (id) {
-                    if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
-                        // If base url is specifed, then re-invoke _prepareServer() to continue
-                        _prepareServer(doc).then(deferred.resolve, deferred.reject);
-                    } else {
-                        deferred.reject();
-                    }
-                });
-        } else if (_server) {
-            // Startup the server
-            var readyPromise = _server.readyToServe();
-            if (!readyPromise) {
-                _showLiveDevServerNotReadyError();
-                deferred.reject();
-            } else {
-                readyPromise.then(deferred.resolve, function () {
+            _server = LiveDevServerManager.getServer(doc.file.fullPath);
+
+            // Optionally prompt for a base URL if no server was found but the
+            // file is a known server file extension
+            showBaseUrlPrompt = !_server && FileUtils.isServerHtmlFileExt(doc.file.fullPath);
+
+            if (showBaseUrlPrompt) {
+                // Prompt for a base URL
+                PreferencesDialogs.showProjectPreferencesDialog("", Strings.LIVE_DEV_NEED_BASEURL_MESSAGE)
+                    .then(function (id) {
+                        if (id === Dialogs.DIALOG_BTN_OK && ProjectManager.getBaseUrl()) {
+                            // If base url is specifed, then re-invoke _prepareServer() to continue
+                            _prepareServer(doc).then(resolve, reject);
+                        } else {
+                            reject();
+                        }
+                    });
+            } else if (_server) {
+                // Startup the server
+                var readyPromise = _server.readyToServe();
+                if (!readyPromise) {
                     _showLiveDevServerNotReadyError();
-                    deferred.reject();
-                });
+                    reject();
+                } else {
+                    readyPromise.then(resolve, function () {
+                        _showLiveDevServerNotReadyError();
+                        reject();
+                    });
+                }
+            } else {
+                // No server found
+                reject();
             }
-        } else {
-            // No server found
-            deferred.reject();
-        }
-        
-        return deferred.promise();
+        });
     }
 
     /**
@@ -690,8 +689,8 @@ define(function (require, exports, module) {
     function open() {
         // TODO: need to run _onDocumentChange() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
-        _getInitialDocFromCurrent().done(function (doc) {
-            var prepareServerPromise = (doc && _prepareServer(doc)) || new $.Deferred().reject(),
+        _getInitialDocFromCurrent().then(function (doc) {
+            var prepareServerPromise = (doc && _prepareServer(doc)) || Promise.reject(),
                 otherDocumentsInWorkingFiles;
 
             if (doc && !doc._masterEditor) {
@@ -705,11 +704,11 @@ define(function (require, exports, module) {
 
             // wait for server (StaticServer, Base URL or file:)
             prepareServerPromise
-                .done(function () {
+                .then(function () {
                     _setStatus(STATUS_CONNECTING);
                     _doLaunchAfterServerReady(doc);
                 })
-                .fail(function () {
+                .catch(function () {
                     _showWrongDocError();
                 });
         });
@@ -854,7 +853,7 @@ define(function (require, exports, module) {
      * @return {jQuery.Promise} Already resolved promise.
      */
     function reconnect() {
-        return $.Deferred().resolve();
+        return Promise.resolve();
     }
     
     /**
