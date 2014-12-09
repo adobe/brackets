@@ -195,7 +195,23 @@ define(function (require, exports, module) {
             return promise.state() === "rejected";
         }, "failure " + operationName, timeout);
     };
-    
+
+    /**
+     * Utility for *rare* situations in which a test needs to pause for a *known* amount of time.
+     * Tests that sporadically fail due to timing issues can't really be fixed by this. This function
+     * was created when a debounce delay was added to updating the project tree, so we have a specific,
+     * known amount of time to pause for.
+     */
+    window.waitsForTime = function (timeout) {
+        runs(function () {
+            var d = new $.Deferred();
+            setTimeout(function () {
+                d.resolve();
+            }, timeout);
+            waitsForDone(d.promise());
+        });
+    };
+
     /**
      * Get or create a NativeFileSystem rooted at the system root.
      * @return {$.Promise} A promise resolved when the native file system is found or rejected when an error occurs.

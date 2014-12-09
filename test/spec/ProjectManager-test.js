@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
+/*global $, define, describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast, waitsForTime */
 
 define(function (require, exports, module) {
     "use strict";
@@ -373,13 +373,7 @@ define(function (require, exports, module) {
              * we'll need to wait for the next render.
              */
             function waitForRenderDebounce() {
-                runs(function () {
-                    var d = new $.Deferred();
-                    setTimeout(function () {
-                        d.resolve();
-                    }, ProjectManager._RENDER_DEBOUNCE_TIME);
-                    waitsForDone(d.promise());
-                });
+                waitsForTime(ProjectManager._RENDER_DEBOUNCE_TIME);
             }
 
             it("should deselect after opening file not rendered in tree", function () {
