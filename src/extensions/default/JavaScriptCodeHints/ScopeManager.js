@@ -209,7 +209,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if in editor, false otherwise.
      */
     function isFileBeingEdited(filePath) {
-        var currentEditor   = EditorManager.getFocusedEditor(),
+        var currentEditor   = EditorManager.getActiveEditor(),
             currentDoc      = currentEditor && currentEditor.document;
 
         return (currentDoc && currentDoc.file.fullPath === filePath);
