@@ -21,7 +21,7 @@
  * 
  */
 
-/*global define, describe, beforeEach, runs, afterEach, waitsFor, it, waitsForDone, expect */
+/*global define, describe, beforeEach, runs, afterEach, waitsFor, it, xit, waitsForDone, expect */
 
 define(function (require, exports, module) {
     "use strict";
@@ -255,7 +255,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should push in memory css changes made before the session starts", function () {
+            xit("should push in memory css changes made before the session starts", function () {
                 var localText,
                     browserText;
                 
