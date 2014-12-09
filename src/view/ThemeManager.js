@@ -96,10 +96,11 @@ define(function (require, exports, module) {
             options.name = options.name.toLocaleLowerCase().replace(/[\W]/g, '-');
         }
 
-        this.file        = file;
-        this.name        = options.name;
-        this.displayName = options.title || toDisplayName(fileName);
-        this.dark        = options.theme !== undefined && options.theme.dark === true;
+        this.file           = file;
+        this.name           = options.name;
+        this.displayName    = options.title || toDisplayName(fileName);
+        this.dark           = options.theme !== undefined && options.theme.dark === true;
+        this.addModeClass   = options.theme !== undefined && options.theme.addModeClass === true;
     }
 
 
@@ -249,7 +250,7 @@ define(function (require, exports, module) {
     /**
      * Refresh current theme in the editor
      *
-     * @param {boolean} force Forces a reload the current theme.  It reload the theme file.
+     * @param {boolean} force Forces a reload of the current theme.  It reloads the theme file.
      */
     function refresh(force) {
         if (force) {
@@ -264,6 +265,7 @@ define(function (require, exports, module) {
 
             var cm = editor._codeMirror;
             ThemeView.updateThemes(cm);
+            cm.setOption("addModeClass", currentTheme.addModeClass);
         });
     }
 
