@@ -151,8 +151,9 @@ define(function (require, exports, module) {
             });
             
             it("should be able to detect when it has focus", function () {
+                spyOn(myEditor._codeMirror, "focus").andCallThrough();
                 myEditor.focus();
-                expect(myEditor.hasFocus()).toBe(true);
+                expect(myEditor._codeMirror.focus).toHaveBeenCalled();
             });
         });
         
