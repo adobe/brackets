@@ -239,7 +239,7 @@ define(function (require, exports, module) {
                 ruby.removeFileExtension(["1", "2"]);
                 
                 expect(LanguageManager.getLanguageForPath("foo.1")).toBe(unknown);
-                expect(LanguageManager.getLanguageForPaxmoth("foo.2")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPath("foo.2")).toBe(unknown);
             });
             
             it("should add multiple file names to languages", function () {
