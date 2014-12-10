@@ -1150,14 +1150,6 @@ define(function (require, exports, module) {
             $projectTreeContainer.trigger("contentChanged");
         });
 
-        Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuOpen", function () {
-            actionCreator.restoreContext();
-        });
-
-        Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuClose", function () {
-            model.setContext(null, false, true);
-        });
-
         /**
          * Context menu for folder tree 
          */
