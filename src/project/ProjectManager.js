@@ -45,7 +45,6 @@ define(function (require, exports, module) {
     "use strict";
 
     require("utils/Global");
-    require("command/DefaultMenus"),
 
     var _ = require("thirdparty/lodash");
 
@@ -1159,9 +1158,21 @@ define(function (require, exports, module) {
             model.setContext(null, false, true);
         });
 
-        $projectTreeContainer.on("contextmenu", function () {
+        /**
+         * Context menu for folder tree 
+         */
+        $projectTreeContainer.on("contextmenu", function (e) {
             forceFinishRename();
+            Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU)
+                .one("beforeContextMenuOpen", function () {
+                    actionCreator.restoreContext();
+                })
+                .one("beforeContextMenuClose", function () {
+                    model.setContext(null, false, true);
+                })
+                .open(e);
         });
+        
         
         // When a context menu item is selected, we need to clear the context
         // because we don't get a beforeContextMenuClose event since Bootstrap

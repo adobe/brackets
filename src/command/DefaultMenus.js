@@ -305,13 +305,6 @@ define(function (require, exports, module) {
             }
         });
 
-        /**
-         * Context menu for folder tree 
-         */
-        $("#project-files-container").on("contextmenu", function (e) {
-            project_cmenu.open(e);
-        });
-
         // Dropdown menu for workspace sorting
         Menus.ContextMenu.assignContextMenuToSelector(".working-set-option-btn", workingset_configuration_menu);
 
