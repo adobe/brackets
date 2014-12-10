@@ -45,6 +45,7 @@ define(function (require, exports, module) {
     "use strict";
 
     require("utils/Global");
+    require("command/DefaultMenus"),
 
     var _ = require("thirdparty/lodash");
 
