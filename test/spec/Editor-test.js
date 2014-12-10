@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, jasmine */
+/*global define, describe, it, expect, beforeEach, afterEach, jasmine, spyOn */
 
 define(function (require, exports, module) {
     'use strict';
@@ -149,8 +149,21 @@ define(function (require, exports, module) {
             it("should not have focus until explicitly set", function () {
                 expect(myEditor.hasFocus()).toBe(false);
             });
-            
             it("should be able to detect when it has focus", function () {
+                /*
+                 * @note: This test really just ensures that
+                 *          calling the editor's focus method
+                 *          will call the codeMirror focus method 
+                 *        This is due to the fact that focusing the editor
+                 *          may not actually focus the editor if the app 
+                 *          doesn't have the keyboard focus which changed
+                 *          with cef 2171
+                 * @todo: This will need to be replaced with
+                 *       checks to see that the editor is the "active" element
+                 *       rather than have the input focus after focusing 
+                 *       the editor
+                 * @see: https://github.com/adobe/brackets/issues/9972
+                 */
                 spyOn(myEditor._codeMirror, "focus").andCallThrough();
                 myEditor.focus();
                 expect(myEditor._codeMirror.focus).toHaveBeenCalled();
