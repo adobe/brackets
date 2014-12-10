@@ -283,6 +283,8 @@ define(function (require, exports, module) {
         projectDirectory = FileUtils.getDirectoryPath(settingsFile);
         _toggleProjectScope();
         PreferencesImpl.projectPathLayer.setPrefFilePath(settingsFile);
+        // for the user PathLayer, also use the project's pref file as a root for relative path
+        PreferencesImpl.userPathLayer.setPrefFilePath(settingsFile);
         PreferencesImpl.projectStorage.setPath(settingsFile);
     }
     
