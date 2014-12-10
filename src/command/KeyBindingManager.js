@@ -133,7 +133,7 @@ define(function (require, exports, module) {
      * left Alt key down with or without Control key down, we don't get the same keydown events and/or 
      * not in that order.
      *    1. _ctrlDown - flag used to record { ctrlKey: true, keyIdentifier: "Control", ... } keydown event
-     *    2. _altDown - flag used to record { altKey: true, keyIdentifier: "Alt", ... } keydown event
+     *    2. _altDown - flag used to record { ctrlKey: true, altKey: true, keyIdentifier: "Alt", ... } keydown event
      *    3. _altGrDown - flag used to record { ctrlKey: true, altKey: true, keyIdentifier: "Control", ... } keydown event
      * @type {boolean}
      */
@@ -164,8 +164,8 @@ define(function (require, exports, module) {
      * @private
      * Detects whether AltGr key is pressed. When it is pressed, the first keydown event has 
      * ctrlKey === true with keyIdentifier === "Control". The next keydown event with 
-     * altKey === true and keyIdentifier === "Alt" is sent. The next keydown event with 
-     * altKey === true, ctrlKey === true and keyIdentifier === "Control" is sent.
+     * altKey === true, ctrlKey === true and keyIdentifier === "Alt" is sent. The next keydown 
+     * event with altKey === true, ctrlKey === true and keyIdentifier === "Control" is sent.
      * After third keydown event, we can tell it is AltGr key and not other combination of 
      * ctrl and alt keydown. If the user keep holding AltGr key down, then the second and third 
      * keydown events are repeatedly sent out alternately.
@@ -181,7 +181,7 @@ define(function (require, exports, module) {
         }
         
         if (!_altGrDown) {
-            if (!_ctrlDown && e.ctrlKey && e.keyIdentifier === "Control") {
+            if (!_ctrlDown && !_altDown && e.ctrlKey && e.keyIdentifier === "Control") {
                 _ctrlDown = true;
             } else if (_ctrlDown && !_altDown &&
                         e.altKey && e.ctrlKey && e.keyIdentifier === "Alt") {
