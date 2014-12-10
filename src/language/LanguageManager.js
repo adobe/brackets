@@ -252,12 +252,14 @@ define(function (require, exports, module) {
      */
     function getLanguageForContent(rawText) {
         // Auto Detection for bash scripts 
-        var macros = ['#!/bin/sh', '#!/bin/bash', '#!/usr/bin/env bash'];
-        macros.forEach(function (macro) {
-            if (rawText.indexOf(macro) > -1) {
-                return getLanguage("bash");
+        if (_languages) {
+            for (var lang in _languages) {
+                if (rawText && _languages[lang].hasAutoDetectionRegexp() &&
+                 rawText.search(new RegExp(_languages[lang].getAutoDetectionRegexp()) != -1)) {
+                    return _languages[lang];
+                }
             }
-        });
+        }
         return _fallbackLanguage;
     }
     
@@ -428,6 +430,7 @@ define(function (require, exports, module) {
         this._fileNames         = [];
         this._modeToLanguageMap = {};
         this._lineCommentSyntax = [];
+        this._autoDetectionRegexp = null;
     }
     
     
@@ -478,6 +481,8 @@ define(function (require, exports, module) {
      * @type {{ prefix: string, suffix: string }}
      */
     Language.prototype._blockCommentSyntax = null;
+
+    Language.prototype._autoDetectionRegexp = null;
     
     /**
      * Whether or not the language is binary
@@ -820,6 +825,34 @@ define(function (require, exports, module) {
         
         return true;
     };
+
+    /**
+     * Returns whether the regexp for content detection that is defined for this language.
+     * @return {boolean} Whether content detection are supported
+     */
+    Language.prototype.hasAutoDetectionRegexp = function () {
+        return Boolean(this._autoDetectionRegexp);
+    }
+
+    /**
+     * Returns the regexp string to use for content detection.
+     * @return {string} The regexp string
+     */
+    Language.prototype.getAutoDetectionRegexp = function () {
+        return this._autoDetectionRegexp;
+    }
+
+    /**
+     * Sets a new regxep string for content detection for this language
+     * @param {string} The regexp string
+     * 
+     * @return {boolean} Whether the regexp was set or not
+     */
+    Language.prototype.setAutoDetectionRegexp = function (regexp) {
+        this._autoDetectionRegexp = regexp;
+        return true;
+    }
+
     
     /**
      * Returns either a language associated with the mode or the fallback language.
@@ -880,6 +913,10 @@ define(function (require, exports, module) {
     Language.prototype.isBinary = function () {
         return this._isBinary;
     };
+
+    Language.prototype.autoDetectionRegexp = function () {
+        return this._autoDetectionRegexp;
+    }
     
     /**
      * Sets whether or not the language is binary
@@ -922,6 +959,7 @@ define(function (require, exports, module) {
             fileNames      = definition.fileNames,
             blockComment   = definition.blockComment,
             lineComment    = definition.lineComment,
+            autoDetectionRegexp = definition.autoDetectionRegexp,
             i,
             l;
         
@@ -939,6 +977,8 @@ define(function (require, exports, module) {
             }
             
             language._setBinary(!!definition.isBinary);
+
+            language._autoDetectionRegexp = autoDetectionRegexp;
             
             // store language to language map
             _languages[language.getId()] = language;

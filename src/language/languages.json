@@ -235,7 +235,8 @@
         "name": "Bash",
         "mode": ["shell", "text/x-sh"],
         "fileExtensions": ["sh", "command", "bash"],
-        "lineComment": ["#"]
+        "lineComment": ["#"],
+        "autoDetectionRegexp" : "(^#!/bin/sh)|(^#!/bin/bash)|(^#!/usr/bin/env bash)"
     },
   
     "image": {
