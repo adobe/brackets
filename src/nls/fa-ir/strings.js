@@ -262,7 +262,7 @@ define({
     "STATUSBAR_CURSOR_POSITION"             : "خط {0}, ستون {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 {0} ستون انتخاب شده",
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 {0} ستون های انتخاب شده",
-    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 {0} خط انتخاب شدهe",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 {0} خط انتخاب شده",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 {0} خط های انتخاب شده",
     "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} انتخاب شده ها",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "کلیک کنید تا به این فضاها منتقل شوید",
