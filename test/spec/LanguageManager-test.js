@@ -239,7 +239,7 @@ define(function (require, exports, module) {
                 ruby.removeFileExtension(["1", "2"]);
                 
                 expect(LanguageManager.getLanguageForPath("foo.1")).toBe(unknown);
-                expect(LanguageManager.getLanguageForPath("foo.2")).toBe(unknown);
+                expect(LanguageManager.getLanguageForPaxmoth("foo.2")).toBe(unknown);
             });
             
             it("should add multiple file names to languages", function () {
@@ -268,6 +268,25 @@ define(function (require, exports, module) {
                 expect(LanguageManager.getLanguageForPath("rubyFile1")).toBe(unknown);
                 expect(LanguageManager.getLanguageForPath("rubyFile2")).toBe(unknown);
             });
+        });
+
+        describe("auto detection for extensionless file", function () {
+            
+            it("should return bash language", function () {
+                var text    = "#!/bin/sh\n\necho 123";
+                var text2   = "#!/bin/bash\n\necho 123";
+                var text3   = "#!/usr/bin/env bash\n\necho 123";
+                var text4   = "123\n\necho 123";
+
+                var bash    = LanguageManager.getLanguage("bash"),
+                    unknown = LanguageManager.getLanguage("unknown");
+
+                expect(LanguageManager.getLanguageForContent(text)).toBe(bash);
+                expect(LanguageManager.getLanguageForContent(text2)).toBe(bash);
+                expect(LanguageManager.getLanguageForContent(text3)).toBe(bash);
+                expect(LanguageManager.getLanguageForContent(text4)).toBe(unknown);
+            });
+            
         });
 
         describe("defineLanguage", function () {

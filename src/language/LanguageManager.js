@@ -243,6 +243,23 @@ define(function (require, exports, module) {
     function getLanguage(id) {
         return _languages[id];
     }
+
+    /**
+     * Resolves a file content to a Language object.
+     * @param {!string} rawText  Text content of the file.
+     *
+     * @return {Language} The language detected based on file content or the fallback language
+     */
+    function getLanguageForContent(rawText) {
+        // Auto Detection for bash scripts 
+        var macros = ['#!/bin/sh', '#!/bin/bash', '#!/usr/bin/env bash'];
+        macros.forEach(function (macro) {
+            if (rawText.indexOf(macro) > -1) {
+                return getLanguage("bash");
+            }
+        });
+        return _fallbackLanguage;
+    }
     
     /**
      * Resolves a file extension to a Language object.
@@ -263,7 +280,7 @@ define(function (require, exports, module) {
      *
      * @return {Language} The language for the provided file type or the fallback language
      */
-    function getLanguageForPath(path, ignoreOverride) {
+    function getLanguageForPath(path, ignoreOverride, rawText) {
         var fileName,
             language = _filePathToLanguageMap[path],
             extension,
@@ -320,7 +337,7 @@ define(function (require, exports, module) {
             }
         }
         
-        return language || _fallbackLanguage;
+        return language || getLanguageForContent(rawText);
     }
     
     /**
@@ -1128,6 +1145,7 @@ define(function (require, exports, module) {
     exports.getLanguage                 = getLanguage;
     exports.getLanguageForExtension     = getLanguageForExtension;
     exports.getLanguageForPath          = getLanguageForPath;
+    exports.getLanguageForContent       = getLanguageForContent;
     exports.getLanguages                = getLanguages;
     exports.setLanguageOverrideForPath  = setLanguageOverrideForPath;
 });
