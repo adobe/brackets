@@ -1165,7 +1165,6 @@ define(function (require, exports, module) {
                 .open(e);
         });
         
-        
         // When a context menu item is selected, we need to clear the context
         // because we don't get a beforeContextMenuClose event since Bootstrap
         // handles this directly.
