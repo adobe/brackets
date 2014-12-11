@@ -255,7 +255,7 @@ define(function (require, exports, module) {
         if (_languages) {
             for (var lang in _languages) {
                 if (rawText && _languages[lang].hasAutoDetectionRegexp() &&
-                 rawText.search(new RegExp(_languages[lang].getAutoDetectionRegexp()) != -1)) {
+                 rawText.search(new RegExp(_languages[lang].getAutoDetectionRegexp()) !== -1)) {
                     return _languages[lang];
                 }
             }
@@ -832,7 +832,7 @@ define(function (require, exports, module) {
      */
     Language.prototype.hasAutoDetectionRegexp = function () {
         return Boolean(this._autoDetectionRegexp);
-    }
+    };
 
     /**
      * Returns the regexp string to use for content detection.
@@ -840,7 +840,7 @@ define(function (require, exports, module) {
      */
     Language.prototype.getAutoDetectionRegexp = function () {
         return this._autoDetectionRegexp;
-    }
+    };
 
     /**
      * Sets a new regxep string for content detection for this language
@@ -851,7 +851,7 @@ define(function (require, exports, module) {
     Language.prototype.setAutoDetectionRegexp = function (regexp) {
         this._autoDetectionRegexp = regexp;
         return true;
-    }
+    };
 
     
     /**
@@ -916,7 +916,7 @@ define(function (require, exports, module) {
 
     Language.prototype.autoDetectionRegexp = function () {
         return this._autoDetectionRegexp;
-    }
+    };
     
     /**
      * Sets whether or not the language is binary
