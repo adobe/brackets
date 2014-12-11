@@ -131,6 +131,8 @@ define(function (require, exports, module) {
      * @type {Array.<function(Event): boolean>}
      */
     var _globalKeydownHooks = [];
+    
+    var _loadUserKeyMap;
 
     /**
      * @private
@@ -452,7 +454,6 @@ define(function (require, exports, module) {
         }
         
         if (newBinding && newBinding.commandID && _allCommands.indexOf(newBinding.commandID) === -1) {
-            _allCommands = CommandManager.getAll();
             _defaultKeyMap[newBinding.commandID] = _.cloneDeep(newBinding);
             
             // Process user key map again to catch any reassignment to all new key bindings added from extensions.
@@ -695,11 +696,10 @@ define(function (require, exports, module) {
      * @param {?string} platform The target OS of the keyBindings either
      *     "mac", "win" or "linux". If undefined, all platforms not explicitly
      *     defined will use the key binding.
-     * @param {boolean=} userBindings true if adding a user key binding or undefined otherwise.
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>}
      *     Returns record(s) for valid key binding(s)
      */
-    function addBinding(command, keyBindings, platform, userBindings) {
+    function addBinding(command, keyBindings, platform) {
         var commandID = "",
             results;
         
@@ -725,14 +725,14 @@ define(function (require, exports, module) {
             
             keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
                 // attempt to add keybinding
-                keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform, userBindings);
+                keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 
                 if (keyBinding) {
                     results.push(keyBinding);
                 }
             });
         } else {
-            results = _addBinding(commandID, keyBindings, platform, userBindings);
+            results = _addBinding(commandID, keyBindings, platform);
         }
         
         return results;
@@ -1044,7 +1044,7 @@ define(function (require, exports, module) {
                         var keybinding = { key: normalizedKey };
 
                         keybinding.displayKey = _getDisplayKey(normalizedKey);
-                        addBinding(commandID, keybinding.displayKey ? keybinding : normalizedKey, brackets.platform, true);
+                        _addBinding(commandID, keybinding.displayKey ? keybinding : normalizedKey, brackets.platform, true);
                         remappedCommands.push(commandID);
                     } else {
                         multipleKeys.push(commandID);
@@ -1111,14 +1111,14 @@ define(function (require, exports, module) {
                 // Reassign the default key binding. e.g. "Cmd-W": "file.open" in _customKeyMapCache
                 // will require us to reassign Cmd-O shortcut to file.open command.
                 if (defaults) {
-                    addBinding(commandID, defaults, brackets.platform, true);
+                    addBinding(commandID, defaults, brackets.platform);
                 }
 
                 // Reassign the default key binding of the previously modified command. 
                 // e.g. "Cmd-W": "file.open" in _customKeyMapCache will require us to reassign Cmd-W
                 // shortcut to file.close command.
                 if (defaultCommand && defaultCommand.key) {
-                    addBinding(defaultCommand.commandID, defaultCommand.key, brackets.platform, true);
+                    addBinding(defaultCommand.commandID, defaultCommand.key, brackets.platform);
                 }
             }
         });
@@ -1195,10 +1195,19 @@ define(function (require, exports, module) {
      * binding by removing the existing one assigned to each key and adding 
      * new one for the specified command id. Shows errors and opens the user 
      * key map file if it cannot be parsed.
+     *
+     * This function is wrapped with debounce so that its execution is always delayed
+     * by 200 ms. The delay is required because when this function is called some 
+     * extensions may still be adding some commands and their key bindings asychronously.
      */
-    var _loadUserKeyMap = _.debounce(function () {
+    _loadUserKeyMap = _.debounce(function () {
         _readUserKeyMap()
             .then(function (keyMap) {
+                // Some extensions may add a new command without any key binding. So
+                // we always have to get all commands again to ensure that we also have 
+                // those from any extensions installed during the current session. 
+                _allCommands = CommandManager.getAll();
+
                 _customKeyMapCache = _.cloneDeep(_customKeyMap);
                 _customKeyMap = keyMap;
                 _undoPriorUserKeyBindings();
