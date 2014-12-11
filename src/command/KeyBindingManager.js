@@ -132,6 +132,11 @@ define(function (require, exports, module) {
      */
     var _globalKeydownHooks = [];
     
+    /**
+     * @private
+     * Forward declaration for JSLint.
+     * @type {Function}
+     */
     var _loadUserKeyMap;
 
     /**
