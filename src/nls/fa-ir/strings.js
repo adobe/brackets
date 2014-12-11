@@ -178,7 +178,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"              : "جایگزینی",
     "FIND_REPLACE_TITLE_WITH"               : "با",
     "FIND_TITLE_LABEL"                      : "جستجو",
-    "FIND_TITLE_SUMMARY"                    : "&mdash; {0} {1} {2} in {3}",
+    "FIND_TITLE_SUMMARY"                    : "&mdash; {0} {1} {2} در {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                        : "{0} {1}",
@@ -324,7 +324,7 @@ define({
     "CMD_INSTALL_EXTENSION"               : "نصب افزونه \u2026",
     "CMD_EXTENSION_MANAGER"               : "مدیریت افزونه\u2026",
     "CMD_FILE_REFRESH"                    : "نو سازی درختی پرونده",
-    "CMD_QUIT"                            : "Quit",
+    "CMD_QUIT"                            : "ترک کردن",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "خروج",
 
