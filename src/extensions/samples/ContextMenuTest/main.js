@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $ */
+/*global define, brackets */
 
 define(function (require, exports, module) {
     "use strict";
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
         command3.setEnabled(editor && editor.getSelectedText() !== "");
     };
     var editor_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
-    $(editor_cmenu).on("beforeContextMenuOpen", updateEnabledState);
+    editor_cmenu.on("beforeContextMenuOpen", updateEnabledState);
 
     
     // Add the Commands as MenuItems of the Editor context menu

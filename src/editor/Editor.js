@@ -40,9 +40,9 @@
  * but this is considered deprecated and may go away.
  *
  * The Editor object dispatches the following events:
- *    - keyEvent -- When any key event happens in the editor (whether it changes the text or not).
- *      Event handlers are passed `({Editor}, {KeyboardEvent})`. The 2nd arg is the raw DOM event.
- *      Note: most listeners will only want to respond when `event.type === "keypress"`.
+ *    - keydown, keypress, keyup -- When any key event happens in the editor (whether it changes the
+ *      text or not). Handlers are passed `(BracketsEvent, Editor, KeyboardEvent)`. The 3nd arg is the
+ *      raw DOM event. Note: most listeners will only want to listen for "keypress".
  *    - cursorActivity -- When the user moves the cursor or changes the selection, or an edit occurs.
  *      Note: do not listen to this in order to be generally informed of edits--listen to the
  *      "change" event on Document instead.
@@ -60,8 +60,8 @@
  * The Editor also dispatches "change" events internally, but you should listen for those on
  * Documents, not Editors.
  *
- * These are jQuery events, so to listen for them you do something like this:
- *     `$(editorInstance).on("eventname", handler);`
+ * To listen for events, do something like this: (see EventDispatcher for details on this pattern)
+ *     `editorInstance.on("eventname", handler);`
  */
 define(function (require, exports, module) {
     "use strict";
@@ -69,6 +69,8 @@ define(function (require, exports, module) {
     var AnimationUtils     = require("utils/AnimationUtils"),
         Async              = require("utils/Async"),
         CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+        LanguageManager    = require("language/LanguageManager"),
+        EventDispatcher    = require("utils/EventDispatcher"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
         PopUpManager       = require("widgets/PopUpManager"),
@@ -100,7 +102,7 @@ define(function (require, exports, module) {
      * Constants
      * @type {number}
      */
-    var MIN_SPACE_UNITS         =  0,
+    var MIN_SPACE_UNITS         =  1,
         MIN_TAB_SIZE            =  1,
         DEFAULT_SPACE_UNITS     =  4,
         DEFAULT_TAB_SIZE        =  4,
@@ -178,6 +180,19 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Helper function to build preferences context based on the full path of
+     * the file.
+     *
+     * @param {string} fullPath Full path of the file
+     *
+     * @return {*} A context for the specified file name
+     */
+    function _buildPreferencesContext(fullPath) {
+        return PreferencesManager._buildContext(fullPath,
+            fullPath ? LanguageManager.getLanguageForPath(fullPath).getId() : undefined);
+    }
+
+    /**
      * List of all current (non-destroy()ed) Editor instances. Needed when changing global preferences
      * that affect all editors, e.g. tabbing or color scheme settings.
      * @type {Array.<Editor>}
@@ -226,9 +241,9 @@ define(function (require, exports, module) {
         this._handleDocumentChange = this._handleDocumentChange.bind(this);
         this._handleDocumentDeleted = this._handleDocumentDeleted.bind(this);
         this._handleDocumentLanguageChanged = this._handleDocumentLanguageChanged.bind(this);
-        $(document).on("change", this._handleDocumentChange);
-        $(document).on("deleted", this._handleDocumentDeleted);
-        $(document).on("languageChanged", this._handleDocumentLanguageChanged);
+        document.on("change", this._handleDocumentChange);
+        document.on("deleted", this._handleDocumentDeleted);
+        document.on("languageChanged", this._handleDocumentLanguageChanged);
 
         var mode = this._getModeFromDocument();
         
@@ -316,13 +331,13 @@ define(function (require, exports, module) {
         
         this._installEditorListeners();
         
-        $(this).on("cursorActivity", function (jqEvent, editor) {
-            self._handleCursorActivity(jqEvent);
+        this.on("cursorActivity", function (event, editor) {
+            self._handleCursorActivity(event);
         });
-        $(this).on("keypress", function (jqEvent, editor, cmEvent) {
-            self._handleKeypressEvents(cmEvent);
+        this.on("keypress", function (event, editor, domEvent) {
+            self._handleKeypressEvents(domEvent);
         });
-        $(this).on("change", function (jqEvent, editor, changeList) {
+        this.on("change", function (event, editor, changeList) {
             self._handleEditorChange(changeList);
         });
         
@@ -360,13 +375,16 @@ define(function (require, exports, module) {
         });
     }
     
+    EventDispatcher.makeEventDispatcher(Editor.prototype);
+    EventDispatcher.markDeprecated(Editor.prototype, "keyEvent", "'keydown/press/up'");
+    
     /**
      * Removes this editor from the DOM and detaches from the Document. If this is the "master"
      * Editor that is secretly providing the Document's backing state, then the Document reverts to
      * a read-only string-backed mode.
      */
     Editor.prototype.destroy = function () {
-        $(this).triggerHandler("beforeDestroy", [this]);
+        this.trigger("beforeDestroy", this);
 
         // CodeMirror docs for getWrapperElement() say all you have to do is "Remove this from your
         // tree to delete an editor instance."
@@ -376,9 +394,9 @@ define(function (require, exports, module) {
         
         // Disconnect from Document
         this.document.releaseRef();
-        $(this.document).off("change", this._handleDocumentChange);
-        $(this.document).off("deleted", this._handleDocumentDeleted);
-        $(this.document).off("languageChanged", this._handleDocumentLanguageChanged);
+        this.document.off("change", this._handleDocumentChange);
+        this.document.off("deleted", this._handleDocumentDeleted);
+        this.document.off("languageChanged", this._handleDocumentLanguageChanged);
         
         if (this._visibleRange) {   // TextRange also refs the Document
             this._visibleRange.dispose();
@@ -599,7 +617,7 @@ define(function (require, exports, module) {
                 }
                 
                 var cursor = sel.start,
-                    jump   = cursor.ch % indentUnit,
+                    jump   = (indentUnit === 0) ? 1 : cursor.ch % indentUnit,
                     line   = instance.getLine(cursor.line);
 
                 // Don't do any soft tab handling if there are non-whitespace characters before the cursor in
@@ -607,8 +625,10 @@ define(function (require, exports, module) {
                 if (line.substr(0, cursor.ch).search(/\S/) !== -1) {
                     jump = null;
                 } else if (direction === 1) { // right
-                    jump = indentUnit - jump;
-
+                    if (indentUnit) {
+                        jump = indentUnit - jump;
+                    }
+                    
                     // Don't jump if it would take us past the end of the line, or if there are
                     // non-whitespace characters within the jump distance.
                     if (cursor.ch + jump > line.length || line.substr(cursor.ch, jump).search(/\S/) !== -1) {
@@ -652,7 +672,7 @@ define(function (require, exports, module) {
     /**
      * Determine the mode to use from the document's language
      * Uses "text/plain" if the language does not define a mode
-     * @return string The mode to use
+     * @return {string} The mode to use
      */
     Editor.prototype._getModeFromDocument = function () {
         // We'd like undefined/null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
@@ -710,7 +730,7 @@ define(function (require, exports, module) {
         // it to lose sync. If so, our whole view is stale - signal our owner to close us.
         if (this._visibleRange) {
             if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
-                $(this).triggerHandler("lostContent");
+                this.trigger("lostContent");
                 return;
             }
         }
@@ -781,7 +801,7 @@ define(function (require, exports, module) {
         // whereas the "change" event should be listened to on the document. Also the
         // Editor dispatches a change event before this event is dispatched, because
         // CodeHintManager needs to hook in here when other things are already done.
-        $(this).triggerHandler("editorChange", [this, changeList]);
+        this.trigger("editorChange", this, changeList);
     };
     
     /**
@@ -818,7 +838,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype._handleDocumentDeleted = function (event) {
         // Pass the delete event along as the cause (needed in MultiRangeInlineEditor)
-        $(this).triggerHandler("lostContent", [event]);
+        this.trigger("lostContent", event);
     };
     
     /**
@@ -836,9 +856,10 @@ define(function (require, exports, module) {
     Editor.prototype._installEditorListeners = function () {
         var self = this;
         
-        // Redispatch these CodeMirror key events as jQuery events
+        // Redispatch these CodeMirror key events as Editor events
         function _onKeyEvent(instance, event) {
-            $(self).triggerHandler(event.type, [self, event]);
+            self.trigger("keyEvent", self, event);  // deprecated
+            self.trigger(event.type, self, event);
             return event.defaultPrevented;   // false tells CodeMirror we didn't eat the event
         }
         this._codeMirror.on("keydown",  _onKeyEvent);
@@ -851,13 +872,13 @@ define(function (require, exports, module) {
         // Also, note that we use the new "changes" event in v4, which provides an array of
         // change objects. Our own event is still called just "change".
         this._codeMirror.on("changes", function (instance, changeList) {
-            $(self).triggerHandler("change", [self, changeList]);
+            self.trigger("change", self, changeList);
         });
         this._codeMirror.on("beforeChange", function (instance, changeObj) {
-            $(self).triggerHandler("beforeChange", [self, changeObj]);
+            self.trigger("beforeChange", self, changeObj);
         });
         this._codeMirror.on("cursorActivity", function (instance) {
-            $(self).triggerHandler("cursorActivity", [self]);
+            self.trigger("cursorActivity", self);
         });
         this._codeMirror.on("scroll", function (instance) {
             // If this editor is visible, close all dropdowns on scroll.
@@ -867,25 +888,25 @@ define(function (require, exports, module) {
                 Menus.closeAll();
             }
 
-            $(self).triggerHandler("scroll", [self]);
+            self.trigger("scroll", self);
         });
 
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.on("focus", function () {
             self._focused = true;
-            $(self).triggerHandler("focus", [self]);
+            self.trigger("focus", self);
         });
         
         this._codeMirror.on("blur", function () {
             self._focused = false;
-            $(self).triggerHandler("blur", [self]);
+            self.trigger("blur", self);
         });
 
         this._codeMirror.on("update", function (instance) {
-            $(self).triggerHandler("update", [self]);
+            self.trigger("update", self);
         });
         this._codeMirror.on("overwriteToggle", function (instance, newstate) {
-            $(self).triggerHandler("overwriteToggle", [self, newstate]);
+            self.trigger("overwriteToggle", self, newstate);
         });
     };
     
@@ -1247,7 +1268,7 @@ define(function (require, exports, module) {
      * @param {boolean} center true to center the viewport
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      * @param {?string} origin An optional string that describes what other selection or edit operations this
-     *      should be merged with for the purposes of undo. See Document.replaceRange() for more details.
+     *      should be merged with for the purposes of undo. See {@link Document#replaceRange} for more details.
      */
     Editor.prototype.setSelection = function (start, end, center, centerOptions, origin) {
         this.setSelections([{start: start, end: end || start}], center, centerOptions, origin);
@@ -1266,7 +1287,7 @@ define(function (require, exports, module) {
      * @param {boolean} center true to center the viewport around the primary selection.
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      * @param {?string} origin An optional string that describes what other selection or edit operations this
-     *      should be merged with for the purposes of undo. See Document.replaceRange() for more details.
+     *      should be merged with for the purposes of undo. See {@link Document#replaceRange} for more details.
      */
     Editor.prototype.setSelections = function (selections, center, centerOptions, origin) {
         var primIndex = selections.length - 1, options;
@@ -1662,7 +1683,7 @@ define(function (require, exports, module) {
             POPOVER_ARROW_HALF_BASE = POPOVER_ARROW_HALF_WIDTH + 3; // 3 is border radius
 
         function _removeListeners() {
-            $(self).off(".msgbox");
+            self.off(".msgbox");
         }
 
         // PopUpManager.removePopUp() callback
@@ -1683,7 +1704,7 @@ define(function (require, exports, module) {
         }
 
         function _addListeners() {
-            $(self)
+            self
                 .on("blur.msgbox",           _removeMessagePopover)
                 .on("change.msgbox",         _removeMessagePopover)
                 .on("cursorActivity.msgbox", _removeMessagePopover)
@@ -1766,7 +1787,7 @@ define(function (require, exports, module) {
 
                 // Don't add scroll listeners until open so we don't get event
                 // from scrolling cursor into view
-                $(self).on("scroll.msgbox", _removeMessagePopover);
+                self.on("scroll.msgbox", _removeMessagePopover);
 
                 // Animate closed -- which includes delay to show message
                 AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose", 6000)
@@ -2001,7 +2022,7 @@ define(function (require, exports, module) {
      *     the start and end.
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode.
-     * @see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
+     * @see {@link LanguageManager::#getLanguageForPath} and {@link LanguageManager::Language#getMode}.
      */
     Editor.prototype.getModeForRange = function (start, end, knownMixed) {
         var outerMode = this._codeMirror.getMode(),
@@ -2027,7 +2048,7 @@ define(function (require, exports, module) {
      *
      * @return {?(Object|string)} Name of syntax-highlighting mode, or object containing a "name" property
      *     naming the mode along with configuration options required by the mode.
-     * @see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
+     * @see {@link LanguageManager::#getLanguageForPath} and {@link LanguageManager::Language#getMode}.
      */
     Editor.prototype.getModeForSelection = function () {
         // Check for mixed mode info
@@ -2080,7 +2101,8 @@ define(function (require, exports, module) {
     /**
      * Gets the syntax-highlighting mode for the document.
      *
-     * @return {Object|String} Object or Name of syntax-highlighting mode; see {@link LanguageManager#getLanguageForPath()} and {@link Language#getMode()}.
+     * @return {Object|String} Object or Name of syntax-highlighting mode
+     * @see {@link LanguageManager::#getLanguageForPath|LanguageManager.getLanguageForPath} and {@link LanguageManager::Language#getMode|Language.getMode}.
      */
     Editor.prototype.getModeForDocument = function () {
         return this._codeMirror.getOption("mode");
@@ -2153,7 +2175,7 @@ define(function (require, exports, module) {
      * @return {*} current value of that pref
      */
     Editor.prototype._getOption = function (prefName) {
-        return PreferencesManager.get(prefName, this.document.file.fullPath);
+        return PreferencesManager.get(prefName, PreferencesManager._buildContext(this.document.file.fullPath, this.document.getLanguage().getId()));
     };
     
     /**
@@ -2189,7 +2211,7 @@ define(function (require, exports, module) {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
             }
             
-            $(this).triggerHandler("optionChange", [prefName, newValue]);
+            this.trigger("optionChange", prefName, newValue);
         }
     };
     
@@ -2241,7 +2263,7 @@ define(function (require, exports, module) {
     
     
     // Global settings that affect Editor instances that share the same preference locations
-
+    
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text.
      * Affects any editors that share the same preference location.
@@ -2260,7 +2282,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getUseTabChar = function (fullPath) {
-        return PreferencesManager.get(USE_TAB_CHAR, fullPath);
+        return PreferencesManager.get(USE_TAB_CHAR, _buildPreferencesContext(fullPath));
     };
     
     /**
@@ -2281,7 +2303,7 @@ define(function (require, exports, module) {
      * @return {number}
      */
     Editor.getTabSize = function (fullPath) {
-        return PreferencesManager.get(TAB_SIZE, fullPath);
+        return PreferencesManager.get(TAB_SIZE, _buildPreferencesContext(fullPath));
     };
     
     /**
@@ -2302,7 +2324,7 @@ define(function (require, exports, module) {
      * @return {number}
      */
     Editor.getSpaceUnits = function (fullPath) {
-        return PreferencesManager.get(SPACE_UNITS, fullPath);
+        return PreferencesManager.get(SPACE_UNITS, _buildPreferencesContext(fullPath));
     };
     
     /**
@@ -2323,7 +2345,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getCloseBrackets = function (fullPath) {
-        return PreferencesManager.get(CLOSE_BRACKETS, fullPath);
+        return PreferencesManager.get(CLOSE_BRACKETS, _buildPreferencesContext(fullPath));
     };
     
     /**
@@ -2344,7 +2366,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getShowLineNumbers = function (fullPath) {
-        return PreferencesManager.get(SHOW_LINE_NUMBERS, fullPath);
+        return PreferencesManager.get(SHOW_LINE_NUMBERS, _buildPreferencesContext(fullPath));
     };
     
     /**
@@ -2364,7 +2386,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getShowActiveLine = function (fullPath) {
-        return PreferencesManager.get(STYLE_ACTIVE_LINE, fullPath);
+        return PreferencesManager.get(STYLE_ACTIVE_LINE, _buildPreferencesContext(fullPath));
     };
     
     /**
@@ -2385,7 +2407,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getWordWrap = function (fullPath) {
-        return PreferencesManager.get(WORD_WRAP, fullPath);
+        return PreferencesManager.get(WORD_WRAP, _buildPreferencesContext(fullPath));
     };
     
     /**

@@ -23,12 +23,15 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 /**
  */
 define(function (require, exports, module) {
     "use strict";
+    
+    var EventDispatcher = require("utils/EventDispatcher");
+    
     
     /**
      * Stores a range of lines that is automatically maintained as the Document changes. The range
@@ -65,16 +68,18 @@ define(function (require, exports, module) {
         // store this-bound versions of listeners so we can remove them later
         this._handleDocumentChange = this._handleDocumentChange.bind(this);
         this._handleDocumentDeleted = this._handleDocumentDeleted.bind(this);
-        $(document).on("change", this._handleDocumentChange);
-        $(document).on("deleted", this._handleDocumentDeleted);
+        document.on("change", this._handleDocumentChange);
+        document.on("deleted", this._handleDocumentDeleted);
     }
+    EventDispatcher.makeEventDispatcher(TextRange.prototype);
+    
     
     /** Detaches from the Document. The TextRange will no longer update or send change events */
     TextRange.prototype.dispose = function (editor, change) {
         // Disconnect from Document
         this.document.releaseRef();
-        $(this.document).off("change", this._handleDocumentChange);
-        $(this.document).off("deleted", this._handleDocumentDeleted);
+        this.document.off("change", this._handleDocumentChange);
+        this.document.off("deleted", this._handleDocumentDeleted);
     };
     
     
@@ -181,16 +186,16 @@ define(function (require, exports, module) {
             
             // If we lost sync with the range, just bail now
             if (this.startLine === null || this.endLine === null) {
-                $(this).triggerHandler("lostSync");
+                this.trigger("lostSync");
                 break;
             }
         }
         
         if (hasChanged) {
-            $(this).triggerHandler("change");
+            this.trigger("change");
         }
         if (hasContentChanged) {
-            $(this).triggerHandler("contentChange");
+            this.trigger("contentChange");
         }
     };
     
@@ -199,7 +204,7 @@ define(function (require, exports, module) {
     };
     
     TextRange.prototype._handleDocumentDeleted = function (event) {
-        $(this).triggerHandler("lostSync");
+        this.trigger("lostSync");
     };
     
     

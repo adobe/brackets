@@ -57,13 +57,15 @@ html, body {
     /* Turn off subpixel antialiasing on Mac since it flickers during animations. */
     -webkit-font-smoothing: antialiased;
 
-    /* This is a hack to avoid flicker when animations (like inline editors) that use the GPU complete.
-       It seems that we have to put it here rather than on the animated element in order to prevent the
-       entire window from flashing.
-       See: http://stackoverflow.com/questions/3461441/prevent-flicker-on-webkit-transition-of-webkit-transform
-    */
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    // This is a hack to avoid flicker when animations (like inline editors) that use the GPU complete.
+    // It seems that we have to put it here rather than on the animated element in order to prevent the
+    // entire window from flashing.
+    // See: http://stackoverflow.com/questions/3461441/prevent-flicker-on-webkit-transition-of-webkit-transform
+    // Mac-only though, since this would turn off subpixel antialiasing (ClearType) on Windows
+    &.platform-mac {
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
 
     .dark,
     &.dark {
@@ -878,10 +880,20 @@ a, img {
     position: absolute;
 }
 
-.sidebar-selection-extension {
+.sidebar-selection-extension, .filetree-selection-extension {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
+    box-sizing: border-box;
+    height: 23px;
+    width: 9px; /* quiet scrollbar width */
+    position: fixed;
+
+    z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
+}
+
+.filetree-context-extension {
+    background: rgba(255, 255, 255, 0.06);
     box-sizing: border-box;
     height: 23px;
     width: 9px; /* quiet scrollbar width */

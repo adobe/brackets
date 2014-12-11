@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 /**
  * CSSPreprocessorDocument manages a single LESS or SASS source document
@@ -58,14 +58,14 @@ define(function CSSPreprocessorDocumentModule(require, exports, module) {
         // Add a ref to the doc since we're listening for change events
         this.doc.addRef();
         this.onActiveEditorChange = this.onActiveEditorChange.bind(this);
-        $(EditorManager).on("activeEditorChange", this.onActiveEditorChange);
+        EditorManager.on("activeEditorChange", this.onActiveEditorChange);
         this.onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     };
 
     /** Close the document */
     CSSPreprocessorDocument.prototype.close = function close() {
-        $(this.doc).off(".CSSPreprocessorDocument");
-        $(EditorManager).off("activeEditorChange", this.onActiveEditorChange);
+        this.doc.off(".CSSPreprocessorDocument");
+        EditorManager.off("activeEditorChange", this.onActiveEditorChange);
         this.doc.releaseRef();
         this.detachFromEditor();
     };
@@ -81,7 +81,7 @@ define(function CSSPreprocessorDocumentModule(require, exports, module) {
         this.editor = editor;
         
         if (this.editor) {
-            $(this.editor).on("cursorActivity.CSSPreprocessorDocument", this.onCursorActivity);
+            this.editor.on("cursorActivity.CSSPreprocessorDocument", this.onCursorActivity);
             this.updateHighlight();
         }
     };
@@ -89,7 +89,7 @@ define(function CSSPreprocessorDocumentModule(require, exports, module) {
     CSSPreprocessorDocument.prototype.detachFromEditor = function () {
         if (this.editor) {
             HighlightAgent.hide();
-            $(this.editor).off(".CSSPreprocessorDocument");
+            this.editor.off(".CSSPreprocessorDocument");
             this.editor = null;
         }
     };

@@ -183,6 +183,21 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("encodeFilePath", function () {
+
+            it("should encode symbols in path", function () {
+                expect(FileUtils.encodeFilePath("#?@test&\".js")).toBe("%23%3F%40test%26%22.js");
+            });
+
+            it("should work with a common path", function () {
+                expect(FileUtils.encodeFilePath("C:/test/$data.txt")).toBe("C%3A/test/%24data.txt");
+            });
+
+            it("should work with a path with no special symbols", function () {
+                expect(FileUtils.encodeFilePath("/Applications/Test/test.html")).toBe("/Applications/Test/test.html");
+            });
+        });
+
         describe("compareFilenames", function () {
 
             it("should compare filenames using German rules", function () {

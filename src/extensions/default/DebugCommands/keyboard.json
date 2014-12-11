@@ -22,7 +22,7 @@
             "key": "Shift-F5"
         },
         {
-            "key": "Cmd-Shift-R",
+            "key": "Cmd-Ctrl-R",
             "platform": "mac"
         }
     ]

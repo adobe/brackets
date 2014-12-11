@@ -38,12 +38,14 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileUtils           = require("file/FileUtils"),
         KeyEvent            = require("utils/KeyEvent"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
+        UrlParams           = require("utils/UrlParams").UrlParams,
         _                   = require("thirdparty/lodash");
 
     var KeyboardPrefs       = JSON.parse(require("text!base-config/keyboard.json"));
@@ -78,14 +80,43 @@ define(function (require, exports, module) {
      * Maps commandID to the list of shortcuts that are bound to it.
      * @type {!Object.<string, Array.<{key: string, displayKey: string}>>}
      */
-    var _commandMap  = {},
-        _allCommands = [];
+    var _commandMap  = {};
     
-    var _specialCommands = [Commands.EDIT_UNDO, Commands.EDIT_REDO, Commands.EDIT_SELECT_ALL,
-                            Commands.EDIT_CUT, Commands.EDIT_COPY, Commands.EDIT_PASTE],
-        _reservedShortcuts = ["Ctrl-Z", "Ctrl-Y", "Ctrl-A", "Ctrl-X", "Ctrl-C", "Ctrl-V"],
+    /**
+     * @private
+     * An array of command ID for all the available commands including the commands
+     * of installed extensions.
+     * @type {Array.<string>}
+     */
+    var _allCommands = [];
+    
+    /**
+     * @private
+     * Maps key names to the corresponding unicode symols
+     * @type {{key: string, displayKey: string}}
+     */
+    var _displayKeyMap        = { "up":    "\u2191",
+                                  "down":  "\u2193",
+                                  "left":  "\u2190",
+                                  "right": "\u2192",
+                                  "-":     "\u2212" };
+
+    var _specialCommands      = [Commands.EDIT_UNDO, Commands.EDIT_REDO, Commands.EDIT_SELECT_ALL,
+                                 Commands.EDIT_CUT, Commands.EDIT_COPY, Commands.EDIT_PASTE],
+        _reservedShortcuts    = ["Ctrl-Z", "Ctrl-Y", "Ctrl-A", "Ctrl-X", "Ctrl-C", "Ctrl-V"],
         _macReservedShortcuts = ["Cmd-,", "Cmd-H", "Cmd-Alt-H", "Cmd-M", "Cmd-Shift-Z", "Cmd-Q"],
-        _keyNames = ["Up", "Down", "Left", "Right", "Backspace", "Enter", "Space", "Tab"];
+        _keyNames             = ["Up", "Down", "Left", "Right", "Backspace", "Enter", "Space", "Tab"];
+
+    /**
+     * @private
+     * Flag to show key binding errors in the key map file. Default is true and 
+     * it will be set to false when reloading without extensions. This flag is not 
+     * used to suppress errors in loading or parsing the key map file. So if the key 
+     * map file is corrupt, then the error dialog still shows up.
+     *
+     * @type {boolean}
+     */
+    var _showErrors = true;
 
     /**
      * @private
@@ -100,6 +131,13 @@ define(function (require, exports, module) {
      * @type {Array.<function(Event): boolean>}
      */
     var _globalKeydownHooks = [];
+    
+    /**
+     * @private
+     * Forward declaration for JSLint.
+     * @type {Function}
+     */
+    var _loadUserKeyMap;
 
     /**
      * @private
@@ -399,7 +437,7 @@ define(function (require, exports, module) {
                 });
     
                 if (command) {
-                    $(command).triggerHandler("keyBindingRemoved", [{key: normalizedKey, displayKey: binding.displayKey}]);
+                    command.trigger("keyBindingRemoved", {key: normalizedKey, displayKey: binding.displayKey});
                 }
             }
         }
@@ -408,16 +446,40 @@ define(function (require, exports, module) {
     /**
      * @private
      *
+     * Updates _allCommands array and _defaultKeyMap with the new key binding
+     * if it is not yet in the _allCommands array. _allCommands array is initialized 
+     * only in extensionsLoaded event. So any new commands or key bindings added after
+     * that will be updated here.
+     *
+     * @param {{commandID: string, key: string, displayKey:string, explicitPlatform: string}} newBinding 
+     */
+    function _updateCommandAndKeyMaps(newBinding) {
+        if (_allCommands.length === 0) {
+            return;
+        }
+        
+        if (newBinding && newBinding.commandID && _allCommands.indexOf(newBinding.commandID) === -1) {
+            _defaultKeyMap[newBinding.commandID] = _.cloneDeep(newBinding);
+            
+            // Process user key map again to catch any reassignment to all new key bindings added from extensions.
+            _loadUserKeyMap();
+        }
+    }
+    
+    /**
+     * @private
+     *
      * @param {string} commandID
      * @param {string|{{key: string, displayKey: string}}} keyBinding - a single shortcut.
      * @param {?string} platform
      *     - "all" indicates all platforms, not overridable
      *     - undefined indicates all platforms, overridden by platform-specific binding
+     * @param {boolean=} userBindings true if adding a user key binding or undefined otherwise.
      * @return {?{key: string, displayKey:String}} Returns a record for valid key bindings.
      *     Returns null when key binding platform does not match, binding does not normalize,
      *     or is already assigned.
      */
-    function _addBinding(commandID, keyBinding, platform) {
+    function _addBinding(commandID, keyBinding, platform, userBindings) {
         var key,
             result = null,
             normalized,
@@ -435,6 +497,12 @@ define(function (require, exports, module) {
             targetPlatform = brackets.platform;
         }
         
+        
+        // Skip if the key binding is not for this platform.
+        if (explicitPlatform === "mac" && brackets.platform !== "mac") {
+            return null;
+        }
+
         // if the request does not specify an explicit platform, and we're
         // currently on a mac, then replace Ctrl with Cmd.
         key = (keyBinding.key) || keyBinding;
@@ -444,6 +512,7 @@ define(function (require, exports, module) {
                 keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
             }
         }
+        
         normalized = normalizeKeyDescriptorString(key);
         
         // skip if the key binding is invalid 
@@ -554,11 +623,15 @@ define(function (require, exports, module) {
             explicitPlatform    : explicitPlatform
         };
         
+        if (!userBindings) {
+            _updateCommandAndKeyMaps(_keyMap[normalized]);
+        }
+        
         // notify listeners
         command = CommandManager.get(commandID);
         
         if (command) {
-            $(command).triggerHandler("keyBindingAdded", [result]);
+            command.trigger("keyBindingAdded", result);
         }
         
         return result;
@@ -793,9 +866,8 @@ define(function (require, exports, module) {
      */
     function _showErrorsAndOpenKeyMap(err, message) {
         // Asynchronously loading Dialogs module to avoid the circular dependency
-        require(["widgets/Dialogs"], function (dialogsModule) {
-            var Dialogs = dialogsModule,
-                errorMessage = Strings.ERROR_KEYMAP_CORRUPT;
+        require(["widgets/Dialogs"], function (Dialogs) {
+            var errorMessage = Strings.ERROR_KEYMAP_CORRUPT;
             
             if (err === FileSystemError.UNSUPPORTED_ENCODING) {
                 errorMessage = Strings.ERROR_LOADING_KEYMAP;
@@ -878,18 +950,15 @@ define(function (require, exports, module) {
      * @private
      *
      * Gets the corresponding unicode symbol of an arrow key for display in the menu.
-     * @param {string} normalizedKey 
-     * @return {string} An empty string if normalizedKey does not have any arrow key. Otherwise, the name
-     *                  of the arrow key is replaced with the corresponding unicode symbol in the return string.
+     * @param {string} key The non-modifier key used in the shortcut. It does not need to be normalized.
+     * @return {string} An empty string if key is not one of those we want to show with the unicode symbol. 
+     *                  Otherwise, the corresponding unicode symbol is returned.
      */
-    function _getDisplayKey(normalizedKey) {
-        var displayKey = "";
-        if (/(Up|Down|Left|Right)$/i.test(normalizedKey)) {
-            normalizedKey = normalizedKey.replace(/Up$/i, "\u2191");
-            normalizedKey = normalizedKey.replace(/Down$/i, "\u2193");
-            normalizedKey = normalizedKey.replace(/Left$/i, "\u2190");
-            normalizedKey = normalizedKey.replace(/Right$/i, "\u2192");
-            displayKey = normalizedKey;
+    function _getDisplayKey(key) {
+        var displayKey = "",
+            match = key ? key.match(/(Up|Down|Left|Right|\-)$/i) : null;
+        if (match) {
+            displayKey = key.substr(0, match.index) + _displayKeyMap[match[0].toLowerCase()];
         }
         return displayKey;
     }
@@ -936,9 +1005,13 @@ define(function (require, exports, module) {
                 return;
             }
 
+            // Skip this if the key is invalid.
             if (!normalizedKey) {
                 invalidKeys.push(key);
-            } else if (_isKeyAssigned(normalizedKey)) {
+                return;
+            }
+            
+            if (_isKeyAssigned(normalizedKey)) {
                 if (remappedKeys.indexOf(normalizedKey) !== -1) {
                     // JSON parser already removed all the duplicates that have the exact
                     // same case or order in their keys. So we're only detecting duplicate 
@@ -976,7 +1049,7 @@ define(function (require, exports, module) {
                         var keybinding = { key: normalizedKey };
 
                         keybinding.displayKey = _getDisplayKey(normalizedKey);
-                        addBinding(commandID, keybinding.displayKey ? keybinding : normalizedKey, brackets.platform);
+                        _addBinding(commandID, keybinding.displayKey ? keybinding : normalizedKey, brackets.platform, true);
                         remappedCommands.push(commandID);
                     } else {
                         multipleKeys.push(commandID);
@@ -1011,7 +1084,7 @@ define(function (require, exports, module) {
             errorMessage += StringUtils.format(Strings.ERROR_NONEXISTENT_COMMANDS, _getBulletList(invalidCommands));
         }
 
-        if (errorMessage) {
+        if (_showErrors && errorMessage) {
             _showErrorsAndOpenKeyMap("", errorMessage);
         }
     }
@@ -1025,7 +1098,7 @@ define(function (require, exports, module) {
     function _undoPriorUserKeyBindings() {
         _.forEach(_customKeyMapCache, function (commandID, key) {
             var normalizedKey  = normalizeKeyDescriptorString(key),
-                defaults       = KeyboardPrefs[commandID],
+                defaults       = _.find(_.toArray(_defaultKeyMap), { "commandID": commandID }),
                 defaultCommand = _defaultKeyMap[normalizedKey];
 
             // We didn't modified this before, so skip it.
@@ -1039,11 +1112,11 @@ define(function (require, exports, module) {
                 // Unassign the key from any command. e.g. "Cmd-W": "file.open" in _customKeyMapCache
                 // will require us to remove Cmd-W shortcut from file.open command.
                 removeBinding(normalizedKey);
-
+                
                 // Reassign the default key binding. e.g. "Cmd-W": "file.open" in _customKeyMapCache
                 // will require us to reassign Cmd-O shortcut to file.open command.
-                if (defaults.length) {
-                    addBinding(commandID, defaults);
+                if (defaults) {
+                    addBinding(commandID, defaults, brackets.platform);
                 }
 
                 // Reassign the default key binding of the previously modified command. 
@@ -1127,20 +1200,27 @@ define(function (require, exports, module) {
      * binding by removing the existing one assigned to each key and adding 
      * new one for the specified command id. Shows errors and opens the user 
      * key map file if it cannot be parsed.
+     *
+     * This function is wrapped with debounce so that its execution is always delayed
+     * by 200 ms. The delay is required because when this function is called some 
+     * extensions may still be adding some commands and their key bindings asychronously.
      */
-    function _loadUserKeyMap() {
+    _loadUserKeyMap = _.debounce(function () {
         _readUserKeyMap()
             .then(function (keyMap) {
-                if (_.size(_customKeyMap)) {
-                    _customKeyMapCache = _.cloneDeep(_customKeyMap);
-                }
+                // Some extensions may add a new command without any key binding. So
+                // we always have to get all commands again to ensure that we also have 
+                // those from any extensions installed during the current session. 
+                _allCommands = CommandManager.getAll();
+
+                _customKeyMapCache = _.cloneDeep(_customKeyMap);
                 _customKeyMap = keyMap;
                 _undoPriorUserKeyBindings();
                 _applyUserKeyBindings();
             }, function (err) {
                 _showErrorsAndOpenKeyMap(err);
             });
-    }
+    }, 200);
         
     /**
      * @private
@@ -1167,12 +1247,13 @@ define(function (require, exports, module) {
         });
     }
     
-    $(CommandManager).on("commandRegistered", _handleCommandRegistered);
+    // Due to circular dependencies, not safe to call on() directly
+    EventDispatcher.on_duringInit(CommandManager, "commandRegistered", _handleCommandRegistered);
     CommandManager.register(Strings.CMD_OPEN_KEYMAP, Commands.FILE_OPEN_KEYMAP, _openUserKeyMap);
 
     // Asynchronously loading DocumentManager to avoid the circular dependency
     require(["document/DocumentManager"], function (DocumentManager) {
-        $(DocumentManager).on("documentSaved", function checkKeyMapUpdates(e, doc) {
+        DocumentManager.on("documentSaved", function checkKeyMapUpdates(e, doc) {
             if (doc && doc.file.fullPath === _userKeyMapFilePath) {
                 _loadUserKeyMap();
             }
@@ -1184,8 +1265,6 @@ define(function (require, exports, module) {
      *
      * Initializes _allCommands array and _defaultKeyMap so that we can use them for
      * detecting non-existent commands and restoring the original key binding.
-     *
-     * @param {string} fullPath file path to the user key map file.
      */
     function _initCommandAndKeyMaps() {
         _allCommands = CommandManager.getAll();
@@ -1206,6 +1285,12 @@ define(function (require, exports, module) {
     }
     
     AppInit.extensionsLoaded(function () {
+        var params  = new UrlParams();
+        params.parse();
+        if (params.get("reloadWithoutUserExts") === "true") {
+            _showErrors = false;
+        }
+
         _initCommandAndKeyMaps();
         _loadUserKeyMap();
     });

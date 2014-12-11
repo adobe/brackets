@@ -110,7 +110,7 @@ define({
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Vista Previa en Vivo (garda o arquivo para actualizar)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Vista Previa en Vivo (non se está actualizando debido a un erro de sintaxis)",
     
-    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Vista Previa en Vivo detiuse porque abríronse as ferramentas de desenrolo",
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Vista Previa en Vivo detiuse porque abríronse as ferramentas de desenvolvemento",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Vista Previa en Vivo detiuse porque cerrouse a páxina no navegador",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Vista Previa en Vivo detiuse porque accediuse a unha páxina que non é parte do proxecto actual",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Vista Previa en Vivo detiuse por motivos descoñecidos ({0})",
@@ -415,7 +415,7 @@ define({
     
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
-    "DEVELOPMENT_BUILD"                    : "versión de desenrolo",
+    "DEVELOPMENT_BUILD"                    : "versión de desenvolvemento",
     "RELOAD_FROM_DISK"                     : "Volver a cargar dende disco",
     "KEEP_CHANGES_IN_EDITOR"               : "Conservar os cambios do editor",
     "CLOSE_DONT_SAVE"                      : "Pechar (Non gardar)",
@@ -558,7 +558,7 @@ define({
     "UNIT_PIXELS"                          : "píxeles",
 
     // extensions/default/DebugCommands
-    "DEBUG_MENU"                                : "Desenrolo",
+    "DEBUG_MENU"                                : "Desenvolvemento",
     "ERRORS"                                    : "Erros",
     "CMD_SHOW_DEV_TOOLS"                        : "Amosar ferramentas para desenvolvedores",
     "CMD_REFRESH_WINDOW"                        : "Recargar con extensións",
