@@ -168,7 +168,6 @@ define(function (require, exports, module) {
      * Constant used for checking the interval between Control keydown event and Alt keydown event.
      * If the right Alt key is down we get Control keydown followed by Alt keydown within 30 ms. if 
      * the user is pressing Control key and then Alt key, the interval will be larger than 30 ms.
-     *
      * @type {number}
      */
     var MAX_INTERVAL_FOR_CTRL_ALT_KEYS = 30;
@@ -231,8 +230,15 @@ define(function (require, exports, module) {
         if (brackets.platform !== "win") {
             return;
         }
-        
+
         if (!_altGrDown) {
+            // Reset _ctrlDown if it was set to be ignored and the shorcuts with Ctrl key was handled 
+            // by a native shell code.
+            if (_ctrlDown === CtrlDownStates.DETECTED_AND_IGNORED &&
+                    !e.repeat && e.ctrlKey && e.keyIdentifier === "Control") {
+                _ctrlDown = CtrlDownStates.NOT_YET_DETECTED;
+            }
+            
             if (_ctrlDown === CtrlDownStates.NOT_YET_DETECTED && e.ctrlKey && e.keyIdentifier === "Control") {
                 _ctrlDown = CtrlDownStates.DETECTED;
             } else if (e.ctrlKey && e.keyIdentifier === "Control") {

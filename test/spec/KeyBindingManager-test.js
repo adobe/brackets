@@ -853,6 +853,33 @@ define(function (require, exports, module) {
                 KeyBindingManager._onCtrlUp(ctrlEvent);
             });
 
+            it("should block command execution when right Alt key is pressed following a Ctrl shortcut execution", function () {
+                var ctrlA = _.cloneDeep(ctrlEvent);
+                ctrlA.keyIdentifier = null;
+                ctrlA.keyCode = "A".charCodeAt(0);
+                
+                // Simulate a Ctrl-A shortcut
+                KeyBindingManager._handleKeyEvent(ctrlA);
+                
+                // Simulate a right Alt key down with the specific sequence of keydown events.
+                ctrlAltEvents.forEach(function (e) {
+                    e.timeStamp = new Date();
+                    KeyBindingManager._handleKeyEvent(e);
+                });
+                
+                // Simulate the command shortcut
+                KeyBindingManager._handleKeyEvent(ctrlAlt1Event);
+                expect(commandCalled).toBe(false);
+                
+                // In this case, the event should not have been stopped, because KBM didn't handle it.
+                expect(ctrlAlt1Event.immediatePropagationStopped).toBe(false);
+                expect(ctrlAlt1Event.propagationStopped).toBe(false);
+                expect(ctrlAlt1Event.defaultPrevented).toBe(false);
+                
+                // Now explicitly remove the keyup event listener created by _detectAltGrKeyDown function.
+                KeyBindingManager._onCtrlUp(ctrlEvent);
+            });
+
             it("should not block command execution if interval between Ctrl & Alt events are more than 30 ms.", function () {
                 var lastTS;
 
