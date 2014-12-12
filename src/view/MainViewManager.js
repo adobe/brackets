@@ -727,15 +727,13 @@ define(function (require, exports, module) {
         } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
 
-            if (_findFileInMRUList(file) !== -1) {
-                console.log(file.fullPath + " duplicated in mru list");
-            }
-            
-            // Add to or update the position in MRU
-            if (pane.getCurrentlyViewedFile() === file) {
-                _mruList.unshift(entry);
-            } else {
-                _mruList.push(entry);
+            if (_findFileInMRUList(file) === -1) {
+                // Add to or update the position in MRU
+                if (pane.getCurrentlyViewedFile() === file) {
+                    _mruList.unshift(entry);
+                } else {
+                    _mruList.push(entry);
+                }
             }
 
             exports.trigger("workingSetAdd", file, index, pane.id);
