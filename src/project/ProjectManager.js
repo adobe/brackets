@@ -74,6 +74,10 @@ define(function (require, exports, module) {
         ProjectModel        = require("project/ProjectModel"),
         FileTreeView        = require("project/FileTreeView"),
         ViewUtils           = require("utils/ViewUtils");
+    
+    // Needed to ensure that menus are set up when we need them.
+    // See #10115
+    require("command/DefaultMenus");
 
     /**
      * @private
