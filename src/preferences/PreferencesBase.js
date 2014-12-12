@@ -1223,7 +1223,7 @@ define(function (require, exports, module) {
         
         this._pendingScopes = {};
         
-        this._saveInProgress = null;
+        this._saveInProgress = false;
         this._nextSaveDeferred = null;
         this.finalized = false;
         
@@ -1716,11 +1716,6 @@ define(function (require, exports, module) {
          * @return {Promise} Resolved when the preferences are done saving.
          */
         save: function () {
-            if (this.finalized) {
-                console.log("PreferencesSystem.save() called after finalized!");
-                return (new $.Deferred()).reject().promise();
-            }
-            
             if (this._saveInProgress) {
                 if (!this._nextSaveDeferred) {
                     this._nextSaveDeferred = new $.Deferred();
@@ -1729,7 +1724,7 @@ define(function (require, exports, module) {
             }
             
             var deferred = this._nextSaveDeferred || (new $.Deferred());
-            this._saveInProgress = deferred;
+            this._saveInProgress = true;
             this._nextSaveDeferred = null;
             
             Async.doInParallel(_.values(this._scopes), function (scope) {
@@ -1740,7 +1735,7 @@ define(function (require, exports, module) {
                 }
             }.bind(this))
                 .then(function () {
-                    this._saveInProgress = null;
+                    this._saveInProgress = false;
                     if (this._nextSaveDeferred) {
                         this.save();
                     }
@@ -1888,33 +1883,6 @@ define(function (require, exports, module) {
             return new PrefixedPreferencesSystem(this, prefix + ".");
         },
         
-        /**
-         * Return a promise that is resolved when all preferences have been saved.
-         * Disallow any other preferences from getting saved after promise is resolved.
-         * 
-         * @return {Promise} Resolved when the preferences are done saving.
-         */
-        _finalize: function () {
-            var deferred = new $.Deferred(),
-                self = this;
-
-            // Don't resolve promise until last `_saveInProgress` promise completes.
-            // There will only ever be a `_nextSaveDeferred`, if there is already a
-            // `_saveInProgress` and it will become the new `_saveInProgress` as soon as
-            // previous `_saveInProgress` resolves, so only need to wait for `_saveInProgress`.
-            function checkForSaveAndFinalize() {
-                if (self._saveInProgress) {
-                    self._saveInProgress.done(checkForSaveAndFinalize);
-                } else {
-                    self.finalized = true;
-                    deferred.resolve();
-                }
-            }
-
-            checkForSaveAndFinalize();
-
-            return deferred.promise();
-        }
     });
     
     _addEventDispatcherImpl(PreferencesSystem.prototype);
