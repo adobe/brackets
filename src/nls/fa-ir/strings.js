@@ -37,7 +37,7 @@ define({
     "EXCEEDS_MAX_FILE_SIZE"             : "فایل های بزرگتر از {0} MB قابل ویرایش  در {APP_NAME} نیست.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "دایرکتوری هدف قابل ویرایش نیست.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "دسترسی های تعریف شده برای شما اجازه تغییرات را نمی دهند.",
-    "CONTENTS_MODIFIED_ERR"             : "این پرونده قبلآ خارج از محیط  نرم افزار {APP_NAME} ویرایش شده است. ",
+    "CONTENTS_MODIFIED_ERR"             : "فایل خارج از محیط {APP_NAME} تغییر یافته است.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} فعلا تنها از پرونده ها با ساختار یونیکدی UTF-8 پشتیبانی می کند.",
     "FILE_EXISTS_ERR"                   : "پرونده یا پوشه مد نظر موجود می باشد.",
     "FILE"                              : "پرونده",
@@ -90,7 +90,7 @@ define({
     "ERROR_PREFS_CORRUPT"               :   "پرونده تنظیمات شما از نوع پرونده JSON معتبر نیست. از آنجایی که پرونده قابل دسترسی و خواندن است، میتواند بصورت دستی توسط شما تصحیح گردد. البته جهت اعمال تغییرات می بایست {APP_NAME} بارگذاری مجدد گردد.",
 
     // Application error strings
-    "ERROR_IN_BROWSER_TITLE"            : " اوف! {APP_NAME}اکنون در این مرورگر اجرا نمیشود .",
+    "ERROR_IN_BROWSER_TITLE"            : " متاسفم! {APP_NAME}اکنون در این مرورگر اجرا نمیشود .",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} در اچ تی ام ال ساخته شده است, اما در حال حاضر آن به عنوان یک نرم افزار در دسکتاپ اجرا میشود بنابر این شما میتوانید جهت ویرایش فایل ها از آن استفاده کنید. لطفا از اپلکیشن shell در <b>github.com/adobe/brackets-shell</b> جهت اجرای مخازن  {APP_NAME} استفاده کنید.",
 
     // ProjectManager max files error string
