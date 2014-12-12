@@ -178,7 +178,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"              : "جایگزینی",
     "FIND_REPLACE_TITLE_WITH"               : "با",
     "FIND_TITLE_LABEL"                      : "جستجو",
-    "FIND_TITLE_SUMMARY"                    : "&mdash; {0} {1} {2} در {3}",
+    "FIND_TITLE_SUMMARY"                    : "&mdash; {0} {1} {2} با {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                        : "{0} {1}",
