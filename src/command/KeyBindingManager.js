@@ -125,6 +125,16 @@ define(function (require, exports, module) {
      */
     var _globalKeydownHooks = [];
 
+    /**
+     * @private
+     * States of Ctrl key down detection
+     * @enum {number}
+     */
+    var CtrlDownStates = {
+        "NOT_YET_DETECTED"    : 0,
+        "DETECTED"            : 1,
+        "DETECTED_AND_IGNORED": 2   // For consecutive ctrl keydown events while a Ctrl key is being hold down
+    };
     
     /**
      * @private
@@ -134,12 +144,9 @@ define(function (require, exports, module) {
      *    1. _ctrlDown - flag used to record { ctrlKey: true, keyIdentifier: "Control", ... } keydown event
      *    2. _altGrDown - flag used to record { ctrlKey: true, altKey: true, keyIdentifier: "Alt", ... } keydown event
      *
-     * _ctrlDown is intentionally undefined so that we can distinguish between the actual Ctrl keydown and AltGr keydown
-     * events.
-     *
-     * @type {boolean}
+     * @type {CtrlDownStates|boolean}
      */
-    var _ctrlDown,
+    var _ctrlDown = CtrlDownStates.NOT_YET_DETECTED,
         _altGrDown = false;
     
     /**
@@ -180,10 +187,10 @@ define(function (require, exports, module) {
      */
     function _quitAltGrMode() {
         _enabled = true;
-        _ctrlDown = undefined;
+        _ctrlDown = CtrlDownStates.NOT_YET_DETECTED;
         _altGrDown = false;
-        _lastTimeStamp = undefined;
-        _lastKeyIdentifier = undefined;
+        _lastTimeStamp = null;
+        _lastKeyIdentifier = null;
         $(window).off("keyup", _onCtrlUp);
     }
     
@@ -226,22 +233,22 @@ define(function (require, exports, module) {
         }
         
         if (!_altGrDown) {
-            if (_ctrlDown === undefined && e.ctrlKey && e.keyIdentifier === "Control") {
-                _ctrlDown = true;
-            } else if (_ctrlDown && e.altKey && e.ctrlKey && e.keyIdentifier === "Alt" &&
+            if (_ctrlDown === CtrlDownStates.NOT_YET_DETECTED && e.ctrlKey && e.keyIdentifier === "Control") {
+                _ctrlDown = CtrlDownStates.DETECTED;
+            } else if (e.ctrlKey && e.keyIdentifier === "Control") {
+                // We get here if the user is holding down left/right Control key. Set it to false 
+                // so that we don't misidentify the combination of Ctrl and Alt keys as AltGr key.
+                _ctrlDown = CtrlDownStates.DETECTED_AND_IGNORED;
+            } else if (_ctrlDown === CtrlDownStates.DETECTED && e.altKey && e.ctrlKey && e.keyIdentifier === "Alt" &&
                         (e.timeStamp - _lastTimeStamp) < MAX_INTERVAL_FOR_CTRL_ALT_KEYS) {
                 _altGrDown = true;
                 _lastKeyIdentifier = "Alt";
                 _enabled = false;
                 $(window).on("keyup", _onCtrlUp);
-            } else if (e.ctrlKey && e.keyIdentifier === "Control") {
-                // We get here if the user is holding down left/right Control key. Set it to false 
-                // so that we don't misidentify the combination of Ctrl and Alt keys as AltGr key.
-                _ctrlDown = false;
             } else {
                 // Reset _ctrlDown so that we can start over in detecting the two key events
                 // required for AltGr key.
-                _ctrlDown = undefined;
+                _ctrlDown = CtrlDownStates.NOT_YET_DETECTED;
             }
             _lastTimeStamp = e.timeStamp;
         } else if (e.keyIdentifier === "Control" || e.keyIdentifier === "Alt") {
