@@ -34,7 +34,6 @@ define(function (require, exports, module) {
     
     var OldPreferenceStorage    = require("preferences/PreferenceStorage").PreferenceStorage,
         AppInit                 = require("utils/AppInit"),
-        Async                   = require("utils/Async"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
