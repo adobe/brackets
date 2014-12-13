@@ -1225,7 +1225,6 @@ define(function (require, exports, module) {
         
         this._saveInProgress = false;
         this._nextSaveDeferred = null;
-        this.finalized = false;
         
         // The objects that define the different kinds of path-based Scope handlers.
         // Examples could include the handler for .brackets.json files or an .editorconfig
@@ -1710,8 +1709,7 @@ define(function (require, exports, module) {
         
         /**
          * Saves the preferences. If a save is already in progress, a Promise is returned for
-         * that save operation. If preferences have already been finalized then return a
-         * rejected promise.
+         * that save operation.
          * 
          * @return {Promise} Resolved when the preferences are done saving.
          */
