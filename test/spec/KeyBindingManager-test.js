@@ -854,16 +854,19 @@ define(function (require, exports, module) {
             });
 
             it("should block command execution when right Alt key is pressed following a Ctrl shortcut execution", function () {
-                var ctrlA = _.cloneDeep(ctrlEvent);
-                ctrlA.keyIdentifier = null;
-                ctrlA.keyCode = "A".charCodeAt(0);
+                var ctrlEvent1 = _.cloneDeep(ctrlEvent);
                 
-                // Simulate a Ctrl-A shortcut
-                KeyBindingManager._handleKeyEvent(ctrlA);
+                // Simulate holding down Ctrl key and execute a Ctrl shortcut in native shell code
+                // No need to call the actual Ctrl shortcut since it is not handled in KBM anyway.
+                KeyBindingManager._handleKeyEvent(ctrlEvent1);
+                ctrlEvent1.repeat = true;
+                KeyBindingManager._handleKeyEvent(ctrlEvent1);
+                KeyBindingManager._handleKeyEvent(ctrlEvent1);
                 
                 // Simulate a right Alt key down with the specific sequence of keydown events.
                 ctrlAltEvents.forEach(function (e) {
                     e.timeStamp = new Date();
+                    e.repeat = false;
                     KeyBindingManager._handleKeyEvent(e);
                 });
                 

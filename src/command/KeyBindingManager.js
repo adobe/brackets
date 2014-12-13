@@ -232,16 +232,9 @@ define(function (require, exports, module) {
         }
 
         if (!_altGrDown) {
-            // Reset _ctrlDown if it was set to be ignored and the shorcuts with Ctrl key was handled 
-            // by a native shell code.
-            if (_ctrlDown === CtrlDownStates.DETECTED_AND_IGNORED &&
-                    !e.repeat && e.ctrlKey && e.keyIdentifier === "Control") {
-                _ctrlDown = CtrlDownStates.NOT_YET_DETECTED;
-            }
-            
-            if (_ctrlDown === CtrlDownStates.NOT_YET_DETECTED && e.ctrlKey && e.keyIdentifier === "Control") {
+            if (_ctrlDown !== CtrlDownStates.DETECTED_AND_IGNORED && e.ctrlKey && e.keyIdentifier === "Control") {
                 _ctrlDown = CtrlDownStates.DETECTED;
-            } else if (e.ctrlKey && e.keyIdentifier === "Control") {
+            } else if (e.repeat && e.ctrlKey && e.keyIdentifier === "Control") {
                 // We get here if the user is holding down left/right Control key. Set it to false 
                 // so that we don't misidentify the combination of Ctrl and Alt keys as AltGr key.
                 _ctrlDown = CtrlDownStates.DETECTED_AND_IGNORED;
