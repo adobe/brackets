@@ -25,15 +25,15 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
 
     // General file io error strings
     "GENERIC_ERROR"                     : "(error {0})",
-    "NOT_FOUND_ERR"                     : "No se pudo encontrar el archivo.",
-    "NOT_READABLE_ERR"                  : "No se pudo leer el archivo.",
+    "NOT_FOUND_ERR"                     : "No se pudo encontrar el archivo/directorio.",
+    "NOT_READABLE_ERR"                  : "No se pudo leer el archivo/directorio.",
     "EXCEEDS_MAX_FILE_SIZE"             : "Los archivos de más de {0} MB no se pueden abrir en {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "El directorio de destino no se puede modificar.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Los permisos no permiten hacer modificaciones.",
@@ -48,7 +48,6 @@ define({
     "FILENAMES_LEDE"                    : "nombres de archivos",
     "FILENAME"                          : "nombre de archivo",
     "DIRECTORY_NAME"                    : "nombre de directorio",
-    
     
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error abriendo el proyecto",
@@ -295,7 +294,6 @@ define({
     "LINTER_TIMED_OUT"                      : "{0} ha agotado el tiempo después de esperar {1} ms",
     "LINTER_FAILED"                         : "{0} terminó con error: {1}",
     
-    
     /**
      * Command Name Constants
      */
@@ -396,7 +394,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
     "CMD_GOTO_LINE"                       : "Ir a la línea",
     "CMD_GOTO_DEFINITION"                 : "Búsqueda rápida de definición",
-    "CMD_GOTO_FIRST_PROBLEM"              : "Ir al primer error/advertencia",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Ir al primer problema",
     "CMD_TOGGLE_QUICK_EDIT"               : "Edición rápida",
     "CMD_TOGGLE_QUICK_DOCS"               : "Documentación rápida",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Coincidencia anterior",
@@ -453,7 +451,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "La URL base no puede contener hashes como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Error desconocido analizando la URL base",
-    "EMPTY_VIEW_HEADER"                    : "<em>Abra un archivo mientras este panel está enfocado</em>", 
+    "EMPTY_VIEW_HEADER"                    : "<em>Abra un archivo mientras este panel está enfocado</em>",
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema actual",
@@ -628,4 +626,4 @@ define({
     "DOCS_MORE_LINK"                            : "Más"
 });
 
-/* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */
+/* Last translated for c292e896761bc7d451a9e3b95bedd20d6b355d77 */
