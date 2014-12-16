@@ -626,4 +626,4 @@ define({
     "DOCS_MORE_LINK"                            : "Más"
 });
 
-/* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */
+/* Last translated for c292e896761bc7d451a9e3b95bedd20d6b355d77 */
