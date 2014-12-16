@@ -1052,7 +1052,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         // Domains for some agents must be enabled first before loading
         var enablePromise = Inspector.Page.enable().then(function () {
-            var domEnablePromise = Inspector.DOM.enable() || (new $.Deferred()).resolve().promise();
+            var domEnablePromise = Inspector.DOM.enable ? Inspector.DOM.enable() : (new $.Deferred()).resolve().promise();
             domEnablePromise.then(_enableAgents);
         });
         
