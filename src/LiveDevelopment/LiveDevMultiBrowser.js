@@ -363,6 +363,11 @@ define(function (require, exports, module) {
             refPath,
             i;
 
+        // TODO: FileUtils.getParentFolder()
+        function getParentFolder(path) {
+            return path.substring(0, path.lastIndexOf('/', path.length - 2) + 1);
+        }
+
         // Is the currently opened document already a file we can use for Live Development?
         if (doc) {
             refPath = doc.file.fullPath;
@@ -417,7 +422,7 @@ define(function (require, exports, module) {
                 // We found no good match
                 if (i === -1) {
                     // traverse the directory tree up one level
-                    containingFolder = FileUtils.getDirectoryPath(FileUtils.stripTrailingSlash(containingFolder));
+                    containingFolder = getParentFolder(containingFolder);
                     // Are we still inside the project?
                     if (containingFolder.indexOf(projectRoot) === -1) {
                         stillInProjectTree = false;
