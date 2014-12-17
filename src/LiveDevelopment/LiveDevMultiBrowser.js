@@ -389,7 +389,7 @@ define(function (require, exports, module) {
             }
             
             var filteredFiltered = allFiles.filter(function (item) {
-                var parent = FileUtils.getDirectoryPath(item.fullPath);
+                var parent = FileUtils.getParentPath(item.fullPath);
                 
                 return (containingFolder.indexOf(parent) === 0);
             });
@@ -417,7 +417,7 @@ define(function (require, exports, module) {
                 // We found no good match
                 if (i === -1) {
                     // traverse the directory tree up one level
-                    containingFolder = FileUtils.getDirectoryPath(FileUtils.stripTrailingSlash(containingFolder));
+                    containingFolder = FileUtils.getParentPath(containingFolder);
                     // Are we still inside the project?
                     if (containingFolder.indexOf(projectRoot) === -1) {
                         stillInProjectTree = false;
