@@ -102,6 +102,18 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should find an index.html in a parent directory", function () {
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["sub/test.css"]), "SpecRunnerUtils.openProjectFiles sub/test.css", 1000);
+                });
+
+                waitsForLiveDevelopmentToOpen();
+
+                runs(function () {
+                    expect(LiveDevelopment._getCurrentLiveDoc().doc.url).toMatch(/\/index\.html$/);
+                });
+            });
+
             it("should send all external stylesheets as related docs on start-up", function () {
                 var liveDoc;
                 runs(function () {
