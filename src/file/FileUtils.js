@@ -453,6 +453,16 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Gets the parent directory of a file or a directory.
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the path to the parent directory of a file or directory, including
+     *                  trailing "/"
+     */
+    function getParentDirectoryPath(fullPath) {
+        return fullPath.substring(0, fullPath.lastIndexOf('/', fullPath.length - 2) + 1);
+    }
+
+    /**
      * Get the file name without the extension.
      * @param {string} filename File name of a file or directory
      * @return {string} Returns the file name without the extension
@@ -559,6 +569,7 @@ define(function (require, exports, module) {
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
+    exports.getParentDirectoryPath         = getParentDirectoryPath;
     exports.getBaseName                    = getBaseName;
     exports.getRelativeFilename            = getRelativeFilename;
     exports.getFilenameWithoutExtension    = getFilenameWithoutExtension;
