@@ -38,6 +38,7 @@ define(function CSSPreprocessorDocumentModule(require, exports, module) {
     "use strict";
 
     var _               = require("thirdparty/lodash"),
+        EventDispatcher = require("utils/EventDispatcher"),
         CSSUtils        = require("language/CSSUtils"),
         EditorManager   = require("editor/EditorManager"),
         HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent"),
@@ -62,6 +63,9 @@ define(function CSSPreprocessorDocumentModule(require, exports, module) {
         this.onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     };
 
+    // CSSPreprocessorDocument doesn't dispatch events, but the "live document" interface requires an on() API
+    EventDispatcher.makeEventDispatcher(CSSPreprocessorDocument.prototype);
+    
     /** Close the document */
     CSSPreprocessorDocument.prototype.close = function close() {
         this.doc.off(".CSSPreprocessorDocument");
