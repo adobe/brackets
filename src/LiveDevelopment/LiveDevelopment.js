@@ -679,16 +679,6 @@ define(function LiveDevelopment(require, exports, module) {
             refPath,
             i;
 
-        // TODO: FileUtils.getParentFolder()
-        function getParentFolder(path) {
-            return path.substring(0, path.lastIndexOf('/', path.length - 2) + 1);
-        }
-
-        function getFilenameWithoutExtension(filename) {
-            var index = filename.lastIndexOf(".");
-            return index === -1 ? filename : filename.slice(0, index);
-        }
-
         // Is the currently opened document already a file we can use for Live Development?
         if (doc) {
             refPath = doc.file.fullPath;
@@ -715,14 +705,14 @@ define(function LiveDevelopment(require, exports, module) {
             }
             
             var filteredFiltered = allFiles.filter(function (item) {
-                var parent = getParentFolder(item.fullPath);
+                var parent = FileUtils.getParentPath(item.fullPath);
                 
                 return (containingFolder.indexOf(parent) === 0);
             });
             
             var filterIndexFile = function (fileInfo) {
                 if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
-                    if (getFilenameWithoutExtension(fileInfo.name) === "index") {
+                    if (FileUtils.getFilenameWithoutExtension(fileInfo.name) === "index") {
                         if (hasOwnServerForLiveDevelopment) {
                             if ((FileUtils.isServerHtmlFileExt(fileInfo.name)) ||
                                     (FileUtils.isStaticHtmlFileExt(fileInfo.name))) {
@@ -743,7 +733,7 @@ define(function LiveDevelopment(require, exports, module) {
                 // We found no good match
                 if (i === -1) {
                     // traverse the directory tree up one level
-                    containingFolder = getParentFolder(containingFolder);
+                    containingFolder = FileUtils.getParentPath(containingFolder);
                     // Are we still inside the project?
                     if (containingFolder.indexOf(projectRoot) === -1) {
                         stillInProjectTree = false;
