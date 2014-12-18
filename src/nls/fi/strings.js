@@ -260,10 +260,10 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Rivi {0}, sarake {1}",
-    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Valittu {0} merkki",
-    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Valittu {0} merkkiä",
-    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Valittu {0} rivi",
-    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Valittu {0} riviä",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 valittu {0} merkki",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 valittu {0} merkkiä",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 valittu {0} rivi",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 valittu {0} riviä",
     "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} valintaa",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Muuta sisennys välilyönneiksi napsauttamalla",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Muuta sisennys sarkainmerkeiksi napsauttamalla",
@@ -283,7 +283,7 @@ define({
     "STATUSBAR_SET_DEFAULT_LANG"            : "Aseta oletukseksi .{0}-tiedostoille",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0}-ongelmat",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} ongelmaa",
     "SINGLE_ERROR"                          : "1 {0}-ongelma",
     "MULTIPLE_ERRORS"                       : "{1} {0}-ongelmaa",
     "NO_ERRORS"                             : "{0}-ongelmia ei löytynyt – hyvää työtä!",
