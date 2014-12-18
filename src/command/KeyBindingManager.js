@@ -826,6 +826,7 @@ define(function (require, exports, module) {
      * @param {?string} platform The target OS of the keyBindings either
      *     "mac", "win" or "linux". If undefined, all platforms not explicitly
      *     defined will use the key binding.
+     *     NOTE: If platform is not specified, Ctrl will be replaced by Cmd for "mac" platform
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>}
      *     Returns record(s) for valid key binding(s)
      */
