@@ -1244,13 +1244,13 @@ define(function (require, exports, module) {
                 if (defaults) {
                     addBinding(commandID, defaults, brackets.platform);
                 }
+            }
 
-                // Reassign the default key binding of the previously modified command. 
-                // e.g. "Cmd-W": "file.open" in _customKeyMapCache will require us to reassign Cmd-W
-                // shortcut to file.close command.
-                if (defaultCommand && defaultCommand.key) {
-                    addBinding(defaultCommand.commandID, defaultCommand.key, brackets.platform);
-                }
+            // Reassign the default key binding of the previously modified command. 
+            // e.g. "Cmd-W": "file.open" in _customKeyMapCache will require us to reassign Cmd-W
+            // shortcut to file.close command.
+            if (defaultCommand && defaultCommand.key) {
+                addBinding(defaultCommand.commandID, defaultCommand.key, brackets.platform);
             }
         });
     }
