@@ -88,6 +88,9 @@ define(function (require, exports, module) {
         // exclude variable & param decls
         case "def":
             return false;
+        case "string-2":
+            // exclude strings inside a regexp
+            return !token.state || token.state.lastType !== "regexp";
         default:
             return true;
         }
