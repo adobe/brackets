@@ -269,7 +269,7 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "کلیک کنید تا به این زبانه ها منتقل شوید",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "جهت تغییر تعداد فضاهای خالی استفاده شده در هنگام فاصله دهی خطوط از چپ، کلیک کنید",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "کلیک کنید تا طول زبانه کاراکتر ها تغییر کند",
-    "STATUSBAR_SPACES"                      : "فاصله ها:",
+    "STATUSBAR_SPACES"                      : "فاصله ها :",
     "STATUSBAR_TAB_SIZE"                    : "اندازه زبانه:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} خط",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} خط ها",
@@ -461,7 +461,7 @@ define({
     "THEMES_SETTINGS"                      : "تنظیمات پوسته ها",
 
     // CSS Quick Edit
-    "BUTTON_NEW_RULE"                      : "قائده جدید",
+    "BUTTON_NEW_RULE"                      : "قانون جدید",
 
     // Extension Management strings
     "INSTALL"                              : "نصب",
@@ -479,7 +479,7 @@ define({
     "INSTALL_SUCCEEDED"                    : "نصب با موفقیت به اتمام رسید!",
     "INSTALL_FAILED"                       : "نصب نا موفق.",
     "CANCELING_INSTALL"                    : "درحال لغو\u2026",
-    "CANCELING_HUNG"                       : "عملیات لغو نصب زمان طولانیی به طول خواهد کشید. خطا یا خطا های داخلی ممکن است رخ دهد.",
+    "CANCELING_HUNG"                       : "عملیات لغو نصب، طول خواهد کشید. ممکن است خطا یا خطاهای داخلی رخ دهد.",
     "INSTALL_CANCELED"                     : "فرایند نصب لغو گردید.",
     "VIEW_COMPLETE_DESCRIPTION"            : "مشاهده توضیح کامل",
     "VIEW_TRUNCATED_DESCRIPTION"           : "مشاهده توضیح مختصر",
@@ -574,21 +574,21 @@ define({
     "DEBUG_MENU"                                : "خطایابی",
     "ERRORS"                                    : "خطا ها",
     "CMD_SHOW_DEV_TOOLS"                        : "نمایش ابزار توسعه",
-    "CMD_REFRESH_WINDOW"                        : "بار گزاری مجددبا افزونه ها",
+    "CMD_REFRESH_WINDOW"                        : "بارگزاری مجدد با افزونه ها",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "بارگذاری مجدد بدون افزونه ها",
-    "CMD_NEW_BRACKETS_WINDOW"                   : "پنچره جدید از {APP_NAME} باز کنید.",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "پنجره جدید از {APP_NAME} باز کنید.",
     "CMD_SWITCH_LANGUAGE"                       : "تغییر زبان",
-    "CMD_RUN_UNIT_TESTS"                        : "برسی برای اجرا",
+    "CMD_RUN_UNIT_TESTS"                        : "بررسی برای اجرا",
     "CMD_SHOW_PERF_DATA"                        : "نمایش داده های عملکردی",
-    "CMD_ENABLE_NODE_DEBUGGER"                  : "فعال سازی اشکال زدای گرهی",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "فعال سازی اشکال زدای گره ای",
     "CMD_LOG_NODE_STATE"                        : "ورود گره به حالت کنسول",
     "CMD_RESTART_NODE"                          : "شروع دوباره گره",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "نمایش خطاها در نوار وظیفه",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "باز کردن منبع براکتس",
 
     "LANGUAGE_TITLE"                            : "تغییر زبان",
-    "LANGUAGE_MESSAGE"                          : "زبان:",
-    "LANGUAGE_SUBMIT"                           : "بار گذاری مجدد {APP_NAME}",
+    "LANGUAGE_MESSAGE"                          : "زبان :",
+    "LANGUAGE_SUBMIT"                           : "بارگذاری مجدد {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "لغو",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "پیشفرض سیستم",
 
@@ -597,7 +597,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "پیشرفت",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> انتخاب حرکت نشانگر<br><kbd class='text'>شیفت</kbd>حرکت با ده واحد<br><kbd class='text'>تب</kbd> نقاط تغییر",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd>افزایش و یا کاهش گام<br><kbd>←</kbd><kbd>→</kbd> 'شروع' or 'پایان'",
-    "INLINE_TIMING_EDITOR_INVALID"              :"مقدار سابق <code>{0}</code> دیگر معتبر نمی باشد,زیرا تابع نمایش به مقدار <code>{1}</code> تغییر یافته. سند در اولین ویرایش بروزرسانی خواهد شد.",
+    "INLINE_TIMING_EDITOR_INVALID"              :"مقدار سابق <code>{0}</code> دیگر معتبر نمی باشد, زیرا تابع نمایش به مقدار <code>{1}</code> تغییر یافته. سند در اولین ویرایش بروزرسانی خواهد شد.",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "رنگ فعلی",
