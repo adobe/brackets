@@ -105,8 +105,7 @@ define(function (require, exports, module) {
                                  Commands.EDIT_CUT, Commands.EDIT_COPY, Commands.EDIT_PASTE],
         _reservedShortcuts    = ["Ctrl-Z", "Ctrl-Y", "Ctrl-A", "Ctrl-X", "Ctrl-C", "Ctrl-V"],
         _macReservedShortcuts = ["Cmd-,", "Cmd-H", "Cmd-Alt-H", "Cmd-M", "Cmd-Shift-Z", "Cmd-Q"],
-        _keyNames             = ["Up", "Down", "Left", "Right", "Backspace", "Enter", "Space", "Tab",
-                                 "PageUp", "PageDown", "Home", "End", "Insert", "Delete"];
+        _keyNames             = ["Up", "Down", "Left", "Right", "Backspace", "Enter", "Space", "Tab"];
 
     /**
      * @private
@@ -411,13 +410,6 @@ define(function (require, exports, module) {
             });
         }
         
-        // Also make sure that the second word of PageUp/PageDown has the first letter in upper case.
-        if (/^Page/.test(key)) {
-            key = key.replace(/(up|down)$/, function (match, p1) {
-                return p1.charAt(0).toUpperCase() + p1.substr(1);
-            });
-        }
-        
         // No restriction on single character key yet, but other key names are restricted to either 
         // Function keys or those listed in _keyNames array.
         if (key.length > 1 && !/F\d+/.test(key) &&
@@ -512,10 +504,6 @@ define(function (require, exports, module) {
             key = "Space";
         } else if (key === "\b") {
             key = "Backspace";
-        } else if (key === "Help") {
-            key = "Insert";
-        } else if (event.keyCode === KeyEvent.DOM_VK_DELETE) {
-            key = "Delete";
         } else {
             key = _mapKeycodeToKey(event.keyCode, key);
         }
@@ -1096,7 +1084,7 @@ define(function (require, exports, module) {
     function _getDisplayKey(key) {
         var displayKey = "",
             match = key ? key.match(/(Up|Down|Left|Right|\-)$/i) : null;
-        if (match && !/Page(Up|Down)/.test(key)) {
+        if (match) {
             displayKey = key.substr(0, match.index) + _displayKeyMap[match[0].toLowerCase()];
         }
         return displayKey;
