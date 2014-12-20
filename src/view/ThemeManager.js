@@ -266,10 +266,8 @@ define(function (require, exports, module) {
             var cm = editor._codeMirror;
             ThemeView.updateThemes(cm);
 
-            // currentTheme can be undefined if you reloaded without extensions
-            if (currentTheme && currentTheme.addModeClass !== undefined) {
-                cm.setOption("addModeClass", currentTheme.addModeClass);
-            }
+            // currentTheme can be undefined, so watch out
+            cm.setOption("addModeClass", !!(currentTheme && currentTheme.addModeClass));
         });
     }
 
