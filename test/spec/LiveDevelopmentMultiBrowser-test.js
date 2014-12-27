@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     
     var SpecRunnerUtils = require("spec/SpecRunnerUtils");
 
-    describe("MultiBrowser (experimental) - LiveDevelopment", function () {
+    describe("MultiBrowser (experimental)", function () {
     
         this.category = "livepreview";
 
@@ -66,6 +66,7 @@ define(function (require, exports, module) {
         });
         
         afterEach(function () {
+            LiveDevelopment.close();
             SpecRunnerUtils.closeTestWindow();
             testWindow = null;
             brackets = null;
@@ -87,7 +88,6 @@ define(function (require, exports, module) {
         }
 
         describe("Init Session", function () {
-            
             
             it("should establish a browser connection for an opened html file", function () {
                 //open a file
