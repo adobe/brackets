@@ -209,7 +209,7 @@
         "name": "XQuery",
         "mode": ["xquery", "application/xquery"],
         "fileExtensions": ["xq", "jq"]
-    }
+    },
 
     "diff": {
         "name": "Diff",
