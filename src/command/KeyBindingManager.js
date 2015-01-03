@@ -405,7 +405,7 @@ define(function (require, exports, module) {
         
         // Ensure that the first letter of the key name is in upper case.
         // i.e. 'a' => 'A' and 'up' => 'Up'
-        if (/^[a-z]/.test(key)) {
+        if (/^[a-z]/i.test(key)) {
             key = key.toLowerCase().replace(/(^[a-z])/, function (match, p1) {
                 return p1.toUpperCase();
             });
