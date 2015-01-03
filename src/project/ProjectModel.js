@@ -1143,7 +1143,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        if (!this.isWithinProject(entry)) {
+        if (!this.isWithinProject(entry) || !shouldShow(entry)) {
             return;
         }
 
