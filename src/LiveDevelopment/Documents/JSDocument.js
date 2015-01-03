@@ -45,9 +45,10 @@
 define(function JSDocumentModule(require, exports, module) {
     "use strict";
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
-    var HighlightAgent = require("LiveDevelopment/Agents/HighlightAgent");
+    var EventDispatcher = require("utils/EventDispatcher"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        ScriptAgent     = require("LiveDevelopment/Agents/ScriptAgent"),
+        HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent");
 
     /**
      * @constructor
@@ -68,6 +69,9 @@ define(function JSDocumentModule(require, exports, module) {
         this.editor.on("cursorActivity", this.onCursorActivity);
         this.onCursorActivity();
     };
+    
+    // JSDocument doesn't dispatch events, but the "live document" interface requires having an on() API
+    EventDispatcher.makeEventDispatcher(JSDocument.prototype);
 
     /** Close the document */
     JSDocument.prototype.close = function close() {

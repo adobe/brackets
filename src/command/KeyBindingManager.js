@@ -80,25 +80,32 @@ define(function (require, exports, module) {
      * Maps commandID to the list of shortcuts that are bound to it.
      * @type {!Object.<string, Array.<{key: string, displayKey: string}>>}
      */
-    var _commandMap  = {},
-        _allCommands = [];
+    var _commandMap  = {};
+    
+    /**
+     * @private
+     * An array of command ID for all the available commands including the commands
+     * of installed extensions.
+     * @type {Array.<string>}
+     */
+    var _allCommands = [];
     
     /**
      * @private
      * Maps key names to the corresponding unicode symols
      * @type {{key: string, displayKey: string}}
      */
-    var _displayKeyMap      = { "up":    "\u2191",
-                                "down":  "\u2193",
-                                "left":  "\u2190",
-                                "right": "\u2192",
-                                "-":     "\u2212" };
+    var _displayKeyMap        = { "up":    "\u2191",
+                                  "down":  "\u2193",
+                                  "left":  "\u2190",
+                                  "right": "\u2192",
+                                  "-":     "\u2212" };
 
-    var _specialCommands = [Commands.EDIT_UNDO, Commands.EDIT_REDO, Commands.EDIT_SELECT_ALL,
-                            Commands.EDIT_CUT, Commands.EDIT_COPY, Commands.EDIT_PASTE],
-        _reservedShortcuts = ["Ctrl-Z", "Ctrl-Y", "Ctrl-A", "Ctrl-X", "Ctrl-C", "Ctrl-V"],
+    var _specialCommands      = [Commands.EDIT_UNDO, Commands.EDIT_REDO, Commands.EDIT_SELECT_ALL,
+                                 Commands.EDIT_CUT, Commands.EDIT_COPY, Commands.EDIT_PASTE],
+        _reservedShortcuts    = ["Ctrl-Z", "Ctrl-Y", "Ctrl-A", "Ctrl-X", "Ctrl-C", "Ctrl-V"],
         _macReservedShortcuts = ["Cmd-,", "Cmd-H", "Cmd-Alt-H", "Cmd-M", "Cmd-Shift-Z", "Cmd-Q"],
-        _keyNames = ["Up", "Down", "Left", "Right", "Backspace", "Enter", "Space", "Tab"];
+        _keyNames             = ["Up", "Down", "Left", "Right", "Backspace", "Enter", "Space", "Tab"];
 
     /**
      * @private
@@ -124,7 +131,151 @@ define(function (require, exports, module) {
      * @type {Array.<function(Event): boolean>}
      */
     var _globalKeydownHooks = [];
+    
+    /**
+     * @private
+     * Forward declaration for JSLint.
+     * @type {Function}
+     */
+    var _loadUserKeyMap;
 
+    /**
+     * @private
+     * States of Ctrl key down detection
+     * @enum {number}
+     */
+    var CtrlDownStates = {
+        "NOT_YET_DETECTED"    : 0,
+        "DETECTED"            : 1,
+        "DETECTED_AND_IGNORED": 2   // For consecutive ctrl keydown events while a Ctrl key is being hold down
+    };
+    
+    /**
+     * @private
+     * Flags used to determine whether right Alt key is pressed. When it is pressed, 
+     * the following two keydown events are triggered in that specific order. 
+     *
+     *    1. _ctrlDown - flag used to record { ctrlKey: true, keyIdentifier: "Control", ... } keydown event
+     *    2. _altGrDown - flag used to record { ctrlKey: true, altKey: true, keyIdentifier: "Alt", ... } keydown event
+     *
+     * @type {CtrlDownStates|boolean}
+     */
+    var _ctrlDown = CtrlDownStates.NOT_YET_DETECTED,
+        _altGrDown = false;
+    
+    /**
+     * @private
+     * Used to record the timeStamp property of the last keydown event.
+     * @type {number}
+     */
+    var _lastTimeStamp;
+
+    /**
+     * @private
+     * Used to record the keyIdentifier property of the last keydown event.
+     * @type {string}
+     */
+    var _lastKeyIdentifier;
+    
+    /* 
+     * @private
+     * Constant used for checking the interval between Control keydown event and Alt keydown event.
+     * If the right Alt key is down we get Control keydown followed by Alt keydown within 30 ms. if 
+     * the user is pressing Control key and then Alt key, the interval will be larger than 30 ms.
+     * @type {number}
+     */
+    var MAX_INTERVAL_FOR_CTRL_ALT_KEYS = 30;
+    
+    /**
+     * @private
+     * Forward declaration for JSLint.
+     * @type {Function}
+     */
+    var _onCtrlUp;
+
+    /**
+     * @private
+     * Resets all the flags and removes _onCtrlUp event listener.
+     * 
+     */
+    function _quitAltGrMode() {
+        _enabled = true;
+        _ctrlDown = CtrlDownStates.NOT_YET_DETECTED;
+        _altGrDown = false;
+        _lastTimeStamp = null;
+        _lastKeyIdentifier = null;
+        $(window).off("keyup", _onCtrlUp);
+    }
+    
+    /**
+     * @private
+     * Detects the release of AltGr key by checking all keyup events
+     * until we receive one with ctrl key code. Once detected, reset 
+     * all the flags and also remove this event listener.
+     *
+     * @param {!KeyboardEvent} e keyboard event object
+     */
+    _onCtrlUp = function (e) {
+        var key = e.keyCode || e.which;
+        if (_altGrDown && key === KeyEvent.DOM_VK_CONTROL) {
+            _quitAltGrMode();
+        }
+    };
+    
+    /**
+     * @private
+     * Detects whether AltGr key is pressed. When it is pressed, the first keydown event has 
+     * ctrlKey === true with keyIdentifier === "Control". The next keydown event with 
+     * altKey === true, ctrlKey === true and keyIdentifier === "Alt" is sent within 30 ms. Then 
+     * the next keydown event with altKey === true, ctrlKey === true and keyIdentifier === "Control" 
+     * is sent. If the user keep holding AltGr key down, then the second and third 
+     * keydown events are repeatedly sent out alternately. If the user is also holding down Ctrl
+     * key, then either keyIdentifier === "Control" or keyIdentifier === "Alt" is repeatedly sent
+     * but not alternately.
+     *
+     * Once we detect the AltGr key down, then disable KeyBindingManager and set up a keyup
+     * event listener to detect the release of the altGr key so that we can re-enable KeyBindingManager.
+     * When we detect the addition of Ctrl key besides AltGr key, we also quit AltGr mode and re-enable
+     * KeyBindingManager.
+     *
+     * @param {!KeyboardEvent} e keyboard event object
+     */
+    function _detectAltGrKeyDown(e) {
+        if (brackets.platform !== "win") {
+            return;
+        }
+
+        if (!_altGrDown) {
+            if (_ctrlDown !== CtrlDownStates.DETECTED_AND_IGNORED && e.ctrlKey && e.keyIdentifier === "Control") {
+                _ctrlDown = CtrlDownStates.DETECTED;
+            } else if (e.repeat && e.ctrlKey && e.keyIdentifier === "Control") {
+                // We get here if the user is holding down left/right Control key. Set it to false 
+                // so that we don't misidentify the combination of Ctrl and Alt keys as AltGr key.
+                _ctrlDown = CtrlDownStates.DETECTED_AND_IGNORED;
+            } else if (_ctrlDown === CtrlDownStates.DETECTED && e.altKey && e.ctrlKey && e.keyIdentifier === "Alt" &&
+                        (e.timeStamp - _lastTimeStamp) < MAX_INTERVAL_FOR_CTRL_ALT_KEYS) {
+                _altGrDown = true;
+                _lastKeyIdentifier = "Alt";
+                _enabled = false;
+                $(window).on("keyup", _onCtrlUp);
+            } else {
+                // Reset _ctrlDown so that we can start over in detecting the two key events
+                // required for AltGr key.
+                _ctrlDown = CtrlDownStates.NOT_YET_DETECTED;
+            }
+            _lastTimeStamp = e.timeStamp;
+        } else if (e.keyIdentifier === "Control" || e.keyIdentifier === "Alt") {
+            // If the user is NOT holding down AltGr key or is also pressing Ctrl key,
+            // then _lastKeyIdentifier will be the same as keyIdentifier in the current 
+            // key event. So we need to quit AltGr mode to re-enable KBM.
+            if (e.altKey && e.ctrlKey && e.keyIdentifier === _lastKeyIdentifier) {
+                _quitAltGrMode();
+            } else {
+                _lastKeyIdentifier = e.keyIdentifier;
+            }
+        }
+    }
+    
     /**
      * @private
      */
@@ -432,16 +583,40 @@ define(function (require, exports, module) {
     /**
      * @private
      *
+     * Updates _allCommands array and _defaultKeyMap with the new key binding
+     * if it is not yet in the _allCommands array. _allCommands array is initialized 
+     * only in extensionsLoaded event. So any new commands or key bindings added after
+     * that will be updated here.
+     *
+     * @param {{commandID: string, key: string, displayKey:string, explicitPlatform: string}} newBinding 
+     */
+    function _updateCommandAndKeyMaps(newBinding) {
+        if (_allCommands.length === 0) {
+            return;
+        }
+        
+        if (newBinding && newBinding.commandID && _allCommands.indexOf(newBinding.commandID) === -1) {
+            _defaultKeyMap[newBinding.commandID] = _.cloneDeep(newBinding);
+            
+            // Process user key map again to catch any reassignment to all new key bindings added from extensions.
+            _loadUserKeyMap();
+        }
+    }
+    
+    /**
+     * @private
+     *
      * @param {string} commandID
      * @param {string|{{key: string, displayKey: string}}} keyBinding - a single shortcut.
      * @param {?string} platform
      *     - "all" indicates all platforms, not overridable
      *     - undefined indicates all platforms, overridden by platform-specific binding
+     * @param {boolean=} userBindings true if adding a user key binding or undefined otherwise.
      * @return {?{key: string, displayKey:String}} Returns a record for valid key bindings.
      *     Returns null when key binding platform does not match, binding does not normalize,
      *     or is already assigned.
      */
-    function _addBinding(commandID, keyBinding, platform) {
+    function _addBinding(commandID, keyBinding, platform, userBindings) {
         var key,
             result = null,
             normalized,
@@ -585,6 +760,10 @@ define(function (require, exports, module) {
             explicitPlatform    : explicitPlatform
         };
         
+        if (!userBindings) {
+            _updateCommandAndKeyMaps(_keyMap[normalized]);
+        }
+        
         // notify listeners
         command = CommandManager.get(commandID);
         
@@ -623,18 +802,6 @@ define(function (require, exports, module) {
         return false;
     }
 
-    // TODO (issue #414): Replace this temporary fix with a more robust solution to handle focus and modality
-    /**
-     * Enable or disable key bindings. Clients such as dialogs may wish to disable
-     * global key bindings temporarily.
-     *
-     * @param {string} A key-description string.
-     * @return {boolean} true if the key was processed, false otherwise
-     */
-    function setEnabled(value) {
-        _enabled = value;
-    }
-
     /**
      * @private
      *
@@ -659,6 +826,7 @@ define(function (require, exports, module) {
      * @param {?string} platform The target OS of the keyBindings either
      *     "mac", "win" or "linux". If undefined, all platforms not explicitly
      *     defined will use the key binding.
+     *     NOTE: If platform is not specified, Ctrl will be replaced by Cmd for "mac" platform
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>}
      *     Returns record(s) for valid key binding(s)
      */
@@ -796,6 +964,7 @@ define(function (require, exports, module) {
                 break;
             }
         }
+        _detectAltGrKeyDown(event);
         if (!handled && _handleKey(_translateKeyboardEvent(event))) {
             event.stopPropagation();
             event.preventDefault();
@@ -1007,7 +1176,7 @@ define(function (require, exports, module) {
                         var keybinding = { key: normalizedKey };
 
                         keybinding.displayKey = _getDisplayKey(normalizedKey);
-                        addBinding(commandID, keybinding.displayKey ? keybinding : normalizedKey, brackets.platform);
+                        _addBinding(commandID, keybinding.displayKey ? keybinding : normalizedKey, brackets.platform, true);
                         remappedCommands.push(commandID);
                     } else {
                         multipleKeys.push(commandID);
@@ -1158,10 +1327,19 @@ define(function (require, exports, module) {
      * binding by removing the existing one assigned to each key and adding 
      * new one for the specified command id. Shows errors and opens the user 
      * key map file if it cannot be parsed.
+     *
+     * This function is wrapped with debounce so that its execution is always delayed
+     * by 200 ms. The delay is required because when this function is called some 
+     * extensions may still be adding some commands and their key bindings asychronously.
      */
-    function _loadUserKeyMap() {
+    _loadUserKeyMap = _.debounce(function () {
         _readUserKeyMap()
             .then(function (keyMap) {
+                // Some extensions may add a new command without any key binding. So
+                // we always have to get all commands again to ensure that we also have 
+                // those from any extensions installed during the current session. 
+                _allCommands = CommandManager.getAll();
+
                 _customKeyMapCache = _.cloneDeep(_customKeyMap);
                 _customKeyMap = keyMap;
                 _undoPriorUserKeyBindings();
@@ -1169,7 +1347,7 @@ define(function (require, exports, module) {
             }, function (err) {
                 _showErrorsAndOpenKeyMap(err);
             });
-    }
+    }, 200);
         
     /**
      * @private
@@ -1214,8 +1392,6 @@ define(function (require, exports, module) {
      *
      * Initializes _allCommands array and _defaultKeyMap so that we can use them for
      * detecting non-existent commands and restoring the original key binding.
-     *
-     * @param {string} fullPath file path to the user key map file.
      */
     function _initCommandAndKeyMaps() {
         _allCommands = CommandManager.getAll();
@@ -1241,7 +1417,7 @@ define(function (require, exports, module) {
         if (params.get("reloadWithoutUserExts") === "true") {
             _showErrors = false;
         }
-        
+
         _initCommandAndKeyMaps();
         _loadUserKeyMap();
     });
@@ -1252,10 +1428,10 @@ define(function (require, exports, module) {
     exports._getDisplayKey = _getDisplayKey;
     exports._loadUserKeyMap = _loadUserKeyMap;
     exports._initCommandAndKeyMaps = _initCommandAndKeyMaps;
+    exports._onCtrlUp = _onCtrlUp;
 
     // Define public API
     exports.getKeymap = getKeymap;
-    exports.setEnabled = setEnabled;
     exports.addBinding = addBinding;
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
