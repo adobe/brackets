@@ -79,7 +79,7 @@ define(function (require, exports, module) {
     // Create a User scope
     var userStorage             = new PreferencesBase.FileStorage(userPrefFile, true),
         userScope               = new PreferencesBase.Scope(userStorage),
-        userPathLayer           = new PreferencesBase.PathLayer(),
+        userPathLayer           = new PreferencesBase.PathLayer(""), // uses absolute paths
         userLanguageLayer       = new PreferencesBase.LanguageLayer();
     
     userScope.addLayer(userPathLayer);

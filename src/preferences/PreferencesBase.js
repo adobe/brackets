@@ -953,7 +953,7 @@ define(function (require, exports, module) {
          * @param {string} prefFilePath New path to the preferences file
          */
         setPrefFilePath: function (prefFilePath) {
-            if (!prefFilePath) {
+            if (prefFilePath === undefined) {
                 this.prefFilePath = "/";
             } else {
                 this.prefFilePath = FileUtils.getDirectoryPath(prefFilePath);
