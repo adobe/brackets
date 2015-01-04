@@ -62,6 +62,14 @@
         "lineComment": ["//"]
     },
 
+    "dart": {
+        "name": "Dart",
+        "mode": ["dart", "application/dart"],
+        "fileExtensions": ["dart"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
     "vbscript": {
         "name": "VBScript",
         "mode": "vbscript",
