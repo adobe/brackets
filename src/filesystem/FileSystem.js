@@ -544,7 +544,9 @@ define(function (require, exports, module) {
         
         if (!entry) {
             entry = new EntryConstructor(path, this);
-            this._index.addEntry(entry);
+            if (this._indexFilter(path, entry.name)) {
+                this._index.addEntry(entry);
+            }
         }
                 
         return entry;
