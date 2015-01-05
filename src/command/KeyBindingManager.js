@@ -403,12 +403,10 @@ define(function (require, exports, module) {
             return null;
         }
         
-        // Ensure that the first letter of the key name is in upper case.
-        // i.e. 'a' => 'A' and 'up' => 'Up'
+        // Ensure that the first letter of the key name is in upper case and the rest are
+        // in lower case. i.e. 'a' => 'A' and 'up' => 'Up'
         if (/^[a-z]/i.test(key)) {
-            key = key.toLowerCase().replace(/(^[a-z])/, function (match, p1) {
-                return p1.toUpperCase();
-            });
+            key = key.charAt(0).toUpperCase() + key.substr(1).toLowerCase();
         }
         
         // Also make sure that the second word of PageUp/PageDown has the first letter in upper case.
