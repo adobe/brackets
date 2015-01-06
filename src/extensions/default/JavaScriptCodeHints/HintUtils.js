@@ -80,6 +80,12 @@ define(function (require, exports, module) {
      * @return {boolean} - could the token be hintable?
      */
     function hintable(token) {
+        
+        function _isInsideRegExp(token) {
+            return token.state && (token.state.lastType === "regexp" ||
+                   (token.state.localState && token.state.localState.lastType === "regexp"));
+        }
+        
         switch (token.type) {
         case "comment":
         case "number":
@@ -90,7 +96,7 @@ define(function (require, exports, module) {
             return false;
         case "string-2":
             // exclude strings inside a regexp
-            return !token.state || token.state.lastType !== "regexp";
+            return !_isInsideRegExp(token);
         default:
             return true;
         }
