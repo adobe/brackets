@@ -72,17 +72,17 @@ define({
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "Un fișier sau un directoriu cu numele <span class='dialog-filename'>{0}</span> există deja.",
     "ERROR_CREATING_FILE_TITLE"         : "Eroare la crearea fișierului {0}",
     "ERROR_CREATING_FILE"               : "S-a produs o eroare la încercarea de a crea fișierul {0} <span class='dialog-filename'>{1}</span>. {2}",
-    "ERROR_MIXED_DRAGDROP"              : "Imposibil de a deschide un directoriu în același timp ce sunt deschise alte fișiere.",
+    "ERROR_MIXED_DRAGDROP"              : "Imposibil de a deschide un directoriu dacă sunt fișiere deschise.",
 
     // User key map error strings
     "ERROR_KEYMAP_TITLE"                : "Eroare la citirea tastelor definite de utilizator",
-    "ERROR_KEYMAP_CORRUPT"              : "Fișierul pentru maparea tastelor nu e un JSON valid. Acesta va fi deschis pentru a-i corecta formatul.",
-    "ERROR_LOADING_KEYMAP"              : "Fișierul pentru maparea tastelor nu e un fișier codificat în UTF-8 și nu poate fi încărcat",
-    "ERROR_RESTRICTED_COMMANDS"         : "Taste rapide pentru aceste comenzi nu pot fi realocate: {0}",
-    "ERROR_RESTRICTED_SHORTCUTS"        : "Imposibil de realocat aceste taste rapide: {0}",
-    "ERROR_MULTIPLE_SHORTCUTS"          : "Au fost realocate prea multe taste rapide pentru aceste comenzi: {0}",
-    "ERROR_DUPLICATE_SHORTCUTS"         : "Au fost realocate mai multe taste rapide pentru aceste comenzi: {0}",
-    "ERROR_INVALID_SHORTCUTS"           : "Aceste taste rapide nu sunt valide: {0}",
+    "ERROR_KEYMAP_CORRUPT"              : "Conținutul fișierului pentru maparea tastelor nu e un JSON valid. Fișierul va fi deschis pentru a corecta conținutul lui.",
+    "ERROR_LOADING_KEYMAP"              : "Fișierul pentru maparea tastelor nu poate fi încărcat deoarece nu este codificat în formatul UTF-8.",
+    "ERROR_RESTRICTED_COMMANDS"         : "Tastele rapide pentru următoarele comenzi nu pot fi realocate: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Imposibil de realocat următoarele taste rapide: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Au fost realocate prea multe taste rapide pentru următoarele comenzi: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Au fost realocate mai multe taste rapide pentru următoarele comenzi: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Următoarele taste rapide nu sunt valide: {0}",
     "ERROR_NONEXISTENT_COMMANDS"        : "Au fost alocate taste rapide pentru comenzi inexistente: {0}",
 
     // Application preferences corrupt error strings
@@ -243,7 +243,7 @@ define({
     "CMD_SPLITVIEW_NONE"        : "Fără divizare",
     "CMD_SPLITVIEW_VERTICAL"    : "Divizare verticală",
     "CMD_SPLITVIEW_HORIZONTAL"  : "Divizare orizontală",
-    "SPLITVIEW_MENU_TOOLTIP"    : "Divizează editorul vertical și orizontal",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Divizare verticală și orizontală",
     "GEAR_MENU_TOOLTIP"         : "Configurează setul de lucru",
 
     "SPLITVIEW_INFO_TITLE"              : "Deja deschis",
@@ -525,7 +525,7 @@ define({
     "EXTENSION_KEYWORDS"                   : "Cuvinte cheie",
     "EXTENSION_TRANSLATED_USER_LANG"       : "Tradus în {0} limbi, incluzând Româna",
     "EXTENSION_TRANSLATED_GENERAL"         : "Tradus în {0} limbi",
-    "EXTENSION_TRANSLATED_LANGS"           : "Această extensie a fost tradusă în aceste limbi: {0}",
+    "EXTENSION_TRANSLATED_LANGS"           : "Această extensie a fost tradusă în următoarele limbi: {0}",
     "EXTENSION_INSTALLED"                  : "Instalat",
     "EXTENSION_UPDATE_INSTALLED"           : "Actualizarea extensiei curente a fost descărcată și va fi instalată când veți ieși din {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Caută",
