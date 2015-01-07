@@ -69,7 +69,10 @@ define(function (require, exports, module) {
         DEBUG_LOG_NODE_STATE            = "debug.logNodeState",
         DEBUG_RESTART_NODE              = "debug.restartNode",
         DEBUG_SHOW_ERRORS_IN_STATUS_BAR = "debug.showErrorsInStatusBar",
+        DEBUG_TOGGLE_LIVEDEV_MB_MODE    = "debug.toggleLiveDevMultiBrowser",
         DEBUG_OPEN_BRACKETS_SOURCE      = "debug.openBracketsSource";
+
+    var PREF_LIVEDEV_MULTIBROWSER = "livedev.multibrowser";
 
     PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false);
     
@@ -230,9 +233,9 @@ define(function (require, exports, module) {
         });
     }
     
-    function toggleErrorNotification(bool) {
+    function togglePref(key, bool) {
         var val,
-            oldPref = !!PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
+            oldPref = !!PreferencesManager.get(key);
 
         if (bool === undefined) {
             val = !oldPref;
@@ -240,13 +243,25 @@ define(function (require, exports, module) {
             val = !!bool;
         }
 
-        ErrorNotification.toggle(val);
-
         // update menu
-        CommandManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR).setChecked(val);
         if (val !== oldPref) {
-            PreferencesManager.set(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, val);
+            PreferencesManager.set(key, val);
         }
+
+        return val;
+    }
+
+    function toggleErrorNotification(bool) {
+        var val = togglePref(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, bool);
+
+        ErrorNotification.toggle(val);
+        CommandManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR).setChecked(val);
+    }
+
+    function toggleLiveDevMultiBrowser(bool) {
+        var val = togglePref(PREF_LIVEDEV_MULTIBROWSER, bool);
+
+        CommandManager.get(DEBUG_TOGGLE_LIVEDEV_MB_MODE).setChecked(val);
     }
 
     function handleOpenBracketsSource() {
@@ -276,6 +291,7 @@ define(function (require, exports, module) {
 
     CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,           DEBUG_SWITCH_LANGUAGE,           handleSwitchLanguage);
     CommandManager.register(Strings.CMD_SHOW_ERRORS_IN_STATUS_BAR, DEBUG_SHOW_ERRORS_IN_STATUS_BAR, toggleErrorNotification);
+    CommandManager.register(Strings.CMD_TOGGLE_LIVEDEV_MB_MODE,    DEBUG_TOGGLE_LIVEDEV_MB_MODE,    toggleLiveDevMultiBrowser);
     
     // Node-related Commands
     CommandManager.register(Strings.CMD_ENABLE_NODE_DEBUGGER, DEBUG_ENABLE_NODE_DEBUGGER,   NodeDebugUtils.enableDebugger);
@@ -284,9 +300,13 @@ define(function (require, exports, module) {
     
     enableRunTestsMenuItem();
     toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
+    toggleLiveDevMultiBrowser(PreferencesManager.get(PREF_LIVEDEV_MULTIBROWSER));
 
     PreferencesManager.on("change", DEBUG_SHOW_ERRORS_IN_STATUS_BAR, function () {
         toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
+    });
+    PreferencesManager.on("change", PREF_LIVEDEV_MULTIBROWSER, function () {
+        toggleLiveDevMultiBrowser(PreferencesManager.get(PREF_LIVEDEV_MULTIBROWSER));
     });
     
     /*
@@ -308,6 +328,7 @@ define(function (require, exports, module) {
     menu.addMenuItem(DEBUG_LOG_NODE_STATE);
     menu.addMenuItem(DEBUG_RESTART_NODE);
     menu.addMenuItem(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
+    menu.addMenuItem(DEBUG_TOGGLE_LIVEDEV_MB_MODE);
     menu.addMenuItem(Commands.FILE_OPEN_PREFERENCES); // this command is defined in core, but exposed only in Debug menu for now
     menu.addMenuItem(Commands.FILE_OPEN_KEYMAP);      // this command is defined in core, but exposed only in Debug menu for now
     
