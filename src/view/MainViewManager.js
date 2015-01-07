@@ -253,18 +253,19 @@ define(function (require, exports, module) {
     function _makeMRUListEntry(file, paneId) {
         return {file: file, paneId: paneId};
     }
-    
+
+    /**
+     * Locates the first  MRU entry of a file
+     * @param {!File} File - the file
+     * @return {{file:File, paneId:string}}
+     * @private
+     */
     function _findFileInMRUList(file) {
         return _.findIndex(_mruList, function (record) {
             return (record.file.fullPath === file.fullPath);
         });
     }
-    
-    function _dumpMRUList() {
-        _mruList.forEach(function (entry) {
-            console.log(entry.file.fullPath);
-        });
-    }
+
     
     /**
      * Retrieves the currently active Pane Id
