@@ -32,8 +32,8 @@ define({
 
     // General file io error strings
     "GENERIC_ERROR"                     : "(Fehler {0})",
-    "NOT_FOUND_ERR"                     : "Die Datei konnte nicht gefunden werden.",
-    "NOT_READABLE_ERR"                  : "Die Datei konnte nicht gelesen werden.",
+    "NOT_FOUND_ERR"                     : "Die Datei/der Ordner konnte nicht gefunden werden.",
+    "NOT_READABLE_ERR"                  : "Die Datei/der Ordner konnte nicht gelesen werden.",
     "EXCEEDS_MAX_FILE_SIZE"             : "{APP_NAME} kann keine Dateien öffnen, die größer als {0} MB sind.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Der Ziel-Ordner kann nicht verändert werden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
@@ -396,7 +396,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
     "CMD_GOTO_DEFINITION"                 : "Definition schnell finden",
-    "CMD_GOTO_FIRST_PROBLEM"              : "Zum ersten Fehler/zur ersten Warnung gehen",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Zum ersten Problem gehen",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
@@ -628,4 +628,4 @@ define({
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
 
-/* Last translated for 893c065b715c211526dcd010c0294e12a8683995 */
+/* Last translated for c292e896761bc7d451a9e3b95bedd20d6b355d77 */

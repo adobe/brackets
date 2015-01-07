@@ -141,6 +141,143 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * States of Ctrl key down detection
+     * @enum {number}
+     */
+    var CtrlDownStates = {
+        "NOT_YET_DETECTED"    : 0,
+        "DETECTED"            : 1,
+        "DETECTED_AND_IGNORED": 2   // For consecutive ctrl keydown events while a Ctrl key is being hold down
+    };
+    
+    /**
+     * @private
+     * Flags used to determine whether right Alt key is pressed. When it is pressed, 
+     * the following two keydown events are triggered in that specific order. 
+     *
+     *    1. _ctrlDown - flag used to record { ctrlKey: true, keyIdentifier: "Control", ... } keydown event
+     *    2. _altGrDown - flag used to record { ctrlKey: true, altKey: true, keyIdentifier: "Alt", ... } keydown event
+     *
+     * @type {CtrlDownStates|boolean}
+     */
+    var _ctrlDown = CtrlDownStates.NOT_YET_DETECTED,
+        _altGrDown = false;
+    
+    /**
+     * @private
+     * Used to record the timeStamp property of the last keydown event.
+     * @type {number}
+     */
+    var _lastTimeStamp;
+
+    /**
+     * @private
+     * Used to record the keyIdentifier property of the last keydown event.
+     * @type {string}
+     */
+    var _lastKeyIdentifier;
+    
+    /* 
+     * @private
+     * Constant used for checking the interval between Control keydown event and Alt keydown event.
+     * If the right Alt key is down we get Control keydown followed by Alt keydown within 30 ms. if 
+     * the user is pressing Control key and then Alt key, the interval will be larger than 30 ms.
+     * @type {number}
+     */
+    var MAX_INTERVAL_FOR_CTRL_ALT_KEYS = 30;
+    
+    /**
+     * @private
+     * Forward declaration for JSLint.
+     * @type {Function}
+     */
+    var _onCtrlUp;
+
+    /**
+     * @private
+     * Resets all the flags and removes _onCtrlUp event listener.
+     * 
+     */
+    function _quitAltGrMode() {
+        _enabled = true;
+        _ctrlDown = CtrlDownStates.NOT_YET_DETECTED;
+        _altGrDown = false;
+        _lastTimeStamp = null;
+        _lastKeyIdentifier = null;
+        $(window).off("keyup", _onCtrlUp);
+    }
+    
+    /**
+     * @private
+     * Detects the release of AltGr key by checking all keyup events
+     * until we receive one with ctrl key code. Once detected, reset 
+     * all the flags and also remove this event listener.
+     *
+     * @param {!KeyboardEvent} e keyboard event object
+     */
+    _onCtrlUp = function (e) {
+        var key = e.keyCode || e.which;
+        if (_altGrDown && key === KeyEvent.DOM_VK_CONTROL) {
+            _quitAltGrMode();
+        }
+    };
+    
+    /**
+     * @private
+     * Detects whether AltGr key is pressed. When it is pressed, the first keydown event has 
+     * ctrlKey === true with keyIdentifier === "Control". The next keydown event with 
+     * altKey === true, ctrlKey === true and keyIdentifier === "Alt" is sent within 30 ms. Then 
+     * the next keydown event with altKey === true, ctrlKey === true and keyIdentifier === "Control" 
+     * is sent. If the user keep holding AltGr key down, then the second and third 
+     * keydown events are repeatedly sent out alternately. If the user is also holding down Ctrl
+     * key, then either keyIdentifier === "Control" or keyIdentifier === "Alt" is repeatedly sent
+     * but not alternately.
+     *
+     * Once we detect the AltGr key down, then disable KeyBindingManager and set up a keyup
+     * event listener to detect the release of the altGr key so that we can re-enable KeyBindingManager.
+     * When we detect the addition of Ctrl key besides AltGr key, we also quit AltGr mode and re-enable
+     * KeyBindingManager.
+     *
+     * @param {!KeyboardEvent} e keyboard event object
+     */
+    function _detectAltGrKeyDown(e) {
+        if (brackets.platform !== "win") {
+            return;
+        }
+
+        if (!_altGrDown) {
+            if (_ctrlDown !== CtrlDownStates.DETECTED_AND_IGNORED && e.ctrlKey && e.keyIdentifier === "Control") {
+                _ctrlDown = CtrlDownStates.DETECTED;
+            } else if (e.repeat && e.ctrlKey && e.keyIdentifier === "Control") {
+                // We get here if the user is holding down left/right Control key. Set it to false 
+                // so that we don't misidentify the combination of Ctrl and Alt keys as AltGr key.
+                _ctrlDown = CtrlDownStates.DETECTED_AND_IGNORED;
+            } else if (_ctrlDown === CtrlDownStates.DETECTED && e.altKey && e.ctrlKey && e.keyIdentifier === "Alt" &&
+                        (e.timeStamp - _lastTimeStamp) < MAX_INTERVAL_FOR_CTRL_ALT_KEYS) {
+                _altGrDown = true;
+                _lastKeyIdentifier = "Alt";
+                _enabled = false;
+                $(window).on("keyup", _onCtrlUp);
+            } else {
+                // Reset _ctrlDown so that we can start over in detecting the two key events
+                // required for AltGr key.
+                _ctrlDown = CtrlDownStates.NOT_YET_DETECTED;
+            }
+            _lastTimeStamp = e.timeStamp;
+        } else if (e.keyIdentifier === "Control" || e.keyIdentifier === "Alt") {
+            // If the user is NOT holding down AltGr key or is also pressing Ctrl key,
+            // then _lastKeyIdentifier will be the same as keyIdentifier in the current 
+            // key event. So we need to quit AltGr mode to re-enable KBM.
+            if (e.altKey && e.ctrlKey && e.keyIdentifier === _lastKeyIdentifier) {
+                _quitAltGrMode();
+            } else {
+                _lastKeyIdentifier = e.keyIdentifier;
+            }
+        }
+    }
+    
+    /**
+     * @private
      */
     function _reset() {
         _keyMap = {};
@@ -665,18 +802,6 @@ define(function (require, exports, module) {
         return false;
     }
 
-    // TODO (issue #414): Replace this temporary fix with a more robust solution to handle focus and modality
-    /**
-     * Enable or disable key bindings. Clients such as dialogs may wish to disable
-     * global key bindings temporarily.
-     *
-     * @param {string} A key-description string.
-     * @return {boolean} true if the key was processed, false otherwise
-     */
-    function setEnabled(value) {
-        _enabled = value;
-    }
-
     /**
      * @private
      *
@@ -701,6 +826,7 @@ define(function (require, exports, module) {
      * @param {?string} platform The target OS of the keyBindings either
      *     "mac", "win" or "linux". If undefined, all platforms not explicitly
      *     defined will use the key binding.
+     *     NOTE: If platform is not specified, Ctrl will be replaced by Cmd for "mac" platform
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>}
      *     Returns record(s) for valid key binding(s)
      */
@@ -838,6 +964,7 @@ define(function (require, exports, module) {
                 break;
             }
         }
+        _detectAltGrKeyDown(event);
         if (!handled && _handleKey(_translateKeyboardEvent(event))) {
             event.stopPropagation();
             event.preventDefault();
@@ -1301,10 +1428,10 @@ define(function (require, exports, module) {
     exports._getDisplayKey = _getDisplayKey;
     exports._loadUserKeyMap = _loadUserKeyMap;
     exports._initCommandAndKeyMaps = _initCommandAndKeyMaps;
+    exports._onCtrlUp = _onCtrlUp;
 
     // Define public API
     exports.getKeymap = getKeymap;
-    exports.setEnabled = setEnabled;
     exports.addBinding = addBinding;
     exports.removeBinding = removeBinding;
     exports.formatKeyDescriptor = formatKeyDescriptor;
