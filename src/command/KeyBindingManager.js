@@ -1238,12 +1238,12 @@ define(function (require, exports, module) {
                 // Unassign the key from any command. e.g. "Cmd-W": "file.open" in _customKeyMapCache
                 // will require us to remove Cmd-W shortcut from file.open command.
                 removeBinding(normalizedKey);
+            }
                 
-                // Reassign the default key binding. e.g. "Cmd-W": "file.open" in _customKeyMapCache
-                // will require us to reassign Cmd-O shortcut to file.open command.
-                if (defaults) {
-                    addBinding(commandID, defaults, brackets.platform);
-                }
+            // Reassign the default key binding. e.g. "Cmd-W": "file.open" in _customKeyMapCache
+            // will require us to reassign Cmd-O shortcut to file.open command.
+            if (defaults) {
+                addBinding(commandID, defaults, brackets.platform);
             }
 
             // Reassign the default key binding of the previously modified command. 
