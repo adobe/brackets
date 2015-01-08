@@ -251,13 +251,16 @@ define(function (require, exports, module) {
      * @return {Language} The language detected based on file content or the fallback language
      */
     function getLanguageForContent(rawText) {
-        // Auto Detection for bash scripts 
-        if (_languages) {
-            for (var lang in _languages) {
-                if (rawText && _languages[lang].hasAutoDetectionRegexp() &&
-                 rawText.search(new RegExp(_languages[lang].getAutoDetectionRegexp()) !== -1)) {
-                    return _languages[lang];
-                }
+        // Shebang detection for script languages 
+        if (_languages && rawText) {
+            //filter out #!/usr/bin/, #!/usr/local/bin/, #!/bin/, #!/usr/bin/env, and arguments in order to get language name
+            //for python, it filters out version number as well (python2 python3 -> python) 
+            var lang = rawText.match(/^#!(?:\/usr\/bin\/env\ |(?:\/usr|\/usr\/local)?\/bin\/)(python(?=[23]\W)|(?!python)\w+)[^\r\n]*[\r\n]/m);
+            if (lang && lang[1] && _languages[lang[1]]) {
+                return _languages[lang[1]];
+            }
+            else if (lang && lang[1] && _languages[lang[1]] === "sh") { //workaround for bash
+                return _languages.bash;
             }
         }
         return _fallbackLanguage;
@@ -430,7 +433,6 @@ define(function (require, exports, module) {
         this._fileNames         = [];
         this._modeToLanguageMap = {};
         this._lineCommentSyntax = [];
-        this._autoDetectionRegexp = null;
     }
     
     
@@ -482,8 +484,6 @@ define(function (require, exports, module) {
      */
     Language.prototype._blockCommentSyntax = null;
 
-    Language.prototype._autoDetectionRegexp = null;
-    
     /**
      * Whether or not the language is binary
      * @type {boolean}
@@ -827,34 +827,6 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns whether the regexp for content detection that is defined for this language.
-     * @return {boolean} Whether content detection are supported
-     */
-    Language.prototype.hasAutoDetectionRegexp = function () {
-        return Boolean(this._autoDetectionRegexp);
-    };
-
-    /**
-     * Returns the regexp string to use for content detection.
-     * @return {string} The regexp string
-     */
-    Language.prototype.getAutoDetectionRegexp = function () {
-        return this._autoDetectionRegexp;
-    };
-
-    /**
-     * Sets a new regxep string for content detection for this language
-     * @param {string} The regexp string
-     * 
-     * @return {boolean} Whether the regexp was set or not
-     */
-    Language.prototype.setAutoDetectionRegexp = function (regexp) {
-        this._autoDetectionRegexp = regexp;
-        return true;
-    };
-
-    
-    /**
      * Returns either a language associated with the mode or the fallback language.
      * Used to disambiguate modes used by multiple languages.
      * @param {!string} mode The mode to associate the language with
@@ -914,10 +886,6 @@ define(function (require, exports, module) {
         return this._isBinary;
     };
 
-    Language.prototype.autoDetectionRegexp = function () {
-        return this._autoDetectionRegexp;
-    };
-    
     /**
      * Sets whether or not the language is binary
      * @param {!boolean} isBinary
@@ -959,7 +927,6 @@ define(function (require, exports, module) {
             fileNames      = definition.fileNames,
             blockComment   = definition.blockComment,
             lineComment    = definition.lineComment,
-            autoDetectionRegexp = definition.autoDetectionRegexp,
             i,
             l;
         
@@ -978,8 +945,6 @@ define(function (require, exports, module) {
             
             language._setBinary(!!definition.isBinary);
 
-            language._autoDetectionRegexp = autoDetectionRegexp;
-            
             // store language to language map
             _languages[language.getId()] = language;
         }
