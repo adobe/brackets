@@ -63,13 +63,13 @@ define({
     "ERROR_RELOADING_FILE"              : "尝试重新加载文件 <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
     "ERROR_SAVING_FILE_TITLE"           : "保存文件时发生错误",
     "ERROR_SAVING_FILE"                 : "尝试保存文件 <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "重命名文件失败",
-    "ERROR_RENAMING_FILE"               : "重命名文件 <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
-    "ERROR_DELETING_FILE_TITLE"         : "删除文件失败",
-    "ERROR_DELETING_FILE"               : "尝试删除文件 <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "重命名文件 {0} 失败",
+    "ERROR_RENAMING_FILE"               : "尝试重命名文件 {2} <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "删除文件 {0} 失败",
+    "ERROR_DELETING_FILE"               : "尝试删除文件 {2} <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
     "INVALID_FILENAME_TITLE"            : "无效文件名: {0}",
     "INVALID_FILENAME_MESSAGE"          : "{0} 不能以(.)结尾或者包含系统保留字及以下字符：<code class='emphasized'>{1}</code>",
-    "ENTRY_WITH_SAME_NAME_EXISTS"       : "文件 {0} <span class='dialog-filename'>{1}</span> 已经存在。",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "名为 <span class='dialog-filename'>{0}</span> 的文件/文件夹已经存在。",
     "ERROR_CREATING_FILE_TITLE"         : "创建文件 {0} 出现错误",
     "ERROR_CREATING_FILE"               : "尝试创建 {0} <span class='dialog-filename'>{1}</span> 时发生错误。 {2}",
     "ERROR_MIXED_DRAGDROP"              : "无法在打开文件夹的同时打开其他文件",
@@ -164,7 +164,7 @@ define({
     "BUTTON_CASESENSITIVE_HINT"         : "区分大小写",
     "BUTTON_REGEXP_HINT"                : "正则表达式",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "替换(无法撤销)",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "由于多个文件需要修改, {APP_NAME} 将修改磁盘中未打开的文件，<br />这些修改无法撤销。",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "由于有 {0} 个文件需要修改, {APP_NAME} 将修改磁盘中未打开的文件，<br />这些修改无法撤销。",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "替换(无法撤销)",
 
     "OPEN_FILE"                         : "打开文件",
@@ -651,4 +651,3 @@ define({
 });
 
 /* Last translated for 50cbe1b8848786c6be27d4788e4b6a367244abc2 */
-
