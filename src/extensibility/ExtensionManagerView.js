@@ -245,17 +245,11 @@ define(function (require, exports, module) {
             [shortLang, lang].forEach(function (locale) {
                 if (info.metadata["package-i18n"].hasOwnProperty(locale)) {
                     // only overlay specific properties with the localized values
-                    ["title", "description", "homepage", "keywords"].forEach(function (prop) {
+                    ["title", "description", "homepage", "keywords", "author", "contributors"].forEach(function (prop) {
                         if (info.metadata["package-i18n"][locale].hasOwnProperty(prop)) {
                             info.metadata[prop] = info.metadata["package-i18n"][locale][prop];
                         }
                     });
-                    if (info.metadata["package-i18n"][locale].hasOwnProperty("author")) {
-                        info.metadata.author = info.metadata["package-i18n"][locale].author;
-                    }
-                    if (info.metadata["package-i18n"][locale].hasOwnProperty("contributors")) {
-                        info.metadata.contributors = info.metadata["package-i18n"][locale].contributors;
-                    }
                 }
             });
         }
