@@ -875,11 +875,11 @@ define(function (require, exports, module) {
             it("should add new method on String .prototype", function () {
                 var start = { line: 37, ch: 0 };
                 var testPos = { line: 40, ch: 12 };
-                testDoc.replaceRange("String.prototype.times = function (count) {\n" + "\treturn count < 1 ? '' : new Array[count + 1].join(this);\n};\n\"hello\".time", start, start);
+                testDoc.replaceRange("String.prototype.times = function (count) {\n" + "\treturn count < 1 ? '' : new Array[count + 1].join(this);\n};\n\"hello\".tim", start, start);
                 testEditor.setCursorPos(testPos);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentOrdered(hintObj, ["times", "trimLeft"]);
+                    hintsPresentOrdered(hintObj, ["times", "trim"]);
                 });
             });
 
