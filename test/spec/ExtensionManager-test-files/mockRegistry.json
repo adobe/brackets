@@ -49,12 +49,16 @@
       "name": "mock-extension-1",
       "description": "First mock extension",
       "title": "Mock extension title",
+      "author": "Someone",
+      "contributors": "A contributor",
       "version": "1.0.0",
       "i18n": [ "en", "fr" ],
       "package-i18n": {
         "fr": {
           "description": "Première prolongation maquette",
           "title": "Titre d'extension Mock",
+          "author": "Someone Else",
+          "contributors": [ "Another contributor" ],
           "warnings": "Shouldn't be used"
         }
       }
