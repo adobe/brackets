@@ -120,6 +120,79 @@ define(function (require, exports, module) {
                     expect(stat.isFile).toBe(true);
                 });
             });
+            
+            it("should not display excluded entry when resolved and written to", function () {
+                var opFailed = false,
+                    doneCreating = false,
+                    doneResolving = false,
+                    doneWriting = false,
+                    doneLooking = false,
+                    found = false,
+                    entry;
+                
+                runs(function () {
+                    ProjectManager.createNewItem(ProjectManager.getProjectRoot.fullPath, ".git/", true, true)
+                        .fail(function () {
+                            opFailed = true;
+                        })
+                        .always(function () {
+                            doneCreating = true;
+                        });
+                });
+                
+                waitsFor(function () {
+                    return !opFailed && doneCreating;
+                }, "create .git directory", 500);
+                
+                runs(function () {
+                    FileSystem.resolve(ProjectManager.getProjectRoot().fullPath + ".git/", function (err, e, stat) {
+                        if (err) {
+                            opFailed = true;
+                            return;
+                        }
+                        entry = e;
+                        doneResolving = true;
+                    });
+                });
+                
+                waitsFor(function () {
+                    return !opFailed && doneResolving;
+                }, "FileSystem.resolve()", 500);
+
+                runs(function () {
+                    var file = FileSystem.getFileForPath(entry.fullPath + "test");
+                    file.write("hi there!", function (err) {
+                        if (err) {
+                            opFailed = true;
+                            return;
+                        }
+                        doneWriting = true;
+                    });
+                });
+                
+                waitsFor(function () {
+                    return !opFailed && doneWriting;
+                }, "create a file under .git", 500);
+                
+                runs(function () {
+                    ProjectManager.showInTree(entry)
+                        .done(function () {
+                            found = true;
+                        })
+                        .always(function () {
+                            doneLooking = true;
+                        });
+                });
+                
+                waitsFor(function () {
+                    return doneLooking;
+                }, "lookup the file in the file tree", 500);
+                
+                runs(function () {
+                    expect(found).toBe(false);
+                });
+
+            });
 
             it("should fail when a file already exists", function () {
                 var didCreate = false, gotError = false;
