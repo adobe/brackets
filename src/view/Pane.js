@@ -59,8 +59,11 @@
   *  - viewListChange - Whenever there is a file change to a file in the working set.  These 2 events: `DocumentManger.pathRemove` 
   *  and `DocumentManger.fileNameChange` will cause a `viewListChange` event so the WorkingSetView can update.
   *
-  *  - currentViewChange - triggered whenever the current view changes.
+  *  - currentViewChange - Whenever the current view changes.
   *             (e, newView:View, oldView:View)
+  *
+  *  - viewDestroy - Whenever a view has been destroyed
+  *             (e, view:View)
   *
   * View Interface:  
   *
@@ -506,6 +509,7 @@ define(function (require, exports, module) {
         
         // Destroy temporary views
         _.forEach(viewsToDestroy, function (view) {
+            $(this).triggerHandler("viewDestroy", view);
             view.destroy();
         });
 
@@ -739,6 +743,7 @@ define(function (require, exports, module) {
             this._hideCurrentView();
         }
         delete this._views[view.getFile().fullPath];
+        $(this).triggerHandler("viewDestroy", view);
         view.destroy();
     };
     
@@ -1084,6 +1089,7 @@ define(function (require, exports, module) {
             var file = view.getFile(),
                 path = file && file.fullPath;
             delete this._views[path];
+            $(this).triggerHandler("viewDestroy", view);
             view.destroy();
         }
     };
@@ -1116,6 +1122,7 @@ define(function (require, exports, module) {
 
         // Now destroy the views
         views.forEach(function (_view) {
+            $(this).triggerHandler("viewDestroy", _view);
             _view.destroy();
         });
     };

@@ -388,7 +388,8 @@ define(function (require, exports, module) {
                 }
             })
             .on("drop", function (event) {
-                if (event.originalEvent.dataTransfer.files) {
+                var files = event.originalEvent.dataTransfer.files;
+                if (files && files.length) {
                     event.stopPropagation();
                     event.preventDefault();
                     brackets.app.getDroppedFiles(function (err, paths) {

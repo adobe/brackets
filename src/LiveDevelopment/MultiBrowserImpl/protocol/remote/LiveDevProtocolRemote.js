@@ -272,10 +272,43 @@
         },
         
         onClose: function () {
-            // TODO: This is absolutely temporary solution. It shows a message 
-            // when the connection has been closed. UX decision to be taken on what to do when 
-            // the session is explicitly closed from the Editor side. 
-            alert("Live Preview has been closed.");
+            // TODO: This is absolutely temporary solution.
+            var body = document.getElementsByTagName("body")[0],
+                overlay = document.createElement("div"),
+                background = document.createElement("div"),
+                status = document.createElement("div");
+            
+            overlay.style.width = "100%";
+            overlay.style.height = "100%";
+            overlay.style.zIndex = 2227;
+            overlay.style.position = "absolute";
+            overlay.style.top = 0;
+            overlay.style.left = 0;
+            
+            background.style.backgroundColor = "#fff";
+            background.style.opacity = 0.5;
+            background.style.width = "100%";
+            background.style.height = "100%";
+            background.style.position = "absolute";
+            background.style.top = 0;
+            background.style.left = 0;            
+
+            status.textContent = "Live Development Session has Ended";
+            status.style.width = "100%";
+            status.style.color = "#fff";
+            status.style.backgroundColor = "#666";
+            status.style.position = "absolute";
+            status.style.top = 0;
+            status.style.left = 0;
+            status.style.padding = "0.2em";
+            status.style.verticalAlign = "top";
+            status.style.textAlign = "center";
+            overlay.appendChild(background);
+            overlay.appendChild(status);
+            body.appendChild(overlay);
+            
+            // change the title as well
+            document.title = "(Brackets Live Preview: closed) " + document.title;
         },
         
         setDocumentObserver: function (documentOberver) {
