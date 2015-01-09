@@ -123,7 +123,6 @@ define(function (require, exports, module) {
             
             it("should not display excluded entry when resolved and written to", function () {
                 var opFailed = false,
-                    doneCreating = false,
                     doneResolving = false,
                     doneWriting = false,
                     doneLooking = false,
@@ -131,18 +130,8 @@ define(function (require, exports, module) {
                     entry;
                 
                 runs(function () {
-                    ProjectManager.createNewItem(ProjectManager.getProjectRoot.fullPath, ".git/", true, true)
-                        .fail(function () {
-                            opFailed = true;
-                        })
-                        .always(function () {
-                            doneCreating = true;
-                        });
+                    waitsForDone(SpecRunnerUtils.copy(tempDir + "/git/", tempDir + "/.git/"), "copy git to .git");
                 });
-                
-                waitsFor(function () {
-                    return !opFailed && doneCreating;
-                }, "create .git directory", 500);
                 
                 runs(function () {
                     FileSystem.resolve(ProjectManager.getProjectRoot().fullPath + ".git/", function (err, e, stat) {
