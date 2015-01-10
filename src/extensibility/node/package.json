@@ -1,7 +1,7 @@
 {
   "name": "brackets-extensibility",
   "description": "Used in the management of Brackets extensions",
-  "version": "0.45.0",
+  "version": "1.2.0",
   "dependencies": {
     "decompress-zip": "0.0.2",
     "semver": "2.x",
