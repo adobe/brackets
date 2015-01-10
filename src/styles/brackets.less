@@ -67,9 +67,8 @@ html, body {
         backface-visibility: hidden;
     }
 
-    .dark,
     &.dark {
-         color: @dark-bc-text;
+        color: @dark-bc-text;
     }
 }
 
@@ -112,13 +111,13 @@ a, img {
     .sidebar {
         .vbox;
         left: 0;
-        width: @sidebar-width;  // changed dynamically via Resizer
+        width: @sidebar-width; // changed dynamically via Resizer
         white-space: nowrap;
     }
 
     .content {
         padding: 0;
-        left: @sidebar-width;  // changed dynamically via Resizer
+        left: @sidebar-width; // changed dynamically via Resizer
         right: @main-toolbar-width;
     }
 }
@@ -132,7 +131,7 @@ a, img {
     z-index: @z-index-brackets-toolbar;
     
     .dark & {
-        border-bottom: 1px solid @dark-bc-shadow;
+        border-bottom-color: @dark-bc-shadow;
         box-shadow: 0 1px 3px @dark-bc-shadow-small;
     }
 }
@@ -158,7 +157,7 @@ a, img {
     overflow: hidden;
     .dark & {
         background: @dark-bc-bg-status-bar;
-        border-top: 1px solid @dark-bc-panel-separator;
+        border-top-color: @dark-bc-panel-separator;
         color: @dark-bc-text;
     }
 }
@@ -204,30 +203,30 @@ a, img {
             border-left: 1px solid @bc-panel-border;
             
             .dark & {
-                border-left: 1px solid @dark-bc-panel-separator;
+                border-left-color: @dark-bc-panel-separator;
             }
         }
         float: right;
         padding: 0 10px;
     }
-    .spinner {  // spinner is tiny & usually invisible; reduce margin so gap is less glaring
+    .spinner { // spinner is tiny & usually invisible; reduce margin so gap is less glaring
         margin: 6px 10px;
         padding: 0;
     }
 
     #status-language {
         border-right: 1px solid @bc-panel-border;
-        padding: 0px;
-        margin: 0px;
+        padding: 0;
+        margin: 0;
         
         .dark & {
-            border-right: 1px solid @dark-bc-panel-separator;
+            border-right-color: @dark-bc-panel-separator;
         }
     }
     
     /* dropdown button styling */
     .btn-status-bar {
-        border: 0;
+        border: none;
         background-color: inherit;
         color: inherit;
         font: inherit;
@@ -258,21 +257,19 @@ a, img {
     
 }
 
-#status-indent > * {
-    display: inline-block;
-}
-
-#status-indent > *.hidden {
-    display: none;
-}
-
-#indent-type, #indent-width-label {
-    cursor: pointer;
-    margin-right: 3px;
-}
-
-#status-overwrite:hover, #indent-type:hover, #indent-width-label:hover {
-    text-decoration: underline;
+#status-indent {
+    > div {
+        cursor: pointer;
+        margin-right: 3px;
+        display: inline-block;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+    
+    > .hidden {
+        display: none;
+    }
 }
 
 #indent-width-input {
@@ -295,10 +292,6 @@ a, img {
     }
 }
 
-#indent-width-input:focus {
-
-}
-
 #indent-width-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
@@ -318,6 +311,10 @@ a, img {
 #status-overwrite.flash {
     transition: background-color 1s;
     background-color: rgb(120, 178, 242);
+}
+
+#status-overwrite:hover {
+    text-decoration: underline;
 }
 
 
@@ -345,10 +342,10 @@ a, img {
         .image-view {
             overflow: hidden;
             position: absolute;
-            top: 0px;
-            right: 0px;
-            bottom: 0px;
-            left: 0px;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             text-align: center;
             .image-centering {
                 display: inline-block;
@@ -395,11 +392,9 @@ a, img {
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
-        }
-
-        .image-data::selection,
-        .image-path::selection {
-            background: @selection-color-focused;
+            &::selection {
+                background: @selection-color-focused;
+            }
         }
 
         .image {
@@ -456,18 +451,18 @@ a, img {
         }
 
         .tip-container {
-            border: 0;
+            border: none;
         }
 
         .horz-guide {
-            background-image: url("images/horizontal-dash.svg");
+            background-image: url(images/horizontal-dash.svg);
             background-repeat: repeat-x;
             width: 8px;
             height: 1px;
         }
 
         .vert-guide {
-            background-image: url("images/vertical-dash.svg");
+            background-image: url(images/vertical-dash.svg);
             background-repeat: repeat-y;
             width: 1px;
             height: 8px;
@@ -481,7 +476,7 @@ a, img {
     }
     .pane-header {
         box-sizing: border-box;
-        border-bottom:  1px solid rgba(0, 0, 0, 0.05);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         padding: 5px 10px;
         background-color: @background;
         white-space: nowrap;
@@ -512,43 +507,43 @@ a, img {
     .vbox;
     .box-pack(center);
     .box-align(center);
-    background: #f8f8f8 url('images/no_content_bg.svg') no-repeat center 45%;
+    background: #f8f8f8 url(images/no_content_bg.svg) no-repeat center 45%;
 
     .dark & {
-        background: #1d1f21 url('images/no_content_bg_dark.svg') no-repeat center 45%;
+        background: #1d1f21 url(images/no_content_bg_dark.svg) no-repeat center 45%;
     }
 }
 
 // Split View Separator Styles
-.split-vertical #second-pane {
-    border-left: 1px solid rgba(0, 0, 0, 0.17);
+#second-pane {
+    .split-vertical & {
+        border-left: 1px solid;
+    }
+    .split-horizontal & {
+        border-top: 1px solid;
+    }
+    
+    border-color: rgba(0, 0, 0, 0.17);
     .dark & {
-        border-left: 1px solid rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.3);
     }
 }
 
-.split-horizontal #second-pane {
-    border-top: 1px solid rgba(0, 0, 0, 0.17);
-    .dark & {
-        border-top: 1px solid rgba(255, 255, 255, 0.3);
-    }
+.vert-resizer, .horz-resizer {
+    position: absolute;
+    z-index: @z-index-brackets-panel-resizer;
+    opacity: 0;
 }
 
 .vert-resizer {
-    position: absolute;
     height: 6px;
     width: 100%;
-    z-index: @z-index-brackets-panel-resizer;
-    opacity: 0;
     cursor: row-resize;
 }
 
 .horz-resizer {
-    position: absolute;
     height: 100%;
     width: 6px;
-    z-index: @z-index-brackets-panel-resizer;
-    opacity: 0;
     cursor: col-resize;
 }
 
@@ -560,7 +555,7 @@ a, img {
     
     .dark & {
         background-color: @dark-bc-panel-bg;
-        border-top: 1px solid @dark-bc-panel-border;        
+        border-top-color: @dark-bc-panel-border;
     }
 
     .check-all {
@@ -579,7 +574,7 @@ a, img {
         .dark & {
             background-color: @dark-bc-panel-bg-promoted;
             border-bottom: @dark-bc-panel-separator;
-            box-shadow: inset 0 1px 0 @dark-bc-highlight, 0 -1px 3px @dark-bc-shadow-small;            
+            box-shadow: inset 0 1px 0 @dark-bc-highlight, 0 -1px 3px @dark-bc-shadow-small;
         }
         
         .title {
@@ -750,7 +745,7 @@ a, img {
     top: 7px;
     padding: 4px 6px;
     .sprite-icon(0, 0, 13px, 13px, "images/split-view-icons.svg");
-    background-origin: content-box;  // center image within the 13x13 area - ignore button's padding
+    background-origin: content-box; // center image within the 13x13 area - ignore button's padding
     -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
     transform: translateZ(0); // future proofing
     -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
@@ -804,25 +799,17 @@ a, img {
     font-size: 13px;
     color: @project-panel-text-2;
     overflow: hidden;
-    
-    .btn-alt-quiet {
-        background-color: #47484b;
-        
-        // relative positioning plus z-index make sure that the splitview button flows under the left aligned buttons in the project pane when there are no working set files
-        position: relative;
-        z-index: 9; 
-    }
 }
 
 .open-files-container {
     .box-flex(0);
-    padding: 0px;
+    padding: 0;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
 
     ul {
         list-style-type: none;
-        margin: 0 0 2px; // 2px bottom margin required to stop scrollbar from appearing when the cursor is hovering over the last opened file.
+        margin: 0 0 2px 0; // 2px bottom margin required to stop scrollbar from appearing when the cursor is hovering over the last opened file.
     }
 
     li {
@@ -851,7 +838,7 @@ a, img {
         height: 16px;
         line-height: 15px;
         margin-left: 18px;
-        padding: 3px 0 3px 0;
+        padding: 3px 0;
 
         cursor: default;
 
@@ -871,47 +858,41 @@ a, img {
 
 
 
-.sidebar-selection, .filetree-selection {
-    background: @bc-sidebar-selection;
-    border-top: 1px solid @bc-shadow-small;
-    border-bottom: 1px solid @bc-highlight;
-    box-sizing: border-box;
-    height: 23px;
-    position: absolute;
-}
-
+.sidebar-selection, .filetree-selection,
 .sidebar-selection-extension, .filetree-selection-extension {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
     box-sizing: border-box;
     height: 23px;
-    width: 9px; /* quiet scrollbar width */
-    position: fixed;
-
-    z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
 }
 
+.sidebar-selection, .filename-selection {
+    position: absolute;
+}
+
+.sidebar-selection-extension, .filetree-selection-extension,
 .filetree-context-extension {
-    background: rgba(255, 255, 255, 0.06);
-    box-sizing: border-box;
-    height: 23px;
     width: 9px; /* quiet scrollbar width */
     position: fixed;
 
     z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
 }
 
+.filetree-context-extension,
 .filetree-context {
     background: rgba(255, 255, 255, 0.06);
     box-sizing: border-box;
-    position: absolute;
     height: 23px;
+}
+
+.filetree-context {
+    position: absolute;
 }
 
 //Initially start with the open files hidden, they will get show as files are added
 .open-files-container {
-    display:none;
+    display: none;
 }
 
 #project-files-container {
@@ -923,7 +904,7 @@ a, img {
 
     > ul {
         padding-bottom: 24px;
-    }    
+    }
 }
 
 .scroller-shadow {
@@ -947,10 +928,10 @@ a, img {
 }
 
 
-@jstree-sprite-size: 18px;  // this is hardcoded in jsTree's JS code
+@jstree-sprite-size: 18px; // this is hardcoded in jsTree's JS code
 
-/** Classes for icons from jsTreeSprites.svg
-*/
+/* Classes for icons from jsTreeSprites.svg */
+
 .jstree-sprite {
     background-image: @jstree-sprite;
     background-repeat: no-repeat;
@@ -964,32 +945,32 @@ a, img {
     }
 }
 
-/** Overriding jsTreeTheme.less
-*/
+/* Overriding jsTreeTheme.less */
+
 .jstree-brackets .jstree-no-dots .jstree-open > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0) rotate(90deg);
-    -webkit-transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
+    transition: transform 190ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
     
     .dark & {
-        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);        
+        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);
     }
 }
 
 .jstree-brackets .jstree-no-dots .jstree-closed > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
-    -webkit-transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
+    transition: transform 90ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
     
     .dark & {
-        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);        
+        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);
     }
 }
 
-/** Unicode Icon container
-*/
+/* Unicode Icon container */
+
 .unicode-icon-container {
     display: inline-block;
     width: 16px;
@@ -1033,7 +1014,7 @@ a, img {
 /* Styles for inline editors */
 
 .inline-text-editor {
-    line-height: 0px;
+    line-height: 0;
 }
 
 .inline-widget {
@@ -1110,16 +1091,15 @@ a, img {
         content: " ";
         left: 0;
         z-index: @z-index-brackets-inline-editor-shadow;
-    }
-
-    .shadow.top {
-        top: 0px;
-        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
-    }
-
-    .shadow.bottom {
-        bottom: 0px;
-        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
+        
+        &.top {
+            top: 0;
+            background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
+        }
+        &.bottom {
+            bottom: 0;
+            background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
+        }
     }
 
     .CodeMirror-scroll {
@@ -1144,6 +1124,7 @@ a, img {
 }
 
 /* CSSInlineEditor rule list */
+
 .related-container {
     @top-margin: 12px;
 
@@ -1180,27 +1161,27 @@ a, img {
         &.animate {
             transition: top 0.1s ease-out;
         }
-    }
-
-    /*
-     * CSS triangle hack with anti-alias workarounds:
-     * (a) Use selection-background-color instead of transparent.
-     * (b) Use transform scaleX and origin to adjust width.
-     */
-    .selection:before {
-        content: " ";
-        position: absolute;
-        width: 0;
-        height: 0;
-        border-top: @inline-triangle-size solid transparent;
-        border-bottom: @inline-triangle-size solid transparent;
-        border-left: @inline-triangle-size solid @bc-bg-inline-widget;
-        margin-top: -@inline-triangle-size;
-        top: 50%;
-        .scale-x(0.9, left, top);
         
-        .dark & {
-            border-left: @inline-triangle-size solid @dark-bc-bg-inline-widget;
+        /*
+         * CSS triangle hack with anti-alias workarounds:
+         * (a) Use selection-background-color instead of transparent.
+         * (b) Use transform scaleX and origin to adjust width.
+         */
+        &:before {
+            content: " ";
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: @inline-triangle-size solid transparent;
+            border-bottom: @inline-triangle-size solid transparent;
+            border-left: @inline-triangle-size solid @bc-bg-inline-widget;
+            margin-top: -@inline-triangle-size;
+            top: 50%;
+            .scale-x(0.9, left, top);
+
+            .dark & {
+                border-left-color: @dark-bc-bg-inline-widget;
+            }
         }
     }
 
@@ -1213,7 +1194,7 @@ a, img {
 
         ul {
             margin: 0;
-            padding: 10px 0px 10px 5px;
+            padding: 10px 0 10px 5px;
             list-style: none;
         }
 
@@ -1221,7 +1202,7 @@ a, img {
             color: @bc-text-emphasized;
             margin: 0;
             overflow: hidden;
-            padding: 2px 0px 2px 15px;
+            padding: 2px 0 2px 15px;
             text-overflow: ellipsis;
             white-space: nowrap;
 
@@ -1362,7 +1343,6 @@ a, img {
     .disabled,
     .disabled:hover,
     .disabled:active {
-        background-color: transparent;
         opacity: 0.3;
     }
 }
@@ -1392,11 +1372,11 @@ a, img {
     font-size: 14px;
     color: @bc-text;
     background: @bc-panel-bg;
-    overflow: visible;  // needed for .error popup
+    overflow: visible; // needed for .error popup
     padding: 5px 4px 4px 14px;
 
     -webkit-transform: translate(0, 0); // Prefix still required.
-    transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
+    transition: transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
     z-index: @z-index-brackets-modalbar;
 
     .dark & {
@@ -1404,13 +1384,12 @@ a, img {
         background: @dark-bc-panel-bg;
     }
 
-    body.in-browser &,
     body:not(.has-appshell-menus) & {
         // Separator line between us and the HTML menu/titlebar above
         border-top: 1px solid @bc-panel-border;
         
         .dark & {
-            border-top: 1px solid @dark-bc-panel-border;
+            border-top-color: @dark-bc-panel-border;
         }
     }
 
@@ -1424,7 +1403,6 @@ a, img {
     &.offscreen {
         -webkit-transform: translate(0, -100%);
         transform: translate(0, -100%);
-        transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
         transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
     }
 
@@ -1436,11 +1414,11 @@ a, img {
         position: relative;
         top: -3px;
         &.no-results {
-            border: 1px solid  @bc-btn-border-error;
+            border: 1px solid @bc-btn-border-error;
             box-shadow: inset 0 1px 0 @bc-shadow-small, 0 0 0 1px @bc-btn-border-error-glow;
             
             .dark & {
-                border: 1px solid  @dark-bc-btn-border-error;
+                border-color: @dark-bc-btn-border-error;
                 box-shadow: inset 0 1px 0 @dark-bc-shadow-small, 0 0 0 1px @dark-bc-btn-border-error-glow;
             }
         }
@@ -1454,11 +1432,11 @@ a, img {
         position: relative;
         display: inline;
 
-        .error {  // "popup" that hangs below search field
+        .error { // "popup" that hangs below search field
             position: absolute;
             left: 5px;
             top: 24px;
-            min-width: 291px + 2px;  // to align with search field above it
+            min-width: 291px + 2px; // to align with search field above it
             z-index: 1; // to appear above any controls that wrap below
 
             background-color: @bc-error;
@@ -1476,8 +1454,8 @@ a, img {
         }
 
         #find-what {
-            padding-right: 62px;  // room for #find-counter overlay
-            width: 295px - (62px - 6px);  // maintain width, accounting for differing padding
+            padding-right: 62px; // room for #find-counter overlay
+            width: 295px - (62px - 6px); // maintain width, accounting for differing padding
         }
         #find-counter {
             position: absolute;
@@ -1492,11 +1470,13 @@ a, img {
         }
     }
 
-    .find-input-group {
+    .find-input-group, .scope-group,
+    #find-group, #replace-group,
+    .message, .no-results-message {
         display: inline-block;
     }
+
     #find-group, #replace-group {
-        display: inline-block;
         white-space: nowrap;
     }
     #replace-group.has-scope {
@@ -1505,18 +1485,13 @@ a, img {
     }
     
     .scope-group {
-        display: inline-block;
         margin-left: 10px;
-    }
-
-    .message, .no-results-message {
-        display: inline-block;
     }
 
     #find-case-sensitive, #find-regexp {
         padding: 1px 5px;
     }
-    .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
+    .button-icon { // icons must be nested inside button so we can apply padding w/o tiling icon
         .sprite-icon(0, 0, 24px, 24px, @button-icon);
         background-repeat: no-repeat;
 
@@ -1544,7 +1519,7 @@ a, img {
         }
     }
 
-    .navigator {  // next/prev buttons
+    .navigator { // next/prev buttons
         display: inline-block;
     }
     button {
@@ -1568,19 +1543,19 @@ a, img {
     }
     #replace-all.solo {
         border-left: none;
-        margin-left: 0px;
+        margin-left: 0;
     }
 
     // Make find field snug with options buttons
     //    & replace snug with replace commands
     #find-what, #replace-with {
-        margin-right: 0px;
+        margin-right: 0;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
     }
     #find-case-sensitive, #replace-yes {
         border-left: none;
-        margin-left: 0px;
+        margin-left: 0;
         border-radius: 0;
     }
 }
@@ -1606,7 +1581,7 @@ a, img {
     float: right;
     width: 13px;
     height: 13px;
-    background-image: url("images/edit-icon.svg");
+    background-image: url(images/edit-icon.svg);
     background-repeat: no-repeat;
     opacity: 0.5;
     visibility: hidden;
@@ -1642,21 +1617,20 @@ button.file-filter-picker {
 }
 
 // File exclusion filter editor dialog
-input.exclusions-name {
-    display: block;
-    width: 100%;
-    height: 30px;
-    box-sizing: border-box; // needed for width: 100% since it has padding
-    margin-top: 12px;
-    margin-bottom: 0;
-}
+input.exclusions-name,
 textarea.exclusions-editor {
     display: block;
     width: 100%;
-    height: 120px;
     box-sizing: border-box; // needed for width: 100% since it has padding
-    margin-top: 5px;
     margin-bottom: 0;
+}
+input.exclusions-name {
+    height: 30px;
+    margin-top: 12px;
+}
+textarea.exclusions-editor {
+    height: 120px;
+    margin-top: 5px;
     .code-font();
 }
 .exclusions-filecount {
@@ -1684,11 +1658,11 @@ textarea.exclusions-editor {
     &.searching-current-match {
         background-color: @cm-current-match-highlight;
     }
-    &.searching-first {  // first in a contiguous run of highlights
+    &.searching-first { // first in a contiguous run of highlights
         border-top-left-radius: @bc-border-radius-small;
         border-bottom-left-radius: @bc-border-radius-small;
     }
-    &.searching-last {  // last in a contiguous run of highlights
+    &.searching-last { // last in a contiguous run of highlights
         border-top-right-radius: @bc-border-radius-small;
         border-bottom-right-radius: @bc-border-radius-small;
     }
@@ -1714,7 +1688,7 @@ textarea.exclusions-editor {
         background-color: #eddd23;
         border-top: 1px solid #e0d123;
         border-bottom: 1px solid #d4c620;
-        opacity: 0.85;  // allow thumb to show through
+        opacity: 0.85; // allow thumb to show through
     }
 }
 
@@ -1760,7 +1734,7 @@ textarea.exclusions-editor {
 
     /* smart auto complete doesn't correctly position the container
      * so these specific padding and margin values are necessary*/
-    padding: 0px;
+    padding: 0;
     margin: 9px 0 0;
 
     .dark & {
@@ -1856,8 +1830,8 @@ textarea.exclusions-editor {
     visibility: hidden;
 
     .dark & {
-        border-left: 3px solid @dark-bc-spinner;
-        border-right: 3px solid @dark-bc-spinner;
+        border-left-color: @dark-bc-spinner;
+        border-right-color: @dark-bc-spinner;
     }
 
     &:before,
@@ -1873,8 +1847,8 @@ textarea.exclusions-editor {
         left: 0;
 
         .dark & {
-            border-left: 3px solid @dark-bc-spinner;
-            border-right: 3px solid @dark-bc-spinner;
+            border-left-color: @dark-bc-spinner;
+            border-right-color: @dark-bc-spinner;
         }
     }
     &:before {
@@ -1893,24 +1867,14 @@ textarea.exclusions-editor {
     &.large {
         width: 36px;
         height: 36px;
-        border-left: 9px solid @bc-spinner;
-        border-right: 9px solid @bc-spinner;
-
-        .dark & {
-            border-left: 9px solid @dark-bc-spinner;
-            border-right: 9px solid @dark-bc-spinner;
-        }
+        border-left-width: 9px;
+        border-right-width: 9px;
 
         &:before,
         &:after {
-            border-left: 7px solid @bc-spinner;
-            border-right: 7px solid @bc-spinner;
+            border-left-width: 7px;
+            border-right-width: 7px;
             height: 9px;
-
-            .dark & {
-                border-left: 7px solid @dark-bc-spinner;
-                border-right: 7px solid @dark-bc-spinner;
-            }
         }
     }
     
@@ -1924,7 +1888,7 @@ textarea.exclusions-editor {
 @-webkit-keyframes spinner-rotateplane {
     0% { -webkit-transform: perspective(120px) }
     50% { -webkit-transform: perspective(120px) rotateY(180deg) }
-    100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg) }
+    100% { -webkit-transform: perspective(120px) rotateY(180deg) rotateX(180deg) }
 }
 @keyframes spinner-rotateplane {
     0% { -webkit-transform: perspective(120px) rotateX(0deg) rotateY(0deg); transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
@@ -1967,9 +1931,9 @@ textarea.exclusions-editor {
 }
 
 #problems-panel {
-    .user-select(text);  // allow selecting error messages for easy web searching
+    .user-select(text); // allow selecting error messages for easy web searching
     .line {
-        text-align: right;  // make line number line up with editor line numbers
+        text-align: right; // make line number line up with editor line numbers
     }
 
     .line-text {
@@ -2003,6 +1967,7 @@ label input {
 }
 
 /* Quick Edit, Quick Docs */
+
 .popover-message {
     position: absolute;
     top: 0;
@@ -2023,9 +1988,8 @@ label input {
         
         .dark & {
             background-color: @dark-bc-error;
-            border-radius: 3px;
             color: @dark-bc-text-alt;
-            box-shadow: 0 3px 9px @dark-bc-shadow;            
+            box-shadow: 0 3px 9px @dark-bc-shadow;
         }
     }
     .arrowAbove {
@@ -2051,7 +2015,6 @@ label input {
         }
     }
     &.animateOpen {
-        -webkit-transition: -webkit-transform 125ms;
         transition: transform 125ms;
         -webkit-transform: scale(1);
         transform: scale(1);
@@ -2060,7 +2023,6 @@ label input {
         // Make the animation use the GPU--especially important for retina.
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
-        -webkit-transition: opacity 500ms 5s ease-in, -webkit-transform 500ms 5s;
         transition: opacity 500ms 5s ease-in, transform 500ms 5s;
         opacity: 0.0;
     }
@@ -2076,6 +2038,7 @@ label input {
 }
 
 /* Extension Manager */
+
 #install-drop-zone {
     background-color: transparent;
     box-shadow: initial;
@@ -2086,10 +2049,29 @@ label input {
     .dark & {
         border-color: #5f5f5f;
     }
-}
+    
+    .install-from-url {
+        cursor: pointer;
+    }
+    
+    &.drop {
+        background: @bc-primary-btn-bg;
+        box-shadow: initial;
+        font-weight: normal;
+        border: 1px solid @bc-primary-btn-bg;
+        color: @bc-text-alt;
+        text-shadow: none;
 
-#install-drop-zone .install-from-url {
-    cursor: pointer;
+        .dark & {
+            background: @dark-bc-primary-btn-bg;
+            border-color: @dark-bc-primary-btn-bg;
+            color: @dark-bc-text-alt;
+        }
+        
+        #install-drop-zone-mask {
+            display: block;
+        }
+    }
 }
 
 #install-drop-zone-mask {
@@ -2105,47 +2087,16 @@ label input {
     cursor: copy;
 }
 
-#install-drop-zone.drop #install-drop-zone-mask {
-    display: block;
+.install-drag-message, .install-drop-message, .install-validating-message {
+    display: none;
 }
 
-#install-drop-zone.drop {
-    background: @bc-primary-btn-bg;
-    box-shadow: initial;
-    font-weight: normal;
-    border: 1px solid @bc-primary-btn-bg;
-    color: @bc-text-alt;
-    text-shadow: none;
-    
-    .dark & {
-        background: @dark-bc-primary-btn-bg;
-        border: 1px solid @dark-bc-primary-btn-bg;
-        color: @dark-bc-text-alt;        
+#install-drop-zone {
+    &.drag .install-drag-message,
+    &.drop .install-drop-message,
+    &.validating .install-validating-message {
+        display: inline;
     }
-}
-
-.install-drag-message {
-    display: none;
-}
-
-.install-drop-message {
-    display: none;
-}
-
-.install-validating-message {
-    display: none;
-}
-
-#install-drop-zone.drag .install-drag-message {
-    display: inline;
-}
-
-#install-drop-zone.drop .install-drop-message {
-    display: inline;
-}
-
-#install-drop-zone.validating .install-validating-message {
-    display: inline;
 }
 
 #hidden-editors {
