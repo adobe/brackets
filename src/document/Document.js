@@ -698,7 +698,24 @@ define(function (require, exports, module) {
     Document.prototype.isUntitled = function () {
         return this.file instanceof InMemoryFile;
     };
+
+    /**
+     * Set lineEnding of the document. Change Text in the process.
+     */
+    Document.prototype.setLineEndings = function (lineEndings) {
+        this._lineEndings = lineEndings;
+        this.setText(FileUtils.translateLineEndings(this.getText(true), lineEndings));
+    };
     
+    /**
+     * Get the current document LineEnding.
+     *
+     * @return {string} - returns the current line endings of the document.
+     */
+    Document.prototype.getLineEndings = function () {
+        return this._lineEndings;
+    };
+
     // We dispatch events from the module level, and the instance level. Instance events are wired up
     // in the Document constructor.
     EventDispatcher.makeEventDispatcher(exports);

@@ -54,7 +54,8 @@ define(function (require, exports, module) {
         $indentType,
         $indentWidthLabel,
         $indentWidthInput,
-        $statusOverwrite;
+        $statusOverwrite,
+        $statusLineEndings;
     
     /** Special list item for the 'set as default' gesture in language switcher dropdown */
     var LANGUAGE_SET_AS_DEFAULT = {};
@@ -226,6 +227,25 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Update LineEndings label
+     * @param {Event} event (unused)
+     * @param {Editor} editor Current editor
+     * @param {boolean=} doNotAnimate True if state should not be animated
+     */
+    function _updateLineEndingsLabel(event, editor, doNotAnimate) {
+        /* Toggle text */
+        if($statusLineEndings.text() === Strings.STATUSBAR_LINE_ENDINGS_CRLF) {
+            $statusLineEndings.text(Strings.STATUSBAR_LINE_ENDINGS_LF);
+        } else {
+            $statusLineEndings.text(Strings.STATUSBAR_LINE_ENDINGS_CRLF);
+        }
+        
+        if (!doNotAnimate) {
+            AnimationUtils.animateUsingClass($statusLineEndings[0], "flash", 1500);
+        }
+    }
+
+    /**
      * Update insert/overwrite indicator
      * @param {Event} event (unused)
      */
@@ -237,6 +257,22 @@ define(function (require, exports, module) {
         _updateOverwriteLabel(event, editor, newstate, true);
         editor.toggleOverwrite(newstate);
     }
+
+    /**
+     * Update LineEndings indicator
+     * @param {Event} event (unused)
+     */
+    function _updateLineEndings(event) {
+        var editor = EditorManager.getActiveEditor();
+        var document = editor.document;
+
+        // update label with no transition
+        _updateLineEndingsLabel(event, editor, true);
+        // Update the line ending in the document if needed(label is already updated to new value).
+        if(document.getLineEndings() !== $statusLineEndings.text()) {
+            document.setLineEndings($statusLineEndings.text());
+        }
+    }
     
     /**
      * Initialize insert/overwrite indicator
@@ -245,6 +281,15 @@ define(function (require, exports, module) {
     function _initOverwriteMode(currentEditor) {
         currentEditor.toggleOverwrite($statusOverwrite.text() === Strings.STATUSBAR_OVERWRITE);
         $statusOverwrite.attr("title", Strings.STATUSBAR_INSOVR_TOOLTIP);
+    }
+
+    /**
+     * Initialize line endings indicator
+     *  @param {Editor} currentEditor Current editor
+     */
+    function _initLineEndings(currentEditor) {
+        $statusLineEndings.text(currentEditor.document.getLineEndings());
+        $statusLineEndings.attr("title", Strings.STATUSBAR_LINE_ENDINGS_TOOLTIP);
     }
     
     /**
@@ -286,6 +331,7 @@ define(function (require, exports, module) {
             _updateLanguageInfo(current);
             _updateFileInfo(current);
             _initOverwriteMode(current);
+            _initLineEndings(current);
             _updateIndentType(fullPath);
             _updateIndentSize(fullPath);
         }
@@ -323,6 +369,7 @@ define(function (require, exports, module) {
         $indentWidthLabel   = $("#indent-width-label");
         $indentWidthInput   = $("#indent-width-input");
         $statusOverwrite    = $("#status-overwrite");
+        $statusLineEndings  = $("#status-line-endings");
         
         languageSelect      = new DropdownButton("", [], function (item, index) {
             var document = EditorManager.getActiveEditor().document,
@@ -395,6 +442,8 @@ define(function (require, exports, module) {
                 LanguageManager.setLanguageOverrideForPath(fullPath, lang === defaultLang ? null : lang);
             }
         });
+
+        $statusLineEndings.on("click", _updateLineEndings);
 
         $statusOverwrite.on("click", _updateEditorOverwriteMode);
     }
