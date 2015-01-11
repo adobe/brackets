@@ -797,7 +797,7 @@ define(function (require, exports, module) {
         path = this._normalizePath(path, false);
         
         var entry = this._index.getEntry(path);
-        if (entry) {
+        if (entry && entry._isWatched()) {
             var oldStat = entry._stat;
             if (entry.isFile) {
                 // Update stat and clear contents, but only if out of date
