@@ -317,8 +317,8 @@ define(function (require, exports, module) {
                 var inline = new InlineColorEditor();
                 var result = inline._collateColors(["#abcdef", "#fedcba", "#aabbcc", "#bbccdd"], 2);
                 expect(result).toEqual([
-                    {value: "#abcdef", count: 1},
-                    {value: "#fedcba", count: 1}
+                    {value: "#abcdef", count: 1, firstIndex: 0},
+                    {value: "#fedcba", count: 1, firstIndex: 1}
                 ]);
             });
             
@@ -326,10 +326,24 @@ define(function (require, exports, module) {
                 var inline = new InlineColorEditor();
                 var result = inline._collateColors(["#abcdef", "#fedcba", "#123456", "#FEDCBA", "#123456", "#123456", "rgb(100, 100, 100)"], 100);
                 expect(result).toEqual([
-                    {value: "#123456", count: 3},
-                    {value: "#fedcba", count: 2},
-                    {value: "#abcdef", count: 1},
-                    {value: "rgb(100, 100, 100)", count: 1}
+                    {value: "#123456", count: 3, firstIndex: 2},
+                    {value: "#fedcba", count: 2, firstIndex: 1},
+                    {value: "#abcdef", count: 1, firstIndex: 0},
+                    {value: "rgb(100, 100, 100)", count: 1, firstIndex: 6}
+                ]);
+            });
+            
+            it("should preserve the order of colors with the same amount of occurences", function () {
+                var inline = new InlineColorEditor();
+                var result = inline._collateColors(["#abcdef", "#abc", "rgb(100, 200, 150)", "rgba(100, 200, 150, 0.5)", "hsl(180, 50%, 50%)", "hsla(180, 50%, 50%, 0.5)", "#aabbcc", "#ddeeff", "#DEFCBA", "#0f0f0f", "rgba(100, 200, 150, .5)", "hsla(180, 50%, 50%, .5)"], 7);
+                expect(result).toEqual([
+                    {value: "#abcdef", count: 1, firstIndex: 0},
+                    {value: "#abc", count: 1, firstIndex: 1},
+                    {value: "rgb(100, 200, 150)", count: 1, firstIndex: 2},
+                    {value: "rgba(100, 200, 150, 0.5)", count: 1, firstIndex: 3},
+                    {value: "hsl(180, 50%, 50%)", count: 1, firstIndex: 4},
+                    {value: "hsla(180, 50%, 50%, 0.5)", count: 1, firstIndex: 5},
+                    {value: "#aabbcc", count: 1, firstIndex: 6}
                 ]);
             });
         });
