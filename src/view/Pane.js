@@ -509,7 +509,7 @@ define(function (require, exports, module) {
         
         // Destroy temporary views
         _.forEach(viewsToDestroy, function (view) {
-            this.trigger("viewDestroy", view);
+            self.trigger("viewDestroy", view);
             view.destroy();
         });
 
@@ -1099,7 +1099,8 @@ define(function (require, exports, module) {
      * @private
      */
     Pane.prototype._reset = function () {
-        var views = [],
+        var self = this,
+            views = [],
             view = this._currentView;
 
         _.forEach(this._views, function (_view) {
@@ -1122,7 +1123,7 @@ define(function (require, exports, module) {
 
         // Now destroy the views
         views.forEach(function (_view) {
-            this.trigger("viewDestroy", _view);
+            self.trigger("viewDestroy", _view);
             _view.destroy();
         });
     };
