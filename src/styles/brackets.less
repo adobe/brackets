@@ -950,7 +950,7 @@ a, img {
 .jstree-brackets .jstree-no-dots .jstree-open > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0) rotate(90deg);
-    transition: transform 190ms cubic-bezier(.01, .91, 0, .99);
+    transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
     
     .dark & {
@@ -961,7 +961,7 @@ a, img {
 .jstree-brackets .jstree-no-dots .jstree-closed > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
-    transition: transform 90ms cubic-bezier(.01, .91, 0, .99);
+    transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
     
     .dark & {
@@ -1376,7 +1376,7 @@ a, img {
     padding: 5px 4px 4px 14px;
 
     -webkit-transform: translate(0, 0); // Prefix still required.
-    transition: transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
+    transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
     z-index: @z-index-brackets-modalbar;
 
     .dark & {
@@ -1403,7 +1403,7 @@ a, img {
     &.offscreen {
         -webkit-transform: translate(0, -100%);
         transform: translate(0, -100%);
-        transition: transform 266ms cubic-bezier(0, 0.56, 0, 1);
+        transition: -webkit-transform 266ms cubic-bezier(0, 0.56, 0, 1);
     }
 
     input {
@@ -2015,7 +2015,7 @@ label input {
         }
     }
     &.animateOpen {
-        transition: transform 125ms;
+        transition: -webkit-transform 125ms;
         -webkit-transform: scale(1);
         transform: scale(1);
     }
