@@ -509,7 +509,7 @@ define(function (require, exports, module) {
         
         // Destroy temporary views
         _.forEach(viewsToDestroy, function (view) {
-            $(this).triggerHandler("viewDestroy", view);
+            this.trigger("viewDestroy", view);
             view.destroy();
         });
 
@@ -743,7 +743,7 @@ define(function (require, exports, module) {
             this._hideCurrentView();
         }
         delete this._views[view.getFile().fullPath];
-        $(this).triggerHandler("viewDestroy", view);
+        this.trigger("viewDestroy", view);
         view.destroy();
     };
     
@@ -1089,7 +1089,7 @@ define(function (require, exports, module) {
             var file = view.getFile(),
                 path = file && file.fullPath;
             delete this._views[path];
-            $(this).triggerHandler("viewDestroy", view);
+            this.trigger("viewDestroy", view);
             view.destroy();
         }
     };
@@ -1122,7 +1122,7 @@ define(function (require, exports, module) {
 
         // Now destroy the views
         views.forEach(function (_view) {
-            $(this).triggerHandler("viewDestroy", _view);
+            this.trigger("viewDestroy", _view);
             _view.destroy();
         });
     };
