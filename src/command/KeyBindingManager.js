@@ -1239,7 +1239,7 @@ define(function (require, exports, module) {
                 // will require us to remove Cmd-W shortcut from file.open command.
                 removeBinding(normalizedKey);
             }
-                
+
             // Reassign the default key binding. e.g. "Cmd-W": "file.open" in _customKeyMapCache
             // will require us to reassign Cmd-O shortcut to file.open command.
             if (defaults) {
