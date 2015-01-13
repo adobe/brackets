@@ -58,7 +58,7 @@ define({
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"          : "خطا در باز کردن پرونده",
     "ERROR_OPENING_FILE"                : "خطا بهنگام تلاش برای باز کردن پرونده <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_OPENING_FILES"               : "خطا بهنگام بارگذاری پرونده‌های زیر :",
+    "ERROR_OPENING_FILES"               : "خطا بهنگام بارگذاری پرونده‌های زیر:",
     "ERROR_RELOADING_FILE_TITLE"        : "خطا در بارگذاری تغییرات از حافظه",
     "ERROR_RELOADING_FILE"              : "بروز خطا بهنگام تلاش برای بارگذاری پرونده <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "خطا در ذخیره سازی پرونده",
