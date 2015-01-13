@@ -353,9 +353,8 @@ a, img {
             .image-centering {
                 display: inline-block;
                 vertical-align: middle;
-                margin-top: -50px; /* Offset as vertical align takes image metadata into account */
-                max-width: 90%;
-                max-height: 90%;
+                width: 90%; //As long as the width isn't set on the image itself theres no need for max-width/height
+                height: 90%;
             }
             .image-data {
                 font-weight: @font-weight-semibold;
@@ -373,7 +372,7 @@ a, img {
         .image-preview {
             background: url(images/preview_bg.png);
             box-shadow: 0 1px 3px @bc-shadow;
-            max-height: 90%;
+            max-height: 100%;
 
             .dark & {
                 background: url(images/preview_bg_dark.png);
@@ -404,6 +403,7 @@ a, img {
 
         .image {
             position: relative;
+            height: calc(~'100% - 53px');
         }
 
         .image-guide,
