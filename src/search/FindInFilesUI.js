@@ -85,6 +85,8 @@ define(function (require, exports, module) {
                     }
 
                 } else {
+                    // preserve scope of searchModel for displaying proper error message, as closing resultsView will clear the scope.
+                    var searchScope = FindInFiles.searchModel.scope;
                     _resultsView.close();
 
                     if (_findBar) {
@@ -92,7 +94,7 @@ define(function (require, exports, module) {
                         _findBar.enable(true);
                         _findBar.focusQuery();
                         if (zeroFilesToken === FindInFiles.ZERO_FILES_TO_SEARCH) {
-                            _findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, FindUtils.labelForScope(FindInFiles.searchModel.scope)), true);
+                            _findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, FindUtils.labelForScope(searchScope)), true);
                         } else {
                             showMessage = true;
                         }
@@ -228,7 +230,7 @@ define(function (require, exports, module) {
                 promise: candidateFilesPromise
             };
 
-            filterPicker = FileFilters.createFilterPicker(exclusionsContext);
+            filterPicker = FileFilters.createFilterPicker(exclusionsContext, _findBar);
             // TODO: include in FindBar? (and disable it when FindBar is disabled)
             _findBar._modalBar.getRoot().find(".scope-group").append(filterPicker);
         }

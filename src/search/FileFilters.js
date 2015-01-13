@@ -457,9 +457,10 @@ define(function (require, exports, module) {
      * @param {?{label:string, promise:$.Promise}} context Info on files that filter will apply to. 
      *      This will be saved as _context for later use in creating a new filter or editing an
      *      existing filter in Edit Filter dialog.
+     * @param {?FindBar} currentFindBar The currently open Find Bar, if any
      * @return {!jQueryObject} Picker UI. To retrieve the selected value, use commitPicker().
      */
-    function createFilterPicker(context) {
+    function createFilterPicker(context, currentFindBar) {
         
         function itemRenderer(item, index) {
             if (index < FIRST_FILTER_INDEX) {
@@ -490,12 +491,13 @@ define(function (require, exports, module) {
         _picker.on("listRendered", _handleListRendered);
         
         _picker.on("select", function (event, item, itemIndex) {
+            // trigger a queryChange when dropdown is selected
+            currentFindBar.trigger("queryChange");
             if (itemIndex === 0) {
                 // Close the dropdown first before opening the edit filter dialog 
                 // so that it will restore focus to the DOM element that has focus
                 // prior to opening it.
                 _picker.closeDropdown();
-
                 // Create a new filter set
                 editFilter({ name: "", patterns: [] }, -1);
             } else if (itemIndex === 1) {
