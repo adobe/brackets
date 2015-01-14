@@ -797,7 +797,7 @@ define(function (require, exports, module) {
         path = this._normalizePath(path, false);
         
         var entry = this._index.getEntry(path);
-        if (entry && entry._isWatched()) {
+        if (entry) {
             var oldStat = entry._stat;
             if (entry.isFile) {
                 // Update stat and clear contents, but only if out of date
@@ -810,10 +810,12 @@ define(function (require, exports, module) {
                 this._handleDirectoryChange(entry, function (added, removed) {
                     entry._stat = stat;
                     
-                    // We send a change even if added & removed are both zero-length. Something may still have changed,
-                    // e.g. a file may have been quickly removed & re-added before we got a chance to reread the directory
-                    // listing.
-                    this._fireChangeEvent(entry, added, removed);
+                    if (entry._isWatched()) {
+                        // We send a change even if added & removed are both zero-length. Something may still have changed,
+                        // e.g. a file may have been quickly removed & re-added before we got a chance to reread the directory
+                        // listing.
+                        this._fireChangeEvent(entry, added, removed);
+                    }
                 }.bind(this));
             }
         }
