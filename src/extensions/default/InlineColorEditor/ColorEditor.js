@@ -199,6 +199,13 @@ define(function (require, exports, module) {
         }
         return false;
     };
+    
+    /**
+     * Remove any preference listeners before destroying the editor.
+     */
+    ColorEditor.prototype.destroy = function () {
+        PreferencesManager.off("change", "uppercaseColors");
+    };
 
     /**
      * @return {tinycolor|string} The currently selected color (TODO (#2201): type is unpredictable).

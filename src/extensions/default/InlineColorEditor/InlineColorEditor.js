@@ -212,6 +212,7 @@ define(function (require, exports, module) {
         var doc = this.hostEditor.document;
         $(doc).off("change", this._handleHostDocumentChange);
         doc.releaseRef();
+        this.colorEditor.destroy();
     };
 
     /** Comparator to sort by which colors are used the most */
