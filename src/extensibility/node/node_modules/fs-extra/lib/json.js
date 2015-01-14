@@ -1,13 +1,9 @@
-"use strict"
-
+var fs = require('fs')
+var path = require('path')
 var jsonFile = require('jsonfile')
-  , fs = require('fs')
-  , mkdir = require('./mkdir')
-  , path = require('path')
+var mkdir = require('./mkdir')
 
-var me = module.exports
-
-me.outputJsonSync = function(file, data) {
+function outputJsonSync(file, data) {
   var dir = path.dirname(file)
 
   if (!fs.existsSync(dir))
@@ -16,7 +12,7 @@ me.outputJsonSync = function(file, data) {
   jsonFile.writeFileSync(file, data)
 }
 
-me.outputJson = function(file, data, callback) {
+function outputJson(file, data, callback) {
   var dir = path.dirname(file)
 
   fs.exists(dir, function(itDoes) {
@@ -27,4 +23,9 @@ me.outputJson = function(file, data, callback) {
       jsonFile.writeFile(file, data, callback)
     })
   })
+}
+
+module.exports = {
+  outputJsonSync: outputJsonSync,
+  outputJson: outputJson
 }

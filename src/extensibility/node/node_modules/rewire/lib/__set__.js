@@ -5,16 +5,15 @@
  * All variables within this function are namespaced in the arguments array because every
  * var declaration could possibly clash with a variable in the module scope.
  *
- * @param {!String|!Object} varName name of the variable to set
+ * @param {String|Object} varName name of the variable to set
  * @param {String} varValue new value
- * @throws {TypeError}
- * @throws {ReferenceError} When the variable is unknown
- * @return {*}
+ * @return {Function}
  */
 function __set__() {
     arguments.varName = arguments[0];
     arguments.varValue = arguments[1];
     arguments.src = "";
+    arguments.snapshot = {};
 
     if (typeof arguments[0] === "object" && arguments.length === 1) {
         arguments.env = arguments.varName;
@@ -25,6 +24,7 @@ function __set__() {
             if (arguments.env.hasOwnProperty(arguments.varName)) {
                 arguments.varValue = arguments.env[arguments.varName];
                 arguments.src += arguments.varName + " = arguments.env." + arguments.varName + "; ";
+                arguments.snapshot[arguments.varName] = eval(arguments.varName);
             }
         }
     } else if (typeof arguments.varName === "string" && arguments.length === 2) {
@@ -32,11 +32,16 @@ function __set__() {
             throw new TypeError("__set__ expects a non-empty string as a variable name");
         }
         arguments.src = arguments.varName + " = arguments.varValue;";
+        arguments.snapshot[arguments.varName] = eval(arguments.varName);
     } else {
         throw new TypeError("__set__ expects an environment object or a non-empty string as a variable name");
     }
 
     eval(arguments.src);
+
+    return function (snapshot) {
+        module.exports.__set__(snapshot);
+    }.bind(null, arguments.snapshot);
 }
 
 module.exports = __set__;

@@ -1,24 +1,34 @@
 'use strict';
-
 module.exports = function (grunt) {
     grunt.initConfig({
         jshint: {
             options: {
                 jshintrc: '.jshintrc'
             },
-            files: ['Gruntfile.js', 'bin/*', 'lib/**/*.js', 'test/*.js']
+            files: [
+                'Gruntfile.js',
+                'bin/*',
+                'lib/**/*.js',
+                'test/*.js'
+            ]
         },
         simplemocha: {
             options: {
                 reporter: 'spec',
                 timeout: '5000'
             },
-            full: { src: ['test/*.js'] },
+            full: {
+                src: [
+                    'test/*.js'
+                ]
+            },
             short: {
                 options: {
                     reporter: 'dot'
                 },
-                src: ['<%= simplemocha.full.src %>']
+                src: [
+                    '<%= simplemocha.full.src %>'
+                ]
             }
         },
         exec: {
@@ -30,8 +40,13 @@ module.exports = function (grunt) {
             }
         },
         watch: {
-            files: ['<%= jshint.files %>'],
-            tasks: ['jshint', 'simplemocha:short']
+            files: [
+                '<%= jshint.files %>'
+            ],
+            tasks: [
+                'jshint',
+                'simplemocha:short'
+            ]
         }
     });
 

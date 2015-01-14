@@ -3,14 +3,14 @@
   "description": "Used in the management of Brackets extensions",
   "version": "1.2.0",
   "dependencies": {
-    "decompress-zip": "0.0.2",
-    "semver": "2.x",
-    "fs-extra": "0.6.x",
-    "async": "0.2.x",
-    "request": "2.27.x",
-    "temp": "~0.6.0"
+    "decompress-zip": "0.1.0",
+    "semver": "4.x",
+    "fs-extra": "0.14.x",
+    "async": "0.9.x",
+    "request": "2.51.x",
+    "temp": "~0.8.1"
   },
   "devDependencies": {
-    "rewire": "1.1.x"
+    "rewire": "2.1.x"
   }
 }
