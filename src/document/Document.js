@@ -680,7 +680,10 @@ define(function (require, exports, module) {
      */
     Document.prototype._updateLanguage = function (rawText) {
         var oldLanguage = this.language;
-        this.language = LanguageManager.getLanguageForPath(this.file.fullPath, null, rawText);
+        this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
+        if (this.language === LanguageManager.getLanguage("unknown")) {
+            this.language = LanguageManager.getLanguageForContent(rawText);
+        }
         if (oldLanguage && oldLanguage !== this.language) {
             this.trigger("languageChanged", oldLanguage, this.language);
         }

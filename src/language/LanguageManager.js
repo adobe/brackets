@@ -252,7 +252,7 @@ define(function (require, exports, module) {
      */
     function getLanguageForContent(rawText) {
         // Shebang detection for script languages 
-        if (_languages && rawText) {
+        if (rawText) {
             //filter out #!/usr/bin/, #!/usr/local/bin/, #!/bin/, #!/usr/bin/env, and arguments in order to get language name
             //for python, it filters out version number as well (python2 python3 -> python) 
             var lang = rawText.match(/^#!(?:\/usr\/bin\/env\ |(?:\/usr|\/usr\/local)?\/bin\/)(python(?=[23]\W)|(?!python)\w+)[^\r\n]*[\r\n]/m);
@@ -285,7 +285,7 @@ define(function (require, exports, module) {
      *
      * @return {Language} The language for the provided file type or the fallback language
      */
-    function getLanguageForPath(path, ignoreOverride, rawText) {
+    function getLanguageForPath(path, ignoreOverride) {
         var fileName,
             language = _filePathToLanguageMap[path],
             extension,
@@ -342,7 +342,7 @@ define(function (require, exports, module) {
             }
         }
         
-        return language || getLanguageForContent(rawText);
+        return language || _fallbackLanguage;
     }
     
     /**
