@@ -121,11 +121,12 @@ define(function (require, exports, module) {
                 });
             });
             
+            // Issue #10183 -- Brackets writing to filtered directories could cause them to appear
+            // in the file tree
             it("should not display excluded entry when resolved and written to", function () {
                 var opFailed = false,
                     doneResolving = false,
                     doneWriting = false,
-                    doneLooking = false,
                     found = false,
                     entry;
                 
@@ -163,24 +164,15 @@ define(function (require, exports, module) {
                     return !opFailed && doneWriting;
                 }, "create a file under .git", 500);
                 
-                runs(function () {
-                    ProjectManager.showInTree(entry)
-                        .done(function () {
-                            found = true;
-                        })
-                        .always(function () {
-                            doneLooking = true;
-                        });
-                });
-                
-                waitsFor(function () {
-                    return doneLooking;
-                }, "lookup the file in the file tree", 500);
+                // unfortunately, this wait has to happen for the fs event to propagate to
+                // the project model
+                waits(500);
                 
                 runs(function () {
-                    expect(found).toBe(false);
+                    found = testWindow.$(".jstree-brackets span:contains(\".git\")").length;
+                    expect(found).toBe(0);
                 });
-
+                
             });
 
             it("should fail when a file already exists", function () {
