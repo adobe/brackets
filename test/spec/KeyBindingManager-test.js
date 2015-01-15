@@ -630,10 +630,9 @@ define(function (require, exports, module) {
                         var msgPrefix = Strings.ERROR_INVALID_SHORTCUTS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
                         expect(message).toMatch("command-2");
-                        expect(message).toMatch("Home");
                         expect(message).toMatch("Option-Cmd-Backspace");
                         expect(message).toMatch("ctrl-kk");
-                        expect(message).toMatch("cmd-Delete");
+                        expect(message).toMatch("cmd-Del");
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
                 });

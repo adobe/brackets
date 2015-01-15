@@ -109,6 +109,7 @@ define(function (require, exports, module) {
     require("utils/ColorUtils");
     require("view/ThemeManager");
     require("thirdparty/lodash");
+    require("language/XMLUtils");
     
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
     // expose our required CodeMirror globally so as to avoid breaking extensions in the
@@ -388,7 +389,8 @@ define(function (require, exports, module) {
                 }
             })
             .on("drop", function (event) {
-                if (event.originalEvent.dataTransfer.files) {
+                var files = event.originalEvent.dataTransfer.files;
+                if (files && files.length) {
                     event.stopPropagation();
                     event.preventDefault();
                     brackets.app.getDroppedFiles(function (err, paths) {
