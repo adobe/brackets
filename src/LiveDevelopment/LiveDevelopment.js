@@ -52,6 +52,7 @@
  *      2: Loading agents
  *      3: Active
  *      4: Out of sync
+ *      5: Sync error
  *
  * The reason codes are:
  * - null (Unknown reason)

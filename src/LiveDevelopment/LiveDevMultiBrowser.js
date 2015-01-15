@@ -467,10 +467,13 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Close all active connections
+     * Closes all active connections.
+     * Returns a resolved promise for API compatibility.
+     * @return {$.Promise} A resolved promise
      */
     function close() {
-        return _close(true);
+        _close(true);
+        return new $.Deferred().resolve().promise();
     }
     
     /**
