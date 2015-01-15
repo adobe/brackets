@@ -30,7 +30,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var _                   = require("thirdparty/lodash"),
+        CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
         LanguageManager     = require("language/LanguageManager"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         PreferencesManager  = require("preferences/PreferencesManager");
@@ -48,7 +49,7 @@ define(function (require, exports, module) {
         });
         
         function defineLanguage(definition) {
-            var def = $.extend({}, definition);
+            var def = _.clone(definition);
             
             if (def.blockComment) {
                 def.blockComment = [def.blockComment.prefix, def.blockComment.suffix];

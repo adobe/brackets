@@ -33,13 +33,14 @@ define(function (require, exports, module) {
 
     require("utils/Global");
     
-    var FileSystemError     = require("filesystem/FileSystemError"),
-        LanguageManager     = require("language/LanguageManager"),
-        PerfUtils           = require("utils/PerfUtils"),
-        DefaultDialogs      = require("widgets/DefaultDialogs"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        Dialogs;            // This will be loaded asynchronously
+    var _               = require("thirdparty/lodash"),
+        FileSystemError = require("filesystem/FileSystemError"),
+        LanguageManager = require("language/LanguageManager"),
+        PerfUtils       = require("utils/PerfUtils"),
+        DefaultDialogs  = require("widgets/DefaultDialogs"),
+        Strings         = require("strings"),
+        StringUtils     = require("utils/StringUtils"),
+        Dialogs;        // This will be loaded asynchronously
 
     
     /**
@@ -269,7 +270,7 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function stripTrailingSlash(path) {
-        if (path && path[path.length - 1] === "/") {
+        if (_.last(path) === "/") {
             return path.slice(0, -1);
         } else {
             return path;

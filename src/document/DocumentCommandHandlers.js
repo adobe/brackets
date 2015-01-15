@@ -357,7 +357,7 @@ define(function (require, exports, module) {
                         });
                         MainViewManager.addListToWorkingSet(paneId, filesToOpen);
                         
-                        _doOpen(paths[paths.length - 1], silent, paneId, options)
+                        _doOpen(_.last(paths), silent, paneId, options)
                             .done(function (file) {
                                 _defaultOpenDialogFullPath =
                                     FileUtils.getDirectoryPath(
@@ -1637,7 +1637,7 @@ define(function (require, exports, module) {
         }, 100);
     }
 
-    /** Reload Without Extensions commnad handler **/
+    /** Reload Without Extensions command handler **/
     var handleReloadWithoutExts = _.partial(handleReload, true);
 
     /** Do some initialization when the DOM is ready **/

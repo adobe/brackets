@@ -29,7 +29,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Tokenizer   = require("language/HTMLTokenizer").Tokenizer,
+    var _           = require("thirdparty/lodash"),
+        Tokenizer   = require("language/HTMLTokenizer").Tokenizer,
         MurmurHash3 = require("thirdparty/murmurhash3_gc"),
         PerfUtils   = require("utils/PerfUtils");
     
@@ -286,7 +287,7 @@ define(function (require, exports, module) {
         timerBuildPart = timers[1];
         
         function closeTag(endIndex, endPos) {
-            lastClosedTag = stack[stack.length - 1];
+            lastClosedTag = _.last(stack);
             stack.pop();
             lastClosedTag.update();
             
@@ -313,7 +314,7 @@ define(function (require, exports, module) {
                 
                 if (openImpliesClose.hasOwnProperty(newTagName)) {
                     var closable = openImpliesClose[newTagName];
-                    while (stack.length > 0 && closable.hasOwnProperty(stack[stack.length - 1].tag)) {
+                    while (stack.length > 0 && closable.hasOwnProperty(_.last(stack).tag)) {
                         // Close the previous tag at the start of this tag.
                         // Adjust backwards for the < before the tag name.
                         closeTag(token.start - 1, _offsetPos(token.startPos, -1));
@@ -324,7 +325,7 @@ define(function (require, exports, module) {
                     tag: token.contents.toLowerCase(),
                     children: [],
                     attributes: {},
-                    parent: (stack.length ? stack[stack.length - 1] : null),
+                    parent: _.last(stack) || null,
                     start: this.startOffset + token.start - 1,
                     startPos: _addPos(this.startOffsetPos, _offsetPos(token.startPos, -1)) // ok because we know the previous char was a "<"
                 });
@@ -352,7 +353,7 @@ define(function (require, exports, module) {
             } else if (token.type === "opentagend" || token.type === "selfclosingtag") {
                 // TODO: disallow <p/>?
                 if (this.currentTag) {
-                    if (token.type === "selfclosingtag" && stack.length && stack[stack.length - 1] === this.currentTag) {
+                    if (token.type === "selfclosingtag" && _.last(stack) === this.currentTag) {
                         // This must have been a self-closing tag that we didn't identify as a void element
                         // (e.g. an SVG tag). Pop it off the stack as if we had encountered its close tag.
                         closeTag(token.end, token.endPos);
@@ -426,7 +427,7 @@ define(function (require, exports, module) {
                 attributeName = null;
             } else if (token.type === "text") {
                 if (stack.length) {
-                    var parent = stack[stack.length - 1];
+                    var parent = _.last(stack);
                     var newNode;
                     
                     // Check to see if we're continuing a previous text.
@@ -435,7 +436,7 @@ define(function (require, exports, module) {
                         newNode.content += token.contents;
                     } else {
                         newNode = new SimpleNode({
-                            parent: stack[stack.length - 1],
+                            parent: _.last(stack),
                             content: token.contents
                         });
                         parent.children.push(newNode);
@@ -463,7 +464,7 @@ define(function (require, exports, module) {
                 // tokenizer for this since it may not get to the very end)
                 // TODO: should probably make the tokenizer get to the end...
                 var lines = this.text.split("\n"),
-                    lastPos = {line: lines.length - 1, ch: lines[lines.length - 1].length};
+                    lastPos = {line: lines.length - 1, ch: _.last(lines).length};
                 while (stack.length) {
                     closeTag(this.text.length, lastPos);
                 }

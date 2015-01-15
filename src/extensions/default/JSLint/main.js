@@ -118,7 +118,7 @@ define(function (require, exports, module) {
             // If array terminated in a null it means there was a stop notice
             if (errors.length !== JSLINT.errors.length) {
                 result.aborted = true;
-                errors[errors.length - 1].type = CodeInspection.Type.META;
+                _.last(errors).type = CodeInspection.Type.META;
             }
             
             return result;

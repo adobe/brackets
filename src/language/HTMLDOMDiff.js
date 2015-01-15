@@ -23,11 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
     "use strict";
+    
+    var _   = require("thirdparty/lodash");
     
     /**
      * @private
@@ -40,7 +42,7 @@ define(function (require, exports, module) {
      */
     function generateAttributeEdits(oldNode, newNode) {
         // shallow copy the old attributes object so that we can modify it
-        var oldAttributes = $.extend({}, oldNode.attributes),
+        var oldAttributes = _.clone(oldNode.attributes),
             newAttributes = newNode.attributes,
             edits = [];
         
@@ -285,7 +287,7 @@ define(function (require, exports, module) {
             // the text nodes between elements in the new DOM are merged together).
             // The check below looks to see if we're already in the process of adding
             // a textReplace edit following the same element.
-            var previousEdit = newEdits.length > 0 && newEdits[newEdits.length - 1];
+            var previousEdit = newEdits.length > 0 && _.last(newEdits);
             if (previousEdit && previousEdit.type === "textReplace" &&
                     previousEdit.afterID === textAfterID) {
                 oldIndex++;

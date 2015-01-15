@@ -340,7 +340,7 @@ define(function (require, exports, module) {
     ProjectModel.prototype.setBaseUrl = function setBaseUrl(projectBaseUrl) {
         // Ensure trailing slash to be consistent with projectRoot.fullPath
         // so they're interchangable (i.e. easy to convert back and forth)
-        if (projectBaseUrl.length > 0 && projectBaseUrl[projectBaseUrl.length - 1] !== "/") {
+        if (projectBaseUrl.length > 0 && _.last(projectBaseUrl) !== "/") {
             projectBaseUrl += "/";
         }
 

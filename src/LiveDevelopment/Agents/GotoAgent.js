@@ -33,13 +33,14 @@ define(function GotoAgent(require, exports, module) {
 
     require("utils/Global");
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector"),
-        DOMAgent = require("LiveDevelopment/Agents/DOMAgent"),
-        ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent"),
-        RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent"),
-        EditorManager = require("editor/EditorManager"),
-        CommandManager = require("command/CommandManager"),
-        Commands = require("command/Commands");
+    var _               = require("thirdparty/lodash"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        DOMAgent        = require("LiveDevelopment/Agents/DOMAgent"),
+        ScriptAgent     = require("LiveDevelopment/Agents/ScriptAgent"),
+        RemoteAgent     = require("LiveDevelopment/Agents/RemoteAgent"),
+        EditorManager   = require("editor/EditorManager"),
+        CommandManager  = require("command/CommandManager"),
+        Commands        = require("command/Commands");
     
 
     /** Return the URL without the query string
@@ -58,7 +59,7 @@ define(function GotoAgent(require, exports, module) {
      */
     function _fileFromURL(url) {
         var comp = url.split("/");
-        return comp[comp.length - 1];
+        return _.last(comp);
     }
 
     /** Make the given node a target for goto

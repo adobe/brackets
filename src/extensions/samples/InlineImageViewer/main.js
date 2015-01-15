@@ -29,11 +29,12 @@ define(function (require, exports, module) {
     "use strict";
     
     // Brackets modules
-    var EditorManager           = brackets.getModule("editor/EditorManager"),
-        ProjectManager          = brackets.getModule("project/ProjectManager");
+    var _                   = brackets.getModule("thirdparty/lodash"),
+        EditorManager       = brackets.getModule("editor/EditorManager"),
+        ProjectManager      = brackets.getModule("project/ProjectManager");
     
     // Local modules
-    var InlineImageViewer       = require("InlineImageViewer");
+    var InlineImageViewer   = require("InlineImageViewer");
     
     /**
      * Return the token string that is at the specified position.
@@ -59,7 +60,7 @@ define(function (require, exports, module) {
             if (ch === "\"" || ch === "'") {
                 string = string.substr(1);
             }
-            ch = string[string.length - 1];
+            ch = _.last(string);
             if (ch === "\"" || ch === "'") {
                 string = string.substr(0, string.length - 1);
             }

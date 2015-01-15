@@ -30,6 +30,8 @@
  */
 define(function (require, exports, module) {
     "use strict";
+    
+    var _ = require("thirdparty/lodash");
 
     /**
      * @constructor
@@ -46,7 +48,7 @@ define(function (require, exports, module) {
         
         var realPath = options.realPath;
         if (realPath) {
-            if (!isFile && realPath[realPath.length - 1] !== "/") {
+            if (!isFile && _.last(realPath) !== "/") {
                 realPath += "/";
             }
         

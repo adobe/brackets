@@ -35,7 +35,8 @@
 define(function RemoteAgent(require, exports, module) {
     "use strict";
 
-    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
+    var _               = require("thirdparty/lodash"),
+        LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
         EventDispatcher = require("utils/EventDispatcher"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
         RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
@@ -60,7 +61,7 @@ define(function RemoteAgent(require, exports, module) {
             deferred = new $.Deferred();
 
         // if the last argument is a function it is the callback function
-        if (typeof args[args.length - 1] === "function") {
+        if (typeof _.last(args) === "function") {
             callback = args.pop();
         }
 

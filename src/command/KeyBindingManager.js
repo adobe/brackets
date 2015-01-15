@@ -792,7 +792,7 @@ define(function (require, exports, module) {
      * @return {!Object.<string, {commandID: string, key: string, displayKey: string}>}
      */
     function getKeymap(defaults) {
-        return $.extend({}, defaults ? _defaultKeyMap : _keyMap);
+        return _.clone(defaults ? _defaultKeyMap : _keyMap);
     }
 
     /**

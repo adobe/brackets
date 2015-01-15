@@ -102,7 +102,7 @@ define(function (require, exports, module) {
             matchedLines     = match[0].split("\n");
             numMatchedLines  = matchedLines.length;
             totalMatchLength = match[0].length;
-            lastLineLength   = matchedLines[matchedLines.length - 1].length;
+            lastLineLength   = _.last(matchedLines).length;
             
             // Don't store more than 200 chars per line
             line = line.substr(0, Math.min(200, line.length));

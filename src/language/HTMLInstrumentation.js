@@ -54,7 +54,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var DocumentManager = require("document/DocumentManager"),
+    var _               = require("thirdparty/lodash"),
+        DocumentManager = require("document/DocumentManager"),
         HTMLSimpleDOM   = require("./HTMLSimpleDOM"),
         HTMLDOMDiff     = require("./HTMLDOMDiff");
     
@@ -145,7 +146,7 @@ define(function (require, exports, module) {
         }
         
         // The mark with the latest start is the innermost one.
-        match = marks[marks.length - 1];
+        match = _.last(marks);
         if (preferParent) {
             // If the match is exactly at the edge of the range and preferParent is set,
             // we want to pop upwards.

@@ -65,7 +65,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemError = require("filesystem/FileSystemError"),
+    var _               = require("thirdparty/lodash"),
+        FileSystemError = require("filesystem/FileSystemError"),
         WatchedRoot     = require("filesystem/WatchedRoot");
     
     var VISIT_DEFAULT_MAX_DEPTH = 100,
@@ -221,7 +222,7 @@ define(function (require, exports, module) {
         if (this.isDirectory) {
             parts.pop(); // Remove the empty string after last trailing "/"
         }
-        this._name = parts[parts.length - 1];
+        this._name = _.last(parts);
         parts.pop(); // Remove name
         
         if (parts.length > 0) {
