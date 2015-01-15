@@ -21,7 +21,7 @@
  * 
  */
 
-/*global define, $, console */
+/*global define, $, console, appshell */
 /*unittests: Preferences Base */
 
 /**
@@ -58,12 +58,13 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils   = require("file/FileUtils"),
-        FileSystem  = require("filesystem/FileSystem"),
+    var FileUtils       = require("file/FileUtils"),
+        FileSystem      = require("filesystem/FileSystem"),
+        FileSystemError = require("filesystem/FileSystemError"),
         EventDispatcher = require("utils/EventDispatcher"),
-        _           = require("thirdparty/lodash"),
-        Async       = require("utils/Async"),
-        globmatch   = require("thirdparty/globmatch");
+        _               = require("thirdparty/lodash"),
+        Async           = require("utils/Async"),
+        globmatch       = require("thirdparty/globmatch");
     
     // CONSTANTS
     var PREFERENCE_CHANGE = "change",
@@ -173,6 +174,14 @@ define(function (require, exports, module) {
                 prefFile.read({}, function (err, text) {
                     if (err) {
                         if (createIfNew) {
+                            // Unreadable file is also unwritable -- delete so get recreated
+                            if (err === FileSystemError.NOT_READABLE || err === FileSystemError.UNSUPPORTED_ENCODING) {
+                                appshell.fs.moveToTrash(path, function (err) {
+                                    if (err) {
+                                        console.log("Cannot move unreadable preferences file to trash: " + path);
+                                    }
+                                }.bind(this));
+                            }
                             result.resolve({});
                         } else {
                             result.reject(new Error("Unable to load prefs at " + path + " " + err));
@@ -189,7 +198,13 @@ define(function (require, exports, module) {
                         try {
                             result.resolve(JSON.parse(text));
                         } catch (e) {
-                            result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
+                            if (createIfNew) {
+                                // JSON parsing error -- start from scratch
+                                console.log("Invalid JSON settings at " + path + "(" + e.toString() + ") -- contents reset");
+                                result.resolve({});
+                            } else {
+                                result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
+                            }
                         }
                     }
                 });
