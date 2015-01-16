@@ -94,8 +94,9 @@ define(function (require, exports, module) {
         SPACE_UNITS         = "spaceUnits",
         STYLE_ACTIVE_LINE   = "styleActiveLine",
         TAB_SIZE            = "tabSize",
-        WORD_WRAP           = "wordWrap",
-        USE_TAB_CHAR        = "useTabChar";
+        UPPERCASE_COLORS    = "uppercaseColors",
+        USE_TAB_CHAR        = "useTabChar",
+        WORD_WRAP           = "wordWrap";
     
     var cmOptions         = {};
     
@@ -141,6 +142,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(TAB_SIZE,           "number", DEFAULT_TAB_SIZE, {
         validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE)
     });
+    PreferencesManager.definePreference(UPPERCASE_COLORS,   "boolean", false);
     PreferencesManager.definePreference(USE_TAB_CHAR,       "boolean", false);
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true);
     
