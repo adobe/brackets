@@ -384,7 +384,7 @@ define(function (require, exports, module) {
             
             /** Returns the colorEditor's current value as a string in its current format */
             function getColorString() {
-                return tinycolor(colorEditor.getColor()).toString();
+                return tinycolor(colorEditor.getColor()).getOriginalInput();
             }
             
             describe("simple load/commit", function () {
@@ -395,7 +395,7 @@ define(function (require, exports, module) {
                     
                     runs(function () {
                         makeUI(colorStr);
-                        expect(colorEditor.getColor().toString()).toBe(colorStr);
+                        expect(colorEditor.getColor().getOriginalInput()).toBe(colorStr);
                         expect(colorEditor.$colorValue.val()).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
     
@@ -424,7 +424,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         makeUI("#0a0a0a");
                         colorEditor.setColorFromString(colorStr);
-                        expect(colorEditor.getColor().toString()).toBe(colorStr);
+                        expect(colorEditor.getColor().getOriginalInput()).toBe(colorStr);
                         expect(colorEditor.$colorValue.val()).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
                         checkNear(tinycolor(colorEditor.$selection.css("background-color")).toHsv().h, tinycolor(colorStr).toHsv().h);
