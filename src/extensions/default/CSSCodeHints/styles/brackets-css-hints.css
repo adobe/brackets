@@ -24,3 +24,7 @@
 .brackets-css-hints .matched-hint {
     font-weight: 500;
 }
+
+.dark .brackets-css-hints .matched-hint {
+    color: #ccc;
+}
