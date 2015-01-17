@@ -213,6 +213,16 @@ define(function (require, exports, module) {
                         expect(inline.getCurrentRange()).toBeTruthy();
                     });
                 });
+
+                it("should update correct range of host document when the in-editor color string is invalid", function () {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
+                        testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 24});
+                        inline.colorEditor.setColorFromString("#c0c0c0");
+                        expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 23}});
+                        expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 23})).toBe("#c0c0c0");
+                    });
+                });
     
             });
             
@@ -256,25 +266,23 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                it("should not update the end bookmark to a shorter valid match if the bookmark still exists and the color becomes invalid", function () {
+                it("should not update the end bookmark and the color shown to a shorter valid match if the bookmark still exists and the color becomes invalid", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
                         testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 23});
-                        expect(inline._color).toBe("#abcde");
+                        expect(inline._color).toBe("#abcdef");
                         expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}});
                     });
                 });
                 
-                // TODO: (issue #2166) The following test fails because if the end bookmark is deleted, we match the shorter
-                // #xxx string at the beginning of the color and assume that's valid, and then reset the bookmark
-                // to the end of that location.
-    //            it("should not update the end bookmark to a shorter valid match if the bookmark no longer exists and the color becomes invalid", function () {
-    //                makeColorEditor({line: 1, ch: 18}).done(function (inline) {
-    //                    testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 24});
-    //                    expect(inline._color).toBe("#abcde");
-    //                    expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}});
-    //                });
-    //            });
+                it("should not update the end bookmark and the color shown to a shorter valid match if the bookmark no longer exists and the color becomes invalid", function () {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
+                        testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 24});
+                        expect(inline._color).toBe("#abcdef");
+                        expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}});
+                    });
+                });
                 
             });
             
