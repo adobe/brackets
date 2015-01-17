@@ -6,5 +6,11 @@
             "spaceUnits": 2,
             "linting.collapsed": false
         }
+    },
+    "language": {
+        "javascript": {
+            "linting.prefer": ["JSLint"],
+            "linting.usePreferredOnly": true
+        }
     }
 }

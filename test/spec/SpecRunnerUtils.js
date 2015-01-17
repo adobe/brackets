@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, jasmine, expect, beforeEach, waitsFor, waitsForDone, runs */
+/*global define, $, brackets, jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn */
 define(function (require, exports, module) {
     'use strict';
     
@@ -1115,6 +1115,32 @@ define(function (require, exports, module) {
         }
     }
 
+    
+    /**
+     * Patches ProjectManager.getAllFiles() in the given test window (for just the current it() block) so that it
+     * includes one extra file in its results. The file need not actually exist on disk.
+     * @param {!Window} testWindow  Brackets popup window
+     * @param {string} extraFilePath  Absolute path for the extra result file
+     */
+    function injectIntoGetAllFiles(testWindow, extraFilePath) {
+        var ProjectManager  = testWindow.brackets.test.ProjectManager,
+            FileSystem      = testWindow.brackets.test.FileSystem,
+            origGetAllFiles = ProjectManager.getAllFiles;
+        
+        spyOn(ProjectManager, "getAllFiles").andCallFake(function () {
+            var testResult = new testWindow.$.Deferred();
+            origGetAllFiles.apply(ProjectManager, arguments).done(function (result) {
+                var dummyFile = FileSystem.getFileForPath(extraFilePath);
+                var newResult = result.concat([dummyFile]);
+                testResult.resolve(newResult);
+            }).fail(function (error) {
+                testResult.reject(error);
+            });
+            return testResult;
+        });
+    }
+    
+    
     /**
      * Counts the number of active specs in the current suite. Includes all
      * descendants.
@@ -1343,6 +1369,7 @@ define(function (require, exports, module) {
     exports.getResultMessage                = getResultMessage;
     exports.parseOffsetsFromText            = parseOffsetsFromText;
     exports.findDOMText                     = findDOMText;
+    exports.injectIntoGetAllFiles           = injectIntoGetAllFiles;
     exports.countSpecs                      = countSpecs;
     exports.runBeforeFirst                  = runBeforeFirst;
     exports.runAfterLast                    = runAfterLast;

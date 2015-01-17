@@ -222,6 +222,12 @@ define(function (require, exports, module) {
                 this.props.actions.setContext(this.myPath());
                 return false;
             }
+            // Return true only for mouse down in rename mode.
+            if (this.props.entry.get("rename")) {
+                e.stopPropagation();
+                return true;
+            }
+            return false;
         }
     };
 
@@ -538,6 +544,17 @@ define(function (require, exports, module) {
      */
     var directoryRenameInput = React.createClass({
         mixins: [renameBehavior],
+
+        /**
+         * When this component is displayed, we scroll it into view and select the folder name.
+         */
+        componentDidMount: function () {
+            var fullname = this.props.name;
+
+            var node = this.refs.name.getDOMNode();
+            node.setSelectionRange(0, fullname.length);
+            ViewUtils.scrollElementIntoView($("#project-files-container"), $(node), true);
+        },
 
         render: function () {
             var width = _measureText(this.props.name);

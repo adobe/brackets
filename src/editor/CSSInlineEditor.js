@@ -359,8 +359,8 @@ define(function (require, exports, module) {
                         _updateCommands();
                     });
             })
-            .fail(function () {
-                console.log("Error in findMatchingRules()");
+            .fail(function (error) {
+                console.warn("Error in findMatchingRules()", error);
                 result.reject();
             });
         

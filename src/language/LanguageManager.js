@@ -1070,7 +1070,12 @@ define(function (require, exports, module) {
         "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|^text\/html$/i,
                        "mode": null}]
     });
- 
+
+    // Define SVG MIME type so an SVG language can be defined for SVG-specific code hints.
+    // Currently, SVG uses XML mode so it has generic XML syntax highlighting. This can
+    // be removed when SVG gets its own CodeMirror mode with SVG syntax highlighting.
+    CodeMirror.defineMIME("image/svg+xml", "xml");
+    
     // Load the default languages
     _defaultLanguagesJSON = JSON.parse(_defaultLanguagesJSON);
     _ready = Async.doInParallel(Object.keys(_defaultLanguagesJSON), function (key) {

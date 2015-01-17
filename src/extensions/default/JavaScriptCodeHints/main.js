@@ -837,7 +837,7 @@ define(function (require, exports, module) {
         ProjectManager.on("projectOpen", function () {
             ScopeManager.handleProjectOpen();
         });
-
+        
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
 

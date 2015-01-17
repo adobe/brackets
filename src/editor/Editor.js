@@ -69,6 +69,7 @@ define(function (require, exports, module) {
     var AnimationUtils     = require("utils/AnimationUtils"),
         Async              = require("utils/Async"),
         CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+        LanguageManager    = require("language/LanguageManager"),
         EventDispatcher    = require("utils/EventDispatcher"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
@@ -79,10 +80,11 @@ define(function (require, exports, module) {
         ValidationUtils    = require("utils/ValidationUtils"),
         ViewUtils          = require("utils/ViewUtils"),
         _                  = require("thirdparty/lodash");
-    
+
     /** Editor preferences */
     var CLOSE_BRACKETS      = "closeBrackets",
         CLOSE_TAGS          = "closeTags",
+        DRAG_DROP           = "dragDropText",
         HIGHLIGHT_MATCHES   = "highlightMatches",
         SCROLL_PAST_END     = "scrollPastEnd",
         SHOW_CURSOR_SELECT  = "showCursorWhenSelecting",
@@ -92,8 +94,9 @@ define(function (require, exports, module) {
         SPACE_UNITS         = "spaceUnits",
         STYLE_ACTIVE_LINE   = "styleActiveLine",
         TAB_SIZE            = "tabSize",
-        WORD_WRAP           = "wordWrap",
-        USE_TAB_CHAR        = "useTabChar";
+        UPPERCASE_COLORS    = "uppercaseColors",
+        USE_TAB_CHAR        = "useTabChar",
+        WORD_WRAP           = "wordWrap";
     
     var cmOptions         = {};
     
@@ -101,7 +104,7 @@ define(function (require, exports, module) {
      * Constants
      * @type {number}
      */
-    var MIN_SPACE_UNITS         =  0,
+    var MIN_SPACE_UNITS         =  1,
         MIN_TAB_SIZE            =  1,
         DEFAULT_SPACE_UNITS     =  4,
         DEFAULT_TAB_SIZE        =  4,
@@ -111,6 +114,7 @@ define(function (require, exports, module) {
     // Mappings from Brackets preferences to CodeMirror options
     cmOptions[CLOSE_BRACKETS]     = "autoCloseBrackets";
     cmOptions[CLOSE_TAGS]         = "autoCloseTags";
+    cmOptions[DRAG_DROP]          = "dragDrop";
     cmOptions[HIGHLIGHT_MATCHES]  = "highlightSelectionMatches";
     cmOptions[SCROLL_PAST_END]    = "scrollPastEnd";
     cmOptions[SHOW_CURSOR_SELECT] = "showCursorWhenSelecting";
@@ -124,6 +128,7 @@ define(function (require, exports, module) {
     
     PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", false);
     PreferencesManager.definePreference(CLOSE_TAGS,         "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
+    PreferencesManager.definePreference(DRAG_DROP,          "boolean", true);
     PreferencesManager.definePreference(HIGHLIGHT_MATCHES,  "boolean", false);
     PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false);
     PreferencesManager.definePreference(SHOW_CURSOR_SELECT, "boolean", false);
@@ -137,6 +142,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(TAB_SIZE,           "number", DEFAULT_TAB_SIZE, {
         validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE)
     });
+    PreferencesManager.definePreference(UPPERCASE_COLORS,   "boolean", false);
     PreferencesManager.definePreference(USE_TAB_CHAR,       "boolean", false);
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true);
     
@@ -176,6 +182,19 @@ define(function (require, exports, module) {
     }
     function _checkBottomBoundary(options) {
         return true;
+    }
+
+    /**
+     * Helper function to build preferences context based on the full path of
+     * the file.
+     *
+     * @param {string} fullPath Full path of the file
+     *
+     * @return {*} A context for the specified file name
+     */
+    function _buildPreferencesContext(fullPath) {
+        return PreferencesManager._buildContext(fullPath,
+            fullPath ? LanguageManager.getLanguageForPath(fullPath).getId() : undefined);
     }
 
     /**
@@ -293,7 +312,7 @@ define(function (require, exports, module) {
             autoCloseTags               : currentOptions[CLOSE_TAGS],
             coverGutterNextToScrollbar  : true,
             cursorScrollMargin          : 3,
-            dragDrop                    : false,
+            dragDrop                    : currentOptions[DRAG_DROP],
             electricChars               : false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
             extraKeys                   : codeMirrorKeyMap,
             highlightSelectionMatches   : currentOptions[HIGHLIGHT_MATCHES],
@@ -603,7 +622,7 @@ define(function (require, exports, module) {
                 }
                 
                 var cursor = sel.start,
-                    jump   = cursor.ch % indentUnit,
+                    jump   = (indentUnit === 0) ? 1 : cursor.ch % indentUnit,
                     line   = instance.getLine(cursor.line);
 
                 // Don't do any soft tab handling if there are non-whitespace characters before the cursor in
@@ -611,8 +630,10 @@ define(function (require, exports, module) {
                 if (line.substr(0, cursor.ch).search(/\S/) !== -1) {
                     jump = null;
                 } else if (direction === 1) { // right
-                    jump = indentUnit - jump;
-
+                    if (indentUnit) {
+                        jump = indentUnit - jump;
+                    }
+                    
                     // Don't jump if it would take us past the end of the line, or if there are
                     // non-whitespace characters within the jump distance.
                     if (cursor.ch + jump > line.length || line.substr(cursor.ch, jump).search(/\S/) !== -1) {
@@ -656,7 +677,7 @@ define(function (require, exports, module) {
     /**
      * Determine the mode to use from the document's language
      * Uses "text/plain" if the language does not define a mode
-     * @return string The mode to use
+     * @return {string} The mode to use
      */
     Editor.prototype._getModeFromDocument = function () {
         // We'd like undefined/null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
@@ -891,6 +912,14 @@ define(function (require, exports, module) {
         });
         this._codeMirror.on("overwriteToggle", function (instance, newstate) {
             self.trigger("overwriteToggle", self, newstate);
+        });
+
+        // Disable CodeMirror's drop handling if a file/folder is dropped
+        this._codeMirror.on("drop", function (cm, event) {
+            var files = event.dataTransfer.files;
+            if (files && files.length) {
+                event.preventDefault();
+            }
         });
     };
     
@@ -2159,7 +2188,7 @@ define(function (require, exports, module) {
      * @return {*} current value of that pref
      */
     Editor.prototype._getOption = function (prefName) {
-        return PreferencesManager.get(prefName, this.document.file.fullPath);
+        return PreferencesManager.get(prefName, PreferencesManager._buildContext(this.document.file.fullPath, this.document.getLanguage().getId()));
     };
     
     /**
@@ -2247,7 +2276,7 @@ define(function (require, exports, module) {
     
     
     // Global settings that affect Editor instances that share the same preference locations
-
+    
     /**
      * Sets whether to use tab characters (vs. spaces) when inserting new text.
      * Affects any editors that share the same preference location.
@@ -2266,7 +2295,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getUseTabChar = function (fullPath) {
-        return PreferencesManager.get(USE_TAB_CHAR, fullPath);
+        return PreferencesManager.get(USE_TAB_CHAR, _buildPreferencesContext(fullPath));
     };
     
     /**
@@ -2287,7 +2316,7 @@ define(function (require, exports, module) {
      * @return {number}
      */
     Editor.getTabSize = function (fullPath) {
-        return PreferencesManager.get(TAB_SIZE, fullPath);
+        return PreferencesManager.get(TAB_SIZE, _buildPreferencesContext(fullPath));
     };
     
     /**
@@ -2308,7 +2337,7 @@ define(function (require, exports, module) {
      * @return {number}
      */
     Editor.getSpaceUnits = function (fullPath) {
-        return PreferencesManager.get(SPACE_UNITS, fullPath);
+        return PreferencesManager.get(SPACE_UNITS, _buildPreferencesContext(fullPath));
     };
     
     /**
@@ -2329,7 +2358,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getCloseBrackets = function (fullPath) {
-        return PreferencesManager.get(CLOSE_BRACKETS, fullPath);
+        return PreferencesManager.get(CLOSE_BRACKETS, _buildPreferencesContext(fullPath));
     };
     
     /**
@@ -2350,7 +2379,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getShowLineNumbers = function (fullPath) {
-        return PreferencesManager.get(SHOW_LINE_NUMBERS, fullPath);
+        return PreferencesManager.get(SHOW_LINE_NUMBERS, _buildPreferencesContext(fullPath));
     };
     
     /**
@@ -2370,7 +2399,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getShowActiveLine = function (fullPath) {
-        return PreferencesManager.get(STYLE_ACTIVE_LINE, fullPath);
+        return PreferencesManager.get(STYLE_ACTIVE_LINE, _buildPreferencesContext(fullPath));
     };
     
     /**
@@ -2391,7 +2420,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     Editor.getWordWrap = function (fullPath) {
-        return PreferencesManager.get(WORD_WRAP, fullPath);
+        return PreferencesManager.get(WORD_WRAP, _buildPreferencesContext(fullPath));
     };
     
     /**

@@ -286,8 +286,8 @@ define(function (require, exports, module) {
 
         // If it's a directory, make sure that its children are loaded
         if (_.last(path) === "/") {
-            objectPath.push("children");
-            if (!this._treeData.getIn(objectPath)) {
+            var directory = this._treeData.getIn(objectPath);
+            if (!directory.get("children") || directory.get("notFullyLoaded")) {
                 return false;
             }
         }

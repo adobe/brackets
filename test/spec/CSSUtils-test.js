@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, beforeFirst, afterLast */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsForDone, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -77,13 +77,12 @@ define(function (require, exports, module) {
             spec.addMatchers({toMatchSelector: toMatchSelector});
 
             runs(function () {
-                FileUtils.readAsText(fileEntry)
+                var promise = FileUtils.readAsText(fileEntry)
                     .done(function (text) {
                         spec.fileContent = text;
                     });
+                waitsForDone(promise);
             });
-            
-            waitsFor(function () { return (spec.fileContent !== null); }, 1000);
         }
     }
     
@@ -725,6 +724,7 @@ define(function (require, exports, module) {
         });
     }); // describe("CSSUtils")
 
+    
     
     describe("CSS Parsing", function () {
         
@@ -1864,8 +1864,9 @@ define(function (require, exports, module) {
                 expectCompleteSelectors(result[1], ".sidebar / a / &:hover");
             });
         }); // describe("Nested rules following an @include block")
-
-        describe("CSS Intgration Tests", function () {
+        
+        
+        describe("CSS Integration Tests", function () {
             this.category = "integration";
             
             var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
@@ -1905,10 +1906,10 @@ define(function (require, exports, module) {
                 it("should include comment preceding selector (issue #403)", function () {
                     var rules;
                     runs(function () {
-                        CSSUtils.findMatchingRules("#issue403")
+                        var promise = CSSUtils.findMatchingRules("#issue403")
                             .done(function (result) { rules = result; });
+                        waitsForDone(promise, "CSSUtils.findMatchingRules()");
                     });
-                    waitsFor(function () { return rules !== undefined; }, "CSSUtils.findMatchingRules() timeout", 1000);
                     
                     runs(function () {
                         expect(rules.length).toBe(1);
@@ -1916,21 +1917,29 @@ define(function (require, exports, module) {
                         expect(rules[0].lineEnd).toBe(7);
                     });
                 });
+                
+                it("should continue search despite unreadable files (issue #10013)", function () {
+                    runs(function () {
+                        // Add a nonexistent CSS file to the ProjectManager.getAllFiles() result, which will force a file IO error
+                        // when we try to read the file later. Similar errors may arise in real-world for non-UTF files, etc.
+                        SpecRunnerUtils.injectIntoGetAllFiles(testWindow, testPath + "/doesNotExist.css");
+                        
+                        var promise = CSSUtils.findMatchingRules("html");
+                        promise.done(function (result) {
+                            expect(result.length).toBeGreaterThan(0);
+                        });
+                        waitsForDone(promise, "CSSUtils.findMatchingRules()");
+                    });
+                });
             });
             
             describe("Working with unsaved changes", function () {
                 
                 it("should return the correct offsets if the file has changed", function () {
-                    var didOpen = false,
-                        gotError = false;
-                    
                     runs(function () {
-                        FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
-                            .done(function () { didOpen = true; })
-                            .fail(function () { gotError = true; });
+                        var promise = FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER);
+                        waitsForDone(promise, "FileViewController.openAndSelectDocument()");
                     });
-                    
-                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.openAndSelectDocument() timeout", 1000);
                     
                     var rules = null;
                     
@@ -1941,13 +1950,12 @@ define(function (require, exports, module) {
                         doc.setText("\n\n\n\n" + doc.getText());
                         
                         // Look for ".FIRSTGRADE"
-                        CSSUtils.findMatchingRules(".FIRSTGRADE")
+                        var promise = CSSUtils.findMatchingRules(".FIRSTGRADE")
                             .done(function (result) { rules = result; });
+                        waitsForDone(promise, "CSSUtils.findMatchingRules()");
                         
                         doc = null;
                     });
-                    
-                    waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
                     
                     runs(function () {
                         expect(rules.length).toBe(1);
@@ -1957,16 +1965,10 @@ define(function (require, exports, module) {
                 });
                 
                 it("should return a newly created rule in an unsaved file", function () {
-                    var didOpen = false,
-                        gotError = false;
-                    
                     runs(function () {
-                        FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
-                            .done(function () { didOpen = true; })
-                            .fail(function () { gotError = true; });
+                        var promise = FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER);
+                        waitsForDone(promise, "FileViewController.openAndSelectDocument()");
                     });
-                    
-                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.openAndSelectDocument() timeout", 1000);
                     
                     var rules = null;
                     
@@ -1977,13 +1979,12 @@ define(function (require, exports, module) {
                         doc.setText(doc.getText() + "\n\n.TESTSELECTOR {\n    font-size: 12px;\n}\n");
                         
                         // Look for the selector we just created
-                        CSSUtils.findMatchingRules(".TESTSELECTOR")
+                        var promise = CSSUtils.findMatchingRules(".TESTSELECTOR")
                             .done(function (result) { rules = result; });
+                        waitsForDone(promise, "CSSUtils.findMatchingRules()");
     
                         doc = null;
                     });
-                    
-                    waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
                     
                     runs(function () {
                         expect(rules.length).toBe(1);
@@ -1995,6 +1996,8 @@ define(function (require, exports, module) {
         });
         
     }); //describe("CSS Parsing")
+    
+    
     
     describe("CSSUtils - Other", function () {
         function doAddRuleTest(options) {
@@ -2142,7 +2145,9 @@ define(function (require, exports, module) {
             range.dispose();
         });
     });
-
+    
+    
+    
     // Unit Tests: "HTMLUtils (css)"
     describe("HTMLUtils InlineEditorProviders", function () {
         var editor;
@@ -2181,6 +2186,8 @@ define(function (require, exports, module) {
             });
         });
     });
+    
+    
     
     // These tests are based on the implementation spec at https://github.com/adobe/brackets/wiki/CSS-Context-API-implementation-spec.
     describe("CSS Context Info", function () {
@@ -2588,6 +2595,7 @@ define(function (require, exports, module) {
             });
         });
         
+        
         describe("quoting", function () {
             
             it("should properly parse a value with single quotes", function () {
@@ -2658,6 +2666,8 @@ define(function (require, exports, module) {
             });
         });
     });
+    
+    
     
     // These are tests related to Shapes editor requirements for determining the start/end range of a css property
     describe("CSS Context Info Ranges", function () {
@@ -2747,6 +2757,8 @@ define(function (require, exports, module) {
             });
         });
     });
+    
+    
     
     describe("CSS Regions", function () {
         beforeEach(function () {

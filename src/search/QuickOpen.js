@@ -363,7 +363,7 @@ define(function (require, exports, module) {
         }
 
         if (doClose) {
-            this.close();
+            this.close(null, null, true);
             MainViewManager.focusActivePane();
         }
     };
@@ -414,7 +414,7 @@ define(function (require, exports, module) {
             setTimeout(function () {
                 if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                     // Restore original selection / scroll pos
-                    self.close(self._origScrollPos, self._origSelections);
+                    self.close(self._origScrollPos, self._origSelections, true);
                 } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls close() too
                 }
@@ -472,9 +472,11 @@ define(function (require, exports, module) {
      *     position when closing the ModalBar.
      * @param Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>
      *     selections If specified, restore the given selections when closing the ModalBar.
+     * @param {boolean=} keepScrollPos Adjust scroll pos to keep current position when modal bar closes.
+     *      Useful for Go to Line case where doc is scrolled, but don't know actual scroll pos to set so let modal bar figure it out.
      * @return {$.Promise} Resolved when the search bar is entirely closed.
      */
-    QuickNavigateDialog.prototype.close = function (scrollPos, selections) {
+    QuickNavigateDialog.prototype.close = function (scrollPos, selections, keepScrollPos) {
         if (!this.isOpen) {
             return this._closeDeferred.promise();
         }
@@ -503,7 +505,7 @@ define(function (require, exports, module) {
         // So we wait until after this call chain is complete before actually closing the dialog.
         var self = this;
         setTimeout(function () {
-            self.modalBar.close(!!scrollPos).done(function () {
+            self.modalBar.close(!!keepScrollPos).done(function () {
                 self._closeDeferred.resolve();
             });
 
@@ -786,10 +788,12 @@ define(function (require, exports, module) {
      * Close the dialog when the user clicks outside of it. Smart-autocomplete listens for this and automatically closes its popup,
      * but we want to close the whole search "dialog." (And we can't just piggyback on the popup closing event, since there are cases
      * where the popup closes that we want the dialog to remain open (e.g. deleting search term via backspace).
+     * @param {!Event} e
      */
     QuickNavigateDialog.prototype._handleDocumentMouseDown = function (e) {
         if (this.modalBar.getRoot().find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
-            this.close();
+            // User clicked in page, so ignore original scroll pos/selection to use new scroll pos/selection.
+            this.close(null, null, true);
         } else {
             // Allow clicks in the search field to propagate. Clicks in the menu should be 
             // blocked to prevent focus from leaving the search field.
@@ -804,7 +808,16 @@ define(function (require, exports, module) {
      * Close the dialog when it loses focus.
      */
     QuickNavigateDialog.prototype._handleBlur = function (e) {
-        this.close();
+        var origScrollPos, origSelections,
+            curDoc = DocumentManager.getCurrentDocument();
+
+        // If doc hasn't changed, restore scroll pos/selections
+        if (curDoc && this._origDocPath === curDoc.file.fullPath) {
+            origScrollPos  = this._origScrollPos;
+            origSelections = this._origSelections;
+        }
+        
+        this.close(origScrollPos, origSelections, true);
     };
 
     /**

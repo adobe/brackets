@@ -74,6 +74,10 @@ define(function (require, exports, module) {
         ProjectModel        = require("project/ProjectModel"),
         FileTreeView        = require("project/FileTreeView"),
         ViewUtils           = require("utils/ViewUtils");
+    
+    // Needed to ensure that menus are set up when we need them.
+    // See #10115
+    require("command/DefaultMenus");
 
     /**
      * @private
@@ -605,6 +609,8 @@ define(function (require, exports, module) {
         return null;
     };
 
+    var _RENDER_DEBOUNCE_TIME = 100;
+
     /**
      * @private
      *
@@ -620,6 +626,8 @@ define(function (require, exports, module) {
         model.setScrollerInfo($projectTreeContainer[0].scrollWidth, $projectTreeContainer.scrollTop(), $projectTreeContainer.scrollLeft(), $projectTreeContainer.offset().top);
         FileTreeView.render(fileTreeViewContainer, model._viewModel, projectRoot, actionCreator, forceRender, brackets.platform);
     };
+
+    _renderTree = _.debounce(_renderTree, _RENDER_DEBOUNCE_TIME);
 
     /**
      * @private
@@ -864,13 +872,13 @@ define(function (require, exports, module) {
                         var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                         _projectWarnedForTooManyFiles = false;
-
+                        
                         _setProjectRoot(rootEntry).always(function () {
                             model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
 
                             if (projectRootChanged) {
                                 _reloadProjectPreferencesScope();
-                                PreferencesManager._setCurrentEditingFile(rootPath);
+                                PreferencesManager._setCurrentFile(rootPath);
                             }
 
                             // If this is the most current welcome project, record it. In future launches, we want
@@ -1022,13 +1030,7 @@ define(function (require, exports, module) {
      *  filename.
      */
     function createNewItem(baseDir, initialName, skipRename, isFolder) {
-        if (typeof baseDir === "string") {
-            if (_.last(baseDir) !== "/") {
-                baseDir += "/";
-            }
-        } else {
-            baseDir = baseDir.fullPath;
-        }
+        baseDir = model.getDirectoryInProject(baseDir);
 
         if (skipRename) {
             return model.createAtPath(baseDir + initialName, isFolder);
@@ -1381,7 +1383,8 @@ define(function (require, exports, module) {
     
     
     // Private API helpful in testing
-    exports._actionCreator                 = actionCreator;
+    exports._actionCreator                = actionCreator;
+    exports._RENDER_DEBOUNCE_TIME         = _RENDER_DEBOUNCE_TIME;
     
     // Private API for use with SidebarView
     exports._setFileTreeSelectionWidth    = _setFileTreeSelectionWidth;
