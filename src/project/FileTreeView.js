@@ -862,7 +862,7 @@ define(function (require, exports, module) {
             }
 
             var node = this.getDOMNode(),
-                selectedNode = $(node.parentNode).find(this.props.selectedClassName),
+                selectedNode = $(node.parentNode).find(this.props.selectedClassName).closest("li"),
                 selectionViewInfo = this.props.selectionViewInfo;
 
             if (selectedNode.length === 0) {
