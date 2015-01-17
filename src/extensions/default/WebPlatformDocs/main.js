@@ -112,7 +112,7 @@ define(function (require, exports, module) {
             if (propInfo.name) {
                 propQueue.push("css/properties/" + propInfo.name);
                 // remove possible vendor prefixes
-                propQueue.push("css/properties/" + propInfo.name.replace(/^-(webkit|moz|ms|o)-/, ""));
+                propQueue.push("css/properties/" + propInfo.name.replace(/^-(?:webkit|moz|ms|o)-/, ""));
             }
         } else { // HTML
             jsonFile = "html.json";
