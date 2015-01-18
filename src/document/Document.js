@@ -704,7 +704,7 @@ define(function (require, exports, module) {
      */
     Document.prototype.setLineEndings = function (lineEndings) {
         this._lineEndings = lineEndings;
-        this.setText(FileUtils.translateLineEndings(this.getText(true), lineEndings));
+        this.isDirty = true;
     };
     
     /**

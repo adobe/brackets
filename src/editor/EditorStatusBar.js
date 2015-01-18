@@ -224,26 +224,7 @@ define(function (require, exports, module) {
         if (!doNotAnimate) {
             AnimationUtils.animateUsingClass($statusOverwrite[0], "flash", 1500);
         }
-    }
-
-    /**
-     * Update LineEndings label
-     * @param {Event} event (unused)
-     * @param {Editor} editor Current editor
-     * @param {boolean=} doNotAnimate True if state should not be animated
-     */
-    function _updateLineEndingsLabel(event, editor, doNotAnimate) {
-        /* Toggle text */
-        if($statusLineEndings.text() === Strings.STATUSBAR_LINE_ENDINGS_CRLF) {
-            $statusLineEndings.text(Strings.STATUSBAR_LINE_ENDINGS_LF);
-        } else {
-            $statusLineEndings.text(Strings.STATUSBAR_LINE_ENDINGS_CRLF);
-        }
-        
-        if (!doNotAnimate) {
-            AnimationUtils.animateUsingClass($statusLineEndings[0], "flash", 1500);
-        }
-    }
+    }    
 
     /**
      * Update insert/overwrite indicator
@@ -263,14 +244,21 @@ define(function (require, exports, module) {
      * @param {Event} event (unused)
      */
     function _updateLineEndings(event) {
-        var editor = EditorManager.getActiveEditor();
-        var document = editor.document;
+        var editor = EditorManager.getActiveEditor(),
+            document = editor.document,
+            currentLineEndings;
 
-        // update label with no transition
-        _updateLineEndingsLabel(event, editor, true);
-        // Update the line ending in the document if needed(label is already updated to new value).
-        if(document.getLineEndings() !== $statusLineEndings.text()) {
-            document.setLineEndings($statusLineEndings.text());
+        // update label
+        if($statusLineEndings.text() === Strings.STATUSBAR_LINE_ENDINGS_CRLF) {
+            $statusLineEndings.text(Strings.STATUSBAR_LINE_ENDINGS_LF);
+            currentLineEndings = FileUtils.LINE_ENDINGS_LF;
+        } else {
+            $statusLineEndings.text(Strings.STATUSBAR_LINE_ENDINGS_CRLF);
+            currentLineEndings = FileUtils.LINE_ENDINGS_CRLF;
+        }
+        // Update the line ending in the document if needed.
+        if(document.getLineEndings() !== currentLineEndings) {
+            document.setLineEndings(currentLineEndings);
         }
     }
     
