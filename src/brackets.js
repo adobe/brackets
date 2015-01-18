@@ -109,6 +109,7 @@ define(function (require, exports, module) {
     require("utils/ColorUtils");
     require("view/ThemeManager");
     require("thirdparty/lodash");
+    require("language/XMLUtils");
     
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
     // expose our required CodeMirror globally so as to avoid breaking extensions in the
