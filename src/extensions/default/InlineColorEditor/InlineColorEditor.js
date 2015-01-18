@@ -218,7 +218,7 @@ define(function (require, exports, module) {
     /** Comparator to sort by which colors are used the most */
     function _colorSort(a, b) {
         if (a.count === b.count) {
-            // workaround for stable sort, which is not in supported in V8 (https://code.google.com/p/v8/issues/detail?id=90)
+            // workaround for stable sort, which is not supported in V8 (https://code.google.com/p/v8/issues/detail?id=90)
             // see also: #2171
             return a.firstIndex < b.firstIndex ? -1 : 1;
         }
