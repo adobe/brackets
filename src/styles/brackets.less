@@ -1715,6 +1715,12 @@ textarea.exclusions-editor {
         border-top: 1px solid #e0d123;
         border-bottom: 1px solid #d4c620;
         opacity: 0.85;  // allow thumb to show through
+        &.tickmark-current {
+            background-color: #ed9823;
+            border-top: 1px solid #dd9128;
+            border-bottom: 1px solid #cb8320;
+            z-index: 1;  // ensure this one appears above overlapping sibling highlights
+        }
     }
 }
 
