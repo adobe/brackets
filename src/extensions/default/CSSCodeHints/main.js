@@ -287,7 +287,7 @@ define(function (require, exports, module) {
                 valueArray = valueArray.concat(namedFlows);
             } else if (type === "color") {
                 valueArray = valueArray.concat(ColorUtils.COLOR_NAMES);
-                valueArray.push("transparent");
+                valueArray.push("transparent", "currentColor");
             }
             
             result = $.map(valueArray, function (pvalue, pindex) {
