@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, brackets */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -49,6 +49,8 @@ define(function (require, exports, module) {
      * - Up/Down     - change selection
      * - PageUp/Down - change selection
      *
+     * Items whose <a> has the .disabled class do not respond to selection.
+     *
      * @constructor
      * @param {jQueryObject} $list  associated list object
      * @param {Function} selectionCallback  function called when list item is selected.
@@ -59,6 +61,7 @@ define(function (require, exports, module) {
         this.$items = $list.find("li");
         this.selectionCallback = selectionCallback;
         this.closeCallback = closeCallback;
+        this.scrolling = false;
         
         /**
          * @private
@@ -87,14 +90,26 @@ define(function (require, exports, module) {
             if (event.type === "keydown") {
                 keyCode = event.keyCode;
     
-                if (keyCode === KeyEvent.DOM_VK_UP) {
-                    self._rotateSelection(-1);
+                if (keyCode === KeyEvent.DOM_VK_TAB) {
+                    self.close();
+                } else if (keyCode === KeyEvent.DOM_VK_UP) {
+                    // Move up one, wrapping at edges (if nothing selected, select the last item)
+                    self._tryToSelect(self._selectedIndex === -1 ? -1 : self._selectedIndex - 1, -1);
                 } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
-                    self._rotateSelection(1);
+                    // Move down one, wrapping at edges (if nothing selected, select the first item)
+                    self._tryToSelect(self._selectedIndex === -1 ? 0 : self._selectedIndex + 1, +1);
                 } else if (keyCode === KeyEvent.DOM_VK_PAGE_UP) {
-                    self._rotateSelection(-self._itemsPerPage());
+                    // Move up roughly one 'page', stopping at edges (not wrapping) (if nothing selected, selects the first item)
+                    self._tryToSelect((self._selectedIndex || 0) - self._itemsPerPage(), -1, true);
                 } else if (keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
-                    self._rotateSelection(self._itemsPerPage());
+                    // Move down roughly one 'page', stopping at edges (not wrapping) (if nothing selected, selects the item one page down from the top)
+                    self._tryToSelect((self._selectedIndex || 0) + self._itemsPerPage(), +1, true);
+                    
+                } else if (keyCode === KeyEvent.DOM_VK_HOME) {
+                    self._tryToSelect(0, +1);
+                } else if (keyCode === KeyEvent.DOM_VK_END) {
+                    self._tryToSelect(self.$items.length - 1, -1);
+                    
                 } else if (self._selectedIndex !== -1 &&
                         (keyCode === KeyEvent.DOM_VK_RETURN)) {
     
@@ -134,7 +149,9 @@ define(function (require, exports, module) {
      * Public close method
      */
     DropdownEventHandler.prototype.close = function () {
-        PopUpManager.removePopUp(this.$list);
+        if (this.$list) {
+            PopUpManager.removePopUp(this.$list);
+        }
     };
 
     /**
@@ -150,45 +167,40 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Change selection by specified amount. After selection reaches the last item
-     * in the rotation direction, then it wraps around to the start.
-     *
-     * @param {number} distance  Number of items to move change selection where
-     *      positive distance rotates down and negative distance rotates up
+     * Try to select item at the given index. If it's disabled or a divider, keep trying by incrementing
+     * index by 'direction' each time (wrapping around if needed).
+     * @param {number} index  If out of bounds, index either wraps around to remain in range (e.g. -1 yields
+     *                      last item, length+1 yields 2nd item) or if noWrap set, clips instead (e.g. -1 yields
+     *                      first item, length+1 yields last item).
+     * @param {number} direction  Either +1 or -1
+     * @param {boolean=} noWrap  Clip out of range index values instead of wrapping. Default false (wrap).
      */
-    DropdownEventHandler.prototype._rotateSelection = function (distance) {
-        var len = this.$items.length,
-            pos;
-
-        if (this._selectedIndex < 0) {
-            // set the initial selection
-            pos = (distance > 0) ? distance - 1 : len - 1;
-
+    DropdownEventHandler.prototype._tryToSelect = function (index, direction, noWrap) {
+        // Fix up 'index' if out of bounds (>= len or < 0)
+        var len = this.$items.length;
+        if (noWrap) {
+            // Clip to stay in range (and set direction so we don't wrap in the recursion case either)
+            if (index < 0) {
+                index = 0;
+                direction = +1;
+            } else if (index >= len) {
+                index = len - 1;
+                direction = -1;
+            }
         } else {
-            // adjust current selection
-            pos = this._selectedIndex;
-
-            // Don't "rotate" until all items have been shown
-            if (distance > 0) {
-                if (pos === (len - 1)) {
-                    pos = 0;  // wrap
-                } else {
-                    pos = Math.min(pos + distance, len - 1);
-                }
-            } else {
-                if (pos === 0) {
-                    pos = (len - 1);  // wrap
-                } else {
-                    pos = Math.max(pos + distance, 0);
-                }
+            // Wrap around to keep index in bounds
+            index %= len;
+            if (index < 0) {
+                index += len;
             }
         }
 
-        // If the item to be selected is a divider, then rotate one more.
-        if ($(this.$items[pos]).hasClass("divider")) {
-            this._rotateSelection((distance > 0) ? (distance + 1) : (distance - 1));
+        var $item = this.$items.eq(index);
+        if ($item.hasClass("divider") || $item.find("a.disabled").length) {
+            // Desired item is ineligible for selection: try next one
+            this._tryToSelect(index + direction, direction, noWrap);
         } else {
-            this._setSelectedIndex(pos, true);
+            this._setSelectedIndex(index, true);
         }
     };
 
@@ -234,6 +246,9 @@ define(function (require, exports, module) {
         if (!this.selectionCallback || !this.$list || !$link) {
             return;
         }
+        if ($link.hasClass("disabled")) {
+            return;
+        }
         
         this.selectionCallback($link);
         PopUpManager.removePopUp(this.$list);
@@ -262,10 +277,11 @@ define(function (require, exports, module) {
         if (this._selectedIndex !== -1) {
             var $item = this.$items.eq(this._selectedIndex);
 
+            $item.find("a").addClass("selected");
             if (scrollIntoView) {
+                this.scrolling = true;
                 ViewUtils.scrollElementIntoView(this.$list, $item, false);
             }
-            $item.find("a").addClass("selected");
         }
     };
 
@@ -280,14 +296,21 @@ define(function (require, exports, module) {
                 self._clickHandler($(this));
             })
             .on("mouseover.dropdownEventHandler", "a", function (e) {
+                // Don't select item under mouse cursor when scrolling.
+                if (self.scrolling) {
+                    self.scrolling = false;
+                    return;
+                }
+                
                 var $link = $(e.currentTarget),
                     $item = $link.closest("li"),
                     viewOffset = self.$list.offset(),
                     elementOffset = $item.offset();
 
-                // Only set selected if in view
-                if (elementOffset.top < viewOffset.top + self.$list.height()) {
-                    if (viewOffset.top <= elementOffset.top) {
+                // Only set selected if enabled & in view
+                // (dividers are already screened out since they don't have an "a" tag in them)
+                if (!$link.hasClass("disabled")) {
+                    if (elementOffset.top < viewOffset.top + self.$list.height() && viewOffset.top <= elementOffset.top) {
                         self._setSelectedIndex(self.$items.index($item), false);
                     }
                 }

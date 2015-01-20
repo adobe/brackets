@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, beforeFirst, afterEach, afterLast, waitsFor, waits, runs, brackets, waitsForDone, spyOn, xit, jasmine */
+/*global define, describe, it, expect, beforeEach, beforeFirst, afterEach, afterLast, waits, runs, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -30,7 +30,8 @@ define(function (require, exports, module) {
     var SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         FileSystem       = require("filesystem/FileSystem"),
         StringUtils      = require("utils/StringUtils"),
-        Strings;
+        Strings          = require("strings"),
+        _                = require("thirdparty/lodash");
 
     describe("Code Inspection", function () {
         this.category = "integration";
@@ -42,8 +43,9 @@ define(function (require, exports, module) {
             CodeInspection,
             CommandManager,
             Commands  = require("command/Commands"),
-            DocumentManager,
             EditorManager,
+            DocumentManager,
+            PreferencesManager,
             prefs;
 
         var toggleJSLintResults = function (visible) {
@@ -110,12 +112,12 @@ define(function (require, exports, module) {
                     // Load module instances from brackets.test
                     $ = testWindow.$;
                     brackets = testWindow.brackets;
-                    Strings = testWindow.require("strings");
                     CommandManager = brackets.test.CommandManager;
                     DocumentManager = brackets.test.DocumentManager;
                     EditorManager = brackets.test.EditorManager;
                     prefs = brackets.test.PreferencesManager.getExtensionPrefs("linting");
                     CodeInspection = brackets.test.CodeInspection;
+                    PreferencesManager = brackets.test.PreferencesManager;
                     CodeInspection.toggleEnabled(true);
                 });
             });
@@ -165,6 +167,23 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(codeInspector.scanFile).toHaveBeenCalled();
                 });
+            });
+
+            it("should get the correct linter given a file path", function () {
+                var codeInspector1 = createCodeInspector("text linter 1", successfulLintResult());
+                var codeInspector2 = createCodeInspector("text linter 2", successfulLintResult());
+
+                CodeInspection.register("javascript", codeInspector1);
+                CodeInspection.register("javascript", codeInspector2);
+
+                var providers = CodeInspection.getProvidersForPath("test.js");
+                expect(providers.length).toBe(2);
+                expect(providers[0]).toBe(codeInspector1);
+                expect(providers[1]).toBe(codeInspector2);
+            });
+
+            it("should return an empty array if no providers are registered", function () {
+                expect(CodeInspection.getProvidersForPath("test.js").length).toBe(0);
             });
 
             it("should run two linters", function () {
@@ -284,6 +303,60 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should use preferences for providers lookup", function () {
+                var pm = PreferencesManager.getExtensionPrefs("linting"),
+                    codeInspector1 = createCodeInspector("html1", failLintResult),
+                    codeInspector2 = createCodeInspector("html2", successfulLintResult),
+                    codeInspector3 = createCodeInspector("html3", successfulLintResult),
+                    codeInspector4 = createCodeInspector("html4", successfulLintResult),
+                    codeInspector5 = createCodeInspector("html5", failLintResult);
+                
+                CodeInspection.register("html", codeInspector1);
+                CodeInspection.register("html", codeInspector2);
+                CodeInspection.register("html", codeInspector3);
+                CodeInspection.register("html", codeInspector4);
+                CodeInspection.register("html", codeInspector5);
+                
+                function setAtLocation(name, value) {
+                    pm.set(name, value, {location: {layer: "language", layerID: "html", scope: "user"}});
+                }
+                
+                runs(function () {
+                    var providers;
+                    
+                    setAtLocation(CodeInspection._PREF_PREFER_PROVIDERS, ["html3", "html4"]);
+                    providers = CodeInspection.getProvidersForPath("my/index.html");
+                    expect(providers).toNotBe(null);
+                    expect(_.pluck(providers, "name")).toEqual(["html3", "html4", "html1", "html2", "html5"]);
+
+                    setAtLocation(CodeInspection._PREF_PREFER_PROVIDERS, ["html5", "html6"]);
+                    providers = CodeInspection.getProvidersForPath("index.html");
+                    expect(providers).toNotBe(null);
+                    expect(_.pluck(providers, "name")).toEqual(["html5", "html1", "html2", "html3", "html4"]);
+
+                    setAtLocation(CodeInspection._PREF_PREFER_PROVIDERS, ["html19", "html100"]);
+                    providers = CodeInspection.getProvidersForPath("index.html");
+                    expect(providers).toNotBe(null);
+                    expect(_.pluck(providers, "name")).toEqual(["html1", "html2", "html3", "html4", "html5"]);
+                    
+                    setAtLocation(CodeInspection._PREF_PREFERRED_ONLY, true);
+                    providers = CodeInspection.getProvidersForPath("test.html");
+                    expect(providers).toEqual([]);
+
+                    setAtLocation(CodeInspection._PREF_PREFER_PROVIDERS, ["html2", "html1"]);
+                    setAtLocation(CodeInspection._PREF_PREFERRED_ONLY, true);
+                    providers = CodeInspection.getProvidersForPath("c:/temp/another.html");
+                    expect(providers).toNotBe(null);
+                    expect(_.pluck(providers, "name")).toEqual(["html2", "html1"]);
+                    
+                    setAtLocation(CodeInspection._PREF_PREFER_PROVIDERS, undefined);
+                    setAtLocation(CodeInspection._PREF_PREFERRED_ONLY, undefined);
+                    providers = CodeInspection.getProvidersForPath("index.html");
+                    expect(providers).toNotBe(null);
+                    expect(_.pluck(providers, "name")).toEqual(["html1", "html2", "html3", "html4", "html5"]);
+                });
+            });
+
             it("should run asynchoronous implementation when both available in the provider", function () {
                 var provider = createAsyncCodeInspector("javascript async linter with sync impl", failLintResult(), 200, true);
                 CodeInspection.register("javascript", provider);
@@ -438,6 +511,13 @@ define(function (require, exports, module) {
                 };
             }
             
+            // Tooltip is panel title, plus an informational message when there are problems.
+            function buildTooltip(title, count) {
+                if (count === 0) {
+                    return title;
+                }
+                return StringUtils.format(Strings.STATUSBAR_CODE_INSPECTION_TOOLTIP, title);
+            }
 
             it("should run test linter when a JavaScript document opens and indicate errors in the panel", function () {
                 var codeInspector = createCodeInspector("javascript linter", failLintResult());
@@ -503,7 +583,7 @@ define(function (require, exports, module) {
                     expect(asyncProvider.filesCalledOn).toEqual([noErrorsJS]);
                     
                     // "Modify" the file
-                    $(DocumentManager).triggerHandler("documentSaved", DocumentManager.getCurrentDocument());
+                    DocumentManager.trigger("documentSaved", DocumentManager.getCurrentDocument());
                     expect(asyncProvider.futures[noErrorsJS].length).toBe(2);
                     
                     // Finish old (stale) linting session - verify results not shown
@@ -532,7 +612,7 @@ define(function (require, exports, module) {
                     expect(asyncProvider.filesCalledOn).toEqual([noErrorsJS]);
                     
                     // "Modify" the file
-                    $(DocumentManager).triggerHandler("documentSaved", DocumentManager.getCurrentDocument());
+                    DocumentManager.trigger("documentSaved", DocumentManager.getCurrentDocument());
                     expect(asyncProvider.futures[noErrorsJS].length).toBe(2);
                     
                     // Finish new (current) linting session - verify results are shown
@@ -741,7 +821,8 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe(StringUtils.format(Strings.SINGLE_ERROR, "JavaScript Linter"));
+                    var expectedTooltip = buildTooltip(StringUtils.format(Strings.SINGLE_ERROR, "JavaScript Linter"), 1);
+                    expect(tooltip).toBe(expectedTooltip);
                 });
             });
 
@@ -774,7 +855,8 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe(StringUtils.format(Strings.MULTIPLE_ERRORS, "JavaScript Linter", 2));
+                    var expectedTooltip = buildTooltip(StringUtils.format(Strings.MULTIPLE_ERRORS, "JavaScript Linter", 2), 2);
+                    expect(tooltip).toBe(expectedTooltip);
                 });
             });
 
@@ -797,7 +879,8 @@ define(function (require, exports, module) {
 
                     var tooltip = $statusBar.attr("title");
                     // tooltip will contain + in the title if the inspection was aborted
-                    expect(tooltip).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
+                    var expectedTooltip = buildTooltip(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2), 2);
+                    expect(tooltip).toBe(expectedTooltip);
                 });
             });
 
@@ -814,7 +897,8 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe(Strings.NO_ERRORS_MULTIPLE_PROVIDER);
+                    var expectedTooltip = buildTooltip(Strings.NO_ERRORS_MULTIPLE_PROVIDER, 0);
+                    expect(tooltip).toBe(expectedTooltip);
                 });
             });
 
@@ -829,7 +913,8 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe(StringUtils.format(Strings.NO_ERRORS, "JavaScript Linter1"));
+                    var expectedTooltip = buildTooltip(StringUtils.format(Strings.NO_ERRORS, "JavaScript Linter1"), 0);
+                    expect(tooltip).toBe(expectedTooltip);
                 });
             });
             
@@ -911,7 +996,8 @@ define(function (require, exports, module) {
                     expect($statusBar.is(":visible")).toBe(true);
 
                     var tooltip = $statusBar.attr("title");
-                    expect(tooltip).toBe(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2));
+                    var expectedTooltip = buildTooltip(StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, 2), 2);
+                    expect(tooltip).toBe(expectedTooltip);
                 });
             });
             
@@ -1040,20 +1126,6 @@ define(function (require, exports, module) {
         describe("Code Inspector Registration", function () {
             beforeEach(function () {
                 CodeInspection._unregisterAll();
-            });
-
-            it("should unregister JSLint linter if a new javascript linter is registered", function () {
-                var codeInspector1 = createCodeInspector("JSLint", successfulLintResult());
-                CodeInspection.register("javascript", codeInspector1);
-                var codeInspector2 = createCodeInspector("javascript inspector", successfulLintResult());
-                CodeInspection.register("javascript", codeInspector2, true);
-
-                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file", 5000);
-
-                runs(function () {
-                    expect(codeInspector1.scanFile).not.toHaveBeenCalled();
-                    expect(codeInspector2.scanFile).toHaveBeenCalled();
-                });
             });
 
             it("should call inspector 1 and inspector 2", function () {

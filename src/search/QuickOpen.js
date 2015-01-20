@@ -42,6 +42,8 @@ define(function (require, exports, module) {
     
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -143,15 +145,6 @@ define(function (require, exports, module) {
      * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
-        // Backwards compatibility (for now) for old fileTypes field, if newer languageIds not specified
-        if (pluginDef.fileTypes && !pluginDef.languageIds) {
-            console.warn("Using fileTypes for QuickOpen plugins is deprecated. Use languageIds instead.");
-            pluginDef.languageIds = pluginDef.fileTypes.map(function (extension) {
-                return LanguageManager.getLanguageForPath("file." + extension).getId();
-            });
-            delete pluginDef.fileTypes;
-        }
-        
         plugins.push(new QuickOpenPlugin(
             pluginDef.name,
             pluginDef.languageIds,
@@ -276,8 +269,7 @@ define(function (require, exports, module) {
      *      Or null if the query is invalid
      */
     function extractCursorPos(query) {
-        var regInfo = query.match(CURSOR_POS_EXP),
-            result;
+        var regInfo = query.match(CURSOR_POS_EXP);
         
         if (query.length <= 1 || !regInfo ||
                 (regInfo[1] && isNaN(regInfo[1])) ||
@@ -355,7 +347,7 @@ define(function (require, exports, module) {
                 // So we call `prepareClose()` first, and finish the close later.
                 doClose = false;
                 this.modalBar.prepareClose();
-                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
+                CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath})
                     .done(function () {
                         if (cursorPos) {
                             var editor = EditorManager.getCurrentFullEditor();
@@ -371,8 +363,8 @@ define(function (require, exports, module) {
         }
 
         if (doClose) {
-            this.close();
-            EditorManager.focusEditor();
+            this.close(null, null, true);
+            MainViewManager.focusActivePane();
         }
     };
 
@@ -422,7 +414,7 @@ define(function (require, exports, module) {
             setTimeout(function () {
                 if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                     // Restore original selection / scroll pos
-                    self.close(self._origScrollPos, self._origSelections);
+                    self.close(self._origScrollPos, self._origSelections, true);
                 } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls close() too
                 }
@@ -480,9 +472,11 @@ define(function (require, exports, module) {
      *     position when closing the ModalBar.
      * @param Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>
      *     selections If specified, restore the given selections when closing the ModalBar.
+     * @param {boolean=} keepScrollPos Adjust scroll pos to keep current position when modal bar closes.
+     *      Useful for Go to Line case where doc is scrolled, but don't know actual scroll pos to set so let modal bar figure it out.
      * @return {$.Promise} Resolved when the search bar is entirely closed.
      */
-    QuickNavigateDialog.prototype.close = function (scrollPos, selections) {
+    QuickNavigateDialog.prototype.close = function (scrollPos, selections, keepScrollPos) {
         if (!this.isOpen) {
             return this._closeDeferred.promise();
         }
@@ -511,7 +505,7 @@ define(function (require, exports, module) {
         // So we wait until after this call chain is complete before actually closing the dialog.
         var self = this;
         setTimeout(function () {
-            self.modalBar.close(!scrollPos).done(function () {
+            self.modalBar.close(!!keepScrollPos).done(function () {
                 self._closeDeferred.resolve();
             });
 
@@ -679,7 +673,7 @@ define(function (require, exports, module) {
             displayName += '<span title="sp:' + sd.special + ', m:' + sd.match +
                 ', ls:' + sd.lastSegment + ', b:' + sd.beginning +
                 ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + ', nsos: ' +
-                sd.notStartingOnSpecial + '">(' + item.matchGoodness + ') </span>';
+                sd.notStartingOnSpecial + ', upper: ' + sd.upper + '">(' + item.matchGoodness + ') </span>';
         }
         
         // Put the path pieces together, highlighting the matched parts
@@ -754,7 +748,7 @@ define(function (require, exports, module) {
         initialString = prefix + initialString;
         
         var $field = this.$searchField;
-        $field.val(initialString);
+        $field.val(initialString).focus();
         $field.get(0).setSelectionRange(prefix.length, initialString.length);
         
         // Kick smart-autocomplete to update (it only listens for keyboard events)
@@ -794,10 +788,12 @@ define(function (require, exports, module) {
      * Close the dialog when the user clicks outside of it. Smart-autocomplete listens for this and automatically closes its popup,
      * but we want to close the whole search "dialog." (And we can't just piggyback on the popup closing event, since there are cases
      * where the popup closes that we want the dialog to remain open (e.g. deleting search term via backspace).
+     * @param {!Event} e
      */
     QuickNavigateDialog.prototype._handleDocumentMouseDown = function (e) {
         if (this.modalBar.getRoot().find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
-            this.close();
+            // User clicked in page, so ignore original scroll pos/selection to use new scroll pos/selection.
+            this.close(null, null, true);
         } else {
             // Allow clicks in the search field to propagate. Clicks in the menu should be 
             // blocked to prevent focus from leaving the search field.
@@ -812,7 +808,16 @@ define(function (require, exports, module) {
      * Close the dialog when it loses focus.
      */
     QuickNavigateDialog.prototype._handleBlur = function (e) {
-        this.close();
+        var origScrollPos, origSelections,
+            curDoc = DocumentManager.getCurrentDocument();
+
+        // If doc hasn't changed, restore scroll pos/selections
+        if (curDoc && this._origDocPath === curDoc.file.fullPath) {
+            origScrollPos  = this._origScrollPos;
+            origSelections = this._origSelections;
+        }
+        
+        this.close(origScrollPos, origSelections, true);
     };
 
     /**
@@ -876,7 +881,8 @@ define(function (require, exports, module) {
 
         // Return files that are non-binary, or binary files that have a custom viewer
         function _filter(file) {
-            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() || EditorManager.getCustomViewerForPath(file.fullPath);
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() ||
+                MainViewFactory.findSuitableFactoryForPath(file.fullPath);
         }
         
         // Start fetching the file list, which will be needed the first time the user enters
@@ -944,7 +950,7 @@ define(function (require, exports, module) {
     }
     
     // Listen for a change of project to invalidate our file list
-    $(ProjectManager).on("projectOpen", function () {
+    ProjectManager.on("projectOpen", function () {
         fileList = null;
     });
 
@@ -957,7 +963,7 @@ define(function (require, exports, module) {
     exports.addQuickOpenPlugin      = addQuickOpenPlugin;
     exports.highlightMatch          = highlightMatch;
     
-    // accessing these from this module will ultimately be deprecated
+    // Convenience exports for functions that most QuickOpen plugins would need.
     exports.stringMatch             = StringMatch.stringMatch;
     exports.SearchResult            = StringMatch.SearchResult;
     exports.basicMatchSort          = StringMatch.basicMatchSort;

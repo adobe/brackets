@@ -1,0 +1,125 @@
+@bc-bg-highlight:               #e0f0fa;
+@bc-menu-text:                  #000;
+@bc-text-quiet:                 #aaa;
+@bc-text-thin:                  #000;
+@bc-text-thin-quiet:            #777;
+
+@dark-bc-bg-highlight:          #2a3b50;
+@dark-bc-menu-text:             #fff;
+@dark-bc-text-quiet:            #aaa;
+@dark-bc-text-thin:             #fff;
+@dark-bc-text-thin-quiet:       #bbb;
+
+.dropdown-arrow {
+    display: inline-block;
+    width: 7px;
+    height: 5px;
+    margin-left: 4px;
+    background-image: url("down-arrow.svg");
+    background-repeat: no-repeat;
+    position: relative;
+    top: 0;
+}
+
+.trash-icon {
+    position: absolute;
+    left: 7px;
+    width: 16px;
+    height: 16px;
+    font-size: 20px;
+    color: @bc-text-thin-quiet;
+    line-height: 15px;
+    text-align: center;
+
+    .dark & {
+        color: @dark-bc-text-thin-quiet;
+    }
+}
+
+.trash-icon:hover {
+    color: @bc-text-thin;
+
+    .dark & {
+        color: @dark-bc-text-thin;
+    }
+}
+
+#project-dropdown-toggle {
+    display: inline-block;
+    /* adjust margins to keep position #project-title position stable after extension is loaded */
+    margin: -3px 5px -2px -6px;
+    overflow: hidden;
+    padding: 0 5px;
+    white-space: nowrap;
+}
+
+#project-title {
+    /* vertical align center text */
+    height: 21px;
+    line-height: 21px;
+}
+
+#project-dropdown-toggle:hover .dropdown-arrow {
+    background-image: url("down-arrow.svg");
+}
+
+#project-dropdown.dropdown-menu:focus {
+    outline: none;
+}
+
+/* TODO: style the dropdown content */
+#project-dropdown.dropdown-menu {
+    position: absolute;
+
+    /* offset for better alignment with the button */
+    margin-top: -1px;
+    margin-left: 1px;
+
+    display: block;
+    max-width: none;
+    z-index: 100;
+}
+
+#project-dropdown.dropdown-menu .divider {
+    margin: 5px 1px;
+}
+
+.recent-folder-link, .recent-folder, .recent-folder-path {
+    white-space: nowrap;
+}
+
+#project-dropdown.dropdown-menu li a {
+    padding: 5px 15px;
+}
+
+#project-dropdown.dropdown-menu .recent-folder-link, #project-dropdown.dropdown-menu #open-folder-link {
+	display: block;
+	padding: 5px 26px 5px 26px;
+}
+
+.recent-folder, #open-folder-link {
+    color: @bc-menu-text;
+
+    .dark & {
+        color: @dark-bc-menu-text;
+    }
+}
+
+.recent-folder-path {
+    color: @bc-text-thin-quiet;
+
+    .dark & {
+        color: @dark-bc-text-thin-quiet;
+    }
+}
+
+#project-dropdown.dropdown-menu a.selected {
+     background: @bc-bg-highlight;
+
+    .dark & {
+        background: @dark-bc-bg-highlight;
+    }
+}
+#project-dropdown.dropdown-menu a:not(.selected):hover {
+     background: none;
+}

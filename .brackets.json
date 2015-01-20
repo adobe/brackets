@@ -4,9 +4,16 @@
         "plusplus": true,
         "devel": true,
         "nomen": true,
-        "maxerr": 50
+        "maxerr": 50,
+        "es5": true
     },
     "defaultExtension": "js",
+    "language": {
+        "javascript": {
+            "linting.prefer": ["JSLint", "JSHint"],
+            "linting.usePreferredOnly": true
+        }
+    },
     "path": {
         "src/thirdparty/CodeMirror2/**/*.js": {
             "spaceUnits": 2,

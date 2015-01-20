@@ -40,6 +40,7 @@ define(function (require, exports, module) {
      * changed when the Brackets window loses and regains focus. Does not
      * read timestamps of files on disk. Clients may optionally track file
      * timestamps on disk independently.
+     * @constructor
      */
     function ChangedDocumentTracker() {
         var self = this;
@@ -51,14 +52,14 @@ define(function (require, exports, module) {
         this._onChange = this._onChange.bind(this);
         this._onWindowFocus = this._onWindowFocus.bind(this);
 
-        $(DocumentManager).on("afterDocumentCreate", function (event, doc) {
+        DocumentManager.on("afterDocumentCreate", function (event, doc) {
             // Only track documents in the current project
             if (ProjectManager.isWithinProject(doc.file.fullPath)) {
                 self._addListener(doc);
             }
         });
 
-        $(DocumentManager).on("beforeDocumentDelete", function (event, doc) {
+        DocumentManager.on("beforeDocumentDelete", function (event, doc) {
             // In case a document somehow remains loaded after its project
             // has been closed, unconditionally attempt to remove the listener.
             self._removeListener(doc);
@@ -72,14 +73,14 @@ define(function (require, exports, module) {
      * Assumes all files are changed when the window loses and regains focus.
      */
     ChangedDocumentTracker.prototype._addListener = function (doc) {
-        $(doc).on("change", this._onChange);
+        doc.on("change", this._onChange);
     };
 
     /**
      * @private
      */
     ChangedDocumentTracker.prototype._removeListener = function (doc) {
-        $(doc).off("change", this._onChange);
+        doc.off("change", this._onChange);
     };
 
     /**

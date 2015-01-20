@@ -22,13 +22,12 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
 
     var FileSystemError     = require("filesystem/FileSystemError"),
-        FileSystemStats     = require("filesystem/FileSystemStats"),
         MockFileSystemModel = require("./MockFileSystemModel");
     
     // A sychronous model of a file system
@@ -234,7 +233,7 @@ define(function (require, exports, module) {
         _changeCallback = null;
         _offlineCallback = null;
 
-        $(_model).on("change", function (event, path) {
+        _model.on("change", function (event, path) {
             if (_changeCallback) {
                 var cb = _getCallback("change", path, _changeCallback);
                 cb(path, _model.stat(path));

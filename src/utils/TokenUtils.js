@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 /**
  * Functions for iterating through tokens in the current editor buffer. Useful for doing
@@ -33,26 +33,79 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror");
+    var _           = require("thirdparty/lodash"),
+        CodeMirror  = require("thirdparty/CodeMirror2/lib/codemirror");
+    
+    var cache;
+    
+    
+    function _clearCache(cm) {
+        cache = null;
+        if (cm) { // event handler
+            cm.off("changes", _clearCache);
+        }
+    }
+
+    /*
+     * Caches the tokens for the given editor/line if needed
+     * @param {!CodeMirror} cm
+     * @param {!number} line
+     * @return {Array.<Object>} (Cached) array of tokens
+     */
+    function _manageCache(cm, line) {
+        if (!cache || !cache.tokens || cache.line !== line || cache.cm !== cm) {
+            // Cache is no longer matching -> Update
+            var tokens = cm.getLineTokens(line, false);
+            // Add empty beginning-of-line token for backwards compatibility
+            tokens.unshift(cm.getTokenAt({line: line, ch: 0}, false));
+            cache = {
+                cm: cm,
+                line: line,
+                timeStamp: Date.now(),
+                tokens: tokens,
+            };
+            cm.off("changes", _clearCache);
+            cm.on("changes", _clearCache);
+        }
+        return cache.tokens;
+    }
+    
+    /*
+     * Like cm.getTokenAt, but with caching
+     * @param {!CodeMirror} cm
+     * @param {!{ch:number, line:number}} pos
+     * @param {boolean} precise If given, results in more current results. Suppresses caching.
+     * @return {Object} Token for position
+     */
+    function _getToken(cm, pos, precise) {
+        if (precise) {
+            _clearCache(); // reset cache
+            return cm.getTokenAt(pos, precise);
+        }
+        var cachedTokens    = _manageCache(cm, pos.line),
+            tokenIndex      = _.sortedIndex(cachedTokens, {end: pos.ch}, "end"), // binary search is faster for long arrays
+            token           = cachedTokens[tokenIndex];
+        return token || cm.getTokenAt(pos, precise); // fall back to CMs getTokenAt, for example in an empty line
+    }
     
    /**
      * Creates a context object for the given editor and position, suitable for passing to the
      * move functions.
-     * @param {CodeMirror} editor
-     * @param {{ch:{string}, line:{number}} pos
-     * @return {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}}
+     * @param {!CodeMirror} cm
+     * @param {!{ch:number, line:number}} pos
+     * @return {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}}
      */
-    function getInitialContext(editor, pos) {
+    function getInitialContext(cm, pos) {
         return {
-            "editor": editor,
+            "editor": cm,
             "pos": pos,
-            "token": editor.getTokenAt(pos, true)
+            "token": cm.getTokenAt(pos, true)
         };
     }
     
     /**
      * Moves the given context backwards by one token.
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
      * @param {boolean=} precise If code is being edited, use true (default) for accuracy.
      *      If parsing unchanging code, use false to use cache for performance.
      * @return {boolean} whether the context changed
@@ -72,13 +125,21 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.start;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos, precise);
+        ctx.token = _getToken(ctx.editor, ctx.pos, precise);
         return true;
     }
     
     /**
+     * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
+     * @return {boolean} true if movePrevToken() would return false without changing pos
+     */
+    function isAtStart(ctx) {
+        return (ctx.pos.ch <= 0 || ctx.token.start <= 0) && (ctx.pos.line <= 0);
+    }
+    
+    /**
      * Moves the given context forward by one token.
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
      * @param {boolean=} precise If code is being edited, use true (default) for accuracy.
      *      If parsing unchanging code, use false to use cache for performance.
      * @return {boolean} whether the context changed
@@ -99,14 +160,23 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.end + 1;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos, precise);
+        ctx.token = _getToken(ctx.editor, ctx.pos, precise);
         return true;
+    }
+    
+    /**
+     * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
+     * @return {boolean} true if moveNextToken() would return false without changing pos
+     */
+    function isAtEnd(ctx) {
+        var eol = ctx.editor.getLine(ctx.pos.line).length;
+        return (ctx.pos.ch >= eol || ctx.token.end >= eol) && (ctx.pos.line >= ctx.editor.lineCount() - 1);
     }
     
    /**
      * Moves the given context in the given direction, skipping any whitespace it hits.
      * @param {function} moveFxn the function to move the context
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
      * @return {boolean} whether the context changed
      */
     function moveSkippingWhitespace(moveFxn, ctx) {
@@ -123,7 +193,7 @@ define(function (require, exports, module) {
 
     /**
      * In the given context, get the character offset of pos from the start of the token.
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} context
      * @return {number}
      */
     function offsetInToken(ctx) {
@@ -136,8 +206,8 @@ define(function (require, exports, module) {
 
     /**
      * Returns the mode object and mode name string at a given position
-     * @param {CodeMirror} cm CodeMirror instance
-     * @param {line:{number}, ch:{number}} pos Position to query for mode
+     * @param {!CodeMirror} cm CodeMirror instance
+     * @param {!{line:number, ch:number}} pos Position to query for mode
      * @return {mode:{Object}, name:string}
      */
     function getModeAt(cm, pos) {
@@ -153,6 +223,8 @@ define(function (require, exports, module) {
 
     exports.movePrevToken           = movePrevToken;
     exports.moveNextToken           = moveNextToken;
+    exports.isAtStart               = isAtStart;
+    exports.isAtEnd                 = isAtEnd;
     exports.moveSkippingWhitespace  = moveSkippingWhitespace;
     exports.getInitialContext       = getInitialContext;
     exports.offsetInToken           = offsetInToken;

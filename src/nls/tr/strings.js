@@ -145,8 +145,8 @@ define({
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Girintiyi tab karakterleriyle değiştirmek için tıklayın",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Girintide kullanılacak boşluk sayısını değiştirmek için tıklayın",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Tab karakter genişliğini değiştirmek için tıklayın",
-    "STATUSBAR_SPACES"                      : "Boşluk",
-    "STATUSBAR_TAB_SIZE"                    : "Tab Boyutu",
+    "STATUSBAR_SPACES"                      : "Boşluk:",
+    "STATUSBAR_TAB_SIZE"                    : "Tab Boyutu:",
     "STATUSBAR_LINE_COUNT"                  : "{0} Satır",
 
     /**
@@ -155,6 +155,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "Dosya",
+    "CMD_FILE_NEW_UNTITLED"               : "Yeni",
     "CMD_FILE_NEW"                        : "Yeni Dosya",
     "CMD_FILE_NEW_FOLDER"                 : "Yeni Klasör",
     "CMD_FILE_OPEN"                       : "Aç\u2026",
@@ -171,6 +172,8 @@ define({
     "CMD_EXTENSION_MANAGER"               : "Eklenti Yöneticisi\u2026",
     "CMD_FILE_DELETE"                     : "Sil",
     "CMD_QUIT"                            : "Çık",
+    // Used in native File menu on Windows
+    "CMD_EXIT"                            : "Çıkış",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Düzenle",
@@ -184,15 +187,6 @@ define({
     "CMD_SPLIT_SEL_INTO_LINES"            : "Seçileni Satırlara Böl",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Sonraki Satıra İmleç Ekle",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Önceki Satıra İmleç Ekle",
-    "CMD_FIND"                            : "Bul",
-    "CMD_FIND_IN_FILES"                   : "Dosyalarda Bul",
-    "CMD_FIND_IN_SUBTREE"                 : "\u2026içinde bul",
-    "CMD_FIND_NEXT"                       : "Sonrakini Bul",
-    "CMD_FIND_PREVIOUS"                   : "Öncekini Bul",
-    "CMD_FIND_ALL_AND_SELECT"             : "Hepsini Bul ve Seç",
-    "CMD_ADD_NEXT_MATCH"                  : "Sonraki Eşleşmeyi Seçime Ekle",
-    "CMD_SKIP_CURRENT_MATCH"              : "Atla ve Sonraki Eşleşmeyi Ekle",
-    "CMD_REPLACE"                         : "Değiştir",
     "CMD_INDENT"                          : "Girinti Ekle",
     "CMD_UNINDENT"                        : "Girintiyi Geri Al",
     "CMD_DUPLICATE"                       : "Çoğalt",
@@ -203,6 +197,19 @@ define({
     "CMD_LINE_DOWN"                       : "Satırı Aşağıya Taşı",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Parantezleri Otomatik Tamamla",
     "CMD_SHOW_CODE_HINTS"                 : "Kod İpuçlarını Göster",
+    
+    // Search menu commands
+    "FIND_MENU"                           : "Bul",
+    "CMD_FIND"                            : "Bul",
+    "CMD_FIND_FIELD_PLACEHOLDER"          : "Bul\u2026",
+    "CMD_FIND_NEXT"                       : "Sonrakini Bul",
+    "CMD_FIND_PREVIOUS"                   : "Öncekini Bul",
+    "CMD_FIND_ALL_AND_SELECT"             : "Hepsini Bul ve Seç",
+    "CMD_ADD_NEXT_MATCH"                  : "Sonraki Eşleşmeyi Seçime Ekle",
+    "CMD_SKIP_CURRENT_MATCH"              : "Atla ve Sonraki Eşleşmeyi Ekle",
+    "CMD_FIND_IN_FILES"                   : "Dosyalarda Bul",
+    "CMD_FIND_IN_SUBTREE"                 : "\u2026içinde bul",
+    "CMD_REPLACE"                         : "Değiştir",
      
     // View menu commands
     "VIEW_MENU"                           : "Göster",
@@ -279,6 +286,9 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "'{0}' gibi özel karakterler %-kodlanması gerekiyor.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ana URL'yi işlerken bilinmeyen hata",
     
+    // Extension Management strings
+    // For NOT_FOUND_ERR, see generic strings above
+    "EXTENSION_MANAGER_TITLE"              : "Eklenti Yöneticisi",
     
     // extensions/default/DebugCommands
     "DEBUG_MENU"                           : "Ayıkla",

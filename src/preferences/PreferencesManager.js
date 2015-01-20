@@ -22,7 +22,7 @@
  */
 
 
-/*global define, $, localStorage, brackets, console */
+/*global define, localStorage, console */
 /*unittests: Preferences Manager */
 
 /**
@@ -34,7 +34,6 @@ define(function (require, exports, module) {
     
     var OldPreferenceStorage    = require("preferences/PreferenceStorage").PreferenceStorage,
         AppInit                 = require("utils/AppInit"),
-        Async                   = require("utils/Async"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
@@ -94,7 +93,7 @@ define(function (require, exports, module) {
      */
     function getClientID(module) {
         var paths = exports._getExtensionPaths();
-        var pathExp, pathUrl, clientID;
+        var pathUrl, clientID;
 
         paths.some(function (path) {
             if (module.uri.toLocaleLowerCase().indexOf(path.toLocaleLowerCase()) === 0) {
@@ -222,11 +221,11 @@ define(function (require, exports, module) {
     // New code follows. The code above (with the exception of the imports) is
     // deprecated.
     
-    var currentEditedFile       = null,
+    var currentFilename         = null, // the filename currently being edited
+        currentLanguageId       = null, // the language id of the file currently being edited
         projectDirectory        = null,
         projectScopeIsIncluded  = true;
 
-    
     /**
      * @private
      * 
@@ -237,7 +236,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if the project Scope should be included.
      */
     function _includeProjectScope(filename) {
-        filename = filename || currentEditedFile;
+        filename = filename || currentFilename;
         if (!filename || !projectDirectory) {
             return false;
         }
@@ -252,8 +251,6 @@ define(function (require, exports, module) {
     function getUserPrefFile() {
         return PreferencesImpl.userPrefFile;
     }
-    
-
     
     /**
      * @private
@@ -286,20 +283,6 @@ define(function (require, exports, module) {
         _toggleProjectScope();
         PreferencesImpl.projectPathLayer.setPrefFilePath(settingsFile);
         PreferencesImpl.projectStorage.setPath(settingsFile);
-    }
-    
-    /**
-     * @private
-     * 
-     * This is used internally within Brackets for the EditorManager to signal
-     * to the preferences what the currently edited file is.
-     * 
-     * @param {string} currentFile Full path to currently edited file
-     */
-    function _setCurrentEditingFile(currentFile) {
-        currentEditedFile = currentFile;
-        _toggleProjectScope();
-        PreferencesImpl.manager.setDefaultFilename(currentFile);
     }
     
     /**
@@ -429,25 +412,73 @@ define(function (require, exports, module) {
     /**
      * @private
      * 
-     * Normalizes the context object to be something that the PreferencesSystem
-     * understands. This is how we support CURRENT_FILE and CURRENT_PROJECT
-     * preferences.
-     * 
-     * @param {Object|string} context CURRENT_FILE, CURRENT_PROJECT or a filename
+     * Creates a context based on the specified filename and language.
+     *
+     * @param {string=} filename Filename to create the context with.
+     * @param {string=} languageId Language ID to create the context with.
      */
-    function _normalizeContext(context) {
-        if (typeof context === "string") {
-            context = {
-                filename: context
-            };
-            context.scopeOrder = _includeProjectScope(context.filename) ?
-                                    scopeOrderWithProject :
-                                    scopeOrderWithoutProject;
+    function _buildContext(filename, languageId) {
+        var ctx = {};
+        if (filename) {
+            ctx.path = filename;
+        } else {
+            ctx.path = currentFilename;
         }
-        return context;
+        if (languageId) {
+            ctx.language = languageId;
+        } else {
+            ctx.language = currentLanguageId;
+        }
+        ctx.scopeOrder = _includeProjectScope(ctx.path) ?
+                        scopeOrderWithProject :
+                        scopeOrderWithoutProject;
+        return ctx;
+    }
+
+    function _getContext(context) {
+        context = context || {};
+        return _buildContext(context.path, context.language);
+    }
+
+    /**
+     * @private
+     * 
+     * This is used internally within Brackets for the EditorManager to signal
+     * to the preferences what the currently edited file is.
+     * 
+     * @param {string} newFilename Full path to currently edited file
+     */
+    function _setCurrentFile(newFilename) {
+        var oldFilename = currentFilename;
+        if (oldFilename === newFilename) {
+            return;
+        }
+        currentFilename = newFilename;
+        _toggleProjectScope();
+        PreferencesImpl.manager.signalContextChanged(_buildContext(oldFilename, currentLanguageId),
+                                                     _buildContext(newFilename, currentLanguageId));
     }
     
-    PreferencesImpl.manager.contextNormalizer = _normalizeContext;
+    /**
+     * @private
+     * This function is used internally to set the current language of the document.
+     * Both at the moment of opening the file and when the language is manually
+     * overriden.
+     *
+     * @param {string} newLanguageId The id of the language of the current editor.
+     */
+    function _setCurrentLanguage(newLanguageId) {
+        var oldLanguageId = currentLanguageId;
+        if (oldLanguageId === newLanguageId) {
+            return;
+        }
+        currentLanguageId = newLanguageId;
+        PreferencesImpl.manager.signalContextChanged(_buildContext(currentFilename, oldLanguageId),
+                                                     _buildContext(currentFilename, newLanguageId));
+    }
+    
+
+    PreferencesImpl.manager.contextBuilder = _getContext;
     
     /**
      * @private
@@ -455,10 +486,9 @@ define(function (require, exports, module) {
      * Updates the CURRENT_PROJECT context to have the correct scopes.
      */
     function _updateCurrentProjectContext() {
-        var context = PreferencesImpl.manager.buildContext({});
-        delete context.filename;
-        scopeOrderWithProject = _adjustScopeOrderForProject(context.scopeOrder, true);
-        scopeOrderWithoutProject = _adjustScopeOrderForProject(context.scopeOrder, false);
+        var defaultScopeOrder = PreferencesImpl.manager._getScopeOrder({});
+        scopeOrderWithProject = _adjustScopeOrderForProject(defaultScopeOrder, true);
+        scopeOrderWithoutProject = _adjustScopeOrderForProject(defaultScopeOrder, false);
         CURRENT_PROJECT.scopeOrder = scopeOrderWithProject;
     }
     
@@ -532,35 +562,19 @@ define(function (require, exports, module) {
         }
     }
     
-    /**
-     * Return a promise that is resolved when all preferences have been resolved,
-     * or rejected if any have been rejected.
-     * 
-     * @return {Promise} Resolved when the preferences are done saving.
-     */
-    function finalize() {
-        var promiseList = [
-                PreferencesImpl.managerReady,
-                PreferencesImpl.smUserScopeLoading,
-                PreferencesImpl.manager._finalize(),
-                PreferencesImpl.stateManager._finalize()
-            ],
-            identityFunc = function (promise) { return promise; };
-        
-        return Async.doSequentially(promiseList, identityFunc, false);
-    }
-    
     AppInit.appReady(function () {
         PreferencesImpl.manager.resumeChangeEvents();
     });
     
     // Private API for unit testing and use elsewhere in Brackets core
     exports._isUserScopeCorrupt     = PreferencesImpl.isUserScopeCorrupt;
-    exports._manager                = PreferencesImpl.manager;
-    exports._setCurrentEditingFile  = _setCurrentEditingFile;
+    exports._setCurrentFile         = _setCurrentFile;
+    exports._setCurrentLanguage     = _setCurrentLanguage;
     exports._setProjectSettingsFile = _setProjectSettingsFile;
     exports._smUserScopeLoading     = PreferencesImpl.smUserScopeLoading;
     exports._stateProjectLayer      = PreferencesImpl.stateProjectLayer;
+    exports._reloadUserPrefs        = PreferencesImpl.reloadUserPrefs;
+    exports._buildContext           = _buildContext;
     
     // Public API
     
@@ -580,7 +594,6 @@ define(function (require, exports, module) {
     exports.setValueAndSave     = setValueAndSave;
     exports.getViewState        = getViewState;
     exports.setViewState        = setViewState;
-    exports.finalize            = finalize;
     exports.addScope            = PreferencesImpl.manager.addScope.bind(PreferencesImpl.manager);
     exports.stateManager        = PreferencesImpl.stateManager;
     exports.FileStorage         = PreferencesBase.FileStorage;

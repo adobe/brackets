@@ -22,7 +22,6 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, node: true */
-/*global */
 
 (function () {
     "use strict";
@@ -151,7 +150,8 @@
             
             // ignore most HTTP methods and files that we're not watching
             if (("GET" !== req.method && "HEAD" !== req.method) || !hasListener) {
-                return next();
+                next();
+                return;
             }
             
             // pause the request and wait for listeners to possibly respond
@@ -193,7 +193,7 @@
 
                 // resume the HTTP ServerResponse, pass to next middleware if 
                 // no response data was passed
-                resume(!resData);
+                resume(!resData.body);
             };
 
             location.hostname = address.address;
@@ -312,8 +312,7 @@
      *     Each path should begin with a forward slash "/".
      */
     function _cmdSetRequestFilterPaths(root, paths) {
-        var rootPath = normalizeRootPath(root),
-            pathKey  = getPathKey(root),
+        var pathKey = getPathKey(root),
             rewritePaths = {};
 
         // reset list of filtered paths for each call to setRequestFilterPaths

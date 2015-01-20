@@ -24,8 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, xit, expect, beforeEach, afterEach,
-waitsFor, runs, $, brackets, waitsForDone, spyOn, jasmine */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, spyOn, jasmine */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -50,13 +49,16 @@ define(function (require, exports, module) {
         FileSystem                = require("filesystem/FileSystem"),
         Strings                   = require("strings"),
         StringUtils               = require("utils/StringUtils"),
+        LocalizationUtils         = require("utils/LocalizationUtils"),
         mockRegistryText          = require("text!spec/ExtensionManager-test-files/mockRegistry.json"),
+        mockRegistryThemesText    = require("text!spec/ExtensionManager-test-files/mockRegistryThemes.json"),
         mockRegistryForSearch     = require("text!spec/ExtensionManager-test-files/mockRegistryForSearch.json"),
         mockExtensionList         = require("text!spec/ExtensionManager-test-files/mockExtensionList.json"),
         mockRegistry;
     
     describe("ExtensionManager", function () {
-        var mockId, mockSettings, origRegistryURL, origExtensionUrl, removedPath;
+        var mockId, mockSettings, origRegistryURL, origExtensionUrl, removedPath,
+            view, model, fakeLoadDeferred, modelDisposed;
         
         beforeEach(function () {
             // Use fake URLs for the registry (useful if the registry isn't actually currently
@@ -97,7 +99,7 @@ define(function (require, exports, module) {
         afterEach(function () {
             $.mockjaxClear(mockId);
             ExtensionManager._reset();
-            $(ExtensionManager).off(".unit-test");
+            ExtensionManager.off(".unit-test");
             brackets.config.extension_registry = origRegistryURL;
             brackets.config.extension_url = origExtensionUrl;
         });
@@ -105,13 +107,13 @@ define(function (require, exports, module) {
         function mockLoadExtensions(names, fail) {
             var numStatusChanges = 0;
             runs(function () {
-                $(ExtensionManager).on("statusChange.mock-load", function () {
+                ExtensionManager.on("statusChange.mock-load", function () {
                     numStatusChanges++;
                 });
                 var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                 names = names || ["default/mock-extension-1", "dev/mock-extension-2", "user/mock-legacy-extension"];
                 names.forEach(function (name) {
-                    $(ExtensionLoader).triggerHandler(fail ? "loadFailed" : "load", mockPath + "/" + name);
+                    ExtensionLoader.trigger(fail ? "loadFailed" : "load", mockPath + "/" + name);
                 });
             });
             
@@ -119,7 +121,7 @@ define(function (require, exports, module) {
             waitsFor(function () { return numStatusChanges === names.length; }, "ExtensionManager status changes");
             
             runs(function () {
-                $(ExtensionManager).off(".mock-load");
+                ExtensionManager.off(".mock-load");
             });
         }
         
@@ -156,9 +158,55 @@ define(function (require, exports, module) {
             };
         }
         
+        function setupExtensionManagerViewTests(context) {
+            context.addMatchers({
+                toHaveText: function (expected) {
+                    var notText = this.isNot ? " not" : "";
+                    this.message = function () {
+                        return "Expected view" + notText + " to contain text " + expected;
+                    };
+                    return SpecRunnerUtils.findDOMText(this.actual.$el, expected);
+                },
+                toHaveLink: function (expected) {
+                    var notText = this.isNot ? " not" : "";
+                    this.message = function () {
+                        return "Expected view" + notText + " to contain link " + expected;
+                    };
+                    return SpecRunnerUtils.findDOMText(this.actual.$el, expected, true);
+                }
+            });
+            spyOn(InstallExtensionDialog, "installUsingDialog").andCallFake(function (url) {
+                var id = url.match(/fake-repository\.com\/([^\/]+)/)[1];
+                mockLoadExtensions(["user/" + id]);
+            });
+        }
+
+        function cleanupExtensionManagerViewTests() {
+            if (view) {
+                view.$el.remove();
+                view = null;
+            }
+            if (model) {
+                model.dispose();
+            }
+        }
+            
+        // Sets up the view using the normal (mock) ExtensionManager data.
+        function setupViewWithMockData(ModelClass) {
+            runs(function () {
+                view = new ExtensionManagerView();
+                model = new ModelClass();
+                modelDisposed = false;
+                waitsForDone(view.initialize(model), "view initializing");
+                view.$el.appendTo(document.body);
+            });
+            runs(function () {
+                spyOn(view.model, "dispose").andCallThrough();
+            });
+        }
+        
         describe("ExtensionManager", function () {
             it("should download the extension list from the registry", function () {
-                var registry;
                 runs(function () {
                     waitsForDone(ExtensionManager.downloadRegistry(), "fetching registry");
                 });
@@ -172,10 +220,10 @@ define(function (require, exports, module) {
             });
             
             it("should trigger a registryUpdate event when updating the extension list from the registry", function () {
-                var registry, registryUpdateSpy;
+                var registryUpdateSpy;
                 runs(function () {
                     registryUpdateSpy = jasmine.createSpy();
-                    $(ExtensionManager).on("registryUpdate", registryUpdateSpy);
+                    ExtensionManager.on("registryUpdate", registryUpdateSpy);
                     waitsForDone(ExtensionManager.downloadRegistry(), "fetching registry");
                 });
                 mockLoadExtensions();
@@ -257,7 +305,6 @@ define(function (require, exports, module) {
             it("should set the title for a legacy extension based on its folder name", function () {
                 mockLoadExtensions();
                 runs(function () {
-                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                     expect(ExtensionManager.extensions["mock-legacy-extension"].installInfo.metadata.title).toEqual("mock-legacy-extension");
                 });
             });
@@ -267,7 +314,6 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(ExtensionManager.extensions["mock-extension-1"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_DEFAULT);
                     expect(ExtensionManager.extensions["mock-extension-2"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_DEV);
-                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                     expect(ExtensionManager.extensions["mock-legacy-extension"].installInfo.locationType).toEqual(ExtensionManager.LOCATION_USER);
                 });
             });
@@ -275,7 +321,7 @@ define(function (require, exports, module) {
             it("should raise a statusChange event when an extension is loaded", function () {
                 var spy = jasmine.createSpy();
                 runs(function () {
-                    $(ExtensionManager).on("statusChange.unit-test", spy);
+                    ExtensionManager.on("statusChange.unit-test", spy);
                     mockLoadExtensions(["default/mock-extension-1"]);
                 });
                 runs(function () {
@@ -286,11 +332,10 @@ define(function (require, exports, module) {
             it("should raise a statusChange event when a legacy extension is loaded, with its path as the id", function () {
                 var spy = jasmine.createSpy();
                 runs(function () {
-                    $(ExtensionManager).on("statusChange.unit-test", spy);
+                    ExtensionManager.on("statusChange.unit-test", spy);
                     mockLoadExtensions(["user/mock-legacy-extension"]);
                 });
                 runs(function () {
-                    var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files");
                     expect(spy).toHaveBeenCalledWith(jasmine.any(Object), "mock-legacy-extension");
                 });
             });
@@ -301,7 +346,7 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/mock-extension-3"]);
                 });
                 runs(function () {
-                    $(ExtensionManager).on("statusChange.unit-test", spy);
+                    ExtensionManager.on("statusChange.unit-test", spy);
                     waitsForDone(ExtensionManager.remove("mock-extension-3"));
                 });
                 runs(function () {
@@ -402,6 +447,178 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("Auto-Install Extensions", function () {
+
+            function lookupFileName(zipArray, fileName) {
+                return zipArray.some(function (zip) {
+                    return (zip.file.name === fileName);
+                });
+            }
+
+            function addZipFilesToArray(array, result) {
+                result.installZips.every(function (zip) {
+                    array[zip.info.metadata.name] = zip.info.metadata.version;
+                });
+                result.updateZips.every(function (zip) {
+                    array[zip.info.metadata.name] = zip.info.metadata.version;
+                });
+            }
+
+            it("should correctly handle auto-install extension zip files", function () {
+                var promiseFail    = false,
+                    promiseResult  = null,
+                    autoExtensions = {},
+                    dirPath        = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions1");
+
+                // Should find 1 install zip
+                runs(function () {
+                    ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
+                        .done(function (result) {
+                            addZipFilesToArray(autoExtensions, result);
+                            promiseResult = result;
+                        })
+                        .fail(function (err) {
+                            promiseFail = true;
+                            expect("[_getAutoInstallFiles] promise rejected with: " + err).toBe("(expected resolved instead)");
+                        });
+                });
+
+                waitsFor(function () {
+                    return promiseResult || promiseFail;
+                }, "_getAutoInstallFiles success [_getAutoInstallFiles]", 1000);
+
+                runs(function () {
+                    expect(promiseResult).toBeTruthy();
+                    if (promiseResult) {
+                        expect(promiseResult.installZips.length).toBe(1);
+                        expect(promiseResult.updateZips.length).toBe(0);
+
+                        // Extension
+                        expect(lookupFileName(promiseResult.installZips, "mock-extension-v1.0.0.zip")).toBeTruthy();
+
+                        // Not extensions
+                        expect(lookupFileName(promiseResult.installZips, "ignore-this-folder")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "not-an-extension.zip")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "should-be-ignored.txt")).toBeFalsy();
+                    }
+                });
+
+                // Subsequent run of first folder should find 0 install zips
+                runs(function () {
+                    promiseFail   = false;
+                    promiseResult = null;
+                    ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
+                        .done(function (result) {
+                            addZipFilesToArray(autoExtensions, result);
+                            promiseResult = result;
+                        })
+                        .fail(function (err) {
+                            promiseFail = true;
+                            expect("[_getAutoInstallFiles] promise rejected with: " + err).toBe("(expected resolved instead)");
+                        });
+                });
+
+                waitsFor(function () {
+                    return promiseResult || promiseFail;
+                }, "_getAutoInstallFiles success [_getAutoInstallFiles]", 1000);
+
+                runs(function () {
+                    expect(promiseResult).toBeTruthy();
+                    if (promiseResult) {
+                        expect(promiseResult.installZips.length).toBe(0);
+                        expect(promiseResult.updateZips.length).toBe(0);
+
+                        // Extension already installed
+                        expect(lookupFileName(promiseResult.installZips, "mock-extension-v1.0.0.zip")).toBeFalsy();
+
+                        // Not extensions
+                        expect(lookupFileName(promiseResult.installZips, "ignore-this-folder")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "not-an-extension.zip")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "should-be-ignored.txt")).toBeFalsy();
+                    }
+                });
+
+            });
+
+            it("should detect auto-install extension is an update", function () {
+                var promiseFail    = false,
+                    promiseResult  = null,
+                    autoExtensions = {},
+                    dirPath        = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions2");
+
+                runs(function () {
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.1"]) };
+                    var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
+                    ExtensionManager._setExtensions(mockInstallInfo);
+
+                    ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
+                        .done(function (result) {
+                            addZipFilesToArray(autoExtensions, result);
+                            promiseResult = result;
+                        })
+                        .fail(function (err) {
+                            promiseFail = true;
+                            expect("[_getAutoInstallFiles] promise rejected with: " + err).toBe("(expected resolved instead)");
+                        });
+                });
+
+                waitsFor(function () {
+                    return promiseResult || promiseFail;
+                }, "_getAutoInstallFiles success [_getAutoInstallFiles]", 1000);
+
+                runs(function () {
+                    expect(promiseResult).toBeTruthy();
+                    if (promiseResult) {
+                        expect(promiseResult.installZips.length).toBe(0);
+                        expect(promiseResult.updateZips.length).toBe(1);
+
+                        // Extension
+                        expect(lookupFileName(promiseResult.updateZips, "mock-extension-v1.1.1.zip")).toBeTruthy();
+                    }
+                });
+            });
+
+            it("should correctly handle multiple auto-install extension zip files of same extension", function () {
+                var promiseFail    = false,
+                    promiseResult  = null,
+                    autoExtensions = {},
+                    dirPath        = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/auto-install-extensions3");
+
+                // There are 3 zips of same extension using 3 different versions. Only the latest should be returned.
+                runs(function () {
+                    ExtensionManager._getAutoInstallFiles(dirPath, autoExtensions)
+                        .done(function (result) {
+                            addZipFilesToArray(autoExtensions, result);
+                            promiseResult = result;
+                        })
+                        .fail(function (err) {
+                            promiseFail = true;
+                            expect("[_getAutoInstallFiles] promise rejected with: " + err).toBe("(expected resolved instead)");
+                        });
+                });
+
+                waitsFor(function () {
+                    return promiseResult || promiseFail;
+                }, "_getAutoInstallFiles success [_getAutoInstallFiles]", 1000);
+
+                runs(function () {
+                    expect(promiseResult).toBeTruthy();
+                    if (promiseResult) {
+                        expect(promiseResult.installZips.length).toBe(1);
+                        expect(promiseResult.updateZips.length).toBe(0);
+
+                        // Latest version
+                        // Note that files are named to try to force code to hit desired branches, but order is arbitrary.
+                        expect(lookupFileName(promiseResult.installZips, "b-mock-extension-v1.1.1.zip")).toBeTruthy();
+
+                        // Older versions
+                        expect(lookupFileName(promiseResult.installZips, "a-mock-extension-v1.0.0.zip")).toBeFalsy();
+                        expect(lookupFileName(promiseResult.installZips, "c-mock-extension-v1.1.0.zip")).toBeFalsy();
+                    }
+                });
+            });
+        });
+
         describe("ExtensionManagerView Model", function () {
             describe("when initialized from registry", function () {
                 var model;
@@ -486,14 +703,45 @@ define(function (require, exports, module) {
                 
                 it("should trigger filter event when filter changes", function () {
                     var gotEvent = false;
-                    $(model).on("filter", function () {
+                    model.on("filter", function () {
                         gotEvent = true;
                     });
                     model.filter("uniq1");
                     expect(gotEvent).toBe(true);
                 });
             });
-            
+
+
+            describe("when initialized themes from registry", function () {
+                var model;
+
+                beforeEach(function () {
+                    runs(function () {
+                        mockRegistry = JSON.parse(mockRegistryThemesText);
+                        model = new ExtensionManagerViewModel.ThemesViewModel();
+                        waitsForDone(model.initialize(), "model initialization");
+                    });
+                    runs(function () {
+                        // Mock load some extensions, so we can make sure they don't show up in the filtered model in this case.
+                        mockLoadExtensions();
+                    });
+                });
+
+                afterEach(function () {
+                    model.dispose();
+                    model = null;
+                });
+
+                it("should initialize itself from the extension list", function () {
+                    expect(model.extensions).toEqual(ExtensionManager.extensions);
+                });
+
+                it("should start with the full set sorted in reverse publish date order", function () {
+                    expect(model.filterSet).toEqual(["theme-1", "theme-2"]);
+                });
+            });
+
+
             describe("when initialized from local extension list", function () {
                 var model, origExtensions;
                 
@@ -530,7 +778,7 @@ define(function (require, exports, module) {
                 it("should raise an event when an extension is installed", function () {
                     var calledId;
                     runs(function () {
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                     });
@@ -552,7 +800,7 @@ define(function (require, exports, module) {
                 it("should raise an event when an extension is removed", function () {
                     var calledId;
                     runs(function () {
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                         waitsForDone(ExtensionManager.remove("registered-extension"));
@@ -565,7 +813,7 @@ define(function (require, exports, module) {
                 it("should mark an extension for removal and raise an event without actually removing it", function () {
                     var id = "registered-extension", calledId;
                     runs(function () {
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                         ExtensionManager.markForRemoval(id, true);
@@ -580,7 +828,7 @@ define(function (require, exports, module) {
                     var id = "registered-extension", calledId;
                     runs(function () {
                         ExtensionManager.markForRemoval(id, true);
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                         ExtensionManager.markForRemoval(id, false);
@@ -595,7 +843,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         ExtensionManager.markForRemoval("registered-extension", true);
                         ExtensionManager.markForRemoval("Z-capital-extension", false);
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             removedIds[id] = true;
                             removedPaths[removedPath] = true;
                         });
@@ -615,7 +863,7 @@ define(function (require, exports, module) {
                 it("should mark an extension for update and raise an event", function () {
                     var id = "registered-extension", calledId;
                     runs(function () {
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                         ExtensionManager.updateFromDownload({
@@ -635,7 +883,7 @@ define(function (require, exports, module) {
                         file = FileSystem.getFileForPath(filename),
                         calledId;
                     runs(function () {
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                         ExtensionManager.updateFromDownload({
@@ -655,7 +903,7 @@ define(function (require, exports, module) {
                 it("should change an extension marked for removal to update raise an event", function () {
                     var id = "registered-extension", calledId;
                     runs(function () {
-                        $(model).on("change", function (e, id) {
+                        model.on("change", function (e, id) {
                             calledId = id;
                         });
                         ExtensionManager.markForRemoval(id, true);
@@ -692,7 +940,7 @@ define(function (require, exports, module) {
                         waitsForDone(ExtensionManager.updateExtensions());
                     });
                     runs(function () {
-                        expect(file.unlink).not.toHaveBeenCalled();
+                        expect(file.unlink).toHaveBeenCalled();
                         expect(Package.installUpdate).toHaveBeenCalledWith(filename, id);
                     });
                 });
@@ -706,56 +954,140 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
-        describe("ExtensionManagerView", function () {
-            var testWindow, view, model, fakeLoadDeferred, modelDisposed;
-            
-            // Sets up the view using the normal (mock) ExtensionManager data.
-            function setupViewWithMockData(ModelClass) {
-                runs(function () {
-                    view = new ExtensionManagerView();
-                    model = new ModelClass();
-                    modelDisposed = false;
-                    waitsForDone(view.initialize(model), "view initializing");
-                    view.$el.appendTo(document.body);
-                });
-                runs(function () {
-                    spyOn(view.model, "dispose").andCallThrough();
-                });
+                
+        describe("Local File Install", function () {
+            var didReload;
+
+            function clickOk() {
+                var $okBtn = $(".install-extension-dialog.instance .dialog-button[data-button-id='ok']");
+                $okBtn.click();
             }
-            
+
             beforeEach(function () {
-                this.addMatchers({
-                    toHaveText: function (expected) {
-                        var notText = this.isNot ? " not" : "";
-                        this.message = function () {
-                            return "Expected view" + notText + " to contain text " + expected;
-                        };
-                        return SpecRunnerUtils.findDOMText(this.actual.$el, expected);
-                    },
-                    toHaveLink: function (expected) {
-                        var notText = this.isNot ? " not" : "";
-                        this.message = function () {
-                            return "Expected view" + notText + " to contain link " + expected;
-                        };
-                        return SpecRunnerUtils.findDOMText(this.actual.$el, expected, true);
+                // Mock reloading the app so we don't actually reload :)
+                didReload = false;
+                spyOn(CommandManager, "execute").andCallFake(function (id) {
+                    if (id === Commands.APP_RELOAD) {
+                        didReload = true;
+                    } else {
+                        CommandManager.execute.apply(this, arguments);
                     }
                 });
-                spyOn(InstallExtensionDialog, "installUsingDialog").andCallFake(function (url) {
-                    var id = url.match(/fake-repository\.com\/([^\/]+)/)[1];
-                    mockLoadExtensions(["user/" + id]);
+            });
+
+            it("should set flag to keep local files for new installs", function () {
+                var filename = "/path/to/downloaded/file.zip",
+                    file = FileSystem.getFileForPath(filename),
+                    result;
+
+                runs(function () {
+                    spyOn(file, "unlink");
+                    
+                    // Mock install
+                    var d = $.Deferred().resolve({});
+                    spyOn(Package, "installFromPath").andReturn(d.promise());
+
+                    var promise = InstallExtensionDialog.installUsingDialog(file);
+                    promise.done(function (_result) {
+                        result = _result;
+                    });
+
+                    clickOk();
+                    waitsForDone(promise);
                 });
+
+                runs(function () {
+                    expect(Package.installFromPath).toHaveBeenCalledWith(filename);
+                    expect(result.keepFile).toBe(true);
+                    expect(file.unlink).not.toHaveBeenCalled();
+                });
+            });
+
+            it("should set flag to keep local files for updates", function () {
+                var id = "mock-extension",
+                    filename = "/path/to/downloaded/file.zip",
+                    file = FileSystem.getFileForPath(filename),
+                    result,
+                    dialogDeferred = new $.Deferred(),
+                    $mockDlg,
+                    didClose;
+
+                // Mock update
+                var installResult = {
+                    installationStatus: Package.InstallationStatuses.NEEDS_UPDATE,
+                    name: id,
+                    localPath: filename
+                };
+
+                // Mock dialog
+                spyOn(Dialogs, "showModalDialog").andCallFake(function () {
+                    $mockDlg = $("<div/>");
+                    didClose = false;
+
+                    return {
+                        getElement: function () { return $mockDlg; },
+                        close: function () { didClose = true; }
+                    };
+                });
+
+                spyOn(file, "unlink");
+                
+                // Mock installs to avoid calling into node ExtensionManagerDomain
+                spyOn(Package, "installFromPath").andCallFake(function () {
+                    return new $.Deferred().resolve(installResult).promise();
+                });
+                spyOn(Package, "installUpdate").andCallFake(function () {
+                    return new $.Deferred().resolve(installResult).promise();
+                });
+
+                runs(function () {
+                    // Mimic drag and drop
+                    InstallExtensionDialog.updateUsingDialog(file)
+                        .done(function (_result) {
+                            result = _result;
+                            
+                            // Mark for update
+                            ExtensionManager.updateFromDownload(result);
+                            
+                            dialogDeferred.resolve();
+                        })
+                        .fail(dialogDeferred.reject);
+
+                    clickOk();
+                    waitsForDone(dialogDeferred.promise(), "InstallExtensionDialog.updateUsingDialog");
+                });
+
+                runs(function () {
+                    // InstallExtensionDialog should set keepFile=true
+                    expect(result.keepFile).toBe(true);
+                    
+                    // Run update, creates dialog DIALOG_ID_CHANGE_EXTENSIONS
+                    ExtensionManagerDialog._performChanges();
+                    $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_OK);
+                });
+                
+                waitsFor(function () {
+                    return didClose;
+                }, "DIALOG_ID_CHANGE_EXTENSIONS closed");
+
+                runs(function () {
+                    expect(file.unlink).not.toHaveBeenCalled();
+                    expect(didReload).toBe(true);
+                });
+            });
+
+        });
+        
+        describe("ExtensionManagerView", function () {
+
+            beforeEach(function () {
+                setupExtensionManagerViewTests(this);
+                spyOn(brackets, "getLocale").andReturn("en");
             });
                 
             
             afterEach(function () {
-                if (view) {
-                    view.$el.remove();
-                    view = null;
-                }
-                if (model) {
-                    model.dispose();
-                }
+                cleanupExtensionManagerViewTests();
             });
             
             describe("when showing registry entries", function () {
@@ -772,8 +1104,7 @@ define(function (require, exports, module) {
                             
                             // Simple fields
                             [item.metadata.version,
-                                item.metadata.author && item.metadata.author.name,
-                                item.metadata.description]
+                                item.metadata.author && item.metadata.author.name]
                                 .forEach(function (value) {
                                     if (value) {
                                         expect(view).toHaveText(value);
@@ -784,13 +1115,40 @@ define(function (require, exports, module) {
                             }
                             
                             // Array-valued fields
-                            [item.metadata.keywords, item.metadata.categories].forEach(function (arr) {
+                            [item.metadata.categories].forEach(function (arr) {
                                 if (arr) {
                                     arr.forEach(function (value) {
                                         expect(view).toHaveText(value);
                                     });
                                 }
                             });
+                        });
+                    });
+                });
+                
+                it("should display original description", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    runs(function () {
+                        _.forEach(mockRegistry, function (item) {
+                            if (item.metadata.description) {
+                                if (StringUtils.truncate(item.metadata.description, 200) === undefined) {
+                                    expect(view).toHaveText(item.metadata.description);
+                                }
+                            }
+                        });
+                    });
+                });
+                
+                it("should display shortened description", function () {
+                    setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                    runs(function () {
+                        _.forEach(mockRegistry, function (item) {
+                            if (item.metadata.description) {
+                                var shortDescription = StringUtils.truncate(item.metadata.description, 200);
+                                if (shortDescription !== undefined) {
+                                    expect(view).toHaveText(shortDescription);
+                                }
+                            }
                         });
                     });
                 });
@@ -837,7 +1195,7 @@ define(function (require, exports, module) {
                 
                 it("should show disabled install button if requires newer API version", function () {   // isCompatible: false, requiresNewer: true
                     runs(function () {
-                        mockRegistry = { "mock-extension": makeMockExtension([">0.100"]) };
+                        mockRegistry = { "mock-extension": makeMockExtension([">100.0"]) };
                         setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
@@ -871,7 +1229,7 @@ define(function (require, exports, module) {
                 
                 it("should show enabled install button if latest requires newer API version", function () { // isCompatible: true, isLatestVersion: false, requiresNewer: true
                     runs(function () {
-                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.100"]) };
+                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">100.0"]) };
                         setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
@@ -919,7 +1277,7 @@ define(function (require, exports, module) {
                 
                 it("should install latest compatible version", function () {
                     runs(function () {
-                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.2", ">0.100"]) };
+                        mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.2", ">100.0"]) };
                         setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
                     });
                     runs(function () {
@@ -966,7 +1324,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should show disabled update button for items whose available update requires newer API version", function () {   // isLatestVersion: false, requiresNewer: true
-                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.100"]) };
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">100.0"]) };
                     var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
                     ExtensionManager._setExtensions(mockInstallInfo);
                     setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
@@ -1191,8 +1549,7 @@ define(function (require, exports, module) {
                     mockLoadExtensions(["user/" + id]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
-                        var mockPath = SpecRunnerUtils.getTestPath("/spec/ExtensionManager-test-files/user/" + id),
-                            $button = $("button.remove[data-extension-id='" + id + "']", view.$el);
+                        var $button = $("button.remove[data-extension-id='" + id + "']", view.$el);
                         $button.click();
                         expect(ExtensionManager.isMarkedForRemoval(id)).toBe(true);
                     });
@@ -1229,7 +1586,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should show disabled update button for items whose available update requires newer API version", function () {   // isLatestVersion: false, requiresNewer: true
-                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">0.100"]) };
+                    mockRegistry = { "mock-extension": makeMockExtension([">0.1", ">100.0"]) };
                     var mockInstallInfo = { "mock-extension": { installInfo: makeMockInstalledVersion(mockRegistry["mock-extension"], "1.0.0") } };
                     ExtensionManager._setExtensions(mockInstallInfo);
                     waitsForDone(ExtensionManager.downloadRegistry()); // ensure mockRegistry integrated in
@@ -1326,6 +1683,45 @@ define(function (require, exports, module) {
                         ExtensionManager.extensions["mock-extension"].installInfo.metadata.version =
                             ExtensionManager.extensions["mock-extension"].registryInfo.metadata.version;
                         expect(ExtensionManager.cleanAvailableUpdates(availableUpdates).length).toBe(0);
+                    });
+                });
+
+                // i18n info
+                it("should show correct i18n info if the extension is translated in user's lang", function () {
+                    var mockInstallInfo = { "mock-extension-4": { installInfo: mockRegistry["mock-extension-4"] } };
+                    mockInstallInfo["mock-extension-4"].installInfo.metadata.i18n = ["zh-cn", "foo", "en"];
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
+                        var $extTranslated  = $(".ext-translated", view.$el),
+                            languages       = [LocalizationUtils.getLocalizedLabel("en"), "foo",  LocalizationUtils.getLocalizedLabel("zh-cn")];
+                        expect($extTranslated.length).toBe(1);
+                        expect($extTranslated.text()).toBe(StringUtils.format(Strings.EXTENSION_TRANSLATED_USER_LANG, languages.length));
+                        expect($extTranslated.attr("title")).toBe(StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, languages.join(", ")));
+                    });
+                });
+                it("should show correct i18n info if the extension is translated in some other languages", function () {
+                    var mockInstallInfo = { "mock-extension-4": { installInfo: mockRegistry["mock-extension-4"] } };
+                    mockInstallInfo["mock-extension-4"].installInfo.metadata.i18n = ["zh-cn"];
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
+                        var $extTranslated  = $(".ext-translated", view.$el),
+                            languages       = [LocalizationUtils.getLocalizedLabel("zh-cn")];
+                        expect($extTranslated.length).toBe(1);
+                        expect($extTranslated.text()).toBe(StringUtils.format(Strings.EXTENSION_TRANSLATED_GENERAL, languages.length));
+                        expect($extTranslated.attr("title")).toBe(StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, languages.join(", ")));
+                    });
+                });
+                it("should not show i18n info if the extension isn't translated", function () {
+                    var mockInstallInfo = { "mock-extension-4": { installInfo: mockRegistry["mock-extension-4"] } };
+                    mockInstallInfo["mock-extension-4"].installInfo.metadata.i18n = [];
+                    ExtensionManager._setExtensions(mockInstallInfo);
+                    setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
+                    runs(function () {
+                        var $extTranslated  = $(".ext-translated", view.$el);
+                        expect($extTranslated.length).toBe(0);
+                        expect($extTranslated.attr("title")).toBe(undefined);
                     });
                 });
 
@@ -1572,6 +1968,33 @@ define(function (require, exports, module) {
                             fakeLoadDeferred.resolve();
                             expect($(".registry", $dlg).length).toBe(1);
                         });
+                    });
+                });
+            });
+        });
+                
+        describe("ExtensionManagerView-i18n", function () {
+            
+            beforeEach(function () {
+                setupExtensionManagerViewTests(this);
+                spyOn(brackets, "getLocale").andReturn("fr");
+            });
+                
+            afterEach(function () {
+                cleanupExtensionManagerViewTests();
+            });
+            
+            it("should display localized description", function () {
+                setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                runs(function () {
+                    _.forEach(mockRegistry, function (item) {
+                        if (item.metadata["package-i18n"] &&
+                                item.metadata["package-i18n"].hasOwnProperty("fr") &&
+                                item.metadata["package-i18n"].fr.hasOwnProperty("description")) {
+                            expect(view).toHaveText(item.metadata["package-i18n"].fr.description);
+                            expect(view).toHaveText(item.metadata["package-i18n"].fr.title);
+                            expect(view).not.toHaveText(item.metadata["package-i18n"].fr.warnings);
+                        }
                     });
                 });
             });

@@ -24,8 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeFirst, afterLast, beforeEach, afterEach, waits,
-waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, runs, $, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";

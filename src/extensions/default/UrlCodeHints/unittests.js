@@ -23,18 +23,17 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
-    var DocumentManager     = brackets.getModule("document/DocumentManager"),
-        Editor              = brackets.getModule("editor/Editor").Editor,
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
-        SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
-        UrlCodeHints        = require("main");
+    var MasterDocumentManager     = brackets.getModule("document/DocumentManager"),
+        MasterMainViewManager     = brackets.getModule("view/MainViewManager"),
+        FileUtils                 = brackets.getModule("file/FileUtils"),
+        SpecRunnerUtils           = brackets.getModule("spec/SpecRunnerUtils"),
+        UrlCodeHints              = require("main");
 
 
     describe("Url Code Hinting", function () {
@@ -42,7 +41,7 @@ define(function (require, exports, module) {
         var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
             testHtmlPath    = extensionPath + "/testfiles/test.html",
             testCssPath     = extensionPath + "/testfiles/subfolder/test.css",
-            testWindow,
+            testScssPath    = extensionPath + "/testfiles/subfolder/test.scss",
             testDocument,
             testEditor,
             hintsObj;
@@ -52,7 +51,7 @@ define(function (require, exports, module) {
         // strategically so that they sort the same on all OS's (i.e. folders are listed
         // first, and then files), but this is not true for UrlCodeHints folder.
         var testfilesDirHints       = [ "subfolder/", "test.html"],
-            subfolderDirHints       = [ "chevron.png", "test.css", "test.js"],
+            subfolderDirHints       = [ "chevron.png", "test.css", "test.js", "test.scss"],
             UrlCodeHintsDirHintsMac = [ "../data.json", "../main.js", "../testfiles/", "../unittests.js"],
             UrlCodeHintsDirHints    = [ "../testfiles/", "../data.json", "../main.js", "../unittests.js"];
         
@@ -68,7 +67,7 @@ define(function (require, exports, module) {
 
         function setupTests(testFilePath) {
             runs(function () {
-                DocumentManager.getDocumentForPath(testFilePath).done(function (doc) {
+                MasterDocumentManager.getDocumentForPath(testFilePath).done(function (doc) {
                     testDocument = doc;
                 });
             });
@@ -80,7 +79,7 @@ define(function (require, exports, module) {
             // create Editor instance (containing a CodeMirror instance)
             runs(function () {
                 testEditor = createMockEditor(testDocument);
-                DocumentManager.setCurrentDocument(testDocument);
+                MasterMainViewManager._edit(MasterMainViewManager.ACTIVE_PANE, testDocument);
             });
         }
         
@@ -88,8 +87,7 @@ define(function (require, exports, module) {
             runs(function () {
                 // The following call ensures that the document is reloaded
                 // from disk before each test
-                DocumentManager.closeAll();
-                
+                MasterMainViewManager._closeAll(MasterMainViewManager.ALL_PANES);
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testEditor = null;
                 testDocument = null;
@@ -272,17 +270,33 @@ define(function (require, exports, module) {
 
         describe("Url Code Hints in a subfolder", function () {
 
-            beforeFirst(function () {
-                setupTests(testCssPath);
-            });
-
-            afterLast(function () {
+            afterEach(function () {
                 tearDownTests();
             });
 
-            it("should hint for background-image: url()", function () {
+            it("should hint for background-image: url() in CSS", function () {
+                runs(function () {
+                    setupTests(testCssPath);
+                });
+
                 runs(function () {
                     testEditor.setCursorPos({ line: 3, ch: 26 });
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    verifyUrlHints(hintsObj.hints, subfolderDirHints);
+                });
+            });
+
+            it("should hint for background-image: url() in SCSS", function () {
+                runs(function () {
+                    setupTests(testScssPath);
+                });
+
+                runs(function () {
+                    testEditor.setCursorPos({ line: 4, ch: 34 });
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
@@ -302,6 +316,7 @@ define(function (require, exports, module) {
                 CommandManager,
                 Commands,
                 DocumentManager,
+                MainViewManager,
                 EditorManager;
 
             it("should hint site root '/'", function () {
@@ -314,6 +329,7 @@ define(function (require, exports, module) {
                         Commands        = brackets.test.Commands;
                         DocumentManager = brackets.test.DocumentManager;
                         EditorManager   = brackets.test.EditorManager;
+                        MainViewManager = brackets.test.MainViewManager;
                     });
                 });
 
@@ -337,7 +353,7 @@ define(function (require, exports, module) {
                 }, "Unable to open test document", 2000);
 
                 runs(function () {
-                    DocumentManager.setCurrentDocument(testDocument);
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, testDocument);
                     testEditor = EditorManager.getCurrentFullEditor();
                     testEditor.setCursorPos({ line: 22, ch: 12 });
                     CommandManager.execute(Commands.SHOW_CODE_HINTS);
@@ -361,6 +377,7 @@ define(function (require, exports, module) {
                     Commands         = null;
                     DocumentManager  = null;
                     EditorManager    = null;
+                    MainViewManager  = null;
                     SpecRunnerUtils.closeTestWindow();
                 });
             });
@@ -471,7 +488,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
-                    expect(hintsObj.hints.length).toBe(3);
+                    expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
 
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
@@ -526,7 +543,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
-                    expect(hintsObj.hints.length).toBe(3);
+                    expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
 
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
@@ -578,7 +595,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
-                    expect(hintsObj.hints.length).toBe(3);
+                    expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
                     
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
@@ -675,7 +692,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
-                    expect(hintsObj.hints.length).toBe(3);
+                    expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
                     
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");

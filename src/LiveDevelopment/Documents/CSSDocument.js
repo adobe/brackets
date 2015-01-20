@@ -50,6 +50,7 @@ define(function CSSDocumentModule(require, exports, module) {
     "use strict";
 
     var _               = require("thirdparty/lodash"),
+        EventDispatcher = require("utils/EventDispatcher"),
         CSSAgent        = require("LiveDevelopment/Agents/CSSAgent"),
         CSSUtils        = require("language/CSSUtils"),
         EditorManager   = require("editor/EditorManager"),
@@ -73,17 +74,18 @@ define(function CSSDocumentModule(require, exports, module) {
         this.onChange = this.onChange.bind(this);
         this.onDeleted = this.onDeleted.bind(this);
 
-        $(this.doc).on("change.CSSDocument", this.onChange);
-        $(this.doc).on("deleted.CSSDocument", this.onDeleted);
+        this.doc.on("change.CSSDocument", this.onChange);
+        this.doc.on("deleted.CSSDocument", this.onDeleted);
         
         this.onActiveEditorChange = this.onActiveEditorChange.bind(this);
-        $(EditorManager).on("activeEditorChange", this.onActiveEditorChange);
+        EditorManager.on("activeEditorChange", this.onActiveEditorChange);
         
         if (editor) {
             // Attach now
             this.attachToEditor(editor);
         }
     };
+    EventDispatcher.makeEventDispatcher(CSSDocument.prototype);
 
     /**
      * @private
@@ -94,35 +96,39 @@ define(function CSSDocumentModule(require, exports, module) {
     };
 
     /**
-     * CSSStyleSheetBody was removed in protocol 1.1. This method is unused in Brackets 36.
-     * Get the browser version of the StyleSheet object
-     * @deprecated
-     * @return {jQuery.promise}
-     */
-    CSSDocument.prototype.getStyleSheetFromBrowser = function getStyleSheetFromBrowser() {
-        return new $.Deferred().reject().promise();
-    };
-
-    /**
      * Get the browser version of the source
      * @return {jQuery.promise} Promise resolved with the text content of this CSS document
      */
     CSSDocument.prototype.getSourceFromBrowser = function getSourceFromBrowser() {
+        function getOnlyValue(obj) {
+            var key;
+            for (key in obj) {
+                if (_.has(obj, key)) {
+                    return obj[key];
+                }
+            }
+            return null;
+        }
+
         var deferred = new $.Deferred(),
-            styleSheetId = this._getStyleSheetHeader().styleSheetId,
-            inspectorPromise = Inspector.CSS.getStyleSheetText(styleSheetId);
+            styleSheetHeader = this._getStyleSheetHeader(),
+            styleSheet = getOnlyValue(styleSheetHeader);
         
-        inspectorPromise.then(function (res) {
-            deferred.resolve(res.text);
-        }, deferred.reject);
+        if (styleSheet) {
+            Inspector.CSS.getStyleSheetText(styleSheet.styleSheetId).then(function (res) {
+                deferred.resolve(res.text);
+            }, deferred.reject);
+        } else {
+            deferred.reject();
+        }
         
         return deferred.promise();
     };
  
     /** Close the document */
     CSSDocument.prototype.close = function close() {
-        $(this.doc).off(".CSSDocument");
-        $(EditorManager).off("activeEditorChange", this.onActiveEditorChange);
+        this.doc.off(".CSSDocument");
+        EditorManager.off("activeEditorChange", this.onActiveEditorChange);
         this.doc.releaseRef();
         this.detachFromEditor();
     };
@@ -143,8 +149,8 @@ define(function CSSDocumentModule(require, exports, module) {
         this.editor = editor;
         
         if (this.editor) {
-            $(HighlightAgent).on("highlight", this.onHighlight);
-            $(this.editor).on("cursorActivity.CSSDocument", this.onCursorActivity);
+            HighlightAgent.on("highlight", this.onHighlight);
+            this.editor.on("cursorActivity.CSSDocument", this.onCursorActivity);
             this.updateHighlight();
         }
     };
@@ -152,8 +158,8 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.detachFromEditor = function () {
         if (this.editor) {
             HighlightAgent.hide();
-            $(HighlightAgent).off("highlight", this.onHighlight);
-            $(this.editor).off(".CSSDocument");
+            HighlightAgent.off("highlight", this.onHighlight);
+            this.editor.off(".CSSDocument");
             this.onHighlight();
             this.editor = null;
         }
@@ -162,7 +168,6 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.updateHighlight = function () {
         if (Inspector.config.highlight && this.editor) {
             var editor = this.editor,
-                codeMirror = editor._codeMirror,
                 selectors = [];
             _.each(this.editor.getSelections(), function (sel) {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, (sel.reversed ? sel.end : sel.start));
@@ -200,6 +205,7 @@ define(function CSSDocumentModule(require, exports, module) {
      * @return {{body: string}}
      */
     CSSDocument.prototype.getResponseData = function getResponseData(enabled) {
+        // Serve up the in-memory text, including any unsaved changes
         return {
             body: this.doc.getText()
         };
@@ -224,7 +230,7 @@ define(function CSSDocumentModule(require, exports, module) {
 
         // shut down, since our Document is now dead
         this.close();
-        $(this).triggerHandler("deleted", [this]);
+        this.trigger("deleted", this);
     };
 
     /** Triggered when the active editor changes */
@@ -252,12 +258,12 @@ define(function CSSDocumentModule(require, exports, module) {
         Inspector.CSS.getMatchedStylesForNode(node.nodeId, function onGetMatchesStyles(res) {
             // res = {matchedCSSRules, pseudoElements, inherited}
             var codeMirror = this.editor._codeMirror,
-                styleSheetId = this._getStyleSheetHeader().styleSheetId;
+                styleSheetIds = this._getStyleSheetHeader();
 
             var i, rule, from, to;
             for (i in res.matchedCSSRules) {
                 rule = res.matchedCSSRules[i];
-                if (rule.ruleId && rule.ruleId.styleSheetId === styleSheetId) {
+                if (rule.ruleId && styleSheetIds[rule.ruleId.styleSheetId]) {
                     from = codeMirror.posFromIndex(rule.selectorRange.start);
                     to = codeMirror.posFromIndex(rule.style.range.end);
                     this._highlight.push(codeMirror.markText(from, to, { className: "highlight" }));

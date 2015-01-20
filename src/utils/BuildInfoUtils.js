@@ -32,12 +32,12 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Global              = require("utils/Global"),
-        FileSystem          = require("filesystem/FileSystem"),
-        FileUtils           = require("file/FileUtils");
-            
-    var _bracketsSHA;
+    var FileSystem  = require("filesystem/FileSystem"),
+        FileUtils   = require("file/FileUtils");
     
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
+
     /**
      * Loads a SHA from Git metadata file. If the file contains a symbolic ref name, follows the ref
      * and loads the SHA from that file in turn.
@@ -85,7 +85,7 @@ define(function (require, exports, module) {
         // Look for Git metadata on disk to load the SHAs for 'brackets'. Done on
         // startup instead of on demand because the version that's currently running is what was
         // loaded at startup (the src on disk may be updated to a different version later).
-        // Git metadata may be missing (e.g. in the per-sprint ZIP builds) - silently ignore if so.
+        // Git metadata may be missing (e.g. in the release builds) - silently ignore if so.
         var bracketsSrc = FileUtils.getNativeBracketsDirectoryPath();
         
         // Assumes Brackets is a standalone repo and not a submodule (prior to brackets-shell,
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
         
         _loadSHA(bracketsGitRoot).done(function (data) {
             // Found a repository
-            result.resolve(data.branch, data.sha, true);
+            result.resolve(data.branch || "HEAD", data.sha || "unknown", true);
         }).fail(function () {
             // If package.json has repository data, Brackets is running from the installed /www folder
             result.resolve(brackets.metadata.repository.branch, brackets.metadata.repository.SHA, false);

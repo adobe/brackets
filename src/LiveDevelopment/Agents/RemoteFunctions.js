@@ -23,7 +23,8 @@
 
 
 /*jslint vars: true, plusplus: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, window, navigator, Node, console */
+/*jshint unused: false */
+/*global window, navigator, Node, console */
 /*theseus instrument: false */
 
 /**
@@ -70,13 +71,21 @@ function RemoteFunctions(experimental) {
     }
 
     // compute the screen offset of an element
-    function _screenOffset(element, key) {
-        var bounds = element.getBoundingClientRect();
-        if (key === "offsetLeft") {
-            return bounds.left + window.pageXOffset;
+    function _screenOffset(element) {
+        var elemBounds = element.getBoundingClientRect(),
+            body = window.document.body,
+            offsetTop,
+            offsetLeft;
+
+        if (window.getComputedStyle(body).position === "static") {
+            offsetLeft = elemBounds.left + window.pageXOffset;
+            offsetTop = elemBounds.top + window.pageYOffset;
         } else {
-            return bounds.top + window.pageYOffset;
+            var bodyBounds = body.getBoundingClientRect();
+            offsetLeft = elemBounds.left - bodyBounds.left;
+            offsetTop = elemBounds.top - bodyBounds.top;
         }
+        return { left: offsetLeft, top: offsetTop };
     }
 
     // set an event on a element
@@ -113,8 +122,9 @@ function RemoteFunctions(experimental) {
             }
 
             // compute the position on screen
-            var x = _screenOffset(this.element, "offsetLeft");
-            var y = _screenOffset(this.element, "offsetTop") + this.element.offsetHeight;
+            var offset = _screenOffset(this.element),
+                x = offset.left,
+                y = offset.top + this.element.offsetHeight;
 
             // create the container
             this.body = document.createElement("div");
@@ -238,9 +248,11 @@ function RemoteFunctions(experimental) {
             
             highlight.className = HIGHLIGHT_CLASSNAME;
             
+            var offset = _screenOffset(element);
+
             var stylesToSet = {
-                "left": _screenOffset(element, "offsetLeft") + "px",
-                "top": _screenOffset(element, "offsetTop") + "px",
+                "left": offset.left + "px",
+                "top": offset.top + "px",
                 "width": elementBounds.width + "px",
                 "height": elementBounds.height + "px",
                 "z-index": 2000000,
@@ -296,7 +308,7 @@ function RemoteFunctions(experimental) {
                 
                 window.setTimeout(function () {
                     _setStyleValues(animateEndValues, highlight.style);
-                }, 0);
+                }, 20);
             }
         
             window.document.body.appendChild(highlight);
@@ -648,7 +660,11 @@ function RemoteFunctions(experimental) {
             } else {
                 lastRemovedWasText = isText;
 
-                current.remove();
+                if (current.remove) {
+                    current.remove();
+                } else if (current.parentNode && current.parentNode.removeChild) {
+                    current.parentNode.removeChild(current);
+                }
                 current = next;
             }
         }
@@ -686,7 +702,11 @@ function RemoteFunctions(experimental) {
                 edit.tagIDs.forEach(function (tagID) {
                     var node = self._queryBracketsID(tagID);
                     self.rememberedNodes[tagID] = node;
-                    node.remove();
+                    if (node.remove) {
+                        node.remove();
+                    } else if (node.parentNode && node.parentNode.removeChild) {
+                        node.parentNode.removeChild(node);
+                    }
                 });
                 return;
             }
@@ -708,7 +728,11 @@ function RemoteFunctions(experimental) {
                 targetElement.removeAttribute(edit.attribute);
                 break;
             case "elementDelete":
-                targetElement.remove();
+                if (targetElement.remove) {
+                    targetElement.remove();
+                } else if (targetElement.parentNode && targetElement.parentNode.removeChild) {
+                    targetElement.parentNode.removeChild(targetElement);
+                }
                 break;
             case "elementInsert":
                 childElement = null;

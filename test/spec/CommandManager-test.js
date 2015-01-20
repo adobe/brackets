@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, $ */
+/*global define, describe, beforeEach, afterEach, it, expect */
 
 define(function (require, exports, module) {
     'use strict';
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
         it("set enabled state and trigger enabledStateChange", function () {
             var eventTriggered = false;
             var command = CommandManager.register("test command", commandID, testCommandFn);
-            $(command).on("enabledStateChange", function () {
+            command.on("enabledStateChange", function () {
                 eventTriggered = true;
             });
             command.setEnabled(false);
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
         it("set checked state and trigger checkedStateChange", function () {
             var eventTriggered = false;
             var command = CommandManager.register("test command", commandID, testCommandFn);
-            $(command).on("checkedStateChange", function () {
+            command.on("checkedStateChange", function () {
                 eventTriggered = true;
             });
             command.setChecked(true);
@@ -104,7 +104,7 @@ define(function (require, exports, module) {
         it("rename command trigger nameChange", function () {
             var eventTriggered = false;
             var command = CommandManager.register("test command", commandID, testCommandFn);
-            $(command).on("nameChange", function () {
+            command.on("nameChange", function () {
                 eventTriggered = true;
             });
             command.setName("newName");

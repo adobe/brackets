@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 /**
  * Represents a file that will never exist on disk - a placeholder backing file for untitled Documents. NO ONE

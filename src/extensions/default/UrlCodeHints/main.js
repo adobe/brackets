@@ -28,22 +28,21 @@ define(function (require, exports, module) {
     "use strict";
     
     // Brackets modules
-    var AppInit             = brackets.getModule("utils/AppInit"),
-        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        CSSUtils            = brackets.getModule("language/CSSUtils"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        FileSystem          = brackets.getModule("filesystem/FileSystem"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
-        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
-        StringUtils         = brackets.getModule("utils/StringUtils"),
+    var AppInit         = brackets.getModule("utils/AppInit"),
+        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
+        CSSUtils        = brackets.getModule("language/CSSUtils"),
+        FileSystem      = brackets.getModule("filesystem/FileSystem"),
+        FileUtils       = brackets.getModule("file/FileUtils"),
+        HTMLUtils       = brackets.getModule("language/HTMLUtils"),
+        ProjectManager  = brackets.getModule("project/ProjectManager"),
+        StringUtils     = brackets.getModule("utils/StringUtils"),
 
-        Data                = require("text!data.json"),
+        Data            = require("text!data.json"),
 
         urlHints,
         data,
-        htmlAttrs;
+        htmlAttrs,
+        styleModes      = ["css", "text/x-less", "text/x-scss"];
     
     /**
      * @constructor
@@ -60,7 +59,6 @@ define(function (require, exports, module) {
         var directory,
             doc,
             docDir,
-            editor,
             queryDir = "",
             queryUrl,
             result = [],
@@ -68,13 +66,7 @@ define(function (require, exports, module) {
             targetDir,
             unfiltered = [];
 
-        // get path to document in focused editor
-        editor = EditorManager.getFocusedEditor();
-        if (!editor) {
-            return result;
-        }
-
-        doc = editor.document;
+        doc = this.editor && this.editor.document;
         if (!doc || !doc.file) {
             return result;
         }
@@ -264,7 +256,7 @@ define(function (require, exports, module) {
         var mode = editor.getModeForSelection();
         if (mode === "html") {
             return this.hasHtmlHints(editor, implicitChar);
-        } else if (mode === "css") {
+        } else if (styleModes.indexOf(mode) > -1) {
             return this.hasCssHints(editor, implicitChar);
         }
 
@@ -405,7 +397,6 @@ define(function (require, exports, module) {
         var mode = this.editor.getModeForSelection(),
             cursor = this.editor.getCursorPos(),
             filter = "",
-            unfiltered = [],
             hints = [],
             sortFunc = null,
             query = { queryStr: "" },
@@ -424,7 +415,7 @@ define(function (require, exports, module) {
             }
             this.info = tagInfo;
 
-        } else if (mode === "css") {
+        } else if (styleModes.indexOf(mode) > -1) {
             this.info = CSSUtils.getInfoAtPos(this.editor, cursor);
 
             var context = this.info.context;
@@ -540,7 +531,7 @@ define(function (require, exports, module) {
         
         if (mode === "html") {
             return this.insertHtmlHint(completion);
-        } else if (mode === "css") {
+        } else if (styleModes.indexOf(mode) > -1) {
             return this.insertCssHint(completion);
         }
 
@@ -734,7 +725,6 @@ define(function (require, exports, module) {
             tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
             tokenType = tagInfo.position.tokenType,
             charCount = 0,
-            replaceExistingOne = tagInfo.attr.valueAssigned,
             endQuote = "",
             shouldReplace = false;
 
@@ -813,7 +803,7 @@ define(function (require, exports, module) {
         htmlAttrs       = data.htmlAttrs;
 
         urlHints        = new UrlCodeHints();
-        CodeHintManager.registerHintProvider(urlHints, ["css", "html"], 5);
+        CodeHintManager.registerHintProvider(urlHints, ["css", "html", "less", "scss"], 5);
         
         FileSystem.on("change", _clearCachedHints);
         FileSystem.on("rename", _clearCachedHints);

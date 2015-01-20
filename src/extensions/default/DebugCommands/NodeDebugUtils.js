@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, brackets */
 
 define(function (require, exports, module) {
     "use strict";
@@ -124,7 +124,7 @@ define(function (require, exports, module) {
     
     // TODO: It would be nice to add a menu item that allows the user
     // to enable/disable forwarding of node logs to the console.
-    $(_nodeConnection).on("base.log", handleLogEvent);
+    _nodeConnection.on("base:log", handleLogEvent);
     
     exports.logNodeState = logNodeState;
     exports.restartNode = restartNode;

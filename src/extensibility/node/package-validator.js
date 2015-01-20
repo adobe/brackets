@@ -30,9 +30,6 @@ indent: 4, maxerr: 50, regexp: true */
 var DecompressZip = require("decompress-zip"),
     semver        = require("semver"),
     path          = require("path"),
-    http          = require("http"),
-    request       = require("request"),
-    os            = require("os"),
     temp          = require("temp"),
     fs            = require("fs-extra");
 
@@ -269,15 +266,11 @@ function validatePackageJSON(path, packageJSON, options, callback) {
  * @param {function(Error, {errors: Array, metadata: Object, commonPrefix: string, extractDir: string})} callback function to call with the result
  */
 function extractAndValidateFiles(zipPath, extractDir, options, callback) {
-    var callbackCalled = false;
-    var metadata;
-    var foundMainIn = null;
-    
     var unzipper = new DecompressZip(zipPath);
     unzipper.on("error", function (err) {
         // General error to report for problems reading the file
         callback(null, {
-            errors: [[Errors.INVALID_ZIP_FILE, zipPath]]
+            errors: [[Errors.INVALID_ZIP_FILE, zipPath, err]]
         });
         return;
     });
@@ -294,8 +287,11 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
                     callback(err, null);
                     return;
                 }
-                var mainJS = path.join(extractDir, commonPrefix, "main.js");
-                if (!fs.existsSync(mainJS)) {
+                var mainJS  = path.join(extractDir, commonPrefix, "main.js"),
+                    isTheme = metadata && metadata.theme;
+                
+                // Throw missing main.js file only for non-theme extensions
+                if (!isTheme && !fs.existsSync(mainJS)) {
                     errors.push([Errors.MISSING_MAIN, zipPath, mainJS]);
                 }
                 callback(null, {

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils, Mustache */
+/*global define, PathUtils, Mustache */
 
 /**
  * PreferencesDialogs
@@ -35,7 +35,6 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
 
     var Dialogs                = require("widgets/Dialogs"),
-        PreferencesManager     = require("preferences/PreferencesManager"),
         ProjectManager         = require("project/ProjectManager"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),

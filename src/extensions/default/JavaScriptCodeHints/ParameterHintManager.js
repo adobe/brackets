@@ -35,15 +35,13 @@ define(function (require, exports, module) {
         Menus           = brackets.getModule("command/Menus"),
         Strings         = brackets.getModule("strings"),
         HintsUtils2     = require("HintUtils2"),
-        ScopeManager    = require("ScopeManager"),
-        Session         = require("Session");
+        ScopeManager    = require("ScopeManager");
 
 
     /** @const {string} Show Function Hint command ID */
     var SHOW_PARAMETER_HINT_CMD_ID   = "showParameterHint", // string must MATCH string in native code (brackets_extensions)
         PUSH_EXISTING_HINT           = true,
         OVERWRITE_EXISTING_HINT      = false,
-        PRESERVE_FUNCTION_STACK      = true,
         hintContainerHTML            = require("text!ParameterHintTemplate.html"),
         KeyboardPrefs                = JSON.parse(require("text!keyboard.json"));
 
@@ -136,8 +134,7 @@ define(function (require, exports, module) {
      *  of the function call.
      */
     function formatHint(functionInfo) {
-        var hints = session.getParameterHint(functionInfo.functionCallPos),
-            pendingOptional = false;
+        var hints = session.getParameterHint(functionInfo.functionCallPos);
 
         $hintContent.empty();
         $hintContent.addClass("brackets-js-hints");
@@ -218,7 +215,7 @@ define(function (require, exports, module) {
             $hintContainer.hide();
             $hintContent.empty();
             hintState = {};
-            $(session.editor).off("cursorActivity", handleCursorActivity);
+            session.editor.off("cursorActivity", handleCursorActivity);
 
             if (!preserveHintStack) {
                 clearFunctionHintStack();
@@ -288,7 +285,7 @@ define(function (require, exports, module) {
             hintState.visible = true;
             hintState.fnType = fnType;
 
-            $(session.editor).on("cursorActivity", handleCursorActivity);
+            session.editor.on("cursorActivity", handleCursorActivity);
             $deferredPopUp.resolveWith(null);
         }).fail(function () {
             hintState = {};
@@ -361,7 +358,7 @@ define(function (require, exports, module) {
      * @param {Session} session - session to start cursor tracking on.
      */
     function startCursorTracking(session) {
-        $(session.editor).on("cursorActivity", handleCursorActivity);
+        session.editor.on("cursorActivity", handleCursorActivity);
     }
 
     /**
@@ -372,7 +369,7 @@ define(function (require, exports, module) {
      * @param {Session} session - session to stop cursor tracking on.
      */
     function stopCursorTracking(session) {
-        $(session.editor).off("cursorActivity", handleCursorActivity);
+        session.editor.off("cursorActivity", handleCursorActivity);
     }
 
     /**
@@ -392,9 +389,8 @@ define(function (require, exports, module) {
      *      changes
      */
     function installListeners(editor) {
-
-        $(editor).on("keydown", function (jqEvent, editor, event) {
-            if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+        editor.on("keydown", function (event, editor, domEvent) {
+            if (domEvent.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 dismissHint();
             }
         }).on("scroll", function () {
@@ -417,7 +413,7 @@ define(function (require, exports, module) {
 
         // Close the function hint when commands are executed, except for the commands
         // to show function hints for code hints.
-        $(CommandManager).on("beforeExecuteCommand", function (jqEvent, commandId) {
+        CommandManager.on("beforeExecuteCommand", function (event, commandId) {
             if (commandId !== SHOW_PARAMETER_HINT_CMD_ID &&
                     commandId !== Commands.SHOW_CODE_HINTS) {
                 dismissHint();

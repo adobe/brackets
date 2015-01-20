@@ -22,7 +22,7 @@
  */
 
 
-/*global define, $, JSLINT, brackets */
+/*global define, JSLINT, brackets */
 
 /**
  * Provides JSLint results via the core linting extension point
@@ -50,7 +50,7 @@ define(function (require, exports, module) {
      */
     var _lastRunOptions;
     
-    prefs.definePreference("options", "object")
+    prefs.definePreference("options", "object", undefined)
         .on("change", function (e, data) {
             var options = prefs.get("options");
             if (!_.isEqual(options, _lastRunOptions)) {
@@ -71,16 +71,8 @@ define(function (require, exports, module) {
      * a gold star when no errors are found.
      */
     function lintOneFile(text, fullPath) {
-        // If a line contains only whitespace, remove the whitespace
-        // This should be doable with a regexp: text.replace(/\r[\x20|\t]+\r/g, "\r\r");,
-        // but that doesn't work.
-        var i, arr = text.split("\n");
-        for (i = 0; i < arr.length; i++) {
-            if (!arr[i].match(/\S/)) {
-                arr[i] = "";
-            }
-        }
-        text = arr.join("\n");
+        // If a line contains only whitespace (here spaces or tabs), remove the whitespace
+        text = text.replace(/^[ \t]+$/gm, "");
         
         var options = prefs.get("options");
 

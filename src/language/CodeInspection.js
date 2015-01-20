@@ -43,11 +43,11 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var Commands                = require("command/Commands"),
-        PanelManager            = require("view/PanelManager"),
+        WorkspaceManager        = require("view/WorkspaceManager"),
         CommandManager          = require("command/CommandManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
-        FileUtils               = require("file/FileUtils"),
+        MainViewManager         = require("view/MainViewManager"),
         LanguageManager         = require("language/LanguageManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
@@ -75,9 +75,11 @@ define(function (require, exports, module) {
     /**
      * Constants for the preferences defined in this file.
      */
-    var PREF_ENABLED = "enabled",
-        PREF_COLLAPSED = "collapsed",
-        PREF_ASYNC_TIMEOUT = "asyncTimeout";
+    var PREF_ENABLED            = "enabled",
+        PREF_COLLAPSED          = "collapsed",
+        PREF_ASYNC_TIMEOUT      = "asyncTimeout",
+        PREF_PREFER_PROVIDERS   = "prefer",
+        PREF_PREFERRED_ONLY     = "usePreferredOnly";
     
     var prefs = PreferencesManager.getExtensionPrefs("linting");
     
@@ -158,10 +160,42 @@ define(function (require, exports, module) {
      * Decision is made depending on the file extension.
      *
      * @param {!string} filePath
-     * @return ?{Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} provider
+     * @return {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>}
      */
     function getProvidersForPath(filePath) {
-        return _providers[LanguageManager.getLanguageForPath(filePath).getId()];
+        var language            = LanguageManager.getLanguageForPath(filePath).getId(),
+            context             = PreferencesManager._buildContext(filePath, language),
+            installedProviders  = _providers[language],
+            preferredProviders,
+
+            prefPreferredProviderNames  = prefs.get(PREF_PREFER_PROVIDERS, context),
+            prefPreferredOnly           = prefs.get(PREF_PREFERRED_ONLY, context),
+        
+            providers;
+        
+        // ensure there is an instance and that a copy is returned, always
+        installedProviders = (installedProviders && installedProviders.slice(0)) || [];
+        
+        if (prefPreferredProviderNames && prefPreferredProviderNames.length) {
+            if (typeof prefPreferredProviderNames === "string") {
+                prefPreferredProviderNames = [prefPreferredProviderNames];
+            }
+            preferredProviders = prefPreferredProviderNames.reduce(function (result, key) {
+                var provider = _.find(installedProviders, {name: key});
+                if (provider) {
+                    result.push(provider);
+                }
+                return result;
+            }, []);
+            if (prefPreferredOnly) {
+                providers = preferredProviders;
+            } else {
+                providers = _.union(preferredProviders, installedProviders);
+            }
+        } else {
+            providers = installedProviders;
+        }
+        return providers;
     }
 
     /**
@@ -183,7 +217,7 @@ define(function (require, exports, module) {
         var response = new $.Deferred(),
             results = [];
 
-        providerList = (providerList || getProvidersForPath(file.fullPath)) || [];
+        providerList = providerList || getProvidersForPath(file.fullPath);
 
         if (!providerList.length) {
             response.resolve(null);
@@ -219,6 +253,7 @@ define(function (require, exports, module) {
                                 runPromise.resolve(scanResult);
                             })
                             .fail(function (err) {
+                                PerfUtils.finalizeMeasurement(perfTimerProvider);
                                 var errError = {
                                     pos: {line: -1, col: 0},
                                     message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
@@ -233,6 +268,7 @@ define(function (require, exports, module) {
                             PerfUtils.addMeasurement(perfTimerProvider);
                             runPromise.resolve(scanResult);
                         } catch (err) {
+                            PerfUtils.finalizeMeasurement(perfTimerProvider);
                             var errError = {
                                 pos: {line: -1, col: 0},
                                 message: StringUtils.format(Strings.LINTER_FAILED, provider.name, err),
@@ -273,7 +309,7 @@ define(function (require, exports, module) {
      * @param {boolean} aborted - true if any provider returned a result with the 'aborted' flag set
      */
     function updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted) {
-        var message;
+        var message, tooltip;
 
         if (providersReportingProblems.length === 1) {
             // don't show a header if there is only one provider available for this file type
@@ -288,9 +324,6 @@ define(function (require, exports, module) {
 
                 message = StringUtils.format(Strings.MULTIPLE_ERRORS, providersReportingProblems[0].name, numProblems);
             }
-
-            $problemsPanel.find(".title").text(message);
-            StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
         } else if (providersReportingProblems.length > 1) {
             $problemsPanelTable.find(".inspector-section").show();
 
@@ -299,9 +332,13 @@ define(function (require, exports, module) {
             }
 
             message = StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, numProblems);
-            $problemsPanel.find(".title").text(message);
-            StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", message);
+        } else {
+            return;
         }
+
+        $problemsPanel.find(".title").text(message);
+        tooltip = StringUtils.format(Strings.STATUSBAR_CODE_INSPECTION_TOOLTIP, message);
+        StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-errors", tooltip);
     }
 
     /**
@@ -454,14 +491,6 @@ define(function (require, exports, module) {
             _providers[languageId] = [];
         }
         
-        if (languageId === "javascript") {
-            // This is a special case to enable extension provider to replace the JSLint provider
-            // in favor of their own implementation
-            _.remove(_providers[languageId], function (registeredProvider) {
-                return registeredProvider.name === "JSLint";
-            });
-        }
-        
         _providers[languageId].push(provider);
         
         run();  // in case a file of this type is open currently
@@ -473,8 +502,12 @@ define(function (require, exports, module) {
     function updateListeners() {
         if (_enabled) {
             // register our event listeners
-            $(DocumentManager)
-                .on("currentDocumentChange.codeInspection", function () {
+            MainViewManager
+                .on("currentFileChange.codeInspection", function () {
+                    run();
+                });
+            DocumentManager
+                .on("currentDocumentLanguageChanged.codeInspection", function () {
                     run();
                 })
                 .on("documentSaved.codeInspection documentRefreshed.codeInspection", function (event, document) {
@@ -483,7 +516,8 @@ define(function (require, exports, module) {
                     }
                 });
         } else {
-            $(DocumentManager).off(".codeInspection");
+            DocumentManager.off(".codeInspection");
+            MainViewManager.off(".codeInspection");
         }
     }
 
@@ -547,7 +581,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Command to go to the first Error/Warning */
+    /** Command to go to the first Problem */
     function handleGotoFirstProblem() {
         run();
         if (_gotoEnabled) {
@@ -571,12 +605,12 @@ define(function (require, exports, module) {
         });
     
     prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000);
-    
+        
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         // Create bottom panel to list error details
         var panelHtml = Mustache.render(PanelTemplate, Strings);
-        var resultsPanel = PanelManager.createBottomPanel("errors", $(panelHtml), 100);
+        WorkspaceManager.createBottomPanel("errors", $(panelHtml), 100);
         $problemsPanel = $("#problems-panel");
 
         var $selectedRow;
@@ -595,7 +629,7 @@ define(function (require, exports, module) {
                     $selectedRow.nextUntil(".inspector-section").toggle();
 
                     var $triangle = $(".disclosure-triangle", $selectedRow);
-                    $triangle.toggleClass("expanded").toggleClass("collapsed");
+                    $triangle.toggleClass("expanded");
                 } else {
                     // This is a problem marker row, show the result on click
                     // Grab the required position data
@@ -607,7 +641,7 @@ define(function (require, exports, module) {
     
                         var editor = EditorManager.getCurrentFullEditor();
                         editor.setCursorPos(line, character, true);
-                        EditorManager.focusEditor();
+                        MainViewManager.focusActivePane();
                     }
                 }
             });
@@ -635,11 +669,14 @@ define(function (require, exports, module) {
     // Testing
     exports._unregisterAll          = _unregisterAll;
     exports._PREF_ASYNC_TIMEOUT     = PREF_ASYNC_TIMEOUT;
+    exports._PREF_PREFER_PROVIDERS  = PREF_PREFER_PROVIDERS;
+    exports._PREF_PREFERRED_ONLY    = PREF_PREFERRED_ONLY;
 
     // Public API
-    exports.register       = register;
-    exports.Type           = Type;
-    exports.toggleEnabled  = toggleEnabled;
-    exports.inspectFile    = inspectFile;
-    exports.requestRun     = run;
+    exports.register            = register;
+    exports.Type                = Type;
+    exports.toggleEnabled       = toggleEnabled;
+    exports.inspectFile         = inspectFile;
+    exports.requestRun          = run;
+    exports.getProvidersForPath = getProvidersForPath;
 });

@@ -23,25 +23,24 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waits, waitsFor, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine, xit */
+/*global define, describe, beforeEach, afterEach, it, runs, expect, brackets, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine, xit */
 
 define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CommandManager,          // loaded from brackets.test
-        Commands,                // loaded from brackets.test
+    var CommandManager,         // loaded from brackets.test
+        Commands,               // loaded from brackets.test
         DocumentCommandHandlers, // loaded from brackets.test
-        DocumentManager,         // loaded from brackets.test
-        Dialogs,                 // loaded from brackets.test
-        FileSystem,              // loaded from brackets.test
-        FileViewController,      // loaded from brackets.test
-        EditorManager,           // loaded from brackets.test
+        DocumentManager,        // loaded from brackets.test
+        MainViewManager,        // loaded from brackets.test
+        Dialogs,                // loaded from brackets.test
+        FileSystem,             // loaded from brackets.test
+        FileViewController,     // loaded from brackets.test
+        EditorManager,          // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
         FileUtils                = require("file/FileUtils"),
-        StringUtils              = require("utils/StringUtils"),
-        Editor                   = require("editor/Editor");
-                    
+        FileSystemError          = require("filesystem/FileSystemError");
     
     describe("DocumentCommandHandlers", function () {
         this.category = "integration";
@@ -54,6 +53,7 @@ define(function (require, exports, module) {
         var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
         var TEST_JS_NEW_CONTENT = "hello world";
         var TEST_JS_SECOND_NEW_CONTENT = "hello world 2";
+        var WINDOW_TITLE_DOT = brackets.platform === "mac" ? "\u2014" : "-";
         
         beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -65,6 +65,7 @@ define(function (require, exports, module) {
                 Commands                = testWindow.brackets.test.Commands;
                 DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
                 DocumentManager         = testWindow.brackets.test.DocumentManager;
+                MainViewManager         = testWindow.brackets.test.MainViewManager;
                 Dialogs                 = testWindow.brackets.test.Dialogs;
                 FileSystem              = testWindow.brackets.test.FileSystem;
                 FileViewController      = testWindow.brackets.test.FileViewController;
@@ -78,8 +79,10 @@ define(function (require, exports, module) {
             Commands                = null;
             DocumentCommandHandlers = null;
             DocumentManager         = null;
+            MainViewManager         = null;
             Dialogs                 = null;
             FileViewController      = null;
+            EditorManager           = null;
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -97,7 +100,7 @@ define(function (require, exports, module) {
                 // Call closeAll() directly. Some tests set a spy on the save as
                 // dialog preventing SpecRunnerUtils.closeAllFiles() from
                 // working properly.
-                testWindow.brackets.test.DocumentManager.closeAll();
+                testWindow.brackets.test.MainViewManager._closeAll(testWindow.brackets.test.MainViewManager.ALL_PANES);
             });
         });
 
@@ -114,6 +117,7 @@ define(function (require, exports, module) {
             });
         }
         
+        
         describe("New Untitled File", function () {
             var filePath,
                 newFilename,
@@ -126,8 +130,8 @@ define(function (require, exports, module) {
             });
 
             /** @return {Array.<Document>} */
-            function getWorkingSetDocs() {
-                return DocumentManager.getWorkingSet().map(function (file) {
+            function getOpenDocsFromWorkingSet() {
+                return MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).map(function (file) {
                     return DocumentManager.getOpenDocumentForPath(file.fullPath);
                 });
             }
@@ -199,8 +203,8 @@ define(function (require, exports, module) {
                     expect(noLongerUntitledDocument.isDirty).toBe(false);
                     expect(noLongerUntitledDocument.isUntitled()).toBe(false);
                     expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-                    expect(DocumentManager.getWorkingSet().length).toEqual(1);  // no remnant of untitled doc left
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, newFilePath)).toNotEqual(-1);
+                    expect(MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).length).toEqual(1);  // no remnant of untitled doc left
 
                     // Verify file exists, & clean up
                     expectAndDelete(newFilePath);
@@ -265,8 +269,8 @@ define(function (require, exports, module) {
                     expect(noLongerUntitledDocument.isDirty).toBe(false);
                     expect(noLongerUntitledDocument.isUntitled()).toBe(false);
                     expect(noLongerUntitledDocument.file.fullPath).toEqual(newFilePath);
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-                    expect(DocumentManager.getWorkingSet().length).toEqual(1);  // no remnant of untitled doc left
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, newFilePath)).toNotEqual(-1);
+                    expect(MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).length).toEqual(1);  // no remnant of untitled doc left
 
                     // Verify file exists, & clean up
                     expectAndDelete(newFilePath);
@@ -302,7 +306,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(DocumentManager.getWorkingSet().length).toEqual(0);
+                    expect(MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).length).toEqual(0);
                     
                     // Verify file exists, & clean up
                     expectAndDelete(newFilePath);
@@ -335,7 +339,7 @@ define(function (require, exports, module) {
                     
                     expect(untitledDocument.isDirty).toBe(true);
                     expect(untitledDocument.isUntitled()).toBe(true);
-                    expect(DocumentManager.findInWorkingSet(untitledDocument.file.fullPath)).toBeGreaterThan(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, untitledDocument.file.fullPath)).toNotEqual(-1);
                 });
             });
             
@@ -369,7 +373,7 @@ define(function (require, exports, module) {
                     
                     expect(untitledDocument.isDirty).toBe(true);
                     expect(untitledDocument.isUntitled()).toBe(true);
-                    expect(DocumentManager.findInWorkingSet(untitledDocument.file.fullPath)).toBeGreaterThan(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, untitledDocument.file.fullPath)).toNotEqual(-1);
                 });
             });
 
@@ -395,7 +399,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(DocumentManager.getWorkingSet().length).toEqual(0);
+                    expect(MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).length).toEqual(0);
                 });
             });
 
@@ -413,7 +417,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(DocumentManager.getWorkingSet().length).toEqual(0);
+                    expect(MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).length).toEqual(0);
                 });
             });
             
@@ -424,28 +428,28 @@ define(function (require, exports, module) {
                 createUntitled(3);
 
                 runs(function () {
-                    var workingSetDocs = getWorkingSetDocs();
-                    expect(workingSetDocs.length).toEqual(3);
+                    var workingSetListDocs = getOpenDocsFromWorkingSet();
+                    expect(workingSetListDocs.length).toEqual(3);
                     
                     // Expect non-conflicting dummy paths
-                    expect(workingSetDocs[0].file.fullPath).not.toBe(workingSetDocs[1].file.fullPath);
-                    expect(workingSetDocs[0].file.fullPath).not.toBe(workingSetDocs[2].file.fullPath);
-                    expect(workingSetDocs[1].file.fullPath).not.toBe(workingSetDocs[2].file.fullPath);
+                    expect(workingSetListDocs[0].file.fullPath).not.toBe(workingSetListDocs[1].file.fullPath);
+                    expect(workingSetListDocs[0].file.fullPath).not.toBe(workingSetListDocs[2].file.fullPath);
+                    expect(workingSetListDocs[1].file.fullPath).not.toBe(workingSetListDocs[2].file.fullPath);
                     
                     // Expect separate Document objects
-                    expect(workingSetDocs[0]).not.toBe(workingSetDocs[1]);
-                    expect(workingSetDocs[0]).not.toBe(workingSetDocs[2]);
-                    expect(workingSetDocs[1]).not.toBe(workingSetDocs[2]);
+                    expect(workingSetListDocs[0]).not.toBe(workingSetListDocs[1]);
+                    expect(workingSetListDocs[0]).not.toBe(workingSetListDocs[2]);
+                    expect(workingSetListDocs[1]).not.toBe(workingSetListDocs[2]);
                     
                     // Expect all Documents to be untitled
-                    workingSetDocs.forEach(function (doc) {
+                    workingSetListDocs.forEach(function (doc) {
                         expect(doc.isUntitled()).toBe(true);
                     });
                     
                     // Expect separate, unique content
-                    expect(workingSetDocs[0].getText()).toBe("0");
-                    expect(workingSetDocs[1].getText()).toBe("1");
-                    expect(workingSetDocs[2].getText()).toBe("2");
+                    expect(workingSetListDocs[0].getText()).toBe("0");
+                    expect(workingSetListDocs[1].getText()).toBe("1");
+                    expect(workingSetListDocs[2].getText()).toBe("2");
                 });
             });
             
@@ -469,17 +473,17 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Expect clean Documents with correct, unique non-dummy paths
-                    var workingSetDocs = getWorkingSetDocs();
-                    expect(workingSetDocs.length).toEqual(3);
+                    var workingSetListDocs = getOpenDocsFromWorkingSet();
+                    expect(workingSetListDocs.length).toEqual(3);
                     
-                    workingSetDocs.forEach(function (doc, i) {
+                    workingSetListDocs.forEach(function (doc, i) {
                         expect(doc.isUntitled()).toBe(false);
                         expect(doc.isDirty).toBe(false);
                         expect(doc.file.fullPath).toBe(getFilename(i));
                     });
                     
                     // Verify files exist & clean up
-                    workingSetDocs.forEach(function (doc, i) {
+                    workingSetListDocs.forEach(function (doc, i) {
                         expectAndDelete(getFilename(i));
                     });
                 });
@@ -508,7 +512,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(DocumentManager.getWorkingSet().length).toEqual(0);
+                    expect(MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).length).toEqual(0);
                     
                     // Verify files exist & clean up
                     [0, 1, 2].forEach(function (i) {
@@ -546,10 +550,10 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Expect *only* first Document was saved - others remain untitled & dirty
-                    var workingSetDocs = getWorkingSetDocs();
-                    expect(workingSetDocs.length).toEqual(3);
+                    var workingSetListDocs = getOpenDocsFromWorkingSet();
+                    expect(workingSetListDocs.length).toEqual(3);
                     
-                    workingSetDocs.forEach(function (doc, i) {
+                    workingSetListDocs.forEach(function (doc, i) {
                         if (i === 0) {
                             // First file was saved when we confirmed save dialog
                             expect(doc.isUntitled()).toBe(false);
@@ -601,10 +605,10 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Expect *all* Documents still open, and *only* first Document was saved
-                    var workingSetDocs = getWorkingSetDocs();
-                    expect(workingSetDocs.length).toEqual(3);
+                    var workingSetListDocs = getOpenDocsFromWorkingSet();
+                    expect(workingSetListDocs.length).toEqual(3);
                     
-                    workingSetDocs.forEach(function (doc, i) {
+                    workingSetListDocs.forEach(function (doc, i) {
                         if (i === 0) {
                             // First file was saved when we confirmed save dialog
                             expect(doc.isUntitled()).toBe(false);
@@ -637,7 +641,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.document.title).toBe(brackets.config.app_title);
+                    expect(testWindow.document.title).toBe("DocumentCommandHandlers-test-files " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
                 });
             });
 
@@ -653,11 +657,74 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.document.title).toBe(brackets.config.app_title);
+                    expect(testWindow.document.title).toBe("DocumentCommandHandlers-test-files " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
                 });
             });
         });
-
+        
+        
+        describe("Close List", function () {
+            beforeEach(function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/test.js"});
+                    waitsForDone(promise, "CMD_ADD_TO_WORKINGSET_AND_OPEN");
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: testPath + "/test2.js"});
+                    waitsForDone(promise, "CMD_ADD_TO_WORKINGSET_AND_OPEN");
+                });
+            });
+            it("should not close the current view", function () {
+                var currentPath,
+                    docsToClose;
+                runs(function () {
+                    currentPath = MainViewManager.getCurrentlyViewedPath();
+                    docsToClose = DocumentManager.getAllOpenDocuments().filter(function (doc) {
+                        return (doc !== DocumentManager.getCurrentDocument());
+                    });
+                    promise = CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: docsToClose.map(function (doc) {
+                        return doc.file;
+                    })});
+                    waitsForDone(promise, "FILE_CLOSE_LIST");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedPath()).toBe(currentPath);
+                });
+            });
+            it("should close all views", function () {
+                var docsToClose;
+                runs(function () {
+                    docsToClose = DocumentManager.getAllOpenDocuments();
+                    promise = CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: docsToClose.map(function (doc) {
+                        return doc.file;
+                    })});
+                    waitsForDone(promise, "FILE_CLOSE_LIST");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedFile()).toBeFalsy();
+                });
+            });
+            it("should open the next view when the current view is closed", function () {
+                var currentPath,
+                    docsToClose;
+                runs(function () {
+                    currentPath = MainViewManager.getCurrentlyViewedPath();
+                    docsToClose = DocumentManager.getAllOpenDocuments().filter(function (doc) {
+                        return (doc === DocumentManager.getCurrentDocument());
+                    });
+                    promise = CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: docsToClose.map(function (doc) {
+                        return doc.file;
+                    })});
+                    waitsForDone(promise, "FILE_CLOSE_LIST");
+                });
+                runs(function () {
+                    expect(MainViewManager.getCurrentlyViewedPath()).not.toBe(currentPath);
+                    expect(MainViewManager.getCurrentlyViewedPath()).toBeTruthy();
+                });
+            });
+        });
+        
+        
         describe("Open File", function () {
             it("should open a file in the editor", function () {
                 var promise;
@@ -670,8 +737,28 @@ define(function (require, exports, module) {
                     expect(DocumentManager.getCurrentDocument().getText()).toBe(TEST_JS_CONTENT);
                 });
             });
+            
+            it("should resolve with FileSystemError when opening fails", function () {
+                runs(function () {
+                    // Dismiss expected error dialog instantly so promise completes & test can proceed
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
+                        return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
+                    });
+                    
+                    // Open nonexistent file to trigger error result
+                    var promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/doesNotExist.js"});
+                    waitsForFail(promise, "FILE_OPEN");
+                    promise.fail(function (err) {
+                        expect(err).toEqual(FileSystemError.NOT_FOUND);
+                    });
+                });
+                runs(function () {
+                    expect(DocumentManager.getCurrentDocument()).toBeFalsy();
+                });
+            });
         });
-
+        
+        
         describe("Save File", function () {
             it("should save changes", function () {
                 var filePath    = testPath + "/test.js",
@@ -691,7 +778,6 @@ define(function (require, exports, module) {
                 });
 
                 // confirm file contents
-                var actualContent = null, error = -1;
                 runs(function () {
                     promise = FileUtils.readAsText(FileSystem.getFileForPath(filePath))
                         .done(function (actualText) {
@@ -708,7 +794,7 @@ define(function (require, exports, module) {
             });
 
             // Regardless of platform, files with CRLF should be saved with CRLF and files with LF should be saved with LF
-            it("should preserve line endings when saving changes", function () {
+            it("should preserve line endings after Save", function () {
                 var crlfText = "line1\r\nline2\r\nline3",
                     lfText   = "line1\nline2\nline3",
                     crlfPath = testPath + "/crlfTest.js",
@@ -730,7 +816,6 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: crlfPath});
                     waitsForDone(promise, "Open CRLF test file");
                 });
-                
                 runs(function () {
                     DocumentManager.getCurrentDocument().replaceRange("line2a\nline2b", {line: 1, ch: 0}, {line: 1, ch: 5});
                     promise = CommandManager.execute(Commands.FILE_SAVE);
@@ -742,14 +827,13 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: lfPath});
                     waitsForDone(promise, "Open LF test file");
                 });
-                
                 runs(function () {
                     DocumentManager.getCurrentDocument().replaceRange("line2a\nline2b", {line: 1, ch: 0}, {line: 1, ch: 5});
                     promise = CommandManager.execute(Commands.FILE_SAVE);
                     waitsForDone(promise, "Save modified file");
                 });
                 
-                // verify file contents
+                // verify files' contents
                 runs(function () {
                     promise = FileUtils.readAsText(FileSystem.getFileForPath(crlfPath))
                         .done(function (actualText) {
@@ -768,16 +852,89 @@ define(function (require, exports, module) {
                 
                 // clean up
                 runs(function () {
-                    promise = SpecRunnerUtils.deletePath(crlfPath);
-                    waitsForDone(promise, "Remove CRLF test file");
-                });
-                runs(function () {
-                    promise = SpecRunnerUtils.deletePath(lfPath);
-                    waitsForDone(promise, "Remove LF test file");
+                    waitsForDone(SpecRunnerUtils.deletePath(crlfPath), "Remove CRLF test file");
+                    waitsForDone(SpecRunnerUtils.deletePath(lfPath),   "Remove LF test file");
                 });
             });
+            
+            it("should preserve line endings after Save As", function () {  // bug #9179
+                var crlfText = "line1\r\nline2\r\nline3",
+                    lfText   = "line1\nline2\nline3",
+                    crlfPath = testPath + "/crlfTest.js",
+                    lfPath   = testPath + "/lfTest.js",
+                    crlfNewPath = testPath + "/saveAsCRLF.js",
+                    lfNewPath = testPath + "/saveAsLF.js",
+                    promise;
+                
+                // create test files (Git rewrites line endings, so these can't be kept in src control)
+                runs(function () {
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(crlfPath), crlfText);
+                    waitsForDone(promise, "Create CRLF test file");
+                });
+                runs(function () {
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(lfPath), lfText);
+                    waitsForDone(promise, "Create LF test file");
+                });
+                
+                // open, modify, and Save As (CRLF case)
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: crlfPath});
+                    waitsForDone(promise, "Open CRLF test file");
+                });
+                runs(function () {
+                    DocumentManager.getCurrentDocument().replaceRange("line2a\nline2b", {line: 1, ch: 0}, {line: 1, ch: 5});
+                    
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, crlfNewPath);
+                    });
+                    promise = CommandManager.execute(Commands.FILE_SAVE_AS);
+                    waitsForDone(promise, "Save As modified file");
+                });
+                
+                // open, modify, and Save As (LF case)
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: lfPath});
+                    waitsForDone(promise, "Open LF test file");
+                });
+                runs(function () {
+                    DocumentManager.getCurrentDocument().replaceRange("line2a\nline2b", {line: 1, ch: 0}, {line: 1, ch: 5});
+                    
+                    FileSystem.showSaveDialog.andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, lfNewPath);
+                    });
+                    promise = CommandManager.execute(Commands.FILE_SAVE_AS);
+                    waitsForDone(promise, "Save As modified file");
+                });
+                
+                // verify files' contents
+                runs(function () {
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(crlfNewPath))
+                        .done(function (actualText) {
+                            expect(actualText).toBe(crlfText.replace("line2", "line2a\r\nline2b"));
+                        });
+                    waitsForDone(promise, "Read CRLF save-as file");
+                });
+                
+                runs(function () {
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(lfNewPath))
+                        .done(function (actualText) {
+                            expect(actualText).toBe(lfText.replace("line2", "line2a\nline2b"));
+                        });
+                    waitsForDone(promise, "Read LF save-as file");
+                });
+                
+                // clean up
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.deletePath(crlfPath),    "Remove CRLF test file");
+                    waitsForDone(SpecRunnerUtils.deletePath(lfPath),      "Remove LF test file");
+                    waitsForDone(SpecRunnerUtils.deletePath(crlfNewPath), "Remove CRLF save-as file");
+                    waitsForDone(SpecRunnerUtils.deletePath(lfNewPath),   "Remove LF save-as file");
+                });
+            });
+            
         });
-
+        
+        
         describe("Save As", function () {
             var filePath,
                 newFilename,
@@ -824,7 +981,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // New file should not appear in working set
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, newFilePath)).toEqual(-1);
                     
                     // Verify file exists & clean it up
                     expectAndDelete(newFilePath);
@@ -862,8 +1019,8 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Only new file should appear in working set
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toBeGreaterThan(-1);
-                    expect(DocumentManager.findInWorkingSet(filePath)).toEqual(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, newFilePath)).toNotEqual(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, filePath)).toEqual(-1);
                     
                     // Verify file exists & clean it up
                     expectAndDelete(newFilePath);
@@ -897,12 +1054,12 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(-1);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, newFilePath)).toEqual(-1);
                 });
             });
             
             it("should maintain order within Working Set after Save As", function () {
-                var index,
+                var views,
                     targetDoc;
 
                 runs(function () {
@@ -913,7 +1070,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    index = DocumentManager.findInWorkingSet(filePath);
+                    views = MainViewManager.findInAllWorkingSets(filePath);
                     targetDoc = DocumentManager.getOpenDocumentForPath(filePath);
                 });
 
@@ -926,8 +1083,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // save the file opened above to a different filename
-                    DocumentManager.setCurrentDocument(targetDoc);
-                    
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, targetDoc);
                     spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
@@ -938,14 +1094,15 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // New file should appear in working set at old file's index; old file shouldn't appear at all
-                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(index);
-                    expect(DocumentManager.findInWorkingSet(filePath)).toEqual(-1);
+                    expect(MainViewManager.findInAllWorkingSets(newFilePath)).toEqual(views);
+                    expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, filePath)).toEqual(-1);
 
                     // Verify file exists & clean it up
                     expectAndDelete(newFilePath);
                 });
             });
         });
+        
         
         describe("Dirty File Handling", function () {
 
@@ -966,8 +1123,7 @@ define(function (require, exports, module) {
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
                     
                     // verify no dot in titlebar
-                    var expectedTitle = (brackets.platform === "mac" ? ("test.js — " + brackets.config.app_title) : ("test.js - " + brackets.config.app_title));
-                    expect(testWindow.document.title).toBe(expectedTitle);
+                    expect(testWindow.document.title).toBe("test.js (DocumentCommandHandlers-test-files) " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
                 });
             });
             
@@ -982,8 +1138,8 @@ define(function (require, exports, module) {
                     expect(doc.isDirty).toBe(true);
                     
                     // verify dot in titlebar
-                    var expectedTitle = (brackets.platform === "mac" ? ("• test.js — " + brackets.config.app_title) : ("• test.js - " + brackets.config.app_title));
-                    expect(testWindow.document.title).toBe(expectedTitle);
+                    expect(testWindow.document.title).toBe("• test.js (DocumentCommandHandlers-test-files) " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
+
                 });
             });
 
@@ -1091,6 +1247,7 @@ define(function (require, exports, module) {
 
         });
         
+        
         describe("Decorated Path Parser", function () {
             it("should correctly parse decorated paths", function () {
                 var path = testPath + "/test.js";
@@ -1101,9 +1258,10 @@ define(function (require, exports, module) {
                 expect(DocumentCommandHandlers._parseDecoratedPath(path + ":123:456")).toEqual({path: path, line: 123, column: 456});
             });
         });
-
-        describe("Opens image file and validates EditorManager APIs", function () {
-            it("should return null after opening an image", function () {
+        
+        
+        describe("Open image files", function () {
+            it("document & editor should be null after opening an image", function () {
                 var path = testPath + "/couz.png",
                     promise;
                 runs(function () {
@@ -1112,25 +1270,23 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(EditorManager.getActiveEditor()).toEqual(null);
-                    expect(EditorManager.getCurrentFullEditor()).toEqual(null);
-                    expect(EditorManager.getFocusedEditor()).toEqual(null);
-                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(path);
+                    expect(EditorManager.getActiveEditor()).toBeFalsy();
+                    expect(EditorManager.getCurrentFullEditor()).toBeFalsy();
+                    expect(EditorManager.getFocusedEditor()).toBeFalsy();
+                    expect(MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE)).toEqual(path);
                     var d = DocumentManager.getCurrentDocument();
-                    expect(d).toEqual(null);
+                    expect(d).toBeFalsy();
                 });
             });
-        });
-        
-        describe("Open image file while a text file is open", function () {
-            it("should fire currentDocumentChange and activeEditorChange events", function () {
+            
+            it("opening image while text file open should fire currentDocumentChange and activeEditorChange events", function () {
                 var promise,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
 
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.on("currentDocumentChange", docChangeListener);
+                    EditorManager.on("activeEditorChange", activeEditorChangeListener);
                     
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
@@ -1148,23 +1304,19 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(2);
                     expect(activeEditorChangeListener.callCount).toBe(2);
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.off("currentDocumentChange", docChangeListener);
+                    EditorManager.off("activeEditorChange", activeEditorChangeListener);
                 });
             });
-        });
-        
-        describe("Open image file while neither text editor nor image file is open", function () {
-            it("should NOT fire currentDocumentChange and activeEditorChange events", function () {
-
+            
+            it("opening image while nothing open should NOT fire currentDocumentChange and activeEditorChange events", function () {
                 var promise,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
 
-
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.on("currentDocumentChange", docChangeListener);
+                    EditorManager.on("activeEditorChange", activeEditorChangeListener);
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz.png" });
                     waitsForDone(promise, Commands.FILE_OPEN);
@@ -1181,24 +1333,20 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(0);
                     expect(activeEditorChangeListener.callCount).toBe(0);
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.off("currentDocumentChange", docChangeListener);
+                    EditorManager.off("activeEditorChange", activeEditorChangeListener);
                 });
     
             });
-        });
-        
-        describe("Open a text file while a text file is open", function () {
-            it("should fire currentDocumentChange and activeEditorChange events", function () {
-
+            
+            it("opening text file while other text open should fire currentDocumentChange and activeEditorChange events", function () {
                 var promise,
                     docChangeListener = jasmine.createSpy(),
                     activeEditorChangeListener = jasmine.createSpy();
 
-
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.on("currentDocumentChange", docChangeListener);
+                    EditorManager.on("activeEditorChange", activeEditorChangeListener);
                     
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
@@ -1216,13 +1364,11 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(2);
                     expect(activeEditorChangeListener.callCount).toBe(2);
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.off("currentDocumentChange", docChangeListener);
+                    EditorManager.off("activeEditorChange", activeEditorChangeListener);
                 });
             });
-        });
-        
-        describe("Opens text file and validates EditorManager APIs", function () {
+            
             it("should return an editor after opening a text file", function () {
                 var path = testPath + "/test.js",
                     promise;
@@ -1241,11 +1387,37 @@ define(function (require, exports, module) {
                     e = EditorManager.getFocusedEditor();
                     expect(e.document.file.fullPath).toBe(path);
                     
-                    expect(EditorManager.getCurrentlyViewedPath()).toEqual(path);
+                    expect(MainViewManager.getCurrentlyViewedPath()).toEqual(path);
                 });
             });
         });
-                
+        
+        
+        describe("Scrolling", function () {
+            it("should scroll when moving the cursor to the end of a really long line", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
+                    waitsForDone(promise, Commands.FILE_NEW_UNTITLED);
+                });
+
+                runs(function () {
+                    var myEditor = EditorManager.getActiveEditor();
+                    // turn off word-wrap
+                    myEditor._codeMirror.setOption("lineWrapping", false);
+                    myEditor.document.setText("ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd some really long line");
+                    myEditor.setCursorPos(1, 1);
+                    myEditor._codeMirror.execCommand("goLineEnd");
+
+                    var se = myEditor.getScrollerElement(),
+                        sp = se.scrollLeft,
+                        $se = _$(se);
+
+                    // really big number -- will scroll to the end of the line
+                    $se.scrollLeft(99999999);
+                    expect(sp).toEqual(se.scrollLeft);
+                });
+            });
+        });
 
     });
 });

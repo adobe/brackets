@@ -35,7 +35,6 @@ define(function (require, exports, module) {
 
     var KeyBindingManager = require("command/KeyBindingManager"),
         KeyEvent          = require("utils/KeyEvent"),
-        NativeApp         = require("utils/NativeApp"),
         Strings           = require("strings"),
         DialogTemplate    = require("text!htmlContent/dialog-template.html");
     
@@ -297,7 +296,6 @@ define(function (require, exports, module) {
             promise = result.promise(),
             $dlg    = $(template)
                 .addClass("instance")
-                .prop("tabindex", "-1")
                 .appendTo(".modal-inner-wrapper:last");
 
         // Don't allow dialog to exceed viewport size
@@ -343,7 +341,7 @@ define(function (require, exports, module) {
             } else if ($otherBtn.length) {
                 $otherBtn.focus();
             } else {
-                $dlg.focus();
+                document.activeElement.blur();
             }
 
             // Push our global keydown handler onto the global stack of handlers.

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
@@ -33,7 +33,7 @@ define(function (require, exports, module) {
      * Used to validate whether type of unknown value is an integer.
      * 
      * @param {*} value Value for which to validate its type
-     * @return {boolean} true if value is an integer
+     * @return {boolean} true if value is a finite integer
      */
     function isInteger(value) {
         // Validate value is a number
@@ -42,9 +42,12 @@ define(function (require, exports, module) {
         }
 
         // Validate number is an integer
-        if (value > 0 && Math.floor(value) !== value) {
+        if (Math.floor(value) !== value) {
             return false;
-        } else if (value < 0 && Math.ceil(value) !== value) {
+        }
+
+        // Validate number is finite
+        if (!isFinite(value)) {
             return false;
         }
 

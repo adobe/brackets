@@ -22,7 +22,7 @@
  */
 
 
-/*global define, $, localStorage, brackets, console */
+/*global define, $, brackets */
 
 /**
  * Generates the fully configured preferences systems used throughout Brackets. This is intended
@@ -32,7 +32,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var PreferencesBase = require("./PreferencesBase"),
-        ProjectManager  = require("project/ProjectManager"),
         Async           = require("utils/Async"),
     
         // The SETTINGS_FILENAME is used with a preceding "." within user projects
@@ -71,11 +70,20 @@ define(function (require, exports, module) {
     // Create a Project scope
     var projectStorage          = new PreferencesBase.FileStorage(undefined, true),
         projectScope            = new PreferencesBase.Scope(projectStorage),
-        projectPathLayer        = new PreferencesBase.PathLayer();
+        projectPathLayer        = new PreferencesBase.PathLayer(),
+        projectLanguageLayer    = new PreferencesBase.LanguageLayer();
 
     projectScope.addLayer(projectPathLayer);
+    projectScope.addLayer(projectLanguageLayer);
+    
+    // Create a User scope
+    var userStorage             = new PreferencesBase.FileStorage(userPrefFile, true),
+        userScope               = new PreferencesBase.Scope(userStorage),
+        userLanguageLayer       = new PreferencesBase.LanguageLayer();
+    
+    userScope.addLayer(userLanguageLayer);
 
-    var userScopeLoading = manager.addScope("user", new PreferencesBase.FileStorage(userPrefFile, true));
+    var userScopeLoading = manager.addScope("user", userScope);
 
     _addScopePromises.push(userScopeLoading);
 
@@ -117,14 +125,13 @@ define(function (require, exports, module) {
     
     // Listen for times where we might be unwatching a root that contains one of the user-level prefs files,
     // and force a re-read of the file in order to ensure we can write to it later (see #7300).
-    $(ProjectManager).on("projectClose", function (event, rootDir) {
+    function _reloadUserPrefs(rootDir) {
         var prefsDir = brackets.app.getApplicationSupportDirectory() + "/";
         if (prefsDir.indexOf(rootDir.fullPath) === 0) {
             manager.fileChanged(userPrefFile);
             stateManager.fileChanged(userStateFile);
         }
-    });
-    
+    }
     
     // Semi-Public API. Use this at your own risk. The public API is in PreferencesManager.
     exports.manager             = manager;
@@ -137,6 +144,7 @@ define(function (require, exports, module) {
     exports.userPrefFile        = userPrefFile;
     exports.isUserScopeCorrupt  = isUserScopeCorrupt;
     exports.managerReady        = _prefManagerReadyDeferred.promise();
+    exports.reloadUserPrefs     = _reloadUserPrefs;
     exports.STATE_FILENAME      = STATE_FILENAME;
     exports.SETTINGS_FILENAME   = SETTINGS_FILENAME;
 });

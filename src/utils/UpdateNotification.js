@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils, window, Mustache */
+/*global define, $, brackets, window, Mustache */
 
 /**
  *  Utilities functions for displaying update notifications
@@ -35,13 +35,14 @@ define(function (require, exports, module) {
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         ExtensionManager     = require("extensibility/ExtensionManager"),
         PreferencesManager   = require("preferences/PreferencesManager"),
-        Global               = require("utils/Global"),
         NativeApp            = require("utils/NativeApp"),
-        StringUtils          = require("utils/StringUtils"),
         Strings              = require("strings"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
         UpdateListTemplate   = require("text!htmlContent/update-list.html");
     
+    // make sure the global brackets variable is loaded
+    require("utils/Global");
+
     // duration of one day in milliseconds
     var ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -75,7 +76,7 @@ define(function (require, exports, module) {
     // an Object with the following fields:
     //
     //  {Number} buildNumber Number of the build
-    //  {String} versionString String representation of the build number (ie "Sprint 14")
+    //  {String} versionString String representation of the build number (ie "Release 0.40")
     //  {String} dateString Date of the build
     //  {String} releaseNotesURL URL of the release notes for this build
     //  {String} downloadURL URL to download this build
@@ -441,7 +442,7 @@ define(function (require, exports, module) {
     }
 
     // Events listeners
-    $(ExtensionManager).on("registryDownload", _onRegistryDownloaded);
+    ExtensionManager.on("registryDownload", _onRegistryDownloaded);
 
     // Define public API
     exports.launchAutomaticUpdate = launchAutomaticUpdate;
