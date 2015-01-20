@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     var OldPreferenceStorage    = require("preferences/PreferenceStorage").PreferenceStorage,
         AppInit                 = require("utils/AppInit"),
         Commands                = require("command/Commands"),
+        ProjectManager          = require("project/ProjectManager"),
         CommandManager          = require("command/CommandManager"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
         FileUtils               = require("file/FileUtils"),
@@ -421,6 +422,9 @@ define(function (require, exports, module) {
         var ctx = {};
         if (filename) {
             ctx.path = filename;
+            if (!ProjectManager.isWithinProject(filename)) {
+                ctx.path = ProjectManager.getProjectRoot().fullPath;
+            }
         } else {
             ctx.path = currentFilename;
         }
