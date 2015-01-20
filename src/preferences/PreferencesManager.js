@@ -422,6 +422,8 @@ define(function (require, exports, module) {
         var ctx = {};
         if (filename) {
             ctx.path = filename;
+            // In case of untitled documents we want to use the project root instead of
+            // the random generated file path. This is to resolve #10370
             if (!ProjectManager.isWithinProject(filename)) {
                 ctx.path = ProjectManager.getProjectRoot().fullPath;
             }
