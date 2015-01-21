@@ -31,3 +31,6 @@
 [submodule "src/extensions/default/makedrive-sync-icon"]
 	path = src/extensions/default/makedrive-sync-icon
 	url = https://github.com/cdot-brackets-extensions/makedrive-sync-icon
+[submodule "src/thirdparty/filer-dialogs"]
+	path = src/thirdparty/filer-dialogs
+	url = https://github.com/ScottDowne/filer-dialogs
