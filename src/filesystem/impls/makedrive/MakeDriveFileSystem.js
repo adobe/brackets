@@ -11,7 +11,7 @@ define(function (require, exports, module) {
         // TODO: we have to figure out how we're going to build/deploy makedrive.js, this is hacky.
         // since it requires a manual `grunt build` step in src/thirdparty/makedrive
         MakeDrive       = require("thirdparty/makedrive/client/dist/makedrive"),
-        OpenDialog      = require("filesystem/impls/makedrive/open-dialog");
+        Dialog          = require("thirdparty/filer-dialogs/filer-dialogs");
 
     var fs              = MakeDrive.fs(),
         Path            = MakeDrive.Path,
@@ -23,40 +23,12 @@ define(function (require, exports, module) {
     // needs to call sync.connect(serverURL) when the user is logged in, for example.
     appshell.MakeDrive = MakeDrive;
 
-    var sync = fs.sync;
-
-    // Try to upgrade to a syncing filesystem
-    sync.connect('ws://localhost:9090');
-
-    //TODO: Do we want to do anything other than console.log for all these events?
-    sync.on('syncing', function() {
-        console.log('sync started');
-    });
-    sync.on('error', function(e) {
-        console.log('sync error: ', e);
-    });
-    sync.on('completed', function() {
-        console.log('sync completed');
-    });
-    sync.on('updates', function() {
-        console.log('server has updates');
-    });
-
     function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
-        OpenDialog.showOpenDialog.apply(null, arguments);
+        Dialog.showOpenDialog.apply(null, arguments);
     }
 
     function showSaveDialog(title, initialPath, defaultName, callback) {
-        var selectedPath;
-        var saveResponse = window.prompt(title, defaultName);
-        if(saveResponse){
-            initialPath = initialPath || '/';
-            selectedPath = initialPath + saveResponse;
-            callback(null, selectedPath);
-        }
-        else{
-            callback();
-        }
+        Dialog.showSaveAsDialog.apply(null, arguments);
     }
 
     /**
