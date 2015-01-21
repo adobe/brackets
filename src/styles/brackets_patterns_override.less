@@ -526,6 +526,25 @@ a:focus {
                         background-color: @dark-bc-bg-highlight;
                     }
                 }
+
+                .color-swatch {
+                    border-radius: 2px;
+                    width: 12px;
+                    height: 12px;
+                    float: left;
+                    margin: 2px -8px 0 4px;
+                    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.24);
+
+                    .dark & {
+                        box-shadow: inset 0 0 1px rgba(255, 255, 255, 0.24);
+                    }
+                }
+
+                // Used to align non-swatch items with the others. Only applied
+                // if there's at least one item with a swatch in the list
+                .no-swatch-margin {
+                    margin-left: 8px;
+                }
             }
         }
     }
