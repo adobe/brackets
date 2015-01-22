@@ -150,6 +150,7 @@ define(function (require, exports, module) {
                     self.hostEditor.setSelection(range.start, range.end); // workaround for #2805
                     self.hostEditor.document.replaceRange(colorString, range.start, range.end, self._origin);
                     self.hostEditor.setSelection(range.start, endPos);
+                    self._marker.clear();
                     self._marker = self.hostEditor._codeMirror.markText(range.start, endPos);
                 });
                 this._isOwnChange = false;
