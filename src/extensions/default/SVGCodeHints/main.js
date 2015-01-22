@@ -34,6 +34,8 @@ define(function (require, exports, module) {
         XMLUtils            = brackets.getModule("language/XMLUtils"),
         StringMatch         = brackets.getModule("utils/StringMatch"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
+        ColorUtils          = brackets.getModule("utils/ColorUtils"),
+        _                   = brackets.getModule("thirdparty/lodash"),
         SVGTags             = require("text!SVGTags.json"),
         SVGAttributes       = require("text!SVGAttributes.json"),
         cachedAttributes    = {},
@@ -85,7 +87,7 @@ define(function (require, exports, module) {
                     cachedAttributes[tagName] = cachedAttributes[tagName].concat(tagData.attributeGroups[group]);
                 }
             });
-            cachedAttributes[tagName].sort();
+            cachedAttributes[tagName] = _.uniq(cachedAttributes[tagName].sort(), true);
         }
         return cachedAttributes[tagName];
     }
@@ -96,7 +98,7 @@ define(function (require, exports, module) {
      * 
      * @param {Array.<Object>} hints - the list of hints to format
      * @param {string} query - querystring used for highlighting matched
-     *      poritions of each hint
+     *      portions of each hint
      * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
      */
     function formatHints(hints, query) {
@@ -206,6 +208,11 @@ define(function (require, exports, module) {
                 } else if (attributeData[tagInfo.attrName]) {
                     options = attributeData[tagInfo.attrName].attribOptions;
                     isMultiple = attributeData[tagInfo.attrName].multiple;
+
+                    if (attributeData[tagInfo.attrName].type === "color") {
+                        options = ColorUtils.COLOR_NAMES;
+                        options = options.concat(["currentColor", "transparent"]);
+                    }
                 }
                 
                 // Stop if the attribute doesn't support multiple options.
