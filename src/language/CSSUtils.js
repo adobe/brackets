@@ -844,7 +844,7 @@ define(function (require, exports, module) {
 
         function _maybeProperty() {
             return (/^-(moz|ms|o|webkit)-$/.test(token) ||
-                    (state.state !== "top" && state.state !== "block" &&
+                    (state.state !== "top" && state.state !== "block" && state.state !== "pseudo" &&
                     // Has a semicolon as in "rgb(0,0,0);", but not one of those after a LESS 
                     // mixin parameter variable as in ".size(@width; @height)"
                     stream.string.indexOf(";") !== -1 && !/\([^)]+;/.test(stream.string)));
@@ -1401,7 +1401,8 @@ define(function (require, exports, module) {
                     oneFileResult.resolve();
                 })
                 .fail(function (error) {
-                    oneFileResult.reject(error);
+                    console.warn("Unable to read " + fullPath + " during CSS rule search:", error);
+                    oneFileResult.resolve();  // still resolve, so the overall result doesn't reject
                 });
         
             return oneFileResult.promise();
@@ -1659,12 +1660,17 @@ define(function (require, exports, module) {
     }
     
     /**
-     * removes strings from the content 
+     * removes strings from the content
      * @param {!string} content to reduce
      * @return {string} reduced content 
      */
     function _removeStrings(content) {
-        return content.replace(/[^\\]\"(.*)[^\\]\"|[^\\]\'(.*)[^\\]\'+/g, "");
+        // First remove escaped quotes so we can balance unescaped quotes
+        // since JavaScript doesn't support negative lookbehind
+        var s = content.replace(/\\\"|\\\'/g, "");
+
+        // Now remove strings
+        return s.replace(/\"(.*?)\"|\'(.*?)\'/g, "");
     }
     
     /**

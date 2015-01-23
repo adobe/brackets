@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         LanguageManager = brackets.getModule("language/LanguageManager"),
         TokenUtils      = brackets.getModule("utils/TokenUtils"),
         StringMatch     = brackets.getModule("utils/StringMatch"),
+        ColorUtils      = brackets.getModule("utils/ColorUtils"),
         CSSProperties   = require("text!CSSProperties.json"),
         properties      = JSON.parse(CSSProperties);
     
@@ -241,6 +242,7 @@ define(function (require, exports, module) {
             valueNeedle = "",
             context = this.info.context,
             valueArray,
+            type,
             namedFlows,
             result,
             selectInitial = false;
@@ -272,7 +274,8 @@ define(function (require, exports, module) {
             }
             
             valueArray = properties[needle].values;
-            if (properties[needle].type === "named-flow") {
+            type = properties[needle].type;
+            if (type === "named-flow") {
                 namedFlows = this.getNamedFlows();
                 
                 if (valueNeedle.length === this.info.offset && namedFlows.indexOf(valueNeedle) !== -1) {
@@ -282,6 +285,9 @@ define(function (require, exports, module) {
                 }
                 
                 valueArray = valueArray.concat(namedFlows);
+            } else if (type === "color") {
+                valueArray = valueArray.concat(ColorUtils.COLOR_NAMES);
+                valueArray.push("transparent", "currentColor");
             }
             
             result = $.map(valueArray, function (pvalue, pindex) {

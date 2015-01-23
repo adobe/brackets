@@ -52,6 +52,7 @@
  *      2: Loading agents
  *      3: Active
  *      4: Out of sync
+ *      5: Sync error
  *
  * The reason codes are:
  * - null (Unknown reason)
@@ -81,6 +82,7 @@ define(function LiveDevelopment(require, exports, module) {
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
+        EventDispatcher      = require("utils/EventDispatcher"),
         FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
         FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
@@ -286,10 +288,10 @@ define(function LiveDevelopment(require, exports, module) {
         liveDocument.close();
         
         if (liveDocument.editor) {
-            $(liveDocument.editor).off(".livedev");
+            liveDocument.editor.off(".livedev");
         }
         
-        $(liveDocument).off(".livedev");
+        liveDocument.off(".livedev");
     }
     
     /**
@@ -324,7 +326,7 @@ define(function LiveDevelopment(require, exports, module) {
         exports.status = status;
         
         var reason = status === STATUS_INACTIVE ? closeReason : null;
-        $(exports).triggerHandler("statusChange", [status, reason]);
+        exports.trigger("statusChange", status, reason);
     }
     
     /**
@@ -402,7 +404,7 @@ define(function LiveDevelopment(require, exports, module) {
             return null;
         }
 
-        $(liveDocument).on("statusChanged.livedev", function () {
+        liveDocument.on("statusChanged.livedev", function () {
             _handleLiveDocumentStatusChanged(liveDocument);
         });
 
@@ -506,7 +508,7 @@ define(function LiveDevelopment(require, exports, module) {
                     _server.add(liveDoc);
                     _relatedDocuments[doc.url] = liveDoc;
 
-                    $(liveDoc).on("deleted.livedev", function (event, liveDoc) {
+                    liveDoc.on("deleted.livedev", function (event, liveDoc) {
                         _closeRelatedDocument(liveDoc);
                     });
                 }
@@ -678,16 +680,6 @@ define(function LiveDevelopment(require, exports, module) {
             refPath,
             i;
 
-        // TODO: FileUtils.getParentFolder()
-        function getParentFolder(path) {
-            return path.substring(0, path.lastIndexOf('/', path.length - 2) + 1);
-        }
-
-        function getFilenameWithoutExtension(filename) {
-            var index = filename.lastIndexOf(".");
-            return index === -1 ? filename : filename.slice(0, index);
-        }
-
         // Is the currently opened document already a file we can use for Live Development?
         if (doc) {
             refPath = doc.file.fullPath;
@@ -714,14 +706,14 @@ define(function LiveDevelopment(require, exports, module) {
             }
             
             var filteredFiltered = allFiles.filter(function (item) {
-                var parent = getParentFolder(item.fullPath);
+                var parent = FileUtils.getParentPath(item.fullPath);
                 
                 return (containingFolder.indexOf(parent) === 0);
             });
             
             var filterIndexFile = function (fileInfo) {
                 if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
-                    if (getFilenameWithoutExtension(fileInfo.name) === "index") {
+                    if (FileUtils.getFilenameWithoutExtension(fileInfo.name) === "index") {
                         if (hasOwnServerForLiveDevelopment) {
                             if ((FileUtils.isServerHtmlFileExt(fileInfo.name)) ||
                                     (FileUtils.isStaticHtmlFileExt(fileInfo.name))) {
@@ -742,7 +734,7 @@ define(function LiveDevelopment(require, exports, module) {
                 // We found no good match
                 if (i === -1) {
                     // traverse the directory tree up one level
-                    containingFolder = getParentFolder(containingFolder);
+                    containingFolder = FileUtils.getParentPath(containingFolder);
                     // Are we still inside the project?
                     if (containingFolder.indexOf(projectRoot) === -1) {
                         stillInProjectTree = false;
@@ -803,10 +795,10 @@ define(function LiveDevelopment(require, exports, module) {
             deferred    = new $.Deferred(),
             connected   = Inspector.connected();
 
-        $(EditorManager).off("activeEditorChange", onActiveEditorChange);
+        EditorManager.off("activeEditorChange", onActiveEditorChange);
         
-        $(Inspector.Page).off(".livedev");
-        $(Inspector).off(".livedev");
+        Inspector.Page.off(".livedev");
+        Inspector.off(".livedev");
 
         // Wait if agents are loading
         if (_loadAgentsPromise) {
@@ -1050,7 +1042,9 @@ define(function LiveDevelopment(require, exports, module) {
         });
 
         // Domains for some agents must be enabled first before loading
-        var enablePromise = Inspector.Page.enable().then(_enableAgents);
+        var enablePromise = Inspector.Page.enable().then(function () {
+            return Inspector.DOM.enable().then(_enableAgents, _enableAgents);
+        });
         
         enablePromise.done(function () {
             // Some agents (e.g. DOMAgent and RemoteAgent) require us to
@@ -1087,10 +1081,10 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
         // When the browser navigates away from the primary live document
-        $(Inspector.Page).on("frameNavigated.livedev", _onFrameNavigated);
+        Inspector.Page.on("frameNavigated.livedev", _onFrameNavigated);
 
         // When the Inspector WebSocket disconnects unexpectedely
-        $(Inspector).on("disconnect.livedev", _onDisconnect);
+        Inspector.on("disconnect.livedev", _onDisconnect);
 		
         _waitForInterstitialPageLoad()
             .fail(function () {
@@ -1237,7 +1231,7 @@ define(function LiveDevelopment(require, exports, module) {
         _server.start();
 
         // Install a one-time event handler when connected to the launcher page
-        $(Inspector).one("connect", _onConnect);
+        Inspector.one("connect", _onConnect);
         
         // open browser to the interstitial page to prepare for loading agents
         _openInterstitialPage();
@@ -1247,7 +1241,7 @@ define(function LiveDevelopment(require, exports, module) {
             // Setup activeEditorChange event listener so that we can track cursor positions in
             // CSS preprocessor files and perform live preview highlighting on all elements with
             // the current selector in the preprocessor file.
-            $(EditorManager).on("activeEditorChange", onActiveEditorChange);
+            EditorManager.on("activeEditorChange", onActiveEditorChange);
 
             // Explicitly trigger onActiveEditorChange so that live preview highlighting
             // can be set up for the preprocessor files.
@@ -1470,19 +1464,19 @@ define(function LiveDevelopment(require, exports, module) {
     function init(theConfig) {
         exports.config = theConfig;
         
-        $(Inspector).on("error", _onError);
-        $(Inspector.Inspector).on("detached", _onDetached);
+        Inspector.on("error", _onError);
+        Inspector.Inspector.on("detached", _onDetached);
 
         // Only listen for styleSheetAdded
         // We may get interim added/removed events when pushing incremental updates
-        $(CSSAgent).on("styleSheetAdded.livedev", _styleSheetAdded);
+        CSSAgent.on("styleSheetAdded.livedev", _styleSheetAdded);
         
-        $(MainViewManager)
+        MainViewManager
             .on("currentFileChange", _onFileChanged);
-        $(DocumentManager)
+        DocumentManager
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
-        $(ProjectManager)
+        ProjectManager
             .on("beforeProjectClose beforeAppClose", close);
         
         // Register user defined server provider
@@ -1501,8 +1495,9 @@ define(function LiveDevelopment(require, exports, module) {
         return _server && _server.getBaseUrl();
     }
 
-
-
+    
+    EventDispatcher.makeEventDispatcher(exports);
+    
     // For unit testing
     exports.launcherUrl               = launcherUrl;
     exports._getServer                = _getServer;

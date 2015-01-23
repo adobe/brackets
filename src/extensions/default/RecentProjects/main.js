@@ -264,7 +264,6 @@ define(function (require, exports, module) {
     function cleanupDropdown() {
         $("html").off("click", closeDropdown);
         $("#project-files-container").off("scroll", closeDropdown);
-        $(SidebarView).off("hide", closeDropdown);
         $("#titlebar .nav").off("click", closeDropdown);
         $dropdown = null;
 
@@ -404,10 +403,9 @@ define(function (require, exports, module) {
         // We should fix this when the popup handling is centralized in PopupManager, as well
         // as making Esc close the dropdown. See issue #1381.
         $("#project-files-container").on("scroll", closeDropdown);
-
-        // Hide the menu if the sidebar is hidden.
-        // TODO: Is there some more general way we could handle this for dropdowns?
-        $(SidebarView).on("hide", closeDropdown);
+        
+        // Note: PopUpManager will automatically hide the sidebar in other cases, such as when a
+        // command is run, Esc is pressed, or the menu is focused.
 
         // Hacky: if we detect a click in the menubar, close ourselves.
         // TODO: again, we should have centralized popup management.
@@ -453,8 +451,8 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
         ExtensionUtils.loadStyleSheet(module, "styles/styles.less");
 
-        $(ProjectManager).on("projectOpen", add);
-        $(ProjectManager).on("beforeProjectClose", add);
+        ProjectManager.on("projectOpen", add);
+        ProjectManager.on("beforeProjectClose", add);
     });
 
     AppInit.htmlReady(function () {

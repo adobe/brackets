@@ -34,6 +34,7 @@ define({
     "GENERIC_ERROR"                     : "(errore {0})",
     "NOT_FOUND_ERR"                     : "Impossibile trovare il file.",
     "NOT_READABLE_ERR"                  : "Il file non può essere letto.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "File oltre {0} MB non possono essere aperti con {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "La cartella selezionata non può essere modificata.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Non hai i permessi necessari per effettuare la modifica.",
     "CONTENTS_MODIFIED_ERR"             : "Il file è stato modificato fuori {APP_NAME}.",
@@ -72,7 +73,19 @@ define({
     "FILE_ALREADY_EXISTS"               : "Il file <span class='dialog-filename'>{0}</span> esiste già.",
     "ERROR_CREATING_FILE_TITLE"         : "Errore durante la creazione del file",
     "ERROR_CREATING_FILE"               : "Errore durante il tentativo di creare il file <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_MIXED_DRAGDROP"              : "Impossibile aprire una cartella, contemporaneamente, come l'apertura di altri file.",
+    "ERROR_MIXED_DRAGDROP"              : "Impossibile aprire una cartella contemporaneamente all'apertura di altri file.",
+
+
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "Errore nella lettura della key map",
+    "ERROR_KEYMAP_CORRUPT"              : "Il tuo file non è in formato JSON valido.  Il file sarà riaperto per poter correggere il formato.",
+    "ERROR_LOADING_KEYMAP"              : "La tua key map non è un file UTF-8 valido e non può essere caricato",
+    "ERROR_RESTRICTED_COMMANDS"         : "Non puoi riassegnare queste scorciatoie: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Non puoi riassegnare delle scorciatoie a questi comandi: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Stai riassegnando più di una scorciatoia a questi comandi:: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Queste scorciatoie non sono valide: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Stai assegnando scorciatoie a comandi inesistenti: {0}",
+
     
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Errore nella lettura delle preferenze",
@@ -80,7 +93,7 @@ define({
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} non può essere ancora eseguita nel browser.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} è scritta in HTML, ma al momento viene eseguita come applicazione desktop per avere la possibilità di modificare file locali. Puoi usare la shell dell’applicazione Puoi usare la shell sul <b>github.com/adobe/brackets-shell</b> repository per eseguire {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} è scritta in HTML, ma al momento viene eseguita come applicazione desktop per avere la possibilità di modificare file locali. Puoi usare la shell dal repository <b>github.com/adobe/brackets-shell</b> per eseguire {APP_NAME}.",
     
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Errore durante l’indicizzazione dei file",
@@ -151,9 +164,9 @@ define({
     "BUTTON_PREV_HINT"                  : "Corrispondenza precedente",
     "BUTTON_CASESENSITIVE_HINT"         : "Rispetta maiuscole/minuscole",
     "BUTTON_REGEXP_HINT"                : "Espressione regolare",
-    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Sostituire senza Annulla",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "Perché più di {0} file hanno bisogno di essere sostituiti, {APP_NAME} modificherà i file aperti sul disco.<br />Non sarai in grado di annullare le sostituzioni in quei file.",
-    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Sostituire senza Annulla",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Sostituire senza Annullare",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Poichè più di {0} file deve essere modificato, {APP_NAME} modificherà i file aperti sul disco.<br />Non sarai in grado di annullare le modifiche in quei file.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Sostituire senza Annullare",
    
     "OPEN_FILE"                         : "Apri File",
     "SAVE_FILE_AS"                      : "Salva File",
@@ -414,6 +427,7 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                : "build sperimentale",
     "DEVELOPMENT_BUILD"                 : "build di sviluppo",
+    "RELEASE_BUILD"                     : "build di rilascio",
     "RELOAD_FROM_DISK"                  : "Ricarica dal disco",
     "KEEP_CHANGES_IN_EDITOR"            : "Conserva le modifiche nell’editor",
     "CLOSE_DONT_SAVE"                   : "Chiudi (non salvare)",
@@ -490,16 +504,16 @@ define({
     "BAD_HTTP_STATUS"                      : "File non trovato sul server (HTTP {0}).",
     "CANNOT_WRITE_TEMP"                    : "Impossibile salvare il file scaricato nei file temporanei.",
     "ERROR_LOADING"                        : "Questa estensione ha incontrato un errore durante l’avvio.",
-    "MALFORMED_URL"                        : "L’indirizzo URL è invalido. Controlla di averlo inserito correttamente.",
+    "MALFORMED_URL"                        : "L’indirizzo URL non è valido. Controlla di averlo inserito correttamente.",
     "UNSUPPORTED_PROTOCOL"                 : "L’indirizzo URL dev’essere di tipo http o https.",
     "UNKNOWN_ERROR"                        : "Errore interno sconosciuto.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Manager delle Estensioni",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Impossibile accedere al registro delle estensioni. Riprova più tardi.",
-    "INSTALL_EXTENSION_DRAG"               : "Trascina .zip qui o",
-    "INSTALL_EXTENSION_DROP"               : "Rilascia .zip per l'installazione",
+    "INSTALL_EXTENSION_DRAG"               : "Trascina il file .zip qui o",
+    "INSTALL_EXTENSION_DROP"               : "Rilascia il file .zip per l'installazione",
     "INSTALL_EXTENSION_DROP_ERROR"         : "Installazione/Aggiornamento interrotto a causa dei seguenti errori:",
-    "INSTALL_FROM_URL"                     : "Installo dall’indirizzo URL\u2026",
+    "INSTALL_FROM_URL"                     : "Installa dall’indirizzo URL\u2026",
     "INSTALL_EXTENSION_VALIDATING"         : "Convalida\u2026",
     "EXTENSION_AUTHOR"                     : "Autore",
     "EXTENSION_DATE"                       : "Data",
@@ -514,7 +528,7 @@ define({
     "EXTENSION_TRANSLATED_USER_LANG"       : "Tradotto in {0} lingue, inclusa la tua",
     "EXTENSION_TRANSLATED_GENERAL"         : "Tradotto in {0} lingue",
     "EXTENSION_TRANSLATED_LANGS"           : "Questa estensione è stata tradotta in queste lingue: {0}",
-    "EXTENSION_INSTALLED"                  : "Installata",
+    "EXTENSION_INSTALLED"                  : "Installate",
     "EXTENSION_UPDATE_INSTALLED"           : "Questo aggiornamento dell’estensione è stato scaricato e sarà installato dopo il riavvio di {APP_NAME}.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Cerca",
     "EXTENSION_MORE_INFO_LINK"             : "Altro",

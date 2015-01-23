@@ -255,8 +255,8 @@ define(function (require, exports, module) {
      */
     function _onActiveEditorChange(event, current, previous) {
         if (previous) {
-            $(previous).off(".statusbar");
-            $(previous.document).off(".statusbar");
+            previous.off(".statusbar");
+            previous.document.off(".statusbar");
             previous.document.releaseRef();
         }
         
@@ -266,19 +266,19 @@ define(function (require, exports, module) {
             var fullPath = current.document.file.fullPath;
             StatusBar.showAllPanes();
             
-            $(current).on("cursorActivity.statusbar", _updateCursorInfo);
-            $(current).on("optionChange.statusbar", function () {
+            current.on("cursorActivity.statusbar", _updateCursorInfo);
+            current.on("optionChange.statusbar", function () {
                 _updateIndentType(fullPath);
                 _updateIndentSize(fullPath);
             });
-            $(current).on("change.statusbar", function () {
+            current.on("change.statusbar", function () {
                 // async update to keep typing speed smooth
                 window.setTimeout(function () { _updateFileInfo(current); }, 0);
             });
-            $(current).on("overwriteToggle.statusbar", _updateOverwriteLabel);
+            current.on("overwriteToggle.statusbar", _updateOverwriteLabel);
             
             current.document.addRef();
-            $(current.document).on("languageChanged.statusbar", function () {
+            current.document.on("languageChanged.statusbar", function () {
                 _updateLanguageInfo(current);
             });
             
@@ -355,8 +355,8 @@ define(function (require, exports, module) {
         $indentWidthLabel
             .on("click", function () {
                 // update the input value before displaying
-                var current = EditorManager.getActiveEditor();
-                $indentWidthInput.val(_getIndentSize(current));
+                var fullPath = EditorManager.getActiveEditor().document.file.fullPath;
+                $indentWidthInput.val(_getIndentSize(fullPath));
 
                 $indentWidthLabel.addClass("hidden");
                 $indentWidthInput.removeClass("hidden");
@@ -364,13 +364,13 @@ define(function (require, exports, module) {
         
                 $indentWidthInput
                     .on("blur", function () {
-                        _changeIndentWidth(current, $indentWidthInput.val());
+                        _changeIndentWidth(fullPath, $indentWidthInput.val());
                     })
                     .on("keyup", function (event) {
                         if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
                             $indentWidthInput.blur();
                         } else if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                            _changeIndentWidth(current, false);
+                            _changeIndentWidth(fullPath, false);
                         }
                     });
             });
@@ -378,7 +378,7 @@ define(function (require, exports, module) {
         $indentWidthInput.focus(function () { $indentWidthInput.select(); });
 
         // Language select change handler
-        $(languageSelect).on("select", function (e, lang) {
+        languageSelect.on("select", function (e, lang) {
             var document = EditorManager.getActiveEditor().document,
                 fullPath = document.file.fullPath;
             
@@ -400,13 +400,13 @@ define(function (require, exports, module) {
     }
 
     // Initialize: status bar focused listener
-    $(EditorManager).on("activeEditorChange", _onActiveEditorChange);
+    EditorManager.on("activeEditorChange", _onActiveEditorChange);
     
     AppInit.htmlReady(_init);
     AppInit.appReady(function () {
         // Populate language switcher with all languages after startup; update it later if this set changes
         _populateLanguageDropdown();
-        $(LanguageManager).on("languageAdded languageModified", _populateLanguageDropdown);
+        LanguageManager.on("languageAdded languageModified", _populateLanguageDropdown);
         _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
         StatusBar.show();
     });

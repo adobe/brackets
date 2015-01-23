@@ -36,10 +36,10 @@ define(function (require, exports, module) {
     var FileSystemError     = require("filesystem/FileSystemError"),
         LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        StringUtils         = require("utils/StringUtils"),
+        Dialogs;            // This will be loaded asynchronously
 
     
     /**
@@ -277,19 +277,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Warning: Contrary to the name, this does NOT return a canonical path. The canonical format
-     * used by Directory.fullPath actually DOES include the trailing "/"
-     * @deprecated
-     * 
-     * @param {string} path
-     * @return {string}
-     */
-    function canonicalizeFolderPath(path) {
-        console.error("Warning: FileUtils.canonicalizeFolderPath() is deprecated. Use paths ending in '/' if possible, like Directory.fullPath");
-        return stripTrailingSlash(path);
-    }
-    
-    /**
      * Get the name of a file or a directory, removing any preceding path.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the base name of a file or the name of a
@@ -456,7 +443,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Get the parent directory of a file. If a directory is passed in the directory is returned.
+     * Get the parent directory of a file. If a directory is passed, the SAME directory is returned.
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the path to the parent directory of a file or the path of a directory,
      *                  including trailing "/"
@@ -466,8 +453,22 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Get the file name without the extension.
-     * @param {string} filename File name of a file or directory
+     * Get the parent folder of the given file/folder path. Differs from getDirectoryPath() when 'fullPath'
+     * is a directory itself: returns its parent instead of the original path. (Note: if you already have a
+     * FileSystemEntry, it's faster to use entry.parentPath instead).
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Path of containing folder (including trailing "/"); or "" if path was the root
+     */
+    function getParentPath(fullPath) {
+        if (fullPath === "/") {
+            return "";
+        }
+        return fullPath.substring(0, fullPath.lastIndexOf("/", fullPath.length - 2) + 1);
+    }
+
+    /**
+     * Get the file name without the extension. Returns "" if name starts with "."
+     * @param {string} filename File name of a file or directory, without preceding path
      * @return {string} Returns the file name without the extension
      */
     function getFilenameWithoutExtension(filename) {
@@ -500,8 +501,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Compares two paths segment-by-segment, used for sorting. Sorts folders before files,
-     * and sorts files based on `compareFilenames()`.
+     * Compares two paths segment-by-segment, used for sorting. When two files share a path prefix,
+     * the less deeply nested one is sorted earlier in the list. Sorts files within the same parent
+     * folder based on `compareFilenames()`.
      * @param {string} path1
      * @param {string} path2
      * @return {number} -1, 0, or 1 depending on whether path1 is less than, equal to, or greater than
@@ -526,12 +528,30 @@ define(function (require, exports, module) {
                 } else if (index >= folders1 && index >= folders2) {
                     return compareFilenames(entryName1, entryName2);
                 }
-                return (index >= folders1 && index < folders2) ? 1 : -1;
+                return (index >= folders1 && index < folders2) ? -1 : 1;
             }
             index++;
         }
         return 0;
     }
+
+    /**
+     * @param {string} path Native path in the format used by FileSystemEntry.fullPath
+     * @return {string} URI-encoded version suitable for appending to 'file:///`. It's not safe to use encodeURI()
+     *     directly since it doesn't escape chars like "#".
+     */
+    function encodeFilePath(path) {
+        var pathArray = path.split("/");
+        pathArray = pathArray.map(function (subPath) {
+            return encodeURIComponent(subPath);
+        });
+        return pathArray.join("/");
+    }
+
+    // Asynchronously loading Dialogs to avoid the circular dependency
+    require(["widgets/Dialogs"], function (dialogsModule) {
+        Dialogs = dialogsModule;
+    });
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -548,12 +568,12 @@ define(function (require, exports, module) {
     exports.convertWindowsPathToUnixPath   = convertWindowsPathToUnixPath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
-    exports.canonicalizeFolderPath         = canonicalizeFolderPath;
     exports.stripTrailingSlash             = stripTrailingSlash;
     exports.isCSSPreprocessorFile          = isCSSPreprocessorFile;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
     exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
+    exports.getParentPath                  = getParentPath;
     exports.getBaseName                    = getBaseName;
     exports.getRelativeFilename            = getRelativeFilename;
     exports.getFilenameWithoutExtension    = getFilenameWithoutExtension;
@@ -562,4 +582,5 @@ define(function (require, exports, module) {
     exports.compareFilenames               = compareFilenames;
     exports.comparePaths                   = comparePaths;
     exports.MAX_FILE_SIZE                  = MAX_FILE_SIZE;
+    exports.encodeFilePath                 = encodeFilePath;
 });

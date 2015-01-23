@@ -40,6 +40,7 @@ define(function (require, exports, module) {
     require("utils/Global");
 
     var _              = require("thirdparty/lodash"),
+        EventDispatcher = require("utils/EventDispatcher"),
         FileSystem     = require("filesystem/FileSystem"),
         FileUtils      = require("file/FileUtils"),
         Async          = require("utils/Async"),
@@ -211,7 +212,13 @@ define(function (require, exports, module) {
             }
         }, function errback(err) {
             // Extension failed to load during the initial require() call
-            console.error("[Extension] failed to load " + config.baseUrl + " " + err);
+            var additionalInfo = String(err);
+            if (err.requireType === "scripterror" && err.originalError) {
+                // This type has a misleading error message - replace it with something clearer (URL of require() call that got a 404 result)
+                additionalInfo = "Module does not exist: " + err.originalError.target.src;
+            }
+            console.error("[Extension] failed to load " + config.baseUrl + " - " + additionalInfo);
+            
             if (err.requireType === "define") {
                 // This type has a useful stack (exception thrown by ext code or info on bad getModule() call)
                 console.log(err.stack);
@@ -247,9 +254,9 @@ define(function (require, exports, module) {
                 return loadExtensionModule(name, config, entryPoint);
             })
             .then(function () {
-                $(exports).triggerHandler("load", config.baseUrl);
+                exports.trigger("load", config.baseUrl);
             }, function (err) {
-                $(exports).triggerHandler("loadFailed", config.baseUrl);
+                exports.trigger("loadFailed", config.baseUrl);
             });
     }
 
@@ -429,6 +436,9 @@ define(function (require, exports, module) {
         return promise;
     }
 
+    
+    EventDispatcher.makeEventDispatcher(exports);
+    
     // unit tests
     exports._setInitExtensionTimeout = _setInitExtensionTimeout;
     exports._getInitExtensionTimeout = _getInitExtensionTimeout;

@@ -62,6 +62,14 @@
         "lineComment": ["//"]
     },
 
+    "dart": {
+        "name": "Dart",
+        "mode": ["dart", "application/dart"],
+        "fileExtensions": ["dart"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
     "vbscript": {
         "name": "VBScript",
         "mode": "vbscript",
@@ -86,7 +94,14 @@
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["xml", "svg", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xbl", "mathml", "config", "plist", "xaml"],
+        "fileExtensions": ["xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xbl", "mathml", "config", "plist", "xaml"],
+        "blockComment": ["<!--", "-->"]
+    },
+
+    "svg": {
+        "name": "SVG",
+        "mode": ["xml", "image/svg+xml"],
+        "fileExtensions": ["svg"],
         "blockComment": ["<!--", "-->"]
     },
 
@@ -207,8 +222,13 @@
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
-        "fileExtensions": ["md", "markdown"],
+        "fileExtensions": ["md", "markdown", "mdown", "mkdn"],
         "blockComment": ["<!--", "-->"]
+    },
+
+    "gfm": {
+        "name": "Markdown (GitHub)",
+        "mode": "gfm"
     },
 
     "yaml": {

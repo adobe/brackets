@@ -129,17 +129,9 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Default to searching for the current selection
+        // Get initial query/replace text
         var currentEditor = EditorManager.getActiveEditor(),
-            initialQuery  = "";
-
-        if (_findBar && !_findBar.isClosed()) {
-            // The modalBar was already up. When creating the new modalBar, copy the
-            // current query instead of using the passed-in selected text.
-            initialQuery = _findBar.getQueryInfo().query;
-        } else if (currentEditor) {
-            initialQuery = FindUtils.getInitialQueryFromSelection(currentEditor);
-        }
+            initialQuery = FindUtils.getInitialQuery(_findBar, currentEditor);
 
         // Close our previous find bar, if any. (The open() of the new _findBar will
         // take care of closing any other find bar instances.)
@@ -150,7 +142,8 @@ define(function (require, exports, module) {
         _findBar = new FindBar({
             multifile: true,
             replace: showReplace,
-            initialQuery: initialQuery,
+            initialQuery: initialQuery.query,
+            initialReplaceText: initialQuery.replaceText,
             queryPlaceholder: Strings.FIND_QUERY_PLACEHOLDER,
             scopeLabel: FindUtils.labelForScope(scope)
         });
@@ -208,7 +201,7 @@ define(function (require, exports, module) {
             startSearch(_findBar.getReplaceText());
         }
         
-        $(_findBar)
+        _findBar
             .on("doFind.FindInFiles", function () {
                 // Subtle issue: we can't just pass startSearch directly as the handler, because
                 // we don't want it to get the event object as an argument.
@@ -216,14 +209,14 @@ define(function (require, exports, module) {
             })
             .on("queryChange.FindInFiles", handleQueryChange)
             .on("close.FindInFiles", function (e) {
-                $(_findBar).off(".FindInFiles");
+                _findBar.off(".FindInFiles");
                 _findBar = null;
             });
         
         if (showReplace) {
             // We shouldn't get a "doReplace" in this case, since the Replace button
             // is hidden when we set options.multifile.
-            $(_findBar).on("doReplaceAll.FindInFiles", startReplace);
+            _findBar.on("doReplaceAll.FindInFiles", startReplace);
         }
         
         var oldModalBarHeight = _findBar._modalBar.height();
@@ -376,7 +369,7 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         var model = FindInFiles.searchModel;
         _resultsView = new SearchResultsView(model, "find-in-files-results", "find-in-files.results");
-        $(_resultsView)
+        _resultsView
             .on("replaceAll", function () {
                 _finishReplaceAll(model);
             })
@@ -386,7 +379,7 @@ define(function (require, exports, module) {
     });
     
     // Initialize: register listeners
-    $(ProjectManager).on("beforeProjectClose", function () { _resultsView.close(); });
+    ProjectManager.on("beforeProjectClose", function () { _resultsView.close(); });
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,       Commands.CMD_FIND_IN_FILES,       _showFindBar);

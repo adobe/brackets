@@ -166,20 +166,23 @@ define(function (require, exports, module) {
         // Check for gradient. -webkit-gradient() can have parens in parameters
         // nested 2 levels. Other gradients can only nest 1 level.
         var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
-            colorRegEx = new RegExp(ColorUtils.COLOR_REGEX);
+            colorRegEx    = new RegExp(ColorUtils.COLOR_REGEX),
+            mode          = TokenUtils.getModeAt(editor._codeMirror, pos),
+            isStyleSheet  = (styleLanguages.indexOf(mode) !== -1);
 
         function areParensBalanced(str) {
             var i,
                 nestLevel = 0,
-                content,
                 len;
 
-            // Remove comments & strings
-            content = CSSUtils.reduceStyleSheetForRegExParsing(str);
-            len = content.length;
+            if (isStyleSheet) {
+                // Remove comments & strings from style sheets
+                str = CSSUtils.reduceStyleSheetForRegExParsing(str);
+            }
+            len = str.length;
             
             for (i = 0; i < len; i++) {
-                switch (content[i]) {
+                switch (str[i]) {
                 case "(":
                     nestLevel++;
                     break;
@@ -702,11 +705,11 @@ define(function (require, exports, module) {
         hidePreview();
 
         if (previous && previous.document) {
-            $(previous.document).off("change", hidePreview);
+            previous.document.off("change", hidePreview);
         }
 
         if (current && current.document) {
-            $(current.document).on("change", hidePreview);
+            current.document.on("change", hidePreview);
         }
     }
 
@@ -728,7 +731,7 @@ define(function (require, exports, module) {
 
                 // Setup doc "change" listener
                 onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
-                $(EditorManager).on("activeEditorChange", onActiveEditorChange);
+                EditorManager.on("activeEditorChange", onActiveEditorChange);
 
             } else {
                 editorHolder.removeEventListener("mousemove", handleMouseMove, true);
@@ -737,7 +740,7 @@ define(function (require, exports, module) {
 
                 // Cleanup doc "change" listener
                 onActiveEditorChange(null, null, EditorManager.getActiveEditor());
-                $(EditorManager).off("activeEditorChange", onActiveEditorChange);
+                EditorManager.off("activeEditorChange", onActiveEditorChange);
 
                 hidePreview();
             }

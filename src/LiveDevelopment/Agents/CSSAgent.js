@@ -39,7 +39,8 @@ define(function CSSAgent(require, exports, module) {
 
     var _ = require("thirdparty/lodash");
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        EventDispatcher = require("utils/EventDispatcher");
 
     /**
      * Stylesheet details
@@ -89,19 +90,6 @@ define(function CSSAgent(require, exports, module) {
             }
         }
         return styles;
-    }
-
-    /**
-     * Use styleSheetAdded and styleSheetRemoved events.
-     * Get a list of all loaded stylesheet files by URL.
-     * @deprecated
-     */
-    function getStylesheetURLs() {
-        var styleSheetId, urls = [];
-        for (styleSheetId in _styleSheetDetails) {
-            urls[_styleSheetDetails[styleSheetId].canonicalizedURL] = true;
-        }
-        return _.keys(urls);
     }
 
     /**
@@ -160,7 +148,7 @@ define(function CSSAgent(require, exports, module) {
         _styleSheetDetails[styleSheetId] = res.header;
         _styleSheetDetails[styleSheetId].canonicalizedURL = url; // canonicalized URL
         
-        $(exports).triggerHandler("styleSheetAdded", [url, res.header]);
+        exports.trigger("styleSheetAdded", url, res.header);
     }
     
     /**
@@ -173,7 +161,7 @@ define(function CSSAgent(require, exports, module) {
         
         delete _styleSheetDetails[res.styleSheetId];
         
-        $(exports).triggerHandler("styleSheetRemoved", [header.canonicalizedURL, header]);
+        exports.trigger("styleSheetRemoved", header.canonicalizedURL, header);
     }
     
     /**
@@ -196,7 +184,7 @@ define(function CSSAgent(require, exports, module) {
             // If we have user agent string, and Chrome is >= 34, then don't use getAllStyleSheets
             if (uaMatch && parseInt(uaMatch[1], 10) >= 34) {
                 _getAllStyleSheetsNotFound = true;
-                $(Inspector.Page).off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+                Inspector.Page.off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
                 return;
             }
         }
@@ -212,7 +200,7 @@ define(function CSSAgent(require, exports, module) {
         }).fail(function (err) {
             // Disable getAllStyleSheets if the first call fails
             _getAllStyleSheetsNotFound = (err.code === -32601);
-            $(Inspector.Page).off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+            Inspector.Page.off("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
         });
     }
 
@@ -223,26 +211,28 @@ define(function CSSAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        $(Inspector.Page).on("frameNavigated.CSSAgent", _onFrameNavigated);
-        $(Inspector.CSS).on("styleSheetAdded.CSSAgent", _styleSheetAdded);
-        $(Inspector.CSS).on("styleSheetRemoved.CSSAgent", _styleSheetRemoved);
+        Inspector.Page.on("frameNavigated.CSSAgent", _onFrameNavigated);
+        Inspector.CSS.on("styleSheetAdded.CSSAgent", _styleSheetAdded);
+        Inspector.CSS.on("styleSheetRemoved.CSSAgent", _styleSheetRemoved);
 
         // getAllStyleSheets was deleted beginning with Chrome 34
         if (!_getAllStyleSheetsNotFound) {
-            $(Inspector.Page).on("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
+            Inspector.Page.on("frameStoppedLoading.CSSAgent", _onFrameStoppedLoading);
         }
     }
 
     /** Clean up */
     function unload() {
-        $(Inspector.Page).off(".CSSAgent");
-        $(Inspector.CSS).off(".CSSAgent");
+        Inspector.Page.off(".CSSAgent");
+        Inspector.CSS.off(".CSSAgent");
     }
+    
+    
+    EventDispatcher.makeEventDispatcher(exports);
 
     // Export public functions
     exports.enable = enable;
     exports.styleForURL = styleForURL;
-    exports.getStylesheetURLs = getStylesheetURLs;
     exports.reloadCSSForDocument = reloadCSSForDocument;
     exports.clearCSSForDocument = clearCSSForDocument;
     exports.load = load;

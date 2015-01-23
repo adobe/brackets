@@ -133,6 +133,7 @@ define(function (require, exports, module) {
     
     // Dependencies
     var CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
+        EventDispatcher       = require("utils/EventDispatcher"),
         Async                 = require("utils/Async"),
         FileUtils             = require("file/FileUtils"),
         _defaultLanguagesJSON = require("text!language/languages.json"),
@@ -357,7 +358,7 @@ define(function (require, exports, module) {
     function _triggerLanguageAdded(language) {
         // finally, store language to _language map
         _languages[language.getId()] = language;
-        $(exports).triggerHandler("languageAdded", [language]);
+        exports.trigger("languageAdded", language);
     }
 
     /**
@@ -366,7 +367,7 @@ define(function (require, exports, module) {
      * @param {!Language} language The modified language
      */
     function _triggerLanguageModified(language) {
-        $(exports).triggerHandler("languageModified", [language]);
+        exports.trigger("languageModified", language);
     }
     
     /**
@@ -807,7 +808,7 @@ define(function (require, exports, module) {
      * Returns either a language associated with the mode or the fallback language.
      * Used to disambiguate modes used by multiple languages.
      * @param {!string} mode The mode to associate the language with
-     * @return {Language} This language if it uses the mode, or whatever {@link LanguageManager#_getLanguageForMode} returns
+     * @return {Language} This language if it uses the mode, or whatever {@link #_getLanguageForMode} returns
      */
     Language.prototype.getLanguageForMode = function (mode) {
         if (mode === this._mode) {
@@ -846,7 +847,7 @@ define(function (require, exports, module) {
     
     /**
      * Trigger the "languageModified" event if this language is registered already
-     * @see _triggerLanguageModified
+     * @see #_triggerLanguageModified
      * @private
      */
     Language.prototype._wasModified = function () {
@@ -1056,6 +1057,8 @@ define(function (require, exports, module) {
     }
     
    
+    EventDispatcher.makeEventDispatcher(exports);
+    
     // Prevent modes from being overwritten by extensions
     _patchCodeMirror();
     
@@ -1067,7 +1070,12 @@ define(function (require, exports, module) {
         "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|^text\/html$/i,
                        "mode": null}]
     });
- 
+
+    // Define SVG MIME type so an SVG language can be defined for SVG-specific code hints.
+    // Currently, SVG uses XML mode so it has generic XML syntax highlighting. This can
+    // be removed when SVG gets its own CodeMirror mode with SVG syntax highlighting.
+    CodeMirror.defineMIME("image/svg+xml", "xml");
+    
     // Load the default languages
     _defaultLanguagesJSON = JSON.parse(_defaultLanguagesJSON);
     _ready = Async.doInParallel(Object.keys(_defaultLanguagesJSON), function (key) {

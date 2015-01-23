@@ -72,14 +72,14 @@
  *    - _workingSetDisableAutoSort -- When the working set is reordered by manually dragging a file. 
  *          (e, paneId:string) For Internal Use Only.
  *
- * These are jQuery events, so to listen for them you do something like this:
- *    `$(MainViewManager).on("eventname", handler);`
- *
+ * To listen for events, do something like this: (see EventDispatcher for details on this pattern)
+ *    `MainViewManager.on("eventname", handler);`
  */
 define(function (require, exports, module) {
     "use strict";
     
     var _                   = require("thirdparty/lodash"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         Strings             = require("strings"),
         AppInit             = require("utils/AppInit"),
         CommandManager      = require("command/CommandManager"),
@@ -227,7 +227,7 @@ define(function (require, exports, module) {
      * localized pane titles 
      * @type {Object.<FIRST_PANE|SECOND_PANE, <VERTICAL.string, HORIZONTAL.string>}}
      *  Localized string for first and second panes in the current orientation.  
-     * @see {@link getPaneTitle()} for more information
+     * @see {@link #getPaneTitle} for more information
      * @private
      */
     var _paneTitles  = {};
@@ -253,6 +253,19 @@ define(function (require, exports, module) {
     function _makeMRUListEntry(file, paneId) {
         return {file: file, paneId: paneId};
     }
+
+    /**
+     * Locates the first  MRU entry of a file
+     * @param {!File} File - the file
+     * @return {{file:File, paneId:string}}
+     * @private
+     */
+    function _findFileInMRUList(file) {
+        return _.findIndex(_mruList, function (record) {
+            return (record.file.fullPath === file.fullPath);
+        });
+    }
+
     
     /**
      * Retrieves the currently active Pane Id
@@ -321,15 +334,21 @@ define(function (require, exports, module) {
             pane.makeViewMostRecent(file);
         
             index = _.findIndex(_mruList, function (record) {
-                return (record.file === file && record.paneId === paneId);
+                return (record.file === file && record.paneId === pane.id);
             });
 
             entry = _makeMRUListEntry(file, pane.id);
 
             if (index !== -1) {
                 _mruList.splice(index, 1);
-                _mruList.unshift(entry);
             }
+
+            if (_findFileInMRUList(file) !== -1) {
+                console.log(file.fullPath + " duplicated in mru list");
+            }
+            
+            // add it to the front of the list
+            _mruList.unshift(entry);
         }
     }
 
@@ -348,7 +367,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Switch active pane to the specified pane Id
+     * Switch active pane to the specified pane Id (or ACTIVE_PANE/ALL_PANES, in which case this
+     * call does nothing).
      * @param {!string} paneId - the id of the pane to activate
      */
     function setActivePaneId(newPaneId) {
@@ -363,11 +383,11 @@ define(function (require, exports, module) {
             
             _activePaneId = newPaneId;
             
-            $(exports).triggerHandler("activePaneChange", [newPaneId, oldPaneId]);
-            $(exports).triggerHandler("currentFileChange", [_getPane(ACTIVE_PANE).getCurrentlyViewedFile(),
+            exports.trigger("activePaneChange", newPaneId, oldPaneId);
+            exports.trigger("currentFileChange", _getPane(ACTIVE_PANE).getCurrentlyViewedFile(),
                                                             newPaneId,
                                                             oldPane.getCurrentlyViewedFile(),
-                                                            oldPaneId]);
+                                                            oldPaneId);
             
             _makePaneMostRecent(_activePaneId);
             focusActivePane();
@@ -704,18 +724,20 @@ define(function (require, exports, module) {
         //  the same location in the working set as the file that was renamed
         if (result === pane.ITEM_FOUND_NEEDS_SORT) {
             console.warn("pane.reorderItem returned pane.ITEM_FOUND_NEEDS_SORT which shouldn't happen " + file);
-            $(exports).triggerHandler("workingSetSort", [pane.id]);
+            exports.trigger("workingSetSort", pane.id);
         } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
 
-            // Add to or update the position in MRU
-            if (pane.getCurrentlyViewedFile() === file) {
-                _mruList.unshift(entry);
-            } else {
-                _mruList.push(entry);
+            if (_findFileInMRUList(file) === -1) {
+                // Add to or update the position in MRU
+                if (pane.getCurrentlyViewedFile() === file) {
+                    _mruList.unshift(entry);
+                } else {
+                    _mruList.push(entry);
+                }
             }
 
-            $(exports).triggerHandler("workingSetAdd", [file, index, pane.id]);
+            exports.trigger("workingSetAdd", file, index, pane.id);
         }
     }
 
@@ -731,10 +753,13 @@ define(function (require, exports, module) {
         uniqueFileList = pane.addListToViewList(fileList);
         
         uniqueFileList.forEach(function (file) {
+            if (_findFileInMRUList(file) !== -1) {
+                console.log(file.fullPath + " duplicated in mru list");
+            }
             _mruList.push(_makeMRUListEntry(file, pane.id));
         });
         
-        $(exports).triggerHandler("workingSetAddList", [uniqueFileList, pane.id]);
+        exports.trigger("workingSetAddList", uniqueFileList, pane.id);
         
         //  find all of the files that could be added but were not 
         var unsolvedList = fileList.filter(function (item) {
@@ -784,7 +809,7 @@ define(function (require, exports, module) {
 
         if (pane.removeView(file)) {
             _removeFileFromMRU(pane.id, file);
-            $(exports).triggerHandler("workingSetRemove", [file, suppressRedraw, pane.id]);
+            exports.trigger("workingSetRemove", file, suppressRedraw, pane.id);
         }
     }
     
@@ -813,7 +838,7 @@ define(function (require, exports, module) {
                     return true;
                 });
             
-                $(exports).triggerHandler("workingSetMove", [file, sourcePane.id, destinationPane.id]);
+                exports.trigger("workingSetMove", file, sourcePane.id, destinationPane.id);
                 result.resolve();
             });
         
@@ -846,14 +871,14 @@ define(function (require, exports, module) {
      * sorts the pane's view list 
      * @param {!string} paneId - id of the pane to sort, ALL_PANES or ACTIVE_PANE
      * @param {sortFunctionCallback} compareFn - callback to determine sort order (called on each item)
-     * @see {@link Pane.sortViewList()} for more information
+     * @see {@link Pane#sortViewList} for more information
      * @see {@link https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort|Sort Array - MDN}
      * @private
      */
     function _sortWorkingSet(paneId, compareFn) {
         _forEachPaneOrPanes(paneId, function (pane) {
             pane.sortViewList(compareFn);
-            $(exports).triggerHandler("workingSetSort", [pane.id]);
+            exports.trigger("workingSetSort", pane.id);
         });
     }
     
@@ -869,8 +894,8 @@ define(function (require, exports, module) {
         var pane = _getPane(paneId);
 
         pane.moveWorkingSetItem(fromIndex, toIndex);
-        $(exports).triggerHandler("workingSetSort", [pane.id]);
-        $(exports).triggerHandler("_workingSetDisableAutoSort", [pane.id]);
+        exports.trigger("workingSetSort", pane.id);
+        exports.trigger("_workingSetDisableAutoSort", pane.id);
     }
 
     /**
@@ -884,8 +909,8 @@ define(function (require, exports, module) {
         var pane = _getPane(paneId);
 
         pane.swapViewListIndexes(index1, index2);
-        $(exports).triggerHandler("workingSetSort", [pane.id]);
-        $(exports).triggerHandler("_workingSetDisableAutoSort", [pane.id]);
+        exports.trigger("workingSetSort", pane.id);
+        exports.trigger("_workingSetDisableAutoSort", pane.id);
     }
     
     /**
@@ -1040,24 +1065,27 @@ define(function (require, exports, module) {
             newPane = new Pane(paneId, _$el);
             _panes[paneId] = newPane;
             
-            $(exports).triggerHandler("paneCreate", [newPane.id]);
+            exports.trigger("paneCreate", newPane.id);
             
             newPane.$el.on("click.mainview dragover.mainview", function () {
                 setActivePaneId(newPane.id);
             });
 
-            $(newPane).on("viewListChange.mainview", function () {
+            newPane.on("viewListChange.mainview", function () {
                 _updatePaneHeaders();
-                $(exports).triggerHandler("workingSetUpdate", [newPane.id]);
+                exports.trigger("workingSetUpdate", newPane.id);
             });
-            $(newPane).on("currentViewChange.mainview", function (e, newView, oldView) {
+            newPane.on("currentViewChange.mainview", function (e, newView, oldView) {
                 _updatePaneHeaders();
                 if (_activePaneId === newPane.id) {
-                    $(exports).triggerHandler("currentFileChange",
-                                              [newView && newView.getFile(),
+                    exports.trigger("currentFileChange",
+                                               newView && newView.getFile(),
                                                newPane.id, oldView && oldView.getFile(),
-                                               newPane.id]);
+                                               newPane.id);
                 }
+            });
+            newPane.on("viewDestroy.mainView", function (e, view) {
+                _removeFileFromMRU(newPane.id, view.getFile());
             });
         }
         
@@ -1073,7 +1101,7 @@ define(function (require, exports, module) {
         Resizer.makeResizable(firstPane.$el,
                               _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
                               _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
-                              MIN_PANE_SIZE, false, false, false, true);
+                              MIN_PANE_SIZE, false, false, false, true, true);
         
         firstPane.$el.on("panelResizeUpdate", function () {
             _updateLayout();
@@ -1110,7 +1138,7 @@ define(function (require, exports, module) {
         //  the percentages are reset as well
         _initialLayout();
         
-        $(exports).triggerHandler("paneLayoutChange", [_orientation]);
+        exports.trigger("paneLayoutChange", _orientation);
         
         // if new pane was created, and original pane is not empty, make new pane the active pane
         if (newPane && getCurrentlyViewedFile(firstPane.id)) {
@@ -1120,28 +1148,20 @@ define(function (require, exports, module) {
     
     /**
      * Edits a document in the specified pane.
-     * This function is only used by Unit Tests (which construct Mock Documents), 
-     *  The Deprecated API "setCurrentDocument" and by File > New 
-     *  because there is yet to be an established File object for the Document which is required 
-     *  for the open API.  
-     * Do not use this API unless you have a document object without a file object
+     * This function is only used by:
+     *  - Unit Tests (which construct Mock Document objects), 
+     *  - by File > New  because there is yet to be an established File object 
+     *  - by Find In Files which needs to open documents synchronously in some cases
+     * Do not use this API it is for internal use only
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!Document} doc - document to edit
-     * @param {{noPaneActivate:boolean=, noPaneRedundancyCheck:boolean=}=} optionsIn - options
+     * @param {{noPaneActivate:boolean=}=} optionsIn - options
      * @private
      */
     function _edit(paneId, doc, optionsIn) {
         var options = optionsIn || {},
-            currentPaneId;
+            currentPaneId  = _getPaneIdForPath(doc.file.fullPath);
         
-        if (options.noPaneRedundancyCheck) {
-            // This flag is for internal use only to improve performance
-            // Don't check for the file to have been opened in another pane pane which could be time
-            //  consuming.  should only be used when passing an actual paneId (not a special paneId)
-            //  and the caller has already done a redundancy check.  
-            currentPaneId = _getPaneIdForPath(doc.file.fullPath);
-        }
-   
         if (currentPaneId) {
             // If the doc is open in another pane then switch to that pane and call open document
             //  which will really just show the view as it has always done we could just 
@@ -1172,7 +1192,7 @@ define(function (require, exports, module) {
      * or a document for editing.  If it's a document for editing, edit is called on the document 
      * @param {!string} paneId - id of the pane in which to open the document
      * @param {!File} file - file to open
-     * @param {{noPaneActivate:boolean=, noPaneRedundancyCheck:boolean=}=} optionsIn - options
+     * @param {{noPaneActivate:boolean=}=} optionsIn - options
      * @return {jQuery.Promise}  promise that resolves to a File object or 
      *                           rejects with a File error or string
      */
@@ -1250,8 +1270,7 @@ define(function (require, exports, module) {
             DocumentManager.getDocumentForPath(file.fullPath)
                 .done(function (doc) {
                     _edit(paneId, doc, $.extend({}, options, {
-                        noPaneActivate: true,
-                        noPaneRedundancyCheck: true
+                        noPaneActivate: true
                     }));
                     doPostOpenActivation();
                     result.resolve(doc.file);
@@ -1261,6 +1280,10 @@ define(function (require, exports, module) {
                 });
         }
 
+        result.done(function () {
+            _makeFileMostRecent(paneId, file);
+        });
+        
         return result;
     }
     
@@ -1279,17 +1302,17 @@ define(function (require, exports, module) {
             Resizer.removeSizable(firstPane.$el);
             firstPane.mergeFrom(secondPane);
         
-            $(exports).triggerHandler("workingSetRemoveList", [fileList, secondPane.id]);
+            exports.trigger("workingSetRemoveList", fileList, secondPane.id);
 
             setActivePaneId(firstPane.id);
             
             secondPane.$el.off(".mainview");
-            $(secondPane).off(".mainview");
+            secondPane.off(".mainview");
 
             secondPane.destroy();
             delete _panes[SECOND_PANE];
-            $(exports).triggerHandler("paneDestroy", secondPane.id);
-            $(exports).triggerHandler("workingSetAddList", [fileList, firstPane.id]);
+            exports.trigger("paneDestroy", secondPane.id);
+            exports.trigger("workingSetAddList", fileList, firstPane.id);
 
             _mruList.forEach(function (record) {
                 if (record.paneId === secondPane.id) {
@@ -1302,7 +1325,7 @@ define(function (require, exports, module) {
             // this will set the remaining pane to 100%
             _initialLayout();
             
-            $(exports).triggerHandler("paneLayoutChange", [_orientation]);
+            exports.trigger("paneLayoutChange", _orientation);
 
             // if the current view before the merger was in the pane
             //  that went away then reopen it so that it's now the current view again
@@ -1324,7 +1347,7 @@ define(function (require, exports, module) {
         _forEachPaneOrPanes(paneId, function (pane) {
             if (pane.removeView(file, options.noOpenNextFile)) {
                 _removeFileFromMRU(pane.id, file);
-                $(exports).triggerHandler("workingSetRemove", [file, false, pane.id]);
+                exports.trigger("workingSetRemove", file, false, pane.id);
                 return false;
             }
         });
@@ -1343,7 +1366,7 @@ define(function (require, exports, module) {
                 _removeFileFromMRU(pane.id, file);
             });
 
-            $(exports).triggerHandler("workingSetRemoveList", [closedList, pane.id]);
+            exports.trigger("workingSetRemoveList", closedList, pane.id);
         });
     }
     
@@ -1360,7 +1383,7 @@ define(function (require, exports, module) {
             });
 
             pane._reset();
-            $(exports).triggerHandler("workingSetRemoveList", [closedList, pane.id]);
+            exports.trigger("workingSetRemoveList", closedList, pane.id);
         });
     }
 
@@ -1500,16 +1523,19 @@ define(function (require, exports, module) {
                 
                 if (_orientation) {
                     _$el.addClass("split-" + _orientation.toLowerCase());
-                    $(exports).triggerHandler("paneLayoutChange", _orientation);
+                    exports.trigger("paneLayoutChange", _orientation);
                 }
 
                 _.forEach(_panes, function (pane) {
                     var fileList = pane.getViewList();
 
                     fileList.forEach(function (file) {
+                        if (_findFileInMRUList(file) !== -1) {
+                            console.log(file.fullPath + " duplicated in mru list");
+                        }
                         _mruList.push(_makeMRUListEntry(file, pane.id));
                     });
-                    $(exports).triggerHandler("workingSetAddList", [fileList, pane.id]);
+                    exports.trigger("workingSetAddList", fileList, pane.id);
                 });
                 
                 promises = [];
@@ -1599,7 +1625,7 @@ define(function (require, exports, module) {
         // This ensures that unit tests that use this function 
         //  get an event handler for workspace events and we don't listen
         //  to the event before we've been initialized
-        $(WorkspaceManager).on("workspaceUpdateLayout", _updateLayout);
+        WorkspaceManager.on("workspaceUpdateLayout", _updateLayout);
     }
     
     /** 
@@ -1643,6 +1669,7 @@ define(function (require, exports, module) {
         return result;
     }
     
+    
     /** 
      * Setup a ready event to initialize ourself
      */
@@ -1650,12 +1677,14 @@ define(function (require, exports, module) {
         _initialize($("#editor-holder"));
     });
     
-    // Event handlers
-    $(ProjectManager).on("projectOpen",                       _loadViewState);
-    $(ProjectManager).on("beforeProjectClose beforeAppClose", _saveViewState);
-    $(EditorManager).on("activeEditorChange",                 _activeEditorChange);
-    $(DocumentManager).on("pathDeleted",                      _removeDeletedFileFromMRU);
+    // Event handlers - not safe to call on() directly, due to circular dependencies
+    EventDispatcher.on_duringInit(ProjectManager, "projectOpen",                       _loadViewState);
+    EventDispatcher.on_duringInit(ProjectManager, "beforeProjectClose beforeAppClose", _saveViewState);
+    EventDispatcher.on_duringInit(EditorManager, "activeEditorChange",                 _activeEditorChange);
+    EventDispatcher.on_duringInit(DocumentManager, "pathDeleted",                      _removeDeletedFileFromMRU);
     
+    
+    EventDispatcher.makeEventDispatcher(exports);
     
     // Unit Test Helpers
     exports._initialize                   = _initialize;
