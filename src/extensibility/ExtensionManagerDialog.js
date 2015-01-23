@@ -326,8 +326,10 @@ define(function (require, exports, module) {
                 models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
             }
             $tab.tab("show");
-            $(".modal-body", $dlg).scrollTop((models[_activeTabIndex] && models[_activeTabIndex].scrollPos) || 0);
-            clearSearch();
+            if (models[_activeTabIndex]) {
+                $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
+                clearSearch();
+            }
         }
 
         // Dialog tabs
@@ -426,6 +428,7 @@ define(function (require, exports, module) {
             
             var $activeTab = $dlg.find(".nav-tabs li.active a");
             if ($activeTab.length) { // If there's already a tab selected, show it
+                $activeTab.parent().removeClass("active"); // workaround for bootstrap-tab
                 $activeTab.tab("show");
             } else if ($("#toolbar-extension-manager").hasClass('updatesAvailable')) {
                 // Open dialog to Installed tab if extension updates are available
