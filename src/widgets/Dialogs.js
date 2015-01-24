@@ -179,8 +179,8 @@ define(function (require, exports, module) {
                 $focusedElement.click();
             }
         } else if (brackets.platform === "mac") {
-            // CMD+D Don't Save
-            if (e.metaKey && (which === "D")) {
+            // CMD+Backspace Don't Save
+            if (e.metaKey && (e.which === KeyEvent.DOM_VK_BACK_SPACE)) {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
