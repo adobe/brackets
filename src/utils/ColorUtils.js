@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, $ */
 
 /**
  *  Utilities functions related to color matching
@@ -48,7 +48,27 @@ define(function (require, exports, module) {
     // use RegExp.source of the RegExp literal to avoid doubled backslashes
     var COLOR_REGEX = new RegExp(/#[a-f0-9]{6}\b|#[a-f0-9]{3}\b|\brgb\(\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*\)|\brgb\(\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:[0-9]{1,2}%|100%)\s*\)|\brgba\(\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b\s*,\s*(?:1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\brgba\(\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:[0-9]{1,2}%|100%)\s*,\s*(?:1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\bhsl\(\s*(?:[0-9]{1,3})\b\s*,\s*(?:[0-9]{1,2}|100)\b%\s*,\s*(?:[0-9]{1,2}|100)\b%\s*\)|\bhsla\(\s*(?:[0-9]{1,3})\b\s*,\s*(?:[0-9]{1,2}|100)\b%\s*,\s*(?:[0-9]{1,2}|100)\b%\s*,\s*(?:1|1\.0|0|0?\.[0-9]{1,3})\s*\)|\b/.source + COLOR_NAMES.join("\\b|\\b") + "\\b", "gi");
 
+    /*
+     * Adds a color swatch to code hints where this is supported.
+     * @param {!jQuery} $hintObj - list item where the swatch will be in
+     * @param {?string} color - color the swatch should have, or null to add extra left margin to
+     *      align with the other hints
+     * @return {jQuery} jQuery object with the correct class and/or style applied
+     */
+    function formatColorHint($hintObj, color) {
+        if (color) {
+            $hintObj.prepend($("<span>")
+                .addClass("color-swatch")
+                .css("backgroundColor", color));
+        } else {
+            $hintObj.addClass("no-swatch-margin");
+        }
+        return $hintObj;
+    }
+
+
     // Define public API
-    exports.COLOR_NAMES = COLOR_NAMES;
-    exports.COLOR_REGEX = COLOR_REGEX;
+    exports.COLOR_NAMES     = COLOR_NAMES;
+    exports.COLOR_REGEX     = COLOR_REGEX;
+    exports.formatColorHint = formatColorHint;
 });
