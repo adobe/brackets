@@ -70,6 +70,7 @@ define(function (require, exports, module) {
     function calcAvailableHeight() {
         var availableHt = $windowContent.height();
 
+        
         $editorHolder.siblings().each(function (i, elem) {
             var $elem = $(elem);
             if ($elem.css("display") !== "none" && $elem.css("position") !== "absolute") {
