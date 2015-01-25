@@ -96,7 +96,7 @@ define(function (require, exports, module) {
                 errors: [
                     {
                         pos: { line: 1, ch: 3 },
-                        message: "Some errors here and there",
+                        message: "Some warnings here and there",
                         type: CodeInspection.Type.WARNING
                     }
                 ]
@@ -580,7 +580,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: 1, ch: 3 },
-                            message: "Some errors here and there",
+                            message: "Some warnings here and there",
                             type: CodeInspection.Type.WARNING
                         },
                         {
@@ -757,7 +757,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: 1, ch: 3 },
-                            message: "Some errors here and there",
+                            message: "Some warnings here and there",
                             type: CodeInspection.Type.WARNING
                         },
                         {
@@ -791,7 +791,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: 1, ch: 3 },
-                            message: "Some errors here and there",
+                            message: "Some warnings here and there",
                             type: CodeInspection.Type.WARNING
                         }
                     ]
@@ -814,7 +814,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: 1, ch: 3 },
-                            message: "Some errors here and there",
+                            message: "Some warnings here and there",
                             type: CodeInspection.Type.WARNING
                         },
                         {
@@ -913,7 +913,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: 1, ch: 3 },
-                            message: "Some errors here and there",
+                            message: "Some warnings here and there",
                             type: CodeInspection.Type.WARNING
                         }
                     ]
@@ -922,7 +922,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: 0, ch: 2 },
-                            message: "Different error",
+                            message: "Different warning",
                             type: CodeInspection.Type.WARNING
                         }
                     ]
@@ -945,7 +945,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: -1, ch: 0 },
-                            message: "Some errors here and there",
+                            message: "Some warnings here and there",
                             type: CodeInspection.Type.WARNING
                         }
                     ]
@@ -955,7 +955,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: "all", ch: 0 },
-                            message: "Some errors here and there",
+                            message: "Some warnings here and there",
                             type: CodeInspection.Type.WARNING
                         }
                     ]
