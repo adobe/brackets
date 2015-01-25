@@ -129,8 +129,6 @@ define(function (require, exports, module) {
                 $hintObj = ColorUtils.formatColorHint($hintObj, token.color);
             }
 
-            $hintObj.data("token", token);
-
             return $hintObj;
         });
     }
