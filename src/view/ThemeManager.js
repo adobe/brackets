@@ -167,7 +167,7 @@ define(function (require, exports, module) {
             filename: fixPath(theme.file._path)
         });
 
-        parser.parse("#editor-holder {" + content + "\n}", function (err, tree) {
+        parser.parse("#editor-holder, .force-syntax-highlighting {" + content + "\n}", function (err, tree) {
             if (err) {
                 deferred.reject(err);
             } else {
