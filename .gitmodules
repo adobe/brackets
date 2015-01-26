@@ -34,3 +34,6 @@
 [submodule "src/thirdparty/filer-dialogs"]
 	path = src/thirdparty/filer-dialogs
 	url = https://github.com/ScottDowne/filer-dialogs
+[submodule "src/extensions/default/HTMLHinter"]
+	path = src/extensions/default/HTMLHinter
+	url = https://github.com/KeniMorri/HTMLHinter
