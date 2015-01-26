@@ -413,7 +413,8 @@ define(function (require, exports, module) {
 
                     // Custom extensions we want loaded by default
                     // NOTE: Maps to a folder inside /src/extensions/default/
-                    "makedrive-sync-icon"
+                    "makedrive-sync-icon",
+                    "HTMLHinter"
 
                     // "ExampleExtension",
                 ];
