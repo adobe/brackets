@@ -37,3 +37,9 @@
 [submodule "src/extensions/default/HTMLHinter"]
 	path = src/extensions/default/HTMLHinter
 	url = https://github.com/KeniMorri/HTMLHinter
+[submodule "src/extensions/default/HideUI"]
+	path = src/extensions/default/HideUI
+	url = https://github.com/AJDBenner/HideUI
+[submodule "src/extensions/default/iFrameSecondPane"]
+	path = src/extensions/default/iFrameSecondPane
+	url = https://github.com/KeniMorri/iFrameSecondPane
