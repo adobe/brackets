@@ -327,7 +327,6 @@ a, img {
     /* Placeholder shown when there is no editor open */
 
     .view-pane {
-        opacity: 0.7; // quieten inactive pane
         display: block;
         margin: 0;
         overflow: hidden;
@@ -480,6 +479,7 @@ a, img {
         }
     }
     .pane-header {
+        opacity: 0.7; // quieten inactive pane header
         box-sizing: border-box;
         border-bottom:  1px solid rgba(0, 0, 0, 0.05);
         padding: 5px 10px;
@@ -494,9 +494,9 @@ a, img {
         }
     }
     .active-pane {
-        opacity: 1;
         
         .pane-header {
+            opacity: 1;
             color: @bc-menu-text;
 
             .dark & {
