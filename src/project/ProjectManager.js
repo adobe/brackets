@@ -642,7 +642,6 @@ define(function (require, exports, module) {
     function _getWelcomeProjectPath() {
         // XXXhumphd: just use root dir for now in browser
         return '/';
-        //return ProjectModel._getWelcomeProjectPath(Urls.GETTING_STARTED, FileUtils.getNativeBracketsDirectoryPath());
     }
 
     /**
@@ -731,9 +730,9 @@ define(function (require, exports, module) {
      * first launch.
      */
     function getInitialProjectPath() {
-        // XXXhumphd: just use root dir for now in browser
+        // This is where we specify the file used
+        // for the thimble project
         return '/';
-        //return updateWelcomeProjectPath(PreferencesManager.getViewState("projectPath"));
     }
 
     /**

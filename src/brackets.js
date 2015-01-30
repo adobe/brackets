@@ -244,10 +244,10 @@ define(function (require, exports, module) {
                 ProjectManager.openProject(initialProjectPath).always(function () {
                     _initTest();
                     
-                    // If this is the first launch, and we have an index.html file in the project folder (which should be
-                    // the samples folder on first launch), open it automatically. (We explicitly check for the
-                    // samples folder in case this is the first time we're launching Brackets after upgrading from
-                    // an old version that might not have set the "afterFirstLaunch" pref.)
+                    // XXXThimble: We force the "SampleProjectLoad" logic to execute
+                    //             by modifying preferences in our thimbleProxy
+                    //             extension. This is a shortcut to opening
+                    //             the Thimble make in brackets.
                     var deferred = new $.Deferred();
                     
                     if (!params.get("skipSampleProjectLoad") && !PreferencesManager.getViewState("afterFirstLaunch")) {
