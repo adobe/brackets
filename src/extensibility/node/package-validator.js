@@ -178,19 +178,7 @@ function findCommonPrefix(extractDir, callback) {
  * @return {String} The same data, sans the BOM.
  */
 function stripBOM(data) {
-    // UTF-8
-    if (data.substr(0, 3) === "\xef\xbb\xbf") {
-        data = data.substr(3);
-
-        // UTF-32
-    } else if (["\xff\xfe\x00\x00", "\x00\x00\xfe\xff"].indexOf(data.substr(0, 4)) > -1) {
-        data = data.substr(4);
-
-        // UTF-16
-    } else if (["\xff\xfe", "\xfe\xff"].indexOf(data.substr(0, 2)) > -1) {
-        data = data.substr(2);
-    }
-    return data;
+    return data.substr(data.indexOf("{")).replace(/\u0000/g, "");
 }
 
 /**

@@ -46,6 +46,7 @@ var basicValidExtension    = path.join(testFilesDirectory, "basic-valid-extensio
     basicValidExtension2   = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
     basicValidTheme        = path.join(testFilesDirectory, "basic-valid-theme-1.0.zip"),
     missingPackageJSON     = path.join(testFilesDirectory, "missing-package-json.zip"),
+    hasBOMJSON             = path.join(testFilesDirectory, "package-json-with-16-bom.zip"),
     invalidJSON            = path.join(testFilesDirectory, "invalid-json.zip"),
     invalidZip             = path.join(testFilesDirectory, "invalid-zip-file.zip"),
     missingNameVersion     = path.join(testFilesDirectory, "missing-name-version.zip"),
@@ -122,6 +123,16 @@ describe("Package Validation", function () {
             expect(errors[0][1]).toEqual("SyntaxError: Unexpected token I");
             expect(errors[0][2]).toEqual(invalidJSON);
             expect(result.metadata).toBeUndefined();
+            done();
+        });
+    });
+    
+    it("should NOT complain about BOM in package.json", function (done) {
+        packageValidator.validate(hasBOMJSON, {}, function (err, result) {
+            expect(err).toBeNull();
+            var errors = result.errors;
+            expect(errors.length).toEqual(0);
+            expect(result.metadata).toBeDefined();
             done();
         });
     });
