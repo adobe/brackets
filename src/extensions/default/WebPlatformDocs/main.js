@@ -147,8 +147,12 @@ define(function (require, exports, module) {
 
                     if (propName) {
                         // strip off all prefixes from the propName
-                        displayName = propName.substr(propName.lastIndexOf("/") + 1);
+                        var propPrefix = propName.substr(0, propName.lastIndexOf("/"));
                         propDetails = docs[propName];
+                        displayName = propName.substr(propName.lastIndexOf("/") + 1);
+                        if (propPrefix === "html/elements") {
+                            displayName = "<" + displayName + ">";
+                        }
                     }
                     if (propDetails) {
                         var inlineWidget = new InlineDocsViewer(displayName, propDetails);
