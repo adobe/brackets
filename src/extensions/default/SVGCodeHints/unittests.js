@@ -39,8 +39,8 @@ define(function (require, exports, module) {
                         "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n" +
                         "     width=\"200\" height=\"200\" preserveAspectRatio=\"xMinYMin meet\">\n" +
                         "    <title>Brackets SVG Code Hints</title>\n" +
-                        "    <rect width=\"200\" height=\"200\" baseline-shift=\"baseline\" alignment-baseline=\"alphabetic\" stroke-width=\"1\"></rect>\n" +
-                        "    <rect width='160' height='160' x='20' y='20' baseline-shift='super' alignment-baseline='baseline' />\n" +
+                        "    <rect width=\"200\" height=\"200\" baseline-shift=\"baseline\" alignment-baseline=\"alphabetic\" stroke-width=\"1\" color=\"\"></rect>\n" +
+                        "    <rect width='160' height='160' x='20' y='20' baseline-shift='super' alignment-baseline='baseline' color='rent' fill='transparent' />\n" +
                         "    <g>\n" +
                         "        \n" +
                         "    </g>\n" +
@@ -205,7 +205,7 @@ define(function (require, exports, module) {
                 expectNoHints(SVGCodeHints.hintProvider);
                 
                 // Between <rect></rect>
-                testEditor.setCursorPos({line: 4, ch: 110});
+                testEditor.setCursorPos({line: 4, ch: 119});
                 expectNoHints(SVGCodeHints.hintProvider);
                 
                 // After <title>+space in <title> Brackets
@@ -216,21 +216,21 @@ define(function (require, exports, module) {
             
             it("should not hint after the closed tag", function () {
                 // After </rect>
-                testEditor.setCursorPos({line: 4, ch: 117});
+                testEditor.setCursorPos({line: 4, ch: 126});
                 expectNoHints(SVGCodeHints.hintProvider);
                 
                 // After space at </rect>+space
-                testDocument.replaceRange(" ", {line: 4, ch: 117});
-                testEditor.setCursorPos({line: 4, ch: 118});
+                testDocument.replaceRange(" ", {line: 4, ch: 126});
+                testEditor.setCursorPos({line: 4, ch: 127});
                 expectNoHints(SVGCodeHints.hintProvider);
                 
                 // After />
-                testEditor.setCursorPos({line: 5, ch: 104});
+                testEditor.setCursorPos({line: 5, ch: 136});
                 expectNoHints(SVGCodeHints.hintProvider);
                 
                 // After space in />+space
-                testDocument.replaceRange(" ", {line: 5, ch: 104});
-                testEditor.setCursorPos({line: 5, ch: 105});
+                testDocument.replaceRange(" ", {line: 5, ch: 136});
+                testEditor.setCursorPos({line: 5, ch: 137});
                 expectNoHints(SVGCodeHints.hintProvider);
                 
                 // After </g>
@@ -453,6 +453,38 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("Color names and swatches", function () {
+            it("should show color swatches", function () {
+                // After color="
+                testEditor.setCursorPos({line: 4, ch: 117});
+                var hints = expectHints(SVGCodeHints.hintProvider);
+                verifyHints(hints, "aliceblue"); // first hint should be aliceblue
+                expect(hints[0].find(".color-swatch").length).toBe(1);
+                expect(hints[0].find(".color-swatch").css("backgroundColor")).toBe("rgb(240, 248, 255)");
+            });
+
+            it("should always include transparent and currentColor and they should not have a swatch, but class no-swatch-margin", function () {
+                // After color='rent
+                testEditor.setCursorPos({line: 5, ch: 113});
+                var hints = expectHints(SVGCodeHints.hintProvider);
+                verifyHints(hints, "currentColor"); // first hint should be currentColor
+                expect(hints[0].find(".color-swatch").length).toBe(0); // no swatch for currentColor
+                expect(hints[2].find(".color-swatch").length).toBe(0); // no swatch for transparent
+                expect(hints[0].hasClass("no-swatch-margin")).toBeTruthy(); // no-swatch-margin applied to currentColor
+                expect(hints[2].hasClass("no-swatch-margin")).toBeTruthy(); // no-swatch-margin applied to transparent
+            });
+
+            it("should remove class no-swatch-margin from transparent if it's the only one in the list", function () {
+                // After fill='transparent
+                testEditor.setCursorPos({line: 5, ch: 132});
+                var hints = expectHints(SVGCodeHints.hintProvider);
+                verifyHints(hints, "transparent");
+                expect(hints.length).toBe(1); // transparent should be the only hint
+                expect(hints[0].find(".color-swatch").length).toBe(0); // no swatch for transparent
+                expect(hints[0].hasClass("no-swatch-margin")).toBeFalsy(); // no-swatch-margin not applied to transparent
+            });
+        });
+
         describe("Tag Insertion", function () {
             it("should insert if query is empty", function () {
                 // After < inside <g>

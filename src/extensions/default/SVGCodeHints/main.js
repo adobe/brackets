@@ -34,6 +34,8 @@ define(function (require, exports, module) {
         XMLUtils            = brackets.getModule("language/XMLUtils"),
         StringMatch         = brackets.getModule("utils/StringMatch"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
+        ColorUtils          = brackets.getModule("utils/ColorUtils"),
+        _                   = brackets.getModule("thirdparty/lodash"),
         SVGTags             = require("text!SVGTags.json"),
         SVGAttributes       = require("text!SVGAttributes.json"),
         cachedAttributes    = {},
@@ -85,7 +87,7 @@ define(function (require, exports, module) {
                     cachedAttributes[tagName] = cachedAttributes[tagName].concat(tagData.attributeGroups[group]);
                 }
             });
-            cachedAttributes[tagName].sort();
+            cachedAttributes[tagName] = _.uniq(cachedAttributes[tagName].sort(), true);
         }
         return cachedAttributes[tagName];
     }
@@ -96,10 +98,14 @@ define(function (require, exports, module) {
      * 
      * @param {Array.<Object>} hints - the list of hints to format
      * @param {string} query - querystring used for highlighting matched
-     *      poritions of each hint
+     *      portions of each hint
      * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
      */
     function formatHints(hints, query) {
+        var hasColorSwatch = hints.some(function (token) {
+            return token.color;
+        });
+
         StringMatch.basicMatchSort(hints);
         return hints.map(function (token) {
             var $hintObj = $("<span>").addClass("brackets-svg-hints");
@@ -119,7 +125,9 @@ define(function (require, exports, module) {
                 $hintObj.text(token.value);
             }
 
-            $hintObj.data("token", token);
+            if (hasColorSwatch) {
+                $hintObj = ColorUtils.formatColorHint($hintObj, token.color);
+            }
 
             return $hintObj;
         });
@@ -206,6 +214,13 @@ define(function (require, exports, module) {
                 } else if (attributeData[tagInfo.attrName]) {
                     options = attributeData[tagInfo.attrName].attribOptions;
                     isMultiple = attributeData[tagInfo.attrName].multiple;
+
+                    if (attributeData[tagInfo.attrName].type === "color") {
+                        options = ColorUtils.COLOR_NAMES.map(function (color) {
+                            return { text: color, color: color };
+                        });
+                        options = options.concat(["currentColor", "transparent"]);
+                    }
                 }
                 
                 // Stop if the attribute doesn't support multiple options.
@@ -216,8 +231,12 @@ define(function (require, exports, module) {
                 query = XMLUtils.getValueQuery(tagInfo);
                 hints = $.map(options, function (option) {
                     if (tagInfo.exclusionList.indexOf(option) === -1) {
-                        var match = StringMatch.stringMatch(option, query, stringMatcherOptions);
+                        var match = StringMatch.stringMatch(option.text || option, query, stringMatcherOptions);
                         if (match) {
+                            if (option.color) {
+                                match.color = option.color;
+                            }
+
                             return match;
                         }
                     }
