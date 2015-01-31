@@ -34,16 +34,16 @@ define({
     "GENERIC_ERROR"                     : "(fout {0})",
     "NOT_FOUND_ERR"                     : "Het bestand kon niet worden gevonden.",
     "NOT_READABLE_ERR"                  : "Het bestand kon niet worden ingelezen.",
-    "EXCEEDS_MAX_FILE_SIZE"             : "Het bestand is groter dan {0} MB en kan niet worden geopend in in {APP_NAME}.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "Het bestand is groter dan {0} MB en kan niet worden geopend in {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "De doelmap kan niet gewijzigd worden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "De bevoegdheden laten u niet toe enige wijzigingen aan te brengen.",
-    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} ondersteund alleen UTF-8 gecodeerde tekst bestanden.",
+    "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} ondersteunt alleen UTF-8 gecodeerde tekstbestanden.",
     "FILE_EXISTS_ERR"                   : "Het bestand of de map bestaat al.",
     "FILE"                              : "bestand",
     "FILE_TITLE"                        : "Bestand",
     "DIRECTORY"                         : "map",
     "DIRECTORY_TITLE"                   : "Map",
-    "DIRECTORY_NAMES_LEDE"              : "Map namen",
+    "DIRECTORY_NAMES_LEDE"              : "Mapnamen",
     "FILENAMES_LEDE"                    : "Bestandsnamen",
     "FILENAME"                          : "Bestandsnaam",
     "DIRECTORY_NAME"                    : "Mao naam",
@@ -72,22 +72,22 @@ define({
     "FILE_ALREADY_EXISTS"               : "Het {0} <span class='dialog-filename'>{1}</span> bestaat al.",
     "ERROR_CREATING_FILE_TITLE"         : "Probleem bij het aanmaken van een {0}",
     "ERROR_CREATING_FILE"               : "Er is een fout opgetreden bij het aanmaken van het {0} <span class='dialog-filename'>{1}</span>. {2}",
-    "ERROR_MIXED_DRAGDROP"              : "Kan niet een map als er al een ander bestand word geopend.",
+    "ERROR_MIXED_DRAGDROP"              : "Kan niet een map openen als er al een ander bestand wordt geopend.",
 
     // User key map error strings
     "ERROR_KEYMAP_TITLE"                : "Er is een fout opgetreden tijdens het lezen van de User Key Map",
-    "ERROR_KEYMAP_CORRUPT"              : "Je key map bestand is geen geldige JSON. Het bestand word geopend zodat je het kunt aanpassen.",
-    "ERROR_LOADING_KEYMAP"              : "Je key map bestand is geen geldig UTF-8 tekst bestand en kan niet worden geopend.",
+    "ERROR_KEYMAP_CORRUPT"              : "Je key map bestand bevat geen geldige JSON. Het bestand wordt geopend zodat je het kunt aanpassen.",
+    "ERROR_LOADING_KEYMAP"              : "Je key map bestand bevat geen geldig UTF-8 tekst bestand en kan niet worden geopend.",
     "ERROR_RESTRICTED_COMMANDS"         : "Je kunt de shortcuts van de volgende commando's niet veranderen: {0}",
-    "ERROR_RESTRICTED_SHORTCUTS"        : "Je kunt deze shortcuts nier veranderen: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Je kunt deze shortcuts hier veranderen: {0}",
     "ERROR_MULTIPLE_SHORTCUTS"          : "Je voegt meerdere shortcuts toe voor de volgende commando's: {0}",
-    "ERROR_DUPLICATE_SHORTCUTS"         : "Je hebt meerder bindings voor de volgende shortcuts: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Je hebt meerdere bindingen voor de volgende shortcuts: {0}",
     "ERROR_INVALID_SHORTCUTS"           : "De volgende shortcuts zijn niet geldig: {0}",
     "ERROR_NONEXISTENT_COMMANDS"        : "Je voegt shortcuts toe voor niet bestaande commando's: {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Er is een fout opgetreden bij het inlezen van je voorkeuren.",
-    "ERROR_PREFS_CORRUPT"               : "Je voorkeuren-bestand is geen geldige JSON. Hedtc bestand word geopend zodat je het kunt aanpassen. Je moet {APP_NAME} opnieuw opstarten zodat de veranderingen effect zullen hebben.",
+    "ERROR_PREFS_CORRUPT"               : "Je voorkeuren-bestand bevat geen geldige JSON. Het bestand wordt geopend voordat je het kunt aanpassen. Je moet {APP_NAME} opnieuw opstarten zodat de veranderingen effect zullen hebben.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oeps! {APP_NAME} werkt nog niet in browsers.",
@@ -95,7 +95,7 @@ define({
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Probleem bij het indexeren van bestanden",
-    "ERROR_MAX_FILES"                   : "Dit bestand heeft meer dan 30.000 bestanden. Acties die via meerdere bestanden werken worden mogelijk uitgeschakeld of kunnen zich gedragen alsof het project leeg is. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Lees meer over het werken met grote projecten</a>.",
+    "ERROR_MAX_FILES"                   : "Deze map heeft meer dan 30.000 bestanden. Acties die via meerdere bestanden werken worden mogelijk uitgeschakeld of kunnen zich gedragen alsof het project leeg is. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Lees meer over het werken met grote projecten</a>.",
 
 
     // Live Preview error strings
@@ -139,11 +139,11 @@ define({
     // Generic dialog/button labels
     "DONE"                              : "Klaar",
     "OK"                                : "OK",
-    "CANCEL"                            : "annuleer",
-    "DONT_SAVE"                         : "Sla niet op",
+    "CANCEL"                            : "Annuleer",
+    "DONT_SAVE"                         : "Niet opslaan",
     "SAVE"                              : "Sla op",
     "SAVE_AS"                           : "Sla op als\u2026",
-    "SAVE_AND_OVERWRITE"                : "Overschriif",
+    "SAVE_AND_OVERWRITE"                : "Overschrijf",
     "DELETE"                            : "Verwijder",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nee",
@@ -158,10 +158,10 @@ define({
     "BUTTON_REPLACE"                    : "Vervang",
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
-    "BUTTON_NEXT_HINT"                  : "Volgende Match",
+    "BUTTON_NEXT_HINT"                  : "Volgende overeenkomst",
     "BUTTON_PREV_HINT"                  : "Vorige Match",
     "BUTTON_CASESENSITIVE_HINT"         : "Match Case",
-    "BUTTON_REGEXP_HINT"                : "Regular Expression",
+    "BUTTON_REGEXP_HINT"                : "Reguliere expressie",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Vervang zonder ongedaan maken",
     "REPLACE_WITHOUT_UNDO_WARNING"      : "Omdat er meer dan {0} bestanden veranderd moeten worden, {APP_NAME} zal ongeopende bestanden op de harde schijf veranderen.<br />Het zal niet mogelijk zijn om deze veranderingen terug te draaien.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Vervang zonder ongedaan maken",
@@ -175,7 +175,7 @@ define({
     "NO_UPDATE_MESSAGE"                 : "Je werkt met de laatste versie van {APP_NAME}.",
 
     // Find and Replace
-    "FIND_REPLACE_TITLE_LABEL"          : "Verang",
+    "FIND_REPLACE_TITLE_LABEL"          : "Vervang",
     "FIND_REPLACE_TITLE_WITH"           : "met",
     "FIND_TITLE_LABEL"                  : "Gevonden",
     "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} in {3}",
@@ -189,12 +189,12 @@ define({
     "FIND_IN_FILES_FILES"               : "bestanden",
     "FIND_IN_FILES_MATCH"               : "overeenkomst",
     "FIND_IN_FILES_MATCHES"             : "overeenkomsten",
-    "FIND_IN_FILES_MORE_THAN"           : "Meer dab ",
+    "FIND_IN_FILES_MORE_THAN"           : "Meer dan ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Klik Ctrl/Cmd om alles in / uit te klappen",
-    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Vervang erros",
-    "REPLACE_IN_FILES_ERRORS"           : "De volgende bestanden zijn niet aangepast omdat ze zijn aangepast na het zoeken of konden niet niet worden overschreven.",
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Vervang",
+    "REPLACE_IN_FILES_ERRORS"           : "De volgende bestanden zijn niet aangepast omdat ze zijn aangepast na het zoeken of konden niet worden overschreven.",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Probleem bij het ophalen van update informatie",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Er is een fout opgetreden bij het ophalen van de laatste update informatie van de server. Zorg ervoor dat je verbonden bent met het internet en probeer opnieuw.",
@@ -223,7 +223,7 @@ define({
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: plaats de cursor in een functienaam",
 
     // Quick Docs
-    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Quick Docs is niet beschikbaar op de huidige cursor locatie",
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Quick Docs is niet beschikbaar op de huidige cursorlocatie",
 
     /**
     * ProjectManager
@@ -241,30 +241,30 @@ define({
     "RIGHT"             : "Rechts",
 
     "CMD_SPLITVIEW_NONE"        : "Geen split",
-    "CMD_SPLITVIEW_VERTICAL"    : "Verticale Split",
-    "CMD_SPLITVIEW_HORIZONTAL"  : "Horizontale Split",
+    "CMD_SPLITVIEW_VERTICAL"    : "Verticale split",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Horizontale split",
     "SPLITVIEW_MENU_TOOLTIP"    : "Split de editor verticaal or horizontaal",
     "GEAR_MENU_TOOLTIP"         : "Configureer Working Set",
 
     "SPLITVIEW_INFO_TITLE"              : "Is al Open",
-    "SPLITVIEW_MULTIPANE_WARNING"       : "Het bestand is al open in een ander panneel. {APP_NAME} zal het binnenkort ondersteunen om het zzelfde bestand in meerdere pannelen te openen. Tot dan zal het bestand gezien laten worden waarin het al open is.<br /><br />(Je krijgt die bestand maar een keer te zien.)",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Het bestand is al open in een ander panneel. {APP_NAME} zal het binnenkort ondersteunen om hetzelfde bestand in meerdere pannelen te openen. Tot dan zal het bestand gezien laten worden waarin het al open is.<br /><br />(Je krijgt die bestand maar een keer te zien.)",
 
     /**
-    * Keyboard modifier names
-    */
+     * Keyboard modifier names
+     */
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
 
     /**
-    * StatusBar strings
-    */
+     * StatusBar strings
+     */
     "STATUSBAR_CURSOR_POSITION"             : "Regel {0}, Kolom {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 {0} kolom geselecteerd",
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 {0} kolommen geselecteerd",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 {0} regel geselecteerd",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 {0} regels geselecteerd",
-    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} selections",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} selecties",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klik om de indentatie te veranderen naar spaties",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klik om de indentatie te veranderen naar tabs",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klik om het aantal spaties bij indentatie te veranderen",
@@ -276,9 +276,9 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Extensies zijn uitgeschakeld",
     "STATUSBAR_INSERT"                      : "INS",
     "STATUSBAR_OVERWRITE"                   : "OVR",
-    "STATUSBAR_INSOVR_TOOLTIP"              : "Klik om te wissellen tussen Insert (INS) en Overwrite (OVR) modes",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Klik om te wisselen tussen Insert (INS) en Overwrite (OVR) modes",
     "STATUSBAR_LANG_TOOLTIP"                : "Klik om het bestandstype aan te passen",
-    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klik om het report panel te opennen.",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klik om het rapportagepaneel te openen.",
     "STATUSBAR_DEFAULT_LANG"                : "(standaard)",
     "STATUSBAR_SET_DEFAULT_LANG"            : "Stel als standaard in voor .{0} Bestanden",
 
@@ -291,12 +291,12 @@ define({
     "LINT_DISABLED"                         : "Linting is uitgeschakeld",
     "NO_LINT_AVAILABLE"                     : "Er is geen linter beschikbaar voor {0}",
     "NOTHING_TO_LINT"                       : "Niets om te linten",
-    "LINTER_TIMED_OUT"                      : "{0} is timed na {1} ms wachten",
+    "LINTER_TIMED_OUT"                      : "{0} is verstreken na {1} ms wachten",
     "LINTER_FAILED"                         : "{0} beëindigd met fout: {1}",
 
     /**
-    * Command Name Constants
-    */
+     * Command Name Constants
+     */
 
     // File menu commands
     "FILE_MENU"                           : "Bestand",
@@ -340,18 +340,18 @@ define({
     "CMD_SPLIT_SEL_INTO_LINES"            : "Split selectie in meerdere regels",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Voeg cursor toe aan volgende regel",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Voeg cursor toe aan vorige regel",
-    "CMD_INDENT"                          : "Spring in",
-    "CMD_UNINDENT"                        : "Inspring ongedaan maken",
+    "CMD_INDENT"                          : "Inspringen",
+    "CMD_UNINDENT"                        : "Inspringen ongedaan maken",
     "CMD_DUPLICATE"                       : "Dupliceer",
-    "CMD_DELETE_LINES"                    : "Verwijder lijn",
-    "CMD_COMMENT"                         : "Toggle lijn commentaar",
-    "CMD_BLOCK_COMMENT"                   : "Toggle blok commentaar",
-    "CMD_LINE_UP"                         : "Plaats lijn omhoog",
-    "CMD_LINE_DOWN"                       : "Plaats lijn omlaag",
-    "CMD_OPEN_LINE_ABOVE"                 : "Open lijn boven",
-    "CMD_OPEN_LINE_BELOW"                 : "Open lijn onder",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Sluit haakjes automatisch",
-    "CMD_SHOW_CODE_HINTS"                 : "SLaat code hints zien",
+    "CMD_DELETE_LINES"                    : "Verwijder regel",
+    "CMD_COMMENT"                         : "Zet regel commentaar aan/uit",
+    "CMD_BLOCK_COMMENT" : "Zet blok commentaar aan/uit",
+    "CMD_LINE_UP"                         : "Verplaats regel naar boven",
+    "CMD_LINE_DOWN"                       : "Verplaats regel naar beneden",
+    "CMD_OPEN_LINE_ABOVE"                 : "Open regel boven",
+    "CMD_OPEN_LINE_BELOW"                 : "Open regel onder",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Automatisch accolades sluiten",
+    "CMD_SHOW_CODE_HINTS"                 : "Toon code hints",
 
     // Search menu commands
     "FIND_MENU"                           : "Zoek",
@@ -563,8 +563,8 @@ define({
     "IMAGE_VIEWER_LARGEST_ICON"            : "Grootste",
 
     /**
-    * Unit names
-    */
+     * Unit names
+     */
 
     "UNIT_PIXELS"                          : "pixels",
 
