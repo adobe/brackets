@@ -698,14 +698,14 @@ define(function (require, exports, module) {
                 otherDocumentsInWorkingFiles;
 
             if (doc && !doc._masterEditor) {
-                otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
-                DocumentManager.addToWorkingSet(doc.file);
+                otherDocumentsInWorkingFiles = MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES);
+                MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
-                    DocumentManager.setCurrentDocument(doc);
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                 }
             }
-
+            
             // wait for server (StaticServer, Base URL or file:)
             prepareServerPromise
                 .done(function () {
