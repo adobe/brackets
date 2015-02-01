@@ -628,4 +628,4 @@ define({
     "DOCS_MORE_LINK"                            : "Více"
 });
 
-/* Last translated for da9a2e1e5405d6ee5ec46dfa31003b1915d0766a */
+/* Last translated for ed1b597f2c0e72fc11c9ec42d88d35f57cd6798b */
