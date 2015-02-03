@@ -577,7 +577,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "以带扩展模式重启",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "以无扩展模式重启",
     "CMD_NEW_BRACKETS_WINDOW"                   : "新建一个 {APP_NAME} 窗口",
-    "CMD_SWITCH_LANGUAGE"                       : "选择语言",
+    "CMD_SWITCH_LANGUAGE"                       : "切换语言",
     "CMD_RUN_UNIT_TESTS"                        : "运行测试",
     "CMD_SHOW_PERF_DATA"                        : "显示性能数据",
     "CMD_ENABLE_NODE_DEBUGGER"                  : "启用 Node.js 调试",
@@ -586,11 +586,11 @@ define({
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "状态栏显示错误信息",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "打开 Brackets 源码",
     
-    "LANGUAGE_TITLE"                            : "选择语言",
+    "LANGUAGE_TITLE"                            : "切换语言",
     "LANGUAGE_MESSAGE"                          : "请从列表中选择所需的语言:",
     "LANGUAGE_SUBMIT"                           : "重新加载 {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "取消",
-    "LANGUAGE_SYSTEM_DEFAULT"                   : "系统默认语言",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "系统默认",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "时间",
