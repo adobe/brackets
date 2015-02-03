@@ -43,6 +43,10 @@ define(function (require, exports, module) {
         this._root          = config.root;          // ProjectManager.getProjectRoot().fullPath
         this._pathResolver  = config.pathResolver;  // ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
         this._liveDocuments = {};
+        this._baseUrls      = {};
+        if (this._baseUrl) {
+            this._baseUrls.default = this._baseUrl;
+        }
     }
 
     /**
@@ -51,8 +55,11 @@ define(function (require, exports, module) {
      * @return {string}
      * Base url for current project.
      */
-    BaseServer.prototype.getBaseUrl = function () {
-        return this._baseUrl;
+    BaseServer.prototype.getBaseUrl = function (ipHint) {
+        if (!ipHint) {
+            ipHint = "default";
+        }
+        return this._baseUrls[ipHint];
     };
 
     /**
@@ -95,10 +102,10 @@ define(function (require, exports, module) {
      * @return {?string} Converts a path within the project root to a URL.
      *  Returns null if the path is not a descendant of the project root.
      */
-    BaseServer.prototype.pathToUrl = function (path) {
-        var baseUrl         = this.getBaseUrl(),
+    BaseServer.prototype.pathToUrl = function (path, ipHint) {
+        var baseUrl         = this.getBaseUrl(ipHint),
             relativePath    = this._pathResolver(path);
-
+        
         // See if base url has been specified and path is within project
         if (relativePath !== path) {
             // Map to server url. Base url is already encoded, so don't encode again.
@@ -119,16 +126,16 @@ define(function (require, exports, module) {
      */
     BaseServer.prototype.urlToPath = function (url) {
         var path,
-            baseUrl = "";
+            baseUrl;
 
-        baseUrl = this.getBaseUrl();
+        for (baseUrl in this._baseUrls) {
+            if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
+                // Use base url to translate to local file path.
+                // Need to use encoded project path because it's decoded below.
+                path = url.replace(baseUrl, encodeURI(this._root));
 
-        if (baseUrl !== "" && url.indexOf(baseUrl) === 0) {
-            // Use base url to translate to local file path.
-            // Need to use encoded project path because it's decoded below.
-            path = url.replace(baseUrl, encodeURI(this._root));
-        
-            return decodeURI(path);
+                return decodeURI(path);
+            }
         }
 
         return null;

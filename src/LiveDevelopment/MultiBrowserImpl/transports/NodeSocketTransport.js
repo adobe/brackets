@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     function getRemoteScript() {
         return "<script>\n" +
             NodeSocketTransportRemote +
-            "this._Brackets_LiveDev_Socket_Transport_URL = 'ws://localhost:" + SOCKET_PORT + "';\n" +
+            "this._Brackets_LiveDev_Socket_Transport_URL = 'ws://' + window.location.hostname + ':" + SOCKET_PORT + "';\n" +
             "</script>\n";
     }
 

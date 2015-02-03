@@ -31,11 +31,22 @@
         connect  = require("connect"),
         utils    = require("connect/lib/utils"),
         mime     = require("connect/node_modules/send/node_modules/mime"),
+        os       = require("os"),
         parse    = utils.parseUrl;
     
     var _domainManager;
 
     var FILTER_REQUEST_TIMEOUT = 5000;
+
+    var INADDR_ANY  = "0.0.0.0",
+        LOCALHOST   = "127.0.0.1";
+
+    /**
+     * @private
+     * @type {Array.<string>}
+     * When the server is listening to INADDR_ANY, these addresses are reported.
+     */
+    var ips = [];
     
     /**
      * @private
@@ -132,7 +143,7 @@
             // server is actually initialized. If we don't do this, it seems like
             // connect takes time to warm up the server.
             var req = http.get(
-                {host: address.address, port: address.port},
+                {host: LOCALHOST, port: address.port},
                 function (res) {
                     cb(null, res);
                 }
@@ -240,13 +251,13 @@
         // If the given port/address is in use then use a random port
         server.on("error", function (e) {
             if (e.code === "EADDRINUSE") {
-                server.listen(0, "127.0.0.1");
+                server.listen(0);
             } else {
                 throw e;
             }
         });
 
-        server.listen(port, "127.0.0.1");
+        server.listen(port);
     }
     
     /**
@@ -266,15 +277,27 @@
         // Make sure the key doesn't conflict with some built-in property of Object.
         var pathKey = getPathKey(path);
         if (_servers[pathKey]) {
-            cb(null, _servers[pathKey].address());
+            var address = _servers[pathKey].address();
+            if (address.address === INADDR_ANY) {
+                address.address = ips;
+            } else {
+                address.address = [address];
+            }
+            cb(null, address);
         } else {
             _createServer(path, port, function (err, server) {
                 if (err) {
                     cb(err, null);
                 } else {
+                    var address = server.address();
                     _servers[pathKey] = server;
                     _rewritePaths[pathKey] = {};
-                    cb(null, server.address());
+                    if (address.address === INADDR_ANY) {
+                        address.address = ips;
+                    } else {
+                        address.address = [address];
+                    }
+                    cb(null, address);
                 }
             });
         }
@@ -360,8 +383,23 @@
      * @param {DomainManager} domainManager The DomainManager for the server
      */
     function init(domainManager) {
-        _domainManager = domainManager;
+        var ifs = os.networkInterfaces(),
+            ifname;
         
+        function addAddress(addr) {
+            if (addr.family === "IPv4") {
+                ips.push(addr.address);
+            }
+        }
+        
+        for (ifname in ifs) {
+            if (ifs.hasOwnProperty(ifname)) {
+                ifs[ifname].forEach(addAddress);
+            }
+        }
+        
+        _domainManager = domainManager;
+
         if (!domainManager.hasDomain("staticServer")) {
             domainManager.registerDomain("staticServer", {major: 0, minor: 1});
         }
@@ -398,7 +436,7 @@
             ],
             [{
                 name: "address",
-                type: "{address: string, family: string, port: number}",
+                type: "{address: object, family: string, port: number}",
                 description: "hostname (stored in 'address' parameter), port, and socket type (stored in 'family' parameter) for the server. Currently, 'family' will always be 'IPv4'."
             }]
         );

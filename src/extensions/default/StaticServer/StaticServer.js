@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         FileUtils            = brackets.getModule("file/FileUtils"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager");
 
+    var LOCALHOST = "127.0.0.1";
     
     /**
      * @private
@@ -120,7 +121,12 @@ define(function (require, exports, module) {
         }
 
         function onSuccess(address) {
-            self._baseUrl = "http://" + address.address + ":" + address.port + "/";
+            address.address.forEach(function (addr) {
+                self._baseUrls[addr] = "http://" + addr + ":" + address.port + "/";
+                if (!self._baseUrls.default && addr === LOCALHOST) {
+                    self._baseUrls.default = self._baseUrls[addr];
+                }
+            });
             deferred.resolve();
         }
 
