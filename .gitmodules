@@ -40,9 +40,6 @@
 [submodule "src/extensions/default/HideUI"]
 	path = src/extensions/default/HideUI
 	url = https://github.com/AJDBenner/HideUI
-[submodule "src/extensions/default/iFrameSecondPane"]
-	path = src/extensions/default/iFrameSecondPane
-	url = https://github.com/KeniMorri/iFrameSecondPane
 [submodule "src/extensions/default/thimbleProxy"]
 	path = src/extensions/default/thimbleProxy
 	url = https://github.com/AJDBenner/thimbleProxy.git

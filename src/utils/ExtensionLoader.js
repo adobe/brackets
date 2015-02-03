@@ -416,8 +416,7 @@ define(function (require, exports, module) {
                     "makedrive-sync-icon",
                     "HTMLHinter",
                     "HideUI",
-                    "thimbleProxy",
-                    "iFrameSecondPane"
+                    "thimbleProxy"
 
                     // "ExampleExtension",
                 ];
