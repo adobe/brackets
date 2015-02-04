@@ -417,7 +417,7 @@ define(function (require, exports, module) {
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var model = FindInFiles.searchModel;
-        _resultsView = new SearchResultsView(model, "find-in-files-results", "find-in-files.results");
+        _resultsView = new SearchResultsView(model, "find-in-files-results");
         _resultsView
             .on("replaceAll", function () {
                 _finishReplaceAll(model);
