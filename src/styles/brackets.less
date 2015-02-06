@@ -815,6 +815,8 @@ a, img {
 }
 
 .open-files-container {
+    overflow-y: hidden;
+    
     .box-flex(0);
     padding: 0px;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
@@ -909,12 +911,18 @@ a, img {
     height: 23px;
 }
 
+.open-files-container:hover {
+    overflow-y: auto;
+}
+
 //Initially start with the open files hidden, they will get show as files are added
 .open-files-container {
     display:none;
 }
 
 #project-files-container {
+    overflow: hidden;
+    
     .box-flex(1);
 
     ul {
@@ -924,6 +932,10 @@ a, img {
     > ul {
         padding-bottom: 24px;
     }    
+}
+
+#project-files-container:hover {
+    overflow: auto;
 }
 
 .scroller-shadow {

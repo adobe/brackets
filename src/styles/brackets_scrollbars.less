@@ -43,8 +43,9 @@
     }
 
     ::-webkit-scrollbar-thumb {
-        box-shadow: none;
-        border: none;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.6) inset;
+        border-radius: 999px;
+        border: 2px solid transparent;
     }
 
     /* This looks like a dupe, but without it the thumb doesn't fade in
@@ -53,14 +54,6 @@
      */
     ::-webkit-scrollbar-corner {
         background-color: transparent;
-    }
-
-    .dragging ::-webkit-scrollbar-thumb,
-    :hover::-webkit-scrollbar-thumb,
-    :focus::-webkit-scrollbar-thumb {
-        border-radius: 999px;
-        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.6) inset;
-        border: 2px solid transparent;
     }
 
     .dragging ::-webkit-scrollbar-thumb,

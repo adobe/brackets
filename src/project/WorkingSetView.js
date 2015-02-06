@@ -1379,9 +1379,10 @@ define(function (require, exports, module) {
         
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow(this.$openFilesContainer[0], null, true);
-        ViewUtils.sidebarList(this.$openFilesContainer);
+       // ViewUtils.sidebarList(this.$openFilesContainer);
         
         // Disable horizontal scrolling until WebKit bug #99379 is fixed
+        //this.$openFilesContainer.css("overflow-y", "auto");
         this.$openFilesContainer.css("overflow-x", "hidden");
 
         this.$openFilesContainer.on("contextmenu.workingSetView", function (e) {

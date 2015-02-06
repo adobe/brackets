@@ -1140,8 +1140,13 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
         $projectTreeContainer.addClass("jstree jstree-brackets");
-        $projectTreeContainer.css("overflow", "auto");
+       // $projectTreeContainer.css("overflow", "hidden");
         $projectTreeContainer.css("position", "relative");
+//        $projectTreeContainer.mouseenter(function() {
+//            $(this).css("overflow", "auto");
+//        }).mouseleave(function() {
+//            $(this).css("overflow", "hidden");
+//        });
         
         fileTreeViewContainer = $("<div>").appendTo($projectTreeContainer)[0];
         
