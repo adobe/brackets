@@ -939,8 +939,8 @@ define(function (require, exports, module) {
         
         delete this._selections.rename;
         delete this._selections.context;
-        if (this._selections.selected === oldPath) {
-            this._selections.selected = newPath;
+        if (this._selections.selected && this._selections.selected.indexOf(oldPath) === 0) {
+            this._selections.selected = newPath + this._selections.selected.slice(oldPath.length);
         }
         
         viewModel.moveMarker("rename", oldProjectPath, null);
