@@ -627,6 +627,7 @@ define({
     "DOCS_MORE_LINK"                            : "Read more",
 
     // extensions/default/ExtensionUpdateNotifications
-    "SEE_CHANGELOG"                             : "See changelog"
+    "SEE_CHANGELOG"                             : "See changelog",
+    "NO_CHANGELOG_LOADED"                       : "No changelog could be loaded for this extension."
 
 });

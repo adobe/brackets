@@ -22,7 +22,7 @@ define(function (require, exports, module) {
         str.split("\n").forEach(function (line) {
             var target;
 
-            var versionHeader = line.match(/^#.*([0-9]+\.[0-9]+\.[0-9]+)/);
+            var versionHeader = line.match(/^[#\+].*([0-9]+\.[0-9]+\.[0-9]+)/);
             if (versionHeader) {
                 version = versionHeader[1];
                 versionPublished = getDateOfVersion(extensionId, version);
@@ -44,6 +44,9 @@ define(function (require, exports, module) {
             }
 
             line = line.trim();
+
+            // replace some leading markdown non-word characters
+            line = line.replace(/^[^0-9A-Za-z]+/, "");
 
             if (target && line) {
                 target.lines.push(line);

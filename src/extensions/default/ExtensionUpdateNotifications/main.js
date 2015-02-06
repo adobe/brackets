@@ -11,7 +11,7 @@ define(function (require, exports, module) {
     function onExtensionManagerOpen($modalBody) {
 
         // wait until buttons are loaded (spinner goes away) and attach additional buttons
-        Watchers.watchChildren($modalBody, "button:not(:disabled)", function ($installBtn) {
+        Watchers.watchChildren($modalBody, "button.install,button.remove", function ($installBtn) {
             $("<button>")
                 .addClass("btn btn-mini show-changelog")
                 .attr("data-extension-id", $installBtn.attr("data-extension-id"))

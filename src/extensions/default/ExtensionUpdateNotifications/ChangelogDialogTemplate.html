@@ -5,10 +5,15 @@
     <div class="modal-body">
         <div class="dialog-message">
             {{#changelog}}
-                <h3>{{version}} - {{date}}</h3>
+            <h4>Version {{version}} - {{date}}</h4>
+            <ul>
                 {{#lines}}
-                    <p>{{.}}</p>
+                <li>{{.}}</li>
                 {{/lines}}
+            </ul>
+            {{/changelog}}
+            {{^changelog}}
+                {{Strings.NO_CHANGELOG_LOADED}}
             {{/changelog}}
         </div>
     </div>
