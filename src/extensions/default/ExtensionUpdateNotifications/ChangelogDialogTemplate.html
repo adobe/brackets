@@ -1,0 +1,18 @@
+<div class="{{dlgClass}} template modal">
+    <div class="modal-header">
+        <h1 class="dialog-title">{{{title}}}</h1>
+    </div>
+    <div class="modal-body">
+        <div class="dialog-message">
+            {{#changelog}}
+                <h3>{{version}} - {{date}}</h3>
+                {{#lines}}
+                    <p>{{.}}</p>
+                {{/lines}}
+            {{/changelog}}
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="dialog-button btn primary" data-button-id="ok">{{Strings.OK}}</button>
+    </div>
+</div>

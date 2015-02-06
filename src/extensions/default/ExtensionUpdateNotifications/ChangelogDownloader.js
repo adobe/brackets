@@ -3,58 +3,93 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var ExtensionManager  = brackets.getModule("extensibility/ExtensionManager");
+    var _                = brackets.getModule("thirdparty/lodash");
+    var ExtensionManager = brackets.getModule("extensibility/ExtensionManager");
 
-    function createChangelogFromMarkdown(str) {
-        var changelog = {};
-        var currentTarget = null;
+    function getDateOfVersion(extensionId, versionNumber) {
+        var versions = ExtensionManager.extensions[extensionId].registryInfo.versions;
+        var versionObj = _.find(versions, function (obj) {
+            return obj.version === versionNumber;
+        });
+        return versionObj ? versionObj.published.substring(0, 10) : null;
+    }
+
+    function createChangelogFromMarkdown(extensionId, str) {
+        var changelog = [];
+        var version;
+        var versionPublished;
 
         str.split("\n").forEach(function (line) {
+            var target;
 
             var versionHeader = line.match(/^#.*([0-9]+\.[0-9]+\.[0-9]+)/);
             if (versionHeader) {
-                changelog[versionHeader[1]] = currentTarget = [];
+                version = versionHeader[1];
+                versionPublished = getDateOfVersion(extensionId, version);
                 return;
             }
 
-            if (!currentTarget) {
-                return;
+            if (version && versionPublished) {
+                target = _.find(changelog, function (o) {
+                    return o.version === version;
+                });
+                if (!target) {
+                    target = {
+                        version: version,
+                        date: versionPublished,
+                        lines: []
+                    };
+                    changelog.push(target);
+                }
             }
 
-            currentTarget.push(line);
+            line = line.trim();
 
+            if (target && line) {
+                target.lines.push(line);
+            }
         });
 
         return changelog;
     }
 
     function createChangelogFromCommits(extensionId, commits) {
-        var changelog = {};
+        var changelog = [];
         var versions = ExtensionManager.extensions[extensionId].registryInfo.versions;
 
         commits.forEach(function (obj) {
             var commit = obj.commit;
             var commitDate = commit.committer.date;
-            var key, i;
+            var target, version, versionDate, i;
 
             // check for the first version published after the commit was made
             for (i = 0; i < versions.length; i++) {
                 if (versions[i].published > commitDate) {
-                    key = versions[i].version;
+                    version = versions[i].version;
+                    versionDate = versions[i].published.substring(0, 10);
                     break;
                 }
             }
 
-            if (!key) {
-                // commits made after last version in the registry was published
-                return;
+            if (version) {
+                target = _.find(changelog, function (o) {
+                    return o.version === version;
+                });
+                if (!target) {
+                    target = {
+                        version: version,
+                        date: versionDate,
+                        lines: []
+                    };
+                    changelog.push(target);
+                }
             }
 
-            if (!changelog[key]) {
-                changelog[key] = [];
-            }
+            commit.message = commit.message.trim();
 
-            changelog[key].push(commit.message);
+            if (target && commit.message) {
+                target.lines.push(commit.message);
+            }
         });
 
         return changelog;
@@ -111,7 +146,7 @@ define(function (require, exports, module) {
             $.get("https://api.github.com/repos/" + githubDetails.owner + "/" + githubDetails.repo + "/contents/CHANGELOG.md")
                 .done(function (response) {
                     var utf8content = base64toUtf8(response.content);
-                    resolve(createChangelogFromMarkdown(utf8content));
+                    resolve(createChangelogFromMarkdown(extensionId, utf8content));
                 })
                 .fail(function (response) {
                     if (response.status === 404) {
