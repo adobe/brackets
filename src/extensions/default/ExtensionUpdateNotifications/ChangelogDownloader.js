@@ -3,32 +3,61 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var ExtensionManager = brackets.getModule("extensibility/ExtensionManager");
+    var ExtensionManager  = brackets.getModule("extensibility/ExtensionManager");
 
-    /*
-        createChangelogFromMarkdown and createChangelogFromCommits should return
-        the output in the following format:
-        [
-            {
-                title: string - description of the change
-                version: string - version number in which the change was introduced
-            }
-        ]
-    */
     function createChangelogFromMarkdown(str) {
-        var changes = [];
+        var changelog = {};
+        var currentTarget = null;
 
-        // TODO:
+        str.split("\n").forEach(function (line) {
 
-        return changes;
+            var versionHeader = line.match(/^#.*([0-9]+\.[0-9]+\.[0-9]+)/);
+            if (versionHeader) {
+                changelog[versionHeader[1]] = currentTarget = [];
+                return;
+            }
+
+            if (!currentTarget) {
+                return;
+            }
+
+            currentTarget.push(line);
+
+        });
+
+        return changelog;
     }
 
-    function createChangelogFromCommits(commits) {
-        var changes = [];
+    function createChangelogFromCommits(extensionId, commits) {
+        var changelog = {};
+        var versions = ExtensionManager.extensions[extensionId].registryInfo.versions;
 
-        // TODO:
+        commits.forEach(function (obj) {
+            var commit = obj.commit;
+            var commitDate = commit.committer.date;
+            var key, i;
 
-        return changes;
+            // check for the first version published after the commit was made
+            for (i = 0; i < versions.length; i++) {
+                if (versions[i].published > commitDate) {
+                    key = versions[i].version;
+                    break;
+                }
+            }
+
+            if (!key) {
+                // commits made after last version in the registry was published
+                return;
+            }
+
+            if (!changelog[key]) {
+                changelog[key] = [];
+            }
+
+            changelog[key].push(commit.message);
+        });
+
+        return changelog;
     }
 
     // ref: https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding
@@ -72,7 +101,7 @@ define(function (require, exports, module) {
             function getChangelogFromCommits() {
                 $.get("https://api.github.com/repos/" + githubDetails.owner + "/" + githubDetails.repo + "/commits")
                     .done(function (response) {
-                        resolve(createChangelogFromCommits(response));
+                        resolve(createChangelogFromCommits(extensionId, response));
                     })
                     .fail(function (response) {
                         reject("Couldn't load changelog: " + response.statusText);
