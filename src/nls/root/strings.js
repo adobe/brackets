@@ -624,5 +624,9 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Read more"
+    "DOCS_MORE_LINK"                            : "Read more",
+
+    // extensions/default/ExtensionUpdateNotifications
+    "SEE_CHANGELOG"                             : "See changelog"
+
 });
