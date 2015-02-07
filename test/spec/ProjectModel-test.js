@@ -732,13 +732,41 @@ define(function (require, exports, module) {
                 });
                 
                 it("adjusts the selection if the renamed file was selected", function () {
+                    spyOn(model, "_renameItem").andReturn(new $.Deferred().resolve().promise());
                     model.setSelected("/foo/afile.js");
                     model.startRename("/foo/afile.js");
                     model.setRenameValue("something.js");
                     model.performRename();
                     expect(model._selections.selected).toBe("/foo/something.js");
                 });
+                
+                it("does not adjust the selection if renaming it fails", function () {
+                    spyOn(model, "_renameItem").andReturn(new $.Deferred().reject().promise());
+                    model.setSelected("/foo/afile.js");
+                    model.startRename("/foo/afile.js");
+                    model.setRenameValue("something.js");
+                    model.performRename();
+                    expect(model._selections.selected).toBe("/foo/afile.js");
+                });
 
+                it("adjusts the selection if a parent folder is renamed", function () {
+                    spyOn(model, "_renameItem").andReturn(new $.Deferred().resolve().promise());
+                    model.setSelected("/foo/afile.js");
+                    model.startRename("/foo");
+                    model.setRenameValue("bar");
+                    model.performRename();
+                    expect(model._selections.selected).toBe("/bar/afile.js");
+                });
+                
+                it("does not adjust the selection if renaming a parent folder fails", function () {
+                    spyOn(model, "_renameItem").andReturn(new $.Deferred().reject().promise());
+                    model.setSelected("/foo/afile.js");
+                    model.startRename("/foo");
+                    model.setRenameValue("bar");
+                    model.performRename();
+                    expect(model._selections.selected).toBe("/foo/afile.js");
+                });
+                
                 it("does nothing if setRenameValue is called when there's no rename in progress", function () {
                     model.setRenameValue("/foo/bar/baz");
                     expect(model._selections.rename).toBeUndefined();
