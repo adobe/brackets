@@ -125,7 +125,14 @@ define(function (require, exports, module) {
 
     function getGithubDetails(extensionId) {
         var repoUrl = getGithubUrl(extensionId);
-        var m = repoUrl.match(/github.com\/([^\/]+)\/([^\/]+)/);
+
+        // https version
+        var m = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+        if (!m) {
+            // try ssh version
+            m = repoUrl.match(/git@github\.com:([^\/]+)\/([^\/]+)/);
+        }
+
         return {
             owner: m[1],
             repo: m[2].replace(/\.git$/, "")
