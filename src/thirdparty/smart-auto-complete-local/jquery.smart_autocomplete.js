@@ -494,6 +494,8 @@
         }
       });
 
+        // Brackets monkeypatch: don't bind leaky handlers to document. Brackets can detect lost focus itself.
+/*
       //check for loosing focus on smart complete field and results container
       //$(this).blur(function(ev){
       $(document).bind("focusin click", function(ev){
@@ -505,6 +507,7 @@
           $(options.context).trigger("lostFocus");
         }
       });
+*/
 
       // Brackets monkeypatch: don't trigger item focus/unfocus events on mouseenter/mouseleave, since we don't
       // want to select an item just by mousing over it. We just want an ordinary hover highlight, which we apply
