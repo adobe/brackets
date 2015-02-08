@@ -178,6 +178,13 @@ define(function (require, exports, module) {
 
     function downloadChangelog(extensionId) {
         return new Promise(function (resolve, reject) {
+
+            var isInRegistry = ExtensionManager.extensions[extensionId].registryInfo;
+            if (!isInRegistry) {
+                reject("Couldn't find " + extensionId + " in the extension registry!");
+                return;
+            }
+
             var githubDetails = getGithubDetails(extensionId);
 
             var changelogFile = null;
