@@ -1,4 +1,4 @@
-<div class="{{dlgClass}} template modal">
+<div class="changelog-dialog template modal">
     <div class="modal-header">
         <h1 class="dialog-title">{{{title}}}</h1>
     </div>
@@ -8,7 +8,7 @@
             <h4>Version {{version}} - {{date}}</h4>
             <ul>
                 {{#lines}}
-                <li>{{.}}</li>
+                    <li class="{{className}}">{{content}}</li>
                 {{/lines}}
             </ul>
             {{/changelog}}

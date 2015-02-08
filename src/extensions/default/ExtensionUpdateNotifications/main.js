@@ -4,9 +4,12 @@ define(function (require, exports, module) {
     "use strict";
 
     var AppInit         = brackets.getModule("utils/AppInit"),
+        ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         Strings         = brackets.getModule("strings"),
         ChangelogDialog = require("./ChangelogDialog"),
         Watchers        = require("./Watchers");
+
+    ExtensionUtils.loadStyleSheet(module, "styles.css");
 
     function onExtensionManagerOpen($modalBody) {
 

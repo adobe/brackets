@@ -43,13 +43,20 @@ define(function (require, exports, module) {
                 }
             }
 
-            line = line.trim();
+            if (!target) {
+                return;
+            }
 
+            /* TODO: parse headers from MARKDOWN
+            line = line.trim();
             // replace some leading markdown non-word characters
             line = line.replace(/^[^0-9A-Za-z]+/, "");
+            */
 
-            if (target && line) {
-                target.lines.push(line);
+            if (line) {
+                target.lines.push({
+                    content: line
+                });
             }
         });
 
@@ -82,16 +89,25 @@ define(function (require, exports, module) {
                     target = {
                         version: version,
                         date: versionDate,
-                        lines: []
+                        lines: [{
+                            className: "header",
+                            content: "Commits"
+                        }]
                     };
                     changelog.push(target);
                 }
             }
 
+            if (!target) {
+                return;
+            }
+
             commit.message = commit.message.trim();
 
-            if (target && commit.message) {
-                target.lines.push(commit.message);
+            if (commit.message) {
+                target.lines.push({
+                    content: obj.sha.substring(0, 7) + " - " + commit.message
+                });
             }
         });
 
