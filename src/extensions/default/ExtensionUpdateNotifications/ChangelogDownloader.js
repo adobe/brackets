@@ -151,30 +151,82 @@ define(function (require, exports, module) {
         };
     }
 
-    function downloadChangelog(extensionId) {
+    function getChangelogFromChangelogFile(extensionId, githubDetails) {
         return new Promise(function (resolve, reject) {
-            var githubDetails = getGithubDetails(extensionId);
-
-            function getChangelogFromCommits() {
-                $.get("https://api.github.com/repos/" + githubDetails.owner + "/" + githubDetails.repo + "/commits")
-                    .done(function (response) {
-                        resolve(createChangelogFromCommits(extensionId, response));
-                    })
-                    .fail(function (response) {
-                        reject("Couldn't load changelog: " + response.statusText);
-                    });
-            }
-
             $.get("https://api.github.com/repos/" + githubDetails.owner + "/" + githubDetails.repo + "/contents/CHANGELOG.md")
                 .done(function (response) {
                     var utf8content = base64toUtf8(response.content);
                     resolve(createChangelogFromMarkdown(extensionId, utf8content));
                 })
                 .fail(function (response) {
-                    if (response.status === 404) {
-                        return getChangelogFromCommits();
-                    }
                     reject("Couldn't load changelog: " + response.statusText);
+                });
+        });
+    }
+
+    function getChangelogFromCommits(extensionId, githubDetails) {
+        return new Promise(function (resolve, reject) {
+            $.get("https://api.github.com/repos/" + githubDetails.owner + "/" + githubDetails.repo + "/commits")
+                .done(function (response) {
+                    resolve(createChangelogFromCommits(extensionId, response));
+                })
+                .fail(function (response) {
+                    reject("Couldn't load changelog: " + response.statusText);
+                });
+        });
+    }
+
+    function downloadChangelog(extensionId) {
+        return new Promise(function (resolve, reject) {
+            var githubDetails = getGithubDetails(extensionId);
+
+            var changelogFile = null;
+            var changelogCommits = null;
+
+            var finish = _.after(2, function () {
+                if (changelogFile && changelogCommits) {
+                    var mergedChangelogs = _.union(_.pluck(changelogFile, "version"), _.pluck(changelogCommits, "version"))
+                        .map(function (version) {
+                            var find1 = _.find(changelogFile, { version: version });
+                            var find2 = _.find(changelogCommits, { version: version });
+
+                            if (find1 && find2) {
+                                find1.lines = find1.lines.concat(find2.lines);
+                                return find1;
+                            }
+
+                            return find1 || find2;
+                        });
+                    resolve(mergedChangelogs);
+                    return;
+                }
+                if (changelogFile || changelogCommits) {
+                    resolve(changelogFile || changelogCommits);
+                    return;
+                }
+                reject("Couldn't load any changelog information!");
+            });
+
+            getChangelogFromChangelogFile(extensionId, githubDetails)
+                .then(function (result) {
+                    changelogFile = result;
+                })
+                .catch(function (e) {
+                    console.error(e);
+                })
+                .then(function () {
+                    finish();
+                });
+
+            getChangelogFromCommits(extensionId, githubDetails)
+                .then(function (result) {
+                    changelogCommits = result;
+                })
+                .catch(function (e) {
+                    console.error(e);
+                })
+                .then(function () {
+                    finish();
                 });
 
         });
