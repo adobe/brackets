@@ -5,7 +5,12 @@
     <div class="modal-body">
         <div class="dialog-message">
             {{#changelog}}
-            <h4>Version {{version}} - {{date}}</h4>
+            <h4>
+                Version {{version}} - {{date}}
+                {{#currentlyInstalled}}
+                    - {{Strings.EXTENSION_INSTALLED}}
+                {{/currentlyInstalled}}
+            </h4>
             <ul>
                 {{#lines}}
                     <li class="{{className}}">{{{escapedContent}}}</li>
