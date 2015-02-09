@@ -74,7 +74,7 @@ define(function (require, exports, module) {
             }
 
             // remove markdown bullet points
-            line = line.replace(/^\*\s+/, "");
+            line = line.replace(/^\s*[\*\+]\s+/, "");
 
             if (line) {
                 target.lines.push({
