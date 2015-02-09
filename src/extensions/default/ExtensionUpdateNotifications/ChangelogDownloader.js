@@ -149,6 +149,9 @@ define(function (require, exports, module) {
                 return pre + "<a href='" + url + "'>#" + issueNumber + "</a>";
             });
 
+            // add end of lines
+            escapedLine = escapedLine.replace(/\n+/g, "<br>");
+
             target.lines.push({
                 escapedContent: escapedLine
             });
@@ -182,10 +185,31 @@ define(function (require, exports, module) {
         });
     }
 
+    function githubHtmlToCommits(html) {
+        return $(html).find(".commit-title")
+            .map(function () {
+                var $aMessage = $(this).find("a.message").first();
+                var $commitMeta = $(this).parent().children(".commit-meta");
+                return {
+                    sha: $aMessage.attr("href").match(/commit\/([a-zA-Z0-9]+)/)[1],
+                    commit: {
+                        message: $aMessage.attr("title"),
+                        committer: {
+                            date: $commitMeta.children("time").attr("datetime")
+                        }
+                    }
+                };
+            })
+            .toArray();
+    }
+
     function getChangelogFromCommits(extensionId, githubDetails) {
         return new Promise(function (resolve, reject) {
-            $.get("https://api.github.com/repos/" + githubDetails.owner + "/" + githubDetails.repo + "/commits")
+            var url = "https://github.com/" + githubDetails.owner + "/" + githubDetails.repo + "/commits/master";
+            // apiUrl = "https://api.github.com/repos/" + githubDetails.owner + "/" + githubDetails.repo + "/commits"
+            $.get(url)
                 .done(function (response) {
+                    response = githubHtmlToCommits(response);
                     resolve(createChangelogFromCommits(extensionId, response));
                 })
                 .fail(function (response) {
