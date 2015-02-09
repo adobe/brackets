@@ -73,11 +73,20 @@ define(function (require, exports, module) {
                 return;
             }
 
+            // check for headers
+            var m = line.match(/^#+([\s\S]+)$/);
+            var className = null;
+            if (m) {
+                className = "header";
+                line = m[1].trim();
+            }
+
             // remove markdown bullet points
-            line = line.replace(/^\s*[\*\+]\s+/, "");
+            line = line.replace(/^\s*[\-\*\+]\s+/, "");
 
             if (line) {
                 target.lines.push({
+                    className: className,
                     escapedContent: _.escape(line)
                 });
             }
@@ -155,10 +164,17 @@ define(function (require, exports, module) {
 
     function getChangelogFromChangelogFile(extensionId, githubDetails) {
         return new Promise(function (resolve, reject) {
-            $.get("https://api.github.com/repos/" + githubDetails.owner + "/" + githubDetails.repo + "/contents/CHANGELOG.md")
+            var url = "https://raw.githubusercontent.com/" + githubDetails.owner + "/" + githubDetails.repo + "/master/CHANGELOG.md";
+            // apiUrl "https://api.github.com/repos/" + githubDetails.owner + "/" + githubDetails.repo + "/contents/CHANGELOG.md"
+            $.get(url)
                 .done(function (response) {
-                    var utf8content = base64toUtf8(response.content);
-                    resolve(createChangelogFromMarkdown(extensionId, utf8content));
+                    if (typeof response === "string") {
+                        resolve(createChangelogFromMarkdown(extensionId, response));
+                    } else {
+                        // base64 to utf8 transformation is required for apiUrl
+                        var utf8content = base64toUtf8(response.content);
+                        resolve(createChangelogFromMarkdown(extensionId, utf8content));
+                    }
                 })
                 .fail(function (response) {
                     reject("Couldn't load changelog from CHANGELOG.md: " + response.statusText);
