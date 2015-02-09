@@ -8,7 +8,7 @@
             <h4>Version {{version}} - {{date}}</h4>
             <ul>
                 {{#lines}}
-                    <li class="{{className}}">{{content}}</li>
+                    <li class="{{className}}">{{{escapedContent}}}</li>
                 {{/lines}}
             </ul>
             {{/changelog}}

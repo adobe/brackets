@@ -5,6 +5,7 @@ define(function (require, exports, module) {
 
     var _                = brackets.getModule("thirdparty/lodash");
     var ExtensionManager = brackets.getModule("extensibility/ExtensionManager");
+    var Strings          = brackets.getModule("strings");
 
     function getDateOfVersion(extensionId, versionNumber) {
         var versions = ExtensionManager.extensions[extensionId].registryInfo.versions;
@@ -12,6 +13,31 @@ define(function (require, exports, module) {
             return obj.version === versionNumber;
         });
         return versionObj ? versionObj.published.substring(0, 10) : null;
+    }
+
+    function getGithubUrl(extensionId) {
+        var extensionInfo = ExtensionManager.extensions[extensionId];
+        var metadata = extensionInfo.registryInfo ? extensionInfo.registryInfo.metadata : extensionInfo.installInfo.metadata;
+
+        if (metadata.repository) {
+            return typeof metadata.repository === "string" ? metadata.repository : metadata.repository.url;
+        } else if (metadata.homepage) {
+            return metadata.homepage;
+        } else {
+            throw new Error("Cannot get Github url from: " + JSON.stringify(metadata));
+        }
+    }
+
+    function getGithubDetails(extensionId) {
+        var repoUrl = getGithubUrl(extensionId);
+
+        // https/ssh version
+        var m = repoUrl.match(/github\.com[:\/]([^\/]+)\/([^\/]+)/);
+
+        return {
+            owner: m[1],
+            repo: m[2].replace(/\.git$/, "")
+        };
     }
 
     function createChangelogFromMarkdown(extensionId, str) {
@@ -47,15 +73,12 @@ define(function (require, exports, module) {
                 return;
             }
 
-            /* TODO: parse headers from MARKDOWN
-            line = line.trim();
-            // replace some leading markdown non-word characters
-            line = line.replace(/^[^0-9A-Za-z]+/, "");
-            */
+            // remove markdown bullet points
+            line = line.replace(/^\*\s+/, "");
 
             if (line) {
                 target.lines.push({
-                    content: line
+                    escapedContent: _.escape(line)
                 });
             }
         });
@@ -66,6 +89,7 @@ define(function (require, exports, module) {
     function createChangelogFromCommits(extensionId, commits) {
         var changelog = [];
         var versions = ExtensionManager.extensions[extensionId].registryInfo.versions;
+        var githubDetails = getGithubDetails(extensionId);
 
         commits.forEach(function (obj) {
             var commit = obj.commit;
@@ -91,7 +115,7 @@ define(function (require, exports, module) {
                         date: versionDate,
                         lines: [{
                             className: "header",
-                            content: "Commits"
+                            escapedContent: _.escape(Strings.COMMITS)
                         }]
                     };
                     changelog.push(target);
@@ -102,13 +126,23 @@ define(function (require, exports, module) {
                 return;
             }
 
-            commit.message = commit.message.trim();
+            var escapedLine = _.escape(obj.sha.substring(0, 7) + " - " + commit.message.trim());
 
-            if (commit.message) {
-                target.lines.push({
-                    content: obj.sha.substring(0, 7) + " - " + commit.message
-                });
-            }
+            // convert links to other repositories
+            escapedLine = escapedLine.replace(/(\s)([\-0-9a-zA-Z]+)\/([\-0-9a-zA-Z]+)#([0-9]+)/g, function (wholeMatch, pre, owner, repo, issueNumber) {
+                var url = "https://github.com/" + owner + "/" + repo + "/issues/" + issueNumber;
+                return pre + "<a href='" + url + "'>" + owner + "/" + repo + "#" + issueNumber + "</a>";
+            });
+
+            // convert local issue numbers to links
+            escapedLine = escapedLine.replace(/(\s)#([0-9]+)/g, function (wholeMatch, pre, issueNumber) {
+                var url = "https://github.com/" + githubDetails.owner + "/" + githubDetails.repo + "/issues/" + issueNumber;
+                return pre + "<a href='" + url + "'>#" + issueNumber + "</a>";
+            });
+
+            target.lines.push({
+                escapedContent: escapedLine
+            });
         });
 
         return changelog;
@@ -117,38 +151,6 @@ define(function (require, exports, module) {
     // ref: https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding
     function base64toUtf8(str) {
         return decodeURIComponent(window.escape(window.atob(str)));
-    }
-
-    function getGithubUrl(extensionId) {
-        var extensionInfo = ExtensionManager.extensions[extensionId];
-
-        var metadata = extensionInfo.registryInfo ? extensionInfo.registryInfo.metadata : extensionInfo.installInfo.metadata;
-
-        if (metadata.repository) {
-
-            return typeof metadata.repository === "string" ? metadata.repository : metadata.repository.url;
-
-        } else if (metadata.homepage) {
-
-            return metadata.homepage;
-
-        } else {
-
-            throw new Error("Cannot get Github url from: " + JSON.stringify(metadata));
-
-        }
-    }
-
-    function getGithubDetails(extensionId) {
-        var repoUrl = getGithubUrl(extensionId);
-
-        // https/ssh version
-        var m = repoUrl.match(/github\.com[:\/]([^\/]+)\/([^\/]+)/);
-
-        return {
-            owner: m[1],
-            repo: m[2].replace(/\.git$/, "")
-        };
     }
 
     function getChangelogFromChangelogFile(extensionId, githubDetails) {

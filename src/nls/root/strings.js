@@ -628,6 +628,7 @@ define({
 
     // extensions/default/ExtensionUpdateNotifications
     "SEE_CHANGELOG"                             : "See changelog",
-    "NO_CHANGELOG_LOADED"                       : "No changelog could be loaded for this extension."
+    "NO_CHANGELOG_LOADED"                       : "No changelog could be loaded for this extension.",
+    "COMMITS"                                   : "Commits"
 
 });
