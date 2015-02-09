@@ -161,7 +161,7 @@ define(function (require, exports, module) {
                     resolve(createChangelogFromMarkdown(extensionId, utf8content));
                 })
                 .fail(function (response) {
-                    reject("Couldn't load changelog: " + response.statusText);
+                    reject("Couldn't load changelog from CHANGELOG.md: " + response.statusText);
                 });
         });
     }
@@ -173,7 +173,7 @@ define(function (require, exports, module) {
                     resolve(createChangelogFromCommits(extensionId, response));
                 })
                 .fail(function (response) {
-                    reject("Couldn't load changelog: " + response.statusText);
+                    reject("Couldn't load changelog from GitHub commits: " + response.statusText);
                 });
         });
     }
