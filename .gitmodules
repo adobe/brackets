@@ -43,3 +43,6 @@
 [submodule "src/extensions/default/thimbleProxy"]
 	path = src/extensions/default/thimbleProxy
 	url = https://github.com/AJDBenner/thimbleProxy.git
+[submodule "src/extensions/default/brackets-browser-livedev"]
+	path = src/extensions/default/brackets-browser-livedev
+	url = https://github.com/humphd/brackets-browser-livedev.git
