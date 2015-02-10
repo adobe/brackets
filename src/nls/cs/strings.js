@@ -80,7 +80,7 @@ define({
     "ERROR_LOADING_KEYMAP"              : "Váš soubor s klávesovými zkratkami není platný UTF-8 soubor a nemůže být otevřen",
     "ERROR_RESTRICTED_COMMANDS"         : "Nemůžete změnit klávesové zkratky následujícím příkazům: {0}",
     "ERROR_RESTRICTED_SHORTCUTS"        : "Nemůžete změnit tyto klávesové zkratky: {0}",
-    "ERROR_MULTIPLE_SHORTCUTS"          : "Vytvářite více klávesových zkratek pro tyto příkazy: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Vytváříte více klávesových zkratek pro tyto příkazy: {0}",
     "ERROR_DUPLICATE_SHORTCUTS"         : "Tyto příkazy mají stejnou klávesovou zkratku: {0}",
     "ERROR_INVALID_SHORTCUTS"           : "Tyto klávesové zkratky jsou neplatné: {0}",
     "ERROR_NONEXISTENT_COMMANDS"        : "Vytváříte klávesovou zkratku pro neexistující příkaz: {0}",
@@ -91,13 +91,13 @@ define({
 
     // Řetězce chyb aplikace
     "ERROR_IN_BROWSER_TITLE"            : "Ouha! {APP_NAME} ještě neběží v prohlížeči.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} je vytvořen v HTML, ale nyní pracuje jako desktopová aplikace, takže ji můžete použít pro úpravu lokálních souborů. Prosím, použijte shell aplikace v <b>github.com/adobe/brackets-shell</b> repo pro spuštění {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} je vytvořen v HTML, ale nyní pracuje jako desktopová aplikace, takže ji můžete použít pro úpravu lokálních souborů. Prosím, použijte shell aplikace v repozitáři <b>github.com/adobe/brackets-shell</b> pro spuštění {APP_NAME}.",
 
     // Řetězce chyb indexování souboru
     "ERROR_MAX_FILES_TITLE"             : "Chyba při indexování souborů",
     "ERROR_MAX_FILES"                   : "Maximální počet souborů byl indexován. Funkce pro vyhledávání v indexovaných souborech nemusí fungovat správně.",
 
-    // Řetezce chyb živého náhledu
+    // Řetězce chyb živého náhledu
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Chyba při spouštění prohlížeče",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome prohlížeč nebyl nalezen. Je nainstalován?",
     "ERROR_LAUNCHING_BROWSER"           : "Došlo k chybě při spouštění prohlížeče. (chyba {0})",
@@ -107,11 +107,11 @@ define({
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Aby se mohl živý náhled připojit, je třeba restartovat Chrome s povolenou možností vzdálené ladění. <br /><br /> Chcete restartovat Chrome a povolit vzdálené ladění?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Nelze načíst stránku s živým náhledem",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Otevřete HTML soubor pro zobrazení v živém náhledu.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Pro spuštění živého náhledu se server-side souborem, musíte specifikovat URL pro tento projekt.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Pro spuštění živého náhledu se vzdáleným souborem, musíte specifikovat URL pro tento projekt.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Chyba při spouštění HTTP serveru pro soubory živého náhledu. Prosím, zkuste to znovu.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Vítejte v živém náhledu!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Živý náhled připojí {APP_NAME} k vašemu prohlížeči. Spustí náhled HTML souboru, který se aktualizuje pokaždé, kdy editujete svůj kód.<br /><br />V této verzi {APP_NAME}, živý náhled funguje pouze v <strong>Google Chrome</strong> a aktualizuje změny v <strong>CSS souborech</strong>. Změny v HTML nebo JavaScript souborech jsou automaticky načteny, když soubor uložíte.<br /><br />(Tato zpráva se zobrazí pouze jednou.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pro více informací navštivte <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pro více informací navštivte <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Živý náhled",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Živý náhled: Připojování\u2026",
@@ -192,7 +192,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "více než ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik pro rozbalení/zbalení všeho",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik pro rozbalení/sbalení všeho",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Nahradit chyby",
     "REPLACE_IN_FILES_ERRORS"           : "Následující soubory nebyly změněny, protože se změnily po hledání nebo do nich nelze zapisovat.",
 
@@ -257,7 +257,7 @@ define({
     "KEYBOARD_SPACE"  : "Space",
 
     /**
-     * Řetezce příkazového řádku
+     * Řetězce příkazového řádku
      */
     "STATUSBAR_CURSOR_POSITION"             : "Řádek {0}, Sloupec {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Vybrán {0} sloupec",
@@ -383,7 +383,7 @@ define({
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýraznit aktivní řádek",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomit řádky",
     "CMD_LIVE_HIGHLIGHT"                  : "Živé zvýraznění",
-    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint soubory při uložení",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lintovat soubory při uložení",
     "CMD_WORKINGSET_SORT_BY_ADDED"        : "Řadit podle data přidání",
     "CMD_WORKINGSET_SORT_BY_NAME"         : "Řadit podle jména",
     "CMD_WORKINGSET_SORT_BY_TYPE"         : "Řadit podle typu",
@@ -469,7 +469,7 @@ define({
     "UPDATE"                               : "Aktualizovat",
     "REMOVE"                               : "Odstranit",
     "OVERWRITE"                            : "Přepsat",
-    "CANT_REMOVE_DEV"                      : "Doplněk v \"dev\" složce musí být smazán manuálně.",
+    "CANT_REMOVE_DEV"                      : "Doplněk ve složce \"dev\" musí být smazán manuálně.",
     "CANT_UPDATE"                          : "Aktualizace není kompatibilní s touto verzí {APP_NAME}.",
     "CANT_UPDATE_DEV"                      : "Doplňky ve složce \"dev\" nemohou být aktualizovány automaticky.",
     "INSTALL_EXTENSION_TITLE"              : "Instalovat doplněk",
