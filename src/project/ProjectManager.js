@@ -1141,8 +1141,7 @@ define(function (require, exports, module) {
         $projectTreeContainer = $("#project-files-container");
         $projectTreeContainer.addClass("jstree jstree-brackets");
         $projectTreeContainer.css("overflow", "auto");
-        $projectTreeContainer.css("position", "relative");
-        
+
         fileTreeViewContainer = $("<div>").appendTo($projectTreeContainer)[0];
         
         model.setSelectionWidth($projectTreeContainer.width());
