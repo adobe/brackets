@@ -87,7 +87,7 @@ define(function (require, exports, module) {
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         NodeSocketTransport  = require("LiveDevelopment/MultiBrowserImpl/transports/NodeSocketTransport"),
         LiveDevProtocol      = require("LiveDevelopment/MultiBrowserImpl/protocol/LiveDevProtocol"),
-        Launcher             = require("LiveDevelopment/MultiBrowserImpl/launchers/Launcher");
+        DefaultLauncher      = require("LiveDevelopment/MultiBrowserImpl/launchers/Launcher");
     
     // Documents
     var LiveCSSDocument      = require("LiveDevelopment/MultiBrowserImpl/documents/LiveCSSDocument"),
@@ -113,6 +113,12 @@ define(function (require, exports, module) {
      * Protocol handler that provides the actual live development API on top of the current transport.
      */
     var _protocol = LiveDevProtocol;
+
+    /**
+     * @private
+     * Current browser launcher for preview.
+     */
+    var _launcher;
     
     /**
      * @private
@@ -525,7 +531,7 @@ define(function (require, exports, module) {
         // open default browser
         // TODO: fail?
         // 
-        Launcher.launch(url);
+        _launcher.launch(url);
     }
     
     /**
@@ -800,6 +806,22 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Sets the current browser launcher mechanism to be used by live development
+     * (e.g., default browser, iframe-based browser, etc.)
+     * The launcher must provide the following method:
+     *
+     * - launch(url): Launch the given URL in the appropriate browser.
+     *
+     * @param {{launch: function(string)}} launcher
+     */
+    function setLauncher(launcher) {
+        if (!(launcher && launcher.launch)) {
+            throw new Error("LiveDevMultiBrowser.setLauncher(): launcher must have `launch` method");
+        }
+        _launcher = launcher;
+    }
+
+    /**
      * Initialize the LiveDevelopment module.
      */
     function init() {
@@ -814,6 +836,9 @@ define(function (require, exports, module) {
         // Default transport for live connection messages - can be changed
         setTransport(NodeSocketTransport);
         
+        // Default launcher for preview browser - can be changed
+        setLauncher(DefaultLauncher);
+
         // Initialize exports.status
         _setStatus(STATUS_INACTIVE);
     }
@@ -918,4 +943,5 @@ define(function (require, exports, module) {
     exports.getServerBaseUrl    = getServerBaseUrl;
     exports.getCurrentProjectServerConfig = getCurrentProjectServerConfig;
     exports.setTransport        = setTransport;
+    exports.setLauncher         = setLauncher;
 });
