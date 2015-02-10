@@ -833,6 +833,7 @@ define(function (require, exports, module) {
                     overflow: "auto",
                     left: left,
                     width: width,
+                    position: "relative",
                     display: this.props.visible ? "block" : "none"
                 },
                 className: this.props.className
