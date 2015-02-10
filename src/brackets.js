@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: true, $, window, navigator, Mustache */
+/*global define, brackets: true, $, window, navigator, Mustache, jQuery */
 
 // TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
 
@@ -460,6 +460,27 @@ define(function (require, exports, module) {
                 throw new Error("Brackets-shell is not a secure general purpose web browser. Use NativeApp.openURLInDefaultBrowser() to open URLs in the user's main browser");
             }
             return real_windowOpen.apply(window, arguments);
+        };
+        
+        // jQuery patch to shim deprecated usage of $() on EventDispatchers
+        var DefaultCtor = jQuery.fn.init;
+        jQuery.fn.init = function (firstArg, secondArg) {
+            var jQObject = new DefaultCtor(firstArg, secondArg);
+
+            // Is this a Brackets EventDispatcher object? (not a DOM node or other object)
+            if (firstArg && firstArg._EventDispatcher) {
+                // Patch the jQ wrapper object so it calls EventDispatcher's APIs instead of jQuery's
+                jQObject.on  = firstArg.on.bind(firstArg);
+                jQObject.one = firstArg.one.bind(firstArg);
+                jQObject.off = firstArg.off.bind(firstArg);
+                // Don't offer legacy support for trigger()/triggerHandler() on core model objects; extensions
+                // shouldn't be doing that anyway since it's basically poking at private API
+
+                // Console warning, since $() is deprecated for EventDispatcher objects
+                // (pass true to only print once per caller, and index 4 since the extension caller is deeper in the stack than usual)
+                DeprecationWarning.deprecationWarning("Deprecated: Do not use $().on/off() on Brackets modules and model objects. Call on()/off() directly on the object without a $() wrapper.", true, 4);
+            }
+            return jQObject;
         };
     }
     
