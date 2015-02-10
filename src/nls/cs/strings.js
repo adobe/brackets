@@ -76,7 +76,7 @@ define({
 
     // Řetězce chyb nastavení klávesových zkratek
     "ERROR_KEYMAP_TITLE"                : "Chyba při čtení uživatelských klávesových zkratek",
-    "ERROR_KEYMAP_CORRUPT"              : "Soubor s nastavením klávesových zkratek není platný soubor typu JSON. Soubor bude otevřen, abyste mohli opravit formát. ",
+    "ERROR_KEYMAP_CORRUPT"              : "Soubor s nastavením klávesových zkratek není platný soubor typu JSON. Soubor bude otevřen, abyste mohli opravit formát.",
     "ERROR_LOADING_KEYMAP"              : "Váš soubor s klávesovými zkratkami není platný UTF-8 soubor a nemůže být otevřen",
     "ERROR_RESTRICTED_COMMANDS"         : "Nemůžete změnit klávesové zkratky následujícím příkazům: {0}",
     "ERROR_RESTRICTED_SHORTCUTS"        : "Nemůžete změnit tyto klávesové zkratky: {0}",
@@ -178,7 +178,7 @@ define({
     "FIND_REPLACE_TITLE_LABEL"          : "Nahradit",
     "FIND_REPLACE_TITLE_WITH"           : "s",
     "FIND_TITLE_LABEL"                  : "Nalezeno",
-    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} in {3}",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} v {3}",
 
     // Najít v souborech
     "FIND_NUM_FILES"                    : "{0} {1}",
@@ -317,7 +317,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Uložit vše",
     "CMD_FILE_SAVE_AS"                    : "Uložit jako\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Živý náhled",
-    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Experimantální živý náhled",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Experimentální živý náhled",
     "CMD_RELOAD_LIVE_PREVIEW"             : "Vynutit obnovení živého náhledu",
     "CMD_PROJECT_SETTINGS"                : "Nastavení projektu\u2026",
     "CMD_FILE_RENAME"                     : "Přejmenovat",
