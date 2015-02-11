@@ -939,18 +939,21 @@ define(function (require, exports, module) {
         
         delete this._selections.rename;
         delete this._selections.context;
-        if (this._selections.selected === oldPath) {
-            this._selections.selected = newPath;
-        }
         
         viewModel.moveMarker("rename", oldProjectPath, null);
         viewModel.moveMarker("context", oldProjectPath, null);
         viewModel.moveMarker("creating", oldProjectPath, null);
+        
+        function finalizeRename() {
+            viewModel.renameItem(oldProjectPath, newName);
+            if (self._selections.selected && self._selections.selected.indexOf(oldPath) === 0) {
+                self._selections.selected = newPath + self._selections.selected.slice(oldPath.length);
+            }
+        }
 
         if (renameInfo.type === FILE_CREATING) {
             this.createAtPath(newPath).done(function (entry) {
-                viewModel.renameItem(oldProjectPath, newName);
-                
+                finalizeRename();
                 renameInfo.deferred.resolve(entry);
             }).fail(function (error) {
                 self._viewModel.deleteAtPath(self.makeProjectRelativeIfPossible(renameInfo.path));
@@ -958,7 +961,7 @@ define(function (require, exports, module) {
             });
         } else {
             this._renameItem(oldPath, newPath).then(function () {
-                viewModel.renameItem(oldProjectPath, newName);
+                finalizeRename();
                 renameInfo.deferred.resolve({
                     newPath: newPath
                 });
