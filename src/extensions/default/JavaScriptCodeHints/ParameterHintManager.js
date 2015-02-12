@@ -108,7 +108,11 @@ define(function (require, exports, module) {
         left = Math.max(left, editorLeft);
         left = Math.min(left, editorLeft + $editorHolder.width() - hintWidth);
 
-        if (top < 0) {
+        // Get the top of the editable document
+        var cm = session.editor._codeMirror;
+        var localTop = cm.charCoords({line: 0, ch: 0}).top;
+
+        if (top < localTop) {
             $hintContainer.removeClass("preview-bubble-above");
             $hintContainer.addClass("preview-bubble-below");
             top = ybot + POSITION_BELOW_OFFSET;
