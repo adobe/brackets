@@ -281,6 +281,17 @@ define(function (require, exports, module) {
         });
     }
 
+    // exposed for testing purposes
+    exports._getDateOfVersion               = getDateOfVersion;
+    exports._getGithubUrl                   = getGithubUrl;
+    exports._getGithubDetails               = getGithubDetails;
+    exports._createChangelogFromMarkdown    = createChangelogFromMarkdown;
+    exports._createChangelogFromCommits     = createChangelogFromCommits;
+    exports._base64toUtf8                   = base64toUtf8;
+    exports._getChangelogFromChangelogFile  = getChangelogFromChangelogFile;
+    exports._githubHtmlToCommits            = githubHtmlToCommits;
+    exports._getChangelogFromCommits        = getChangelogFromCommits;
+    // public
     exports.downloadChangelog = downloadChangelog;
 
 });
