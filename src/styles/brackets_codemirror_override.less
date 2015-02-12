@@ -50,12 +50,39 @@
     background: transparent;
 }
 
+.CodeMirror .CodeMirror-activeline-background {
+    background: @activeline-bg-unfocused;
+    .dark & {
+            background-color: @dark-bc-highlight;
+    }
+}
+
 .CodeMirror-focused .CodeMirror-activeline-background {
     background: @activeline-bg;
 }
 
+.show-line-padding .CodeMirror .CodeMirror-activeline-background {
+    box-shadow: inset @code-padding 0 0 0 @activeline-number-bg-unfocused;
+}
+
 .show-line-padding .CodeMirror-focused .CodeMirror-activeline-background {
     box-shadow: inset @code-padding 0 0 0 @activeline-number-bg;
+}
+
+.CodeMirror .CodeMirror-activeline {
+    & > div, .CodeMirror-gutter-elt {
+        height: 100%;
+    }
+    .CodeMirror-gutter-elt {
+        background: @activeline-number-bg-unfocused;
+        color: @activeline-number-unfocused;
+        .dark & {
+            background-color: @dark-bc-highlight;
+    }
+    }
+    .inline-widget .CodeMirror-gutter-elt {
+        color: @accent-comment;
+    }
 }
 
 .CodeMirror-focused .CodeMirror-activeline {
@@ -252,6 +279,13 @@ div.CodeMirror-cursors {
         color: @accent-comment;
     }
     
+    .CodeMirror .CodeMirror-activeline-background {
+        background: @activeline-bg-unfocused;
+        .dark & {
+            background-color: @dark-bc-highlight;
+    }
+    }
+
     .CodeMirror-focused .CodeMirror-activeline-background {
         background: @activeline-bg;
     }
@@ -260,6 +294,16 @@ div.CodeMirror-cursors {
         box-shadow: inset @code-padding 0 0 0 @background;
     }
     
+    .CodeMirror .CodeMirror-activeline {
+        .CodeMirror-gutter-elt {
+            background: @activeline-number-bg-inline-unfocused;
+            color: @activeline-number-unfocused;
+            .dark & {
+            background-color: @dark-bc-highlight;
+    }
+        }
+    }
+
     .CodeMirror-focused .CodeMirror-activeline {
         .CodeMirror-gutter-elt {
             background: @activeline-number-bg-inline;
