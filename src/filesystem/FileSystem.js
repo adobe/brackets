@@ -73,10 +73,10 @@
  *
  * __rename__ - Sent whenever a File or Directory is renamed. All affected File and Directory
  *   objects have been updated to reflect the new path by the time this event is dispatched.
- *   This event should be used to trigger any UI updates that may need to occur when a path
- *   has changed. Note that these events will only be sent for rename operations that happen
- *   within the filesystem. If a file is renamed externally, a change event on the parent
- *   directory will be sent instead.
+ *   Note that these events will only be sent for rename operations that happen within the
+ *   filesystem. If a file is renamed externally, a change event on the parent directory will
+ *   be sent instead. Passed two extra arguments: the original fullPath and new fullPath of the
+ *   renamed entry.
  * 
  * FileSystem may perform caching. But it guarantees:
  *    * File contents & metadata - reads are guaranteed to be up to date (cached data is not used

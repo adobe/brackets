@@ -75,7 +75,7 @@ define(function (require, exports, module) {
         }
         
         function createTestView() {
-            myView = createMockView("test-view");
+            myView = createMockView("/folder/test-view");
         }
 
         
@@ -175,8 +175,14 @@ define(function (require, exports, module) {
                 expect(myPane.$el.find(".not-editor").css("display")).toBeFalsy();
             });
             it("should rename view map entry when file is renamed", function () {
-                myPane._handleFileNameChange(undefined, myView.getFullPath(), "xxxx");
-                expect(myPane._views.xxxx).toEqual(myView);
+                myPane._handleFileNameChange(undefined, "/folder/test-view", "/folder/xxxx");
+                expect(myPane._views["/folder/test-view"]).toBe(undefined);
+                expect(myPane._views["/folder/xxxx"]).toBe(myView);
+            });
+            it("should rename view map entry when parent folder is renamed", function () {
+                myPane._handleFileNameChange(undefined, "/folder/", "/xxxx/");
+                expect(myPane._views["/folder/test-view"]).toBe(undefined);
+                expect(myPane._views["/xxxx/test-view"]).toBe(myView);
             });
             it("should swap view container when pane is merged with another", function () {
                 var secondView = createMockView("second-view"),
@@ -474,10 +480,24 @@ define(function (require, exports, module) {
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
 
-                var oldPath = myView.getFullPath();
-                myView.file.fullPath = "xxxx";
+                // Emulate a real FileSystem rename, where File.fullPath is updated before _handleFileNameChange() runs
+                myView.file.fullPath = "/folder/xxxx";
+                myPane._handleFileNameChange(undefined, "/folder/test-view", "/folder/xxxx");
 
-                myPane._handleFileNameChange(undefined, oldPath, myView.getFullPath());
+                expect(eventHandler).toHaveBeenCalled();
+                myPane.off(".test");
+            });
+            it("should dispatch events when parent folder is renamed", function () {
+                var eventHandler = jasmine.createSpy();
+                
+                myPane.on("viewListChange.test", eventHandler);
+                
+                myPane.addToViewList(myView.getFile());
+                myPane.showView(myView);
+
+                // Emulate a real FileSystem rename, where File.fullPath is updated before _handleFileNameChange() runs
+                myView.file.fullPath = "/xxxx/test-view";
+                myPane._handleFileNameChange(undefined, "/folder/", "/xxxx/");
 
                 expect(eventHandler).toHaveBeenCalled();
                 myPane.off(".test");

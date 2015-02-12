@@ -41,6 +41,11 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         Dialogs;            // This will be loaded asynchronously
 
+    // Asynchronously loading Dialogs to avoid the circular dependency
+    require(["widgets/Dialogs"], function (dialogsModule) {
+        Dialogs = dialogsModule;
+    });
+
     
     /**
      * @const {Number} Maximium file size (in megabytes)
@@ -547,11 +552,23 @@ define(function (require, exports, module) {
         });
         return pathArray.join("/");
     }
-
-    // Asynchronously loading Dialogs to avoid the circular dependency
-    require(["widgets/Dialogs"], function (dialogsModule) {
-        Dialogs = dialogsModule;
-    });
+    
+    /**
+     * If 'pathToAdjust' is affected by renaming oldPath->newPath, returns the path pathToAdjust would be transformed
+     * to after the rename. Works if oldPath is a parent directory of pathToAdjust, or if pathToAdjust == oldPath.
+     * @param {string} pathToAdjust
+     * @param {string} oldPath Original full path of renamed file/dir
+     * @param {string} newPath New full path of renamed file/dir
+     * @return {string} What pathToAdjust maps to after the rename (unchanged if rename does not affect it).
+     */
+    function adjustForRename(pathToAdjust, oldPath, newPath) {
+        if (pathToAdjust === oldPath) {
+            return newPath;
+        } else if (oldPath[oldPath.length - 1] === "/" && pathToAdjust.indexOf(oldPath) === 0) {
+            return newPath + pathToAdjust.slice(oldPath.length);
+        }
+        return pathToAdjust;
+    }
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -583,4 +600,5 @@ define(function (require, exports, module) {
     exports.comparePaths                   = comparePaths;
     exports.MAX_FILE_SIZE                  = MAX_FILE_SIZE;
     exports.encodeFilePath                 = encodeFilePath;
+    exports.adjustForRename                = adjustForRename;
 });

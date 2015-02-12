@@ -65,10 +65,10 @@
  *      not just full-sized editors) or MainViewManager currentFileChange (which covers full-sized views
  *      only, but is also triggered for non-editor views e.g. image files).
  *
- *    - fileNameChange -- When the name of a file or folder has changed. The 2nd arg is the old name.
- *      The 3rd arg is the new name.  Generally, however, file objects have already been changed by the 
- *      time this event is dispatched so code that relies on matching the filename to a file object 
- *      will need to compare the newname.
+ *    - fileNameChange -- After the name of a file or folder has changed. The 2nd arg is the old full path.
+ *      The 3rd arg is the new full path. Generally, file objects have already been changed by the time
+ *      this event is dispatched. Use FileUtils.adjustForRename() to help map affected files (including
+ *      children of a renamed folder) to their correct new path.
  * 
  *    - pathDeleted -- When a file or folder has been deleted. The 2nd arg is the path that was deleted.
  *
@@ -514,10 +514,10 @@ define(function (require, exports, module) {
      * Called after a file or folder name has changed. This function is responsible
      * for updating underlying model data and notifying all views of the change.
      *
-     * @param {string} oldName The old name of the file/folder
-     * @param {string} newName The new name of the file/folder
+     * @param {string} oldPath The old path of the file/folder
+     * @param {string} newPath The new path of the file/folder
      */
-    function notifyPathNameChanged(oldName, newName) {
+    function notifyPathNameChanged(oldPath, newPath) {
         // Notify all open documents 
         _.forEach(_openDocuments, function (doc) {
             // TODO: Only notify affected documents? For now _notifyFilePathChange 
@@ -527,7 +527,7 @@ define(function (require, exports, module) {
         });
         
         // Send a "fileNameChange" event. This will trigger the views to update.
-        exports.trigger("fileNameChange", oldName, newName);
+        exports.trigger("fileNameChange", oldPath, newPath);
     }
     
     
