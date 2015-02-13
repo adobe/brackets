@@ -21,6 +21,13 @@
  *
  */
 
+ /* Temporary fix for issue#10150 for weird project tree scrollbar behaviour. Scrollbar not appearin on hover. Forcing the project tree div to render displays the scrollbar. So setting transparent background color on hover.
+*/
+
+.platform-mac #project-files-container:hover {
+    background-color: rgba(128, 128, 128, 0);
+}
+
 /* Temporary implementation of unobtrusive scrollbars.
    FUTURE: These currently rely on nonstandard WebKit styles, and don't have all the right behavior.
    Longer-term, we'll need to implement custom scrollbars. */
