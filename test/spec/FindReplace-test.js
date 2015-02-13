@@ -352,6 +352,10 @@ define(function (require, exports, module) {
                 });
             }
             
+            // Verify number of tickmarks equals number of highlights
+            var tickmarks = tw$(".tickmark-track .tickmark", myEditor.getRootElement());
+            expect(tickmarks.length).toEqual(selections.length);
+            
             // Verify that editor UI doesn't have extra ranges left highlighted from earlier
             // (note: this only works for text that's short enough to not get virtualized)
             var lineDiv = tw$(".CodeMirror-lines .CodeMirror-code", myEditor.getRootElement());
@@ -504,7 +508,8 @@ define(function (require, exports, module) {
                 enterSearchText("b");
 
                 expectMatchIndex(0, 2430);
-                expectHighlightedMatches([]);
+                // When exceeding 2000 matches, tickmarks disabled and only the *current* editor highlight is shown
+                expectHighlightedMatches([], 1);
             });
             
             it("should find all case-insensitive matches with lowercase text", function () {

@@ -21,14 +21,14 @@
  * 
  */
 
-/*global define, describe, beforeEach, runs, afterEach, waitsFor, it, waitsForDone, expect */
+/*global define, describe, beforeEach, runs, afterEach, waitsFor, it, xit, waitsForDone, expect */
 
 define(function (require, exports, module) {
     "use strict";
     
     var SpecRunnerUtils = require("spec/SpecRunnerUtils");
 
-    describe("MultiBrowser (experimental) - LiveDevelopment", function () {
+    describe("MultiBrowser (experimental)", function () {
     
         this.category = "livepreview";
 
@@ -66,6 +66,7 @@ define(function (require, exports, module) {
         });
         
         afterEach(function () {
+            LiveDevelopment.close();
             SpecRunnerUtils.closeTestWindow();
             testWindow = null;
             brackets = null;
@@ -88,7 +89,6 @@ define(function (require, exports, module) {
 
         describe("Init Session", function () {
             
-            
             it("should establish a browser connection for an opened html file", function () {
                 //open a file
                 runs(function () {
@@ -102,6 +102,18 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should find an index.html in a parent directory", function () {
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["sub/test.css"]), "SpecRunnerUtils.openProjectFiles sub/test.css", 1000);
+                });
+
+                waitsForLiveDevelopmentToOpen();
+
+                runs(function () {
+                    expect(LiveDevelopment._getCurrentLiveDoc().doc.url).toMatch(/\/index\.html$/);
+                });
+            });
+
             it("should send all external stylesheets as related docs on start-up", function () {
                 var liveDoc;
                 runs(function () {
@@ -255,7 +267,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should push in memory css changes made before the session starts", function () {
+            xit("should push in memory css changes made before the session starts", function () {
                 var localText,
                     browserText;
                 

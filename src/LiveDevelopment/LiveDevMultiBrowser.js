@@ -71,12 +71,15 @@ define(function (require, exports, module) {
     var STATUS_RELOADING     = exports.STATUS_RELOADING      =  5;
     var STATUS_RESTARTING    = exports.STATUS_RESTARTING     =  6;
 
-    var Dialogs              = require("widgets/Dialogs"),
+    var CommandManager       = require("command/CommandManager"),
+        Commands             = require("command/Commands"),
+        Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
         EventDispatcher      = require("utils/EventDispatcher"),
         FileUtils            = require("file/FileUtils"),
+        MainViewManager      = require("view/MainViewManager"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),
         Strings              = require("strings"),
@@ -388,7 +391,7 @@ define(function (require, exports, module) {
             }
             
             var filteredFiltered = allFiles.filter(function (item) {
-                var parent = FileUtils.getDirectoryPath(item.fullPath);
+                var parent = FileUtils.getParentPath(item.fullPath);
                 
                 return (containingFolder.indexOf(parent) === 0);
             });
@@ -416,7 +419,7 @@ define(function (require, exports, module) {
                 // We found no good match
                 if (i === -1) {
                     // traverse the directory tree up one level
-                    containingFolder = FileUtils.getDirectoryPath(containingFolder);
+                    containingFolder = FileUtils.getParentPath(containingFolder);
                     // Are we still inside the project?
                     if (containingFolder.indexOf(projectRoot) === -1) {
                         stillInProjectTree = false;
@@ -466,10 +469,13 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Close all active connections
+     * Closes all active connections.
+     * Returns a resolved promise for API compatibility.
+     * @return {$.Promise} A resolved promise
      */
     function close() {
-        return _close(true);
+        _close(true);
+        return new $.Deferred().resolve().promise();
     }
     
     /**
@@ -658,9 +664,10 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * MainViewManager.currentFileChange event handler.
      * When switching documents, close the current preview and open a new one.
      */
-    function _onDocumentChange() {
+    function _onFileChange() {
         var doc = DocumentManager.getCurrentDocument();
         if (!isActive() || !doc) {
             return;
@@ -693,14 +700,14 @@ define(function (require, exports, module) {
                 otherDocumentsInWorkingFiles;
 
             if (doc && !doc._masterEditor) {
-                otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
-                DocumentManager.addToWorkingSet(doc.file);
+                otherDocumentsInWorkingFiles = MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES);
+                MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
-                    DocumentManager.setCurrentDocument(doc);
+                    CommandManager.execute(Commands.CMD_OPEN, { fullPath: doc.file.fullPath });
                 }
             }
-
+            
             // wait for server (StaticServer, Base URL or file:)
             prepareServerPromise
                 .done(function () {
@@ -796,10 +803,13 @@ define(function (require, exports, module) {
      * Initialize the LiveDevelopment module.
      */
     function init() {
-        DocumentManager.on("currentDocumentChange", _onDocumentChange)
+        MainViewManager
+            .on("currentFileChange", _onFileChange);
+        DocumentManager
             .on("documentSaved", _onDocumentSaved)
             .on("dirtyFlagChange", _onDirtyFlagChange);
-        ProjectManager.on("beforeProjectClose beforeAppClose", close);
+        ProjectManager
+            .on("beforeProjectClose beforeAppClose", close);
         
         // Default transport for live connection messages - can be changed
         setTransport(NodeSocketTransport);

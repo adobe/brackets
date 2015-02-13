@@ -327,7 +327,6 @@ a, img {
     /* Placeholder shown when there is no editor open */
 
     .view-pane {
-        opacity: 0.7; // quieten inactive pane
         display: block;
         margin: 0;
         overflow: hidden;
@@ -353,9 +352,8 @@ a, img {
             .image-centering {
                 display: inline-block;
                 vertical-align: middle;
-                margin-top: -50px; /* Offset as vertical align takes image metadata into account */
-                max-width: 90%;
-                max-height: 90%;
+                width: 90%; //As long as the width isn't set on the image itself theres no need for max-width/height
+                height: 90%;
             }
             .image-data {
                 font-weight: @font-weight-semibold;
@@ -373,7 +371,7 @@ a, img {
         .image-preview {
             background: url(images/preview_bg.png);
             box-shadow: 0 1px 3px @bc-shadow;
-            max-height: 90%;
+            max-height: 100%;
 
             .dark & {
                 background: url(images/preview_bg_dark.png);
@@ -404,6 +402,7 @@ a, img {
 
         .image {
             position: relative;
+            height: calc(~'100% - 53px');//.image-header height+margin
         }
 
         .image-guide,
@@ -480,6 +479,7 @@ a, img {
         }
     }
     .pane-header {
+        opacity: 0.7; // quieten inactive pane header
         box-sizing: border-box;
         border-bottom:  1px solid rgba(0, 0, 0, 0.05);
         padding: 5px 10px;
@@ -494,9 +494,9 @@ a, img {
         }
     }
     .active-pane {
-        opacity: 1;
         
         .pane-header {
+            opacity: 1;
             color: @bc-menu-text;
 
             .dark & {
@@ -1715,6 +1715,12 @@ textarea.exclusions-editor {
         border-top: 1px solid #e0d123;
         border-bottom: 1px solid #d4c620;
         opacity: 0.85;  // allow thumb to show through
+        &.tickmark-current {
+            background-color: #ed9823;
+            border-top: 1px solid #dd9128;
+            border-bottom: 1px solid #cb8320;
+            z-index: 1;  // ensure this one appears above overlapping sibling highlights
+        }
     }
 }
 

@@ -32,8 +32,8 @@ define({
 
     // General file io error strings
     "GENERIC_ERROR"                     : "(Fehler {0})",
-    "NOT_FOUND_ERR"                     : "Die Datei konnte nicht gefunden werden.",
-    "NOT_READABLE_ERR"                  : "Die Datei konnte nicht gelesen werden.",
+    "NOT_FOUND_ERR"                     : "Die Datei/der Ordner konnte nicht gefunden werden.",
+    "NOT_READABLE_ERR"                  : "Die Datei/der Ordner konnte nicht gelesen werden.",
     "EXCEEDS_MAX_FILE_SIZE"             : "{APP_NAME} kann keine Dateien öffnen, die größer als {0} MB sind.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Der Ziel-Ordner kann nicht verändert werden.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
@@ -319,6 +319,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_FILE_SAVE_AS"                    : "Speichern unter\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Experimentelle Live-Vorschau aktivieren",
     "CMD_RELOAD_LIVE_PREVIEW"             : "Live-Vorschau neu laden",
     "CMD_PROJECT_SETTINGS"                : "Projekt-Einstellungen\u2026",
     "CMD_FILE_RENAME"                     : "Umbenennen\u2026",
@@ -396,7 +397,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
     "CMD_GOTO_DEFINITION"                 : "Definition schnell finden",
-    "CMD_GOTO_FIRST_PROBLEM"              : "Zum ersten Fehler/zur ersten Warnung gehen",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Zum ersten Problem gehen",
     "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_TOGGLE_QUICK_DOCS"               : "Schnell-Dokumentation",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
@@ -628,4 +629,4 @@ define({
     "DOCS_MORE_LINK"                            : "Weiterlesen"
 });
 
-/* Last translated for 893c065b715c211526dcd010c0294e12a8683995 */
+/* Last translated for c292e896761bc7d451a9e3b95bedd20d6b355d77 */

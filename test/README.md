@@ -1,7 +1,7 @@
 Overview
 ========
 
-Unit testing for brackets uses Jasmine http://pivotal.github.com/jasmine/.
+Unit testing for brackets uses [Jasmine](http://jasmine.github.io/1.3/introduction.html).
 
 Getting started
 ===============

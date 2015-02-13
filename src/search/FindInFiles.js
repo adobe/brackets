@@ -51,6 +51,12 @@ define(function (require, exports, module) {
     var ZERO_FILES_TO_SEARCH = {};
     
     /**
+     * Maximum length of text displayed in search results panel
+     * @const
+     */
+    var MAX_DISPLAY_LENGTH = 200;
+    
+    /**
      * The search query and results model.
      * @type {SearchModel} 
      */
@@ -91,7 +97,8 @@ define(function (require, exports, module) {
             return [];
         }
         
-        var match, lineNum, line, ch, totalMatchLength, matchedLines, numMatchedLines, lastLineLength,
+        var match, lineNum, line, ch, totalMatchLength, matchedLines, numMatchedLines, lastLineLength, endCh,
+            padding, leftPadding, rightPadding, highlightOffset, highlightEndCh,
             lines   = StringUtils.getLines(contents),
             matches = [];
         
@@ -103,13 +110,31 @@ define(function (require, exports, module) {
             numMatchedLines  = matchedLines.length;
             totalMatchLength = match[0].length;
             lastLineLength   = matchedLines[matchedLines.length - 1].length;
+            endCh            = (numMatchedLines === 1 ? ch + totalMatchLength : lastLineLength);
+            highlightEndCh   = (numMatchedLines === 1 ? endCh : line.length);
+            highlightOffset  = 0;
             
-            // Don't store more than 200 chars per line
-            line = line.substr(0, Math.min(200, line.length));
+            if (highlightEndCh <= MAX_DISPLAY_LENGTH) {
+                // Don't store more than 200 chars per line
+                line = line.substr(0, Math.min(MAX_DISPLAY_LENGTH, line.length));
+            } else if (totalMatchLength > MAX_DISPLAY_LENGTH) {
+                // impossible to display the whole match
+                line = line.substr(ch, ch + MAX_DISPLAY_LENGTH);
+                highlightOffset = ch;
+            } else {
+                // Try to have both beginning and end of match displayed
+                padding = MAX_DISPLAY_LENGTH - totalMatchLength;
+                rightPadding = Math.floor(Math.min(padding / 2, line.length - highlightEndCh));
+                leftPadding = Math.ceil(padding - rightPadding);
+                highlightOffset = ch - leftPadding;
+                line = line.substring(highlightOffset, highlightEndCh + rightPadding);
+            }
             
             matches.push({
                 start:       {line: lineNum, ch: ch},
-                end:         {line: lineNum + numMatchedLines - 1, ch: (numMatchedLines === 1 ? ch + totalMatchLength : lastLineLength)},
+                end:         {line: lineNum + numMatchedLines - 1, ch: endCh},
+                
+                highlightOffset: highlightOffset,
                 
                 // Note that the following offsets from the beginning of the file are *not* updated if the search
                 // results change. These are currently only used for multi-file replacement, and we always

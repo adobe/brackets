@@ -34,6 +34,7 @@ define({
     "GENERIC_ERROR"                     : "(chyba {0})",
     "NOT_FOUND_ERR"                     : "Soubor nenalezen.",
     "NOT_READABLE_ERR"                  : "Soubor nelze číst.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "Soubor větší než {0} MB nemůže být otevřen v aplikaci {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Cílová složka nemůže být změněna.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Oprávnění neumožní provádět změny.",
     "CONTENTS_MODIFIED_ERR"             : "Soubor byl změněn mimo aplikaci {APP_NAME}.",
@@ -72,6 +73,17 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Chyba při tvorbě souboru",
     "ERROR_CREATING_FILE"               : "Došlo k chybě při vytváření souboru <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_MIXED_DRAGDROP"              : "Nelze otevřít složku ve chvíli, kdy se otevírají jiné soubory.",
+
+    // Řetězce chyb nastavení klávesových zkratek
+    "ERROR_KEYMAP_TITLE"                : "Chyba při čtení uživatelských klávesových zkratek",
+    "ERROR_KEYMAP_CORRUPT"              : "Soubor s nastavením klávesových zkratek není platný soubor typu JSON. Soubor bude otevřen, abyste mohli opravit formát. ",
+    "ERROR_LOADING_KEYMAP"              : "Váš soubor s klávesovými zkratkami není platný UTF-8 soubor a nemůže být otevřen",
+    "ERROR_RESTRICTED_COMMANDS"         : "Nemůžete změnit klávesové zkratky následujícím příkazům: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Nemůžete změnit tyto klávesové zkratky: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Vytvářite více klávesových zkratek pro tyto příkazy: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Tyto příkazy mají stejnou klávesovou zkratku: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Tyto klávesové zkratky jsou neplatné: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Vytváříte klávesovou zkratku pro neexistující příkaz: {0}",
 
     // Řetězce chyb nastavení aplikace
     "ERROR_PREFS_CORRUPT_TITLE"         : "Chyba při čtení nastavení",
@@ -410,9 +422,11 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Otevřít soubor s preferencemi",
+    "CMD_OPEN_KEYMAP"                     : "Otevřít uživatelské klávesové zkratky",
 
     // Řetězce pro main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
+    "RELEASE_BUILD"                        : "verze",
     "DEVELOPMENT_BUILD"                    : "vývojová verze",
     "RELOAD_FROM_DISK"                     : "Načíst z disku",
     "KEEP_CHANGES_IN_EDITOR"               : "Ponechat změny v editoru",
@@ -543,6 +557,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizace",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Žádné dostupné shody.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "Všechny shody jsou sbalené. Pro prohlédnutí shod rozbalte soubory zobrazené vpravo.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádná CSS pravidla odpovídající vašemu výběru.<br> Pro vytvoření pravidla klikněte na \"Nové pravidlo\".",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Neexistují žádné soubory s kaskádovými styly ve vašem projektu.<br>Vytvořte nový soubor pro přidání CSS pravidel.",
 
@@ -613,4 +628,4 @@ define({
     "DOCS_MORE_LINK"                            : "Více"
 });
 
-/* Last translated for da9a2e1e5405d6ee5ec46dfa31003b1915d0766a */
+/* Last translated for ed1b597f2c0e72fc11c9ec42d88d35f57cd6798b */

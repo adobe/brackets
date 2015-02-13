@@ -317,6 +317,7 @@ define({
 	"CMD_FILE_SAVE_ALL": "すべて保存",
 	"CMD_FILE_SAVE_AS": "名前を付けて保存\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "ライブプレビュー",
+	"CMD_TOGGLE_LIVE_PREVIEW_MB_MODE": "試験ライブプレビューを有効にする",
 	"CMD_RELOAD_LIVE_PREVIEW": "ライブプレビューを強制的に再読込み",
 	"CMD_PROJECT_SETTINGS": "プロジェクト設定\u2026",
 	"CMD_FILE_RENAME": "ファイル名変更",

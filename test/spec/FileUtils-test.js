@@ -85,7 +85,30 @@ define(function (require, exports, module) {
             });
 
             it("should return the unchanged directory of a posix directory path", function () {
-                expect(FileUtils.getDirectoryPath("C:/foo/bar/")).toBe("C:/foo/bar/");
+                expect(FileUtils.getDirectoryPath("/foo/bar/")).toBe("/foo/bar/");
+            });
+            
+            it("should return the unchanged directory of a root path", function () {
+                expect(FileUtils.getDirectoryPath("C:/")).toBe("C:/");
+                expect(FileUtils.getDirectoryPath("/")).toBe("/");
+            });
+        });
+
+        describe("getParentPath", function () {
+
+            it("should get the parent directory of a normalized file path", function () {
+                expect(FileUtils.getParentPath("C:/foo/bar/baz.txt")).toBe("C:/foo/bar/");
+                expect(FileUtils.getParentPath("/foo/bar/baz.txt")).toBe("/foo/bar/");
+            });
+
+            it("should return the parent directory of a normalized directory path", function () {
+                expect(FileUtils.getParentPath("C:/foo/bar/")).toBe("C:/foo/");
+                expect(FileUtils.getParentPath("/foo/bar/")).toBe("/foo/");
+            });
+
+            it("should return '' given a root path", function () {
+                expect(FileUtils.getParentPath("C:/")).toBe("");
+                expect(FileUtils.getParentPath("/")).toBe("");
             });
         });
 
@@ -140,6 +163,17 @@ define(function (require, exports, module) {
                 expect(FileUtils.getFileExtension("C:/foo/bar/.baz/jaz.txt")).toBe("txt");
                 expect(FileUtils.getFileExtension("foo/bar/baz/.jaz.txt")).toBe("txt");
                 expect(FileUtils.getFileExtension("foo.bar.baz..jaz.txt")).toBe("txt");
+            });
+        });
+        
+        describe("getFilenameWithoutExtension", function () {
+
+            it("should remove last extension segment only", function () {
+                expect(FileUtils.getFilenameWithoutExtension("foo.txt")).toBe("foo");
+                expect(FileUtils.getFilenameWithoutExtension("foo.min.txt")).toBe("foo.min");
+                expect(FileUtils.getFilenameWithoutExtension("foo")).toBe("foo");
+                
+                expect(FileUtils.getFilenameWithoutExtension(".foo")).toBe("");
             });
         });
 

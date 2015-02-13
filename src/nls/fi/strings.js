@@ -32,8 +32,8 @@ define({
 
     // General file io error strings
     "GENERIC_ERROR"                     : "(virhe {0})",
-    "NOT_FOUND_ERR"                     : "Tiedostoa ei löytynyt.",
-    "NOT_READABLE_ERR"                  : "Tiedostoa ei voi lukea.",
+    "NOT_FOUND_ERR"                     : "Tiedostoa tai hakemistoa ei löytynyt.",
+    "NOT_READABLE_ERR"                  : "Tiedostoa tai hakemistoa ei voi lukea.",
     "EXCEEDS_MAX_FILE_SIZE"             : "Yli {0} Mt:n tiedostoja ei voi voi avata {APP_NAME}issa.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Kohdehakemistoa ei voi muuttaa.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Sinulla ei ole oikeuksia tehdä muutoksia.",
@@ -48,7 +48,6 @@ define({
     "FILENAMES_LEDE"                    : "Tiedostonimet",
     "FILENAME"                          : "tiedostonimi",
     "DIRECTORY_NAME"                    : "hakemiston nimi",
-
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Virhe ladattaessa projektia",
@@ -100,7 +99,7 @@ define({
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Virhe käynnistettäessä selainta",
-    "ERROR_CANT_FIND_CHROME"            : "Google Chrome -selainta ei löydy. Varmista, että se on asennettu.",
+    "ERROR_CANT_FIND_CHROME"            : "Google Chrome \u2011selainta ei löydy. Varmista, että se on asennettu.",
     "ERROR_LAUNCHING_BROWSER"           : "Tapahtui virhe käynnistettäessä selainta. (virhe {0})",
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Esikatselun virhe",
@@ -261,10 +260,10 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Rivi {0}, sarake {1}",
-    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Valittu {0} merkki",
-    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Valittu {0} merkkiä",
-    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Valittu {0} rivi",
-    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Valittu {0} riviä",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 valittu {0} merkki",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 valittu {0} merkkiä",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 valittu {0} rivi",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 valittu {0} riviä",
     "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} valintaa",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Muuta sisennys välilyönneiksi napsauttamalla",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Muuta sisennys sarkainmerkeiksi napsauttamalla",
@@ -284,7 +283,7 @@ define({
     "STATUSBAR_SET_DEFAULT_LANG"            : "Aseta oletukseksi .{0}-tiedostoille",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0}-ongelmat",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} ongelmaa",
     "SINGLE_ERROR"                          : "1 {0}-ongelma",
     "MULTIPLE_ERRORS"                       : "{1} {0}-ongelmaa",
     "NO_ERRORS"                             : "{0}-ongelmia ei löytynyt – hyvää työtä!",
@@ -294,7 +293,6 @@ define({
     "NOTHING_TO_LINT"                       : "Ei mitään tarkistettavaa",
     "LINTER_TIMED_OUT"                      : "{0} on aikakatkaistu {1} ms:n odotuksen jälkeen",
     "LINTER_FAILED"                         : "{0} keskeytyi virheeseen: {1}",
-
 
     /**
      * Command Name Constants
@@ -319,6 +317,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Tallenna kaikki",
     "CMD_FILE_SAVE_AS"                    : "Tallenna nimellä\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Esikatselu",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Ota kokeellinen esikatselu käyttöön",
     "CMD_RELOAD_LIVE_PREVIEW"             : "Pakota esikatselun päivitys",
     "CMD_PROJECT_SETTINGS"                : "Projektin asetukset\u2026",
     "CMD_FILE_RENAME"                     : "Nimeä uudelleen",
@@ -396,7 +395,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Pika-avaus",
     "CMD_GOTO_LINE"                       : "Siirry riville",
     "CMD_GOTO_DEFINITION"                 : "Etsi määrittely nopeasti",
-    "CMD_GOTO_FIRST_PROBLEM"              : "Siirry ensimmäiseen virheeseen tai varoitukseen",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Siirry ensimmäiseen ongelmaan",
     "CMD_TOGGLE_QUICK_EDIT"               : "Pikamuokkaus",
     "CMD_TOGGLE_QUICK_DOCS"               : "Pikadokumentaatio",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Edellinen vastine",
@@ -440,14 +439,14 @@ define({
     "ABOUT_TEXT_LINE4"                     : "Dokumentaatio ja lähdekoodi osoitteessa <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "He tekivät tämän \u2764:lla ja JavaScriptillä:",
     "ABOUT_TEXT_LINE6"                     : "Monet ihmiset (mutta meillä on ongelmia ladata näitä tietoja nyt).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform -dokumentit ja graafinen Web Platform -logo on lisensoitu Creative Commons Attribution -lisenssillä, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform \u2011dokumentit ja graafinen Web Platform \u2011logo on lisensoitu Creative Commons Attribution \u2011lisenssillä, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Uusi {APP_NAME}-versio on saatavilla! Saat lisätietoja napsauttamalla tästä.",
     "UPDATE_AVAILABLE_TITLE"               : "Päivitys saatavilla",
     "UPDATE_MESSAGE"                       : "Hei, uusi {APP_NAME}-versio on saatavilla. Tässä on joitakin uusista ominaisuuksista:",
     "GET_IT_NOW"                           : "Hae nyt!",
     "PROJECT_SETTINGS_TITLE"               : "Projektin asetukset kohteelle: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Esikatselun perus-URL",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "Käytä paikal. palvelinta antamalla url, kuten http://localhost:8000/",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "Käytä paikall. palvelinta antamalla url, kuten http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Esikatselu ei tue {0}-protokollaa. Käytä joko http: tai https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei voi sisältää hakuparametreja, kuten ”{0}”.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei voi sisältää ristikkomerkkejä, kuten ”{0}”.",
@@ -628,4 +627,4 @@ define({
     "DOCS_MORE_LINK"                            : "Lue lisää"
 });
 
-/* Last translated for 893c065b715c211526dcd010c0294e12a8683995 */
+/* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */

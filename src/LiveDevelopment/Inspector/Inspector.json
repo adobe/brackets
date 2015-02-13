@@ -1880,6 +1880,14 @@
         ],
         "commands": [
             {
+                "name": "enable",
+                "description": "Enables DOM agent for the given page."
+            },
+            {
+                "name": "disable",
+                "description": "Disables DOM agent for the given page."
+            },
+            {
                 "name": "getDocument",
                 "returns": [
                     { "name": "root", "$ref": "Node", "description": "Resulting node." }

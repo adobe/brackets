@@ -743,10 +743,8 @@ define(function (require, exports, module) {
 
             // Always resolve the outer promise
             updatePromise.always(function () {
-                if (result.installZips.length > 0 || result.updateZips.length > 0) {
-                    // Keep track of auto-installed extensions so we only install an extension once
-                    PreferencesManager.setViewState(FOLDER_AUTOINSTALL, autoExtensions);
-                }
+                // Keep track of auto-installed extensions so we only install an extension once
+                PreferencesManager.setViewState(FOLDER_AUTOINSTALL, autoExtensions);
 
                 deferred.resolve();
             });

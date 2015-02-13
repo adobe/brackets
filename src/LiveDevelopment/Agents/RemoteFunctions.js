@@ -308,7 +308,7 @@ function RemoteFunctions(experimental) {
                 
                 window.setTimeout(function () {
                     _setStyleValues(animateEndValues, highlight.style);
-                }, 0);
+                }, 20);
             }
         
             window.document.body.appendChild(highlight);
