@@ -39,25 +39,25 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent non-module scripts
+    require("thirdparty/path-utils/path-utils.min");
+    require("thirdparty/smart-auto-complete-local/jquery.smart_autocomplete");
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
     require("widgets/bootstrap-twipsy-mod");
-    require("thirdparty/path-utils/path-utils.min");
-    require("thirdparty/smart-auto-complete-local/jquery.smart_autocomplete");
 
-    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
-    require("thirdparty/CodeMirror2/addon/fold/xml-fold");
-    require("thirdparty/CodeMirror2/addon/edit/matchtags");
-    require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
+    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module
     require("thirdparty/CodeMirror2/addon/edit/closebrackets");
     require("thirdparty/CodeMirror2/addon/edit/closetag");
-    require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
-    require("thirdparty/CodeMirror2/addon/selection/active-line");
-    require("thirdparty/CodeMirror2/addon/selection/mark-selection");
+    require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
+    require("thirdparty/CodeMirror2/addon/edit/matchtags");
+    require("thirdparty/CodeMirror2/addon/fold/xml-fold");
     require("thirdparty/CodeMirror2/addon/mode/multiplex");
     require("thirdparty/CodeMirror2/addon/mode/overlay");
+    require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
     require("thirdparty/CodeMirror2/addon/search/match-highlighter");
     require("thirdparty/CodeMirror2/addon/search/searchcursor");
+    require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/selection/mark-selection");
     require("thirdparty/CodeMirror2/keymap/sublime");
 
     // Load dependent modules
@@ -82,9 +82,9 @@ define(function (require, exports, module) {
         NativeApp           = require("utils/NativeApp"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
         ViewCommandHandlers = require("view/ViewCommandHandlers"),
-        MainViewManager     = require("view/MainViewManager"),
+        MainViewManager     = require("view/MainViewManager");
 
-        MainViewHTML        = require("text!htmlContent/main-view.html");
+    var MainViewHTML        = require("text!htmlContent/main-view.html");
 
     // load modules for later use
     require("utils/Global");
@@ -117,20 +117,20 @@ define(function (require, exports, module) {
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
-    require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
+    require("editor/EditorStatusBar");
+    require("editor/ImageViewer");
+    require("extensibility/InstallExtensionDialog");
+    require("extensibility/ExtensionManagerDialog");
     require("help/HelpCommandHandlers");
     require("search/FindInFilesUI");
     require("search/FindReplace");
-    require("extensibility/InstallExtensionDialog");
-    require("extensibility/ExtensionManagerDialog");
-    require("editor/ImageViewer");
     
     // Compatibility shims for filesystem API migration
-    require("project/FileIndexManager");
-    require("file/NativeFileSystem");
     require("file/NativeFileError");
+    require("file/NativeFileSystem");
+    require("project/FileIndexManager");
     
     // Compatibility shim for PanelManager to WorkspaceManager migration
     require("view/PanelManager");
