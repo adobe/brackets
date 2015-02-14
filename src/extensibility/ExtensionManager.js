@@ -46,7 +46,7 @@ define(function (require, exports, module) {
         ExtensionLoader     = require("utils/ExtensionLoader"),
         ExtensionUtils      = require("utils/ExtensionUtils"),
         FileSystem          = require("filesystem/FileSystem"),
-        FileUtils           = require("file/FileUtils"),
+        FilePathUtils       = require("file/FilePathUtils"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -628,7 +628,7 @@ define(function (require, exports, module) {
         FileSystem.getDirectoryForPath(dirPath).getContents(function (err, contents) {
             if (!err) {
                 zipFiles = contents.filter(function (dirItem) {
-                    return (dirItem.isFile && FileUtils.getFileExtension(dirItem.fullPath) === "zip");
+                    return (dirItem.isFile && FilePathUtils.getFileExtension(dirItem.fullPath) === "zip");
                 });
             }
 
@@ -724,7 +724,7 @@ define(function (require, exports, module) {
      * @return {$.Promise} Promise that resolves when finished
      */
     function _autoInstallExtensions() {
-        var dirPath        = FileUtils.getDirectoryPath(FileUtils.getNativeBracketsDirectoryPath()) + FOLDER_AUTOINSTALL + "/",
+        var dirPath        = FilePathUtils.getDirectoryPath(FilePathUtils.getNativeBracketsDirectoryPath()) + FOLDER_AUTOINSTALL + "/",
             autoExtensions = PreferencesManager.getViewState(FOLDER_AUTOINSTALL) || {},
             deferred       = new $.Deferred();
 

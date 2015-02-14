@@ -33,12 +33,12 @@ define(function (require, exports, module) {
         PerfUtils,              // loaded from brackets.test
         JSUtils,                // loaded from brackets.test
         
-        FileUtils           = brackets.getModule("file/FileUtils"),
+        FilePathUtils       = brackets.getModule("file/FilePathUtils"),
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
         Strings             = brackets.getModule("strings"),
         UnitTestReporter    = brackets.getModule("test/UnitTestReporter");
 
-    var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
+    var extensionPath = FilePathUtils.getNativeModuleDirectoryPath(module),
         testPath = extensionPath + "/unittest-files/syntax",
         tempPath = SpecRunnerUtils.getTempDirectory(),
         testWindow,

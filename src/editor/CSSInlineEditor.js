@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         Editor                  = require("editor/Editor").Editor,
         LanguageManager         = require("language/LanguageManager"),
         ProjectManager          = require("project/ProjectManager"),
-        FileUtils               = require("file/FileUtils"),
+        FilePathUtils           = require("file/FilePathUtils"),
         HTMLUtils               = require("language/HTMLUtils"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
         Strings                 = require("strings"),
@@ -255,7 +255,7 @@ define(function (require, exports, module) {
             } else if (!aIsCSS && bIsCSS) {
                 return -1;
             } else {
-                return FileUtils.comparePaths(a.fullPath, b.fullPath);
+                return FilePathUtils.comparePaths(a.fullPath, b.fullPath);
             }
         }
         

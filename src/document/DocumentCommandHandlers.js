@@ -40,6 +40,7 @@ define(function (require, exports, module) {
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileUtils           = require("file/FileUtils"),
+        FilePathUtils       = require("file/FilePathUtils"),
         FileViewController  = require("project/FileViewController"),
         InMemoryFile        = require("document/InMemoryFile"),
         StringUtils         = require("utils/StringUtils"),
@@ -360,7 +361,7 @@ define(function (require, exports, module) {
                         _doOpen(paths[paths.length - 1], silent, paneId, options)
                             .done(function (file) {
                                 _defaultOpenDialogFullPath =
-                                    FileUtils.getDirectoryPath(
+                                    FilePathUtils.getDirectoryPath(
                                         MainViewManager.getCurrentlyViewedPath(paneId)
                                     );
                             })
@@ -929,9 +930,9 @@ define(function (require, exports, module) {
                 // If the document is untitled, default to project root.
                 saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
             } else {
-                saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
+                saveAsDefaultPath = FilePathUtils.getDirectoryPath(origPath);
             }
-            defaultName = FileUtils.getBaseName(origPath);
+            defaultName = FilePathUtils.getBaseName(origPath);
             FileSystem.showSaveDialog(Strings.SAVE_FILE_AS, saveAsDefaultPath, defaultName, function (err, selectedPath) {
                 if (!err) {
                     if (selectedPath) {
@@ -1126,7 +1127,7 @@ define(function (require, exports, module) {
 
         if (doc && doc.isDirty && !_forceClose) {
             // Document is dirty: prompt to save changes before closing
-            var filename = FileUtils.getBaseName(doc.file.fullPath);
+            var filename = FilePathUtils.getBaseName(doc.file.fullPath);
 
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_SAVE_CLOSE,

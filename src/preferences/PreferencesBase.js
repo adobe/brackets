@@ -58,12 +58,13 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils   = require("file/FileUtils"),
-        FileSystem  = require("filesystem/FileSystem"),
+    var FileUtils       = require("file/FileUtils"),
+        FilePathUtils   = require("file/FilePathUtils"),
+        FileSystem      = require("filesystem/FileSystem"),
         EventDispatcher = require("utils/EventDispatcher"),
-        _           = require("thirdparty/lodash"),
-        Async       = require("utils/Async"),
-        globmatch   = require("thirdparty/globmatch");
+        _               = require("thirdparty/lodash"),
+        Async           = require("utils/Async"),
+        globmatch       = require("thirdparty/globmatch");
     
     // CONSTANTS
     var PREFERENCE_CHANGE = "change",
@@ -875,7 +876,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context[this.key]);
+            var relativeFilename = FilePathUtils.getRelativeFilename(this.prefFilePath, context[this.key]);
             if (!relativeFilename) {
                 return;
             }
@@ -934,7 +935,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context[this.key]);
+            var relativeFilename = FilePathUtils.getRelativeFilename(this.prefFilePath, context[this.key]);
             
             if (relativeFilename) {
                 var glob = _findMatchingGlob(data, relativeFilename);
@@ -956,7 +957,7 @@ define(function (require, exports, module) {
             if (!prefFilePath) {
                 this.prefFilePath = "/";
             } else {
-                this.prefFilePath = FileUtils.getDirectoryPath(prefFilePath);
+                this.prefFilePath = FilePathUtils.getDirectoryPath(prefFilePath);
             }
         },
         
@@ -972,9 +973,9 @@ define(function (require, exports, module) {
          */
         contextChanged: function (data, oldContext, newContext) {
             var newGlob = _findMatchingGlob(data,
-                              FileUtils.getRelativeFilename(this.prefFilePath, newContext[this.key])),
+                              FilePathUtils.getRelativeFilename(this.prefFilePath, newContext[this.key])),
                 oldGlob = _findMatchingGlob(data,
-                              FileUtils.getRelativeFilename(this.prefFilePath, oldContext[this.key]));
+                              FilePathUtils.getRelativeFilename(this.prefFilePath, oldContext[this.key]));
                         
             if (newGlob === oldGlob) {
                 return;

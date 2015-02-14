@@ -37,7 +37,7 @@ define(function (require, exports, module) {
     var Immutable           = require("thirdparty/immutable"),
         _                   = require("thirdparty/lodash"),
         EventDispatcher     = require("utils/EventDispatcher"),
-        FileUtils           = require("file/FileUtils");
+        FilePathUtils       = require("file/FilePathUtils");
 
     // Constants
     var EVENT_CHANGE = "change";
@@ -759,7 +759,7 @@ define(function (require, exports, module) {
      * @param {Array.<FileSystemEntry>} Current contents of the directory
      */
     FileTreeViewModel.prototype.setDirectoryContents = function (path, contents) {
-        path = FileUtils.stripTrailingSlash(path);
+        path = FilePathUtils.stripTrailingSlash(path);
 
         var intermediate = _createIntermediateDirectories(this._treeData, path),
             objectPath = intermediate.objectPath,
@@ -987,9 +987,9 @@ define(function (require, exports, module) {
 
             filePath = isFolder ? filePath.substr(0, filePath.length - 1) : filePath;
 
-            var parentPath = FileUtils.getDirectoryPath(filePath),
+            var parentPath = FilePathUtils.getDirectoryPath(filePath),
                 parentObjectPath = _filePathToObjectPath(treeData, parentPath),
-                basename = FileUtils.getBaseName(filePath);
+                basename = FilePathUtils.getBaseName(filePath);
 
             if (parentObjectPath) {
                 // Verify that the children are loaded
@@ -1050,8 +1050,8 @@ define(function (require, exports, module) {
      */
     FileTreeViewModel.prototype.ensureDirectoryExists = function (path) {
         var treeData          = this._treeData,
-            pathWithoutSlash  = FileUtils.stripTrailingSlash(path),
-            parentPath        = FileUtils.getDirectoryPath(pathWithoutSlash),
+            pathWithoutSlash  = FilePathUtils.stripTrailingSlash(path),
+            parentPath        = FilePathUtils.getDirectoryPath(pathWithoutSlash),
             name              = pathWithoutSlash.substr(parentPath.length),
             targetPath        = [];
         

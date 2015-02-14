@@ -132,12 +132,12 @@ define(function (require, exports, module) {
     
     
     // Dependencies
-    var CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
-        EventDispatcher       = require("utils/EventDispatcher"),
+    var _                     = require("thirdparty/lodash"),
         Async                 = require("utils/Async"),
-        FileUtils             = require("file/FileUtils"),
+        CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
+        EventDispatcher       = require("utils/EventDispatcher"),
+        FilePathUtils         = require("file/FilePathUtils"),
         _defaultLanguagesJSON = require("text!language/languages.json"),
-        _                     = require("thirdparty/lodash"),
         
         // PreferencesManager is loaded near the end of the file
         PreferencesManager;
@@ -274,7 +274,7 @@ define(function (require, exports, module) {
             return language;
         }
         
-        fileName = FileUtils.getBaseName(path).toLowerCase();
+        fileName = FilePathUtils.getBaseName(path).toLowerCase();
         language = _fileNameToLanguageMap[fileName];
         
         // If no language was found for the file name, use the file extension instead

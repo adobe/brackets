@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
         FileSystem              = require("filesystem/FileSystem"),
-        FileUtils               = require("file/FileUtils"),
+        FilePathUtils           = require("file/FilePathUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         StringUtils             = require("utils/StringUtils");
 
@@ -379,7 +379,7 @@ define(function (require, exports, module) {
         if (!keepAllFiles) {
             // Filter fileInfos for .js files
             jsFiles = fileInfos.filter(function (fileInfo) {
-                return FileUtils.getFileExtension(fileInfo.fullPath).toLowerCase() === "js";
+                return FilePathUtils.getFileExtension(fileInfo.fullPath).toLowerCase() === "js";
             });
         } else {
             jsFiles = fileInfos;

@@ -321,7 +321,7 @@ define(function (require, exports, module) {
             Commands       = window.opener.brackets.getModule("command/Commands"),
             EditorManager  = window.opener.brackets.getModule("editor/EditorManager"),
             ProjectManager = window.opener.brackets.getModule("project/ProjectManager"),
-            FileUtils      = window.opener.brackets.getModule("file/FileUtils");
+            FilePathUtils  = window.opener.brackets.getModule("file/FilePathUtils");
 
         var uri = $(event.target).text(),
             lineData = $(event.target).attr("data-line"),
@@ -334,11 +334,11 @@ define(function (require, exports, module) {
         if (path.indexOf("localhost") === 0) {      // Macs also bizarrely prepend the URI with "localhost"
             path = path.substring("localhost".length);
         }
-        path = FileUtils.convertToNativePath(path);
+        path = FilePathUtils.convertToNativePath(path);
         
         // Convert from symlinked path to real path - otherwise Brackets will think they are two separate files.
         // Note: we assume the current project open in our parent Brackets window is the Brackets source
-        var bracketsRoot = FileUtils.getNativeBracketsDirectoryPath();
+        var bracketsRoot = FilePathUtils.getNativeBracketsDirectoryPath();
         if (bracketsRoot.substr(bracketsRoot.length - 4) === "/src") {
             var symlinkPrefix = bracketsRoot.substring(0, bracketsRoot.length - 3);  // include trailing "/"
             if (path.indexOf(symlinkPrefix) === 0) {

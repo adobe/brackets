@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         CommandManager         = brackets.getModule("command/CommandManager"),
         Menus                  = brackets.getModule("command/Menus"),
         FileSystem             = brackets.getModule("filesystem/FileSystem"),
-        FileUtils              = brackets.getModule("file/FileUtils"),
+        FilePathUtils          = brackets.getModule("file/FilePathUtils"),
         PerfUtils              = brackets.getModule("utils/PerfUtils"),
         StringUtils            = brackets.getModule("utils/StringUtils"),
         Dialogs                = brackets.getModule("widgets/Dialogs"),
@@ -149,7 +149,7 @@ define(function (require, exports, module) {
     }
     
     function handleSwitchLanguage() {
-        var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
+        var stringsPath = FilePathUtils.getNativeBracketsDirectoryPath() + "/nls";
         
         FileSystem.getDirectoryForPath(stringsPath).getContents(function (err, entries) {
             if (!err) {
@@ -217,7 +217,7 @@ define(function (require, exports, module) {
 
         // Check for the SpecRunner.html file
         var file = FileSystem.getFileForPath(
-            FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
+            FilePathUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
         );
         
         file.exists(function (err, exists) {
@@ -251,7 +251,7 @@ define(function (require, exports, module) {
 
     function handleOpenBracketsSource() {
         // Brackets source dir w/o the trailing src/ folder
-        var dir = FileUtils.getNativeBracketsDirectoryPath().replace(/\/[^\/]+$/, "/");
+        var dir = FilePathUtils.getNativeBracketsDirectoryPath().replace(/\/[^\/]+$/, "/");
         brackets.app.showOSFolder(dir);
     }
 

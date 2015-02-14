@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     
     var AppInit              = require("utils/AppInit"),
         FileSystem           = require("filesystem/FileSystem"),
-        FileUtils            = require("file/FileUtils"),
+        FilePathUtils        = require("file/FilePathUtils"),
         StringUtils          = require("utils/StringUtils"),
         Strings              = require("strings"),
         ExtensionLoader      = require("utils/ExtensionLoader"),
@@ -150,7 +150,7 @@ define(function (require, exports, module) {
             var d                       = new $.Deferred(),
                 destinationDirectory    = ExtensionLoader.getUserExtensionPath(),
                 disabledDirectory       = destinationDirectory.replace(/\/user$/, "/disabled"),
-                systemDirectory         = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default/";
+                systemDirectory         = FilePathUtils.getNativeBracketsDirectoryPath() + "/extensions/default/";
             
             var operation = _doUpdate ? "update" : "install";
             extensionManager[operation](path, destinationDirectory, {
@@ -170,7 +170,7 @@ define(function (require, exports, module) {
                         ExtensionLoader.loadExtension(result.name, {
                             // On Windows, it looks like Node converts Unix-y paths to backslashy paths.
                             // We need to convert them back.
-                            baseUrl: FileUtils.convertWindowsPathToUnixPath(result.installedTo)
+                            baseUrl: FilePathUtils.convertWindowsPathToUnixPath(result.installedTo)
                         }, "main").then(function () {
                             d.resolve(result);
                         }, function () {
@@ -254,7 +254,7 @@ define(function (require, exports, module) {
             // Download the bits (using Node since brackets-shell doesn't support binary file IO)
             var r = extensionManager.downloadFile(downloadId, urlInfo.url, PreferencesManager.get("proxy"));
             r.done(function (result) {
-                d.resolve({ localPath: FileUtils.convertWindowsPathToUnixPath(result), filenameHint: urlInfo.filenameHint });
+                d.resolve({ localPath: FilePathUtils.convertWindowsPathToUnixPath(result), filenameHint: urlInfo.filenameHint });
             }).fail(function (err) {
                 d.reject(err);
             });
@@ -480,7 +480,7 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
         _nodeConnection = new NodeConnection();
         _nodeConnection.connect(true).then(function () {
-            var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/node/ExtensionManagerDomain";
+            var domainPath = FilePathUtils.getNativeBracketsDirectoryPath() + "/" + FilePathUtils.getNativeModuleDirectoryPath(module) + "/node/ExtensionManagerDomain";
             
             _nodeConnection.loadDomains(domainPath, true)
                 .then(

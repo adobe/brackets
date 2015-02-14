@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     
     var Commands            = require("command/Commands"),
         FileUtils           = require("file/FileUtils"),
+        FilePathUtils       = require("file/FilePathUtils"),
         Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
@@ -212,7 +213,7 @@ define(function (require, exports, module) {
         // /path/to/brackets/test/SpecRunner.html
         var path = window.location.pathname;
         path = path.substr(0, path.lastIndexOf("/"));
-        path = FileUtils.convertToNativePath(path);
+        path = FilePathUtils.convertToNativePath(path);
         return path;
     }
     

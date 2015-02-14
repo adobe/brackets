@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         EditorManager        = brackets.getModule("editor/EditorManager"),
         FileSystem           = brackets.getModule("filesystem/FileSystem"),
         FileUtils            = brackets.getModule("file/FileUtils"),
+        FilePathUtils        = brackets.getModule("file/FilePathUtils"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
         JSCodeHints          = require("main"),
@@ -43,7 +44,7 @@ define(function (require, exports, module) {
         HintUtils2           = require("HintUtils2"),
         ParameterHintManager = require("ParameterHintManager");
     
-    var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
+    var extensionPath   = FilePathUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/unittest-files/basic-test-files/file1.js",
         testHtmlPath    = extensionPath + "/unittest-files/basic-test-files/index.html",
         testDoc         = null,

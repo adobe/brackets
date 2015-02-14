@@ -32,7 +32,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils       = require("file/FileUtils"),
+    var FilePathUtils   = require("file/FilePathUtils"),
         EventDispatcher = require("utils/EventDispatcher"),
         NodeDomain      = require("utils/NodeDomain");
     
@@ -41,7 +41,7 @@ define(function (require, exports, module) {
 
     // The node extension that actually provides the WebSocket server.
     
-    var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/node/NodeSocketTransportDomain";
+    var domainPath = FilePathUtils.getNativeBracketsDirectoryPath() + "/" + FilePathUtils.getNativeModuleDirectoryPath(module) + "/node/NodeSocketTransportDomain";
     
     var NodeSocketTransportDomain = new NodeDomain("nodeSocketTransport", domainPath);
     

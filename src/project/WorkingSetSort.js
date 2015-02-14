@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         MainViewManager         = require("view/MainViewManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
-        FileUtils               = require("file/FileUtils"),
+        FilePathUtils           = require("file/FilePathUtils"),
         AppInit                 = require("utils/AppInit"),
         Strings                 = require("strings"),
         _                       = require("thirdparty/lodash");
@@ -356,14 +356,14 @@ define(function (require, exports, module) {
     register(
         Commands.CMD_WORKINGSET_SORT_BY_NAME,
         function (paneId, file1, file2) {
-            return FileUtils.compareFilenames(file1.name, file2.name, false);
+            return FilePathUtils.compareFilenames(file1.name, file2.name, false);
         },
         _SORT_EVENT_NAMES
     );
     register(
         Commands.CMD_WORKINGSET_SORT_BY_TYPE,
         function (paneId, file1, file2) {
-            return FileUtils.compareFilenames(file1.name, file2.name, true);
+            return FilePathUtils.compareFilenames(file1.name, file2.name, true);
         },
         _SORT_EVENT_NAMES
     );

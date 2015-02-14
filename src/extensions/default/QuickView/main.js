@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
+        FilePathUtils       = brackets.getModule("file/FilePathUtils"),
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         Strings             = brackets.getModule("strings"),
@@ -461,7 +461,7 @@ define(function (require, exports, module) {
                 if (PathUtils.isAbsoluteUrl(tokenString)) {
                     imgPath = tokenString;
                 } else {
-                    imgPath = "file:///" + FileUtils.getDirectoryPath(docPath) + tokenString;
+                    imgPath = "file:///" + FilePathUtils.getDirectoryPath(docPath) + tokenString;
                 }
                 
                 if (urlMatch) {

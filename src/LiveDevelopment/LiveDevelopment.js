@@ -86,6 +86,7 @@ define(function LiveDevelopment(require, exports, module) {
         FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
         FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
+        FilePathUtils        = require("file/FilePathUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         MainViewManager      = require("view/MainViewManager"),
         NativeApp            = require("utils/NativeApp"),
@@ -700,20 +701,20 @@ define(function LiveDevelopment(require, exports, module) {
                 stillInProjectTree = true;
             
             if (refPath) {
-                containingFolder = FileUtils.getDirectoryPath(refPath);
+                containingFolder = FilePathUtils.getDirectoryPath(refPath);
             } else {
                 containingFolder = projectRoot;
             }
             
             var filteredFiltered = allFiles.filter(function (item) {
-                var parent = FileUtils.getParentPath(item.fullPath);
+                var parent = FilePathUtils.getParentPath(item.fullPath);
                 
                 return (containingFolder.indexOf(parent) === 0);
             });
             
             var filterIndexFile = function (fileInfo) {
                 if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
-                    if (FileUtils.getFilenameWithoutExtension(fileInfo.name) === "index") {
+                    if (FilePathUtils.getFilenameWithoutExtension(fileInfo.name) === "index") {
                         if (hasOwnServerForLiveDevelopment) {
                             if ((FileUtils.isServerHtmlFileExt(fileInfo.name)) ||
                                     (FileUtils.isStaticHtmlFileExt(fileInfo.name))) {
@@ -734,7 +735,7 @@ define(function LiveDevelopment(require, exports, module) {
                 // We found no good match
                 if (i === -1) {
                     // traverse the directory tree up one level
-                    containingFolder = FileUtils.getParentPath(containingFolder);
+                    containingFolder = FilePathUtils.getParentPath(containingFolder);
                     // Are we still inside the project?
                     if (containingFolder.indexOf(projectRoot) === -1) {
                         stillInProjectTree = false;

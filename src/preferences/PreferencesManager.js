@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
         FileUtils               = require("file/FileUtils"),
+        FilePathUtils           = require("file/FilePathUtils"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         PreferencesBase         = require("preferences/PreferencesBase"),
         FileSystem              = require("filesystem/FileSystem"),
@@ -75,7 +76,7 @@ define(function (require, exports, module) {
      */
     function _getExtensionPaths() {
         if (!extensionPaths) {
-            var dirPath = FileUtils.getNativeBracketsDirectoryPath();
+            var dirPath = FilePathUtils.getNativeBracketsDirectoryPath();
             
             extensionPaths = [
                 dirPath + "/extensions/default/",
@@ -240,7 +241,7 @@ define(function (require, exports, module) {
         if (!filename || !projectDirectory) {
             return false;
         }
-        return FileUtils.getRelativeFilename(projectDirectory, filename) !== undefined;
+        return FilePathUtils.getRelativeFilename(projectDirectory, filename) !== undefined;
     }
     
     /**
@@ -279,7 +280,7 @@ define(function (require, exports, module) {
      * @param {string} settingsFile Full path to the project's settings file
      */
     function _setProjectSettingsFile(settingsFile) {
-        projectDirectory = FileUtils.getDirectoryPath(settingsFile);
+        projectDirectory = FilePathUtils.getDirectoryPath(settingsFile);
         _toggleProjectScope();
         PreferencesImpl.projectPathLayer.setPrefFilePath(settingsFile);
         PreferencesImpl.projectStorage.setPath(settingsFile);

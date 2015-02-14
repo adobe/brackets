@@ -28,10 +28,10 @@ define(function (require, exports, module) {
     "use strict";
 
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        FileUtils       = brackets.getModule("file/FileUtils");
+        FilePathUtils   = brackets.getModule("file/FilePathUtils");
 
     describe("Quick View", function () {
-        var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
+        var testFolder = FilePathUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
 
         // load from testWindow
         var testWindow,

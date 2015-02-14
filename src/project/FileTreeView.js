@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),
         FileUtils         = require("file/FileUtils"),
+        FilePathUtils     = require("file/FilePathUtils"),
         FileTreeViewModel = require("project/FileTreeViewModel"),
         ViewUtils         = require("utils/ViewUtils"),
         KeyEvent          = require("utils/KeyEvent");
@@ -506,7 +507,7 @@ define(function (require, exports, module) {
             } else if (aIsFile && !bIsFile) {
                 return 1;
             } else {
-                return FileUtils.compareFilenames(a, b);
+                return FilePathUtils.compareFilenames(a, b);
             }
         }
         return _dirsFirstCompare;
@@ -525,7 +526,7 @@ define(function (require, exports, module) {
         if (dirsFirst) {
             return contents.keySeq().sort(_buildDirsFirstComparator(contents));
         } else {
-            return contents.keySeq().sort(FileUtils.compareFilenames);
+            return contents.keySeq().sort(FilePathUtils.compareFilenames);
         }
     }
 
