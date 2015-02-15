@@ -31,6 +31,7 @@ var semver   = require("semver"),
     request  = require("request"),
     fs       = require("fs-extra"),
     temp     = require("temp"),
+    npm      = require("npm"),
     validate = require("./package-validator").validate;
 
 // Automatically clean up temp files on exit
@@ -98,17 +99,61 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
         var sourceDir = path.join(validationResult.extractDir, validationResult.commonPrefix);
 
         fs.copy(sourceDir, installDirectory, function (err) {
-            if (err) {
+
+            var fail = function (err) {
                 _removeFailedInstallation(installDirectory);
                 callback(err, null);
-            } else {
+            };
+
+            var finish = function () {
                 // The status may have already been set previously (as in the
                 // DISABLED case.
                 if (!validationResult.installationStatus) {
                     validationResult.installationStatus = Statuses.INSTALLED;
                 }
                 callback(null, validationResult);
+            };
+
+            if (err) {
+                fail(err);
+                return;
             }
+
+            var packageJson,
+                npmDependencies;
+
+            try {
+                packageJson = JSON.parse(fs.readFileSync(path.join(installDirectory, "package.json"), {
+                    encoding: "utf8"
+                }));
+            } catch (e) {
+                packageJson = null;
+            }
+
+            if (packageJson && packageJson.dependencies) {
+                npmDependencies = Object.keys(packageJson.dependencies).map(function (key) {
+                    return key + "@" + packageJson.dependencies[key];
+                });
+            }
+
+            if (npmDependencies && npmDependencies.length > 0) {
+                npm.load(function (err, npm) {
+                    if (err) {
+                        fail(err);
+                        return;
+                    }
+                    npm.commands.install(installDirectory, npmDependencies, function (err, result) {
+                        if (err) {
+                            fail(err);
+                            return;
+                        }
+                        finish();
+                    });
+                });
+            } else {
+                finish();
+            }
+
         });
     });
 }

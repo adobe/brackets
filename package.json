@@ -15,7 +15,8 @@
     "dependencies": {
         "anymatch": "1.3.0",
         "chokidar": "1.6.0",
-        "lodash": "4.15.0"
+        "lodash": "4.15.0",
+        "npm": "2.15.10"
     },
     "devDependencies": {
         "glob": "7.0.6",
