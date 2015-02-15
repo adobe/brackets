@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     "use strict";
    
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        FilePathUtil    = brackets.getModule("file/FilePathUtils"),
+        FilePathUtils    = brackets.getModule("file/FilePathUtils"),
         CommandManager,
         Commands,
         Dialogs,
