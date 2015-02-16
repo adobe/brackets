@@ -6,22 +6,26 @@ define(function (require, exports, module) {
 
     var FileSystemError = require("filesystem/FileSystemError"),
         FileSystemStats = require("filesystem/FileSystemStats"),
-        Dialogs         = require("widgets/Dialogs"),
-        DefaultDialogs  = require("widgets/DefaultDialogs"),
-        // TODO: we have to figure out how we're going to build/deploy makedrive.js, this is hacky.
-        // since it requires a manual `grunt build` step in src/thirdparty/makedrive
-        MakeDrive       = require("thirdparty/makedrive/client/dist/makedrive"),
+        Filer           = require("thirdparty/filer/dist/filer"),
         Dialog          = require("thirdparty/filer-dialogs/filer-dialogs");
 
-    var fs              = MakeDrive.fs(),
-        Path            = MakeDrive.Path,
+    var fs,
+        Path            = Filer.Path,
         watchers        = {};
 
     var _changeCallback;            // Callback to notify FileSystem of watcher changes
 
-    // Give extensions access to MakeDrive's sync functionality. The hosting app
-    // needs to call sync.connect(serverURL) when the user is logged in, for example.
-    appshell.MakeDrive = MakeDrive;
+    Filer.fs = function() {
+        if(fs) {
+            return fs;
+        }
+
+        return new Filer.FileSystem({provider: new Filer.FileSystem.providers.Memory()});
+    };
+
+    fs = Filer.fs();
+
+    appshell.Filer = Filer;
 
     function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
         Dialog.showOpenDialog.apply(null, arguments);
