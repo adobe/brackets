@@ -257,6 +257,10 @@ define(function (require, exports, module) {
         var attemptCount = 0;
         var attemptTimestamp = null;
         
+        if (brackets.inBrowser) {
+            return deferred.reject("Node-side code is not supported when running in-browser").promise();
+        }
+        
         // Called after a successful connection to do final setup steps
         function registerHandlersAndDomains(ws, port) {
             // Called if we succeed at the final setup

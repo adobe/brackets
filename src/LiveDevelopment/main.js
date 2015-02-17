@@ -151,6 +151,10 @@ define(function main(require, exports, module) {
      * Do nothing when in a connecting state (CONNECTING, LOADING_AGENTS).
      */
     function _handleGoLiveCommand() {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
+        
         if (LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE) {
             LiveDevImpl.close();
         } else if (LiveDevImpl.status <= LiveDevImpl.STATUS_INACTIVE) {

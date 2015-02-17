@@ -67,6 +67,9 @@ define(function (require, exports, module) {
     }
     
     function _handleShowExtensionsFolder() {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
         brackets.app.showExtensionsFolder(
             FileUtils.convertToNativePath(decodeURI(window.location.href)),
             function (err) {} /* Ignore errors */

@@ -1201,6 +1201,21 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @return {!Array.<Document>} All Documents with unsaved changes whose files are in the given list. Empty array if no
+     * unsaved changes anywhere
+     */
+    function _getUnsavedDocs(fileList) {
+        var unsavedDocs = [];
+        fileList.forEach(function (file) {
+            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+            if (doc && doc.isDirty) {
+                unsavedDocs.push(doc);
+            }
+        });
+        return unsavedDocs;
+    }
+    
+    /**
      * @param {!Array.<File>} list - the list of files to close
      * @param {boolean} promptOnly - true to just prompt for saving documents with actually closing them.
      * @param {boolean} _forceClose Whether to force all the documents to close even if they have unsaved changes. For unit testing only.
@@ -1208,15 +1223,8 @@ define(function (require, exports, module) {
      */
     function _closeList(list, promptOnly, _forceClose) {
         var result      = new $.Deferred(),
-            unsavedDocs = [];
-
-        list.forEach(function (file) {
-            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-            if (doc && doc.isDirty) {
-                unsavedDocs.push(doc);
-            }
-        });
-
+            unsavedDocs = _getUnsavedDocs(list);
+        
         if (unsavedDocs.length === 0 || _forceClose) {
             // No unsaved changes or we want to ignore them, so we can proceed without a prompt
             result.resolve();
@@ -1396,7 +1404,24 @@ define(function (require, exports, module) {
             }
         );
     }
-
+    
+    /** In-browser equivalent to handleFileCloseWindow(), much more constrained */
+    function handleBeforeUnload() {
+        var unsavedDocs = _getUnsavedDocs(DocumentManager.getWorkingSet());
+        if (unsavedDocs.length) {
+            var message = Strings.UNLOAD_WITH_UNSAVED + "\n";
+            unsavedDocs.forEach(function (doc) {
+                message += "\n    " + _shortTitleForDocument(doc);
+            });
+            return message;
+        }
+        
+        // TODO: Do we want a message even when not unsaved? Easy to hit Ctrl+W via muscle memory right now...
+//        } else {
+//            return Strings.UNLOAD_NO_UNSAVED;
+//        }
+    }
+    
     /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
     function handleFileRename() {
         // Prefer selected sidebar item (which could be a folder)
@@ -1412,6 +1437,10 @@ define(function (require, exports, module) {
 
     /** Closes the window, then quits the app */
     function handleFileQuit(commandData) {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
+        
         return _handleWindowGoingAway(
             commandData,
             function () {
@@ -1479,6 +1508,10 @@ define(function (require, exports, module) {
 
     /** Delete file command handler  **/
     function handleFileDelete() {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
+        
         var entry = ProjectManager.getSelectedItem();
         if (entry.isDirectory) {
             Dialogs.showModalDialog(
@@ -1513,6 +1546,10 @@ define(function (require, exports, module) {
 
     /** Show the selected sidebar (tree or workingset) item in Finder/Explorer */
     function handleShowInOS() {
+        if (brackets.unsupportedInBrowser()) {
+            return;
+        }
+        
         var entry = ProjectManager.getSelectedItem();
         if (entry) {
             brackets.app.showOSFolder(entry.fullPath, function (err) {
@@ -1674,6 +1711,11 @@ define(function (require, exports, module) {
         showInOS    = Strings.CMD_SHOW_IN_EXPLORER;
     } else if (brackets.platform === "mac") {
         showInOS    = Strings.CMD_SHOW_IN_FINDER;
+    }
+    
+    // In-browser, we can't veto closing the way we do in-shell. Best we can do is ugly confirmation dialog via beforeunload
+    if (brackets.inBrowser) {
+        $(window).on("beforeunload", handleBeforeUnload);
     }
 
     // Deprecated commands

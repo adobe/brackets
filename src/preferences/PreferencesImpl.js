@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         STATE_FILENAME    = "state.json",
     
         // User-level preferences
-        userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+//        userPrefFile = brackets.app.getApplicationSupportDirectory() + "/" + SETTINGS_FILENAME;
+        userPrefFile = "/$.brackets.config$/" + SETTINGS_FILENAME;
     
     /**
      * A deferred object which is used to indicate PreferenceManager readiness during the start-up.
@@ -116,7 +117,8 @@ define(function (require, exports, module) {
     // "State" is stored like preferences but it is not generally intended to be user-editable.
     // It's for more internal, implicit things like window size, working set, etc.
     var stateManager = new PreferencesBase.PreferencesSystem();
-    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
+//    var userStateFile = brackets.app.getApplicationSupportDirectory() + "/" + STATE_FILENAME;
+    var userStateFile = "/$.brackets.config$/" + STATE_FILENAME;
     var smUserScope = new PreferencesBase.Scope(new PreferencesBase.FileStorage(userStateFile, true));
     var stateProjectLayer = new PreferencesBase.ProjectLayer();
     smUserScope.addLayer(stateProjectLayer);
@@ -126,6 +128,10 @@ define(function (require, exports, module) {
     // Listen for times where we might be unwatching a root that contains one of the user-level prefs files,
     // and force a re-read of the file in order to ensure we can write to it later (see #7300).
     function _reloadUserPrefs(rootDir) {
+        if (brackets.inBrowser) {
+            return;  // TODO: is this applicable? depends on how backend stores prefs
+        }
+        
         var prefsDir = brackets.app.getApplicationSupportDirectory() + "/";
         if (prefsDir.indexOf(rootDir.fullPath) === 0) {
             manager.fileChanged(userPrefFile);

@@ -166,9 +166,10 @@ define(function (require, exports, module) {
          * Help menu
          */
         menu = Menus.addMenu(Strings.HELP_MENU, Menus.AppMenuBar.HELP_MENU);
-        menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
-
-        menu.addMenuDivider();
+        if (!brackets.inBrowser) {  // updates in browser version don't need user intervention
+            menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
+            menu.addMenuDivider();
+        }
         if (brackets.config.how_to_use_url) {
             menu.addMenuItem(Commands.HELP_HOW_TO_USE_BRACKETS);
         }

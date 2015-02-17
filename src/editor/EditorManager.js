@@ -268,13 +268,13 @@ define(function (require, exports, module) {
                 // terminate timer that was started above
                 PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
                 editor.displayErrorMessageAtCursor(errorMsg);
-                result.reject();
+                result.resolve();  // still want to cancel key default action in-browser
             });
         } else {
             // terminate timer that was started above
             PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
             editor.displayErrorMessageAtCursor(errorMsg);
-            result.reject();
+            result.resolve();  // still want to cancel key default action in-browser
         }
         
         return result.promise();

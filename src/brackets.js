@@ -215,12 +215,11 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Setup Brackets
+     * If in-browser, shows an error dialog and returns true (dialog is still open after returning).
+     * If in brackets-shell, returns false.
+     * @return {boolean}
      */
-    function _onReady() {
-        PerfUtils.addMeasurement("window.document Ready");
-
-        // Let the user know Brackets doesn't run in a web browser yet
+    brackets.unsupportedInBrowser = function () {
         if (brackets.inBrowser) {
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
@@ -228,6 +227,14 @@ define(function (require, exports, module) {
                 Strings.ERROR_IN_BROWSER
             );
         }
+        return brackets.inBrowser;
+    };
+    
+    /**
+     * Setup Brackets
+     */
+    function _onReady() {
+        PerfUtils.addMeasurement("window.document Ready");
 
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
@@ -258,7 +265,14 @@ define(function (require, exports, module) {
 
                 // Finish UI initialization
                 ViewCommandHandlers.restoreFontSize();
-                var initialProjectPath = ProjectManager.getInitialProjectPath();
+                
+                var initialProjectPath;
+                if (brackets.inBrowser && params.get("project")) {
+                    initialProjectPath = params.get("project");
+                } else {
+                    initialProjectPath = ProjectManager.getInitialProjectPath();
+                }
+                
                 ProjectManager.openProject(initialProjectPath).always(function () {
                     _initTest();
                     
@@ -317,7 +331,12 @@ define(function (require, exports, module) {
                     });
                     
                     // See if any startup files were passed to the application
-                    if (brackets.app.getPendingFilesToOpen) {
+                    if (brackets.inBrowser) {
+                        // Note: if "file" specified, "project" must have been specified too
+                        if (params.get("file")) {
+                            CommandManager.execute(Commands.FILE_OPEN, { fullPath: ProjectManager.getProjectRoot().fullPath + "/" + params.get("file") });
+                        }
+                    } else if (brackets.app.getPendingFilesToOpen) {
                         brackets.app.getPendingFilesToOpen(function (err, paths) {
                             DragAndDrop.openDroppedFiles(paths);
                         });
