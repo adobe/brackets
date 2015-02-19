@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     "use strict";
     
     // Brackets modules
-    var FileUtils                   = brackets.getModule("file/FileUtils"),
+    var FilePathUtils               = brackets.getModule("utils/FilePathUtils"),
         ExtensionUtils              = brackets.getModule("utils/ExtensionUtils"),
         DocumentManager             = brackets.getModule("document/DocumentManager"),
         MainViewFactory             = brackets.getModule("view/MainViewFactory"),
@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         this.json = JSON.parse(this.doc.getText());
         this.$view = $(Mustache.render(ConfigViewContent, this.json));
         this.$view.css({
-            "background-image": "url(file://" + FileUtils.getNativeModuleDirectoryPath(_module) + "/htmlContent/logo-sm.png)",
+            "background-image": "url(file://" + FilePathUtils.getNativeModuleDirectoryPath(_module) + "/htmlContent/logo-sm.png)",
             "background-position": "bottom right",
             "background-repeat": "no-repeat"
         });

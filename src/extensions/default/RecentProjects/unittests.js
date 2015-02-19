@@ -28,12 +28,12 @@ define(function (require, exports, module) {
     "use strict";
 
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        FileUtils       = brackets.getModule("file/FileUtils"),
+        FilePathUtils   = brackets.getModule("utils/FilePathUtils"),
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
         _               = brackets.getModule("thirdparty/lodash");
 
     describe("Recent Projects", function () {
-        var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
+        var extensionPath = FilePathUtils.getNativeModuleDirectoryPath(module),
             testWindow,
             $,
             CommandManager,

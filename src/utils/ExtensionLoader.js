@@ -39,13 +39,14 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var _              = require("thirdparty/lodash"),
+    var _               = require("thirdparty/lodash"),
         EventDispatcher = require("utils/EventDispatcher"),
-        FileSystem     = require("filesystem/FileSystem"),
-        FileUtils      = require("file/FileUtils"),
-        Async          = require("utils/Async"),
-        ExtensionUtils = require("utils/ExtensionUtils"),
-        UrlParams      = require("utils/UrlParams").UrlParams;
+        FileSystem      = require("filesystem/FileSystem"),
+        FileUtils       = require("file/FileUtils"),
+        FilePathUtils   = require("utils/FilePathUtils"),
+        Async           = require("utils/Async"),
+        ExtensionUtils  = require("utils/ExtensionUtils"),
+        UrlParams       = require("utils/UrlParams").UrlParams;
 
     // default async initExtension timeout
     var INIT_EXTENSION_TIMEOUT = 10000;
@@ -53,7 +54,7 @@ define(function (require, exports, module) {
     var _init       = false,
         _extensions = {},
         _initExtensionTimeout = INIT_EXTENSION_TIMEOUT,
-        srcPath     = FileUtils.getNativeBracketsDirectoryPath();
+        srcPath     = FilePathUtils.getNativeBracketsDirectoryPath();
     
     /**
      * Stores require.js contexts of extensions
@@ -362,7 +363,7 @@ define(function (require, exports, module) {
      * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
      */
     function testAllExtensionsInNativeDirectory(directory) {
-        var bracketsPath = FileUtils.getNativeBracketsDirectoryPath(),
+        var bracketsPath = FilePathUtils.getNativeBracketsDirectoryPath(),
             config = {
                 baseUrl: directory
             };
@@ -423,7 +424,7 @@ define(function (require, exports, module) {
             // If the item has "/" in it, assume it is a full path. Otherwise, load
             // from our source path + "/extensions/".
             if (item.indexOf("/") === -1) {
-                extensionPath = FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item;
+                extensionPath = FilePathUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item;
             }
             
             return loadAllExtensionsInNativeDirectory(extensionPath);

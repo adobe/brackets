@@ -31,6 +31,7 @@ define(function (require, exports, module) {
         EventDispatcher    = require("utils/EventDispatcher"),
         FileSystem         = require("filesystem/FileSystem"),
         FileUtils          = require("file/FileUtils"),
+        FilePathUtils      = require("utils/FilePathUtils"),
         EditorManager      = require("editor/EditorManager"),
         ExtensionUtils     = require("utils/ExtensionUtils"),
         ThemeSettings      = require("view/ThemeSettings"),
@@ -44,7 +45,7 @@ define(function (require, exports, module) {
         defaultTheme    = "thor-light-theme",
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
         scrollbarsRegex = /((?:[^}|,]*)::-webkit-scrollbar(?:[^{]*)[{](?:[^}]*?)[}])/mgi,
-        stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/";
+        stylesPath      = FilePathUtils.getNativeBracketsDirectoryPath() + "/styles/";
 
 
     /**
@@ -88,7 +89,7 @@ define(function (require, exports, module) {
                 // follow CodeMirror conventions where themes are just a CSS file and the filename
                 // (without the extension) is used to build CSS rules.  Also handle removing .min
                 // in case the ".min" is part of the file name.
-                options.name = FileUtils.getFilenameWithoutExtension(fileName).replace(/\.min$/, "");
+                options.name = FilePathUtils.getFilenameWithoutExtension(fileName).replace(/\.min$/, "");
             }
 
             // We do a bit of string treatment here to make sure we generate theme names that can be

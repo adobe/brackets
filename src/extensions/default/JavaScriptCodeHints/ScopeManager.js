@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
+        FilePathUtils       = brackets.getModule("utils/FilePathUtils"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
@@ -197,7 +198,7 @@ define(function (require, exports, module) {
         }
 
         var testPath = ProjectManager.makeProjectRelativeIfPossible(path);
-        testPath = FileUtils.stripTrailingSlash(testPath);
+        testPath = FilePathUtils.stripTrailingSlash(testPath);
 
         return excludes.test(testPath);
     }

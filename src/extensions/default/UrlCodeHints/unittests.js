@@ -31,14 +31,14 @@ define(function (require, exports, module) {
     // Modules from the SpecRunner window
     var MasterDocumentManager     = brackets.getModule("document/DocumentManager"),
         MasterMainViewManager     = brackets.getModule("view/MainViewManager"),
-        FileUtils                 = brackets.getModule("file/FileUtils"),
+        FilePathUtils             = brackets.getModule("utils/FilePathUtils"),
         SpecRunnerUtils           = brackets.getModule("spec/SpecRunnerUtils"),
         UrlCodeHints              = require("main");
 
 
     describe("Url Code Hinting", function () {
         
-        var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
+        var extensionPath   = FilePathUtils.getNativeModuleDirectoryPath(module),
             testHtmlPath    = extensionPath + "/testfiles/test.html",
             testCssPath     = extensionPath + "/testfiles/subfolder/test.css",
             testScssPath    = extensionPath + "/testfiles/subfolder/test.scss",

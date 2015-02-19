@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     var InMemoryFile        = require("document/InMemoryFile"),
         EventDispatcher     = require("utils/EventDispatcher"),
         FileUtils           = require("file/FileUtils"),
+        FilePathUtils       = require("utils/FilePathUtils"),
         _                   = require("thirdparty/lodash"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
@@ -170,7 +171,7 @@ define(function (require, exports, module) {
     function doCreate(path, isFolder) {
         var d = new $.Deferred();
 
-        var name = FileUtils.getBaseName(path);
+        var name = FilePathUtils.getBaseName(path);
         if (!isValidFilename(name, _invalidChars)) {
             return d.reject(ERROR_INVALID_FILENAME).promise();
         }
@@ -605,7 +606,7 @@ define(function (require, exports, module) {
         // If the view model doesn't have the data it needs, we load it now, otherwise we can just
         // manage the selection and resovle the promise.
         if (open && needsLoading) {
-            var parentDirectory = FileUtils.getDirectoryPath(FileUtils.stripTrailingSlash(path));
+            var parentDirectory = FilePathUtils.getDirectoryPath(FilePathUtils.stripTrailingSlash(path));
             this.setDirectoryOpen(parentDirectory, true).then(function () {
                 self._getDirectoryContents(path).then(onSuccess).fail(function (err) {
                     d.reject(err);
@@ -635,7 +636,7 @@ define(function (require, exports, module) {
             return d.resolve().promise();
         }
 
-        var parentDirectory = FileUtils.getDirectoryPath(path),
+        var parentDirectory = FilePathUtils.getDirectoryPath(path),
             self = this;
         this.setDirectoryOpen(parentDirectory, true).then(function () {
             if (_pathIsFile(path)) {
@@ -825,7 +826,7 @@ define(function (require, exports, module) {
             deferred: d,
             type: FILE_RENAMING,
             path: path,
-            newName: FileUtils.getBaseName(path)
+            newName: FilePathUtils.getBaseName(path)
         };
         return d.promise();
     };
@@ -880,7 +881,7 @@ define(function (require, exports, module) {
 
         if (oldName === newName) {
             result.resolve();
-        } else if (!isValidFilename(FileUtils.getBaseName(newName), _invalidChars)) {
+        } else if (!isValidFilename(FilePathUtils.getBaseName(newName), _invalidChars)) {
             result.reject(ERROR_INVALID_FILENAME);
         } else {
             var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
@@ -921,8 +922,8 @@ define(function (require, exports, module) {
             oldProjectPath  = this.makeProjectRelativeIfPossible(oldPath),
 
             // To get the parent directory, we need to strip off the trailing slash on a directory name
-            parentDirectory = FileUtils.getDirectoryPath(isFolder ? FileUtils.stripTrailingSlash(oldPath) : oldPath),
-            oldName         = FileUtils.getBaseName(oldPath),
+            parentDirectory = FilePathUtils.getDirectoryPath(isFolder ? FilePathUtils.stripTrailingSlash(oldPath) : oldPath),
+            oldName         = FilePathUtils.getBaseName(oldPath),
             newName         = renameInfo.newName,
             newPath         = parentDirectory + newName,
             viewModel       = this._viewModel,
@@ -986,7 +987,7 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype.createAtPath = function (path) {
         var isFolder  = !_pathIsFile(path),
-            name      = FileUtils.getBaseName(path),
+            name      = FilePathUtils.getBaseName(path),
             self      = this;
 
         return doCreate(path, isFolder).done(function (entry) {
@@ -1257,7 +1258,7 @@ define(function (require, exports, module) {
      * Returns the full path to the welcome project, which we open on first launch.
      *
      * @param {string} sampleUrl URL for getting started project
-     * @param {string} initialPath Path to Brackets directory (see {@link FileUtils::#getNativeBracketsDirectoryPath})
+     * @param {string} initialPath Path to Brackets directory (see {@link FilePathUtils::#getNativeBracketsDirectoryPath})
      * @return {!string} fullPath reference
      */
     function _getWelcomeProjectPath(sampleUrl, initialPath) {
@@ -1280,7 +1281,7 @@ define(function (require, exports, module) {
      * @return {Array.<string>} New array of welcome projects with the additional project added
      */
     function _addWelcomeProjectPath(path, currentProjects) {
-        var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
+        var pathNoSlash = FilePathUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
 
         var newProjects;
 
@@ -1314,7 +1315,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        var pathNoSlash = FileUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
+        var pathNoSlash = FilePathUtils.stripTrailingSlash(path);  // "welcomeProjects" pref has standardized on no trailing "/"
         return welcomeProjects.indexOf(pathNoSlash) !== -1;
     }
 

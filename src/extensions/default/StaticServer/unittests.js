@@ -29,10 +29,10 @@ define(function (require, exports, module) {
     "use strict";
     
     var main            = require("main"),
-        FileUtils       = brackets.getModule("file/FileUtils"),
+        FilePathUtils   = brackets.getModule("utils/FilePathUtils"),
         StaticServer    = require("StaticServer");
     
-    var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files";
+    var testFolder = FilePathUtils.getNativeModuleDirectoryPath(module) + "/unittest-files";
     
     var CONNECT_TIMEOUT = 20000;
 

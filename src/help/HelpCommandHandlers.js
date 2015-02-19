@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         Commands                = require("command/Commands"),
         Dialogs                 = require("widgets/Dialogs"),
-        FileUtils               = require("file/FileUtils"),
+        FilePathUtils           = require("utils/FilePathUtils"),
         NativeApp               = require("utils/NativeApp"),
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
@@ -68,7 +68,7 @@ define(function (require, exports, module) {
     
     function _handleShowExtensionsFolder() {
         brackets.app.showExtensionsFolder(
-            FileUtils.convertToNativePath(decodeURI(window.location.href)),
+            FilePathUtils.convertToNativePath(decodeURI(window.location.href)),
             function (err) {} /* Ignore errors */
         );
     }

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, unescape, window */
+/*global define, $, brackets */
 
 /**
  * Set of utilites for working with files and text content.
@@ -34,6 +34,8 @@ define(function (require, exports, module) {
     require("utils/Global");
     
     var FileSystemError     = require("filesystem/FileSystemError"),
+        DeprecationWarning  = require("utils/DeprecationWarning"),
+        FilePathUtils       = require("utils/FilePathUtils"),
         LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
@@ -234,14 +236,12 @@ define(function (require, exports, module) {
      * case, remove the initial "/".
      * @param {!string} path
      * @return {string}
+     * @deprecated
      */
     function convertToNativePath(path) {
-        path = unescape(path);
-        if (path.indexOf(":") !== -1 && path[0] === "/") {
-            return path.substr(1);
-        }
-        
-        return path;
+        DeprecationWarning.deprecationWarning("FileUtils.convertToNativePath() has been deprecated. " +
+                                              "Please use FilePathUtils.convertToNativePath() instead.");
+        return FilePathUtils.convertToNativePath(path);
     }
     
     /**
@@ -252,12 +252,12 @@ define(function (require, exports, module) {
      * APIs generally use the "C:/foo/bar/baz.txt" style for "native" paths.)
      * @param {string} path A native-style path.
      * @return {string} A Unix-style path.
+     * @deprecated
      */
     function convertWindowsPathToUnixPath(path) {
-        if (brackets.platform === "win") {
-            path = path.replace(/\\/g, "/");
-        }
-        return path;
+        DeprecationWarning.deprecationWarning("FileUtils.convertWindowsPathToUnixPath() has been deprecated. " +
+                                              "Please use FilePathUtils.convertWindowsPathToUnixPath() instead.");
+        return FilePathUtils.convertWindowsPathToUnixPath(path);
     }
     
     /**
@@ -267,13 +267,12 @@ define(function (require, exports, module) {
      * 
      * @param {string} path
      * @return {string}
+     * @deprecated
      */
     function stripTrailingSlash(path) {
-        if (path && path[path.length - 1] === "/") {
-            return path.slice(0, -1);
-        } else {
-            return path;
-        }
+        DeprecationWarning.deprecationWarning("FileUtils.stripTrailingSlash() has been deprecated. " +
+                                              "Please use FilePathUtils.stripTrailingSlash() instead.");
+        FilePathUtils.stripTrailingSlash(path);
     }
     
     /**
@@ -281,14 +280,12 @@ define(function (require, exports, module) {
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the base name of a file or the name of a
      * directory
+     * @deprecated
      */
     function getBaseName(fullPath) {
-        var lastSlash = fullPath.lastIndexOf("/");
-        if (lastSlash === fullPath.length - 1) {  // directory: exclude trailing "/" too
-            return fullPath.slice(fullPath.lastIndexOf("/", fullPath.length - 2) + 1, -1);
-        } else {
-            return fullPath.slice(lastSlash + 1);
-        }
+        DeprecationWarning.deprecationWarning("FileUtils.getBaseName() has been deprecated. " +
+                                              "Please use FilePathUtils.getBaseName() instead.");
+        return FilePathUtils.getBaseName(fullPath);
     }
     
     /**
@@ -298,11 +295,12 @@ define(function (require, exports, module) {
      * 
      * WARNING: unlike most paths in Brackets, this path EXCLUDES the trailing "/".
      * @return {string}
+     * @deprecated
      */
     function getNativeBracketsDirectoryPath() {
-        var pathname = decodeURI(window.location.pathname);
-        var directory = pathname.substr(0, pathname.lastIndexOf("/"));
-        return convertToNativePath(directory);
+        DeprecationWarning.deprecationWarning("FileUtils.getNativeBracketsDirectoryPath() has been deprecated. " +
+                                              "Please use FilePathUtils.getNativeBracketsDirectoryPath() instead.");
+        FilePathUtils.getNativeBracketsDirectoryPath();
     }
     
     /**
@@ -312,17 +310,12 @@ define(function (require, exports, module) {
      * 
      * WARNING: unlike most paths in Brackets, this path EXCLUDES the trailing "/".
      * @return {string}
+     * @deprecated
      */
     function getNativeModuleDirectoryPath(module) {
-        var path;
-        
-        if (module && module.uri) {
-            path = decodeURI(module.uri);
-            
-            // Remove module name and trailing slash from path.
-            path = path.substr(0, path.lastIndexOf("/"));
-        }
-        return path;
+        DeprecationWarning.deprecationWarning("FileUtils.getNativeModuleDirectoryPath() has been deprecated. " +
+                                              "Please use FilePathUtils.getNativeModuleDirectoryPath() instead.");
+        return FilePathUtils.getNativeModuleDirectoryPath(module);
     }
     
     /**
@@ -335,14 +328,9 @@ define(function (require, exports, module) {
      * the argument is a directory or a filename with no extension
      */
     function getFileExtension(fullPath) {
-        var baseName = getBaseName(fullPath),
-            idx      = baseName.lastIndexOf(".");
-
-        if (idx === -1) {
-            return "";
-        }
-
-        return baseName.substr(idx + 1);
+        DeprecationWarning.deprecationWarning("FileUtils.getFileExtension() has been deprecated. " +
+                                               "Please use FilePathUtils.getFileExtension() instead.");
+        return FilePathUtils.getFileExtension(fullPath);
     }
     
     /**
@@ -357,7 +345,7 @@ define(function (require, exports, module) {
      * the argument is a directory or a filename with no extension
      */
     function getSmartFileExtension(fullPath) {
-        var baseName = getBaseName(fullPath),
+        var baseName = FilePathUtils.getBaseName(fullPath),
             parts = baseName.split(".");
 
         // get rid of file name
@@ -390,21 +378,13 @@ define(function (require, exports, module) {
      * @param {string} basePath Path against which we're computing the relative path
      * @param {string} filename Full path to the file for which we are computing a relative path
      * @return {string} relative path
+     * @deprecated
      */
     function getRelativeFilename(basePath, filename) {
-        if (!filename || filename.substr(0, basePath.length) !== basePath) {
-            return;
-        }
-        
-        return filename.substr(basePath.length);
+        DeprecationWarning.deprecationWarning("FileUtils.getRelativeFilename() has been deprecated. " +
+                                              "Please use FilePathUtils.getRelativeFilename() instead.");
+        return FilePathUtils.getRelativeFilename(basePath, filename);
     }
-
-    /**
-     * File extensions - hard-coded for now, but may want to make these preferences
-     * @const {Array.<string>}
-     */
-    var _staticHtmlFileExts = ["htm", "html", "xhtml"],
-        _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
 
     /**
      * Determine if file extension is a static html file extension.
@@ -412,11 +392,9 @@ define(function (require, exports, module) {
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isStaticHtmlFileExt(filePath) {
-        if (!filePath) {
-            return false;
-        }
-
-        return (_staticHtmlFileExts.indexOf(getFileExtension(filePath).toLowerCase()) !== -1);
+        DeprecationWarning.deprecationWarning("FileUtils.isStaticHtmlFileExt() has been deprecated. " +
+                                              "Please use LanguageManager.isStaticHtmlFileExt() instead.");
+        return LanguageManager.isStaticHtmlFileExt(filePath);
     }
 
     /**
@@ -425,11 +403,9 @@ define(function (require, exports, module) {
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isServerHtmlFileExt(filePath) {
-        if (!filePath) {
-            return false;
-        }
-
-        return (_serverHtmlFileExts.indexOf(getFileExtension(filePath).toLowerCase()) !== -1);
+        DeprecationWarning.deprecationWarning("FileUtils.isServerHtmlFileExt() has been deprecated. " +
+                                              "Please use LanguageManager.isServerHtmlFileExt() instead.");
+        return LanguageManager.isServerHtmlFileExt(filePath);
     }
     
     /**
@@ -447,9 +423,12 @@ define(function (require, exports, module) {
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the path to the parent directory of a file or the path of a directory,
      *                  including trailing "/"
+     * @deprecated
      */
     function getDirectoryPath(fullPath) {
-        return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
+        DeprecationWarning.deprecationWarning("FileUtils.getDirectoryPath() has been deprecated. " +
+                                              "Please use FilePathUtils.getDirectoryPath() instead.");
+        return FilePathUtils.getDirectoryPath(fullPath);
     }
 
     /**
@@ -458,22 +437,24 @@ define(function (require, exports, module) {
      * FileSystemEntry, it's faster to use entry.parentPath instead).
      * @param {string} fullPath full path to a file or directory
      * @return {string} Path of containing folder (including trailing "/"); or "" if path was the root
+     * @deprecated
      */
     function getParentPath(fullPath) {
-        if (fullPath === "/") {
-            return "";
-        }
-        return fullPath.substring(0, fullPath.lastIndexOf("/", fullPath.length - 2) + 1);
+        DeprecationWarning.deprecationWarning("FileUtils.getParentPath() has been deprecated. " +
+                                              "Please use FilePathUtils.getParentPath() instead.");
+        return FilePathUtils.getParentPath(fullPath);
     }
 
     /**
      * Get the file name without the extension. Returns "" if name starts with "."
      * @param {string} filename File name of a file or directory, without preceding path
      * @return {string} Returns the file name without the extension
+     * @deprecated
      */
     function getFilenameWithoutExtension(filename) {
-        var index = filename.lastIndexOf(".");
-        return index === -1 ? filename : filename.slice(0, index);
+        DeprecationWarning.deprecationWarning("FileUtils.getFilenameWithoutExtension() has been deprecated. " +
+                                              "Please use FilePathUtils.getFilenameWithoutExtension() instead.");
+        return FilePathUtils.getFilenameWithoutExtension(filename);
     }
     
     /**
@@ -483,21 +464,12 @@ define(function (require, exports, module) {
      * @param {string} filename2
      * @param {boolean} extFirst If true it compares the extensions first and then the file names.
      * @return {number} The result of the local compare function
+     * @deprecated
      */
     function compareFilenames(filename1, filename2, extFirst) {
-        var ext1   = getFileExtension(filename1),
-            ext2   = getFileExtension(filename2),
-            lang   = brackets.getLocale(),
-            cmpExt = ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), lang, {numeric: true}),
-            cmpNames;
-        
-        if (brackets.platform === "win") {
-            filename1 = getFilenameWithoutExtension(filename1);
-            filename2 = getFilenameWithoutExtension(filename2);
-        }
-        cmpNames = filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), lang, {numeric: true});
-        
-        return extFirst ? (cmpExt || cmpNames) : (cmpNames || cmpExt);
+        DeprecationWarning.deprecationWarning("FileUtils.compareFilenames() has been deprecated. " +
+                                              "Please use FilePathUtils.compareFilenames() instead.");
+        return FilePathUtils.compareFilenames(filename1, filename2, extFirst);
     }
     
     /**
@@ -508,44 +480,24 @@ define(function (require, exports, module) {
      * @param {string} path2
      * @return {number} -1, 0, or 1 depending on whether path1 is less than, equal to, or greater than
      *     path2 according to this ordering.
+     * @deprecated
      */
     function comparePaths(path1, path2) {
-        var entryName1, entryName2,
-            pathParts1 = path1.split("/"),
-            pathParts2 = path2.split("/"),
-            length     = Math.min(pathParts1.length, pathParts2.length),
-            folders1   = pathParts1.length - 1,
-            folders2   = pathParts2.length - 1,
-            index      = 0;
-
-        while (index < length) {
-            entryName1 = pathParts1[index];
-            entryName2 = pathParts2[index];
-
-            if (entryName1 !== entryName2) {
-                if (index < folders1 && index < folders2) {
-                    return entryName1.toLocaleLowerCase().localeCompare(entryName2.toLocaleLowerCase());
-                } else if (index >= folders1 && index >= folders2) {
-                    return compareFilenames(entryName1, entryName2);
-                }
-                return (index >= folders1 && index < folders2) ? -1 : 1;
-            }
-            index++;
-        }
-        return 0;
+        DeprecationWarning.deprecationWarning("FileUtils.comparePaths() has been deprecated. " +
+                                              "Please use FilePathUtils.comparePaths() instead.");
+        return FilePathUtils.comparePaths(path1, path2);
     }
 
     /**
      * @param {string} path Native path in the format used by FileSystemEntry.fullPath
      * @return {string} URI-encoded version suitable for appending to 'file:///`. It's not safe to use encodeURI()
      *     directly since it doesn't escape chars like "#".
+     * @deprecated
      */
     function encodeFilePath(path) {
-        var pathArray = path.split("/");
-        pathArray = pathArray.map(function (subPath) {
-            return encodeURIComponent(subPath);
-        });
-        return pathArray.join("/");
+        DeprecationWarning.deprecationWarning("FileUtils.encodeFilePath() has been deprecated. " +
+                                              "Please use FilePathUtils.encodeFilePath() instead.");
+        return FilePathUtils.encodeFilePath(path);
     }
 
     // Asynchronously loading Dialogs to avoid the circular dependency
@@ -556,6 +508,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
     exports.LINE_ENDINGS_LF                = LINE_ENDINGS_LF;
+    exports.MAX_FILE_SIZE                  = MAX_FILE_SIZE;
     exports.getPlatformLineEndings         = getPlatformLineEndings;
     exports.sniffLineEndings               = sniffLineEndings;
     exports.translateLineEndings           = translateLineEndings;
@@ -581,6 +534,5 @@ define(function (require, exports, module) {
     exports.getSmartFileExtension          = getSmartFileExtension;
     exports.compareFilenames               = compareFilenames;
     exports.comparePaths                   = comparePaths;
-    exports.MAX_FILE_SIZE                  = MAX_FILE_SIZE;
     exports.encodeFilePath                 = encodeFilePath;
 });

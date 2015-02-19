@@ -36,7 +36,7 @@ define(function (require, exports, module) {
         EditorManager         = require("editor/EditorManager"),
         ProjectManager        = require("project/ProjectManager"),
         FileViewController    = require("project/FileViewController"),
-        FileUtils             = require("file/FileUtils"),
+        FilePathUtils         = require("utils/FilePathUtils"),
         FindUtils             = require("search/FindUtils"),
         WorkspaceManager      = require("view/WorkspaceManager"),
         StringUtils           = require("utils/StringUtils"),
@@ -449,11 +449,11 @@ define(function (require, exports, module) {
                 }
 
                 // Add a row for each file
-                var relativePath    = FileUtils.getDirectoryPath(ProjectManager.makeProjectRelativeIfPossible(fullPath)),
-                    directoryPath   = FileUtils.getDirectoryPath(relativePath),
+                var relativePath    = FilePathUtils.getDirectoryPath(ProjectManager.makeProjectRelativeIfPossible(fullPath)),
+                    directoryPath   = FilePathUtils.getDirectoryPath(relativePath),
                     displayFileName = StringUtils.format(
                         Strings.FIND_IN_FILES_FILE_PATH,
-                        StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)),
+                        StringUtils.breakableUrl(FilePathUtils.getBaseName(fullPath)),
                         StringUtils.breakableUrl(directoryPath),
                         directoryPath ? "&mdash;" : ""
                     );

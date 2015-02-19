@@ -48,6 +48,7 @@ define(function (require, exports, module) {
         Async                   = require("utils/Async"),
         FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
+        FilePathUtils           = require("utils/FilePathUtils"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),
@@ -121,7 +122,7 @@ define(function (require, exports, module) {
             addSuite.call(this, suite);
         };
         
-        var bracketsPath = FileUtils.getNativeBracketsDirectoryPath(),
+        var bracketsPath = FilePathUtils.getNativeBracketsDirectoryPath(),
             paths = ["default"];
         
         // load dev and user extensions only when running the extension test suite
@@ -399,7 +400,7 @@ define(function (require, exports, module) {
             _nodeConnection = new NodeConnection();
 
         _nodeConnection.connect(true).then(function () {
-            var domainPath = FileUtils.getNativeBracketsDirectoryPath() + "/" + FileUtils.getNativeModuleDirectoryPath(module) + "/../test/node/TestingDomain";
+            var domainPath = FilePathUtils.getNativeBracketsDirectoryPath() + "/" + FilePathUtils.getNativeModuleDirectoryPath(module) + "/../test/node/TestingDomain";
             
             _nodeConnection.loadDomains(domainPath, true)
                 .then(init, function () {

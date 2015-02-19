@@ -28,11 +28,11 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils  = require("file/FileUtils"),
-        NodeDomain = require("utils/NodeDomain");
+    var FilePathUtils  = require("utils/FilePathUtils"),
+        NodeDomain     = require("utils/NodeDomain");
     
-    var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
-        _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
+    var _bracketsPath   = FilePathUtils.getNativeBracketsDirectoryPath(),
+        _modulePath     = FilePathUtils.getNativeModuleDirectoryPath(module),
         _nodePath       = "node/LauncherDomain",
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
         _nodeDomain     = new NodeDomain("launcher", _domainPath);

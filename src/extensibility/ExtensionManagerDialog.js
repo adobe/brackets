@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         DefaultDialogs              = require("widgets/DefaultDialogs"),
         FileSystem                  = require("filesystem/FileSystem"),
         FileUtils                   = require("file/FileUtils"),
+        FilePathUtils               = require("utils/FilePathUtils"),
         Package                     = require("extensibility/Package"),
         Strings                     = require("strings"),
         StringUtils                 = require("utils/StringUtils"),
@@ -192,7 +193,7 @@ define(function (require, exports, module) {
                 var result = new $.Deferred();
                 
                 FileSystem.resolve(path, function (err, file) {
-                    var extension = FileUtils.getFileExtension(path),
+                    var extension = FilePathUtils.getFileExtension(path),
                         isZip = file.isFile && (extension === "zip"),
                         errStr;
                     
@@ -462,7 +463,7 @@ define(function (require, exports, module) {
                 isValidDrop = _.every(items, function (item) {
                     if (item.kind === "file") {
                         var entry = item.webkitGetAsEntry(),
-                            extension = FileUtils.getFileExtension(entry.fullPath);
+                            extension = FilePathUtils.getFileExtension(entry.fullPath);
 
                         return entry.isFile && extension === "zip";
                     }

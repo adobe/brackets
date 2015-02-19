@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         FileSystem              = brackets.getModule("filesystem/FileSystem"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         KeyEvent                = brackets.getModule("utils/KeyEvent"),
-        FileUtils               = brackets.getModule("file/FileUtils"),
+        FilePathUtils           = brackets.getModule("utils/FilePathUtils"),
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         Strings                 = brackets.getModule("strings"),
         ProjectsMenuTemplate    = require("text!htmlContent/projects-menu.html");
@@ -69,7 +69,7 @@ define(function (require, exports, module) {
 
         for (i = 0; i < recentProjects.length; i++) {
             // We have to canonicalize & then de-canonicalize the path here, since our pref format uses no trailing "/"
-            recentProjects[i] = FileUtils.stripTrailingSlash(ProjectManager.updateWelcomeProjectPath(recentProjects[i] + "/"));
+            recentProjects[i] = FilePathUtils.stripTrailingSlash(ProjectManager.updateWelcomeProjectPath(recentProjects[i] + "/"));
         }
         return recentProjects;
     }
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
      * Add a project to the stored list of recent projects, up to MAX_PROJECTS.
      */
     function add() {
-        var root = FileUtils.stripTrailingSlash(ProjectManager.getProjectRoot().fullPath),
+        var root = FilePathUtils.stripTrailingSlash(ProjectManager.getProjectRoot().fullPath),
             recentProjects = getRecentProjects(),
             index = recentProjects.indexOf(root);
 
@@ -355,7 +355,7 @@ define(function (require, exports, module) {
      */
     function renderList() {
         var recentProjects = getRecentProjects(),
-            currentProject = FileUtils.stripTrailingSlash(ProjectManager.getProjectRoot().fullPath),
+            currentProject = FilePathUtils.stripTrailingSlash(ProjectManager.getProjectRoot().fullPath),
             templateVars   = {
                 projectList : [],
                 Strings     : Strings

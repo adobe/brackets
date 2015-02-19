@@ -44,7 +44,7 @@ define(function (require, exports, module) {
     var TextRange           = require("document/TextRange").TextRange,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         EditorManager       = require("editor/EditorManager"),
-        FileUtils           = require("file/FileUtils"),
+        FilePathUtils       = require("utils/FilePathUtils"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         ProjectManager      = require("project/ProjectManager"),
         Commands            = require("command/Commands"),
@@ -104,7 +104,7 @@ define(function (require, exports, module) {
      *      range. Called when we detect that the content of a range has changed. The label is plain
      *      text, not HTML.
      * @param {?function(!File, !File):number} fileComparator Optional comparison function for sorting
-     *      the results list (based on range.document.file). Defaults to FileUtils.comparePaths().
+     *      the results list (based on range.document.file). Defaults to FilePathUtils.comparePaths().
      * @extends {InlineTextEditor}
      */
     function MultiRangeInlineEditor(ranges, messageCB, labelCB, fileComparator) {
@@ -123,7 +123,7 @@ define(function (require, exports, module) {
         
         // Set up list sort order
         this._fileComparator = fileComparator || function defaultComparator(file1, file2) {
-            return FileUtils.comparePaths(file1.fullPath, file2.fullPath);
+            return FilePathUtils.comparePaths(file1.fullPath, file2.fullPath);
         };
         this._ranges.sort(function (result1, result2) {
             return this._fileComparator(result1.textRange.document.file, result2.textRange.document.file);

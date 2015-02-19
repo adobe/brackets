@@ -26,7 +26,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils   = require("file/FileUtils"),
+    var FilePathUtils   = require("utils/FilePathUtils"),
         EventDispatcher = require("utils/EventDispatcher"),
         FindUtils   = require("search/FindUtils");
 
@@ -214,7 +214,7 @@ define(function (require, exports, module) {
             } else if (firstFile === key2) {
                 return 1;
             }
-            return FileUtils.comparePaths(key1, key2);
+            return FilePathUtils.comparePaths(key1, key2);
         });
     };
 

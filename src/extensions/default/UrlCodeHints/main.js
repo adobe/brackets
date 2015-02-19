@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         CSSUtils        = brackets.getModule("language/CSSUtils"),
         FileSystem      = brackets.getModule("filesystem/FileSystem"),
-        FileUtils       = brackets.getModule("file/FileUtils"),
+        FilePathUtils   = brackets.getModule("utils/FilePathUtils"),
         HTMLUtils       = brackets.getModule("language/HTMLUtils"),
         ProjectManager  = brackets.getModule("project/ProjectManager"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
             return result;
         }
 
-        docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
+        docDir = FilePathUtils.getDirectoryPath(doc.file.fullPath);
         
         // get relative path from query string
         queryUrl = window.PathUtils.parseUrl(query.queryStr);

@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         FileSystem          = require("filesystem/FileSystem"),
-        FileUtils           = require("file/FileUtils"),
+        FilePathUtils       = require("utils/FilePathUtils"),
         _                   = require("thirdparty/lodash");
     
     
@@ -51,7 +51,7 @@ define(function (require, exports, module) {
      */
     function ImageView(file, $container) {
         this.file = file;
-        this.$el = $(Mustache.render(ImageViewTemplate, {fullPath: FileUtils.encodeFilePath(file.fullPath),
+        this.$el = $(Mustache.render(ImageViewTemplate, {fullPath: FilePathUtils.encodeFilePath(file.fullPath),
                                                          now: new Date().valueOf()}));
         
         $container.append(this.$el);
@@ -114,7 +114,7 @@ define(function (require, exports, module) {
         this._naturalWidth = e.currentTarget.naturalWidth;
         this._naturalHeight = e.currentTarget.naturalHeight;
         
-        var extension = FileUtils.getFileExtension(this.file.fullPath);
+        var extension = FilePathUtils.getFileExtension(this.file.fullPath);
         var dimensionString = this._naturalWidth + " &times; " + this._naturalHeight + " " + Strings.UNIT_PIXELS;
         
         if (extension === "ico") {

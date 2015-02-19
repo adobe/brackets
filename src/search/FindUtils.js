@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         MainViewManager = require("view/MainViewManager"),
         FileSystem      = require("filesystem/FileSystem"),
         FileUtils       = require("file/FileUtils"),
+        FilePathUtils   = require("utils/FilePathUtils"),
         FindBar         = require("search/FindBar").FindBar,
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
@@ -267,7 +268,7 @@ define(function (require, exports, module) {
                     // SearchResultsView._getSortedFiles() because it doesn't sort the currently open file to
                     // the top. But if the currently open file were in the search results, we wouldn't be
                     // doing this anyway.
-                    var sortedPaths = Object.keys(results).sort(FileUtils.comparePaths),
+                    var sortedPaths = Object.keys(results).sort(FilePathUtils.comparePaths),
                         firstPath = _.find(sortedPaths, function (path) {
                             return hasCheckedMatches(results[path]);
                         });

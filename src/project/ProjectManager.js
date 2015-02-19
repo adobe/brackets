@@ -68,6 +68,7 @@ define(function (require, exports, module) {
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
         FileUtils           = require("file/FileUtils"),
+        FilePathUtils       = require("utils/FilePathUtils"),
         FileSystemError     = require("filesystem/FileSystemError"),
         Urls                = require("i18n!nls/urls"),
         FileSyncManager     = require("project/FileSyncManager"),
@@ -635,11 +636,11 @@ define(function (require, exports, module) {
      * Returns the full path to the welcome project, which we open on first launch.
      *
      * @param {string} sampleUrl URL for getting started project
-     * @param {string} initialPath Path to Brackets directory (see FileUtils.getNativeBracketsDirectoryPath())
+     * @param {string} initialPath Path to Brackets directory (see FilePathUtils.getNativeBracketsDirectoryPath())
      * @return {!string} fullPath reference
      */
     function _getWelcomeProjectPath() {
-        return ProjectModel._getWelcomeProjectPath(Urls.GETTING_STARTED, FileUtils.getNativeBracketsDirectoryPath());
+        return ProjectModel._getWelcomeProjectPath(Urls.GETTING_STARTED, FilePathUtils.getNativeBracketsDirectoryPath());
     }
 
     /**
@@ -717,7 +718,7 @@ define(function (require, exports, module) {
             })
             .fail(function () {
                 // Last resort is Brackets source folder which is guaranteed to exist
-                deferred.resolve(FileUtils.getNativeBracketsDirectoryPath());
+                deferred.resolve(FilePathUtils.getNativeBracketsDirectoryPath());
             });
         
         return deferred.promise();

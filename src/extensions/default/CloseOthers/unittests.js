@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     "use strict";
    
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        FileUtils		= brackets.getModule("file/FileUtils"),
+        FilePathUtils    = brackets.getModule("utils/FilePathUtils"),
         CommandManager,
         Commands,
         Dialogs,
@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         FileSystem;
 
     describe("CloseOthers", function () {
-        var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
+        var extensionPath = FilePathUtils.getNativeModuleDirectoryPath(module),
             testPath      = extensionPath + "/unittest-files/",
             testWindow,
             $,
