@@ -345,7 +345,7 @@ define(function (require, exports, module) {
      * the argument is a directory or a filename with no extension
      */
     function getSmartFileExtension(fullPath) {
-        var baseName = getBaseName(fullPath),
+        var baseName = FilePathUtils.getBaseName(fullPath),
             parts = baseName.split(".");
 
         // get rid of file name
@@ -387,23 +387,14 @@ define(function (require, exports, module) {
     }
 
     /**
-     * File extensions - hard-coded for now, but may want to make these preferences
-     * @const {Array.<string>}
-     */
-    var _staticHtmlFileExts = ["htm", "html", "xhtml"],
-        _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
-
-    /**
      * Determine if file extension is a static html file extension.
      * @param {string} filePath could be a path, a file name or just a file extension
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isStaticHtmlFileExt(filePath) {
-        if (!filePath) {
-            return false;
-        }
-
-        return (_staticHtmlFileExts.indexOf(getFileExtension(filePath).toLowerCase()) !== -1);
+        DeprecationWarning.deprecationWarning("FileUtils.isStaticHtmlFileExt() has been deprecated. " +
+                                              "Please use LanguageManager.isStaticHtmlFileExt() instead.");
+        return LanguageManager.isStaticHtmlFileExt(filePath);
     }
 
     /**
@@ -412,11 +403,9 @@ define(function (require, exports, module) {
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isServerHtmlFileExt(filePath) {
-        if (!filePath) {
-            return false;
-        }
-
-        return (_serverHtmlFileExts.indexOf(getFileExtension(filePath).toLowerCase()) !== -1);
+        DeprecationWarning.deprecationWarning("FileUtils.isServerHtmlFileExt() has been deprecated. " +
+                                              "Please use LanguageManager.isServerHtmlFileExt() instead.");
+        return LanguageManager.isServerHtmlFileExt(filePath);
     }
     
     /**

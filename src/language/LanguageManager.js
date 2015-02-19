@@ -398,6 +398,39 @@ define(function (require, exports, module) {
     function _resetPathLanguageOverrides() {
         _filePathToLanguageMap = {};
     }
+    
+    /**
+     * File extensions - hard-coded for now, but will want to make these preferences
+     * @const {Array.<string>}
+     */
+    var _staticHtmlFileExts = ["htm", "html", "xhtml"],
+        _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
+
+    /**
+     * Determine if file extension is a static html file extension.
+     * @param {string} filePath could be a path, a file name or just a file extension
+     * @return {boolean} Returns true if fileExt is in the list
+     */
+    function isStaticHtmlFileExt(filePath) {
+        if (!filePath) {
+            return false;
+        }
+
+        return (_staticHtmlFileExts.indexOf(FilePathUtils.getFileExtension(filePath).toLowerCase()) !== -1);
+    }
+
+    /**
+     * Determine if file extension is a server html file extension.
+     * @param {string} filePath could be a path, a file name or just a file extension
+     * @return {boolean} Returns true if fileExt is in the list
+     */
+    function isServerHtmlFileExt(filePath) {
+        if (!filePath) {
+            return false;
+        }
+
+        return (_serverHtmlFileExts.indexOf(FilePathUtils.getFileExtension(filePath).toLowerCase()) !== -1);
+    }
 
 
     
@@ -1129,10 +1162,13 @@ define(function (require, exports, module) {
     
     // Public methods
     exports.ready                       = _ready;
-    exports.defineLanguage              = defineLanguage;
-    exports.getLanguage                 = getLanguage;
-    exports.getLanguageForExtension     = getLanguageForExtension;
-    exports.getLanguageForPath          = getLanguageForPath;
     exports.getLanguages                = getLanguages;
+    exports.getLanguage                 = getLanguage;
+    exports.defineLanguage              = defineLanguage;
+    exports.getLanguageForPath          = getLanguageForPath;
+    exports.isStaticHtmlFileExt         = isStaticHtmlFileExt;
+    exports.isServerHtmlFileExt         = isServerHtmlFileExt;
+    exports.getLanguageForExtension     = getLanguageForExtension;
     exports.setLanguageOverrideForPath  = setLanguageOverrideForPath;
+    
 });
