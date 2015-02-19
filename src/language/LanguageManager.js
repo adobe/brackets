@@ -136,7 +136,7 @@ define(function (require, exports, module) {
         Async                 = require("utils/Async"),
         CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
         EventDispatcher       = require("utils/EventDispatcher"),
-        FilePathUtils         = require("file/FilePathUtils"),
+        FilePathUtils         = require("utils/FilePathUtils"),
         _defaultLanguagesJSON = require("text!language/languages.json"),
         
         // PreferencesManager is loaded near the end of the file

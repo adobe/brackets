@@ -48,7 +48,7 @@ define(function (require, exports, module) {
         Async                   = require("utils/Async"),
         FileSystem              = require("filesystem/FileSystem"),
         FileUtils               = require("file/FileUtils"),
-        FilePathUtils           = require("file/FilePathUtils"),
+        FilePathUtils           = require("utils/FilePathUtils"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         UnitTestReporter        = require("test/UnitTestReporter").UnitTestReporter,
         NodeConnection          = require("utils/NodeConnection"),

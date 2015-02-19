@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         PerfUtils,              // loaded from brackets.test
         JSUtils,                // loaded from brackets.test
         
-        FilePathUtils       = brackets.getModule("file/FilePathUtils"),
+        FilePathUtils       = brackets.getModule("utils/FilePathUtils"),
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
         Strings             = brackets.getModule("strings"),
         UnitTestReporter    = brackets.getModule("test/UnitTestReporter");

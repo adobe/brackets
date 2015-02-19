@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         EditorManager        = brackets.getModule("editor/EditorManager"),
         FileSystem           = brackets.getModule("filesystem/FileSystem"),
         FileUtils            = brackets.getModule("file/FileUtils"),
-        FilePathUtils        = brackets.getModule("file/FilePathUtils"),
+        FilePathUtils        = brackets.getModule("utils/FilePathUtils"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
         JSCodeHints          = require("main"),

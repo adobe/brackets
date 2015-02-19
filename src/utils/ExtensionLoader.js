@@ -43,7 +43,7 @@ define(function (require, exports, module) {
         EventDispatcher = require("utils/EventDispatcher"),
         FileSystem      = require("filesystem/FileSystem"),
         FileUtils       = require("file/FileUtils"),
-        FilePathUtils   = require("file/FilePathUtils"),
+        FilePathUtils   = require("utils/FilePathUtils"),
         Async           = require("utils/Async"),
         ExtensionUtils  = require("utils/ExtensionUtils"),
         UrlParams       = require("utils/UrlParams").UrlParams;

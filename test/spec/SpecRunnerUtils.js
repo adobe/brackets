@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     
     var Commands            = require("command/Commands"),
         FileUtils           = require("file/FileUtils"),
-        FilePathUtils       = require("file/FilePathUtils"),
+        FilePathUtils       = require("utils/FilePathUtils"),
         Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,

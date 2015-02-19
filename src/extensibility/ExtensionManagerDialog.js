@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         DefaultDialogs              = require("widgets/DefaultDialogs"),
         FileSystem                  = require("filesystem/FileSystem"),
         FileUtils                   = require("file/FileUtils"),
-        FilePathUtils               = require("file/FilePathUtils"),
+        FilePathUtils               = require("utils/FilePathUtils"),
         Package                     = require("extensibility/Package"),
         Strings                     = require("strings"),
         StringUtils                 = require("utils/StringUtils"),

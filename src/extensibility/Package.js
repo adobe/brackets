@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     
     var AppInit              = require("utils/AppInit"),
         FileSystem           = require("filesystem/FileSystem"),
-        FilePathUtils        = require("file/FilePathUtils"),
+        FilePathUtils        = require("utils/FilePathUtils"),
         StringUtils          = require("utils/StringUtils"),
         Strings              = require("strings"),
         ExtensionLoader      = require("utils/ExtensionLoader"),

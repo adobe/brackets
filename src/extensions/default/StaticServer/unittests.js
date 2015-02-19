@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var main            = require("main"),
-        FilePathUtils   = brackets.getModule("file/FilePathUtils"),
+        FilePathUtils   = brackets.getModule("utils/FilePathUtils"),
         StaticServer    = require("StaticServer");
     
     var testFolder = FilePathUtils.getNativeModuleDirectoryPath(module) + "/unittest-files";

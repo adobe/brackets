@@ -79,7 +79,7 @@ define(function (require, exports, module) {
         EditorManager        = require("editor/EditorManager"),
         EventDispatcher      = require("utils/EventDispatcher"),
         FileUtils            = require("file/FileUtils"),
-        FilePathUtils        = require("file/FilePathUtils"),
+        FilePathUtils        = require("utils/FilePathUtils"),
         MainViewManager      = require("view/MainViewManager"),
         PreferencesDialogs   = require("preferences/PreferencesDialogs"),
         ProjectManager       = require("project/ProjectManager"),

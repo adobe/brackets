@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         MainViewManager         = require("view/MainViewManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
-        FilePathUtils           = require("file/FilePathUtils"),
+        FilePathUtils           = require("utils/FilePathUtils"),
         AppInit                 = require("utils/AppInit"),
         Strings                 = require("strings"),
         _                       = require("thirdparty/lodash");

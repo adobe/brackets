@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     "use strict";
     
     // Brackets modules
-    var FilePathUtils               = brackets.getModule("file/FilePathUtils"),
+    var FilePathUtils               = brackets.getModule("utils/FilePathUtils"),
         ExtensionUtils              = brackets.getModule("utils/ExtensionUtils"),
         DocumentManager             = brackets.getModule("document/DocumentManager"),
         MainViewFactory             = brackets.getModule("view/MainViewFactory"),

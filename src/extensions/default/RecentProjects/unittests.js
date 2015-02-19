@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        FilePathUtils   = brackets.getModule("file/FilePathUtils"),
+        FilePathUtils   = brackets.getModule("utils/FilePathUtils"),
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
         _               = brackets.getModule("thirdparty/lodash");
 

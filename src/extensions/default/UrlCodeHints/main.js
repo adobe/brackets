@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         CSSUtils        = brackets.getModule("language/CSSUtils"),
         FileSystem      = brackets.getModule("filesystem/FileSystem"),
-        FilePathUtils   = brackets.getModule("file/FilePathUtils"),
+        FilePathUtils   = brackets.getModule("utils/FilePathUtils"),
         HTMLUtils       = brackets.getModule("language/HTMLUtils"),
         ProjectManager  = brackets.getModule("project/ProjectManager"),
         StringUtils     = brackets.getModule("utils/StringUtils"),

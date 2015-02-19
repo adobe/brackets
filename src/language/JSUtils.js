@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
         FileSystem              = require("filesystem/FileSystem"),
-        FilePathUtils           = require("file/FilePathUtils"),
+        FilePathUtils           = require("utils/FilePathUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         StringUtils             = require("utils/StringUtils");
 

@@ -31,7 +31,7 @@ define(function (require, exports, module) {
         EventDispatcher    = require("utils/EventDispatcher"),
         FileSystem         = require("filesystem/FileSystem"),
         FileUtils          = require("file/FileUtils"),
-        FilePathUtils      = require("file/FilePathUtils"),
+        FilePathUtils      = require("utils/FilePathUtils"),
         EditorManager      = require("editor/EditorManager"),
         ExtensionUtils     = require("utils/ExtensionUtils"),
         ThemeSettings      = require("view/ThemeSettings"),

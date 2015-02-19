@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         FileSystem          = require("filesystem/FileSystem"),
-        FilePathUtils       = require("file/FilePathUtils"),
+        FilePathUtils       = require("utils/FilePathUtils"),
         _                   = require("thirdparty/lodash");
     
     

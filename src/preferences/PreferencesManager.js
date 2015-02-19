@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
         FileUtils               = require("file/FileUtils"),
-        FilePathUtils           = require("file/FilePathUtils"),
+        FilePathUtils           = require("utils/FilePathUtils"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         PreferencesBase         = require("preferences/PreferencesBase"),
         FileSystem              = require("filesystem/FileSystem"),

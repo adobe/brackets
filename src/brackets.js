@@ -101,7 +101,7 @@ define(function (require, exports, module) {
     require("project/WorkingSetSort");
     require("search/QuickOpen");
     require("file/FileUtils");
-    require("file/FilePathUtils");
+    require("utils/FilePathUtils");
     require("project/SidebarView");
     require("utils/Resizer");
     require("LiveDevelopment/main");
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
             FileSystem              : FileSystem,
             FileViewController      : FileViewController,
             FileUtils               : require("file/FileUtils"),
-            FilePathUtils           : require("file/FilePathUtils"),
+            FilePathUtils           : require("utils/FilePathUtils"),
             FindInFiles             : require("search/FindInFiles"),
             FindInFilesUI           : require("search/FindInFilesUI"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),

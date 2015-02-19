@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         FileSystem              = brackets.getModule("filesystem/FileSystem"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         KeyEvent                = brackets.getModule("utils/KeyEvent"),
-        FilePathUtils           = brackets.getModule("file/FilePathUtils"),
+        FilePathUtils           = brackets.getModule("utils/FilePathUtils"),
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         Strings                 = brackets.getModule("strings"),
         ProjectsMenuTemplate    = require("text!htmlContent/projects-menu.html");

@@ -33,7 +33,7 @@ define(function (require, exports, module) {
     var InMemoryFile        = require("document/InMemoryFile"),
         EventDispatcher     = require("utils/EventDispatcher"),
         FileUtils           = require("file/FileUtils"),
-        FilePathUtils       = require("file/FilePathUtils"),
+        FilePathUtils       = require("utils/FilePathUtils"),
         _                   = require("thirdparty/lodash"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),

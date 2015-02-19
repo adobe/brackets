@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         Editor                  = require("editor/Editor").Editor,
         LanguageManager         = require("language/LanguageManager"),
         ProjectManager          = require("project/ProjectManager"),
-        FilePathUtils           = require("file/FilePathUtils"),
+        FilePathUtils           = require("utils/FilePathUtils"),
         HTMLUtils               = require("language/HTMLUtils"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
         Strings                 = require("strings"),

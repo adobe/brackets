@@ -68,7 +68,7 @@ define(function (require, exports, module) {
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
         FileUtils           = require("file/FileUtils"),
-        FilePathUtils       = require("file/FilePathUtils"),
+        FilePathUtils       = require("utils/FilePathUtils"),
         FileSystemError     = require("filesystem/FileSystemError"),
         Urls                = require("i18n!nls/urls"),
         FileSyncManager     = require("project/FileSyncManager"),

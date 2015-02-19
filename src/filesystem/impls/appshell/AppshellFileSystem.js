@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var FileUtils           = require("file/FileUtils"),
-        FilePathUtils       = require("file/FilePathUtils"),
+        FilePathUtils       = require("utils/FilePathUtils"),
         FileSystemStats     = require("filesystem/FileSystemStats"),
         FileSystemError     = require("filesystem/FileSystemError"),
         NodeDomain          = require("utils/NodeDomain");

@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         CommandManager         = brackets.getModule("command/CommandManager"),
         Menus                  = brackets.getModule("command/Menus"),
         FileSystem             = brackets.getModule("filesystem/FileSystem"),
-        FilePathUtils          = brackets.getModule("file/FilePathUtils"),
+        FilePathUtils          = brackets.getModule("utils/FilePathUtils"),
         PerfUtils              = brackets.getModule("utils/PerfUtils"),
         StringUtils            = brackets.getModule("utils/StringUtils"),
         Dialogs                = brackets.getModule("widgets/Dialogs"),

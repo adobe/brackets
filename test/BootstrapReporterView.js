@@ -321,7 +321,7 @@ define(function (require, exports, module) {
             Commands       = window.opener.brackets.getModule("command/Commands"),
             EditorManager  = window.opener.brackets.getModule("editor/EditorManager"),
             ProjectManager = window.opener.brackets.getModule("project/ProjectManager"),
-            FilePathUtils  = window.opener.brackets.getModule("file/FilePathUtils");
+            FilePathUtils  = window.opener.brackets.getModule("utils/FilePathUtils");
 
         var uri = $(event.target).text(),
             lineData = $(event.target).attr("data-line"),

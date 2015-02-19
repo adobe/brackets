@@ -36,7 +36,7 @@ define(function (require, exports, module) {
         EditorManager         = require("editor/EditorManager"),
         ProjectManager        = require("project/ProjectManager"),
         FileViewController    = require("project/FileViewController"),
-        FilePathUtils         = require("file/FilePathUtils"),
+        FilePathUtils         = require("utils/FilePathUtils"),
         FindUtils             = require("search/FindUtils"),
         WorkspaceManager      = require("view/WorkspaceManager"),
         StringUtils           = require("utils/StringUtils"),

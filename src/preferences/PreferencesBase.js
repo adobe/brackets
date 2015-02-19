@@ -59,7 +59,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var FileUtils       = require("file/FileUtils"),
-        FilePathUtils   = require("file/FilePathUtils"),
+        FilePathUtils   = require("utils/FilePathUtils"),
         FileSystem      = require("filesystem/FileSystem"),
         EventDispatcher = require("utils/EventDispatcher"),
         _               = require("thirdparty/lodash"),

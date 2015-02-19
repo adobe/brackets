@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FilePathUtils  = require("file/FilePathUtils"),
+    var FilePathUtils  = require("utils/FilePathUtils"),
         NodeDomain     = require("utils/NodeDomain");
     
     var _bracketsPath   = FilePathUtils.getNativeBracketsDirectoryPath(),

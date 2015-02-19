@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         MainViewManager = require("view/MainViewManager"),
         FileSystem      = require("filesystem/FileSystem"),
         FileUtils       = require("file/FileUtils"),
-        FilePathUtils   = require("file/FilePathUtils"),
+        FilePathUtils   = require("utils/FilePathUtils"),
         FindBar         = require("search/FindBar").FindBar,
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),

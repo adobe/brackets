@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     
     var FileSystem    = require("filesystem/FileSystem"),
         FileUtils     = require("file/FileUtils"),
-        FilePathUtils = require("file/FilePathUtils");
+        FilePathUtils = require("utils/FilePathUtils");
     
     // make sure the global brackets variable is loaded
     require("utils/Global");

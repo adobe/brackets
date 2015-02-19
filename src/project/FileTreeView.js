@@ -36,7 +36,7 @@ define(function (require, exports, module) {
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),
         FileUtils         = require("file/FileUtils"),
-        FilePathUtils     = require("file/FilePathUtils"),
+        FilePathUtils     = require("utils/FilePathUtils"),
         FileTreeViewModel = require("project/FileTreeViewModel"),
         ViewUtils         = require("utils/ViewUtils"),
         KeyEvent          = require("utils/KeyEvent");

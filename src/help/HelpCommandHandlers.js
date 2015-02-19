@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         Commands                = require("command/Commands"),
         Dialogs                 = require("widgets/Dialogs"),
-        FilePathUtils           = require("file/FilePathUtils"),
+        FilePathUtils           = require("utils/FilePathUtils"),
         NativeApp               = require("utils/NativeApp"),
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),

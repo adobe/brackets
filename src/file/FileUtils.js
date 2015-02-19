@@ -35,7 +35,7 @@ define(function (require, exports, module) {
     
     var FileSystemError     = require("filesystem/FileSystemError"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
-        FilePathUtils       = require("file/FilePathUtils"),
+        FilePathUtils       = require("utils/FilePathUtils"),
         LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),

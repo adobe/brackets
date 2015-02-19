@@ -32,7 +32,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FilePathUtils   = require("file/FilePathUtils"),
+    var FilePathUtils   = require("utils/FilePathUtils"),
         EventDispatcher = require("utils/EventDispatcher"),
         NodeDomain      = require("utils/NodeDomain");
     

@@ -86,7 +86,7 @@ define(function LiveDevelopment(require, exports, module) {
         FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
         FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
-        FilePathUtils        = require("file/FilePathUtils"),
+        FilePathUtils        = require("utils/FilePathUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         MainViewManager      = require("view/MainViewManager"),
         NativeApp            = require("utils/NativeApp"),

@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     "use strict";
    
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        FilePathUtils   = brackets.getModule("file/FilePathUtils");
+        FilePathUtils   = brackets.getModule("utils/FilePathUtils");
 
     describe("JSLint", function () {
         var testFolder = FilePathUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/",

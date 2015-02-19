@@ -37,7 +37,7 @@ define(function (require, exports, module) {
     var Immutable           = require("thirdparty/immutable"),
         _                   = require("thirdparty/lodash"),
         EventDispatcher     = require("utils/EventDispatcher"),
-        FilePathUtils       = require("file/FilePathUtils");
+        FilePathUtils       = require("utils/FilePathUtils");
 
     // Constants
     var EVENT_CHANGE = "change";
