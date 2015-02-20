@@ -462,7 +462,7 @@ define({
     "FONT_SIZE"                            : "Schriftgröße",
     "FONT_FAMILY"                          : "Schriftart",
     "THEMES_SETTINGS"                      : "Design-Einstellungen",
-
+    "USE_CUSTOM_CSS"                       : "Eigene CSS Datei laden",
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Neue Regel",
 

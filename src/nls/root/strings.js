@@ -460,7 +460,7 @@ define({
     "FONT_SIZE"                            : "Font Size",
     "FONT_FAMILY"                          : "Font Family",
     "THEMES_SETTINGS"                      : "Themes Settings",
-
+    "USE_CUSTOM_CSS"                       : "Use own CSS",
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
 
