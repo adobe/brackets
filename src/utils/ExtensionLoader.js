@@ -401,24 +401,18 @@ define(function (require, exports, module) {
                     "HtmlEntityCodeHints",
                     "InlineColorEditor",
                     "JavaScriptQuickEdit",
-                    "JSLint",
-                    "LESSSupport",
                     "QuickOpenCSS",
                     "QuickOpenHTML",
                     "QuickOpenJavaScript",
                     "QuickView",
-                    "RecentProjects",
                     "UrlCodeHints",
                     "WebPlatformDocs",
 
                     // Custom extensions we want loaded by default
-                    // NOTE: Maps to a folder inside /src/extensions/default/
                     "HTMLHinter",
                     "HideUI",
                     "thimbleProxy",
                     "brackets-browser-livedev"
-
-                    // "ExampleExtension",
                 ];
 
             return Async.doInParallel(defaultExtensions, function (item) {

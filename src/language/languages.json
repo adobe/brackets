@@ -3,34 +3,12 @@
         "name": "Text",
         "mode": ["null", "text/plain"]
     },
-    
-    "groovy": {
-        "name": "Groovy",
-        "mode": "groovy",
-        "fileExtensions": ["groovy"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
-    },
-   
-    "properties": {
-        "name": "Properties",
-        "mode": ["properties", "text/x-properties"],
-        "fileExtensions": ["ini", "properties"]
-    },
 
     "css": {
         "name": "CSS",
         "mode": "css",
         "fileExtensions": ["css", "css.erb"],
         "blockComment": ["/*", "*/"]
-    },
-
-    "scss": {
-        "name": "SCSS",
-        "mode": ["css", "text/x-scss"],
-        "fileExtensions": ["scss", "scss.erb"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
     },
 
     "html": {
@@ -40,48 +18,12 @@
         "blockComment": ["<!--", "-->"]
     },
     
-    "ejs": {
-        "name": "EJS",
-        "mode": ["htmlembedded", "application/x-ejs"],
-        "fileExtensions": ["ejs", "dust"],
-        "blockComment": ["<!--", "-->"]
-    },
-    
-    "erb_html": {
-        "name": "Embedded Ruby",
-        "mode": ["htmlembedded", "application/x-erb"],
-        "fileExtensions": ["erb", "html.erb", "htm.erb"],
-        "blockComment": ["<!--", "-->"]
-    },
-
     "javascript": {
         "name": "JavaScript",
         "mode": "javascript",
         "fileExtensions": ["js", "jsx", "js.erb", "jsm", "_js"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
-    },
-
-    "dart": {
-        "name": "Dart",
-        "mode": ["dart", "application/dart"],
-        "fileExtensions": ["dart"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
-    },
-
-    "vbscript": {
-        "name": "VBScript",
-        "mode": "vbscript",
-        "fileExtensions": ["vbs"],
-        "lineComment": ["'", "REM"]
-    },
-
-    "vb": {
-        "name": "VB",
-        "mode": ["vb", "text/x-vb"],
-        "fileExtensions": ["vb"],
-        "lineComment": ["'"]
     },
 
     "json": {
@@ -91,166 +33,11 @@
         "fileNames": [".jshintrc", ".bowerrc"]
     },
 
-    "xml": {
-        "name": "XML",
-        "mode": "xml",
-        "fileExtensions": ["xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xbl", "mathml", "config", "plist", "xaml"],
-        "blockComment": ["<!--", "-->"]
-    },
-
-    "svg": {
-        "name": "SVG",
-        "mode": ["xml", "image/svg+xml"],
-        "fileExtensions": ["svg"],
-        "blockComment": ["<!--", "-->"]
-    },
-
-    "php": {
-        "name": "PHP",
-        "mode": "php",
-        "fileExtensions": ["php", "php3", "php4", "php5", "phtm", "phtml", "ctp"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//", "#"]
-    },
-
-    "c": {
-        "name": "C",
-        "mode": ["clike", "text/x-csrc"],
-        "fileExtensions": ["c", "h", "i"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
-    },
-
-    "cpp": {
-        "name": "C++",
-        "mode": ["clike", "text/x-c++src"],
-        "fileExtensions": ["cc", "cp", "cpp", "c++", "cxx", "hh", "hpp", "hxx", "h++", "ii", "ino"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
-    },
-
-    "csharp": {
-        "name": "C#",
-        "mode": ["clike", "text/x-csharp"],
-        "fileExtensions": ["cs", "asax", "ashx"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
-    },
-
-    "java": {
-        "name": "Java",
-        "mode": ["clike", "text/x-java"],
-        "fileExtensions": ["java"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
-    },
-
-    "scala": {
-        "name": "Scala",
-        "mode": ["clike", "text/x-scala"],
-        "fileExtensions": ["scala", "sbt"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
-    },
-
-    "coffeescript": {
-        "name": "CoffeeScript",
-        "mode": "coffeescript",
-        "fileExtensions": ["coffee", "cf", "cson", "_coffee"],
-        "fileNames": ["Cakefile"],
-        "blockComment": ["###", "###"],
-        "lineComment": ["#"]
-    },
-
-    "clojure": {
-        "name": "Clojure",
-        "mode": "clojure",
-        "fileExtensions": ["clj", "cljs", "cljx"],
-        "lineComment": [";", ";;"]
-    },
-
-    "perl": {
-        "name": "Perl",
-        "mode": "perl",
-        "fileExtensions": ["pl", "pm"],
-        "lineComment": ["#"]
-    },
-
-    "ruby": {
-        "name": "Ruby",
-        "mode": "ruby",
-        "fileExtensions": ["rb", "ru", "gemspec", "rake"],
-        "fileNames": ["Gemfile", "Rakefile", "Guardfile", "Vagrantfile"],
-        "lineComment": ["#"]
-    },
-
-    "python": {
-        "name": "Python",
-        "mode": "python",
-        "fileExtensions": ["py", "pyw", "wsgi"],
-        "lineComment": ["#"]
-    },
-
-    "sass": {
-        "name": "SASS",
-        "mode": "sass",
-        "fileExtensions": ["sass"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
-    },
-
-    "lua": {
-        "name": "Lua",
-        "mode": "lua",
-        "fileExtensions": ["lua"],
-        "blockComment": ["--[[", "]]"],
-        "lineComment": ["--"]
-    },
-
-    "sql": {
-        "name": "SQL",
-        "mode": ["sql", "text/x-mysql"],
-        "fileExtensions": ["sql"]
-    },
-
-    "diff": {
-        "name": "Diff",
-        "mode": "diff",
-        "fileExtensions": ["diff", "patch"]
-    },
-
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
         "fileExtensions": ["md", "markdown", "mdown", "mkdn"],
         "blockComment": ["<!--", "-->"]
-    },
-
-    "gfm": {
-        "name": "Markdown (GitHub)",
-        "mode": "gfm"
-    },
-
-    "yaml": {
-        "name": "YAML",
-        "mode": "yaml",
-        "fileExtensions": ["yaml", "yml"],
-        "lineComment": ["#"]
-    },
-
-    "hx": {
-        "name": "Haxe",
-        "mode": "haxe",
-        "fileExtensions": ["hx"],
-        "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
-    },
-
-    "bash": {
-        "name": "Bash",
-        "mode": ["shell", "text/x-sh"],
-        "fileExtensions": ["sh", "command", "bash"],
-        "lineComment": ["#"]
     },
   
     "image": {

@@ -64,20 +64,6 @@ module.exports = function (grunt) {
                             'LiveDevelopment/MultiBrowserImpl/launchers/**'
                         ]
                     },
-                    /* node domains are not minified and must be copied to dist */
-                    {
-                        expand: true,
-                        dest: 'dist/',
-                        cwd: 'src/',
-                        src: [
-                            'extensibility/node/**',
-                            '!extensibility/node/spec/**',
-                            '!extensibility/node/node_modules/**/{test,tst}/**/*',
-                            '!extensibility/node/node_modules/**/examples/**/*',
-                            'filesystem/impls/appshell/node/**',
-                            '!filesystem/impls/appshell/node/spec/**'
-                        ]
-                    },
                     /* extensions and CodeMirror modes */
                     {
                         expand: true,
@@ -85,6 +71,10 @@ module.exports = function (grunt) {
                         cwd: 'src/',
                         src: [
                             'extensions/default/**/*',
+                            '!extensibility/node/spec/**',
+                            '!extensibility/node/node_modules/**/{test,tst}/**/*',
+                            '!extensibility/node/node_modules/**/examples/**/*',
+                            '!filesystem/impls/appshell/**/*',
                             '!extensions/default/*/unittest-files/**/*',
                             '!extensions/default/*/unittests.js',
                             '!extensions/default/{*/thirdparty,**/node_modules}/**/test/**/*',
@@ -127,12 +117,7 @@ module.exports = function (grunt) {
                     "src/styles/brackets.min.css": "src/styles/brackets.less"
                 },
                 options: {
-                    compress: true,
-                    sourceMap: true,
-                    sourceMapFilename: 'src/styles/brackets.min.css.map',
-                    outputSourceFiles: true,
-                    sourceMapRootpath: '',
-                    sourceMapBasepath: 'src/styles'
+                    compress: true
                 }
             }
         },
@@ -146,10 +131,6 @@ module.exports = function (grunt) {
                     // brackets.js should not be loaded until after polyfills defined in "utils/Compatibility"
                     // so explicitly include it in main.js
                     include: ["utils/Compatibility", "brackets"],
-                    // TODO: Figure out how to make sourcemaps work with grunt-usemin
-                    // https://github.com/yeoman/grunt-usemin/issues/30
-                    generateSourceMaps: true,
-                    useSourceUrl: true,
                     // required to support SourceMaps
                     // http://requirejs.org/docs/errors.html#sourcemapcomments
                     preserveLicenseComments: false,
