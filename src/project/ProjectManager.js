@@ -69,7 +69,6 @@ define(function (require, exports, module) {
         PerfUtils           = require("utils/PerfUtils"),
         FileUtils           = require("file/FileUtils"),
         FileSystemError     = require("filesystem/FileSystemError"),
-        Urls                = require("i18n!nls/urls"),
         FileSyncManager     = require("project/FileSyncManager"),
         ProjectModel        = require("project/ProjectModel"),
         FileTreeView        = require("project/FileTreeView"),

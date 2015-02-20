@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, appshell, $, window */
+/*global define, appshell */
 
 define(function (require, exports, module) {
     "use strict";
@@ -282,10 +282,10 @@ define(function (require, exports, module) {
         }
         watchers[path] = fs.watch(path, {recursive: true}, function(event, filename) {
             stat(filename, function(err, stats) {
-              if(err) {
-                  return;
-              }
-              _changeCallback(filename, stats);
+                if(err) {
+                    return;
+                }
+                _changeCallback(filename, stats);
             });
         });
         callback();
