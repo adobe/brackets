@@ -84,6 +84,7 @@ define(function (require, exports, module) {
         ProjectManager       = require("project/ProjectManager"),
         Strings              = require("strings"),
         _                    = require("thirdparty/lodash"),
+        LiveDevelopmentUtils = require("LiveDevelopment/LiveDevelopmentUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         NodeSocketTransport  = require("LiveDevelopment/MultiBrowserImpl/transports/NodeSocketTransport"),
         LiveDevProtocol      = require("LiveDevelopment/MultiBrowserImpl/protocol/LiveDevProtocol"),
@@ -120,17 +121,6 @@ define(function (require, exports, module) {
      * @type {BaseServer}
      */
     var _server;
-    
-    /**
-     * @private
-     * Returns true if we think the given extension is for an HTML file.
-     * @param {string} ext The extension to check.
-     * @return {boolean} true if this is an HTML extension
-     */
-    function _isHtmlFileExt(ext) {
-        return (FileUtils.isStaticHtmlFileExt(ext) ||
-                (ProjectManager.getBaseUrl() && FileUtils.isServerHtmlFileExt(ext)));
-    }
 
     /** 
      * @private
@@ -143,7 +133,7 @@ define(function (require, exports, module) {
             return LiveCSSDocument;
         }
 
-        if (_isHtmlFileExt(doc.file.fullPath)) {
+        if (LiveDevelopmentUtils.isHtmlFileExt(doc.file.fullPath)) {
             return LiveHTMLDocument;
         }
 
@@ -368,7 +358,7 @@ define(function (require, exports, module) {
         // Is the currently opened document already a file we can use for Live Development?
         if (doc) {
             refPath = doc.file.fullPath;
-            if (FileUtils.isStaticHtmlFileExt(refPath) || FileUtils.isServerHtmlFileExt(refPath)) {
+            if (LiveDevelopmentUtils.isStaticHtmlFileExt(refPath) || LiveDevelopmentUtils.isServerHtmlFileExt(refPath)) {
                 return new $.Deferred().resolve(doc);
             }
         }
@@ -400,11 +390,11 @@ define(function (require, exports, module) {
                 if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
                     if (FileUtils.getFilenameWithoutExtension(fileInfo.name) === "index") {
                         if (hasOwnServerForLiveDevelopment) {
-                            if ((FileUtils.isServerHtmlFileExt(fileInfo.name)) ||
-                                    (FileUtils.isStaticHtmlFileExt(fileInfo.name))) {
+                            if ((LiveDevelopmentUtils.isServerHtmlFileExt(fileInfo.name)) ||
+                                    (LiveDevelopmentUtils.isStaticHtmlFileExt(fileInfo.name))) {
                                 return true;
                             }
-                        } else if (FileUtils.isStaticHtmlFileExt(fileInfo.name)) {
+                        } else if (LiveDevelopmentUtils.isStaticHtmlFileExt(fileInfo.name)) {
                             return true;
                         }
                     } else {
@@ -629,7 +619,7 @@ define(function (require, exports, module) {
 
         // Optionally prompt for a base URL if no server was found but the
         // file is a known server file extension
-        showBaseUrlPrompt = !_server && FileUtils.isServerHtmlFileExt(doc.file.fullPath);
+        showBaseUrlPrompt = !_server && LiveDevelopmentUtils.isServerHtmlFileExt(doc.file.fullPath);
 
         if (showBaseUrlPrompt) {
             // Prompt for a base URL
