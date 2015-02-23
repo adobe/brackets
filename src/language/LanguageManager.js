@@ -1126,15 +1126,7 @@ define(function (require, exports, module) {
         // When the CSSInlineEditor and the hint providers are no longer based on modes, this can be changed.
         // But for now, we need to associate this madeup "html" mode with our HTML language object.
         _setLanguageForMode("html", html);
-        
-        // Similarly, the php mode uses clike internally for the PHP parts
-        var php = getLanguage("php");
-        php._setLanguageForMode("clike", php);
-
-        // Similar hack to the above for dealing with SCSS/CSS.
-        var scss = getLanguage("scss");
-        scss._setLanguageForMode("css", scss);
-        
+               
         // The fallback language for unknown modes and file extensions
         _fallbackLanguage = getLanguage("unknown");
         
