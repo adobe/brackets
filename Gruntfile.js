@@ -284,25 +284,21 @@ module.exports = function (grunt) {
                 '<%= meta.grunt %>',
                 '<%= meta.src %>',
                 '<%= meta.test %>',
-                //This code is third party, thus we should not touch it
+                // These modules include lots of third-party code, so we skip them
                 '!src/extensions/default/HTMLHinter/slowparse/**', 
-                //This javascript file has many third party methods, so skip it.
                 '!src/extensions/default/HTMLHinter/tooltipsy.source.js',
-                //Many Files are third party, thus we skip it
                 '!src/extensions/default/brackets-browser-livedev/nohost/**',
-                //This is a file we wrote, so we should lint it
+                //With Previous skip statement, this file was ignored, so we specify it directly for jshinting
                 'src/extensions/default/brackets-browser-livedev/nohost/src/NoHostServer.js'
             ],
             grunt:  '<%= meta.grunt %>',
             src:    [
                 '<%= meta.src %>',
-                //This code is third party, thus we should not touch it
+                // These modules include lots of third-party code, so we skip them
                 '!src/extensions/default/HTMLHinter/slowparse/**', 
-                //This javascript file has many third party methods, so skip it.
                 '!src/extensions/default/HTMLHinter/tooltipsy.source.js',
-                //Many Files are third party, thus we skip it
                 '!src/extensions/default/brackets-browser-livedev/nohost/**',
-                //This is a file we wrote, so we should lint it
+                //With Previous skip statement, this file was ignored, so we specify it directly for jshinting
                 'src/extensions/default/brackets-browser-livedev/nohost/src/NoHostServer.js'
             ],
             test:   '<%= meta.test %>',
