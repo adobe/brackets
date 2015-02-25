@@ -611,19 +611,18 @@ define(function (require, exports, module) {
                         attributes: newElement.attributes
                     });
                     
+                    // Since the root <html> tag has a new tag ID if the user copies and pastes the entire document,
+                    // This checks if there is an old <root> node, and if there is, passes that node as a parameter to 
+                    // generateChildEdits instead of null.
+                    if (Object.keys(oldNodeMap).length > 0){
+                        addEdits(generateChildEdits(oldNodeMap[Object.keys(oldNodeMap)[0]], oldNodeMap, newElement, newNodeMap));
+                    } else {
+                        addEdits(generateChildEdits(null, oldNodeMap, newElement, newNodeMap));
+                    }
                     
-                }
-                
-                // Since the root <html> tag has a new tag ID if the user copies and pastes the entire document,
-                // This checks if there is an old <root> node, and if there is, passes that node as a parameter to 
-                // generateChildEdits instead of null.
-                if (Object.keys(oldNodeMap).length > 0){
-                    addEdits(generateChildEdits(oldNodeMap[Object.keys(oldNodeMap)[0]], oldNodeMap, newElement, newNodeMap));
                 } else {
                     addEdits(generateChildEdits(null, oldNodeMap, newElement, newNodeMap));
                 }
-                
-                
                 
                 
             }
