@@ -1067,7 +1067,7 @@ define(function (require, exports, module) {
     // far were strings, so we spare us the trouble of allowing more complex mode values.
     CodeMirror.defineMIME("text/x-brackets-html", {
         "name": "htmlmixed",
-        "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|^text\/html$/i,
+        "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|\/ng-|^text\/html$/i,
                        "mode": null}]
     });
 
