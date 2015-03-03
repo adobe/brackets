@@ -86,6 +86,7 @@ define(function (require, exports, module) {
         CLOSE_TAGS          = "closeTags",
         DRAG_DROP           = "dragDropText",
         HIGHLIGHT_MATCHES   = "highlightMatches",
+        SCROLL_AMOUNT_Y     = "scrollAmountY",
         SCROLL_PAST_END     = "scrollPastEnd",
         SHOW_CURSOR_SELECT  = "showCursorWhenSelecting",
         SHOW_LINE_NUMBERS   = "showLineNumbers",
@@ -130,6 +131,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(CLOSE_TAGS,         "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
     PreferencesManager.definePreference(DRAG_DROP,          "boolean", false);
     PreferencesManager.definePreference(HIGHLIGHT_MATCHES,  "boolean", false);
+    PreferencesManager.definePreference(SCROLL_AMOUNT_Y,    "object",  undefined);
     PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false);
     PreferencesManager.definePreference(SHOW_CURSOR_SELECT, "boolean", false);
     PreferencesManager.definePreference(SHOW_LINE_NUMBERS,  "boolean", true);
@@ -920,6 +922,51 @@ define(function (require, exports, module) {
             if (files && files.length) {
                 event.preventDefault();
             }
+        });
+        
+        $(this.getRootElement()).on("mousewheel", function (e) {
+            var scrollPref = PreferencesManager.get(SCROLL_AMOUNT_Y);
+            if (scrollPref === undefined) {
+                return;
+            }
+
+            e = e.originalEvent;
+            // FUTURE: Use e.deltaX/Y
+            var cmScrollInfo    = self._codeMirror.getScrollInfo(),
+                realXDelta      = e.wheelDeltaX * -5 / 3,
+                realYDelta      = e.wheelDeltaY * -5 / 3,
+                deltaPx;
+
+            if (typeof scrollPref !== "object") {
+                scrollPref = {size: scrollPref};
+            }
+            if (!scrollPref.unit) {
+                // unit: default to lines
+                scrollPref.unit = "lines";
+            }
+
+            switch (scrollPref.unit) {
+            case "lines": // scroll by x lines
+                deltaPx = self._codeMirror.defaultTextHeight() * scrollPref.size;
+                break;
+            case "pages": // scroll by x pages
+                deltaPx = cmScrollInfo.clientHeight * scrollPref.size;
+                break;
+            case "px": // scroll by x pixels
+            case "pixel":
+                deltaPx = scrollPref.size;
+                break;
+            }
+            // FUTURE: Replace with Math.sign
+            deltaPx *= realYDelta > 0 ? 1 : (realYDelta < 0 ? -1 : 0);
+
+            if (!deltaPx || Math.abs(realYDelta) < Math.min(Math.abs(deltaPx), 80)) {
+                // falsy delta values (like NaN or even 0) can cause weird issues
+                // don't scroll multiple lines if the actual delta is very small, which can happen with touchpads
+                return;
+            }
+            e.preventDefault();
+            self._codeMirror.scrollTo(cmScrollInfo.left + realXDelta, cmScrollInfo.top + deltaPx);
         });
     };
     
