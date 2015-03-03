@@ -816,7 +816,8 @@ define(function (require, exports, module) {
      */
     function setLauncher(launcher) {
         if (!(launcher && launcher.launch)) {
-            throw new Error("LiveDevMultiBrowser.setLauncher(): launcher must have `launch` method");
+            console.log("Invalid launcher object: ", launcher, new Error("LiveDevMultiBrowser.setLauncher()"));
+            return;
         }
         _launcher = launcher;
     }
