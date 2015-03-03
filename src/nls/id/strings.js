@@ -31,7 +31,7 @@ define({
      */
 
     // General file io error strings
-    "GENERIC_ERROR"                     : "(kesalahan {0})",
+    "GENERIC_ERROR"                     : "(error {0})",
     "NOT_FOUND_ERR"                     : "Berkas tidak ditemukan.",
     "NOT_READABLE_ERR"                  : "Berkas tidak bisa dibuka.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Direktori tujuan tidak dapat dimodifikasi.",
