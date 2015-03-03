@@ -113,7 +113,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> telah dihapus di luar {APP_NAME}, tapi ada perubahan pada {APP_NAME} yang belum disimpan.<br /><br />Apakah anda ingin menyimpan perubahan?",
 
     // Generic dialog/button labels
-    "OK"                                : "Iya",
+    "OK"                                : "OK",
     "CANCEL"                            : "Batal",
     "DONT_SAVE"                         : "Jangan Disimpan",
     "SAVE"                              : "Simpan",
