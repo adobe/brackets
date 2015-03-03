@@ -339,7 +339,7 @@ define(function (require, exports, module) {
      * Setup event handlers prior to dispatching AppInit.HTML_READY
      */
     function _beforeHTMLReady() {
-        // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
+        // Add the platform (mac, win or linux) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
         
         // Browser-hosted version may also have different CSS (e.g. since '#titlebar' is shown)
@@ -425,7 +425,31 @@ define(function (require, exports, module) {
                 node = node.parentElement;
             }
         }, true);
-        
+
+        // on Windows, cancel every other scroll event (#10214)
+        // TODO: remove this hack when we upgrade CEF to a build with this bug fixed:
+        // https://bitbucket.org/chromiumembedded/cef/issue/1481
+        var winCancelWheelEvent = true;
+        function windowsScrollFix(e) {
+            winCancelWheelEvent = !winCancelWheelEvent;
+            if (winCancelWheelEvent) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+        }
+
+        function enableOrDisableWinScrollFix() {
+            window.document.body.removeEventListener("wheel", windowsScrollFix, true);
+            if (PreferencesManager.get("_windowsScrollFix")) {
+                window.document.body.addEventListener("wheel", windowsScrollFix, true);
+            }
+        }
+
+        if (brackets.platform === "win" && !brackets.inBrowser) {
+            PreferencesManager.definePreference("_windowsScrollFix", "boolean", true).on("change", enableOrDisableWinScrollFix);
+            enableOrDisableWinScrollFix();
+        }
+
         // Prevent extensions from using window.open() to insecurely load untrusted web content
         var real_windowOpen = window.open;
         window.open = function (url) {
