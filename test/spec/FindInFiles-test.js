@@ -819,7 +819,7 @@ define(function (require, exports, module) {
 
                 it("should handle a folder change", function () {
                     runs(function () {
-                        FindInFiles._fileNameChangeHandler(null, fullTestPath("css"), fullTestPath("newcss"));
+                        FindInFiles._fileNameChangeHandler(null, fullTestPath("css/"), fullTestPath("newcss/"));
                     });
                     waitsFor(function () { return gotChange; }, "model change event");
                     runs(function () {

@@ -869,22 +869,22 @@ define(function (require, exports, module) {
      * Rename a file/folder. This will update the project tree data structures
      * and send notifications about the rename.
      *
-     * @param {string} oldName Old item name
-     * @param {string} newName New item name
+     * @param {string} oldPath Old item full path
+     * @param {string} newPath New item full path
      * @param {boolean} isFolder True if item is a folder; False if it is a file.
      * @return {$.Promise} A promise object that will be resolved or rejected when
      *   the rename is finished.
      */
-    function _renameItem(oldName, newName, isFolder) {
+    function _renameItem(oldPath, newPath, isFolder) {
         var result = new $.Deferred();
 
-        if (oldName === newName) {
+        if (oldPath === newPath) {
             result.resolve();
-        } else if (!isValidFilename(FileUtils.getBaseName(newName), _invalidChars)) {
+        } else if (!isValidFilename(FileUtils.getBaseName(newPath), _invalidChars)) {
             result.reject(ERROR_INVALID_FILENAME);
         } else {
-            var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
-            entry.rename(newName, function (err) {
+            var entry = isFolder ? FileSystem.getDirectoryForPath(oldPath) : FileSystem.getFileForPath(oldPath);
+            entry.rename(newPath, function (err) {
                 if (err) {
                     result.reject(err);
                 } else {
@@ -901,11 +901,11 @@ define(function (require, exports, module) {
      *
      * Renames the item at the old path to the new name provided.
      *
-     * @param {string} oldPath full path to the current location of file or directory (should include trailing slash for directory)
-     * @param {string} newName new name for the file or directory
+     * @param {string} oldPath full path to the current location of file or directory (must include trailing slash if directory)
+     * @param {string} newPath full path to the new location
      */
-    ProjectModel.prototype._renameItem = function (oldPath, newName) {
-        return _renameItem(oldPath, newName, !_pathIsFile(oldPath));
+    ProjectModel.prototype._renameItem = function (oldPath, newPath) {
+        return _renameItem(oldPath, newPath, !_pathIsFile(oldPath));
     };
 
     /**
@@ -946,8 +946,8 @@ define(function (require, exports, module) {
         
         function finalizeRename() {
             viewModel.renameItem(oldProjectPath, newName);
-            if (self._selections.selected && self._selections.selected.indexOf(oldPath) === 0) {
-                self._selections.selected = newPath + self._selections.selected.slice(oldPath.length);
+            if (self._selections.selected) {
+                self._selections.selected = FileUtils.adjustForRename(self._selections.selected, oldPath, newPath);
             }
         }
 

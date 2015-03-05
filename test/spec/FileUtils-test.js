@@ -250,5 +250,34 @@ define(function (require, exports, module) {
                 expect(FileUtils.compareFilenames("Xavier", "Äckerman", false)).toBeLessThan(0);
             });
         });
+        
+        describe("adjustForRename", function () {
+
+            it("should adjust paths for file rename", function () {
+                // pathToAdjust was renamed
+                expect(FileUtils.adjustForRename("/foo/aaa.txt", "/foo/aaa.txt", "/foo/bbb.txt")).toBe("/foo/bbb.txt");
+                
+                // pathToAdjust was not renamed
+                expect(FileUtils.adjustForRename("/foo/test.txt",    "/foo/aaa.txt", "/foo/bbb.txt")).toBe("/foo/test.txt");
+                expect(FileUtils.adjustForRename("/foo/aaa.txt2",    "/foo/aaa.txt", "/foo/bbb.txt")).toBe("/foo/aaa.txt2");
+                expect(FileUtils.adjustForRename("/pre/foo/aaa.txt", "/foo/aaa.txt", "/foo/bbb.txt")).toBe("/pre/foo/aaa.txt");
+            });
+            
+            it("should adjust paths for folder rename", function () {
+                // pathToAdjust was affected by rename
+                expect(FileUtils.adjustForRename("/foo/aaa/",                 "/foo/aaa/", "/foo/bbb/")).toBe("/foo/bbb/");
+                expect(FileUtils.adjustForRename("/foo/aaa/test.txt",         "/foo/aaa/", "/foo/bbb/")).toBe("/foo/bbb/test.txt");
+                expect(FileUtils.adjustForRename("/foo/aaa/xxx/yyy/test.txt", "/foo/aaa/", "/foo/bbb/")).toBe("/foo/bbb/xxx/yyy/test.txt");
+                expect(FileUtils.adjustForRename("/foo/aaa/foo/test.txt",     "/foo/aaa/foo/", "/foo/aaa/bbb/")).toBe("/foo/aaa/bbb/test.txt");
+                
+                // pathToAdjust was affected by rename
+                expect(FileUtils.adjustForRename("/foo/test.txt",      "/foo/aaa/", "/foo/bbb/")).toBe("/foo/test.txt");
+                expect(FileUtils.adjustForRename("/foo/aaa.txt",       "/foo/aaa/", "/foo/bbb/")).toBe("/foo/aaa.txt");
+                expect(FileUtils.adjustForRename("/foo/aaa2/",         "/foo/aaa/", "/foo/bbb/")).toBe("/foo/aaa2/");
+                expect(FileUtils.adjustForRename("/foo/aaa2/test.txt", "/foo/aaa/", "/foo/bbb/")).toBe("/foo/aaa2/test.txt");
+                expect(FileUtils.adjustForRename("/pre/foo/aaa/",      "/foo/aaa/", "/foo/bbb/")).toBe("/pre/foo/aaa/");
+                expect(FileUtils.adjustForRename("/pre/foo/aaa/X.txt", "/foo/aaa/", "/foo/bbb/")).toBe("/pre/foo/aaa/X.txt");
+            });
+        });
     });
 });

@@ -57,7 +57,8 @@
   * Pane Object Events:  
   *
   *  - viewListChange - Whenever there is a file change to a file in the working set.  These 2 events: `DocumentManger.pathRemove` 
-  *  and `DocumentManger.fileNameChange` will cause a `viewListChange` event so the WorkingSetView can update.
+  *  and `DocumentManger.fileNameChange` will cause a `viewListChange` event so the WorkingSetView can update. NOT triggered if a
+  *  temporary view's file changes.
   *
   *  - currentViewChange - Whenever the current view changes.
   *             (e, newView:View, oldView:View)
@@ -166,6 +167,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
         ViewUtils           = require("utils/ViewUtils"),
+        FileUtils           = require("file/FileUtils"),
         ProjectManager      = require("project/ProjectManager"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
@@ -303,25 +305,25 @@ define(function (require, exports, module) {
     Pane.prototype.$content = null;
   
     /**
-     * The list of files views
+     * The list of files in the pane's working set (excludes temporary views).
      * @type {Array.<File>}
      */
     Pane.prototype._viewList = [];
 
     /**
-     * The list of files views in MRU order
+     * Contents of _viewList sorted in MRU order
      * @type {Array.<File>}
      */
     Pane.prototype._viewListMRUOrder = [];
 
     /**
-     * The list of files views in Added order
+     * Contents of _viewList sorted in added order
      * @type {Array.<File>}
      */
     Pane.prototype._viewListAddedOrder = [];
     
     /**
-     * Dictionary mapping fullpath to view
+     * Dictionary mapping fullpath to view. Includes temporary views (unlike _viewList).
      * @type {Object.<!string, !View>}
      * @private
      */
@@ -881,24 +883,26 @@ define(function (require, exports, module) {
      * Event handler when a file changes name
      * @private
      * @param {!JQuery.Event} e - jQuery event object
-     * @param {!string} oldname - path of the file that was renamed
-     * @param {!string} newname - the new path to the file
+     * @param {!string} oldPath - path of the file that was renamed
+     * @param {!string} newPath - the new path to the file
      */
-    Pane.prototype._handleFileNameChange = function (e, oldname, newname) {
-        // Check to see if we need to dispatch a viewListChange event
-        // The list contains references to file objects and, for a rename event, 
-        // the File object's name has changed by the time we've gotten the event.
-        // So, we need to look for the file by its new name to determine if
-        // if we need to dispatch the event which may look funny
-        var dispatchEvent = (this.findInViewList(newname) >= 0);
+    Pane.prototype._handleFileNameChange = function (e, oldPath, newPath) {
+        // Only dispatch a viewListChange event if the rename affected a file in the workingset
+        var dispatchEvent = false;
         
-        // rename the view 
-        if (this._views.hasOwnProperty(oldname)) {
-            var view = this._views[oldname];
-
-            this._views[newname] = view;
-            delete this._views[oldname];
-        }
+        // Fix up path->View mapping in _views
+        _.each(this._views, function (view, path) {
+            var adjustedPath = FileUtils.adjustForRename(path, oldPath, newPath);
+            if (adjustedPath !== path) {
+                console.assert(!this._views[adjustedPath], "Renaming to a view that already exists: " + path + " -> " + adjustedPath);
+                this._views[adjustedPath] = view;
+                delete this._views[path];
+                
+                if (!dispatchEvent) {
+                    dispatchEvent = (this.findInViewList(adjustedPath) !== -1);
+                }
+            }
+        }.bind(this));
         
         this.updateHeaderText();
         

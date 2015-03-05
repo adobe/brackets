@@ -1111,10 +1111,10 @@ define(function (require, exports, module) {
      * @private
      * Respond to a FileSystem rename event.
      */
-    _fileSystemRename = function (event, oldName, newName) {
+    _fileSystemRename = function (event, oldPath, newPath) {
         // Tell the document manager about the name change. This will update
         // all of the model information and send notification to all views
-        DocumentManager.notifyPathNameChanged(oldName, newName);
+        DocumentManager.notifyPathNameChanged(oldPath, newPath);
     };
 
     /**

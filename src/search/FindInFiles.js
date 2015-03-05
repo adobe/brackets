@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         FileFilters           = require("search/FileFilters"),
         Async                 = require("utils/Async"),
         StringUtils           = require("utils/StringUtils"),
+        FileUtils             = require("file/FileUtils"),
         ProjectManager        = require("project/ProjectManager"),
         DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
@@ -511,17 +512,18 @@ define(function (require, exports, module) {
      * @private
      * Moves the search results from the previous path to the new one and updates the results list, if required
      * @param {$.Event} event
-     * @param {string} oldName
-     * @param {string} newName
+     * @param {string} oldPath
+     * @param {string} newPath
      */
-    _fileNameChangeHandler = function (event, oldName, newName) {
+    _fileNameChangeHandler = function (event, oldPath, newPath) {
         var resultsChanged = false;
         
-            // Update the search results
+        // Update the search results
         _.forEach(searchModel.results, function (item, fullPath) {
-            if (fullPath.indexOf(oldName) === 0) {
+            var adjustedPath = FileUtils.adjustForRename(fullPath, oldPath, newPath);
+            if (fullPath !== adjustedPath) {
                 searchModel.removeResults(fullPath);
-                searchModel.setResults(fullPath.replace(oldName, newName), item);
+                searchModel.setResults(adjustedPath, item);
                 resultsChanged = true;
             }
         });
