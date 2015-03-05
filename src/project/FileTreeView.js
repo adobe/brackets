@@ -609,7 +609,7 @@ define(function (require, exports, module) {
          * If you click on a directory, it will toggle between open and closed.
          */
         handleClick: function (event) {
-            if (event.button !== LEFT_MOUSE_BUTTON) {
+            if (event.button !== LEFT_MOUSE_BUTTON || event.target.localName === "ul") {
                 return;
             }
 
