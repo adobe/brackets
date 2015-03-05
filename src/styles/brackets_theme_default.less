@@ -104,10 +104,14 @@
 @activeline-number-bg-inline: #d7dede;
 
 /* background color of the line that has the cursor in the inactive pane */
-@activeline-bg-unfocused: rgba(235, 239, 239, 0.5);
-@activeline-number-unfocused: rgba(46, 46, 46, 0.5);
-@activeline-number-bg-unfocused: rgba(222, 229, 230, 0.5);
+@activeline-bg-unfocused: #f1f1f1;
+@activeline-number-unfocused: rgba(0, 0, 0, 0.7);
+@activeline-number-bg-unfocused: rgba(222, 229, 230, 0.7);
 @activeline-number-bg-inline-unfocused: rgba(215, 222, 222, 0.5);
+
+/* same for dark theme */
+@activeline-bg-unfocused-dark: rgba(255, 255, 255, 0.04);
+@activeline-number-bg-unfocused-dark: rgba(0, 0, 0, 0.4);
 
 /* custom scrollbar colors */
 @win-scrollbar-track: rgb(240, 240, 240);
@@ -251,6 +255,16 @@
 
         .inline-editor-message {
             color: @dark-bc-text-thin-quiet;
+        }
+    }
+    
+    .CodeMirror .CodeMirror-activeline-background {
+        background-color: @activeline-bg-unfocused-dark;
+    }
+    
+    .CodeMirror .CodeMirror-activeline {
+        .CodeMirror-gutter-elt {
+            background-color: @activeline-number-bg-unfocused-dark;
         }
     }
 }
