@@ -410,8 +410,6 @@ define(function (require, exports, module) {
 
                     // Custom extensions we want loaded by default
                     "HTMLHinter",
-                    "HideUI",
-                    "thimbleProxy",
                     "brackets-browser-livedev"
                 ];
 
