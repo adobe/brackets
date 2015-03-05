@@ -157,6 +157,17 @@ define(function (require, exports, module) {
                     expectNoPreviewAtPos(27, 15);    // cursor on rgba(-0, 0, 0, 0.5)
                 });
             });
+            
+            it("should show preview of rgb/rgba colors with zero-padded values", function () {
+                runs(function () {
+                    checkColorAtPos("rgb(255, 176, 008)", 194, 20);
+                    checkColorAtPos("rgb(001, 002, 003)", 195, 20);
+                    checkColorAtPos("rgb(0000, 0001, 0002)", 196, 20);
+                    checkColorAtPos("rgba(255, 176, 008, 1)", 197, 20);
+                    checkColorAtPos("rgba(001, 002, 003, 1)", 198, 20);
+                    checkColorAtPos("rgba(0000, 0001, 0002, 1)", 199, 20);
+                });
+            });
 
             it("should show preview of valid hsl/hsla colors", function () {
                 runs(function () {

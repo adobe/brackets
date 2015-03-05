@@ -190,3 +190,12 @@ background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3
     background-image: linear-gradient(to bottom, #333, #CCC;
     background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(51,51,51)), to(rgb(204,204,204));
 }
+
+.zero_padded_rgb_rgba_values {
+    color: rgb(255, 176, 008);
+    color: rgb(001, 002, 003);
+    color: rgb(0000, 0001, 0002);
+    color: rgba(255, 176, 008, 1);
+    color: rgba(001, 002, 003, 1);
+    color: rgba(0000, 0001, 0002, 1);
+}
