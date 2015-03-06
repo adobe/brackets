@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),
         FileUtils         = require("file/FileUtils"),
+        LanguageManager   = require("language/LanguageManager"),
         FileTreeViewModel = require("project/FileTreeViewModel"),
         ViewUtils         = require("utils/ViewUtils"),
         KeyEvent          = require("utils/KeyEvent");
@@ -178,7 +179,7 @@ define(function (require, exports, module) {
          */
         componentDidMount: function () {
             var fullname = this.props.name,
-                extension = FileUtils.getSmartFileExtension(fullname);
+                extension = LanguageManager.getCompoundFileExtension(fullname);
 
             var node = this.refs.name.getDOMNode();
             node.setSelectionRange(0, _getName(fullname, extension).length);
@@ -437,7 +438,7 @@ define(function (require, exports, module) {
 
         render: function () {
             var fullname = this.props.name,
-                extension = FileUtils.getSmartFileExtension(fullname),
+                extension = LanguageManager.getCompoundFileExtension(fullname),
                 name = _getName(fullname, extension);
 
             if (extension) {

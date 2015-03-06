@@ -26,7 +26,7 @@
 /*global define, $, brackets, unescape, window */
 
 /**
- * Set of utilites for working with files and text content.
+ * Set of utilities for working with files and text content.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -34,13 +34,14 @@ define(function (require, exports, module) {
     require("utils/Global");
     
     var FileSystemError     = require("filesystem/FileSystemError"),
+        DeprecationWarning  = require("utils/DeprecationWarning"),
         LanguageManager     = require("language/LanguageManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        Dialogs;            // This will be loaded asynchronously
-
+        StringUtils         = require("utils/StringUtils");
+    
+    // These will be loaded asynchronously
+    var DocumentCommandHandlers, LiveDevelopmentUtils;
     
     /**
      * @const {Number} Maximium file size (in megabytes)
@@ -197,19 +198,15 @@ define(function (require, exports, module) {
     
     /**
      * Shows an error dialog indicating that the given file could not be opened due to the given error
+     * @deprecated Use DocumentCommandHandlers.showFileOpenError() instead
+     *
      * @param {!FileSystemError} name
      * @return {!Dialog}
      */
     function showFileOpenError(name, path) {
-        return Dialogs.showModalDialog(
-            DefaultDialogs.DIALOG_ID_ERROR,
-            Strings.ERROR_OPENING_FILE_TITLE,
-            StringUtils.format(
-                Strings.ERROR_OPENING_FILE,
-                StringUtils.breakableUrl(path),
-                getFileErrorString(name)
-            )
-        );
+        DeprecationWarning.deprecationWarning("FileUtils.showFileOpenError() has been deprecated. " +
+                                              "Please use DocumentCommandHandlers.showFileOpenError() instead.");
+        return DocumentCommandHandlers.showFileOpenError(name, path);
     }
 
     /**
@@ -351,32 +348,16 @@ define(function (require, exports, module) {
      * If the only `.` in the file is the first character,
      * returns "" as this is not considered an extension.
      * This method considers known extensions which include `.` in them.
+     * @deprecated Use LanguageManager.getCompoundFileExtension() instead
      *
      * @param {string} fullPath full path to a file or directory
      * @return {string} Returns the extension of a filename or empty string if
      * the argument is a directory or a filename with no extension
      */
     function getSmartFileExtension(fullPath) {
-        var baseName = getBaseName(fullPath),
-            parts = baseName.split(".");
-
-        // get rid of file name
-        parts.shift();
-        if (baseName[0] === ".") {
-            // if starts with a `.`, then still consider it as file name
-            parts.shift();
-        }
-
-        var extension = [parts.pop()], // last part is always an extension
-            i = parts.length;
-        while (i--) {
-            if (LanguageManager.getLanguageForExtension(parts[i])) {
-                extension.unshift(parts[i]);
-            } else {
-                break;
-            }
-        }
-        return extension.join(".");
+        DeprecationWarning.deprecationWarning("FileUtils.getSmartFileExtension() has been deprecated. " +
+                                              "Please use LanguageManager.getCompoundFileExtension() instead.");
+        return LanguageManager.getCompoundFileExtension(fullPath);
     }
 
     /**
@@ -400,46 +381,14 @@ define(function (require, exports, module) {
     }
 
     /**
-     * File extensions - hard-coded for now, but may want to make these preferences
-     * @const {Array.<string>}
-     */
-    var _staticHtmlFileExts = ["htm", "html", "xhtml"],
-        _serverHtmlFileExts = ["php", "php3", "php4", "php5", "phtm", "phtml", "cfm", "cfml", "asp", "aspx", "jsp", "jspx", "shtm", "shtml"];
-
-    /**
      * Determine if file extension is a static html file extension.
      * @param {string} filePath could be a path, a file name or just a file extension
      * @return {boolean} Returns true if fileExt is in the list
      */
     function isStaticHtmlFileExt(filePath) {
-        if (!filePath) {
-            return false;
-        }
-
-        return (_staticHtmlFileExts.indexOf(getFileExtension(filePath).toLowerCase()) !== -1);
-    }
-
-    /**
-     * Determine if file extension is a server html file extension.
-     * @param {string} filePath could be a path, a file name or just a file extension
-     * @return {boolean} Returns true if fileExt is in the list
-     */
-    function isServerHtmlFileExt(filePath) {
-        if (!filePath) {
-            return false;
-        }
-
-        return (_serverHtmlFileExts.indexOf(getFileExtension(filePath).toLowerCase()) !== -1);
-    }
-    
-    /**
-     * Determines if file extension is a CSS preprocessor file extension that Brackets supports.
-     * @param {string} filePath could be a path, a file name
-     * @return {boolean} true if LanguageManager identifies filePath as less or scss language.
-     */
-    function isCSSPreprocessorFile(filePath) {
-        var languageId = LanguageManager.getLanguageForPath(filePath).getId();
-        return (languageId === "less" || languageId === "scss");
+        DeprecationWarning.deprecationWarning("FileUtils.isStaticHtmlFileExt() has been deprecated. " +
+                                              "Please use LiveDevelopmentUtils.isStaticHtmlFileExt() instead.");
+        return LiveDevelopmentUtils.isStaticHtmlFileExt(filePath);
     }
     
     /**
@@ -547,10 +496,19 @@ define(function (require, exports, module) {
         });
         return pathArray.join("/");
     }
-
-    // Asynchronously loading Dialogs to avoid the circular dependency
-    require(["widgets/Dialogs"], function (dialogsModule) {
-        Dialogs = dialogsModule;
+    
+    // Asynchronously load DocumentCommandHandlers
+    // This avoids a temporary circular dependency created
+    // by relocating showFileOpenError() until deprecation is over
+    require(["document/DocumentCommandHandlers"], function (dchModule) {
+        DocumentCommandHandlers = dchModule;
+    });
+    
+    // Asynchronously load LiveDevelopmentUtils
+    // This avoids a temporary circular dependency created
+    // by relocating isStaticHtmlFileExt() until deprecation is over
+    require(["LiveDevelopment/LiveDevelopmentUtils"], function (lduModule) {
+        LiveDevelopmentUtils = lduModule;
     });
 
     // Define public API
@@ -569,9 +527,7 @@ define(function (require, exports, module) {
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.stripTrailingSlash             = stripTrailingSlash;
-    exports.isCSSPreprocessorFile          = isCSSPreprocessorFile;
     exports.isStaticHtmlFileExt            = isStaticHtmlFileExt;
-    exports.isServerHtmlFileExt            = isServerHtmlFileExt;
     exports.getDirectoryPath               = getDirectoryPath;
     exports.getParentPath                  = getParentPath;
     exports.getBaseName                    = getBaseName;
