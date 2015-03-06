@@ -370,36 +370,10 @@ define(function (require, exports, module) {
         
         // Update title
         $("title").text(brackets.config.app_title);
-            
-        // Prevent unhandled drag and drop of files into the browser from replacing 
-        // the entire Brackets app. This doesn't prevent children from choosing to
-        // handle drops.
-        $(window.document.body)
-            .on("dragover", function (event) {
-                var dropEffect = "none";
-                if (event.originalEvent.dataTransfer.files) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    // Don't allow drag-and-drop of files/folders when a modal dialog is showing.
-                    if ($(".modal.instance").length === 0 &&
-                            DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
-                        dropEffect = "copy";
-                    }
-                    event.originalEvent.dataTransfer.dropEffect = dropEffect;
-                }
-            })
-            .on("drop", function (event) {
-                var files = event.originalEvent.dataTransfer.files;
-                if (files && files.length) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    brackets.app.getDroppedFiles(function (err, paths) {
-                        if (!err) {
-                            DragAndDrop.openDroppedFiles(paths);
-                        }
-                    });
-                }
-            });
+        
+        // Respond to dragging & dropping files/folders onto the window by opening them. If we don't respond
+        // to these events, the file would load in place of the Brackets UI
+        DragAndDrop.attachHandlers();
         
         // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
         $(window).focus(function () {
