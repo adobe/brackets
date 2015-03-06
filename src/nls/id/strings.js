@@ -76,7 +76,7 @@ define({
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Gagal Menjalankan Browser",
     "ERROR_CANT_FIND_CHROME"            : "Tidak dapat menemukan aplikasi Google Chrome. Pastikan aplikasi tersebut telah diinstal di komputer Anda.",
-    "ERROR_LAUNCHING_BROWSER"           : "Terjadi kesalahan dalam menjalankan browser. (error {0})",
+    "ERROR_LAUNCHING_BROWSER"           : "Terjadi kesalahan pada saat menjalankan browser. (error {0})",
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Preview Langsung Gagal",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Menjalankan Koneksi ke Browser",
@@ -173,7 +173,7 @@ define({
      */
     "PROJECT_LOADING"   : "Memuat\u2026",
     "UNTITLED"          : "Tanpa Judul",
-    "WORKING_FILES"     : "Berkas aktif",
+    "WORKING_FILES"     : "Berkas Aktif",
 
     /**
      * Keyboard modifier names
@@ -204,9 +204,9 @@ define({
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} kesalahan",
     "SINGLE_ERROR"                          : "1 kesalahan {0}",
     "MULTIPLE_ERRORS"                       : "{1} kesalahan {0}",
-    "NO_ERRORS"                             : "{0} Tidak ditemukan kesalahan - kerja bagus!",
-    "NO_ERRORS_MULTIPLE_PROVIDER"           : "Tidak ditemukan Kesalahan - kerja bagus!",
-    "LINT_DISABLED"                         : "Linting dimatikan",
+    "NO_ERRORS"                             : "Tidak ditemukan kesalahan {0} - kerja bagus!",
+    "NO_ERRORS_MULTIPLE_PROVIDER"           : "Tidak ditemukan kesalahan - kerja bagus!",
+    "LINT_DISABLED"                         : "Lint dimatikan",
     "NO_LINT_AVAILABLE"                     : "Tidak ada linter tersedia untuk {0}",
     "NOTHING_TO_LINT"                       : "Tidak ada yang di-lint",
 
@@ -227,9 +227,9 @@ define({
     "CMD_FILE_CLOSE"                      : "Tutup",
     "CMD_FILE_CLOSE_ALL"                  : "Tutup Semua",
     "CMD_FILE_CLOSE_LIST"                 : "Daftar Tutup",
-    "CMD_FILE_CLOSE_OTHERS"               : "Tutup yang lain",
-    "CMD_FILE_CLOSE_ABOVE"                : "Tutup semua yang di atas",
-    "CMD_FILE_CLOSE_BELOW"                : "Tutup semua yang di bawah",
+    "CMD_FILE_CLOSE_OTHERS"               : "Tutup Yang Lain",
+    "CMD_FILE_CLOSE_ABOVE"                : "Tutup Semua Yang di Atas",
+    "CMD_FILE_CLOSE_BELOW"                : "Tutup Semua Yang di Bawah",
     "CMD_FILE_SAVE"                       : "Simpan",
     "CMD_FILE_SAVE_ALL"                   : "Simpan Semua",
     "CMD_FILE_SAVE_AS"                    : "Simpan Sebagai\u2026",
@@ -239,7 +239,7 @@ define({
     "CMD_FILE_DELETE"                     : "Hapus",
     "CMD_INSTALL_EXTENSION"               : "Instal Ekstensi\u2026",
     "CMD_EXTENSION_MANAGER"               : "Pengaturan Ekstensi\u2026",
-    "CMD_FILE_REFRESH"                    : "Refresh daftar berkas",
+    "CMD_FILE_REFRESH"                    : "Muat Ulang Daftar Berkas",
     "CMD_QUIT"                            : "Keluar",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Keluar",
@@ -252,7 +252,7 @@ define({
     "CMD_COPY"                            : "Salin",
     "CMD_PASTE"                           : "Tempel",
     "CMD_SELECT_ALL"                      : "Pilih Semua",
-    "CMD_SELECT_LINE"                     : "Pilih baris",
+    "CMD_SELECT_LINE"                     : "Pilih Baris",
     "CMD_FIND"                            : "Cari",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Cari\u2026",
     "CMD_FIND_IN_FILES"                   : "Cari dalam Berkas",
@@ -266,12 +266,12 @@ define({
     "CMD_DELETE_LINES"                    : "Hapus Baris",
     "CMD_COMMENT"                         : "Ganti Line Comment",
     "CMD_BLOCK_COMMENT"                   : "Ganti Block Comment",
-    "CMD_LINE_UP"                         : "Pindahkan baris ke bawah",
-    "CMD_LINE_DOWN"                       : "Pindahkan baris ke atas",
-    "CMD_OPEN_LINE_ABOVE"                 : "Baris baru di atas",
-    "CMD_OPEN_LINE_BELOW"                 : "Baris baru di bawah",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Tanda kurung tutup otomatis",
-    "CMD_SHOW_CODE_HINTS"                 : "Tunjukkan code hints",
+    "CMD_LINE_UP"                         : "Pindahkan Baris ke Bawah",
+    "CMD_LINE_DOWN"                       : "Pindahkan Baris ke Atas",
+    "CMD_OPEN_LINE_ABOVE"                 : "Baris Baru di Atas",
+    "CMD_OPEN_LINE_BELOW"                 : "Baris Baru di Bawah",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Tutup Tanda Kurung Secara Otomatis",
+    "CMD_SHOW_CODE_HINTS"                 : "Tunjukkan Hint Kode",
 
     // View menu commands
     "VIEW_MENU"                           : "Tampilan",
@@ -280,14 +280,14 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Perbesar Huruf",
     "CMD_DECREASE_FONT_SIZE"              : "Perkecil Huruf",
     "CMD_RESTORE_FONT_SIZE"               : "Kembalikan Huruf ke Ukuran Awal",
-    "CMD_SCROLL_LINE_UP"                  : "Scroll Baris Ke Atas",
-    "CMD_SCROLL_LINE_DOWN"                : "Scroll Baris Ke Bawah",
+    "CMD_SCROLL_LINE_UP"                  : "Scroll Baris ke Atas",
+    "CMD_SCROLL_LINE_DOWN"                : "Scroll Baris ke Bawah",
     "CMD_TOGGLE_LINE_NUMBERS"             : "Nomor Baris",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Tandai Baris Yang Aktif",
     "CMD_TOGGLE_WORD_WRAP"                : "Word Wrap",
     "CMD_LIVE_HIGHLIGHT"                  : "Tandai Preview Langsung",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Berkas Saat Disimpan",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Urutkan berdasarkan Waktu",
+    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Urutkan Berdasarkan Waktu",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Urutkan Berdasarkan Nama",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Urutkan Berdasarkan Jenis",
     "CMD_SORT_WORKINGSET_AUTO"            : "Urutkan Secara Otomatis",
@@ -310,8 +310,8 @@ define({
 
     // Help menu commands
     "HELP_MENU"                           : "Bantuan",
-    "CMD_CHECK_FOR_UPDATE"                : "Cari versi terbaru",
-    "CMD_HOW_TO_USE_BRACKETS"             : "Bagaimana menggunakan {APP_NAME}",
+    "CMD_CHECK_FOR_UPDATE"                : "Cari Versi Terbaru",
+    "CMD_HOW_TO_USE_BRACKETS"             : "Cara Menggunakan {APP_NAME}",
     "CMD_FORUM"                           : "Forum {APP_NAME}",
     "CMD_RELEASE_NOTES"                   : "Catatan Rilis",
     "CMD_REPORT_AN_ISSUE"                 : "Laporkan Isu",
@@ -378,18 +378,18 @@ define({
     "INVALID_VERSION_NUMBER"               : "Versi ({0}) untuk paket ini tidak valid.",
     "INVALID_BRACKETS_VERSION"             : "Kompatibilitas {APP_NAME} dengan ({0}) tidak valid.",
     "DISALLOWED_WORDS"                     : "Kata ({1}) tidak diijinkan pada {0}.",
-    "API_NOT_COMPATIBLE"                   : "Ekstensi tidak cocok dengan versi {APP_NAME} ini. Ekstensi akan diinstal pada folder ekstensi tidak diijinkan.",
+    "API_NOT_COMPATIBLE"                   : "Ekstensi tidak cocok dengan versi {APP_NAME} ini. Ekstensi akan diinstal pada folder ekstensi dimatikan.",
     "MISSING_MAIN"                         : "Paket ini tidak memiliki berkas main.js.",
-    "EXTENSION_ALREADY_INSTALLED"          : "Menginstal paket ini akan menimpa ekstensi yang lama. Timpa ekstensi yan lama?",
+    "EXTENSION_ALREADY_INSTALLED"          : "Menginstal paket ini akan menimpa ekstensi yang lama. Timpa ekstensi yang lama?",
     "EXTENSION_SAME_VERSION"               : "Versi ekstensi ini sama dengan yang telah terinstal. Timpa ekstensi yang telah ada?",
-    "EXTENSION_OLDER_VERSION"              : "Versi paket ini {0} lebih lama dari versi yang telah terinstal ({1}). Timpa instalasi yang ada?",
-    "DOWNLOAD_ID_IN_USE"                   : "Internal error: download ID sedang digunakan.",
+    "EXTENSION_OLDER_VERSION"              : "Versi paket ini {0} lebih lama dari versi yang telah terinstal ({1}). Timpa instalasi yang telah ada?",
+    "DOWNLOAD_ID_IN_USE"                   : "Kesalahan internal: download ID sedang digunakan.",
     "NO_SERVER_RESPONSE"                   : "Tidak dapat melakukan koneksi ke server.",
     "BAD_HTTP_STATUS"                      : "Berkas tidak ditemukan pada server (HTTP {0}).",
     "CANNOT_WRITE_TEMP"                    : "Gagal menyimpan hasil download ke berkas temp.",
     "ERROR_LOADING"                        : "Gagal memuat ekstensi.",
     "MALFORMED_URL"                        : "URL tidak valid. Periksa kembali.",
-    "UNSUPPORTED_PROTOCOL"                 : "URL harus HTTP atau HTTPS.",
+    "UNSUPPORTED_PROTOCOL"                 : "URL harus berupa http atau https.",
     "UNKNOWN_ERROR"                        : "Permasalahan tidak diketahui.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Pengaturan Ekstensi",
@@ -468,7 +468,7 @@ define({
     "INLINE_TIMING_EDITOR_TIME"                 : "Waktu",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progres",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Pindahkan poin yang dipilih<br><kbd class='text'>Shift</kbd> Pindahkan 10 unit<br><kbd class='text'>Tab</kbd> Pindah poin",
-    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Tambah atau kurangi langkah<br><kbd>←</kbd><kbd>→</kbd> 'Mulai' or 'Selesai'",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Tambah atau kurangi langkah<br><kbd>←</kbd><kbd>→</kbd> 'Mulai' atau 'Akhir'",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Warna Sekarang",
@@ -480,18 +480,18 @@ define({
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Digunakan {1} kali)",
 
     // extensions/default/JavaScriptCodeHints
-    "CMD_JUMPTO_DEFINITION"                     : "Pindah ke definisi",
-    "CMD_SHOW_PARAMETER_HINT"                   : "Tampilkan hint untuk parameter",
+    "CMD_JUMPTO_DEFINITION"                     : "Pindah ke Definisi",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Tampilkan Hint untuk Parameter",
     "NO_ARGUMENTS"                              : "<tidak ada parameter>",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
 
     // extensions/default/QuickView
-    "CMD_ENABLE_QUICK_VIEW"                     : "Tampilkan perubahan saat hover",
+    "CMD_ENABLE_QUICK_VIEW"                     : "Tampilkan Perubahan Saat Hover",
 
     // extensions/default/RecentProjects
-    "CMD_TOGGLE_RECENT_PROJECTS"                : "Proyek yang dibuka sebelumnya",
+    "CMD_TOGGLE_RECENT_PROJECTS"                : "Proyek Yang Dibuka Sebelumnya",
 
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Baca selengkapnya"
