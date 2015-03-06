@@ -139,7 +139,7 @@ define(function (require, exports, module) {
          * The rename or create operation can be completed or canceled by actions outside of
          * this component, so we keep the model up to date by sending every update via an action.
          */
-        handleKeyUp: function (e) {
+        handleInput: function (e) {
             this.props.actions.setRenameValue(this.refs.name.getDOMNode().value.trim());
 
             if (e.keyCode !== KeyEvent.DOM_VK_LEFT &&
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
                 defaultValue: this.props.name,
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
-                onKeyUp: this.handleKeyUp,
+                onInput: this.handleInput,
                 onClick: this.handleClick,
                 onBlur: this.handleBlur,
                 style: {
@@ -565,7 +565,7 @@ define(function (require, exports, module) {
                 defaultValue: this.props.name,
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
-                onKeyUp: this.handleKeyUp,
+                onInput: this.handleInput,
                 onBlur: this.handleBlur,
                 style: {
                     width: width
