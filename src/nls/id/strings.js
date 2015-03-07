@@ -44,7 +44,7 @@ define({
     "DIRECTORY_TITLE"                   : "Direktori",
     "DIRECTORY_NAMES_LEDE"              : "Nama direktori",
     "FILENAMES_LEDE"                    : "Nama berkas",
-    "FILENAME"                          : "Nama beraks",
+    "FILENAME"                          : "Nama berkas",
     "DIRECTORY_NAME"                    : "Nama direktori",
 
     // Project error strings
@@ -477,8 +477,8 @@ define({
     "CANCELING_INSTALL"                    : "Membatalkan\u2026",
     "CANCELING_HUNG"                       : "Pembatalan memakan waktu terlalu lama. Mungkin telah terjadi kesalahan internal.",
     "INSTALL_CANCELED"                     : "Instalasi dibatalkan.",
-    "VIEW_COMPLETE_DESCRIPTION"            : "View complete description",
-    "VIEW_TRUNCATED_DESCRIPTION"           : "View truncated description",
+    "VIEW_COMPLETE_DESCRIPTION"            : "Lihat deskripsi lengkap",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "Lihat deskripsi terpotong",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Konten yang terunduh bukan berkas zip yang valid.",
     "INVALID_PACKAGE_JSON"                 : "Berkas package.json tidak valid (error was: {0}).",
@@ -620,3 +620,5 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Baca selengkapnya"
 });
+
+/* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */
