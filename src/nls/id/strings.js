@@ -336,7 +336,6 @@ define({
     "CMD_SPLIT_SEL_INTO_LINES"            : "Pisahkan Pilihan ke Baris Berbeda",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Tambahkan Kursor ke Baris Berikutnya",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Tambahkan Kursor ke Baris Sebelumnya",
-    "CMD_REPLACE"                         : "Ganti",
     "CMD_INDENT"                          : "Indentasi",
     "CMD_UNINDENT"                        : "Batalkan Indentasi",
     "CMD_DUPLICATE"                       : "Duplikat",
