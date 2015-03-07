@@ -39,7 +39,13 @@ define({
     "CONTENTS_MODIFIED_ERR"             : "Berkas telah diubah di luar dari {APP_NAME}.",
     "FILE_EXISTS_ERR"                   : "Berkas atau direktori sudah ada.",
     "FILE"                              : "berkas",
+    "FILE_TITLE"                        : "Berkas",
     "DIRECTORY"                         : "direktori",
+    "DIRECTORY_TITLE"                   : "Direktori",
+    "DIRECTORY_NAMES_LEDE"              : "Nama direktori",
+    "FILENAMES_LEDE"                    : "Nama berkas",
+    "FILENAME"                          : "Nama beraks",
+    "DIRECTORY_NAME"                    : "Nama direktori",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Gagal Memuat Proyek",
@@ -51,27 +57,43 @@ define({
     "ERROR_OPENING_FILE_TITLE"          : "Gagal Membuka Berkas",
     "ERROR_OPENING_FILE"                : "Terjadi kesalahan saat akan membuka berkas <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_OPENING_FILES"               : "Terjadi kesalahan saat akan membuka berkas berikut:",
-    "ERROR_RELOADING_FILE_TITLE"        : "Gagal Meng-update Perubahan dari Disk",
-    "ERROR_RELOADING_FILE"              : "Terjadi kesalahan saat akan membuka ulang berkas <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RELOADING_FILE_TITLE"        : "Gagal Memuat Ulang Perubahan dari Disk",
+    "ERROR_RELOADING_FILE"              : "Terjadi kesalahan saat akan memuat ulang berkas <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Gagal Menyimpan Berkas",
     "ERROR_SAVING_FILE"                 : "Terjadi kesalahan saat akan menyimpan berkas <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "Gagal Mengubah Nama Berkas",
-    "ERROR_RENAMING_FILE"               : "Terjadi kesalahan saat mencoba mengubah nama berkas <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_DELETING_FILE_TITLE"         : "Gagal Menghapus Berkas",
-    "ERROR_DELETING_FILE"               : "Terjadi kesalahan saat akan menghapus berkas <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Gagal Mengubah Nama {0}",
+    "ERROR_RENAMING_FILE"               : "Terjadi kesalahan saat mencoba mengubah nama {2} <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "Gagal Menghapus {0}",
+    "ERROR_DELETING_FILE"               : "Terjadi kesalahan saat akan menghapus {2} <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Nama {0} Tidak Valid",
     "INVALID_FILENAME_MESSAGE"          : "Nama berkas {0} tidak boleh mengandung nama-nama yang telah digunakan pada sistem, berakhir dengan tanda titik (.), atau mengandung karakter-karakter berikut: <code class='emphasized'>{1}</code>.",
-    "FILE_ALREADY_EXISTS"               : "Berkas {0} <span class='dialog-filename'>{1}</span> sudah ada.",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "Berkas atau direktori dengan nama <span class='dialog-filename'>{0}</span> sudah ada.",
     "ERROR_CREATING_FILE_TITLE"         : "Gagal Membuat {0}",
-    "ERROR_CREATING_FILE"               : "Terjadi kesalahan saat akan membuat {0} <span class='dialog-filename'>{1}</span>. {2}",
+    "ERROR_CREATING_FILE"               : "Terjadi kesalahan saat akan membuat berkas {0} <span class='dialog-filename'>{1}</span>. {2}",
+    "ERROR_MIXED_DRAGDROP"              : "Tidak dapat membuka berkas dalam waktu yang bersamaan dengan membuka berkas yang lain.",
+    
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "Gagal Membaca Alokasi Tombol",
+    "ERROR_KEYMAP_CORRUPT"              : "Berkas alokasi tombol Anda bukanlah berkas JSON yang valid. Berkas akan dibuka sehingga Anda dapat memperbaiki formatnya.",
+    "ERROR_LOADING_KEYMAP"              : "Berkas alokasi tombol Anda bukan berkas teks dengan encoding UTF-8 oleh karena itu tidak dapat dimuat.",
+    "ERROR_RESTRICTED_COMMANDS"         : "Anda tidak dapat mengeset shortcut untuk perintah berikut: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Anda tidak mengeset shortcut berikut: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Anda mengeset beberapa shortcut untuk perintah berikut: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Anda memiliki binding ganda untuk shortcut berikut: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Shortcut berikut tiidak valid: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Anda mengeset shortcut untuk perintah yang tidak tersedia: {0}",
+    
+    // Application preferences corrupt error strings
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Gagal membaca Preferensi",
+    "ERROR_PREFS_CORRUPT"               : "Berkas preferensi Anda bukanlah berkas JSON yang valid. Berkas akan dibuka sehingga Anda dapat memperbaiki formatnya. Anda harus menjalankan ulang {APP_NAME} untuk mengaplikasikan perubahan.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} Belum Dapat Dijalankan di Browser.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} memang dikembangkan menggunakan HTML, tapi saat ini hanya dapat dijalankan sebagai aplikasi desktop, jadi Anda dapat menggunakannya untuk mengedit berkas lokal. Gunakan repositori application shell di <b>github.com/adobe/brackets-shell</b> untuk menjalankan {APP_NAME}.",
 
     // ProjectManager max files error string
-    "ERROR_MAX_FILES_TITLE"             : "Gagal Mendata Berkas",
-    "ERROR_MAX_FILES"                   : "Jumlah maksimal berkas yang diindeks telah mencapai batas. Kemungkinan fungsi index tidak berjalan sebagaimana mestinya.",
+    "ERROR_MAX_FILES_TITLE"             : "Gagal Mengindeks Berkas",
+    "ERROR_MAX_FILES"                   : "Proyek ini berisi lebih dari 30.000 berkas. Fitur yang beroperasi di beberapa file mungkin dinonaktifkan atau akan bertingkah seakan proyek ini kosong. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Baca lebih lanjut mengenai bekerja dengan proyek besar.</a>.",
 
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Gagal Menjalankan Browser",
@@ -80,7 +102,7 @@ define({
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Preview Langsung Gagal",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Menjalankan Koneksi ke Browser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Agar Preview Langsung dapat dijalankan, Chrome harus dijalankan ulang dengan Mode Remote Debugging.<br /><br />Apakah Anda ingin menjalankan ulang Chrome dan menyalakan Remote Debugging?<br /><br />",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Agar Preview Langsung dapat dijalankan, Chrome harus dijalankan ulang dengan Mode Remote Debugging.<br /><br />Apakah Anda ingin menjalankan ulang Chrome dan mengaktifkan Remote Debugging?<br /><br />",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Tidak dapat membuka halaman Preview Langsung.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Buka sebuah berkas HTML atau pastikan ada berkas index.html di dalam struktur folder Anda untuk menggunakan Preview Langsung.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Untuk menjalankan server-side preview, sebaiknya Anda melakukan pengaturan Base URL.",
@@ -101,10 +123,10 @@ define({
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Preview Langsung dibatalkan karena browser membuka halaman yang bukan dari proyek",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Preview Langsung dibatalkan karena sebab yang belum diketahui ({0})",
 
-    "SAVE_CLOSE_TITLE"                  : "Simpan perubahan",
-    "SAVE_CLOSE_MESSAGE"                : "Apakah anda akan menyimpan setelah melakukan perubahan <span class='dialog-filename'>{0}</span>?",
+    "SAVE_CLOSE_TITLE"                  : "Simpan Perubahan",
+    "SAVE_CLOSE_MESSAGE"                : "Apakah anda akan menyimpan semua perubahan pada dokumen <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Apakah anda akan menyimpan berkas berikut?",
-    "EXT_MODIFIED_TITLE"                : "Perubahan dari luar",
+    "EXT_MODIFIED_TITLE"                : "Perubahan Dari Luar",
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Hapus?",
     "CONFIRM_FOLDER_DELETE"             : "Apakah anda yakin akan menghapus folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Berkas Dihapus",
@@ -137,6 +159,9 @@ define({
     "BUTTON_PREV_HINT"                  : "Sebelumnya",
     "BUTTON_CASESENSITIVE_HINT"         : "Sesuai dengan huruf",
     "BUTTON_REGEXP_HINT"                : "Regular Expression",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Ganti Tanpa Pembatalan",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Karena ada lebih dari {0} berkas yang harus diganti, {APP_NAME} akan memodifikas berkas yang tidak terbuka pada disk.<br />Anda tidak dapat membatalkan perubahan pada berkas tersebut.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Ganti Tanpa Pembatalan",
 
     "OPEN_FILE"                         : "Buka Berkas",
     "SAVE_FILE_AS"                      : "Simpan Berkas",
@@ -145,18 +170,18 @@ define({
     "RELEASE_NOTES"                     : "Catatan rilis",
     "NO_UPDATE_TITLE"                   : "Versi Terbaru!",
     "NO_UPDATE_MESSAGE"                 : "Anda menggunakan versi terbaru dari {APP_NAME}.",
-
-    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "Ganti \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" dengan \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
+    
+    // Find and Replace
+    "FIND_REPLACE_TITLE_LABEL"          : "Ganti",
+    "FIND_REPLACE_TITLE_WITH"           : "dengan",
+    "FIND_TITLE_LABEL"                  : "Ditemukan",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} di {3}",
 
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" ditemukan",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
+    "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "di <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "dalam proyek",
+    "FIND_IN_FILES_ZERO_FILES"          : "Filter mengabaikan semua berkas {0}",
     "FIND_IN_FILES_FILE"                : "berkas",
     "FIND_IN_FILES_FILES"               : "berkas",
     "FIND_IN_FILES_MATCH"               : "sesuai",
@@ -165,8 +190,38 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click untuk expand/collapse semua",
-    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Gagal mendapatkan informasi update",
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "Gagal Mengganti",
+    "REPLACE_IN_FILES_ERRORS"           : "Berkas berikut tidak dapat dimodifikasi because berkas tersebut berubah setelah pencarian atau tidak dapat ditulis.",
+
+    
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Gagal Mendapatkan Informasi Update",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ada masalah saat meminta informasi update terbaru dari server. Pastikan anda terkoneksi ke internet dan kemudian coba lagi.",
+    
+    // File exclusion filters
+    "NEW_FILE_FILTER"                   : "Set Pengabaian Baru\u2026",
+    "CLEAR_FILE_FILTER"                 : "Jangan Mengabaikan Berkas",
+    "NO_FILE_FILTER"                    : "Tak Ada Berkas Yang Diabaikan",
+    "EXCLUDE_FILE_FILTER"               : "Abaikan {0}",
+    "EDIT_FILE_FILTER"                  : "Ubah\u2026",
+    "FILE_FILTER_DIALOG"                : "Ubah Set Pengabaian",
+    "FILE_FILTER_INSTRUCTIONS"          : "Abaikan berkas dan folder yang memiliki kecocokan dengan string / substring berikut atau <a href='{0}' title='{0}'>wildcard</a>. Masukkan setiap string pada baris baru.",
+    "FILTER_NAME_PLACEHOLDER"           : "Beri nama set pengabaian ini (opsional)",
+    "FILE_FILTER_CLIPPED_SUFFIX"        : "dan {0} lagi",
+    "FILTER_COUNTING_FILES"             : "Menghitung berkas\u2026",
+    "FILTER_FILE_COUNT"                 : "Mengijinkan {0} dari {1} berkas {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Mengijinkan semua {0} berkas {1}",
+    
+    // Quick Edit
+    "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Tidak ada Edit Cepat tersedia untuk posisi kursor saat ini",
+    "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "Edit Cepat CSS: tempatkan kursor pada nama class tunggal",
+    "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "Edit Cepat CSS: atribut class tidak lengkap",
+    "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "Edit Cepat CSS: atribut id tidak lengkap",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "Edit Cepat CSS: tempatkan kursor pada tag, class, atau id",
+    "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Edit Cepat Timing Function CSS: sintaks tidak valid",
+    "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "Edit Cepat JS: tempatkan kursor pada nama fungsi",
+    
+    // Quick Docs
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Tidak ada Dokumentasi Cepat tersedia untuk posisi kursor saat ini",
 
     /**
      * ProjectManager
@@ -174,6 +229,23 @@ define({
     "PROJECT_LOADING"   : "Memuat\u2026",
     "UNTITLED"          : "Tanpa Judul",
     "WORKING_FILES"     : "Berkas Aktif",
+    
+    /**
+     * MainViewManager
+     */
+    "TOP"               : "Atas",
+    "BOTTOM"            : "Bawah",
+    "LEFT"              : "Kiri",
+    "RIGHT"             : "Kanan",
+
+    "CMD_SPLITVIEW_NONE"        : "Jangan Dipisah",
+    "CMD_SPLITVIEW_VERTICAL"    : "Pisah Secara Vertikal",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Pisah Secara Horizontal",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Pisahkan editor secara vertikal atau horizontal",
+    "GEAR_MENU_TOOLTIP"         : "Pengaturan Working Set",
+
+    "SPLITVIEW_INFO_TITLE"              : "Sudah Terbuka",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Berkas ini sudah terbuka di panel yang lain. Di masa yang akan datang {APP_NAME} akan mendukung pembukaan berkas yang sama di lebih dari satu panel. Saat ini, berkas akan ditampilkan di panel yang sidah terbuka.<br /><br />(Anda hanya melihat pesan ini sekali saja.)",
 
     /**
      * Keyboard modifier names
@@ -190,6 +262,7 @@ define({
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Memilih {0} kolom",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Memilih {0} baris",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Memilih {0} baris",
+    "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} pilihan",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Klik untuk mengubah indentasi menggunakan spasi",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Klik untuk mengubah indentasi menggunakan tab",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Klik untuk mengubah jumlah spasi yang digunakan untuk indentasi",
@@ -198,7 +271,14 @@ define({
     "STATUSBAR_TAB_SIZE"                    : "Ukuran Tab:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} baris",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} baris",
-    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Ekstensi dimatikan",
+    "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Ekstensi dinonaktifkan",
+    "STATUSBAR_INSERT"                      : "INS",
+    "STATUSBAR_OVERWRITE"                   : "OVR",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "Klik untuk beralih antara mode Insert (INS) dan mode Overwrite (OVR)",
+    "STATUSBAR_LANG_TOOLTIP"                : "Klik untuk merubah tipe berkas",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klik untuk menampilkan panel inspeksi.",
+    "STATUSBAR_DEFAULT_LANG"                : "(default)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Set Sebagai Default Untuk Berkas .{0}",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} kesalahan",
@@ -206,7 +286,7 @@ define({
     "MULTIPLE_ERRORS"                       : "{1} kesalahan {0}",
     "NO_ERRORS"                             : "Tidak ditemukan kesalahan {0} - kerja bagus!",
     "NO_ERRORS_MULTIPLE_PROVIDER"           : "Tidak ditemukan kesalahan - kerja bagus!",
-    "LINT_DISABLED"                         : "Lint dimatikan",
+    "LINT_DISABLED"                         : "Lint dinonaktifkan",
     "NO_LINT_AVAILABLE"                     : "Tidak ada linter tersedia untuk {0}",
     "NOTHING_TO_LINT"                       : "Tidak ada yang di-lint",
 
@@ -221,8 +301,8 @@ define({
     "CMD_FILE_NEW"                        : "Berkas Baru",
     "CMD_FILE_NEW_FOLDER"                 : "Folder Baru",
     "CMD_FILE_OPEN"                       : "Buka\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Tambahkan ke working set",
-    "CMD_OPEN_DROPPED_FILES"              : "Buka berkas yang di-drop",
+    "CMD_ADD_TO_WORKING_SET"              : "Tambahkan Ke Working Set",
+    "CMD_OPEN_DROPPED_FILES"              : "Buka Berkas Yang Di-drop",
     "CMD_OPEN_FOLDER"                     : "Buka Folder\u2026",
     "CMD_FILE_CLOSE"                      : "Tutup",
     "CMD_FILE_CLOSE_ALL"                  : "Tutup Semua",
@@ -253,12 +333,9 @@ define({
     "CMD_PASTE"                           : "Tempel",
     "CMD_SELECT_ALL"                      : "Pilih Semua",
     "CMD_SELECT_LINE"                     : "Pilih Baris",
-    "CMD_FIND"                            : "Cari",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Cari\u2026",
-    "CMD_FIND_IN_FILES"                   : "Cari dalam Berkas",
-    "CMD_FIND_IN_SUBTREE"                 : "Cari di\u2026",
-    "CMD_FIND_NEXT"                       : "Cari Berikutnya",
-    "CMD_FIND_PREVIOUS"                   : "Cari Sebelumnya",
+    "CMD_SPLIT_SEL_INTO_LINES"            : "Pisahkan Pilihan ke Baris Berbeda",
+    "CMD_ADD_CUR_TO_NEXT_LINE"            : "Tambahkan Kursor ke Baris Berikutnya",
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Tambahkan Kursor ke Baris Sebelumnya",
     "CMD_REPLACE"                         : "Ganti",
     "CMD_INDENT"                          : "Indentasi",
     "CMD_UNINDENT"                        : "Batalkan Indentasi",
@@ -272,6 +349,22 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Baris Baru di Bawah",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Tutup Tanda Kurung Secara Otomatis",
     "CMD_SHOW_CODE_HINTS"                 : "Tunjukkan Hint Kode",
+    
+    // Search menu commands
+    "FIND_MENU"                           : "Cari",
+    "CMD_FIND"                            : "Cari",
+    "CMD_FIND_NEXT"                       : "Cari Berikutnya",
+    "CMD_FIND_PREVIOUS"                   : "Cari Sebelumnya",
+    "CMD_FIND_ALL_AND_SELECT"             : "Cari Semua dan Pilih",
+    "CMD_ADD_NEXT_MATCH"                  : "Tambahkan Kesamaan Berikutnya ke Pilihan",
+    "CMD_SKIP_CURRENT_MATCH"              : "Lewatkan dan Tambahkan Kesamaan Berikutnya",
+    "CMD_FIND_IN_FILES"                   : "Cari dalam Berkas",
+    "CMD_FIND_IN_SELECTED"                : "Cari Dalam Berkas/Folder Yang Dipilih",
+    "CMD_FIND_IN_SUBTREE"                 : "Cari di\u2026",
+    "CMD_REPLACE"                         : "Ganti",
+    "CMD_REPLACE_IN_FILES"                : "Ganti dalam Berkas",
+    "CMD_REPLACE_IN_SELECTED"             : "Ganti dalam Berkas/Folder Yang Dipilih",
+    "CMD_REPLACE_IN_SUBTREE"              : "Ganti di\u2026",
 
     // View menu commands
     "VIEW_MENU"                           : "Tampilan",
@@ -290,7 +383,8 @@ define({
     "CMD_SORT_WORKINGSET_BY_ADDED"        : "Urutkan Berdasarkan Waktu",
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Urutkan Berdasarkan Nama",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Urutkan Berdasarkan Jenis",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Urutkan Secara Otomatis",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Urutkan Secara Otomatis",
+    "CMD_THEMES"                          : "Tema\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigasi",
@@ -306,22 +400,28 @@ define({
     "CMD_NEXT_DOC"                        : "Dokumen Berikutnya",
     "CMD_PREV_DOC"                        : "Dokumen Sebelumnya",
     "CMD_SHOW_IN_TREE"                    : "Tambahkan ke Daftar Berkas",
+    "CMD_SHOW_IN_EXPLORER"                : "Tampilkan di Explorer",
+    "CMD_SHOW_IN_FINDER"                  : "Tampilkan di Finder",
     "CMD_SHOW_IN_OS"                      : "Tampilkan di OS",
 
     // Help menu commands
     "HELP_MENU"                           : "Bantuan",
     "CMD_CHECK_FOR_UPDATE"                : "Cari Versi Terbaru",
     "CMD_HOW_TO_USE_BRACKETS"             : "Cara Menggunakan {APP_NAME}",
-    "CMD_FORUM"                           : "Forum {APP_NAME}",
+    "CMD_SUPPORT"                         : "Dukungan {APP_NAME}",
+    "CMD_SUGGEST"                         : "Berikan Saran Fitur",
     "CMD_RELEASE_NOTES"                   : "Catatan Rilis",
-    "CMD_REPORT_AN_ISSUE"                 : "Laporkan Isu",
+    "CMD_GET_INVOLVED"                    : "Ikut Terlibat Dalam Pengembangan",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Tampilkan Folder Ekstensi",
+    "CMD_HOMEPAGE"                        : "Homepage {APP_TITLE}",
     "CMD_TWITTER"                         : "{TWITTER_NAME} di Twitter",
     "CMD_ABOUT"                           : "Tentang {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Buka Berkas Pengaturan",
+    "CMD_OPEN_KEYMAP"                     : "Buka Berkas Alokasi Tombol",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "rilis eksperimental",
+    "RELEASE_BUILD"                        : "rilis",
     "DEVELOPMENT_BUILD"                    : "rilis pengembangan",
     "RELOAD_FROM_DISK"                     : "Muat Ulang dari Disk",
     "KEEP_CHANGES_IN_EDITOR"               : "Simpan Perubahan di Editor",
@@ -330,6 +430,7 @@ define({
     "ABOUT"                                : "Tentang",
     "CLOSE"                                : "Tutup",
     "ABOUT_TEXT_LINE1"                     : "Revisi {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
+    "ABOUT_TEXT_BUILD_TIMESTAMP"           : "build timestamp: ",
     "ABOUT_TEXT_LINE3"                     : "Catatan, syarat dan ketentuan mengenai perangkat lunak pihak ketiga terdapat pada <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> dan sebagai referensi.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentasi dan kode sumber pada <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                     : "Dibuat dengan \u2764 dan JavaScript oleh:",
@@ -347,11 +448,19 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Base URL tidak boleh mengandung tanda atau simbol \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Karakter spesial seperti '{0}' harus di-encode ke format %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Gagal membuka URL",
+    "EMPTY_VIEW_HEADER"                    : "<em>Open a file while this pane has focus</em>",
+    
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Tema Yang Sedang Digunakan",
+    "USE_THEME_SCROLLBARS"                 : "Gunakan Scrollbar Tema",
+    "FONT_SIZE"                            : "Ukuran Huruf",
+    "FONT_FAMILY"                          : "Jenis Huruf",
+    "THEMES_SETTINGS"                      : "Pengaturan Tema",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Atribut Baru",
 
-    // Extension Management strings
+    // Extension Management strings    
     "INSTALL"                              : "Instal",
     "UPDATE"                               : "Update",
     "REMOVE"                               : "Hapus",
@@ -363,12 +472,14 @@ define({
     "UPDATE_EXTENSION_TITLE"               : "Update Ekstensi",
     "INSTALL_EXTENSION_LABEL"              : "URL Ekstensi",
     "INSTALL_EXTENSION_HINT"               : "URL berkas zip atau repositori GitHub dari ekstensi",
-    "INSTALLING_FROM"                      : "Menginstal Ekstensi dari {0}\u2026",
+    "INSTALLING_FROM"                      : "Menginstal ekstensi dari {0}\u2026",
     "INSTALL_SUCCEEDED"                    : "Sukses!",
     "INSTALL_FAILED"                       : "Gagal.",
     "CANCELING_INSTALL"                    : "Membatalkan\u2026",
     "CANCELING_HUNG"                       : "Pembatalan memakan waktu terlalu lama. Mungkin telah terjadi kesalahan internal.",
     "INSTALL_CANCELED"                     : "Instalasi dibatalkan.",
+    "VIEW_COMPLETE_DESCRIPTION"            : "View complete description",
+    "VIEW_TRUNCATED_DESCRIPTION"           : "View truncated description",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Konten yang terunduh bukan berkas zip yang valid.",
     "INVALID_PACKAGE_JSON"                 : "Berkas package.json tidak valid (error was: {0}).",
@@ -378,7 +489,7 @@ define({
     "INVALID_VERSION_NUMBER"               : "Versi ({0}) untuk paket ini tidak valid.",
     "INVALID_BRACKETS_VERSION"             : "Kompatibilitas {APP_NAME} dengan ({0}) tidak valid.",
     "DISALLOWED_WORDS"                     : "Kata ({1}) tidak diijinkan pada {0}.",
-    "API_NOT_COMPATIBLE"                   : "Ekstensi tidak cocok dengan versi {APP_NAME} ini. Ekstensi akan diinstal pada folder ekstensi dimatikan.",
+    "API_NOT_COMPATIBLE"                   : "Ekstensi tidak cocok dengan versi {APP_NAME} ini. Ekstensi akan diinstal pada folder ekstensi dinonaktifkan.",
     "MISSING_MAIN"                         : "Paket ini tidak memiliki berkas main.js.",
     "EXTENSION_ALREADY_INSTALLED"          : "Menginstal paket ini akan menimpa ekstensi yang lama. Timpa ekstensi yang lama?",
     "EXTENSION_SAME_VERSION"               : "Versi ekstensi ini sama dengan yang telah terinstal. Timpa ekstensi yang telah ada?",
@@ -394,29 +505,36 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Pengaturan Ekstensi",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Gagal membuka daftar ekstensi. Silakan coba lagi.",
+    "INSTALL_EXTENSION_DRAG"               : "Geser berkas .zip ke sini atau",
+    "INSTALL_EXTENSION_DROP"               : "Tempatkan berkas .zip di sini untuk menginstal",
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Instalasi/Update terhenti karena kesalahan berikut:",
     "INSTALL_FROM_URL"                     : "Instal dari URL\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "Validsi\u2026",
     "EXTENSION_AUTHOR"                     : "Pembuat",
     "EXTENSION_DATE"                       : "Tanggal",
-    "EXTENSION_INCOMPATIBLE_NEWER"         : "Aplikasi ini membutuhkan versi terbaru dari {APP_NAME}.",
+    "EXTENSION_INCOMPATIBLE_NEWER"         : "Ekstensi ini membutuhkan versi terbaru dari {APP_NAME}.",
     "EXTENSION_INCOMPATIBLE_OLDER"         : "Ekstensi ini hanya dapat digunakan pada versi {APP_NAME} yang lama.",
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Versi {0} dari ekstensi ini meminta versi terbaru dari {APP_NAME}. Tapi Anda tetap dapat menginstal versi sebelumnya {1}.",
     "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Versi {0} hanya dapat digunakan pada versi {APP_NAME} yang lama. Tapi Anda tetap dapat menggunakan versi sebelumnya {1}.",
     "EXTENSION_NO_DESCRIPTION"             : "Tidak ada keterangan",
     "EXTENSION_MORE_INFO"                  : "Info selengkapnya\u2026",
-    "EXTENSION_ERROR"                      : "Ekstensi error",
-    "EXTENSION_KEYWORDS"                   : "Kata Kunci",
+    "EXTENSION_ERROR"                      : "Kesalahan ekstensi",
+    "EXTENSION_KEYWORDS"                   : "Kata kunci",
+    "EXTENSION_TRANSLATED_USER_LANG"       : "Diterjemahkan ke {0} bahasa, termasuk bahasa Anda",
+    "EXTENSION_TRANSLATED_GENERAL"         : "Diterjemahkan ke {0} bahasa",
+    "EXTENSION_TRANSLATED_LANGS"           : "Ekstensi ini telah diterjemahkan ke bahasa berikut: {0}",
     "EXTENSION_INSTALLED"                  : "Terinstal",
-    "EXTENSION_UPDATE_INSTALLED"           : "Update untuk ekstensi ini telah diinstal dan akan dijalankan setelah {APP_NAME} di buka ulang.",
+    "EXTENSION_UPDATE_INSTALLED"           : "Update untuk ekstensi ini telah diinstal dan akan diaplikasikan setelah {APP_NAME} dijalankan ulang.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Cari",
     "EXTENSION_MORE_INFO_LINK"             : "Selengkapnya",
     "BROWSE_EXTENSIONS"                    : "Cari Ekstensi",
     "EXTENSION_MANAGER_REMOVE"             : "Hapus Ekstensi",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Gagal menghapus extensi: {0}. {APP_NAME} akan tetap dijalankan ulang.",
     "EXTENSION_MANAGER_UPDATE"             : "Update Ekstensi",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Gagal melakukan update ekstensi: {0}. {APP_NAME} akan tetap dijalankan ulang.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Gagal melakukan update terhadap ekstensi: {0}. {APP_NAME} akan tetap dijalankan ulang.",
     "MARKED_FOR_REMOVAL"                   : "Ditandai untuk dihapus",
     "UNDO_REMOVE"                          : "Batal",
-    "MARKED_FOR_UPDATE"                    : "Ditandai untuk diupdate",
+    "MARKED_FOR_UPDATE"                    : "Ditandai untuk di-update",
     "UNDO_UPDATE"                          : "Batal",
     "CHANGE_AND_RELOAD_TITLE"              : "Ganti Ekstensi",
     "CHANGE_AND_RELOAD_MESSAGE"            : "Untuk meng-update atau menghapus ekstensi yang ditandai, {APP_NAME} akan dijalankan ulang. Anda akan diminta untuk menyimpan pekerjaan Anda.",
@@ -427,9 +545,10 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Tidak dapat menghapus extensi {0} karena tidak terinstall.",
     "NO_EXTENSIONS"                        : "Belum ada ekstensi yang diinstal.<br />Klik pada tab Tersedia untuk menginstal ekstensi.",
     "NO_EXTENSION_MATCHES"                 : "Tidak ditemukan ekstensi yang sesuai dengan kriteria pencarian.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "Hati-hati ketika menginstal ekstensi dari sumber yang tidak dipercaya.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "CATATAN: Ekstensi ini memiliki kemungkinan dikembangkan oleh orang-orang yang berbeda dari pengembang {APP_NAME}. Ekstensi yang masuk ke dafter ini tidak di-review dan memiliki akses lokal sepenuhya. Hati-hati ketika menginstal ekstensi dari sumber yang tidak dipercaya.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Terinstal",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Tersedia",
+    "EXTENSIONS_THEMES_TITLE"              : "Tema",
     "EXTENSIONS_UPDATES_TITLE"             : "Update",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Tidak ditemukan kesamaan.",
@@ -444,6 +563,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Errors",
     "CMD_SHOW_DEV_TOOLS"                        : "Tampilkan Developer Tools",
     "CMD_REFRESH_WINDOW"                        : "Jalankan Ulang Dengan Ekstensi",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Jalankan Ulang Tanpa Ekstensi",
@@ -451,9 +571,11 @@ define({
     "CMD_SWITCH_LANGUAGE"                       : "Ganti Bahasa",
     "CMD_RUN_UNIT_TESTS"                        : "Jalankan Tes",
     "CMD_SHOW_PERF_DATA"                        : "Tampilkan Data Performa",
-    "CMD_ENABLE_NODE_DEBUGGER"                  : "Nyalakan Node Debugger",
-    "CMD_LOG_NODE_STATE"                        : "Tampilkan log Node di konsol",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Aktifkan Node Debugger",
+    "CMD_LOG_NODE_STATE"                        : "Tampilkan Log Node di Konsol",
     "CMD_RESTART_NODE"                          : "Jalankan Ulang Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Tempilkan Kesalahan di Status Bar",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Kode Sumber Brackets",
 
     "LANGUAGE_TITLE"                            : "Ganti Bahasa",
     "LANGUAGE_MESSAGE"                          : "Bahasa:",
@@ -469,6 +591,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progres",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Pindahkan poin yang dipilih<br><kbd class='text'>Shift</kbd> Pindahkan 10 unit<br><kbd class='text'>Tab</kbd> Pindah poin",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Tambah atau kurangi langkah<br><kbd>←</kbd><kbd>→</kbd> 'Mulai' atau 'Akhir'",
+    "INLINE_TIMING_EDITOR_INVALID"              : "Nilai lama <code>{0}</code> tidak valid, jadi fungsi yang ditampilkan telah diubah ke <code>{1}</code>. Tokumen akan di-update setelah edit pertama.",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Warna Sekarang",
@@ -483,6 +606,8 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Pindah ke Definisi",
     "CMD_SHOW_PARAMETER_HINT"                   : "Tampilkan Hint untuk Parameter",
     "NO_ARGUMENTS"                              : "<tidak ada parameter>",
+    "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
+    "DETECTED_EXCLUSION_INFO"                   : "Terjadi masalah saat akan memproses <span class='dialog-filename'>{0}</span>.<br><br>Berkas ini tidak akan lagi diproses untuk Hint Kode, Pindah ke Definisi atau Edit Cepat. Untuk mengaktifkan kembali berkas ini, buka <code>.brackets.json</code> di proyek Anda dan ubah <code>jscodehints.detectedExclusions</code>.<br><br>Kemungkinan ini adalah bug dari Brackets. Jika Anda dapat menyediakan salinan berkas ini, silakan <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>isi laporan bug</a> dengan tautan menuju berkas yang disebutkan disini.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
