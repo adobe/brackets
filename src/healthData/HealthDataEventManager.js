@@ -22,21 +22,43 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
     
     var PreferencesManager = require("preferences/PreferencesManager"),
-        EventDispatcher = require("utils/EventDispatcher");
+        EventDispatcher    = require("utils/EventDispatcher"),
+        HealthDataManager  = require("healthData/HealthDataManager"),
+        HealthDataUtils    = require("healthData/HealthDataUtils");
+    
+    var localBuffer = HealthDataManager.localStorageBuffer;
+    
+    var PERSIS_TIME = 5 * 60 * 1000;
+    
+    var persisLocalIntervalId;
+    
+    function persistLocalData() {
+        if (!$.isEmptyObject(localBuffer)) {
+            HealthDataUtils.writeHealthDataFile(localBuffer, HealthDataManager.healthDataFilePath).done(function() {
+                localBuffer = {};
+            });;
+        }
+    }
+    
+    persisLocalIntervalId = window.setInterval(persistLocalData, PERSIS_TIME);
     
     //Used to handle the logs which will be send once before we send the health data file to the server
     function handleOneTimeData() {
         
     }
     
+    function handleClickLivePreview() {
+    }
+    
     var eventFunctionMaps = {
-        "oneTimeData" : handleOneTimeData
+        "oneTimeData" : handleOneTimeData,
+        "clickLivePreview" : handleClickLivePreview
     };
     
     PreferencesManager.definePreference("healthDataTracking", "boolean", true);
@@ -47,20 +69,15 @@ define(function (require, exports, module) {
         }
     }
     
-    function startEventLogging() {
-        exports.on("logEvent", logEvent);
-    }
-    
-    function stopEventLogging() {
-        exports.off("logEvent", logEvent);
-    }
-    
     function manageEventsTracking() {
         var isHDTracking = PreferencesManager.get("healthDataTracking");
         if (isHDTracking) {
-            startEventLogging();
+            exports.on("logEvent", logEvent);
+            persisLocalIntervalId = window.setInterval(persistLocalData, PERSIS_TIME);
         } else {
-            stopEventLogging();
+            exports.off("logEvent", logEvent);
+            window.clearInterval(persisLocalIntervalId);
+            
         }
     }
     

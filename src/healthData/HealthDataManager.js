@@ -55,7 +55,11 @@ define(function (require, exports, module) {
             persistedStorage = HealthDataUtils.readHealthDataFile(healthDataFilePath);
             var newData;//Merge localStorageBuffer with PersistedStorage. Get it in new Data
             //Send newData to the server
+            //If sucess remove the contents of file except GUID
+            
+            //If failure write all newData to the file
             HealthDataUtils.writeHealthDataFile(newData, healthDataFilePath);
+            
             timeoutVar = window.setTimeout(sendHealthDataToServer, ONE_DAY);
             
         } else {
@@ -73,18 +77,6 @@ define(function (require, exports, module) {
         }
     });
     
-    function getLocalStorageBuffer() {
-        return localStorageBuffer;
-    }
-    
-    function getQueueStorageBuffer() {
-        return queueStorageBuffer;
-    }
-    
-    function getPersistedStorage() {
-        return persistedStorage;
-    }
-    
     AppInit.addReady(function () {
         var lastTimeSend = PreferencesManager.getViewState("lastTimeSendHealthData");
 
@@ -93,8 +85,8 @@ define(function (require, exports, module) {
     
     
     
-    exports.getLocalStorageBugger = getLocalStorageBuffer;
-    exports.getQueueStorageBuffer = getQueueStorageBuffer;
-    exports.getPersistedStorage   = getPersistedStorage;
+    exports.localStorageBuffer    = localStorageBuffer;
+    exports.queueStorageBuffer    = queueStorageBuffer;
+    exports.persistedStorage      = persistedStorage;
     exports.healthDataFilePath    = healthDataFilePath;
 });
