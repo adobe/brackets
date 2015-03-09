@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     
     PreferencesManager.definePreference("healthDataNotification", "number", 0);
     
+    var prefs = PreferencesManager.getExtensionPrefs("healthData");
     /**
     * Show dialog for fist time to the user regarding log capturing by Brackets
     */
@@ -45,9 +46,9 @@ define(function (require, exports, module) {
             PreferencesManager.setViewState("healthDataNotification", (new Date()).getTime());
      
             if (id === Dialogs.DIALOG_BTN_OK) {
-                PreferencesManager.setViewState("healthDataTracking", true);
+                prefs.set("healthDataTracking", true);
             } else if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                PreferencesManager.setViewState("healthDataTracking", false);
+                prefs.set("healthDataTracking", false);
             }
         });
     }

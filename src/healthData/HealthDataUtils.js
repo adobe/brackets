@@ -76,7 +76,29 @@ define(function (require, exports, module) {
             result.reject();
         }
     }
+	
+	function createFileIfNotExists(healthDataFilePath) {
+		var result = new $.Deferred();
+		
+		var file = FileSystem.getFileForPath(healthDataFilePath);
+		
+		file.exists(function (err, doesExist) {
+            if (doesExist) {
+                result.resolve();
+            } else {
+                FileUtils.writeText(file, "", true)
+                    .done(function () {
+                        result.resolve();
+                    })
+					.fail(function () {
+						result.reject();
+					});
+            }
+        });
+		return result.promise();
+	}
     
-    exports.readHealthDataFile  = readHealthDataFile;
-    exports.writeHealthDataFile = writeHealthDataFile;
+    exports.readHealthDataFile    = readHealthDataFile;
+    exports.writeHealthDataFile   = writeHealthDataFile;
+	exports.createFileIfNotExists = createFileIfNotExists;
 });

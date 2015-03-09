@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, brackets */
 
 define(function (require, exports, module) {
     "use strict";
@@ -32,61 +32,170 @@ define(function (require, exports, module) {
         HealthDataManager  = require("healthData/HealthDataManager"),
         HealthDataUtils    = require("healthData/HealthDataUtils");
     
-    var localBuffer = HealthDataManager.localStorageBuffer;
+    var prefs = PreferencesManager.getExtensionPrefs("healthData");
+    var localBuffer = {},
+        eventMaps   = {};
     
-    var PERSIS_TIME = 5 * 60 * 1000;
+    var PERSIST_TIME = 60 * 1000;
     
-    var persisLocalIntervalId;
+    var persistLocalIntervalId;
     
-    function persistLocalData() {
-        if (!$.isEmptyObject(localBuffer)) {
-            HealthDataUtils.writeHealthDataFile(localBuffer, HealthDataManager.healthDataFilePath).done(function() {
-                localBuffer = {};
-            });;
+    function log(sourceObject, targetObject, key) {
+        targetObject[key] = sourceObject[key];
+    }
+    
+    function add(sourceObject, targetObject, key) {
+        if (typeof sourceObject[key] === "number") {
+            targetObject[key] += sourceObject[key];
+        } else if (Array.isArray(sourceObject[key])) {
+            targetObject[key] = targetObject[key] || [];
+            targetObject[key].concat(sourceObject[key]);
+        } else {
+            targetObject[key] = sourceObject[key];
         }
     }
     
-    persisLocalIntervalId = window.setInterval(persistLocalData, PERSIS_TIME);
+    function mergeEvents(sourceObject, targetObject) {
+        var key;
+        for (key in sourceObject) {
+            if (sourceObject.hasOwnProperty(key)) {
+                if (!targetObject[key]) {
+                    targetObject[key] = sourceObject[key];
+                } else {
+                    
+                    switch (eventMaps[key]) {
+                            
+                    case "add":
+                        add(sourceObject, targetObject, key);
+                        break;
+                    
+                    case "log":
+                        log(sourceObject, targetObject, key);
+                        break;
+                            
+                    default:
+                        if (sourceObject[key] instanceof Array) {
+                            targetObject[key] = sourceObject[key];
+                        } else if (sourceObject[key] instanceof Object) {
+                            mergeEvents(sourceObject[key], targetObject[key]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    function persistLocalData() {
+        if (!$.isEmptyObject(localBuffer)) {
+			
+			HealthDataUtils.createFileIfNotExists(HealthDataManager.healthDataFilePath)
+				.done(function () {
+					HealthDataUtils.readHealthDataFile(HealthDataManager.healthDataFilePath)
+						.done(function (jsonObject) {
+							mergeEvents(localBuffer, jsonObject);
+
+							HealthDataUtils.writeHealthDataFile(localBuffer, HealthDataManager.healthDataFilePath)
+								.done(function () {
+									localBuffer = {};
+								})
+								.fail(function () {
+
+								});
+
+						})
+						.fail(function () {
+						});
+				});
+      
+        }
+    }
+    
+    persistLocalIntervalId = window.setInterval(persistLocalData, PERSIST_TIME);
     
     //Used to handle the logs which will be send once before we send the health data file to the server
     function handleOneTimeData() {
-        
+        localBuffer.bracketsVersion = brackets.metadata.version;
+        localBuffer.os = brackets.platform;
     }
     
-    function handleClickLivePreview() {
+    function getExtensionInstalledEventMap() {
+        var eventMap = {
+            "name" : "log",
+            "version" : "log"
+        };
+        return eventMap;
+    }
+            
+    function getLivePreviewEventMap() {
+        return {"click" : "add", "fileName" : "log"};
+    }
+            
+    function getMultiBrowserLPEventMap() {
+        return {"clicks" : "add"};
+    }
+    
+    function handleClickLivePreview(params) {
+        eventMaps[params.key] = getLivePreviewEventMap;
+        mergeEvents(params, localBuffer);
+    }
+    
+    function handleClickMultiBrowserLP(params) {
+        eventMaps[params.key] = getMultiBrowserLPEventMap;
+        mergeEvents(params, localBuffer);
+    }
+    
+    function handleExtensionInstalled(params) {
+        eventMaps[params.key] = getExtensionInstalledEventMap;
+        mergeEvents(params, localBuffer);
     }
     
     var eventFunctionMaps = {
         "oneTimeData" : handleOneTimeData,
-        "clickLivePreview" : handleClickLivePreview
+        "clickLivePreview" : handleClickLivePreview,
+        "multiBrowserLPClick" : handleClickMultiBrowserLP,
+        "extensionInstalled" : handleExtensionInstalled
     };
     
-    PreferencesManager.definePreference("healthDataTracking", "boolean", true);
+    prefs.definePreference("healthDataTracking", "boolean", true);
     
-    function logEvent(eventName, params) {
-        if (eventFunctionMaps[eventName] && typeof eventFunctionMaps[eventName] === "function") {
+    function logEvent(e, eventName, params) {
+        if (eventFunctionMaps[eventName] && eventFunctionMaps[eventName] instanceof Function) {
             eventFunctionMaps[eventName](params);
         }
     }
     
     function manageEventsTracking() {
-        var isHDTracking = PreferencesManager.get("healthDataTracking");
+        var isHDTracking = prefs.get("healthDataTracking");
         if (isHDTracking) {
             exports.on("logEvent", logEvent);
-            persisLocalIntervalId = window.setInterval(persistLocalData, PERSIS_TIME);
+            persistLocalIntervalId = window.setInterval(persistLocalData, PERSIST_TIME);
         } else {
             exports.off("logEvent", logEvent);
-            window.clearInterval(persisLocalIntervalId);
+            window.clearInterval(persistLocalIntervalId);
             
         }
     }
     
-    PreferencesManager.on("change", "healthDataTracking", function () {
+    prefs.on("change", "healthDataTracking", function () {
         manageEventsTracking();
     });
+       
+            
+/*    function getGUIDEventMap() {
+        return {"guid" : "log"};
+    }
     
+    function getSnapShotTimeEventMap() {
+        return {"snapShotTime" : "log"};
+    }
+            
+    function getOSVersionEventMap() {
+        return {"osVersion" : "log"};
+    }*/
     
     EventDispatcher.makeEventDispatcher(exports);
     
     exports.on("logEvent", logEvent);
+    exports.mergeEvents       = mergeEvents;
+	exports.localBuffer		  = localBuffer;
 });

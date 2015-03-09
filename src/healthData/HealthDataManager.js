@@ -27,65 +27,88 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var AppInit             = require("utils/AppInit"),
-        PreferencesManager  = require("preferences/PreferencesManager"),
-        HealthDataUtils     = require("healthData/HealthDataUtils");
+    var AppInit                = require("utils/AppInit"),
+        PreferencesManager     = require("preferences/PreferencesManager"),
+        HealthDataUtils        = require("healthData/HealthDataUtils"),
+        HealthDataEventManager = require("healthData/HealthDataEventManager");
     
-    var localStorageBuffer = {},
-        queueStorageBuffer = {},
+    var prefs = PreferencesManager.getExtensionPrefs("healthData");
+    var queueStorageBuffer = {},
         persistedStorage   = {};
+	
+	var localStorageBuffer = HealthDataEventManager.localBuffer;
     
     var HEALTH_DATA_FILE = "healthdata.json";
     var healthDataFilePath = brackets.app.getApplicationSupportDirectory() + "/" + HEALTH_DATA_FILE;
     
-    var ONE_DAY = 24 * 60 * 60 * 1000;
-    var ONE_MINUTE = 60 * 60 * 1000;
+    var ONE_DAY = 2 * 60 * 1000;
     
     var timeoutVar;
     
+    function sendDataToServer(data) {
+        var result = new $.Deferred();
+        
+        //ajax call 
+        
+        return result.promise();
+    }
+    
     function sendHealthDataToServer() {
-        var lastTimeSend = PreferencesManager.getViewState("lastTimeSendHealthData"),
+		HealthDataUtils.createFileIfNotExists(healthDataFilePath)
+			.done(function () {
+				HealthDataUtils.readHealthDataFile(healthDataFilePath)
+					.done(function (jsonData) {
+						HealthDataEventManager.mergeEvents(localStorageBuffer, jsonData);
+
+						sendDataToServer(jsonData)
+							.done(function () {
+								HealthDataUtils.writeHealthDataFile({}, healthDataFilePath);
+							})
+							.fail(function () {
+								HealthDataUtils.writeHealthDataFile(jsonData, healthDataFilePath);
+							});
+
+					});
+			});
+		
+
+    }
+    
+    function checkHealthDataExport() {
+        var lastTimeSend = PreferencesManager.getViewState("lastTimeSendHealthData") || 0,
             currentTime  = (new Date()).getTime();
-        if (!lastTimeSend) {
-            timeoutVar = window.setTimeout(sendHealthDataToServer, ONE_DAY);
-            return;
-        }
         
         if ((new Date()).getTime() >= lastTimeSend + ONE_DAY) {
-            persistedStorage = HealthDataUtils.readHealthDataFile(healthDataFilePath);
-            var newData;//Merge localStorageBuffer with PersistedStorage. Get it in new Data
-            //Send newData to the server
-            //If sucess remove the contents of file except GUID
-            
-            //If failure write all newData to the file
-            HealthDataUtils.writeHealthDataFile(newData, healthDataFilePath);
-            
-            timeoutVar = window.setTimeout(sendHealthDataToServer, ONE_DAY);
-            
+            HealthDataEventManager.trigger("logEvent", "oneTimeData");
+            sendHealthDataToServer();
+            timeoutVar = window.setTimeout(checkHealthDataExport, ONE_DAY);
         } else {
-            timeoutVar = window.setTimeout(sendHealthDataToServer, lastTimeSend + ONE_DAY - currentTime);
+            timeoutVar = window.setTimeout(checkHealthDataExport, lastTimeSend + ONE_DAY - currentTime);
         }
     }
     
-    PreferencesManager.on("change", "healthDataTracking", function () {
-        var isHDTracking = PreferencesManager.get("healthDataTracking");
+    prefs.on("change", "healthDataTracking", function () {
+        var isHDTracking = prefs.get("healthDataTracking");
         
         if (isHDTracking) {
-            sendHealthDataToServer();
+            checkHealthDataExport();
         } else {
             window.clearTimeout(timeoutVar);
         }
     });
     
-    AppInit.addReady(function () {
+    AppInit.appReady(function () {
         var lastTimeSend = PreferencesManager.getViewState("lastTimeSendHealthData");
 
-        sendHealthDataToServer();
+        if (lastTimeSend) {
+            checkHealthDataExport();
+        } else {
+			window.setTimeout(checkHealthDataExport, ONE_DAY);
+		}
+		
     });
     
-    
-    
-    exports.localStorageBuffer    = localStorageBuffer;
+ 
     exports.queueStorageBuffer    = queueStorageBuffer;
     exports.persistedStorage      = persistedStorage;
     exports.healthDataFilePath    = healthDataFilePath;
