@@ -63,6 +63,7 @@ define(function (require, exports, module) {
         "sk": true,
         "sr": true,
         "sv": true,
+        "ta": true,
         "tr": true,
         "uk": true,
         "zh-cn": true,
