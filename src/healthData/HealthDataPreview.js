@@ -31,11 +31,12 @@ define(function (require, exports, module) {
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
         FileSystem              = require("filesystem/FileSystem"),
-        FileUtils               = require("file/FileUtils");
+        FileUtils               = require("file/FileUtils"),
+        HealthDataManager       = require("healthData/HealthDataManager");
    
     var HEALTH_DATA_FILE = "healthdata.json";
     
-    var healthDataFile = brackets.app.getApplicationSupportDirectory() + "/" + HEALTH_DATA_FILE;
+    var healthDataFile = HealthDataManager.healthDataFilePath;
     
     function getPreviewFile(file) {
         var result = new $.Deferred();
@@ -75,6 +76,5 @@ define(function (require, exports, module) {
     }
     
     exports.previewHealthDataFile            = previewHealthDataFile;
-    exports.healthDataFile                   = healthDataFile;
                                      
 });
