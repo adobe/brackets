@@ -32,19 +32,19 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var _                            = require("thirdparty/lodash"),
-        AnimationUtils               = require("utils/AnimationUtils"),
-        AppInit                      = require("utils/AppInit"),
-        DropdownButton               = require("widgets/DropdownButton").DropdownButton,
-        EditorManager                = require("editor/EditorManager"),
-        MainViewManager              = require("view/MainViewManager"),
-        Editor                       = require("editor/Editor").Editor,
-        KeyEvent                     = require("utils/KeyEvent"),
-        LanguageManager              = require("language/LanguageManager"),
-        PreferencesManager           = require("preferences/PreferencesManager"),
-        StatusBar                    = require("widgets/StatusBar"),
-        Strings                      = require("strings"),
-        StringUtils                  = require("utils/StringUtils");
+    var _                    = require("thirdparty/lodash"),
+        AnimationUtils       = require("utils/AnimationUtils"),
+        AppInit              = require("utils/AppInit"),
+        DropdownButton       = require("widgets/DropdownButton").DropdownButton,
+        EditorManager        = require("editor/EditorManager"),
+        MainViewManager      = require("view/MainViewManager"),
+        Editor               = require("editor/Editor").Editor,
+        KeyEvent             = require("utils/KeyEvent"),
+        LanguageManager      = require("language/LanguageManager"),
+        PreferencesManager   = require("preferences/PreferencesManager"),
+        StatusBar            = require("widgets/StatusBar"),
+        Strings              = require("strings"),
+        StringUtils          = require("utils/StringUtils");
     
     /* StatusBar indicators */
     var languageSelect, // this is a DropdownButton instance
