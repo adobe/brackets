@@ -317,6 +317,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "ذخیره همه",
     "CMD_FILE_SAVE_AS"                    : "ذخیره با نام\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "پیش نمایش زنده",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "فعال کردن پیش نمایش تجربی",
     "CMD_RELOAD_LIVE_PREVIEW"             : "بارگذاری مجدد پیش نمایش زنده (با فشار)",
     "CMD_PROJECT_SETTINGS"                : "تنظیمات پروژه\u2026",
     "CMD_FILE_RENAME"                     : "تغییر نام",
@@ -627,4 +628,4 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "بیشتر بخوانید"
 });
-/* Last translated for c292e896761bc7d451a9e3b95bedd20d6b355d77 */
+/* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */
