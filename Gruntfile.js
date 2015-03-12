@@ -21,11 +21,20 @@
  *
  */
 /*global module, require*/
+
+// Brackets specific config vars
+var habitat = require('habitat');
+habitat.load();
+var env = new habitat();
+
+var GIT_BRANCH = env.get("BRAMBLE_MAIN_BRANCH") || "bramble";
+var GIT_REMOTE = env.get("BRAMBLE_MAIN_REMOTE") || "upstream";
+
 module.exports = function (grunt) {
     'use strict';
 
     // load dependencies
-    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty']});
+    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty', 'grunt-npm', 'grunt-git', 'grunt-update-submodules']});
     grunt.loadTasks('tasks');
 
     // Project configuration.
@@ -321,7 +330,7 @@ module.exports = function (grunt) {
                 '<%= meta.src %>',
                 '<%= meta.test %>',
                 // These modules include lots of third-party code, so we skip them
-                '!src/extensions/default/HTMLHinter/slowparse/**', 
+                '!src/extensions/default/HTMLHinter/slowparse/**',
                 '!src/extensions/default/HTMLHinter/tooltipsy.source.js',
                 '!src/extensions/default/brackets-browser-livedev/nohost/**',
                 //With Previous skip statement, this file was ignored, so we specify it directly for jshinting
@@ -331,7 +340,7 @@ module.exports = function (grunt) {
             src:    [
                 '<%= meta.src %>',
                 // These modules include lots of third-party code, so we skip them
-                '!src/extensions/default/HTMLHinter/slowparse/**', 
+                '!src/extensions/default/HTMLHinter/slowparse/**',
                 '!src/extensions/default/HTMLHinter/tooltipsy.source.js',
                 '!src/extensions/default/brackets-browser-livedev/nohost/**',
                 //With Previous skip statement, this file was ignored, so we specify it directly for jshinting
@@ -348,8 +357,136 @@ module.exports = function (grunt) {
             mac: "<%= shell.repo %>/installer/mac/staging/<%= pkg.name %>.app",
             win: "<%= shell.repo %>/installer/win/staging/<%= pkg.name %>.exe",
             linux: "<%= shell.repo %>/installer/linux/debian/package-root/opt/brackets/brackets"
+        },
+
+        // Brackets specific tasks
+        'npm-checkBranch': {
+            options: {
+                branch: GIT_BRANCH
+            }
+        },
+        gitcheckout: {
+            smart: {
+                options: {
+                    branch: 'gh-pages',
+                    overwrite: false
+                }
+            },
+        },
+        gitfetch: {
+            smart: {
+                options: {}
+            }
+        },
+        "update_submodules": {
+            publish: {
+                options: {
+                    params: "--remote -- src/extensions/default/brackets-browser-livedev"
+                }
+            }
+        },
+        gitcommit: {
+            module: {
+                options: {
+                    // This is replaced during the 'publish' task
+                    message: "Placeholder"
+                }
+            },
+            publish: {
+                options: {
+                   noStatus: true,
+                   allowEmpty: true,
+                   message: "Latest distribution version of Bramble."
+                }
+            }
+        },
+        gitadd: {
+            publish: {
+                files: {
+                    src: ['./dist/*']
+                },
+                options: {
+                    force: true
+                }
+            },
+            modules: {
+                files: {
+                    src: ['./src/extensions/default/brackets-browser-livedev']
+                }
+            }
+        },
+        gitpush: {
+            smart: {
+                options: {
+                    remote: GIT_REMOTE,
+                    // These options are left in for
+                    // clarity. Their actual values
+                    // will be set by the `publish` task.
+                    branch: 'gh-pages',
+                    force: true
+                },
+            }
         }
     });
+
+    // Bramble-task: smartCheckout
+    //   Checks out to the branch provided as a target.
+    //   Takes:
+    //    [branch] - The branch to checkout to
+    //    [overwrite] - If true, resets the target branch to the
+    //                  value of the starting branch
+    grunt.registerTask('smartCheckout', function(branch, overwrite) {
+        overwrite = overwrite == "true" ? true : false;
+
+        grunt.config('gitcheckout.smart.options.branch', branch);
+        grunt.config('gitcheckout.smart.options.overwrite', overwrite);
+        grunt.task.run('gitcheckout:smart');
+    });
+
+    // Bramble-task: smartPush
+    //   Checks out to the branch provided as a target.
+    //   Takes:
+    //    [branch] - The branch to push to
+    //    [force] - If true, forces a push
+    grunt.registerTask('smartPush', function(branch, force) {
+        force = force == "true" ? true : false;
+
+        grunt.config('gitpush.smart.options.branch', branch);
+        grunt.config('gitpush.smart.options.force', force);
+        grunt.task.run('gitpush:smart');
+    });
+
+    // Bramble-task: publish
+    //  Updates submodules, committing and pushing
+    //  the result upstream, and also builds and pushes the
+    //  dist version for use in thimble.
+    grunt.registerTask('publish', 'Update submodules and the gh-pages branch with the latest built version of bramble.', function(patchLevel) {
+        var tasks = [];
+
+        var date = new Date(Date.now()).toString();
+        grunt.config("gitcommit.module.options.message", "Submodule update on " + date);
+
+        // Confirm we're ready to start
+        tasks.push('checkBranch');
+
+        // Update submodules, commit and push to "master"
+        tasks.push('update_submodules:publish');
+        tasks.push('gitadd:modules');
+        tasks.push('gitcommit:module');
+        tasks.push('smartPush:' + GIT_BRANCH + ":false");
+
+        // Update gh-pages with new dist
+        tasks.push('smartCheckout:gh-pages:true');
+        tasks.push('build');
+        tasks.push('gitadd:publish');
+        tasks.push('gitcommit:publish');
+        tasks.push('smartPush:gh-pages:true');
+
+        // Checkout back to the correct branch
+        tasks.push('smartCheckout:' + GIT_BRANCH);
+
+        grunt.task.run(tasks);
+      });
 
     // task: install
     grunt.registerTask('install', ['write-config', 'less']);
