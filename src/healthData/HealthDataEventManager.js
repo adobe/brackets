@@ -30,7 +30,8 @@ define(function (require, exports, module) {
     var PreferencesManager = require("preferences/PreferencesManager"),
         EventDispatcher    = require("utils/EventDispatcher"),
         HealthDataManager  = require("healthData/HealthDataManager"),
-        HealthDataUtils    = require("healthData/HealthDataUtils");
+        HealthDataUtils    = require("healthData/HealthDataUtils"),
+        GUIDGenerator      = require("utils/GUIDGenerator");
     
     var prefs = PreferencesManager.getExtensionPrefs("healthData");
     var localBuffer = {},
@@ -114,8 +115,18 @@ define(function (require, exports, module) {
     
     //Used to handle the logs which will be send once before we send the health data file to the server
     function handleOneTimeData() {
-        localBuffer.bracketsVersion = brackets.metadata.version;
+        localBuffer.snapshotTime = (new Date()).getTime();
         localBuffer.os = brackets.platform;
+        localBuffer.osLanguage = brackets.app.language;
+        localBuffer.bracketsLanguage = brackets.getLocale();
+        localBuffer.bracketsVersion = brackets.metadata.version;
+    }
+    
+    function handleAddGUID(obj) {
+        if (!obj.guid) {
+            var guid = GUIDGenerator.getGUID();
+            localBuffer.guid = guid;
+        }
     }
     
     function getExtensionInstalledEventMap() {
@@ -150,6 +161,7 @@ define(function (require, exports, module) {
     }
     
     var eventFunctionMaps = {
+        "addGUID" : handleAddGUID,
         "oneTimeData" : handleOneTimeData,
         "clickLivePreview" : handleClickLivePreview,
         "multiBrowserLPClick" : handleClickMultiBrowserLP,

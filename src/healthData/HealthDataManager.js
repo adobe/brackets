@@ -58,6 +58,8 @@ define(function (require, exports, module) {
 			.done(function () {
 				HealthDataUtils.readHealthDataFile(healthDataFilePath)
 					.done(function (jsonData) {
+                        HealthDataEventManager.trigger("logEvent", "oneTimeData");
+                        HealthDataEventManager.trigger("logEvent", "addGUID", jsonData);
 						HealthDataEventManager.mergeEvents(localStorageBuffer, jsonData);
 
 						sendDataToServer(jsonData)
@@ -79,7 +81,6 @@ define(function (require, exports, module) {
             currentTime  = (new Date()).getTime();
         
         if ((new Date()).getTime() >= lastTimeSend + ONE_DAY) {
-            HealthDataEventManager.trigger("logEvent", "oneTimeData");
             sendHealthDataToServer();
             timeoutVar = window.setTimeout(checkHealthDataExport, ONE_DAY);
         } else {
