@@ -417,6 +417,8 @@ define({
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
+    "CMD_HEALTH_DATA_NOTIFICATION"        : "HealthData Notification",
+    "CMD_SHOW_HEALTH_DATA_LOG"            : "Preview HealthData",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
@@ -624,5 +626,13 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Read more"
+    "DOCS_MORE_LINK"                            : "Read more",
+    
+    //Health Data
+    "HEALTH_DATA_NOTIFICATION"                  : "Health Data Notification",
+    "HEALTH_DATA_DO_TRACK"                      : "Track",
+    "HEALTH_DATA_DO_NOT_TRACK"                  : "Do Not Track",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Health Data Notification Message",
+    "HEALTH_DATA_PREVIEW"                       : "Health Data Preview File",
+    "HEALTH_DATA_PREVIEW_MESSAGE"               : "No Data to Show"
 });
