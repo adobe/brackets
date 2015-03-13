@@ -488,7 +488,7 @@ module.exports = function (grunt) {
 
     // Bramble-task: publish
     //  Builds and pushes the dist version for use in thimble.
-    grunt.registerTask('publish-submodules', 'Update submodules and the gh-pages branch with the latest built version of bramble.', function(patchLevel) {
+    grunt.registerTask('publish', 'Update submodules and the gh-pages branch with the latest built version of bramble.', function(patchLevel) {
         var date = new Date(Date.now()).toString();
         grunt.config("gitcommit.module.options.message", "Submodule update on " + date);
 
