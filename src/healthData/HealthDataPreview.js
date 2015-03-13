@@ -29,19 +29,21 @@ define(function (require, exports, module) {
     
     var HealthDataPreviewDialog = require("text!htmlContent/healthdata-preview-dialog.html"),
         Strings                 = require("strings"),
-        Dialogs                 = require("widgets/Dialogs");
-
+        Dialogs                 = require("widgets/Dialogs"),
+        HealthDataManager       = require("healthData/HealthDataManager");
     /** 
     * Show dialog for previewing the data send to server for Health Data
     */
     
     function previewHealthDataFile() {
-        var content = Strings.HEALTH_DATA_PREVIEW_MESSAGE;
-        
+        var healthDataObject = HealthDataManager.getHealthData();
+        var content = JSON.stringify(healthDataObject, null, 4);
+        content = content.replace(/ /g, "&nbsp;");
+        content = content.replace(/(?:\r\n|\r|\n)/g, "<br />");
         var template = Mustache.render(HealthDataPreviewDialog, {Strings: Strings, content: content});
         Dialogs.showModalDialogUsingTemplate(template);
     }
     
-    exports.previewHealthDataFile            = previewHealthDataFile;
+    exports.previewHealthDataFile = previewHealthDataFile;
                                      
 });
