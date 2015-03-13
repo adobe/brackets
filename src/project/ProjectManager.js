@@ -102,6 +102,7 @@ define(function (require, exports, module) {
         _showErrorDialog,
         _saveTreeState,
         renameItemInline,
+        _renderTreeSync,
         _renderTree;
 
     /**
@@ -618,7 +619,7 @@ define(function (require, exports, module) {
      * 
      * @param {boolean} forceRender Force the tree to rerender. Should only be needed by extensions that call rerenderTree.
      */
-    _renderTree = function (forceRender) {
+    _renderTreeSync = function (forceRender) {
         var projectRoot = getProjectRoot();
         if (!projectRoot) {
             return;
@@ -627,7 +628,7 @@ define(function (require, exports, module) {
         FileTreeView.render(fileTreeViewContainer, model._viewModel, projectRoot, actionCreator, forceRender, brackets.platform);
     };
 
-    _renderTree = _.debounce(_renderTree, _RENDER_DEBOUNCE_TIME);
+    _renderTree = _.debounce(_renderTreeSync, _RENDER_DEBOUNCE_TIME);
 
     /**
      * @private
@@ -1183,7 +1184,8 @@ define(function (require, exports, module) {
                 Menus.closeAll();
                 actionCreator.setContext(null);
             }
-            _renderTree();
+            // we need to render the tree without a delay to not cause selection extension issues (#10573)
+            _renderTreeSync();
         });
         
         _renderTree();
