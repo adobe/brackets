@@ -169,6 +169,17 @@
 
 .dark {
     .inline-widget {
+        
+    .CodeMirror .CodeMirror-activeline-background {
+        background-color: @activeline-bg-unfocused-dark;
+    }
+    
+    .CodeMirror .CodeMirror-activeline {
+        .CodeMirror-gutter-elt {
+            background-color: @activeline-number-bg-unfocused-dark;
+        }
+    }
+        
         color: @dark-bc-text;
         background-color: @dark-bc-bg-inline-widget;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -265,6 +276,21 @@
     .CodeMirror .CodeMirror-activeline {
         .CodeMirror-gutter-elt {
             background-color: @activeline-number-bg-unfocused-dark;
+        }
+    }
+    
+    /* For nested editor */
+    .CodeMirror {
+        .CodeMirror .CodeMirror-activeline-background {
+            /* Only way I found to override the normal style*/
+            background-color: @activeline-bg-unfocused-dark!important;
+        }
+
+        .CodeMirror .CodeMirror-activeline {
+            .CodeMirror-gutter-elt {
+            /* Only way I found to override the normal style*/
+                background-color: @activeline-number-bg-unfocused-dark!important;
+            }
         }
     }
 }
