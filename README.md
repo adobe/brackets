@@ -15,7 +15,7 @@ back and forth between your real source code and the browser view.
 * **Do it yourself.** Because Brackets is open source, and built with HTML, CSS
 and JavaScript, you can [help build](https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md) the best code editor for the web.
 
-Brackets is at 1.0 and we're not stopping there. We have many feature ideas on our
+Brackets may have reached version 1, but we're not stopping there. We have many feature ideas on our
 [trello board](http://bit.ly/BracketsTrelloBoard) that we're anxious to add and other
 innovative web development workflows that we're planning to build into Brackets. 
 So take Brackets out for a spin and let us know how we can make it your favorite editor. 

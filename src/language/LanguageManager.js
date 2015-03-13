@@ -398,7 +398,40 @@ define(function (require, exports, module) {
     function _resetPathLanguageOverrides() {
         _filePathToLanguageMap = {};
     }
+    
+    /**
+     * Get the file extension (excluding ".") given a path OR a bare filename.
+     * Returns "" for names with no extension.
+     * If the only `.` in the file is the first character,
+     * returns "" as this is not considered an extension.
+     * This method considers known extensions which include `.` in them.
+     *
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the extension of a filename or empty string if
+     * the argument is a directory or a filename with no extension
+     */
+    function getCompoundFileExtension(fullPath) {
+        var baseName = FileUtils.getBaseName(fullPath),
+            parts = baseName.split(".");
 
+        // get rid of file name
+        parts.shift();
+        if (baseName[0] === ".") {
+            // if starts with a `.`, then still consider it as file name
+            parts.shift();
+        }
+
+        var extension = [parts.pop()], // last part is always an extension
+            i = parts.length;
+        while (i--) {
+            if (getLanguageForExtension(parts[i])) {
+                extension.unshift(parts[i]);
+            } else {
+                break;
+            }
+        }
+        return extension.join(".");
+    }
 
     
 
@@ -1067,7 +1100,7 @@ define(function (require, exports, module) {
     // far were strings, so we spare us the trouble of allowing more complex mode values.
     CodeMirror.defineMIME("text/x-brackets-html", {
         "name": "htmlmixed",
-        "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|^text\/html$/i,
+        "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|\/ng-template$|^text\/html$/i,
                        "mode": null}]
     });
 
@@ -1135,4 +1168,5 @@ define(function (require, exports, module) {
     exports.getLanguageForPath          = getLanguageForPath;
     exports.getLanguages                = getLanguages;
     exports.setLanguageOverrideForPath  = setLanguageOverrideForPath;
+    exports.getCompoundFileExtension    = getCompoundFileExtension;
 });
