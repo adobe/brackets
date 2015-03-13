@@ -406,7 +406,6 @@ define(function (require, exports, module) {
                     "QuickOpenJavaScript",
                     "QuickView",
                     "UrlCodeHints",
-                    "WebPlatformDocs",
 
                     // Custom extensions we want loaded by default
                     "HTMLHinter",
