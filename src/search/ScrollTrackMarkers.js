@@ -83,7 +83,7 @@ define(function (require, exports, module) {
         if (trackHt > 0) {
             // Scrollbar visible: determine offset of track from top of scrollbar
             if (brackets.platform === "win") {
-                trackOffset = 0;  // Custom scrollbar CSS has no gap around the track
+                trackOffset = 15;  // Custom scrollbar CSS has no gap around the track
             } else if (brackets.platform === "mac") {
                 trackOffset = 4;  // Native scrollbar has padding around the track
             } else { //(Linux)
