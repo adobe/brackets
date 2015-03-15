@@ -270,12 +270,10 @@ define(function (require, exports, module) {
         var $root = this._modalBar.getRoot();
         $root.find("#find-further-options").replaceWith(this._optionsDropdown.$button.attr("id", "find-further-options").addClass("no-focus"));
         
-        $(this._optionsDropdown).on("select", function (event, item, itemIndex) {
-            event.stopPropagation();
-            event.preventDefault();
-            var $item = this.$dropdown.find("#" + item.id).toggleClass("active");
-            PreferencesManager.setViewState(item.pref, $item.is(".active"));
-            $(self).triggerHandler("queryChange");
+        this._optionsDropdown.on("select", function (item, itemIndex) {
+            var $item = self._optionsDropdown.$dropdown.find("#" + itemIndex.id).toggleClass("active");
+            PreferencesManager.setViewState(itemIndex.pref, $item.is(".active"));
+            self.trigger("queryChange");
         });
 
         $root
