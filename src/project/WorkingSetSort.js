@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 /**
  * Manages the workingSetList sort methods.
@@ -147,7 +147,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _removeListeners() {
-        $(MainViewManager).off(".sort");
+        MainViewManager.off(".sort");
     }
     
     /**
@@ -173,7 +173,7 @@ define(function (require, exports, module) {
      */
     function _addListeners() {
         if (_automaticSort && _currentSort && _currentSort.getEvents()) {
-            $(MainViewManager)
+            MainViewManager
                 .on(_currentSort.getEvents(), function () {
                     _currentSort.sort();
                 })

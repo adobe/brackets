@@ -80,11 +80,12 @@ define(function (require, exports, module) {
         }
         
         // Ask provider for hints at current cursor position; expect it to return some
-        function expectHints(provider, implicitChar) {
+        function expectHints(provider, implicitChar, returnWholeObj) {
             expect(provider.hasHints(testEditor, implicitChar)).toBe(true);
             var hintsObj = provider.getHints();
             expect(hintsObj).toBeTruthy();
-            return extractHintList(hintsObj.hints); // return just the array of hints
+            // return just the array of hints if returnWholeObj is falsy
+            return returnWholeObj ? hintsObj : extractHintList(hintsObj.hints);
         }
         
         // Ask provider for hints at current cursor position; expect it NOT to return any
@@ -661,6 +662,77 @@ define(function (require, exports, module) {
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 // some-named-flow should not be in the hint list since it is inside HTML text
                 verifyAllValues(hintList, []);
+            });
+        });
+
+        describe("Color names and swatches in a CSS file", function () {
+            beforeEach(function () {
+                setupTest(testContentCSS, "css");
+            });
+            
+            afterEach(function () {
+                tearDownTest();
+            });
+            
+            it("should list color names for color", function () {
+                testEditor.setCursorPos({ line: 98, ch: 11 }); // after color
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "aliceblue"); // first hint should be aliceblue
+            });
+            
+            it("should show color swatches for background-color", function () {
+                testEditor.setCursorPos({ line: 99, ch: 22 }); // after background-color
+                var hints = expectHints(CSSCodeHints.cssPropHintProvider, undefined, true).hints;
+                expect(hints[0].text()).toBe("aliceblue"); // first hint should be aliceblue
+                expect(hints[0].find(".color-swatch").length).toBe(1);
+                expect(hints[0].find(".color-swatch").css("backgroundColor")).toBe("rgb(240, 248, 255)");
+            });
+            
+            it("should filter out color names appropriately", function () {
+                testEditor.setCursorPos({ line: 100, ch: 27 }); // after border-left-color
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "deeppink"); // first hint should be deeppink
+                verifyAllValues(hintList, ["deeppink", "deepskyblue"]);
+            });
+            
+            it("should always include transparent and currentColor and they should not have a swatch, but class no-swatch-margin", function () {
+                testEditor.setCursorPos({ line: 101, ch: 22 }); // after border-color
+                var hints = expectHints(CSSCodeHints.cssPropHintProvider, undefined, true).hints,
+                    hintList = extractHintList(hints);
+                verifyAttrHints(hintList, "currentColor"); // first hint should be currentColor
+                verifyAllValues(hintList, ["currentColor", "darkmagenta", "transparent"]);
+                expect(hints[0].find(".color-swatch").length).toBe(0); // no swatch for currentColor
+                expect(hints[2].find(".color-swatch").length).toBe(0); // no swatch for transparent
+                expect(hints[0].hasClass("no-swatch-margin")).toBeTruthy(); // no-swatch-margin applied to currentColor
+                expect(hints[2].hasClass("no-swatch-margin")).toBeTruthy(); // no-swatch-margin applied to transparent
+            });
+
+            it("should remove class no-swatch-margin from transparent if it's the only one in the list", function () {
+                testEditor.setCursorPos({ line: 103, ch: 22 }); // after color
+                var hints = expectHints(CSSCodeHints.cssPropHintProvider, undefined, true).hints,
+                    hintList = extractHintList(hints);
+                verifyAllValues(hintList, ["transparent"]);
+                expect(hints[0].find(".color-swatch").length).toBe(0); // no swatch for transparent
+                expect(hints[0].hasClass("no-swatch-margin")).toBeFalsy(); // no-swatch-margin not applied to transparent
+            });
+            
+            it("should insert color names correctly", function () {
+                var expectedString  = "    border-left-color: deeppink;",
+                    line            = 100;
+
+                testEditor.setCursorPos({ line: line, ch: 27 }); // after border-left-color
+                expectHints(CSSCodeHints.cssPropHintProvider);
+                selectHint(CSSCodeHints.cssPropHintProvider, "deeppink");
+                expect(testDocument.getLine(line).length).toBe(expectedString.length);
+                expect(testDocument.getLine(line)).toBe(expectedString);
+                expectCursorAt({ line: line, ch: expectedString.length - 1 });
+            });
+            
+            
+            it("should not display color names for unrelated properties", function () {
+                testEditor.setCursorPos({ line: 102, ch: 12 }); // after height
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                expect(hintList.indexOf("aliceblue")).toBe(-1);
             });
         });
 

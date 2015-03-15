@@ -33,7 +33,6 @@ define(function (require, exports, module) {
     
     var AppInit         = require("utils/AppInit"),
         Commands        = require("command/Commands"),
-        EditorManager   = require("editor/EditorManager"),
         Menus           = require("command/Menus"),
         Strings         = require("strings");
     
@@ -54,6 +53,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_SAVE_AS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW);
+        menu.addMenuItem(Commands.TOGGLE_LIVE_PREVIEW_MB_MODE);
         menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_EXTENSION_MANAGER);
@@ -271,38 +271,40 @@ define(function (require, exports, module) {
          * an existing selection
          */
         $("#editor-holder").on("contextmenu", function (e) {
-            if ($(e.target).parents(".CodeMirror-gutter").length !== 0) {
-                return;
-            }
-            
-            // Note: on mousedown before this event, CodeMirror automatically checks mouse pos, and
-            // if not clicking on a selection moves the cursor to click location. When triggered
-            // from keyboard, no pre-processing occurs and the cursor/selection is left as is.
-            
-            var editor = EditorManager.getFocusedEditor(),
-                inlineWidget = EditorManager.getFocusedInlineWidget();
-            
-            if (editor) {
-                // If there's just an insertion point select the word token at the cursor pos so
-                // it's more clear what the context menu applies to.
-                if (!editor.hasSelection()) {
-                    editor.selectWordAt(editor.getCursorPos());
-                    
-                    // Prevent menu from overlapping text by moving it down a little
-                    // Temporarily backout this change for now to help mitigate issue #1111,
-                    // which only happens if mouse is not over context menu. Better fix
-                    // requires change to bootstrap, which is too risky for now.
-                    //e.pageY += 6;
+            require(["editor/EditorManager"], function (EditorManager) {
+                if ($(e.target).parents(".CodeMirror-gutter").length !== 0) {
+                    return;
                 }
-                
-                // Inline text editors have a different context menu (safe to assume it's not some other
-                // type of inline widget since we already know an Editor has focus)
-                if (inlineWidget) {
-                    inline_editor_cmenu.open(e);
-                } else {
-                    editor_cmenu.open(e);
+
+                // Note: on mousedown before this event, CodeMirror automatically checks mouse pos, and
+                // if not clicking on a selection moves the cursor to click location. When triggered
+                // from keyboard, no pre-processing occurs and the cursor/selection is left as is.
+
+                var editor = EditorManager.getFocusedEditor(),
+                    inlineWidget = EditorManager.getFocusedInlineWidget();
+
+                if (editor) {
+                    // If there's just an insertion point select the word token at the cursor pos so
+                    // it's more clear what the context menu applies to.
+                    if (!editor.hasSelection()) {
+                        editor.selectWordAt(editor.getCursorPos());
+
+                        // Prevent menu from overlapping text by moving it down a little
+                        // Temporarily backout this change for now to help mitigate issue #1111,
+                        // which only happens if mouse is not over context menu. Better fix
+                        // requires change to bootstrap, which is too risky for now.
+                        //e.pageY += 6;
+                    }
+
+                    // Inline text editors have a different context menu (safe to assume it's not some other
+                    // type of inline widget since we already know an Editor has focus)
+                    if (inlineWidget) {
+                        inline_editor_cmenu.open(e);
+                    } else {
+                        editor_cmenu.open(e);
+                    }
                 }
-            }
+            });
         });
 
         /**

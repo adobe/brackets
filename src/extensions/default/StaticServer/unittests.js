@@ -61,11 +61,11 @@ define(function (require, exports, module) {
                         nodeDomain = main._nodeDomain;
                         nodeConnection = nodeDomain.connection;
 
-                        waitsFor(function () { return nodeDomain.ready(); }, "NodeConnection connected", CONNECT_TIMEOUT);
+                        waitsFor(function () { return nodeDomain.ready(); }, "NodeDomain connected", CONNECT_TIMEOUT);
                     });
 
                     runs(function () {
-                        $(nodeConnection).on("base.log", function (event, level, timestamp, message) {
+                        nodeConnection.on("base:log", function (event, level, timestamp, message) {
                             logs.push({level: level, message: message});
                         });
                     });
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
 
             function onRequestFilter(callback) {
                 // only handle the first event
-                $(nodeConnection).one("staticServer.requestFilter", function cb(event, request) {
+                nodeConnection.one("staticServer:requestFilter", function cb(event, request) {
                     callback(request);
                 });
             }
@@ -637,7 +637,7 @@ define(function (require, exports, module) {
             });
             
             it("should decline serving if not connected to node", function () {
-                // mock NodeConnection state to be disconnected
+                // mock NodeDomain state to be disconnected
                 config.nodeDomain = { ready: function () { return false; } };
 
                 var server = new StaticServer(config);

@@ -34,6 +34,7 @@ define({
     "GENERIC_ERROR"                     : "(错误 {0})",
     "NOT_FOUND_ERR"                     : "未能发现该文件",
     "NOT_READABLE_ERR"                  : "无法读取该文件。",
+    "EXCEEDS_MAX_FILE_SIZE"             : "{APP_NAME} 不能打开大于 {0} MB 的文件。",
     "NO_MODIFICATION_ALLOWED_ERR"       : "无法修改此目录。",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "你没有权限做此次修改。",
     "CONTENTS_MODIFIED_ERR"             : "该文件已经在 {APP_NAME} 之外被修改。",
@@ -48,6 +49,7 @@ define({
     "FILENAME"                          : "文件名",
     "DIRECTORY_NAME"                    : "目录名",
     
+
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "无法加载此项目。",
     "OPEN_DIALOG_ERROR"                 : "显示[打开文件]对话框发生错误。 (错误 {0})",
@@ -71,6 +73,18 @@ define({
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "文件 {0} <span class='dialog-filename'>{1}</span> 已经存在。",
     "ERROR_CREATING_FILE_TITLE"         : "创建文件 {0} 出现错误",
     "ERROR_CREATING_FILE"               : "尝试创建 {0} <span class='dialog-filename'>{1}</span> 时发生错误。 {2}",
+    "ERROR_MIXED_DRAGDROP"              : "无法在打开文件夹的同时打开其他文件",
+
+    // User key map error strings
+    "ERROR_KEYMAP_TITLE"                : "读取用户键映射错误",
+    "ERROR_KEYMAP_CORRUPT"              : "键映射文件不是有效的 JSON 格式。即将打开配置文件以便您修正。",
+    "ERROR_LOADING_KEYMAP"              : "不能打开你的键映射文件，因为它不是 UTF-8 编码的文本文件。",
+    "ERROR_RESTRICTED_COMMANDS"         : "不能将快捷键重新分配给这些命令： {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "不能重新分配这些快捷键： {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "这些命令定义了多个快捷键： {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "这些快捷键上指定了多个命令： {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "这些快捷键是无效的： {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "快捷键指向了并不存在的命令： {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "读取配置错误",
@@ -136,8 +150,7 @@ define({
     "BUTTON_NO"                         : "否",
     
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} 个匹配项",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 个匹配项",
+    "FIND_MATCH_INDEX"                  : "{1} 条中的 {0} 条",
     "FIND_NO_RESULTS"                   : "未找到匹配项",
     "FIND_QUERY_PLACEHOLDER"            : "查找\u2026",
     "REPLACE_PLACEHOLDER"               : "替换为\u2026",
@@ -183,6 +196,7 @@ define({
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "按住 Ctrl/Cmd 键以便展开/折叠全部结果",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "替换出现错误",
     "REPLACE_IN_FILES_ERRORS"           : "以下文件未被修改，可能是搜索后发生变更或无法写入。",
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "获取更新信息失败",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "无法从服务器获取最新的更新信息. 请确认你的电脑已经连接互联网, 然后再次尝试重新获取！",
 
@@ -211,6 +225,7 @@ define({
 
     // Quick Docs
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "当前光标位置没有可用的快速文件",
+
     /**
      * ProjectManager
      */
@@ -219,12 +234,29 @@ define({
     "WORKING_FILES"     : "工作区",
 
     /**
+     * MainViewManager
+     */
+    "TOP"               : "上",
+    "BOTTOM"            : "下",
+    "LEFT"              : "左",
+    "RIGHT"             : "右",
+
+    "CMD_SPLITVIEW_NONE"        : "单窗口",
+    "CMD_SPLITVIEW_VERTICAL"    : "垂直分割",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "水平分割",
+    "SPLITVIEW_MENU_TOOLTIP"    : "垂直/水平分割编辑器窗口",
+    "GEAR_MENU_TOOLTIP"         : "配置工作区",
+
+    "SPLITVIEW_INFO_TITLE"              : "已经打开",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "该文件已经在编辑器的另一个窗格中打开。{APP_NAME} 后续会加上同文件多窗格打开的支持。在此之前，文件只会显示在已打开的窗格中。<br /><br />（本信息只显示一次。）",
+
+    /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "空格",
-    
+
     /**
      * StatusBar strings
      */
@@ -245,7 +277,11 @@ define({
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "扩展已禁用",
     "STATUSBAR_INSERT"                      : "插入",
     "STATUSBAR_OVERWRITE"                   : "改写",
+    "STATUSBAR_INSOVR_TOOLTIP"              : "点击切换光标的插入 (INS) 和改写 (OVR) 模式",
+    "STATUSBAR_LANG_TOOLTIP"                : "点击更改文件类型",
+    "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}。点击打开关闭报告面板",
     "STATUSBAR_DEFAULT_LANG"                : "(默认)",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "设置为 .{0} 的缺省",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} 问题",
@@ -259,6 +295,7 @@ define({
     "LINTER_TIMED_OUT"                      : "{0} 等待 {1} ms 后超时",
     "LINTER_FAILED"                         : "{0} 已终止，错误：{1}",
     
+
     /**
      * Command Name Constants
      */
@@ -348,10 +385,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "自动换行",
     "CMD_LIVE_HIGHLIGHT"                  : "实时预览高亮",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "保存时检查文件",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "根据添加时间排序",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "根据名称排序",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "根据类型排序",
-    "CMD_SORT_WORKINGSET_AUTO"            : "自动排序",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "根据添加时间排序",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "根据名称排序",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "根据类型排序",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "自动排序",
     "CMD_THEMES"                          : "主题\u2026",
 
     // Navigate menu Commands
@@ -382,12 +419,14 @@ define({
     "CMD_GET_INVOLVED"                    : "参与",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "显示扩展目录",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} 主页",
-    "CMD_TWITTER"                         : "{TWITTER_NAME} 的 Twitter (推特需要翻墙)",
+    "CMD_TWITTER"                         : "在 Twitter 上 {TWITTER_NAME}",
     "CMD_ABOUT"                           : "关于 {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "打开配置文件",
+    "CMD_OPEN_KEYMAP"                     : "打开用户键映射",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "体验版",
+    "RELEASE_BUILD"                        : "发布版",
     "DEVELOPMENT_BUILD"                    : "开发版",
     "RELOAD_FROM_DISK"                     : "重新从硬盘中加载",
     "KEEP_CHANGES_IN_EDITOR"               : "保留编辑器中的修改",
@@ -414,12 +453,15 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "地址不能包含哈希如 \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "特殊字符 '{0}' 必须 %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "地址解析错误, 请确认地址格式",
+    "EMPTY_VIEW_HEADER"                    : "<em>保持此窗格的焦点，打开文件</em>",
     
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "当前主题",
     "USE_THEME_SCROLLBARS"                 : "使用主题自带滚动条",
     "FONT_SIZE"                            : "字号",
     "FONT_FAMILY"                          : "字体",
+    "THEMES_SETTINGS"                      : "主题设置",
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "新 CSS 规则",
     
@@ -467,7 +509,7 @@ define({
     "UNKNOWN_ERROR"                        : "未知内部错误。",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "扩展管理器",
-    "EXTENSION_MANAGER_ERROR_LOAD"         : "无法连接到 extension registry. 请稍后重试。",
+    "EXTENSION_MANAGER_ERROR_LOAD"         : "无法连接到扩展仓库。请稍后重试。",
     "INSTALL_EXTENSION_DRAG"               : "拖拽 .zip 到此处或者",
     "INSTALL_EXTENSION_DROP"               : "Drop .zip to install",
     "INSTALL_EXTENSION_DROP_ERROR"         : "安装/更新由于以下错误终止:",
@@ -511,9 +553,11 @@ define({
     "REGISTRY_SANITY_CHECK_WARNING"        : "小心来自未知源的扩展。",
     "EXTENSIONS_INSTALLED_TITLE"           : "已安装",
     "EXTENSIONS_AVAILABLE_TITLE"           : "可获取",
+    "EXTENSIONS_THEMES_TITLE"              : "主题",
     "EXTENSIONS_UPDATES_TITLE"             : "升级",
     
     "INLINE_EDITOR_NO_MATCHES"             : "未找到匹配项。",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "所有匹配项已折叠。展开右侧列出的文件以查看匹配项。",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "符合选择的 CSS 规则不存在。<br> 点击 \"新 CSS 规则\" 来创建。",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "您的项目中没有样式表。<br>建立一个来添加 CSS 规则。",
     
@@ -529,23 +573,24 @@ define({
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "调试",
     "ERRORS"                                    : "错误",
-    "CMD_SHOW_DEV_TOOLS"                        : "显示开发人员工具",
+    "CMD_SHOW_DEV_TOOLS"                        : "显示开发者工具",
     "CMD_REFRESH_WINDOW"                        : "以带扩展模式重启",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "以无扩展模式重启",
     "CMD_NEW_BRACKETS_WINDOW"                   : "新建一个 {APP_NAME} 窗口",
-    "CMD_SWITCH_LANGUAGE"                       : "选择语言",
+    "CMD_SWITCH_LANGUAGE"                       : "切换语言",
     "CMD_RUN_UNIT_TESTS"                        : "运行测试",
     "CMD_SHOW_PERF_DATA"                        : "显示性能数据",
     "CMD_ENABLE_NODE_DEBUGGER"                  : "启用 Node.js 调试",
     "CMD_LOG_NODE_STATE"                        : "将 Node.js 日志显示在控制台中",
     "CMD_RESTART_NODE"                          : "重启 Node.js",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "状态栏显示错误信息",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "打开 Brackets 源码",
     
-    "LANGUAGE_TITLE"                            : "选择语言",
+    "LANGUAGE_TITLE"                            : "切换语言",
     "LANGUAGE_MESSAGE"                          : "请从列表中选择所需的语言:",
     "LANGUAGE_SUBMIT"                           : "重新加载 {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "取消",
-    "LANGUAGE_SYSTEM_DEFAULT"                   : "系统默认语言",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "系统默认",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "时间",
@@ -555,7 +600,7 @@ define({
     "INLINE_TIMING_EDITOR_INVALID"              : "原值 <code>{0}</code> 无效, 函数值已变为 <code>{1}</code>. 文档将在首次编辑时更新.",
     
     // extensions/default/InlineColorEditor
-    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前颜色",
+    "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前的颜色",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "原来的颜色",
     "COLOR_EDITOR_RGBA_BUTTON_TIP"              : "RGBa 格式",
     "COLOR_EDITOR_HEX_BUTTON_TIP"               : "十六进制格式",
@@ -583,5 +628,5 @@ define({
     "DOCS_MORE_LINK"                            : "更多信息"
 });
 
-/* Last translated for 75c811dfa38164b7e9bd3921dd630d40720e9c2a */
+/* Last translated for 893c065b715c211526dcd010c0294e12a8683995 */
 

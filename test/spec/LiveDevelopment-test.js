@@ -89,11 +89,11 @@ define(function (require, exports, module) {
         // documentSaved is fired async after the FILE_SAVE command completes.
         // Instead of waiting for the FILE_SAVE promise, we listen to the
         // inspector connection to confirm that the page reload occurred
-        testWindow.$(Inspector.Page).on("loadEventFired", deferred.resolve);
+        Inspector.Page.on("loadEventFired", deferred.resolve);
         
         // remove event listener after timeout fires
         deferred.always(function () {
-            testWindow.$(Inspector.Page).off("loadEventFired", deferred.resolve);
+            Inspector.Page.off("loadEventFired", deferred.resolve);
         });
         
         // save the file
@@ -297,29 +297,11 @@ define(function (require, exports, module) {
                 spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
                 
                 // document spies
-                var deferred = new $.Deferred();
-                spyOn(CSSDocumentModule.prototype, "getStyleSheetFromBrowser").andCallFake(function () {
-                    return deferred.promise();
-                });
-                
                 var mock = SpecRunnerUtils.createMockEditor("p {}\n\ndiv {}", "css");
                 testDocument = mock.doc;
                 testEditor = mock.editor;
                 testCSSDoc = new CSSDocumentModule(testDocument, testEditor);
                 
-                // resolve reloadRules()
-                deferred.resolve({rules: [
-                    {
-                        selectorText    : "p",
-                        selectorRange   : {start: 0},
-                        style           : {range: {end: 3}}
-                    },
-                    {
-                        selectorText    : "div",
-                        selectorRange   : {start: 6},
-                        style           : {range: {end: 11}}
-                    }
-                ]});
             });
             
             afterEach(function () {
@@ -1011,7 +993,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     // Install statusChange callback
-                    testWindow.$(LiveDevelopment).one("statusChange", spy);
+                    LiveDevelopment.one("statusChange", spy);
                     op.call();
                 });
 
@@ -1100,7 +1082,7 @@ define(function (require, exports, module) {
 
                     // Save the document and see if "scanDocument" (which reparses the page) is called.
                     spyOn(testWindow.brackets.test.HTMLInstrumentation, "scanDocument").andCallThrough();
-                    testWindow.$(DocumentManager).one("documentSaved", function (e, savedDoc) {
+                    DocumentManager.one("documentSaved", function (e, savedDoc) {
                         expect(savedDoc === doc);
                         saveDeferred.resolve();
                     });

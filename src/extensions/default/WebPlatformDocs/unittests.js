@@ -185,8 +185,8 @@ define(function (require, exports, module) {
                 
                 valuesArr.forEach(function (value) {
                     values.push({
-                        TITLE: value[0] || undefined,
-                        DESCRIPTION: value[1] || undefined
+                        title: value[0] || undefined,
+                        description: value[1] || undefined
                     });
                 });
                 
@@ -206,8 +206,8 @@ define(function (require, exports, module) {
                     href,
                     $links = viewer.$htmlContent.find("a:not(.close)");
                 
-                // 7 links in description.html, 1 "more info" link in template
-                expect($links.length).toBe(8);
+                // 8 links in description.html, 1 "more info" link in template
+                expect($links.length).toBe(9);
                 
                 $links.each(function (i, anchor) {
                     $a = $(anchor);

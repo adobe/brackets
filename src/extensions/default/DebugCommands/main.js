@@ -81,21 +81,15 @@ define(function (require, exports, module) {
     var _testWindow = null;
     function _runUnitTests(spec) {
         var queryString = spec ? "?spec=" + spec : "";
-        if (_testWindow) {
-            try {
-                if (_testWindow.location.search !== queryString) {
-                    _testWindow.location.href = "../test/SpecRunner.html" + queryString;
-                } else {
-                    _testWindow.location.reload(true);
-                }
-            } catch (e) {
-                _testWindow = null;  // the window was probably closed
+        if (_testWindow && !_testWindow.closed) {
+            if (_testWindow.location.search !== queryString) {
+                _testWindow.location.href = "../test/SpecRunner.html" + queryString;
+            } else {
+                _testWindow.location.reload(true);
             }
-        }
-        
-        if (!_testWindow) {
+        } else {
             _testWindow = window.open("../test/SpecRunner.html" + queryString, "brackets-test", "width=" + $(window).width() + ",height=" + $(window).height());
-            _testWindow.location.reload(true); // if it was opened before, we need to reload because it will be cached
+            _testWindow.location.reload(true); // if it had been opened earlier, force a reload because it will be cached
         }
     }
     
@@ -237,10 +231,11 @@ define(function (require, exports, module) {
     }
     
     function toggleErrorNotification(bool) {
-        var val;
+        var val,
+            oldPref = !!PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
 
-        if (typeof bool === "undefined") {
-            val = !PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
+        if (bool === undefined) {
+            val = !oldPref;
         } else {
             val = !!bool;
         }
@@ -249,7 +244,9 @@ define(function (require, exports, module) {
 
         // update menu
         CommandManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR).setChecked(val);
-        PreferencesManager.set(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, val);
+        if (val !== oldPref) {
+            PreferencesManager.set(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, val);
+        }
     }
 
     function handleOpenBracketsSource() {
@@ -287,6 +284,10 @@ define(function (require, exports, module) {
     
     enableRunTestsMenuItem();
     toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
+
+    PreferencesManager.on("change", DEBUG_SHOW_ERRORS_IN_STATUS_BAR, function () {
+        toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
+    });
     
     /*
      * Debug menu
@@ -308,6 +309,7 @@ define(function (require, exports, module) {
     menu.addMenuItem(DEBUG_RESTART_NODE);
     menu.addMenuItem(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
     menu.addMenuItem(Commands.FILE_OPEN_PREFERENCES); // this command is defined in core, but exposed only in Debug menu for now
+    menu.addMenuItem(Commands.FILE_OPEN_KEYMAP);      // this command is defined in core, but exposed only in Debug menu for now
     
     // exposed for convenience, but not official API
     exports._runUnitTests = _runUnitTests;

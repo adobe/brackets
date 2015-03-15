@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast */
+/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, waits */
 
 define(function (require, exports, module) {
     "use strict";
@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         DocumentManager,        // Load from brackets.test
         FileViewController,     // Load from brackets.test
         MainViewManager,        // Load from brackets.test
+        ProjectManager,         // Load from brackets.test
         WorkingSetView,
         SpecRunnerUtils         = require("spec/SpecRunnerUtils");
 
@@ -74,6 +75,7 @@ define(function (require, exports, module) {
                 FileViewController  = testWindow.brackets.test.FileViewController;
                 MainViewManager     = testWindow.brackets.test.MainViewManager;
                 WorkingSetView      = testWindow.brackets.test.WorkingSetView;
+                ProjectManager      = testWindow.brackets.test.ProjectManager;
                 
                 // Open a directory
                 if (loadProject) {
@@ -83,7 +85,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // Initialize: register listeners
-                testWindow.$(MainViewManager).on("workingSetAdd", function (event, addedFile) {
+                MainViewManager.on("workingSetAdd", function (event, addedFile) {
                     workingSetListItemCount++;
                 });
             });
@@ -225,7 +227,7 @@ define(function (require, exports, module) {
                 expect(closeIcon.length).toBe(1);
                 
                 // simulate click
-                $(MainViewManager).on("workingSetRemove", function (event, removedFile) {
+                MainViewManager.on("workingSetRemove", function (event, removedFile) {
                     didClose = true;
                 });
 
@@ -254,17 +256,22 @@ define(function (require, exports, module) {
         });
         
         it("should show the file in project tree when a file is being renamed", function () {
+            var $ = testWindow.$;
+            var secondItem =  $(".open-files-container > ul").children().eq(1);
+            var fileName = secondItem.text();
+
             runs(function () {
-                var $ = testWindow.$;
-                var secondItem =  $(".open-files-container > ul").children().eq(1);
-                var fileName = secondItem.text();
                 secondItem.trigger("click");
                 
                 // Calling FILE_RENAME synchronously works fine here since the item is already visible in project file tree.
                 // However, if the selected item is not already visible in the tree, this command will complete asynchronously.
                 // In that case, waitsFor will be needed before continuing with the rest of the test.
                 CommandManager.execute(Commands.FILE_RENAME);
-                
+            });
+
+            waits(ProjectManager._RENDER_DEBOUNCE_TIME + 50);
+
+            runs(function () {
                 expect($("#project-files-container ul input").val()).toBe(fileName);
             });
         });

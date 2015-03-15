@@ -40,6 +40,7 @@ define(function main(require, exports, module) {
         Commands            = require("command/Commands"),
         AppInit             = require("utils/AppInit"),
         LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
+        MultiBrowserLiveDev = require("LiveDevelopment/LiveDevMultiBrowser"),
         Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         CommandManager      = require("command/CommandManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -49,7 +50,7 @@ define(function main(require, exports, module) {
         Strings             = require("strings"),
         ExtensionUtils      = require("utils/ExtensionUtils"),
         StringUtils         = require("utils/StringUtils");
-
+    
     var params = new UrlParams();
     var config = {
         experimental: false, // enable experimental features
@@ -65,21 +66,48 @@ define(function main(require, exports, module) {
         }
     };
     // Status labels/styles are ordered: error, not connected, progress1, progress2, connected.
-    var _statusTooltip = [
-        Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
-        Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED,
-        Strings.LIVE_DEV_STATUS_TIP_PROGRESS1,
-        Strings.LIVE_DEV_STATUS_TIP_PROGRESS2,
-        Strings.LIVE_DEV_STATUS_TIP_CONNECTED,
-        Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC,
-        Strings.LIVE_DEV_STATUS_TIP_SYNC_ERROR
-    ];
-
-    var _statusStyle = ["warning", "", "info", "info", "success", "out-of-sync", "sync-error"];  // Status indicator's CSS class
-    var _allStatusStyles = _statusStyle.join(" ");
+    var _status,
+        _allStatusStyles = ["warning", "info", "success", "out-of-sync", "sync-error"].join(" ");
 
     var _$btnGoLive; // reference to the GoLive button
+    
+    // current selected implementation (LiveDevelopment | LiveDevMultiBrowser)
+    var LiveDevImpl;
+    
+    // "livedev.multibrowser" preference
+    var PREF_MULTIBROWSER = "multibrowser";
+    var prefs = PreferencesManager.getExtensionPrefs("livedev");
+    var multiBrowserPref = prefs.definePreference(PREF_MULTIBROWSER, "boolean", false);
 
+    /** Toggles or sets the preference **/
+    function _togglePref(key, value) {
+        var val,
+            oldPref = !!prefs.get(key);
+
+        if (value === undefined) {
+            val = !oldPref;
+        } else {
+            val = !!value;
+        }
+
+        // update menu
+        if (val !== oldPref) {
+            prefs.set(key, val);
+        }
+
+        return val;
+    }
+    
+    /* Toggles or sets the "livedev.multibrowser" preference */
+    function _toggleLivePreviewMultiBrowser(value) {
+        var val = _togglePref(PREF_MULTIBROWSER, value);
+        
+        CommandManager.get(Commands.TOGGLE_LIVE_PREVIEW_MB_MODE).setChecked(val);
+        // Issue #10217: multi-browser does not support user server, so disable
+        // the setting if it is enabled.
+        CommandManager.get(Commands.FILE_PROJECT_SETTINGS).setEnabled(!val);
+    }
+    
     /** Load Live Development LESS Style */
     function _loadStyles() {
         var lessText    = require("text!LiveDevelopment/main.less"),
@@ -123,9 +151,9 @@ define(function main(require, exports, module) {
      * Do nothing when in a connecting state (CONNECTING, LOADING_AGENTS).
      */
     function _handleGoLiveCommand() {
-        if (LiveDevelopment.status >= LiveDevelopment.STATUS_ACTIVE) {
-            LiveDevelopment.close();
-        } else if (LiveDevelopment.status <= LiveDevelopment.STATUS_INACTIVE) {
+        if (LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE) {
+            LiveDevImpl.close();
+        } else if (LiveDevImpl.status <= LiveDevImpl.STATUS_INACTIVE) {
             if (!params.get("skipLiveDevelopmentInfo") && !PreferencesManager.getViewState("livedev.afterFirstLaunch")) {
                 PreferencesManager.setViewState("livedev.afterFirstLaunch", "true");
                 Dialogs.showModalDialog(
@@ -133,10 +161,10 @@ define(function main(require, exports, module) {
                     Strings.LIVE_DEVELOPMENT_INFO_TITLE,
                     Strings.LIVE_DEVELOPMENT_INFO_MESSAGE
                 ).done(function (id) {
-                    LiveDevelopment.open();
+                    LiveDevImpl.open();
                 });
             } else {
-                LiveDevelopment.open();
+                LiveDevImpl.open();
             }
         }
     }
@@ -173,15 +201,17 @@ define(function main(require, exports, module) {
     
     /** Create the menu item "Go Live" */
     function _setupGoLiveButton() {
-        _$btnGoLive = $("#toolbar-go-live");
-        _$btnGoLive.click(function onGoLive() {
-            _handleGoLiveCommand();
-        });
-        $(LiveDevelopment).on("statusChange", function statusChange(event, status, reason) {
+        if (!_$btnGoLive) {
+            _$btnGoLive = $("#toolbar-go-live");
+            _$btnGoLive.click(function onGoLive() {
+                _handleGoLiveCommand();
+            });
+        }
+        LiveDevImpl.on("statusChange", function statusChange(event, status, reason) {
             // status starts at -1 (error), so add one when looking up name and style
             // See the comments at the top of LiveDevelopment.js for details on the
             // various status codes.
-            _setLabel(_$btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
+            _setLabel(_$btnGoLive, null, _status[status + 1].style, _status[status + 1].tooltip);
             _showStatusChangeReason(reason);
             if (config.autoconnect) {
                 window.sessionStorage.setItem("live.enabled", status === 3);
@@ -189,16 +219,16 @@ define(function main(require, exports, module) {
         });
 
         // Initialize tooltip for 'not connected' state
-        _setLabel(_$btnGoLive, null, _statusStyle[1], _statusTooltip[1]);
+        _setLabel(_$btnGoLive, null, _status[1].style, _status[1].tooltip);
     }
     
     /** Maintains state of the Live Preview menu item */
     function _setupGoLiveMenu() {
-        $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
+        LiveDevImpl.on("statusChange", function statusChange(event, status) {
             // Update the checkmark next to 'Live Preview' menu item
             // Add checkmark when status is STATUS_ACTIVE; otherwise remove it
-            CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(status === LiveDevelopment.STATUS_ACTIVE);
-            CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(status === LiveDevelopment.STATUS_ACTIVE);
+            CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(status === LiveDevImpl.STATUS_ACTIVE);
+            CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(status === LiveDevImpl.STATUS_ACTIVE);
         });
     }
 
@@ -210,11 +240,50 @@ define(function main(require, exports, module) {
         config.highlight = !config.highlight;
         _updateHighlightCheckmark();
         if (config.highlight) {
-            LiveDevelopment.showHighlight();
+            LiveDevImpl.showHighlight();
         } else {
-            LiveDevelopment.hideHighlight();
+            LiveDevImpl.hideHighlight();
         }
         PreferencesManager.setViewState("livedev.highlight", config.highlight);
+    }
+    
+    /**
+     * Sets the MultiBrowserLiveDev implementation if multibrowser is truthy,
+     * keeps default LiveDevelopment implementation based on CDT otherwise.
+     * It also resets the listeners and UI elements.
+     */
+    function _setImplementation(multibrowser) {
+        if (multibrowser) {
+            // set implemenation
+            LiveDevImpl = MultiBrowserLiveDev;
+            // update styles for UI status 
+            _status = [
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "warning" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_CONNECTED, style: "success" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC, style: "out-of-sync" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_SYNC_ERROR, style: "sync-error" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" }
+            ];
+        } else {
+            LiveDevImpl = LiveDevelopment;
+            _status = [
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "warning" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS2, style: "info" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_CONNECTED, style: "success" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC, style: "out-of-sync" },
+                { tooltip: Strings.LIVE_DEV_STATUS_TIP_SYNC_ERROR, style: "sync-error" }
+            ];
+        }
+        // setup status changes listeners for new implementation
+        _setupGoLiveButton();
+        _setupGoLiveMenu();
+        // toggle the menu
+        _toggleLivePreviewMultiBrowser(multibrowser);
     }
     
     /** Setup window references to useful LiveDevelopment modules */
@@ -230,18 +299,24 @@ define(function main(require, exports, module) {
             LiveDevelopment.reload();
         }
     }
-
+    
     /** Initialize LiveDevelopment */
     AppInit.appReady(function () {
         params.parse();
 
         Inspector.init(config);
         LiveDevelopment.init(config);
-        _loadStyles();
-        _setupGoLiveButton();
-        _setupGoLiveMenu();
+        
+        // init experimental multi-browser implementation 
+        // it can be enable by setting 'livedev.multibrowser' preference to true.
+        // It has to be initiated at this point in case of dynamically switching 
+        // by changing the preference value.
+        MultiBrowserLiveDev.init(config);
 
+        _loadStyles();
         _updateHighlightCheckmark();
+        
+        _setImplementation(prefs.get(PREF_MULTIBROWSER));
         
         if (config.debug) {
             _setupDebugHelpers();
@@ -261,6 +336,25 @@ define(function main(require, exports, module) {
                 LiveDevelopment.redrawHighlight();
             }
         });
+        
+        multiBrowserPref
+            .on("change", function () {
+                // Stop the current session if it is open and set implementation based on 
+                // the pref value. We could start the new implementation immediately, but
+                // since the current document is potentially a user preferences file, Live
+                // Preview will not locate the html file to serve.
+                if (LiveDevImpl && LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE) {
+                    LiveDevImpl.close()
+                        .done(function () {
+                            // status changes will now be listened by the new implementation
+                            LiveDevImpl.off("statusChange");
+                            _setImplementation(prefs.get(PREF_MULTIBROWSER));
+                        });
+                } else {
+                    _setImplementation(prefs.get(PREF_MULTIBROWSER));
+                }
+            });
+
     });
     
     // init prefs
@@ -274,13 +368,15 @@ define(function main(require, exports, module) {
         "highlight": "user livedev.highlight",
         "afterFirstLaunch": "user livedev.afterFirstLaunch"
     }, true);
-    
+        
     config.highlight = PreferencesManager.getViewState("livedev.highlight");
    
     // init commands
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
     CommandManager.register(Strings.CMD_LIVE_HIGHLIGHT, Commands.FILE_LIVE_HIGHLIGHT, _handlePreviewHighlightCommand);
     CommandManager.register(Strings.CMD_RELOAD_LIVE_PREVIEW, Commands.CMD_RELOAD_LIVE_PREVIEW, _handleReloadLivePreviewCommand);
+    CommandManager.register(Strings.CMD_TOGGLE_LIVE_PREVIEW_MB_MODE, Commands.TOGGLE_LIVE_PREVIEW_MB_MODE, _toggleLivePreviewMultiBrowser);
+    
     CommandManager.get(Commands.FILE_LIVE_HIGHLIGHT).setEnabled(false);
 
     // Export public functions

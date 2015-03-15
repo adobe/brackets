@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     
     var ExtensionManager = require("extensibility/ExtensionManager"),
         registry_utils   = require("extensibility/registry_utils"),
+        EventDispatcher = require("utils/EventDispatcher"),
         Strings          = require("strings");
 
     /**
@@ -56,10 +57,11 @@ define(function (require, exports, module) {
         this._handleStatusChange = this._handleStatusChange.bind(this);
         
         // Listen for extension status changes.
-        $(ExtensionManager)
+        ExtensionManager
             .on("statusChange." + this.source, this._handleStatusChange)
             .on("registryUpdate." + this.source, this._handleStatusChange);
     }
+    EventDispatcher.makeEventDispatcher(ExtensionManagerViewModel.prototype);
     
     /**
      * @type {string}
@@ -138,7 +140,7 @@ define(function (require, exports, module) {
      * Unregisters listeners when we're done.
      */
     ExtensionManagerViewModel.prototype.dispose = function () {
-        $(ExtensionManager).off("." + this.source);
+        ExtensionManager.off("." + this.source);
     };
     
     /**
@@ -148,7 +150,7 @@ define(function (require, exports, module) {
     ExtensionManagerViewModel.prototype._setInitialFilter = function () {
         // Initial filtered list is the same as the sorted list.
         this.filterSet = _.clone(this.sortedFullSet);
-        $(this).triggerHandler("filter");
+        this.trigger("filter");
     };
     
     /**
@@ -179,7 +181,7 @@ define(function (require, exports, module) {
      * @param {string} id The id of the extension whose status changed.
      */
     ExtensionManagerViewModel.prototype._handleStatusChange = function (e, id) {
-        $(this).triggerHandler("change", id);
+        this.trigger("change", id);
     };
     
     /**
@@ -226,7 +228,7 @@ define(function (require, exports, module) {
 
         this._updateMessage();
 
-        $(this).triggerHandler("filter");
+        this.trigger("filter");
     };
 
     /**
@@ -376,7 +378,7 @@ define(function (require, exports, module) {
 
         // when registry is downloaded, sort extensions again - those with updates will be before others
         var self = this;
-        $(ExtensionManager).on("registryDownload", function () {
+        ExtensionManager.on("registryDownload." + this.source, function () {
             self._sortFullSet();
             self._setInitialFilter();
         });

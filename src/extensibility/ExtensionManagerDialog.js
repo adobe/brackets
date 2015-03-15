@@ -124,10 +124,12 @@ define(function (require, exports, module) {
                                 errorArray.forEach(function (errorObj) {
                                     ids.push(errorObj.item);
                                     if (errorObj.error && errorObj.error.forEach) {
-                                        console.error("Errors for ", errorObj.item);
+                                        console.error("Errors for", errorObj.item);
                                         errorObj.error.forEach(function (error) {
                                             console.error(Package.formatError(error));
                                         });
+                                    } else {
+                                        console.error("Error for", errorObj.item, errorObj);
                                     }
                                 });
                                 Dialogs.showModalDialog(
@@ -289,11 +291,24 @@ define(function (require, exports, module) {
             return searchDisabled;
         }
         
+        function clearSearch() {
+            $search.val("");
+            views.forEach(function (view, index) {
+                view.filter("");
+            });
+
+            if (!updateSearchDisabled()) {
+                $search.focus();
+            }
+        }
+
         // Open the dialog
         dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(dialogTemplate, context));
         
-        // When dialog closes, dismiss models and commit changes
+        // On dialog close: clean up listeners & models, and commit changes
         dialog.done(function () {
+            $(window.document).off(".extensionManager");
+            
             models.forEach(function (model) {
                 model.dispose();
             });
@@ -307,10 +322,14 @@ define(function (require, exports, module) {
         $searchClear = $(".search-clear", $dlg);
 
         function setActiveTab($tab) {
-            models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
+            if (models[_activeTabIndex]) {
+                models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
+            }
             $tab.tab("show");
-            $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
-            $searchClear.click();
+            if (models[_activeTabIndex]) {
+                $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
+                clearSearch();
+            }
         }
 
         // Dialog tabs
@@ -319,8 +338,9 @@ define(function (require, exports, module) {
                 setActiveTab($(this));
             });
 
-        // navigate through tabs via Ctrl-(Shift)-Tab
-        $dlg.on("keyup", function (event) {
+        // Navigate through tabs via Ctrl-(Shift)-Tab
+        // (focus may be on document.body if text in extension listing clicked - see #9511)
+        $(window.document).on("keyup.extensionManager", function (event) {
             if (event.keyCode === KeyEvent.DOM_VK_TAB && event.ctrlKey) {
                 var $tabs = $(".nav-tabs a", $dlg),
                     tabIndex = _activeTabIndex;
@@ -360,7 +380,7 @@ define(function (require, exports, module) {
                 updateNotificationIcon(index);
             });
             
-            $(model).on("change", function () {
+            model.on("change", function () {
                 if (lastNotifyCount !== model.notifyCount) {
                     lastNotifyCount = model.notifyCount;
                     updateNotificationIcon(index);
@@ -395,35 +415,30 @@ define(function (require, exports, module) {
                 views.forEach(function (view) {
                     view.filter(query);
                 });
-            }).on("click", ".search-clear", function (e) {
-                $search.val("");
-                views.forEach(function (view, index) {
-                    view.filter("");
-                });
-                
-                if (!updateSearchDisabled()) {
-                    $search.focus();
-                }
-            });
+            }).on("click", ".search-clear", clearSearch);
             
             // Disable the search field when there are no items in the model
             models.forEach(function (model, index) {
-                $(model).on("change", function () {
+                model.on("change", function () {
                     if (_activeTabIndex === index) {
                         updateSearchDisabled();
                     }
                 });
             });
             
-            // Open dialog to Installed tab if extension updates are available
-            if ($("#toolbar-extension-manager").hasClass('updatesAvailable')) {
+            var $activeTab = $dlg.find(".nav-tabs li.active a");
+            if ($activeTab.length) { // If there's already a tab selected, show it
+                $activeTab.parent().removeClass("active"); // workaround for bootstrap-tab
+                $activeTab.tab("show");
+            } else if ($("#toolbar-extension-manager").hasClass('updatesAvailable')) {
+                // Open dialog to Installed tab if extension updates are available
                 $dlg.find(".nav-tabs a.installed").tab("show");
             } else { // Otherwise show the first tab
                 $dlg.find(".nav-tabs a:first").tab("show");
             }
         });
     
-        // Handle the install button.
+        // Handle the 'Install from URL' button.
         $(".extension-manager-dialog .install-from-url")
             .click(function () {
                 InstallExtensionDialog.showDialog().done(ExtensionManager.updateFromDownload);

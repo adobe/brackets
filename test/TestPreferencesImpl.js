@@ -62,11 +62,20 @@ define(function (require, exports, module) {
     // Create a Project scope
     var projectStorage          = new PreferencesBase.FileStorage(undefined, true),
         projectScope            = new PreferencesBase.Scope(projectStorage),
-        projectPathLayer        = new PreferencesBase.PathLayer();
+        projectPathLayer        = new PreferencesBase.PathLayer(),
+        projectLanguageLayer    = new PreferencesBase.LanguageLayer();
 
     projectScope.addLayer(projectPathLayer);
+    projectScope.addLayer(projectLanguageLayer);
+    
+    var userScope           = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage()),
+        userPathLayer       = new PreferencesBase.PathLayer(),
+        userLanguageLayer   = new PreferencesBase.LanguageLayer();
+    
+    userScope.addLayer(userPathLayer);
+    userScope.addLayer(userLanguageLayer);
 
-    var userScopeLoading = manager.addScope("user", new PreferencesBase.MemoryStorage());
+    var userScopeLoading = manager.addScope("user", userScope);
 
     // Set up the .brackets.json file handling
     manager.addScope("project", projectScope, {

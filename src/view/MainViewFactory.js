@@ -30,15 +30,15 @@
  * Registering a view factory:
  *
  *      registerViewFactory({
- *           canOpen: function (fullPath) {
+ *           canOpenFile: function (fullPath) {
  *               return (fullPath.slice(-4) === ".ico");
  *           },
- *           open: function(file, pane) {
+ *           openFile: function(file, pane) {
  *               return createIconView(file, pane);
  *           }
  *      });
  *
- *  The open method is used to open the file and construct
+ *  The openFile method is used to open the file and construct
  *  a view of it.  Implementation should add the view to the pane
  *
  *      function createIconView(file, pane) {

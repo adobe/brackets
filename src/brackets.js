@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: true, $, window, navigator, Mustache */
+/*global define, brackets: true, $, window, navigator, Mustache, jQuery */
 
 // TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
 
@@ -109,6 +109,7 @@ define(function (require, exports, module) {
     require("utils/ColorUtils");
     require("view/ThemeManager");
     require("thirdparty/lodash");
+    require("language/XMLUtils");
     
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
     // expose our required CodeMirror globally so as to avoid breaking extensions in the
@@ -135,8 +136,6 @@ define(function (require, exports, module) {
     require("extensibility/ExtensionManagerDialog");
     require("editor/ImageViewer");
     
-    // Deprecated modules loaded just so extensions can still use them for now
-    require("utils/CollectionUtils");
     // Compatibility shims for filesystem API migration
     require("project/FileIndexManager");
     require("file/NativeFileSystem");
@@ -193,6 +192,7 @@ define(function (require, exports, module) {
             KeyBindingManager       : KeyBindingManager,
             LanguageManager         : LanguageManager,
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            LiveDevMultiBrowser     : require("LiveDevelopment/LiveDevMultiBrowser"),
             LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
             MainViewManager         : MainViewManager,
             MainViewFactory         : require("view/MainViewFactory"),
@@ -293,13 +293,24 @@ define(function (require, exports, module) {
                         PerfUtils.addMeasurement("Application Startup");
                         
                         if (PreferencesManager._isUserScopeCorrupt()) {
-                            Dialogs.showModalDialog(
-                                DefaultDialogs.DIALOG_ID_ERROR,
-                                Strings.ERROR_PREFS_CORRUPT_TITLE,
-                                Strings.ERROR_PREFS_CORRUPT
-                            )
+                            var userPrefFullPath = PreferencesManager.getUserPrefFile();
+                            // user scope can get corrupt only if the file exists, is readable,
+                            // but malformed. no need to check for its existance.
+                            var info = MainViewManager.findInAllWorkingSets(userPrefFullPath);
+                            var paneId;
+                            if (info.length) {
+                                paneId = info[0].paneId;
+                            }
+                            FileViewController.openFileAndAddToWorkingSet(userPrefFullPath, paneId)
                                 .done(function () {
-                                    CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+                                    Dialogs.showModalDialog(
+                                        DefaultDialogs.DIALOG_ID_ERROR,
+                                        Strings.ERROR_PREFS_CORRUPT_TITLE,
+                                        Strings.ERROR_PREFS_CORRUPT
+                                    ).done(function () {
+                                        // give the focus back to the editor with the pref file
+                                        MainViewManager.focusActivePane();
+                                    });
                                 });
                         }
                         
@@ -359,35 +370,10 @@ define(function (require, exports, module) {
         
         // Update title
         $("title").text(brackets.config.app_title);
-            
-        // Prevent unhandled drag and drop of files into the browser from replacing 
-        // the entire Brackets app. This doesn't prevent children from choosing to
-        // handle drops.
-        $(window.document.body)
-            .on("dragover", function (event) {
-                var dropEffect = "none";
-                if (event.originalEvent.dataTransfer.files) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    // Don't allow drag-and-drop of files/folders when a modal dialog is showing.
-                    if ($(".modal.instance").length === 0 &&
-                            DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
-                        dropEffect = "copy";
-                    }
-                    event.originalEvent.dataTransfer.dropEffect = dropEffect;
-                }
-            })
-            .on("drop", function (event) {
-                if (event.originalEvent.dataTransfer.files) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    brackets.app.getDroppedFiles(function (err, paths) {
-                        if (!err) {
-                            DragAndDrop.openDroppedFiles(paths);
-                        }
-                    });
-                }
-            });
+        
+        // Respond to dragging & dropping files/folders onto the window by opening them. If we don't respond
+        // to these events, the file would load in place of the Brackets UI
+        DragAndDrop.attachHandlers();
         
         // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
         $(window).focus(function () {
@@ -411,10 +397,7 @@ define(function (require, exports, module) {
             // Text fields should always be focusable.
             var $target = $(e.target),
                 isFormElement =
-                    $target.is("input[type=text]") ||
-                    $target.is("input[type=number]") ||
-                    $target.is("input[type=password]") ||
-                    $target.is("input:not([type])") || // input with no type attribute defaults to text
+                    $target.is("input") ||
                     $target.is("textarea") ||
                     $target.is("select");
 
@@ -451,6 +434,27 @@ define(function (require, exports, module) {
                 throw new Error("Brackets-shell is not a secure general purpose web browser. Use NativeApp.openURLInDefaultBrowser() to open URLs in the user's main browser");
             }
             return real_windowOpen.apply(window, arguments);
+        };
+        
+        // jQuery patch to shim deprecated usage of $() on EventDispatchers
+        var DefaultCtor = jQuery.fn.init;
+        jQuery.fn.init = function (firstArg, secondArg) {
+            var jQObject = new DefaultCtor(firstArg, secondArg);
+
+            // Is this a Brackets EventDispatcher object? (not a DOM node or other object)
+            if (firstArg && firstArg._EventDispatcher) {
+                // Patch the jQ wrapper object so it calls EventDispatcher's APIs instead of jQuery's
+                jQObject.on  = firstArg.on.bind(firstArg);
+                jQObject.one = firstArg.one.bind(firstArg);
+                jQObject.off = firstArg.off.bind(firstArg);
+                // Don't offer legacy support for trigger()/triggerHandler() on core model objects; extensions
+                // shouldn't be doing that anyway since it's basically poking at private API
+
+                // Console warning, since $() is deprecated for EventDispatcher objects
+                // (pass true to only print once per caller, and index 4 since the extension caller is deeper in the stack than usual)
+                DeprecationWarning.deprecationWarning("Deprecated: Do not use $().on/off() on Brackets modules and model objects. Call on()/off() directly on the object without a $() wrapper.", true, 4);
+            }
+            return jQObject;
         };
     }
     
