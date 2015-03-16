@@ -317,6 +317,7 @@ define({
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
 	"CMD_FILE_SAVE_AS": "Enregistrer sous\u2026",
 	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
+	"CMD_TOGGLE_LIVE_PREVIEW_MB_MODE": "Activer la version expérimentale de l’Aperçu en direct",
 	"CMD_RELOAD_LIVE_PREVIEW": "Forcer le rechargement de l’aperçu en direct",
 	"CMD_PROJECT_SETTINGS": "Paramètres du projet\u2026",
 	"CMD_FILE_RENAME": "Renommer",

@@ -35,8 +35,8 @@ define(function (require, exports, module) {
         Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        FileUtils           = require("file/FileUtils"),
         HTMLUtils           = require("language/HTMLUtils"),
+        LanguageManager     = require("language/LanguageManager"),
         ProjectManager      = require("project/ProjectManager"),
         TokenUtils          = require("utils/TokenUtils"),
         _                   = require("thirdparty/lodash");
@@ -60,6 +60,16 @@ define(function (require, exports, module) {
                           "[": "]",
                           "(": ")" },
         _invertedBracketPairs = _.invert(_bracketPairs);
+    
+    /**
+     * Determines if the given path is a CSS preprocessor file that CSSUtils supports.
+     * @param {string} filePath Absolute path to the file.
+     * @return {boolean} true if LanguageManager identifies filePath as less or scss language.
+     */
+    function isCSSPreprocessorFile(filePath) {
+        var languageId = LanguageManager.getLanguageForPath(filePath).getId();
+        return (languageId === "less" || languageId === "scss");
+    }
     
     /**
      * @private
@@ -1497,7 +1507,7 @@ define(function (require, exports, module) {
         var cm = editor._codeMirror;
         var ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
         var selector = "", foundChars = false;
-        var isPreprocessorDoc = FileUtils.isCSSPreprocessorFile(editor.document.file.fullPath);
+        var isPreprocessorDoc = isCSSPreprocessorFile(editor.document.file.fullPath);
         var selectorArray = [];
 
         function _skipToOpeningBracket(ctx, startChar) {
@@ -1816,6 +1826,7 @@ define(function (require, exports, module) {
     exports.consolidateRules = consolidateRules;
     exports.getRangeSelectors = getRangeSelectors;
     exports.getCompleteSelectors = getCompleteSelectors;
+    exports.isCSSPreprocessorFile = isCSSPreprocessorFile;
 
     exports.SELECTOR = SELECTOR;
     exports.PROP_NAME = PROP_NAME;

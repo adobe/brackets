@@ -253,6 +253,19 @@ define(function (require, exports, module) {
     function _makeMRUListEntry(file, paneId) {
         return {file: file, paneId: paneId};
     }
+
+    /**
+     * Locates the first  MRU entry of a file
+     * @param {!File} File - the file
+     * @return {{file:File, paneId:string}}
+     * @private
+     */
+    function _findFileInMRUList(file) {
+        return _.findIndex(_mruList, function (record) {
+            return (record.file.fullPath === file.fullPath);
+        });
+    }
+
     
     /**
      * Retrieves the currently active Pane Id
@@ -321,15 +334,21 @@ define(function (require, exports, module) {
             pane.makeViewMostRecent(file);
         
             index = _.findIndex(_mruList, function (record) {
-                return (record.file === file && record.paneId === paneId);
+                return (record.file === file && record.paneId === pane.id);
             });
 
             entry = _makeMRUListEntry(file, pane.id);
 
             if (index !== -1) {
                 _mruList.splice(index, 1);
-                _mruList.unshift(entry);
             }
+
+            if (_findFileInMRUList(file) !== -1) {
+                console.log(file.fullPath + " duplicated in mru list");
+            }
+            
+            // add it to the front of the list
+            _mruList.unshift(entry);
         }
     }
 
@@ -709,11 +728,13 @@ define(function (require, exports, module) {
         } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
 
-            // Add to or update the position in MRU
-            if (pane.getCurrentlyViewedFile() === file) {
-                _mruList.unshift(entry);
-            } else {
-                _mruList.push(entry);
+            if (_findFileInMRUList(file) === -1) {
+                // Add to or update the position in MRU
+                if (pane.getCurrentlyViewedFile() === file) {
+                    _mruList.unshift(entry);
+                } else {
+                    _mruList.push(entry);
+                }
             }
 
             exports.trigger("workingSetAdd", file, index, pane.id);
@@ -732,6 +753,9 @@ define(function (require, exports, module) {
         uniqueFileList = pane.addListToViewList(fileList);
         
         uniqueFileList.forEach(function (file) {
+            if (_findFileInMRUList(file) !== -1) {
+                console.log(file.fullPath + " duplicated in mru list");
+            }
             _mruList.push(_makeMRUListEntry(file, pane.id));
         });
         
@@ -1060,6 +1084,9 @@ define(function (require, exports, module) {
                                                newPane.id);
                 }
             });
+            newPane.on("viewDestroy.mainView", function (e, view) {
+                _removeFileFromMRU(newPane.id, view.getFile());
+            });
         }
         
         return newPane;
@@ -1253,6 +1280,10 @@ define(function (require, exports, module) {
                 });
         }
 
+        result.done(function () {
+            _makeFileMostRecent(paneId, file);
+        });
+        
         return result;
     }
     
@@ -1499,6 +1530,9 @@ define(function (require, exports, module) {
                     var fileList = pane.getViewList();
 
                     fileList.forEach(function (file) {
+                        if (_findFileInMRUList(file) !== -1) {
+                            console.log(file.fullPath + " duplicated in mru list");
+                        }
                         _mruList.push(_makeMRUListEntry(file, pane.id));
                     });
                     exports.trigger("workingSetAddList", fileList, pane.id);

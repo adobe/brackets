@@ -242,9 +242,9 @@ define({
     "RIGHT"             : "오른쪽",
 
     "CMD_SPLITVIEW_NONE"        : "나누지 않음",
-    "CMD_SPLITVIEW_VERTICAL"    : "위/아래로 분할",
-    "CMD_SPLITVIEW_HORIZONTAL"  : "왼쪽/오른쪽으로 분할",
-    "SPLITVIEW_MENU_TOOLTIP"    : "에디터를 위/아래 또는 왼쪽/오른쪽으로 분할합니다",
+    "CMD_SPLITVIEW_VERTICAL"    : "왼쪽/오른쪽으로 분할",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "위/아래로 분할",
+    "SPLITVIEW_MENU_TOOLTIP"    : "에디터를 왼쪽/오른쪽 또는 위/아래로 분할합니다",
     "GEAR_MENU_TOOLTIP"         : "Configure Working Set",
 
     "SPLITVIEW_INFO_TITLE"              : "이미 열려있는 파일",

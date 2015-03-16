@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -149,9 +149,73 @@ define(function (require, exports, module) {
             });
     }
     
+    
+    /**
+     * Attaches global drag & drop handlers to this window. This enables dropping files/folders to open them, and also
+     * protects the Brackets app from being replaced by the browser trying to load the dropped file in its place.
+     */
+    function attachHandlers() {
+        
+        function handleDragOver(event) {
+            event = event.originalEvent || event;
+            
+            var files = event.dataTransfer.files;
+            if (files && files.length) {
+                event.stopPropagation();
+                event.preventDefault();
+                
+                var dropEffect = "none";
+                
+                // Don't allow drag-and-drop of files/folders when a modal dialog is showing.
+                if ($(".modal.instance").length === 0 && isValidDrop(event.dataTransfer.items)) {
+                    dropEffect = "copy";
+                }
+                event.dataTransfer.dropEffect = dropEffect;
+            }
+        }
+        
+        function handleDrop(event) {
+            event = event.originalEvent || event;
+            
+            var files = event.dataTransfer.files;
+            if (files && files.length) {
+                event.stopPropagation();
+                event.preventDefault();
+                
+                brackets.app.getDroppedFiles(function (err, paths) {
+                    if (!err) {
+                        openDroppedFiles(paths);
+                    }
+                });
+            }
+        }
+        
+        // For most of the window, only respond if nothing more specific in the UI has already grabbed the event (e.g.
+        // the Extension Manager drop-to-install zone, or an extension with a drop-to-upload zone in its panel)
+        $(window.document.body)
+            .on("dragover", handleDragOver)
+            .on("drop", handleDrop);
+        
+        // Over CodeMirror specifically, always pre-empt CodeMirror's drag event handling if files are being dragged - CM stops
+        // propagation on any drag event it sees, even when it's not a text drag/drop. But allow CM to handle all non-file drag
+        // events. See bug #10617.
+        window.document.body.addEventListener("dragover", function (event) {
+            if ($(event.target).closest(".CodeMirror").length) {
+                handleDragOver(event);
+            }
+        }, true);
+        window.document.body.addEventListener("drop", function (event) {
+            if ($(event.target).closest(".CodeMirror").length) {
+                handleDrop(event);
+            }
+        }, true);
+    }
+    
+    
     CommandManager.register(Strings.CMD_OPEN_DROPPED_FILES, Commands.FILE_OPEN_DROPPED_FILES, openDroppedFiles);
 
     // Export public API
+    exports.attachHandlers      = attachHandlers;
     exports.isValidDrop         = isValidDrop;
     exports.openDroppedFiles    = openDroppedFiles;
 });
