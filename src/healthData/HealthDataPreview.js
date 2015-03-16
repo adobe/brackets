@@ -36,12 +36,14 @@ define(function (require, exports, module) {
     */
     
     function previewHealthDataFile() {
-        var healthDataObject = HealthDataManager.getHealthData();
-        var content = JSON.stringify(healthDataObject, null, 4);
-        content = content.replace(/ /g, "&nbsp;");
-        content = content.replace(/(?:\r\n|\r|\n)/g, "<br />");
-        var template = Mustache.render(HealthDataPreviewDialog, {Strings: Strings, content: content});
-        Dialogs.showModalDialogUsingTemplate(template);
+        HealthDataManager.getHealthData().done(function (healthDataObject) {
+            var content = JSON.stringify(healthDataObject, null, 4);
+            content = content.replace(/ /g, "&nbsp;");
+            content = content.replace(/(?:\r\n|\r|\n)/g, "<br />");
+            var template = Mustache.render(HealthDataPreviewDialog, {Strings: Strings, content: content});
+            Dialogs.showModalDialogUsingTemplate(template);
+        });
+        
     }
     
     exports.previewHealthDataFile = previewHealthDataFile;

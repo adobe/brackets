@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -59,18 +59,38 @@ define(function (require, exports, module) {
         return osVersion;
     }
     
-    function getInstalledExtensions() {
-        var userExtensions = ExtensionManager.userExtensions;
+    function getUserExtensionsInRegistry(registryObject, userExtensions) {
         var userInstalledExtensions = [];
         Object.keys(userExtensions).forEach(function (extensionId) {
-            var extension = userExtensions[extensionId];
             
-            if (extension && extension.installInfo) {
+            var extension = userExtensions[extensionId],
+                registryExtension = registryObject[extensionId];
+            
+            if (extension && extension.installInfo && registryExtension) {
                 userInstalledExtensions.push({"name" : extension.installInfo.metadata.name, "version" : extension.installInfo.metadata.version});
             }
         });
         
         return userInstalledExtensions;
+    }
+    
+    function getInstalledExtensions() {
+        var result = new $.Deferred();
+        var registryExtensions = ExtensionManager.registryObject,
+            userExtensions = ExtensionManager.userExtensions;
+        
+        if (Object.keys(registryExtensions).length === 0) {
+            ExtensionManager.downloadRegistry().done(function () {
+                return result.resolve(getUserExtensionsInRegistry(ExtensionManager.registryObject, userExtensions));
+            })
+                .fail(function () {
+                    return result.resolve([]);
+                });
+        } else {
+            return result.resolve(getUserExtensionsInRegistry(registryExtensions, userExtensions));
+        }
+        
+        return result.promise();
     }
     
     exports.getOSVersion             = getOSVersion;

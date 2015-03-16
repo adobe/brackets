@@ -54,13 +54,16 @@ define(function (require, exports, module) {
     * Get the health data which will be send to the server. Initially it is only one time data.
     */
     function getHealthData() {
-        var oneTimeHealthData = {};
+        var result = new $.Deferred(),
+            oneTimeHealthData = {};
+        
         var guid = PreferencesManager.getViewState("GUID");
         
         if (!guid) {
             guid = uuid.v4();
             PreferencesManager.setViewState("GUID", guid);
         }
+        
         oneTimeHealthData.guid = guid;
         oneTimeHealthData.snapshotTime = (new Date()).getTime();
         oneTimeHealthData.os = brackets.platform;
@@ -68,19 +71,27 @@ define(function (require, exports, module) {
         oneTimeHealthData.osLanguage = brackets.app.language;
         oneTimeHealthData.bracketsLanguage = brackets.getLocale();
         oneTimeHealthData.bracketsVersion = brackets.metadata.version;
-        oneTimeHealthData.installedExtensions = HealthDataUtils.getInstalledExtensions();
-        return oneTimeHealthData;
+        
+        HealthDataUtils.getInstalledExtensions().done(function (userInstalledExtensions) {
+            oneTimeHealthData.installedExtensions = userInstalledExtensions;
+            return result.resolve(oneTimeHealthData);
+        });
+        
+        return result.promise();
+        
     }
     
     function sendHealthDataToServer() {
         var result = new $.Deferred();
-        var jsonData = getHealthData();
-
-		sendDataToServer(jsonData)
-            .always(function () {
-                PreferencesManager.setViewState("lastTimeSendHealthData", (new Date()).getTime());
-                result.resolve();
-            });
+        
+        getHealthData().done(function (jsonData) {
+            sendDataToServer(jsonData)
+                .always(function () {
+                    PreferencesManager.setViewState("lastTimeSendHealthData", (new Date()).getTime());
+                    result.resolve();
+                });
+        });
+        
         return result.promise();
     }
     

@@ -113,6 +113,11 @@ define(function (require, exports, module) {
      *         status: the current status, one of the status constants above
      */
     var userExtensions = {};
+    
+    /**
+     * Registry object container  
+     */
+    var registryObject = {};
 
     /**
      * Requested changes to the installed extensions.
@@ -224,6 +229,7 @@ define(function (require, exports, module) {
             cache: false
         })
             .done(function (data) {
+                exports.registryObject = data;
                 Object.keys(data).forEach(function (id) {
                     if (!extensions[id]) {
                         extensions[id] = {};
@@ -819,6 +825,7 @@ define(function (require, exports, module) {
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
     exports.ENABLED       = ENABLED;
     exports.START_FAILED  = START_FAILED;
+    exports.registryObject          = registryObject;
 
     exports.LOCATION_DEFAULT  = LOCATION_DEFAULT;
     exports.LOCATION_DEV      = LOCATION_DEV;
