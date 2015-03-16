@@ -39,6 +39,9 @@ define(function (require, exports, module) {
     var ONE_DAY = 24 * 60 * 60 * 1000,
         timeoutVar;
     
+    /*
+    * Making ajax call to send the health data to the server
+    */
     function sendDataToServer(data) {
         var result = new $.Deferred();
         
@@ -47,6 +50,9 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /*
+    * Get the health data which will be send to the server. Initially it is only one time data.
+    */
     function getHealthData() {
         var oneTimeHealthData = {};
         var guid = PreferencesManager.getViewState("GUID");
@@ -67,22 +73,38 @@ define(function (require, exports, module) {
     }
     
     function sendHealthDataToServer() {
+        var result = new $.Deferred();
         var jsonData = getHealthData();
 
 		sendDataToServer(jsonData)
             .always(function () {
                 PreferencesManager.setViewState("lastTimeSendHealthData", (new Date()).getTime());
+                result.resolve();
             });
+        return result.promise();
     }
     
+    /*
+    * Check if health data is to be send to the server. If user has enable the tracking, health data will be send for every 24 hours. 
+    * If 24 hours or more than that has been passed, then send health data to the server
+    */
     function checkHealthDataExport() {
         clearTimeout(timeoutVar);
-        var lastTimeSend = PreferencesManager.getViewState("lastTimeSendHealthData") || 0,
+        var lastTimeSend = PreferencesManager.getViewState("lastTimeSendHealthData"),
             currentTime  = (new Date()).getTime();
         
+        if (!lastTimeSend) {
+            var randomTime = Math.floor(Math.random() * 86400000);
+            lastTimeSend = currentTime + randomTime;
+            PreferencesManager.setViewState("lastTimeSendHealthData", lastTimeSend);
+        }
+        
         if ((new Date()).getTime() >= lastTimeSend + ONE_DAY) {
-            sendHealthDataToServer();
-            timeoutVar = setTimeout(checkHealthDataExport, ONE_DAY);
+            sendHealthDataToServer()
+                .always(function () {
+                    timeoutVar = setTimeout(checkHealthDataExport, ONE_DAY);
+                });
+            
         } else {
             timeoutVar = setTimeout(checkHealthDataExport, lastTimeSend + ONE_DAY - currentTime);
         }
@@ -99,16 +121,11 @@ define(function (require, exports, module) {
     });
     
     AppInit.appReady(function () {
-        var lastTimeSend = PreferencesManager.getViewState("lastTimeSendHealthData");
-
-        if (lastTimeSend) {
+        var isHDTracking = prefs.get("healthDataTracking");
+        
+        if (isHDTracking) {
             checkHealthDataExport();
-        } else {
-            var randomTime = Math.floor(Math.random() * 86400000);
-            PreferencesManager.setViewState("lastTimeSendHealthData", (new Date()).getTime() + randomTime);
-			timeoutVar = setTimeout(checkHealthDataExport, (new Date()).getTime() + randomTime);
-		}
-		
+        }
     });
 
     exports.getHealthData   = getHealthData;

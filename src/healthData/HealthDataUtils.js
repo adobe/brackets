@@ -27,6 +27,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var ExtensionManager = require("extensibility/ExtensionManager");
+    
     function getOSVersion() {
         var winOSStrings = {
             "5.0" : "Windows 2000",
@@ -58,7 +60,17 @@ define(function (require, exports, module) {
     }
     
     function getInstalledExtensions() {
-        return [];
+        var userExtensions = ExtensionManager.userExtensions;
+        var userInstalledExtensions = [];
+        Object.keys(userExtensions).forEach(function (extensionId) {
+            var extension = userExtensions[extensionId];
+            
+            if (extension && extension.installInfo) {
+                userInstalledExtensions.push({"name" : extension.installInfo.metadata.name, "version" : extension.installInfo.metadata.version});
+            }
+        });
+        
+        return userInstalledExtensions;
     }
     
     exports.getOSVersion             = getOSVersion;
