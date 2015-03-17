@@ -45,15 +45,15 @@
 
 .brackets-js-hints.literal-hint {
     color: #444; /* dark grey */
-    font-family: SourceCodePro;
+    font-family: "Menlo Regular", Consolas, Inconsolata, "Vera Sans", "Lucida Console", Courier, fixed;
 }
 
 .brackets-js-hints.keyword-hint {
-    font-family: SourceCodePro; 
+    font-family: "Menlo Regular", Consolas, Inconsolata, "Vera Sans", "Lucida Console", Courier, fixed; 
 }
 
 .brackets-js-hints.keyword-hint .matched-hint {
-    font-family: SourceCodePro-Medium;
+    font-family: "Menlo Regular", Consolas, Inconsolata, "Vera Sans", "Lucida Console", Courier, fixed;
     font-weight: 500; 
 }
 
@@ -109,7 +109,7 @@
 
 .dark .brackets-js-hints.literal-hint {
     color: #bbb; /* dark grey */
-    font-family: SourceCodePro;
+    font-family: "Menlo Regular", Consolas, Inconsolata, "Vera Sans", "Lucida Console", Courier, fixed;
 }
 
 .dark #function-hint-container {

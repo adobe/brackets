@@ -2,6 +2,7 @@
  * All BezierCurveEditor selectors descend from .bezier-curve-editor to constrain styles to this extension
  */
 @cubic-bezier: url(grid.png);
+@sansFontFamily: Helvetica, Arial, "Meiryo UI", "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
 
 .bezier-curve-editor * {
     margin: 0;
@@ -252,7 +253,7 @@
     left: 170px;
     width: 400px;
 
-    font-family: SourceSansPro;
+    font-family: @sansFontFamily;
     font-size: 11px;
     line-height: 2.2 !important;
 }
@@ -279,7 +280,7 @@
 .bezier-curve-editor kbd.text,
 .step-editor kbd.text {
     font-size: 10px;
-    font-family: SourceSansPro;
+    font-family: @sansFontFamily;
     font-weight: normal;
     padding: 4px 4px;
 }
