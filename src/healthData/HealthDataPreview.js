@@ -28,20 +28,40 @@ define(function (require, exports, module) {
     "use strict";
     
     var HealthDataPreviewDialog = require("text!htmlContent/healthdata-preview-dialog.html"),
+        PreferencesManager      = require("preferences/PreferencesManager"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
         HealthDataManager       = require("healthData/HealthDataManager");
+
+    var prefs = PreferencesManager.getExtensionPrefs("healthData");
     /** 
     * Show dialog for previewing the data send to server for Health Data
     */
     
     function previewHealthDataFile() {
+
         HealthDataManager.getHealthData().done(function (healthDataObject) {
             var content = JSON.stringify(healthDataObject, null, 4);
             content = content.replace(/ /g, "&nbsp;");
             content = content.replace(/(?:\r\n|\r|\n)/g, "<br />");
-            var template = Mustache.render(HealthDataPreviewDialog, {Strings: Strings, content: content});
-            Dialogs.showModalDialogUsingTemplate(template);
+
+            var hdPref   = prefs.get("healthDataTracking"),
+                newHDPref = hdPref,
+                template = Mustache.render(HealthDataPreviewDialog, {Strings: Strings, content: content, hdPref: hdPref}),
+                $template = $(template);
+
+            $template.on("change", "[data-target]:checkbox", function () {
+                newHDPref = $(this).is(":checked");
+            });
+
+            Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
+     
+                if (id === "save") {
+                    if (hdPref !== newHDPref) {
+                        prefs.set("healthDataTracking", newHDPref);
+                    }
+                }
+            });
         });
         
     }

@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     
     var prefs = PreferencesManager.getExtensionPrefs("healthData");
     
-    prefs.definePreference("healthDataTracking", "boolean", true);
+    prefs.definePreference("healthDataTracking", "boolean", false);
 
     var ONE_DAY = 24 * 60 * 60 * 1000,
         timeoutVar;
@@ -45,6 +45,15 @@ define(function (require, exports, module) {
     function sendDataToServer(data) {
         var result = new $.Deferred();
         
+        $.ajax({
+            url: brackets.config.healthDataServer,
+            type: "POST",
+            data: data,
+            dataType: "text",
+            contentType: "text/plain"
+        }).always(function () {
+            result.resolve();
+        });
         //ajax call to save data to server
         
         return result.promise();

@@ -144,8 +144,7 @@ define(function (require, exports, module) {
     exports.HELP_RELEASE_NOTES          = "help.releaseNotes";          // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_GET_INVOLVED           = "help.getInvolved";           // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";  // HelpCommandHandlers.js       _handleShowExtensionsFolder()
-    exports.HELP_HEALTHDATA_NOTIFICATION = "help.healthDataNotification";// HelpCommandHandlers.js       _handleHealthDataNotification()
-    exports.HELP_PREVIEW_HEALTHDATA     = "help.healthDataPreview";     // HelpCommandHandlers.js       _handleHealthDataPreview()
+    exports.HELP_HEALTH_DATA_STATISTICS = "help.healthDataStatistics";  // HelpCommandHandlers.js       _handleHealthDataStatistics()
     exports.HELP_HOMEPAGE               = "help.homepage";              // HelpCommandHandlers.js       _handleLinkMenuItem()
     exports.HELP_TWITTER                = "help.twitter";               // HelpCommandHandlers.js       _handleLinkMenuItem()
     

@@ -19,7 +19,8 @@
         "extension_registry": "https://s3.amazonaws.com/extend.brackets/registry.json",
         "extension_url": "https://s3.amazonaws.com/extend.brackets/{0}/{0}-{1}.zip",
         "linting.enabled_by_default": true,
-        "build_timestamp": ""
+        "build_timestamp": "",
+        "healthDataServer" : "http://10.192.16.236:8080"
     },
     "name": "Brackets",
     "version": "1.3.0-0",

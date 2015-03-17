@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, Mustache */
+/*global define, Mustache, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -31,7 +31,8 @@ define(function (require, exports, module) {
         PreferencesManager           = require("preferences/PreferencesManager"),
         Strings                      = require("strings"),
         Dialogs                      = require("widgets/Dialogs"),
-        HealthDataNotificationDialog = require("text!htmlContent/healthdata-notification-dialog.html");
+        HealthDataNotificationDialog = require("text!htmlContent/healthdata-notification-dialog.html"),
+        HealthDataPreview            = require("healthData/HealthDataPreview");
     
     PreferencesManager.definePreference("healthDataNotification", "number", 0);
     
@@ -41,16 +42,34 @@ define(function (require, exports, module) {
     */
     
     function showDialogHealthDataNotification() {
-        var template = Mustache.render(HealthDataNotificationDialog, {Strings: Strings});
-        Dialogs.showModalDialogUsingTemplate(template).done(function (id) {
+        var hdPref   = prefs.get("healthDataTracking"),
+            template = Mustache.render(HealthDataNotificationDialog, {"Strings": Strings, "hdPref": hdPref}),
+            $template = $(template),
+            newHDPref = hdPref;
+
+        $template.on("change", "[data-target]:checkbox", function () {
+            newHDPref = $(this).is(":checked");
+        });
+
+        Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
             PreferencesManager.setViewState("healthDataNotification", (new Date()).getTime());
      
-            if (id === Dialogs.DIALOG_BTN_OK) {
-                prefs.set("healthDataTracking", true);
-            } else if (id === Dialogs.DIALOG_BTN_CANCEL) {
-                prefs.set("healthDataTracking", false);
+            if (id === "save") {
+                if (hdPref !== newHDPref) {
+                    prefs.set("healthDataTracking", newHDPref);
+                }
             }
         });
+    }
+
+    function handleHealthDataStatistics() {
+        var hdPref = prefs.get("healthDataTracking");
+        
+        if (hdPref) {
+            HealthDataPreview.previewHealthDataFile();
+        } else {
+            showDialogHealthDataNotification();
+        }
     }
     
     AppInit.appReady(function () {
@@ -64,5 +83,6 @@ define(function (require, exports, module) {
     });
     
     exports.showDialogHealthDataNotification = showDialogHealthDataNotification;
+    exports.handleHealthDataStatistics       = handleHealthDataStatistics;
                                      
 });

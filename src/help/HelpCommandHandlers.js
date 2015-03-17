@@ -40,8 +40,7 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
         ContributorsTemplate    = require("text!htmlContent/contributors-list.html"),
-        HealthDataNotification  = require("healthData/HealthDataNotification"),
-        HealthDataPreview       = require("healthData/HealthDataPreview");
+        HealthDataNotification  = require("healthData/HealthDataNotification");
     
     // make sure the global brackets variable is loaded
     require("utils/Global");
@@ -74,13 +73,9 @@ define(function (require, exports, module) {
             function (err) {} /* Ignore errors */
         );
     }
-    
-    function _handleHealthDataNotification() {
-        HealthDataNotification.showDialogHealthDataNotification();
-    }
-    
-    function _handleHealthDataPreview() {
-        HealthDataPreview.previewHealthDataFile();
+
+    function _handleHealthDataStatistics() {
+        HealthDataNotification.handleHealthDataStatistics();
     }
 
     function _handleAboutDialog() {
@@ -188,8 +183,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RELEASE_NOTES,          Commands.HELP_RELEASE_NOTES,        _handleLinkMenuItem(brackets.config.release_notes_url));
     CommandManager.register(Strings.CMD_GET_INVOLVED,           Commands.HELP_GET_INVOLVED,         _handleLinkMenuItem(brackets.config.get_involved_url));
     CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);
-    CommandManager.register(Strings.CMD_HEALTH_DATA_NOTIFICATION, Commands.HELP_HEALTHDATA_NOTIFICATION,      _handleHealthDataNotification);
-    CommandManager.register(Strings.CMD_SHOW_HEALTH_DATA_LOG, Commands.HELP_PREVIEW_HEALTHDATA,      _handleHealthDataPreview);
+    CommandManager.register(Strings.CMD_HEALTH_DATA_STATISTICS, Commands.HELP_HEALTH_DATA_STATISTICS, _handleHealthDataStatistics);
     CommandManager.register(Strings.CMD_HOMEPAGE,               Commands.HELP_HOMEPAGE,             _handleLinkMenuItem(brackets.config.homepage_url));
     CommandManager.register(Strings.CMD_TWITTER,                Commands.HELP_TWITTER,              _handleLinkMenuItem(brackets.config.twitter_url));
     CommandManager.register(Strings.CMD_ABOUT,                  Commands.HELP_ABOUT,                _handleAboutDialog);
