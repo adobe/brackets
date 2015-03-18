@@ -39,7 +39,7 @@
         "jasmine-node": "1.11.0",
         "grunt-jasmine-node": "0.1.0",
         "grunt-cli": "0.1.9",
-        "phantomjs": "1.9.11",
+        "phantomjs": "1.9.13",
         "grunt-lib-phantomjs": "0.3.0",
         "grunt-contrib-jshint": "0.6.0",
         "grunt-contrib-watch": "0.4.3",
@@ -59,7 +59,8 @@
         "q": "0.9.2",
         "semver": "^4.1.0",
         "jshint": "2.1.4",
-        "xmldoc": "^0.1.2"
+        "xmldoc": "^0.1.2",
+        "grunt-cleanempty": "1.0.3"
     },
     "scripts": {
         "postinstall": "grunt install",

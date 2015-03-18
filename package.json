@@ -37,7 +37,8 @@
         "q": "0.9.2",
         "semver": "^4.1.0",
         "jshint": "2.1.4",
-        "xmldoc": "^0.1.2"
+        "xmldoc": "^0.1.2",
+        "grunt-cleanempty": "1.0.3"
     },
     "scripts": {
         "postinstall": "grunt install",
