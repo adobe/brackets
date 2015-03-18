@@ -91,7 +91,7 @@ define(function (require, exports, module) {
      * The default font family
      * @type {string}
      */
-    var DEFAULT_FONT_FAMILY = "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Gothic', monospace";
+    var DEFAULT_FONT_FAMILY = "'Menlo Regular', Consolas, Inconsolata, 'Vera Sans', 'Lucida Console', Courier, fixed";
 
     /**
      * @private
