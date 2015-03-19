@@ -296,7 +296,7 @@ define(function (require, exports, module) {
                 console.log("boo");
             });
         
-            waitsForDone(deferred.promise(), "removeTempDirectory", 1000);
+            waitsForDone(deferred.promise(), "removeTempDirectory", 2000);
         });
     }
     
