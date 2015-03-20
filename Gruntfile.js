@@ -381,7 +381,7 @@ module.exports = function (grunt) {
         "update_submodules": {
             publish: {
                 options: {
-                    params: "--remote -- src/extensions/default/brackets-browser-livedev"
+                    params: "--remote -- src/extensions/default/brackets-browser-livedev src/extensions/default/HTMLHinter"
                 }
             }
         },
@@ -411,7 +411,7 @@ module.exports = function (grunt) {
             },
             modules: {
                 files: {
-                    src: ['./src/extensions/default/brackets-browser-livedev']
+                    src: ['./src/extensions/default/brackets-browser-livedev', './src/extensions/default/HTMLHinter']
                 }
             }
         },
