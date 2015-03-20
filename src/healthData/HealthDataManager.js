@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     
     var prefs = PreferencesManager.getExtensionPrefs("healthData");
     
-    prefs.definePreference("healthDataTracking", "boolean", false);
+    prefs.definePreference("healthDataTracking", "boolean", true);
 
     var ONE_DAY = 24 * 60 * 60 * 1000,
         timeoutVar;
@@ -51,10 +51,13 @@ define(function (require, exports, module) {
             data: data,
             dataType: "text",
             contentType: "text/plain"
-        }).always(function () {
-            result.resolve();
-        });
-        //ajax call to save data to server
+        })
+            .fail(function (jqXHR, status, errorThrown) {
+                console.error("Error in sending health data. Response : " + jqXHR.responseText + ". Status : " + status + ". Error : " + errorThrown);
+            })
+            .always(function () {
+                result.resolve();
+            });
         
         return result.promise();
     }
@@ -81,13 +84,15 @@ define(function (require, exports, module) {
         oneTimeHealthData.bracketsLanguage = brackets.getLocale();
         oneTimeHealthData.bracketsVersion = brackets.metadata.version;
         
-        HealthDataUtils.getInstalledExtensions().done(function (userInstalledExtensions) {
-            oneTimeHealthData.installedExtensions = userInstalledExtensions;
-            return result.resolve(oneTimeHealthData);
-        });
+        HealthDataUtils.getInstalledExtensions()
+            .done(function (userInstalledExtensions) {
+                oneTimeHealthData.installedExtensions = userInstalledExtensions;
+            })
+            .always(function () {
+                return result.resolve(oneTimeHealthData);
+            });
         
         return result.promise();
-        
     }
     
     function sendHealthDataToServer() {
@@ -109,43 +114,46 @@ define(function (require, exports, module) {
     * If 24 hours or more than that has been passed, then send health data to the server
     */
     function checkHealthDataExport() {
+        var isHDTracking = prefs.get("healthDataTracking");
         clearTimeout(timeoutVar);
-        var lastTimeSend = PreferencesManager.getViewState("lastTimeSendHealthData"),
-            currentTime  = (new Date()).getTime();
         
-        if (!lastTimeSend) {
-            var randomTime = Math.floor(Math.random() * 86400000);
-            lastTimeSend = currentTime + randomTime;
-            PreferencesManager.setViewState("lastTimeSendHealthData", lastTimeSend);
-        }
-        
-        if ((new Date()).getTime() >= lastTimeSend + ONE_DAY) {
-            sendHealthDataToServer()
-                .always(function () {
-                    timeoutVar = setTimeout(checkHealthDataExport, ONE_DAY);
-                });
-            
-        } else {
-            timeoutVar = setTimeout(checkHealthDataExport, lastTimeSend + ONE_DAY - currentTime);
+        if (isHDTracking) {
+             
+            var lastTimeSend = PreferencesManager.getViewState("lastTimeSendHealthData"),
+                currentTime  = (new Date()).getTime();
+
+            if (!lastTimeSend) {
+                var randomTime = Math.floor(Math.random() * 86400000);
+                lastTimeSend = currentTime + randomTime;
+                PreferencesManager.setViewState("lastTimeSendHealthData", lastTimeSend);
+            }
+
+            if ((new Date()).getTime() >= lastTimeSend + ONE_DAY) {
+                sendHealthDataToServer()
+                    .always(function () {
+                        timeoutVar = setTimeout(checkHealthDataExport, ONE_DAY);
+                    });
+
+            } else {
+                timeoutVar = setTimeout(checkHealthDataExport, lastTimeSend + ONE_DAY - currentTime);
+            }
         }
     }
     
     prefs.on("change", "healthDataTracking", function () {
-        var isHDTracking = prefs.get("healthDataTracking");
-        
-        if (isHDTracking) {
-            checkHealthDataExport();
-        } else {
-            clearTimeout(timeoutVar);
-        }
+        checkHealthDataExport();
+    });
+    
+    window.addEventListener("online", function () {
+        checkHealthDataExport();
+    });
+    
+    window.addEventListener("offline", function () {
+        clearTimeout(timeoutVar);
     });
     
     AppInit.appReady(function () {
-        var isHDTracking = prefs.get("healthDataTracking");
-        
-        if (isHDTracking) {
-            checkHealthDataExport();
-        }
+        checkHealthDataExport();
     });
 
     exports.getHealthData   = getHealthData;
