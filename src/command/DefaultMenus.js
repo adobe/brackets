@@ -110,11 +110,9 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.CMD_SKIP_CURRENT_MATCH);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.CMD_FIND_IN_FILES);
-        menu.addMenuItem(Commands.CMD_FIND_IN_SELECTED);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.CMD_REPLACE);
         menu.addMenuItem(Commands.CMD_REPLACE_IN_FILES);
-        menu.addMenuItem(Commands.CMD_REPLACE_IN_SELECTED);
         
         /*
          * View menu
