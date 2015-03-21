@@ -319,6 +319,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Salvar todos",
     "CMD_FILE_SAVE_AS"                    : "Salvar como\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Habilitar Live Preview experimental",    
     "CMD_RELOAD_LIVE_PREVIEW"             : "Forçar recarregamento do Live Preview",
     "CMD_PROJECT_SETTINGS"                : "Configurações do projeto\u2026",
     "CMD_FILE_RENAME"                     : "Renomear",
