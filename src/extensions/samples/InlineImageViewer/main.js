@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     
     // Brackets modules
     var EditorManager           = brackets.getModule("editor/EditorManager"),
+        ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         ProjectManager          = brackets.getModule("project/ProjectManager");
     
     // Local modules
@@ -130,5 +131,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    ExtensionUtils.loadStyleSheet(module, "style.css");
     EditorManager.registerInlineEditProvider(inlineImageViewerProvider);
 });
