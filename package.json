@@ -12,7 +12,7 @@
         "branch": "",
         "SHA": ""
     },
-    "devDependencies": {
+    "dependencies": {
         "grunt": "0.4.1",
         "grunt-cli": "0.1.9",
         "grunt-contrib-clean": "0.4.1",
@@ -48,7 +48,7 @@
     },
     "scripts": {
         "postinstall": "grunt install",
-        "test": "grunt cla-check-pull test"
+        "test": "grunt cla-check-pull test && grunt build-browser"
     },
     "licenses": [
         {
