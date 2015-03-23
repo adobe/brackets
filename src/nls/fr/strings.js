@@ -363,11 +363,9 @@ define({
 	"CMD_ADD_NEXT_MATCH": "Ajouter l’occurrence suivante à la sélection",
 	"CMD_SKIP_CURRENT_MATCH": "Ignorer et ajouter l’occurrence suivante",
 	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
-	"CMD_FIND_IN_SELECTED": "Rechercher dans le fichier/dossier sélectionné",
 	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
 	"CMD_REPLACE": "Remplacer",
 	"CMD_REPLACE_IN_FILES": "Remplacer dans les fichiers",
-	"CMD_REPLACE_IN_SELECTED": "Remplacer dans le fichier/dossier sélectionné",
 	"CMD_REPLACE_IN_SUBTREE": "Remplacer dans\u2026",
 
     // View menu commands
