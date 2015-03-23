@@ -394,9 +394,9 @@ module.exports = function (grunt) {
             },
             publish: {
                 options: {
-                   noStatus: true,
-                   allowEmpty: true,
-                   message: "Latest distribution version of Bramble."
+                    noStatus: true,
+                    allowEmpty: true,
+                    message: "Latest distribution version of Bramble."
                 }
             }
         },
@@ -436,7 +436,7 @@ module.exports = function (grunt) {
     //    [overwrite] - If true, resets the target branch to the
     //                  value of the starting branch
     grunt.registerTask('smartCheckout', function(branch, overwrite) {
-        overwrite = overwrite == "true" ? true : false;
+        overwrite = overwrite === "true" ? true : false;
 
         grunt.config('gitcheckout.smart.options.branch', branch);
         grunt.config('gitcheckout.smart.options.overwrite', overwrite);
@@ -449,7 +449,7 @@ module.exports = function (grunt) {
     //    [branch] - The branch to push to
     //    [force] - If true, forces a push
     grunt.registerTask('smartPush', function(branch, force) {
-        force = force == "true" ? true : false;
+        force = force === "true" ? true : false;
 
         grunt.config('gitpush.smart.options.branch', branch);
         grunt.config('gitpush.smart.options.force', force);
