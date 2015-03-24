@@ -431,16 +431,6 @@ define(function (require, exports, module) {
             PreferencesManager.definePreference("_windowsScrollFix", "boolean", true).on("change", enableOrDisableWinScrollFix);
             enableOrDisableWinScrollFix();
         }
-
-        // Prevent extensions from using window.open() to insecurely load untrusted web content
-        var real_windowOpen = window.open;
-        window.open = function (url) {
-            // Allow file:// URLs, relative URLs (implicitly file: also), and about:blank
-            if (!url.match(/^file:\/\//) && !url.match(/^about:blank/) && url.indexOf(":") !== -1) {
-                throw new Error("Brackets-shell is not a secure general purpose web browser. Use NativeApp.openURLInDefaultBrowser() to open URLs in the user's main browser");
-            }
-            return real_windowOpen.apply(window, arguments);
-        };
         
         // jQuery patch to shim deprecated usage of $() on EventDispatchers
         var DefaultCtor = jQuery.fn.init;

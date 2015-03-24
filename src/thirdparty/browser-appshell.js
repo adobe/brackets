@@ -75,7 +75,8 @@
       functionNotImplemented();
     },
     openURLInDefaultBrowser: function(url, callback) {
-      functionNotImplemented();
+      global.open(url);
+      callback();
     },
     quit: function() {
       functionNotImplemented();
