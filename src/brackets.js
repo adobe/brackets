@@ -154,6 +154,7 @@ define(function (require, exports, module) {
     // read URL params
     params.parse();
     
+
     /**
      * Setup test object
      */
@@ -208,6 +209,9 @@ define(function (require, exports, module) {
             ScrollTrackMarkers      : require("search/ScrollTrackMarkers"),
             UpdateNotification      : require("utils/UpdateNotification"),
             WorkingSetView          : WorkingSetView,
+            HealthDataNotification  : require("healthData/HealthDataNotification"),
+            HealthDataPreview       : require("healthData/HealthDataPreview"),
+            HealthDataManager       : require("healthData/HealthDataManager"),
             doneLoading             : false
         };
 
@@ -327,7 +331,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         // Check for updates
         if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
             AppInit.appReady(function () {

@@ -39,7 +39,8 @@ define(function (require, exports, module) {
     */
     
     function previewHealthDataFile() {
-
+        var result = new $.Deferred();
+        
         HealthDataManager.getHealthData().done(function (healthDataObject) {
             var content = JSON.stringify(healthDataObject, null, 4);
             content = content.replace(/ /g, "&nbsp;");
@@ -62,8 +63,11 @@ define(function (require, exports, module) {
                     }
                 }
             });
+
+            return result.resolve();
         });
         
+        return result.promise();
     }
     
     exports.previewHealthDataFile = previewHealthDataFile;

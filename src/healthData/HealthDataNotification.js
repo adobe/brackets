@@ -32,15 +32,18 @@ define(function (require, exports, module) {
         Strings                      = require("strings"),
         Dialogs                      = require("widgets/Dialogs"),
         HealthDataNotificationDialog = require("text!htmlContent/healthdata-notification-dialog.html"),
-        HealthDataPreview            = require("healthData/HealthDataPreview");
+        HealthDataPreview            = require("healthData/HealthDataPreview"),
+        UrlParams                    = require("utils/UrlParams").UrlParams;
     
     PreferencesManager.definePreference("healthDataNotification", "number", 0);
     
     var prefs = PreferencesManager.getExtensionPrefs("healthData");
+    
+    // Parse URL params
+    var params = new UrlParams();
     /**
     * Show dialog for fist time to the user regarding log capturing by Brackets
     */
-    
     function showDialogHealthDataNotification() {
         var hdPref   = prefs.get("healthDataTracking"),
             template = Mustache.render(HealthDataNotificationDialog, {"Strings": Strings, "hdPref": hdPref}),
@@ -73,13 +76,15 @@ define(function (require, exports, module) {
     }
     
     AppInit.appReady(function () {
+        params.parse();
         // check for showing the HealthData Notification to the user. It will be shown one time.
-        var isShown = PreferencesManager.getViewState("healthDataNotification");
-        
-        if (!isShown) {
-            showDialogHealthDataNotification();
+        if (!params.get("skipHealthDataNotification")) {
+            var isShown = PreferencesManager.getViewState("healthDataNotification");
+
+            if (!isShown) {
+                showDialogHealthDataNotification();
+            }
         }
-        
     });
     
     exports.showDialogHealthDataNotification = showDialogHealthDataNotification;
