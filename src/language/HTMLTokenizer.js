@@ -25,7 +25,7 @@
 // (MIT-licensed), but with significant customizations for use in HTML live development.
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, continue: true */
-/*global define, $ */
+/*global define */
 /*unittests: HTML Tokenizer*/
 
 define(function (require, exports, module) {
@@ -142,8 +142,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @constructor
      * A simple HTML tokenizer. See the description of nextToken() for usage details.
+     * @constructor
      * @param {string} text The HTML document to tokenize.
      */
     function Tokenizer(text) {

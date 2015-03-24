@@ -22,20 +22,21 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, brackets, window */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
 
     /**
-     * @constructor
      * Base class for live preview servers
      *
+     * Configuration parameters for this server:
+     * - baseUrl      - Optional base URL (populated by the current project)
+     * - pathResolver - Function to covert absolute native paths to project relative paths
+     * - root         - Native path to the project root (and base URL)
+     *
+     * @constructor
      * @param {!{baseUrl: string, root: string, pathResolver: function(string): string}} config
-     *    Configuration parameters for this server:
-     *        baseUrl       - Optional base URL (populated by the current project)
-     *        pathResolver  - Function to covert absolute native paths to project relative paths
-     *        root          - Native path to the project root (and base URL)
      */
     function BaseServer(config) {
         this._baseUrl       = config.baseUrl;
@@ -61,7 +62,6 @@ define(function (require, exports, module) {
      */
     BaseServer.prototype._setDocInfo = function (liveDocument) {
         var parentUrl,
-            rootUrl,
             matches,
             doc = liveDocument.doc;
 
@@ -96,8 +96,7 @@ define(function (require, exports, module) {
      *  Returns null if the path is not a descendant of the project root.
      */
     BaseServer.prototype.pathToUrl = function (path) {
-        var url             = null,
-            baseUrl         = this.getBaseUrl(),
+        var baseUrl         = this.getBaseUrl(),
             relativePath    = this._pathResolver(path);
 
         // See if base url has been specified and path is within project

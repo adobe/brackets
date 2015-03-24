@@ -23,7 +23,8 @@
 
 
 /*jslint vars: true, plusplus: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, window, navigator, Node, console */
+/*jshint unused: false */
+/*global window, navigator, Node, console */
 /*theseus instrument: false */
 
 /**
@@ -70,13 +71,21 @@ function RemoteFunctions(experimental) {
     }
 
     // compute the screen offset of an element
-    function _screenOffset(element, key) {
-        var bounds = element.getBoundingClientRect();
-        if (key === "offsetLeft") {
-            return bounds.left + window.pageXOffset;
+    function _screenOffset(element) {
+        var elemBounds = element.getBoundingClientRect(),
+            body = window.document.body,
+            offsetTop,
+            offsetLeft;
+
+        if (window.getComputedStyle(body).position === "static") {
+            offsetLeft = elemBounds.left + window.pageXOffset;
+            offsetTop = elemBounds.top + window.pageYOffset;
         } else {
-            return bounds.top + window.pageYOffset;
+            var bodyBounds = body.getBoundingClientRect();
+            offsetLeft = elemBounds.left - bodyBounds.left;
+            offsetTop = elemBounds.top - bodyBounds.top;
         }
+        return { left: offsetLeft, top: offsetTop };
     }
 
     // set an event on a element
@@ -113,8 +122,9 @@ function RemoteFunctions(experimental) {
             }
 
             // compute the position on screen
-            var x = _screenOffset(this.element, "offsetLeft");
-            var y = _screenOffset(this.element, "offsetTop") + this.element.offsetHeight;
+            var offset = _screenOffset(this.element),
+                x = offset.left,
+                y = offset.top + this.element.offsetHeight;
 
             // create the container
             this.body = document.createElement("div");
@@ -238,9 +248,11 @@ function RemoteFunctions(experimental) {
             
             highlight.className = HIGHLIGHT_CLASSNAME;
             
+            var offset = _screenOffset(element);
+
             var stylesToSet = {
-                "left": _screenOffset(element, "offsetLeft") + "px",
-                "top": _screenOffset(element, "offsetTop") + "px",
+                "left": offset.left + "px",
+                "top": offset.top + "px",
                 "width": elementBounds.width + "px",
                 "height": elementBounds.height + "px",
                 "z-index": 2000000,
@@ -254,27 +266,26 @@ function RemoteFunctions(experimental) {
                 "border-bottom-right-radius": styles.borderBottomRightRadius,
                 "border-style": "solid",
                 "border-width": "1px",
-                "border-color": "rgb(94,167,255)",
+                "border-color": "#00a2ff",
+                "box-shadow": "0 0 1px #fff",
                 "box-sizing": "border-box"
             };
             
             var animateStartValues = {
-                "opacity": 0,
-                "background": "rgba(94,167,255, 0.5)",
-                "box-shadow": "0 0 6px 1px rgba(94,167,255, 0.6), inset 0 0 4px 1px rgba(255,255,255,1)"
+                "background-color": "rgba(0, 162, 255, 0.5)",
+                "opacity": 0
             };
             
             var animateEndValues = {
-                "opacity": 1,
-                "background": "rgba(94,167,255, 0.1)",
-                "box-shadow": "0 0 1px 0 rgba(94,167,255, 0), inset 0 0 4px 1px rgba(255,255,255,0.8)"
+                "background-color": "rgba(0, 162, 255, 0)",
+                "opacity": 1
             };
             
             var transitionValues = {
-                "-webkit-transition-property": "opacity, box-shadow, background",
-                "-webkit-transition-duration": "0.3s, 0.4s, 0.4s",
-                "transition-property": "opacity, box-shadow, background",
-                "transition-duration": "0.3s, 0.4s, 0.4s"
+                "-webkit-transition-property": "opacity, background-color",
+                "-webkit-transition-duration": "300ms, 2.3s",
+                "transition-property": "opacity, background-color",
+                "transition-duration": "300ms, 2.3s"
             };
             
             function _setStyleValues(styleValues, obj) {
@@ -297,7 +308,7 @@ function RemoteFunctions(experimental) {
                 
                 window.setTimeout(function () {
                     _setStyleValues(animateEndValues, highlight.style);
-                }, 0);
+                }, 20);
             }
         
             window.document.body.appendChild(highlight);
@@ -649,7 +660,11 @@ function RemoteFunctions(experimental) {
             } else {
                 lastRemovedWasText = isText;
 
-                current.remove();
+                if (current.remove) {
+                    current.remove();
+                } else if (current.parentNode && current.parentNode.removeChild) {
+                    current.parentNode.removeChild(current);
+                }
                 current = next;
             }
         }
@@ -687,7 +702,11 @@ function RemoteFunctions(experimental) {
                 edit.tagIDs.forEach(function (tagID) {
                     var node = self._queryBracketsID(tagID);
                     self.rememberedNodes[tagID] = node;
-                    node.remove();
+                    if (node.remove) {
+                        node.remove();
+                    } else if (node.parentNode && node.parentNode.removeChild) {
+                        node.parentNode.removeChild(node);
+                    }
                 });
                 return;
             }
@@ -709,7 +728,11 @@ function RemoteFunctions(experimental) {
                 targetElement.removeAttribute(edit.attribute);
                 break;
             case "elementDelete":
-                targetElement.remove();
+                if (targetElement.remove) {
+                    targetElement.remove();
+                } else if (targetElement.parentNode && targetElement.parentNode.removeChild) {
+                    targetElement.parentNode.removeChild(targetElement);
+                }
                 break;
             case "elementInsert":
                 childElement = null;

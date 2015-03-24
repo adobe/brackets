@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone, beforeFirst, afterLast */
+/*global define, $, describe, afterEach, it, runs, expect, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -168,7 +168,7 @@ define(function (require, exports, module) {
         // Helper functions to open editors / toggle options
         function openEditor(fullPath) {
             runs(function () {
-                var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
+                var promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath});
                 waitsForDone(promise, "Open into working set");
             });
         }
@@ -203,18 +203,18 @@ define(function (require, exports, module) {
         describe("Toggle Word Wrap", function () {
             it("should wrap long lines in main editor by default", function () {
                 openEditor(HTML_FILE);
-                
+
                 runs(function () {
                     var editor = EditorManager.getCurrentFullEditor();
-                    
+
                     // Use two cursor positions to detect line wrapping. First position at 
                     // the beginning of a long line and the second position to be
                     // somewhere on the long line that will be part of an extra line 
                     // created by word-wrap and get its bottom coordinate.
-                    checkLineWrapping(editor, {line: 8, ch: 0}, {line: 8, ch: 210}, true);
+                    checkLineWrapping(editor, {line: 8, ch: 0}, {line: 8, ch: 320}, true);
                 });
             });
-    
+
             it("should also wrap long lines in inline editor by default", function () {
                 openInlineEditor();
                 

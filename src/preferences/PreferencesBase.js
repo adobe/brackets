@@ -21,7 +21,7 @@
  * 
  */
 
-/*global define, $, localStorage, brackets, console */
+/*global define, $, console */
 /*unittests: Preferences Base */
 
 /**
@@ -36,10 +36,10 @@
  * PreferencesManager.js sets up a singleton PreferencesSystem that has the following Scopes:
  *
  * * default (the default values for any settings that are explicitly registered)
- * *  user (the user's customized settings – the equivalent of Brackets' old 
- *        localStorage-based system. This is the settings file that lives in AppData)
+ * * user (the user's customized settings – the equivalent of Brackets' old 
+ *   localStorage-based system. This is the settings file that lives in AppData)
  * * Additional scopes for each .brackets.json file going upward in the file tree from the
- *        current file
+ *   current file
  * 
  * For example, if spaceUnits has a value set in a .brackets.json file near the open file, 
  * then a call to get("spaceUnits") would return the value from that file. File values come 
@@ -58,13 +58,12 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils         = require("file/FileUtils"),
-        FileSystem        = require("filesystem/FileSystem"),
-        ExtensionLoader   = require("utils/ExtensionLoader"),
-        CollectionUtils   = require("utils/CollectionUtils"),
-        _                 = require("thirdparty/lodash"),
-        Async             = require("utils/Async"),
-        globmatch         = require("thirdparty/globmatch");
+    var FileUtils   = require("file/FileUtils"),
+        FileSystem  = require("filesystem/FileSystem"),
+        EventDispatcher = require("utils/EventDispatcher"),
+        _           = require("thirdparty/lodash"),
+        Async       = require("utils/Async"),
+        globmatch   = require("thirdparty/globmatch");
     
     // CONSTANTS
     var PREFERENCE_CHANGE = "change",
@@ -78,6 +77,7 @@ define(function (require, exports, module) {
      * MemoryStorage, as the name implies, stores the preferences in memory.
      * This is suitable for single session data or testing.
      * 
+     * @constructor
      * @param {?Object} data Initial data for the storage.
      */
     function MemoryStorage(data) {
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         load: function () {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             result.resolve(this.data);
             return result.promise();
         },
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
          * @return {Promise} promise that is already resolved
          */
         save: function (newData) {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             this.data = newData;
             result.resolve();
             return result.promise();
@@ -115,15 +115,20 @@ define(function (require, exports, module) {
         /**
          * MemoryStorage is not stored in a file, so fileChanged is ignored.
          * 
-         * @param {string} filename File that has changed
+         * @param {string} filePath File that has changed
          */
-        fileChanged: function (filename) {
+        fileChanged: function (filePath) {
         }
     };
+    
+    // MemoryStorage never actually dispatches change events, but Storage interface requires implementing on()/off()
+    EventDispatcher.makeEventDispatcher(MemoryStorage.prototype);
+    
     
     /**
      * Error type for problems parsing preference files.
      * 
+     * @constructor
      * @param {string} message Error message
      */
     function ParsingError(message) {
@@ -133,9 +138,11 @@ define(function (require, exports, module) {
     
     ParsingError.prototype = new Error();
     
+    
     /**
      * Loads/saves preferences from a JSON file on disk.
      * 
+     * @constructor
      * @param {string} path Path to the preferences file
      * @param {boolean} createIfNew True if the file should be created if it doesn't exist.
      *                              If this is not true, an exception will be thrown if the
@@ -156,7 +163,7 @@ define(function (require, exports, module) {
          * @return {Promise} Resolved with the data once it has been parsed.
          */
         load: function () {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             var path = this.path;
             var createIfNew = this.createIfNew;
             var self = this;
@@ -200,7 +207,7 @@ define(function (require, exports, module) {
          * @return {Promise} Promise resolved (with no arguments) once the data has been saved
          */
         save: function (newData) {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             var path = this.path;
             var prefFile = FileSystem.getFileForPath(path);
             
@@ -235,20 +242,23 @@ define(function (require, exports, module) {
          */
         setPath: function (newPath) {
             this.path = newPath;
-            $(this).trigger("changed");
+            this.trigger("changed");
         },
         
         /**
          * If the filename matches this Storage's path, a changed message is triggered.
          * 
-         * @param {string} filename File that has changed
+         * @param {string} filePath File that has changed
          */
-        fileChanged: function (filename) {
-            if (filename === this.path) {
-                $(this).trigger("changed");
+        fileChanged: function (filePath) {
+            if (filePath === this.path) {
+                this.trigger("changed");
             }
         }
     };
+    
+    EventDispatcher.makeEventDispatcher(FileStorage.prototype);
+    
     
     /**
      * A `Scope` is a data container that is tied to a `Storage`.
@@ -256,11 +266,12 @@ define(function (require, exports, module) {
      * Additionally, `Scope`s support "layers" which are additional levels of preferences
      * that are stored within a single preferences file.
      * 
+     * @constructor
      * @param {Storage} storage Storage object from which prefs are loaded/saved
      */
     function Scope(storage) {
         this.storage = storage;
-        $(storage).on("changed", this.load.bind(this));
+        storage.on("changed", this.load.bind(this));
         this.data = {};
         this._dirty = false;
         this._layers = [];
@@ -275,13 +286,13 @@ define(function (require, exports, module) {
          * @return {Promise} Promise that is resolved once loading is complete
          */
         load: function () {
-            var result = $.Deferred();
+            var result = new $.Deferred();
             this.storage.load()
                 .then(function (data) {
                     var oldKeys = this.getKeys();
                     this.data = data;
                     result.resolve();
-                    $(this).trigger(PREFERENCE_CHANGE, {
+                    this.trigger(PREFERENCE_CHANGE, {
                         ids: _.union(this.getKeys(), oldKeys)
                     });
                 }.bind(this))
@@ -302,7 +313,7 @@ define(function (require, exports, module) {
                 self._dirty = false;
                 return this.storage.save(this.data);
             } else {
-                return $.Deferred().resolve().promise();
+                return (new $.Deferred()).resolve().promise();
             }
         },
         
@@ -476,7 +487,7 @@ define(function (require, exports, module) {
             this._layers.push(layer);
             this._layerMap[layer.key] = layer;
             this._exclusions.push(layer.key);
-            $(this).trigger(PREFERENCE_CHANGE, {
+            this.trigger(PREFERENCE_CHANGE, {
                 ids: layer.getKeys(this.data[layer.key], {})
             });
         },
@@ -485,29 +496,29 @@ define(function (require, exports, module) {
          * Tells the Scope that the given file has been changed so that the
          * Storage can be reloaded if needed.
          * 
-         * @param {string} filename Name of the file that has changed
+         * @param {string} filePath File that has changed
          */
-        fileChanged: function (filename) {
-            this.storage.fileChanged(filename);
+        fileChanged: function (filePath) {
+            this.storage.fileChanged(filePath);
         },
         
         /**
-         * Determines if there are likely to be any changes based on a change
-         * to the default filename used in lookups.
+         * Determines if there are likely to be any changes based on the change
+         * of context.
          * 
-         * @param {string} filename New filename
-         * @param {string} oldFilename Old filename
+         * @param {{path: string, language: string}} oldContext Old context
+         * @param {{path: string, language: string}} newContext New context
          * @return {Array.<string>} List of changed IDs
          */
-        defaultFilenameChanged: function (filename, oldFilename) {
+        contextChanged: function (oldContext, newContext) {
             var changes = [],
                 data    = this.data;
             
             _.each(this._layers, function (layer) {
-                if (layer.defaultFilenameChanged && data[layer.key]) {
-                    var changesInLayer = layer.defaultFilenameChanged(data[layer.key],
-                                                                      filename,
-                                                                      oldFilename);
+                if (data[layer.key] && oldContext[layer.key] !== newContext[layer.key]) {
+                    var changesInLayer = layer.contextChanged(data[layer.key],
+                                                              oldContext,
+                                                              newContext);
                     if (changesInLayer) {
                         changes.push(changesInLayer);
                     }
@@ -516,6 +527,9 @@ define(function (require, exports, module) {
             return _.union.apply(null, changes);
         }
     });
+    
+    EventDispatcher.makeEventDispatcher(Scope.prototype);
+    
     
     // Utility functions for the PathLayer
     
@@ -546,11 +560,10 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @constructor
-     * 
      * Create a default project layer object that has a single property "key"
      * with "project" as its value. 
      *
+     * @constructor
      */
     function ProjectLayer() {
         this.projectPath = null;
@@ -571,7 +584,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if (data[this.projectPath] && data[this.projectPath][id]) {
+            if (data[this.projectPath] && (data[this.projectPath][id] !== undefined)) {
                 return data[this.projectPath][id];
             }
             return;
@@ -590,7 +603,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if (data[this.projectPath] && data[this.projectPath][id]) {
+            if (data[this.projectPath] && (data[this.projectPath][id] !== undefined)) {
                 return this.projectPath;
             }
 
@@ -658,12 +671,156 @@ define(function (require, exports, module) {
         }
     };
     
+    
+    /**
+     * @constructor
+     * 
+     * Create a language layer object. Language Layer is completely stateless, it
+     * only knows how look up and process prefs set in the language layer. Desired
+     * language id should be specified in the "language" field of the context. 
+     */
+    function LanguageLayer() {
+    }
+   
+    LanguageLayer.prototype = {
+        key: "language",
+        
+        /**
+         * Retrieve the current value based on the specified context. If the context
+         * does contain language field, undefined is returned.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {{language: string}} context Context to operate with
+         * @return {*|undefined} property value
+         */
+        get: function (data, id, context) {
+            if (!data || !context.language) {
+                return;
+            }
+
+            if (data[context.language] && (data[context.language][id] !== undefined)) {
+                return data[context.language][id];
+            }
+            return;
+        },
+        
+        /**
+         * Gets the location in which the given pref was set, if it was set within
+         * this language layer for the current language.
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {string} id preference ID to look up
+         * @param {{language: string}} context Context to operate with
+         * @return {string|undefined} the Layer ID, in this case the current language
+         */
+        getPreferenceLocation: function (data, id, context) {
+            if (!data || !context.language) {
+                return;
+            }
+
+            if (data[context.language] && (data[context.language][id] !== undefined)) {
+                return context.language;
+            }
+
+            return;
+        },
+        /**
+         * Retrieves the keys provided by this layer object. If the context is
+         * empty, it will return all the keys provided in all the layerIDs
+         * (languages).
+         * 
+         * @param {Object} data the preference data from the Scope
+         * @param {{language: string}} context Context to operate with
+         * @return {Array<{string}>|undefined} An array of pref ids
+         */
+        getKeys: function (data, context) {
+            if (!data) {
+                return;
+            }
+            
+            // do not upset other layers if context for the this one is not specified
+            if (!_.isEmpty(context)) {
+                if (data[context.language]) {
+                    return _.keys(data[context.language]);
+                } else {
+                    return [];
+                }
+            } else {
+                return _.union.apply(null, _.map(_.values(data), _.keys));
+            }
+        },
+
+        /**
+         * Sets the preference value in the given data structure for the layerID
+         * provided. If no layerID is provided, then it will be determined using
+         * getPreferenceLocation. If a layerID is located, but it does not
+         * exist, it will be created.
+         * 
+         * This function returns whether or not a value was set.
+         * 
+         * @param {Object} data The preference data from the Scope
+         * @param {string} id Preference ID to look up
+         * @param {Object} value New value to assign to the preference
+         * @param {{language: string}} context Context to operate with
+         * @param {string=} layerID Language to be used for setting value
+         * @return {boolean} True if the value was set
+         */
+        set: function (data, id, value, context, layerID) {
+            if (!layerID) {
+                layerID = this.getPreferenceLocation(data, id, context);
+            }
+
+            if (!layerID) {
+                return false;
+            }
+
+            var section = data[layerID];
+            if (!section) {
+                data[layerID] = section = {};
+            }
+            if (!_.isEqual(section[id], value)) {
+                if (value === undefined) {
+                    delete section[id];
+                    if (_.isEmpty(section)) {
+                        delete data[layerID];
+                    }
+                } else {
+                    section[id] = _.cloneDeep(value);
+                }
+                return true;
+            }
+            return false;
+        },
+        
+        /**
+         * Determines if there are preference IDs that could change as a result
+         * of the context change. This implementation considers only changes in
+         * language.
+         * 
+         * @param {Object} data Data in the Scope
+         * @param {{language: string}} oldContext Old context
+         * @param {{language: string}} newContext New context
+         * @return {Array.<string>|undefined} list of preference IDs that could have changed
+         */
+        contextChanged: function (data, oldContext, newContext) {
+            // this function is called only if the language has changed
+            if (newContext.language === undefined) {
+                return _.keys(data[oldContext.language]);
+            }
+            if (oldContext.language === undefined) {
+                return _.keys(data[newContext.language]);
+            }
+            
+            return _.union(_.keys(data[newContext.language]), _.keys(data[oldContext.language]));
+        }
+    };
+    
     /**
      * Provides layered preferences based on file globs, generally following the model provided
      * by [EditorConfig](http://editorconfig.org/). In usage, it looks something like this
      * (switching to single line comments because the glob interferes with the multiline comment):
      */
-    
 //    "path": {
 //        "src/thirdparty/CodeMirror2/**/*.js": {
 //            "spaceUnits": 2,
@@ -675,6 +832,7 @@ define(function (require, exports, module) {
      * There can be multiple paths and they are each checked in turn. The first that matches the
      * currently edited file wins.
      * 
+     * @constructor
      * @param {string} prefFilePath path to the preference file
      */
     function PathLayer(prefFilePath) {
@@ -717,7 +875,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context.filename);
+            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context[this.key]);
             if (!relativeFilename) {
                 return;
             }
@@ -776,7 +934,7 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context.filename);
+            var relativeFilename = FileUtils.getRelativeFilename(this.prefFilePath, context[this.key]);
             
             if (relativeFilename) {
                 var glob = _findMatchingGlob(data, relativeFilename);
@@ -804,20 +962,20 @@ define(function (require, exports, module) {
         
         /**
          * Determines if there are preference IDs that could change as a result of
-         * a change to the default filename.
+         * a change in the context. This implementation considers only the path portion
+         * of the context and looks up matching globes if any.
          * 
          * @param {Object} data Data in the Scope
-         * @param {string} filename New filename
-         * @param {string} oldFilename Old filename
+         * @param {{path: string}} oldContext Old context
+         * @param {{path: string}} newContext New context
          * @return {Array.<string>} list of preference IDs that could have changed
          */
-        defaultFilenameChanged: function (data, filename, oldFilename) {
+        contextChanged: function (data, oldContext, newContext) {
             var newGlob = _findMatchingGlob(data,
-                              FileUtils.getRelativeFilename(this.prefFilePath, filename)),
+                              FileUtils.getRelativeFilename(this.prefFilePath, newContext[this.key])),
                 oldGlob = _findMatchingGlob(data,
-                              FileUtils.getRelativeFilename(this.prefFilePath, oldFilename));
-            
-            
+                              FileUtils.getRelativeFilename(this.prefFilePath, oldContext[this.key]));
+                        
             if (newGlob === oldGlob) {
                 return;
             }
@@ -832,42 +990,39 @@ define(function (require, exports, module) {
         }
     };
     
+    
     /**
      * Represents a single, known Preference.
      * 
+     * @constructor
      * @param {Object} properties Information about the Preference that is stored on this object
      */
     function Preference(properties) {
         _.extend(this, properties);
     }
     
-    _.extend(Preference.prototype, {
-        /**
-         * Sets an event handler on this Preference.
-         * 
-         * @param {string} event Event name
-         * @param {Function} handler Function to handle the event
-         */
-        on: function (event, handler) {
-            $(this).on(event, handler);
-        },
-        
-        /**
-         * Removes an event handler from this Preference
-         * 
-         * @param {string} event Event name
-         * @param {?Function} handler Optional specific function to stop receiving events 
-         */
-        off: function (event, handler) {
-            $(this).off(event, handler);
-        }
-    });
+    EventDispatcher.makeEventDispatcher(Preference.prototype);
+    
+    
+    /**
+     * Utility for PreferencesSystem & PrefixedPreferencesSystem -- attach EventDispatcher's on()/off()
+     * implementation as private _on_internal()/_off_internal() methods, so the custom on()/off() APIs
+     * these classes use can leverage EventDispatcher code internally. Also attach the regular public trigger().
+     */
+    function _addEventDispatcherImpl(proto) {
+        var temp = {};
+        EventDispatcher.makeEventDispatcher(temp);
+        proto._on_internal  = temp.on;
+        proto._off_internal = temp.off;
+        proto.trigger       = temp.trigger;
+    }
     
     /**
      * Provides a subset of the PreferencesSystem functionality with preference
      * access always occurring with the given prefix.
      * 
-     * @param {PreferencesSystem} baseSystem The real PreferencesSystem that is backing this one
+     * @constructor
+     * @param {PreferencesSystem} base The real PreferencesSystem that is backing this one
      * @param {string} prefix Prefix that is used for preferences lookup. Any separator characters should already be added.
      */
     function PrefixedPreferencesSystem(base, prefix) {
@@ -907,7 +1062,8 @@ define(function (require, exports, module) {
          * @param {Object=} context Optional context object to change the preference lookup
          */
         get: function (id, context) {
-            return this.base.get(this.prefix + id, context);
+            context = context || {};
+            return this.base.get(this.prefix + id, this.base._getContext(context));
         },
         
         /**
@@ -927,10 +1083,12 @@ define(function (require, exports, module) {
          * @param {string} id Identifier of the preference to set
          * @param {Object} value New value for the preference
          * @param {{location: ?Object, context: ?Object}=} options Specific location in which to set the value or the context to use when setting the value
-         * @return {boolean} true if a value was set
+         * @param {boolean=} doNotSave True if the preference change should not be saved automatically.
+         * @return {valid:  {boolean}, true if no validator specified or if value is valid
+         *          stored: {boolean}} true if a value was stored
          */
-        set: function (id, value, options) {
-            return this.base.set(this.prefix + id, value, options);
+        set: function (id, value, options, doNotSave) {
+            return this.base.set(this.prefix + id, value, options, doNotSave);
         },
         
         /**
@@ -943,7 +1101,7 @@ define(function (require, exports, module) {
             if (this._listenerInstalled) {
                 return;
             }
-            var $this = $(this),
+            var self = this,
                 prefix = this.prefix;
             
             var onlyWithPrefix = function (id) {
@@ -957,11 +1115,11 @@ define(function (require, exports, module) {
                 return id.substr(prefix.length);
             };
             
-            $(this.base).on(PREFERENCE_CHANGE, function (e, data) {
+            this.base.on(PREFERENCE_CHANGE, function (e, data) {
                 var prefixedIds = data.ids.filter(onlyWithPrefix);
                 
                 if (prefixedIds.length > 0) {
-                    $this.trigger(PREFERENCE_CHANGE, {
+                    self.trigger(PREFERENCE_CHANGE, {
                         ids: prefixedIds.map(withoutPrefix)
                     });
                 }
@@ -972,8 +1130,7 @@ define(function (require, exports, module) {
         
         /**
          * Sets up a listener for events for this PrefixedPreferencesSystem. Only prefixed events
-         * will notify. Optionally, you can set up a listener for a
-         * specific preference.
+         * will notify. Optionally, you can set up a listener for a specific preference.
          * 
          * @param {string} event Name of the event to listen for
          * @param {string|Function} preferenceID Name of a specific preference or the handler function
@@ -990,7 +1147,7 @@ define(function (require, exports, module) {
                 pref.on(event, handler);
             } else {
                 this._installListener();
-                $(this).on(event, handler);
+                this._on_internal(event, handler);
             }
         },
         
@@ -1012,7 +1169,7 @@ define(function (require, exports, module) {
                 var pref = this.getPreference(preferenceID);
                 pref.off(event, handler);
             } else {
-                $(this).off(event, handler);
+                this._off_internal(event, handler);
             }
         },
         
@@ -1027,6 +1184,9 @@ define(function (require, exports, module) {
         }
     };
     
+    _addEventDispatcherImpl(PrefixedPreferencesSystem.prototype);
+    
+    
     /**
      * PreferencesSystem ties everything together to provide a simple interface for
      * managing the whole prefs system.
@@ -1035,8 +1195,16 @@ define(function (require, exports, module) {
      * 
      * It also provides the ability to register preferences, which gives a fine-grained
      * means for listening for changes and will ultimately allow for automatic UI generation.
+     * 
+     * The contextBuilder is used to construct get/set contexts based on the needs of individual
+     * context systems. It can be passed in at construction time or set later.
+     * 
+     * @constructor
+     * @param {function=} contextNormalizer function that is passed the context used for get or set to adjust for specific PreferencesSystem behavior
      */
-    function PreferencesSystem() {
+    function PreferencesSystem(contextBuilder) {
+        this.contextBuilder = contextBuilder;
+        
         this._knownPrefs = {};
         this._scopes = {
             "default": new Scope(new MemoryStorage())
@@ -1044,7 +1212,7 @@ define(function (require, exports, module) {
         
         this._scopes["default"].load();
         
-        this._defaultContext = {
+        this._defaults = {
             scopeOrder: ["default"],
             _shadowScopeOrder: [{
                 id: "default",
@@ -1075,13 +1243,13 @@ define(function (require, exports, module) {
         var notifyPrefChange = function (id) {
             var pref = this._knownPrefs[id];
             if (pref) {
-                $(pref).trigger(PREFERENCE_CHANGE);
+                pref.trigger(PREFERENCE_CHANGE);
             }
         }.bind(this);
         
         // When we signal a general change message on this manager, we also signal a change
         // on the individual preference object.
-        $(this).on(PREFERENCE_CHANGE, function (e, data) {
+        this.on(PREFERENCE_CHANGE, function (e, data) {
             data.ids.forEach(notifyPrefChange);
         }.bind(this));
     }
@@ -1138,7 +1306,7 @@ define(function (require, exports, module) {
          * @param {string} before Id of the scope to add it before
          */
         _pushToScopeOrder: function (id, before) {
-            var defaultScopeOrder = this._defaultContext.scopeOrder,
+            var defaultScopeOrder = this._defaults.scopeOrder,
                 index = _.findIndex(defaultScopeOrder, function (id) {
                     return id === before;
                 });
@@ -1161,13 +1329,10 @@ define(function (require, exports, module) {
          * @param {Object} shadowEntry Shadow entry of the resolved scope
          */
         _tryAddToScopeOrder: function (shadowEntry) {
-            var defaultScopeOrder = this._defaultContext.scopeOrder,
-                shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+            var shadowScopeOrder = this._defaults._shadowScopeOrder,
                 index = _.findIndex(shadowScopeOrder, function (entry) {
                     return entry === shadowEntry;
                 }),
-                $this = $(this),
-                done = false,
                 i = index + 1;
             
             // Find an appropriate scope of lower priority to add it before
@@ -1187,7 +1352,7 @@ define(function (require, exports, module) {
                 break;
             case "resolved":
                 this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[i].id);
-                $this.trigger(SCOPEORDER_CHANGE, {
+                this.trigger(SCOPEORDER_CHANGE, {
                     id: shadowEntry.id,
                     action: "added"
                 });
@@ -1223,14 +1388,13 @@ define(function (require, exports, module) {
          * @param {?string} addBefore Name of the Scope before which this new one is added
          */
         _addToScopeOrder: function (id, scope, promise, addBefore) {
-            var defaultScopeOrder = this._defaultContext.scopeOrder,
-                shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+            var shadowScopeOrder = this._defaults._shadowScopeOrder,
                 shadowEntry,
                 index,
                 isPending = false,
                 self = this;
 
-            $(scope).on(PREFERENCE_CHANGE + ".prefsys", function (e, data) {
+            scope.on(PREFERENCE_CHANGE + ".prefsys", function (e, data) {
                 self._triggerChange(data);
             }.bind(this));
 
@@ -1295,7 +1459,7 @@ define(function (require, exports, module) {
          *
          */
         addToScopeOrder: function (id, addBefore) {
-            var shadowScopeOrder = this._defaultContext._shadowScopeOrder,
+            var shadowScopeOrder = this._defaults._shadowScopeOrder,
                 index = _.findIndex(shadowScopeOrder, function (entry) {
                     return entry.id === id;
                 }),
@@ -1314,10 +1478,9 @@ define(function (require, exports, module) {
         removeFromScopeOrder: function (id) {
             var scope = this._scopes[id];
             if (scope) {
-                _.pull(this._defaultContext.scopeOrder, id);
-                var $this = $(this);
-                $(scope).off(".prefsys");
-                $this.trigger(SCOPEORDER_CHANGE, {
+                _.pull(this._defaults.scopeOrder, id);
+                scope.off(".prefsys");
+                this.trigger(SCOPEORDER_CHANGE, {
                     id: id,
                     action: "removed"
                 });
@@ -1339,8 +1502,16 @@ define(function (require, exports, module) {
          * @return {{scopeOrder: string, filename: ?string}} context object
          */
         _getContext: function (context) {
-            context = context || this._defaultContext;
-            return context;
+            if (context) {
+                if (this.contextBuilder) {
+                    context = this.contextBuilder(context);
+                }
+                if (!context.scopeOrder) {
+                    context.scopeOrder = this._defaults.scopeOrder;
+                }
+                return context;
+            }
+            return { scopeOrder: this._defaults.scopeOrder };
         },
         
         /**
@@ -1397,10 +1568,10 @@ define(function (require, exports, module) {
             }
 
             this.removeFromScopeOrder(id);
-            shadowIndex = _.findIndex(this._defaultContext._shadowScopeOrder, function (entry) {
+            shadowIndex = _.findIndex(this._defaults._shadowScopeOrder, function (entry) {
                 return entry.id === id;
             });
-            this._defaultContext._shadowScopeOrder.splice(shadowIndex, 1);
+            this._defaults._shadowScopeOrder.splice(shadowIndex, 1);
             delete this._scopes[id];
         },
         
@@ -1411,11 +1582,11 @@ define(function (require, exports, module) {
          * If the context contains a scopeOrder, that will be used. If not,
          * the default scopeOrder is used.
          * 
-         * @param {{scopeOrder: ?Array.<string>, filename: ?string} context 
+         * @param {{scopeOrder: ?Array.<string>} context 
          * @return {Array.<string>} list of scopes in the correct order for traversal
          */
         _getScopeOrder: function (context) {
-            return context.scopeOrder || this._defaultContext.scopeOrder;
+            return context.scopeOrder || this._defaults.scopeOrder;
         },
         
         /**
@@ -1485,10 +1656,11 @@ define(function (require, exports, module) {
          * @param {string} id Identifier of the preference to set
          * @param {Object} value New value for the preference
          * @param {{location: ?Object, context: ?Object}=} options Specific location in which to set the value or the context to use when setting the value
+         * @param {boolean=} doNotSave True if the preference change should not be saved automatically.
          * @return {valid:  {boolean}, true if no validator specified or if value is valid
          *          stored: {boolean}} true if a value was stored
          */
-        set: function (id, value, options) {
+        set: function (id, value, options, doNotSave) {
             options = options || {};
             var context = this._getContext(options.context),
                 
@@ -1525,6 +1697,9 @@ define(function (require, exports, module) {
             
             var wasSet = scope.set(id, value, context, location);
             if (wasSet) {
+                if (!doNotSave) {
+                    this.save();
+                }
                 this._triggerChange({
                     ids: [id]
                 });
@@ -1541,20 +1716,20 @@ define(function (require, exports, module) {
         save: function () {
             if (this._saveInProgress) {
                 if (!this._nextSaveDeferred) {
-                    this._nextSaveDeferred = $.Deferred();
+                    this._nextSaveDeferred = new $.Deferred();
                 }
                 return this._nextSaveDeferred.promise();
             }
             
+            var deferred = this._nextSaveDeferred || (new $.Deferred());
             this._saveInProgress = true;
-            var deferred = this._nextSaveDeferred || $.Deferred();
             this._nextSaveDeferred = null;
             
             Async.doInParallel(_.values(this._scopes), function (scope) {
                 if (scope) {
                     return scope.save();
                 } else {
-                    return $.Deferred().resolve().promise();
+                    return (new $.Deferred()).resolve().promise();
                 }
             }.bind(this))
                 .then(function () {
@@ -1572,27 +1747,22 @@ define(function (require, exports, module) {
         },
         
         /**
-         * Sets the default filename used for computing preferences when there are PathLayers.
-         * This should be the filename of the file being edited.
-         * 
-         * @param {string} filename New filename used to resolve preferences
+         * Signals the context change to all the scopes within the preferences
+         * layer.  PreferencesManager is in charge of computing the context and
+         * signaling the changes to PreferencesSystem.
+         *
+         * @param {{path: string, language: string}} oldContext Old context
+         * @param {{path: string, language: string}} newContext New context
          */
-        setDefaultFilename: function (filename) {
-            var oldFilename = this._defaultContext.filename;
-            if (oldFilename === filename) {
-                return;
-            }
-            
+        signalContextChanged: function (oldContext, newContext) {
             var changes = [];
             
             _.each(this._scopes, function (scope) {
-                var changedInScope = scope.defaultFilenameChanged(filename, oldFilename);
+                var changedInScope = scope.contextChanged(oldContext, newContext);
                 if (changedInScope) {
                     changes.push(changedInScope);
                 }
             });
-            
-            this._defaultContext.filename = filename;
             
             changes = _.union.apply(null, changes);
             if (changes.length > 0) {
@@ -1600,21 +1770,6 @@ define(function (require, exports, module) {
                     ids: changes
                 });
             }
-        },
-        
-        /**
-         * Augments the context object passed in with information from the default context.
-         * For example, if you want to create a context for a specific file while maintaining
-         * the default scopeOrder, you can pass in an object with just the filename and the
-         * scopeOrder will be added.
-         * 
-         * *This method changes the object passed in.*
-         * 
-         * @param {Object} context context object to augment
-         * @return {Object} the same context object that was passed in.
-         */
-        buildContext: function (context) {
-            return _.defaults(context, this._defaultContext);
         },
         
         /**
@@ -1635,7 +1790,7 @@ define(function (require, exports, module) {
                 var pref = this.getPreference(preferenceID);
                 pref.on(event, handler);
             } else {
-                $(this).on(event, handler);
+                this._on_internal(event, handler);
             }
         },
         
@@ -1657,7 +1812,7 @@ define(function (require, exports, module) {
                 var pref = this.getPreference(preferenceID);
                 pref.off(event, handler);
             } else {
-                $(this).off(event, handler);
+                this._off_internal(event, handler);
             }
         },
         
@@ -1673,7 +1828,7 @@ define(function (require, exports, module) {
             if (this._changeEventQueue) {
                 this._changeEventQueue = _.union(this._changeEventQueue, data.ids);
             } else {
-                $(this).trigger(PREFERENCE_CHANGE, data);
+                this.trigger(PREFERENCE_CHANGE, data);
             }
         },
         
@@ -1695,7 +1850,7 @@ define(function (require, exports, module) {
          */
         resumeChangeEvents: function () {
             if (this._changeEventQueue) {
-                $(this).trigger(PREFERENCE_CHANGE, {
+                this.trigger(PREFERENCE_CHANGE, {
                     ids: this._changeEventQueue
                 });
                 this._changeEventQueue = null;
@@ -1706,11 +1861,11 @@ define(function (require, exports, module) {
          * Tells the PreferencesSystem that the given file has been changed so that any
          * related Scopes can be reloaded.
          * 
-         * @param {string} filename Name of the file that has changed
+         * @param {string} filePath File that has changed
          */
-        fileChanged: function (filename) {
+        fileChanged: function (filePath) {
             _.forEach(this._scopes, function (scope) {
-                scope.fileChanged(filename);
+                scope.fileChanged(filePath);
             });
         },
         
@@ -1724,14 +1879,19 @@ define(function (require, exports, module) {
          */
         getPrefixedSystem: function (prefix) {
             return new PrefixedPreferencesSystem(this, prefix + ".");
-        }
+        },
+        
     });
     
+    _addEventDispatcherImpl(PreferencesSystem.prototype);
+    
+    
     // Public interface
-    exports.PreferencesSystem  = PreferencesSystem;
-    exports.Scope              = Scope;
-    exports.MemoryStorage      = MemoryStorage;
-    exports.PathLayer          = PathLayer;
-    exports.ProjectLayer       = ProjectLayer;
-    exports.FileStorage        = FileStorage;
+    exports.PreferencesSystem   = PreferencesSystem;
+    exports.Scope               = Scope;
+    exports.MemoryStorage       = MemoryStorage;
+    exports.PathLayer           = PathLayer;
+    exports.ProjectLayer        = ProjectLayer;
+    exports.LanguageLayer       = LanguageLayer;
+    exports.FileStorage         = FileStorage;
 });

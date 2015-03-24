@@ -32,11 +32,10 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load Brackets modules
-    var ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        InlineWidget        = brackets.getModule("editor/InlineWidget").InlineWidget,
-        KeyEvent            = brackets.getModule("utils/KeyEvent"),
-        NativeApp           = brackets.getModule("utils/NativeApp"),
-        Strings             = brackets.getModule("strings");
+    var ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
+        InlineWidget    = brackets.getModule("editor/InlineWidget").InlineWidget,
+        KeyEvent        = brackets.getModule("utils/KeyEvent"),
+        Strings         = brackets.getModule("strings");
     
     // Load template
     var inlineEditorTemplate = require("text!InlineDocsViewer.html");
@@ -50,19 +49,15 @@ define(function (require, exports, module) {
     
     /**
      * @param {!string} cssPropName
-     * @param {!{SUMMARY:string, URL:string, VALUES:Array.<{TITLE:string, DESCRIPTION:string}>}} cssPropDetails
+     * @param {!{SUMMARY:string, URL:string, VALUES:?Array.<{value:string, description:string}>}} cssPropDetails
      */
     function InlineDocsViewer(cssPropName, cssPropDetails) {
         InlineWidget.call(this);
         
-        var propValues = cssPropDetails.VALUES.map(function (valueInfo) {
-            return { value: valueInfo.TITLE, description: valueInfo.DESCRIPTION };
-        });
-        
         var templateVars = {
             propName    : cssPropName,
             summary     : cssPropDetails.SUMMARY,
-            propValues  : propValues,
+            propValues  : cssPropDetails.VALUES || [],
             url         : cssPropDetails.URL,
             Strings     : Strings
         };
@@ -76,9 +71,14 @@ define(function (require, exports, module) {
         this.$wrapperDiv.find("a").each(function (index, elem) {
             var $elem = $(elem);
             var url = $elem.attr("href");
-            if (url && url.substr(0, 4) !== "http") {
-                // URLs in JSON data are relative
-                url = "http://docs.webplatform.org" + (url.charAt(0) !== "/" ? "/" : "") + url;
+            if (url) {
+                if (url.charAt(0) === "#") {
+                    // Anchors in JSON data are relative to page URL
+                    url = templateVars.url + url;
+                } else if (url.substr(0, 4) !== "http") {
+                    // URLs in JSON data are relative
+                    url = "http://docs.webplatform.org" + (url.charAt(0) !== "/" ? "/" : "") + url;
+                }
                 $elem.attr("href", url);
             }
             $elem.attr("title", url);

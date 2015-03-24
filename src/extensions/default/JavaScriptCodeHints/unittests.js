@@ -22,20 +22,20 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, beforeFirst, afterLast, spyOn */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, brackets, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
 
     var Commands             = brackets.getModule("command/Commands"),
         CommandManager       = brackets.getModule("command/CommandManager"),
+        MainViewManager      = brackets.getModule("view/MainViewManager"),
         DocumentManager      = brackets.getModule("document/DocumentManager"),
-        Editor               = brackets.getModule("editor/Editor").Editor,
         EditorManager        = brackets.getModule("editor/EditorManager"),
         FileSystem           = brackets.getModule("filesystem/FileSystem"),
         FileUtils            = brackets.getModule("file/FileUtils"),
+        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
-        UnitTestReporter     = brackets.getModule("test/UnitTestReporter"),
         JSCodeHints          = require("main"),
         Preferences          = require("Preferences"),
         ScopeManager         = require("ScopeManager"),
@@ -53,7 +53,7 @@ define(function (require, exports, module) {
     CommandManager.register("test-file-open", Commands.FILE_OPEN, function (fileInfo) {
         // Register a command for FILE_OPEN, which the jump to def code will call
         return DocumentManager.getDocumentForPath(fileInfo.fullPath).done(function (doc) {
-            DocumentManager.setCurrentDocument(doc);
+            MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
         });
     });
     
@@ -269,7 +269,7 @@ define(function (require, exports, module) {
          * @param {string} hintSelection - the hint to select
          */
         function selectHint(provider, hintObj, hintSelection) {
-            var hintList = expectHints(provider);
+            expectHints(provider);
             _waitForHints(hintObj, function (hintList) {
                 expect(hintList).toBeTruthy();
                 var index = findHint(hintList, hintSelection);
@@ -314,8 +314,6 @@ define(function (require, exports, module) {
          *  editor is expected to stay in the same file, then file may be omitted.  
          */
         function editorJumped(expectedLocation) {
-            var oldLocation = testEditor.getCursorPos();
-            
             var jumpPromise = JSCodeHints.handleJumpToDefinition();
             
             
@@ -439,7 +437,7 @@ define(function (require, exports, module) {
 
             // The following call ensures that the document is reloaded
             // from disk before each test
-            DocumentManager.closeAll();
+            MainViewManager._closeAll(MainViewManager.ALL_PANES);
             SpecRunnerUtils.destroyMockEditor(testDoc);
             testEditor = null;
             testDoc = null;
@@ -841,10 +839,11 @@ define(function (require, exports, module) {
             });
             
             it("should list matching property names", function () {
-                var start = { line: 12, ch: 10 };
+                var cursor1 = { line: 12, ch: 0 },
+                    cursor2 = { line: 12, ch: 6 };
                 
-                testDoc.replaceRange("param", start, start);
-                testEditor.setCursorPos(start);
+                testDoc.replaceRange("paramB", cursor1, cursor1);
+                testEditor.setCursorPos(cursor2);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
                     hintsPresentExact(hintObj, ["paramB1", "paramB2"]);
@@ -935,7 +934,7 @@ define(function (require, exports, module) {
                 var testPos = { line: 96, ch: 33 };
                 
                 testEditor.setCursorPos(testPos);
-                var hintObj = expectHints(JSCodeHints.jsHintProvider);
+                expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
                     expectParameterHint([], 0);
                 });
@@ -1278,6 +1277,27 @@ define(function (require, exports, module) {
                 });
             });
 
+            // Test `jscodehints.noHintsOnDot` preference
+            it("should consider dot a hintable key based on preference", function () {
+                var noHintsOnDot = PreferencesManager.get("jscodehints.noHintsOnDot");
+
+                testEditor.setCursorPos({ line: 44, ch: 10 });
+
+                // Default is falsey
+                expect(noHintsOnDot).toBeFalsy();
+
+                // Should get hints after dot
+                expectHints(JSCodeHints.jsHintProvider, ".");
+
+                // Set preference to true
+                PreferencesManager.set("jscodehints.noHintsOnDot", true);
+
+                // Should no longer get hints after dot
+                expectNoHints(JSCodeHints.jsHintProvider, ".");
+
+                // Set preference back to original value (converted to boolean)
+                PreferencesManager.set("jscodehints.noHintsOnDot", !!noHintsOnDot);
+            });
         });
         
         describe("JavaScript Code Hinting in a HTML file", function () {
@@ -1409,7 +1429,8 @@ define(function (require, exports, module) {
             });
 
             // Test reading multiple files and subdirectories
-            it("should handle reading all files when modules not used", function () {
+            // Turned for per #7646
+            xit("should handle reading all files when modules not used", function () {
                 var start = { line: 8, ch: 8 };
 
                 runs(function () {
@@ -1562,9 +1583,9 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(preferences.getExcludedDirectories()).toBeNull();
+                    expect(preferences.getExcludedDirectories()).toEqual(/node_modules/);
                     expect(preferences.getExcludedFiles().source).
-                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$/.source);
+                        toBe(/^require.*\.js$|^jquery.*\.js$/.source);
                     expect(preferences.getMaxFileCount()).toBe(100);
                     expect(preferences.getMaxFileSize()).toBe(512 * 1024);
                 });
@@ -1579,9 +1600,9 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    expect(preferences.getExcludedDirectories()).toBeNull();
+                    expect(preferences.getExcludedDirectories()).toEqual(/node_modules/);
                     expect(preferences.getExcludedFiles().source).
-                        toBe(/^require.*\.js$|^jquery.*\.js$|^less.*\.min\.js$/.source);
+                        toBe(/^require.*\.js$|^jquery.*\.js$/.source);
                     expect(preferences.getMaxFileCount()).toBe(100);
                     expect(preferences.getMaxFileSize()).toBe(512 * 1024);
                 });
@@ -1721,91 +1742,6 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("regression tests", function () {
-
-            afterEach(function () {
-                tearDownTest();
-            });
-
-            // FIXME (issue #3558)
-            xit("should return true for valid identifier, false for invalid one", function () {
-                var identifierList = ["ᾩ", "ĦĔĽĻŎ", "〱〱〱〱", "जावास्क्रि",
-                                      "KingGeorgeⅦ", "π", "ಠ_ಠ",
-                                      "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
-                var invalidIdentifierList = [" break", "\tif", "\ntrade"];
-                
-                invalidIdentifierList.forEach(function (element) {
-                    var result = HintUtils.maybeIdentifier(element);
-                    expect(result).toBe(false);
-                });
-                
-                identifierList.forEach(function (element) {
-                    var result = HintUtils.maybeIdentifier(element);
-                    expect(result).toBe(true);
-                });
-            });
-        });
-        
-        describe("JavaScript Code Hinting with test.html file", function () {
-            var testFile = extensionPath + "/unittest-files/basic-test-files/test.html";
-
-            beforeEach(function () {
-                setupTest(testFile, true);
-            });
-
-            afterEach(function () {
-                tearDownTest();
-                
-            });
-            
-            // FIXME (issue #3915)
-            xit("should read function name has double byte chars", function () {
-                var start   = { line: 15, ch: 8 },
-                    testPos = { line: 15, ch: 10 };
-
-                runs(function () {
-                    testEditor.setCursorPos(start);
-                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                    hintsPresentExact(hintObj, ["fun測试"]);
-                });
-                runs(function () {
-                    testEditor.setCursorPos(testPos);
-                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                    hintsPresentExact(hintObj, ["fun測试()"]);
-                });
-            });
-            
-            it("should jump to function name with double byte chars", function () {
-                var start        = { line: 16, ch: 9 };
-                
-                testEditor.setCursorPos(start);
-                runs(function () {
-                    editorJumped({line: 12, ch: 20});
-                });
-            });
-            
-            // FIXME (issue #3915)
-            xit("should read function name has non ascii chars", function () {
-                var start = { line: 16, ch: 16 };
-
-                runs(function () {
-                    testEditor.setCursorPos(start);
-                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                    hintsPresentExact(hintObj, ["frenchçProp()"]);
-                });
-            });
-            
-            it("should jump to function name with non ascii chars", function () {
-                var start        = { line: 16, ch: 12 };
-                
-                testEditor.setCursorPos(start);
-                runs(function () {
-                    editorJumped({line: 12, ch: 20});
-                });
-            });
-
-        });
-
         describe("Code Hinting Regression", function () {
             var testFile = extensionPath + "/unittest-files/module-test-files/china/cupFiller.js";
 

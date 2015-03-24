@@ -22,7 +22,7 @@
  */
 
 
-/*global define, $, localStorage, brackets, console */
+/*global define, localStorage, console */
 /*unittests: Preferences Manager */
 
 /**
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
      */
     function getClientID(module) {
         var paths = exports._getExtensionPaths();
-        var pathExp, pathUrl, clientID;
+        var pathUrl, clientID;
 
         paths.some(function (path) {
             if (module.uri.toLocaleLowerCase().indexOf(path.toLocaleLowerCase()) === 0) {
@@ -221,11 +221,11 @@ define(function (require, exports, module) {
     // New code follows. The code above (with the exception of the imports) is
     // deprecated.
     
-    var currentEditedFile       = null,
+    var currentFilename         = null, // the filename currently being edited
+        currentLanguageId       = null, // the language id of the file currently being edited
         projectDirectory        = null,
         projectScopeIsIncluded  = true;
 
-    
     /**
      * @private
      * 
@@ -236,11 +236,11 @@ define(function (require, exports, module) {
      * @return {boolean} true if the project Scope should be included.
      */
     function _includeProjectScope(filename) {
-        filename = filename || currentEditedFile;
+        filename = filename || currentFilename;
         if (!filename || !projectDirectory) {
             return false;
         }
-        return FileUtils.getRelativeFilename(projectDirectory, filename) ? true : false;
+        return FileUtils.getRelativeFilename(projectDirectory, filename) !== undefined;
     }
     
     /**
@@ -251,8 +251,6 @@ define(function (require, exports, module) {
     function getUserPrefFile() {
         return PreferencesImpl.userPrefFile;
     }
-    
-
     
     /**
      * @private
@@ -285,20 +283,6 @@ define(function (require, exports, module) {
         _toggleProjectScope();
         PreferencesImpl.projectPathLayer.setPrefFilePath(settingsFile);
         PreferencesImpl.projectStorage.setPath(settingsFile);
-    }
-    
-    /**
-     * @private
-     * 
-     * This is used internally within Brackets for the EditorManager to signal
-     * to the preferences what the currently edited file is.
-     * 
-     * @param {string} currentFile Full path to currently edited file
-     */
-    function _setCurrentEditingFile(currentFile) {
-        currentEditedFile = currentFile;
-        _toggleProjectScope();
-        PreferencesImpl.manager.setDefaultFilename(currentFile);
     }
     
     /**
@@ -336,13 +320,17 @@ define(function (require, exports, module) {
     function convertPreferences(clientID, rules, isViewState, prefCheckCallback) {
         PreferencesImpl.smUserScopeLoading.done(function () {
             PreferencesImpl.userScopeLoading.done(function () {
+                if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
+                    console.error("Invalid clientID");
+                    return;
+                }
                 var prefs = getPreferenceStorage(clientID, null, true);
 
                 if (!prefs) {
                     return;
                 }
 
-                var prefsID = getClientID(clientID);
+                var prefsID = typeof clientID === "object" ? getClientID(clientID) : clientID;
                 if (prefStorage.convertedKeysMap === undefined) {
                     prefStorage.convertedKeysMap = {};
                 }
@@ -354,7 +342,7 @@ define(function (require, exports, module) {
                         savePreferences();
                     });
             }).fail(function (error) {
-                console.error("Error while converting ", getClientID(clientID));
+                console.error("Error while converting ", typeof clientID === "object" ? getClientID(clientID) : clientID);
                 console.error(error);
             });
         });
@@ -424,23 +412,73 @@ define(function (require, exports, module) {
     /**
      * @private
      * 
-     * Normalizes the context object to be something that the PreferencesSystem
-     * understands. This is how we support CURRENT_FILE and CURRENT_PROJECT
-     * preferences.
-     * 
-     * @param {Object|string} context CURRENT_FILE, CURRENT_PROJECT or a filename
+     * Creates a context based on the specified filename and language.
+     *
+     * @param {string=} filename Filename to create the context with.
+     * @param {string=} languageId Language ID to create the context with.
      */
-    function _normalizeContext(context) {
-        if (typeof context === "string") {
-            context = {
-                filename: context
-            };
-            context.scopeOrder = _includeProjectScope(context.filename) ?
-                                    scopeOrderWithProject :
-                                    scopeOrderWithoutProject;
+    function _buildContext(filename, languageId) {
+        var ctx = {};
+        if (filename) {
+            ctx.path = filename;
+        } else {
+            ctx.path = currentFilename;
         }
-        return context;
+        if (languageId) {
+            ctx.language = languageId;
+        } else {
+            ctx.language = currentLanguageId;
+        }
+        ctx.scopeOrder = _includeProjectScope(ctx.path) ?
+                        scopeOrderWithProject :
+                        scopeOrderWithoutProject;
+        return ctx;
     }
+
+    function _getContext(context) {
+        context = context || {};
+        return _buildContext(context.path, context.language);
+    }
+
+    /**
+     * @private
+     * 
+     * This is used internally within Brackets for the EditorManager to signal
+     * to the preferences what the currently edited file is.
+     * 
+     * @param {string} newFilename Full path to currently edited file
+     */
+    function _setCurrentFile(newFilename) {
+        var oldFilename = currentFilename;
+        if (oldFilename === newFilename) {
+            return;
+        }
+        currentFilename = newFilename;
+        _toggleProjectScope();
+        PreferencesImpl.manager.signalContextChanged(_buildContext(oldFilename, currentLanguageId),
+                                                     _buildContext(newFilename, currentLanguageId));
+    }
+    
+    /**
+     * @private
+     * This function is used internally to set the current language of the document.
+     * Both at the moment of opening the file and when the language is manually
+     * overriden.
+     *
+     * @param {string} newLanguageId The id of the language of the current editor.
+     */
+    function _setCurrentLanguage(newLanguageId) {
+        var oldLanguageId = currentLanguageId;
+        if (oldLanguageId === newLanguageId) {
+            return;
+        }
+        currentLanguageId = newLanguageId;
+        PreferencesImpl.manager.signalContextChanged(_buildContext(currentFilename, oldLanguageId),
+                                                     _buildContext(currentFilename, newLanguageId));
+    }
+    
+
+    PreferencesImpl.manager.contextBuilder = _getContext;
     
     /**
      * @private
@@ -448,10 +486,9 @@ define(function (require, exports, module) {
      * Updates the CURRENT_PROJECT context to have the correct scopes.
      */
     function _updateCurrentProjectContext() {
-        var context = PreferencesImpl.manager.buildContext({});
-        delete context.filename;
-        scopeOrderWithProject = _adjustScopeOrderForProject(context.scopeOrder, true);
-        scopeOrderWithoutProject = _adjustScopeOrderForProject(context.scopeOrder, false);
+        var defaultScopeOrder = PreferencesImpl.manager._getScopeOrder({});
+        scopeOrderWithProject = _adjustScopeOrderForProject(defaultScopeOrder, true);
+        scopeOrderWithoutProject = _adjustScopeOrderForProject(defaultScopeOrder, false);
         CURRENT_PROJECT.scopeOrder = scopeOrderWithProject;
     }
     
@@ -459,50 +496,6 @@ define(function (require, exports, module) {
     
     PreferencesImpl.manager.on("scopeOrderChange", _updateCurrentProjectContext);
     
-    /**
-     * Look up a preference in the given context. The default is 
-     * CURRENT_FILE (preferences as they would be applied to the
-     * currently edited file).
-     * 
-     * @param {string} id Preference ID to retrieve the value of
-     * @param {Object|string=} context CURRENT_FILE, CURRENT_PROJECT or a filename
-     */
-    function get(id, context) {
-        context = _normalizeContext(context);
-        return PreferencesImpl.manager.get(id, context);
-    }
-    
-    /**
-     * Sets a preference and notifies listeners that there may
-     * have been a change. By default, the preference is set in the same location in which
-     * it was defined except for the "default" scope. If the current value of the preference
-     * comes from the "default" scope, the new value will be set at the level just above
-     * default.
-     * 
-     * The preferences are saved automatically unless doNotSave is true.
-     * 
-     * As with the `get()` function, the context can be a filename,
-     * CURRENT_FILE, CURRENT_PROJECT or a full context object as supported by
-     * PreferencesSystem.
-     * 
-     * @param {string} id Identifier of the preference to set
-     * @param {Object} value New value for the preference
-     * @param {{location: ?Object, context: ?Object|string}=} options Specific location in which to set the value or the context to use when setting the value
-     * @param {boolean=} doNotSave True if the preference change should not be saved automatically.
-     * @return {valid:  {boolean}, true if no validator specified or if value is valid
-     *          stored: {boolean}} true if a value was stored
-     */
-    function set(id, value, options, doNotSave) {
-        if (options && options.context) {
-            options.context = _normalizeContext(options.context);
-        }
-        var wasSet = PreferencesImpl.manager.set(id, value, options);
-        if (!doNotSave) {
-            PreferencesImpl.manager.save();
-        }
-        return wasSet;
-    }
-
     /**
      * @private
      */
@@ -525,10 +518,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_PREFERENCES, Commands.FILE_OPEN_PREFERENCES, _handleOpenPreferences);
     
     /**
-     * @deprecated Use set instead.
-     * 
      * Convenience function that sets a preference and then saves the file, mimicking the
      * old behavior a bit more closely.
+     * @deprecated Use set instead.
      * 
      * @param {string} id preference to set
      * @param {*} value new value for the preference
@@ -537,7 +529,7 @@ define(function (require, exports, module) {
      */
     function setValueAndSave(id, value, options) {
         DeprecationWarning.deprecationWarning("setValueAndSave called for " + id + ". Use set instead.");
-        var changed = set(id, value, options).stored;
+        var changed = exports.set(id, value, options).stored;
         PreferencesImpl.manager.save();
         return changed;
     }
@@ -575,12 +567,14 @@ define(function (require, exports, module) {
     });
     
     // Private API for unit testing and use elsewhere in Brackets core
-    exports._isUserScopeCorrupt    = function () { return PreferencesImpl._userScopeCorrupt; };
-    exports._manager                = PreferencesImpl.manager;
-    exports._setCurrentEditingFile  = _setCurrentEditingFile;
+    exports._isUserScopeCorrupt     = PreferencesImpl.isUserScopeCorrupt;
+    exports._setCurrentFile         = _setCurrentFile;
+    exports._setCurrentLanguage     = _setCurrentLanguage;
     exports._setProjectSettingsFile = _setProjectSettingsFile;
     exports._smUserScopeLoading     = PreferencesImpl.smUserScopeLoading;
     exports._stateProjectLayer      = PreferencesImpl.stateProjectLayer;
+    exports._reloadUserPrefs        = PreferencesImpl.reloadUserPrefs;
+    exports._buildContext           = _buildContext;
     
     // Public API
     
@@ -590,8 +584,8 @@ define(function (require, exports, module) {
     
     exports.ready               = PreferencesImpl.managerReady;
     exports.getUserPrefFile     = getUserPrefFile;
-    exports.get                 = get;
-    exports.set                 = set;
+    exports.get                 = PreferencesImpl.manager.get.bind(PreferencesImpl.manager);
+    exports.set                 = PreferencesImpl.manager.set.bind(PreferencesImpl.manager);
     exports.save                = PreferencesImpl.manager.save.bind(PreferencesImpl.manager);
     exports.on                  = PreferencesImpl.manager.on.bind(PreferencesImpl.manager);
     exports.off                 = PreferencesImpl.manager.off.bind(PreferencesImpl.manager);

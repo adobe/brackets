@@ -23,22 +23,20 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50, evil: true */
-/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, spyOn, xit, xdescribe, jasmine, Node */
+/*global define, $, describe, beforeEach, afterEach, it, runs, expect, spyOn, jasmine, Node */
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var FileUtils           = require("file/FileUtils"),
-        HTMLInstrumentation = require("language/HTMLInstrumentation"),
+    var HTMLInstrumentation = require("language/HTMLInstrumentation"),
         HTMLSimpleDOM       = require("language/HTMLSimpleDOM"),
         RemoteFunctions     = require("text!LiveDevelopment/Agents/RemoteFunctions.js"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         WellFormedDoc       = require("text!spec/HTMLInstrumentation-test-files/wellformed.html"),
         NotWellFormedDoc    = require("text!spec/HTMLInstrumentation-test-files/omitEndTags.html"),
-        InvalidHTMLDoc      = require("text!spec/HTMLInstrumentation-test-files/invalidHTML.html"),
-        BigDoc              = require("text!spec/HTMLInstrumentation-test-files/REC-widgets-20121127.html");
+        InvalidHTMLDoc      = require("text!spec/HTMLInstrumentation-test-files/invalidHTML.html");
     
     RemoteFunctions = eval("(" + RemoteFunctions.trim() + ")()");
     
@@ -62,7 +60,6 @@ define(function (require, exports, module) {
     }
     
     function removeDescendentsFromNodeMap(nodeMap, node) {
-        var mappedNode = nodeMap[node.tagID];
         delete nodeMap[node.tagID];
         if (node.children) {
             node.children.forEach(function (child) {
@@ -294,23 +291,7 @@ define(function (require, exports, module) {
             return true;
         }
     });
-    
-    // This style of setting __proto__ is purely to keep JSLint happy :(
-    var proto = '__proto__';
-    
-    /**
-     * Adds the domFeatures defined above to a SimpleDOM node and all of its children.
-     * This works by changing the __proto__ property of the node.
-     *
-     * @param {Object} node SimpleDOM node to augment
-     */
-    function addDOMFeatures(node) {
-        node[proto] = domFeatures;
-        if (node.children) {
-            node.children.forEach(addDOMFeatures);
-        }
-    }
-    
+
     /**
      * Creates a deep clone of a SimpleDOM tree, adding the domFeatures as it goes
      * along.
@@ -917,7 +898,9 @@ define(function (require, exports, module) {
             console.log("New DOM", HTMLSimpleDOM._dumpDOM(result.dom));
             console.log("Edits", JSON.stringify(result.edits, null, 2));
         }
-        
+        // Workaround for JSHint to not complain about the unused function
+        void(debuggingDump);
+
         describe("HTML Instrumentation in dirty files", function () {
             var changeList, offsets;
 
@@ -931,7 +914,7 @@ define(function (require, exports, module) {
                     editor = SpecRunnerUtils.createMockEditor(docText, "html").editor;
                     expect(editor).toBeTruthy();
 
-                    $(editor).on("change.instrtest", function (event, editor, change) {
+                    editor.on("change.instrtest", function (event, editor, change) {
                         changeList = change;
                     });
                     
@@ -1573,7 +1556,6 @@ define(function (require, exports, module) {
                 setupEditor("<p>{{0}}some text{{1}}</p>", true);
                 runs(function () {
                     var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
-                        tagID = previousDOM.tagID,
                         result;
                     
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
@@ -1620,7 +1602,6 @@ define(function (require, exports, module) {
                 setupEditor("");
                 runs(function () {
                     var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
-                        tagID,
                         result;
                     
                     // Nothing to mark since it's currently an empty document.
@@ -1658,7 +1639,6 @@ define(function (require, exports, module) {
                 setupEditor("<html>{{0}}</html>", true);
                 runs(function () {
                     var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
-                        tagID,
                         result;
                     
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
@@ -1691,7 +1671,6 @@ define(function (require, exports, module) {
                 setupEditor("<html><head></head>{{0}}</html>", true);
                 runs(function () {
                     var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
-                        tagID,
                         result;
                     
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
@@ -1987,8 +1966,7 @@ define(function (require, exports, module) {
                             var newDOM = result.dom;
                             var newElement = newDOM.children[3].children[7].children[3],
                                 parent = newElement.parent,
-                                parentID = parent.tagID,
-                                afterID = parent.children[2].tagID;
+                                parentID = parent.tagID;
                             
                             expect(result.edits.length).toBe(2);
                             expect(result.edits[0]).toEqual({

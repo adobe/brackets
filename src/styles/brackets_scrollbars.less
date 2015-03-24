@@ -27,7 +27,10 @@
 
 .platform-mac .quiet-scrollbars,
 .platform-win .quiet-scrollbars,
-.platform-linux .quiet-scrollbars {
+.platform-linux .quiet-scrollbars,
+.dark.platform-mac .quiet-scrollbars,
+.dark.platform-win .quiet-scrollbars,
+.dark.platform-linux .quiet-scrollbars {
 
     ::-webkit-scrollbar {
         width: 9px;
@@ -52,6 +55,7 @@
         background-color: transparent;
     }
 
+    .dragging ::-webkit-scrollbar-thumb,
     :hover::-webkit-scrollbar-thumb,
     :focus::-webkit-scrollbar-thumb {
         border-radius: 999px;
@@ -59,11 +63,13 @@
         border: 2px solid transparent;
     }
 
+    .dragging ::-webkit-scrollbar-thumb,
     :hover::-webkit-scrollbar-thumb:vertical,
     :focus::-webkit-scrollbar-thumb:vertical {
         min-height: 20px;
     }
 
+    .dragging :-webkit-scrollbar-thumb,
     :hover::-webkit-scrollbar-thumb:horizontal,
     :focus::-webkit-scrollbar-thumb:horizontal {
         min-width: 20px;
@@ -113,6 +119,8 @@
     ::-webkit-scrollbar-thumb {
         box-shadow: 0 0 0 12px @win-scrollbar-thumb inset;
     }
+
+    .dragging ::-webkit-scrollbar-thumb,
     ::-webkit-scrollbar-thumb:hover,
     ::-webkit-scrollbar-thumb:focus {
         box-shadow: 0 0 0 12px @win-scrollbar-thumb-hover inset;
@@ -130,5 +138,50 @@
     
     ::-webkit-scrollbar-corner {
         background: none;
+    }
+}
+
+
+// Dark Scrollbars
+
+.dark {
+    /* Custom scrollbar colors */
+    &.platform-win {
+        .CodeMirror-scrollbar-filler,
+        .CodeMirror-gutter-filler {
+            background-color: rgb(15, 15, 15);
+        }
+
+        // Note: when changing padding/margins, may need to adjust metrics in ScrollTrackMarkers.js
+
+        ::-webkit-scrollbar {
+            background-color: rgb(15, 15, 15);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            box-shadow: 0 0 0 12px rgb(49, 49, 49) inset;
+        }
+        ::-webkit-scrollbar-thumb:hover,
+        ::-webkit-scrollbar-thumb:focus {
+            box-shadow: 0 0 0 12px rgb(89, 89, 89) inset;
+        }
+        ::-webkit-scrollbar-thumb:active {
+            box-shadow: 0 0 0 12px rgb(169, 169, 169) inset;
+        }
+    }
+
+    &.platform-linux {
+        .CodeMirror-scrollbar-filler,
+        .CodeMirror-gutter-filler {
+            background-color: #1d1f21;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.24) inset;
+        }
+
+        ::-webkit-scrollbar-thumb:window-inactive {
+            box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.12) inset;
+        }
     }
 }

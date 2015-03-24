@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, XMLHttpRequest, window */
+/*global define, $, window */
 
 /**
  * RemoteAgent defines and provides an interface for custom remote functions
@@ -35,9 +35,8 @@
 define(function RemoteAgent(require, exports, module) {
     "use strict";
 
-    var $exports = $(exports);
-
     var LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
+        EventDispatcher = require("utils/EventDispatcher"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
         RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
 
@@ -50,7 +49,7 @@ define(function RemoteAgent(require, exports, module) {
         // res = {nodeId, name, value}
         var matches = /^data-ld-(.*)/.exec(res.name);
         if (matches) {
-            $exports.triggerHandler(matches[1], res);
+            exports.trigger(matches[1], res);
         }
     }
 
@@ -124,7 +123,12 @@ define(function RemoteAgent(require, exports, module) {
     
     // WebInspector Event: Page.frameNavigated
     function _onFrameNavigated(event, res) {
-        // res = {timestamp}
+        // res = {frame}
+        // Re-inject RemoteFunctions when navigating to a new page, but not if an iframe was loaded
+        if (res.frame.parentId) {
+            return;
+        }
+
         _stopKeepAliveInterval();
 
         // inject RemoteFunctions
@@ -145,20 +149,23 @@ define(function RemoteAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
-        $(Inspector.Page).on("frameNavigated.RemoteAgent", _onFrameNavigated);
-        $(Inspector.Page).on("frameStartedLoading.RemoteAgent", _stopKeepAliveInterval);
-        $(Inspector.DOM).on("attributeModified.RemoteAgent", _onAttributeModified);
+        Inspector.Page.on("frameNavigated.RemoteAgent", _onFrameNavigated);
+        Inspector.Page.on("frameStartedLoading.RemoteAgent", _stopKeepAliveInterval);
+        Inspector.DOM.on("attributeModified.RemoteAgent", _onAttributeModified);
 
         return _load.promise();
     }
 
     /** Clean up */
     function unload() {
-        $(Inspector.Page).off(".RemoteAgent");
-        $(Inspector.DOM).off(".RemoteAgent");
+        Inspector.Page.off(".RemoteAgent");
+        Inspector.DOM.off(".RemoteAgent");
         _stopKeepAliveInterval();
     }
-
+    
+    
+    EventDispatcher.makeEventDispatcher(exports);
+    
     // Export public functions
     exports.call = call;
     exports.load = load;

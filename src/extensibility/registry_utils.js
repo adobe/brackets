@@ -30,7 +30,7 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define*/
+/*global brackets, define*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -55,11 +55,12 @@ define(function (require, exports, module) {
         if (this.versions && this.versions.length) {
             result = this.versions[this.versions.length - 1].published;
             if (result) {
-                // Just return the ISO-formatted date, which is the portion up to the "T".
-                var dateEnd = result.indexOf("T");
-                if (dateEnd !== -1) {
-                    result = result.substr(0, dateEnd);
-                }
+                result = new Date(result);
+                result = result.toLocaleDateString(brackets.getLocale(), {
+                    "year": "numeric",
+                    "month": "2-digit",
+                    "day": "2-digit"
+                });
             }
         }
         return result || "";

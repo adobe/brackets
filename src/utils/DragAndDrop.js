@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, brackets */
+/*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -33,37 +33,12 @@ define(function (require, exports, module) {
         Commands        = require("command/Commands"),
         Dialogs         = require("widgets/Dialogs"),
         DefaultDialogs  = require("widgets/DefaultDialogs"),
-        DocumentManager = require("document/DocumentManager"),
+        MainViewManager = require("view/MainViewManager"),
         FileSystem      = require("filesystem/FileSystem"),
-        EditorManager   = require("editor/EditorManager"),
         FileUtils       = require("file/FileUtils"),
         ProjectManager  = require("project/ProjectManager"),
         Strings         = require("strings"),
         StringUtils     = require("utils/StringUtils");
-    
-    /**
-     * Return an array of files excluding all files with a custom viewer. If all files
-     * in the array have their own custom viewers, then the last file is added back in
-     * the array since only one file with custom viewer can be open at a time.
-     *
-     * @param {Array.<string>} files Array of files to filter before opening.
-     * @return {Array.<string>}
-     */
-    function filterFilesToOpen(files) {
-        // Filter out all files that have their own custom viewers
-        // since we don't keep them in the working set.
-        var filteredFiles = files.filter(function (file) {
-            return !EditorManager.getCustomViewerForPath(file);
-        });
-        
-        // If all files have custom viewers, then add back the last file
-        // so that we open it in its custom viewer.
-        if (filteredFiles.length === 0 && files.length) {
-            filteredFiles.push(files[files.length - 1]);
-        }
-        
-        return filteredFiles;
-    }
     
     /**
      * Returns true if the drag and drop items contains valid drop objects.
@@ -97,11 +72,11 @@ define(function (require, exports, module) {
      * @return {Promise} Promise that is resolved if all files are opened, or rejected
      *     if there was an error. 
      */
-    function openDroppedFiles(files) {
+    function openDroppedFiles(paths) {
         var errorFiles = [],
-            filteredFiles = filterFilesToOpen(files);
+            ERR_MULTIPLE_ITEMS_WITH_DIR = {};
         
-        return Async.doInParallel(filteredFiles, function (path, idx) {
+        return Async.doInParallel(paths, function (path, idx) {
             var result = new $.Deferred();
             
             // Only open files.
@@ -110,23 +85,23 @@ define(function (require, exports, module) {
                     // If the file is already open, and this isn't the last
                     // file in the list, return. If this *is* the last file,
                     // always open it so it gets selected.
-                    if (idx < filteredFiles.length - 1) {
-                        if (DocumentManager.findInWorkingSet(path) !== -1) {
+                    if (idx < paths.length - 1) {
+                        if (MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, path) !== -1) {
                             result.resolve();
                             return;
                         }
                     }
                     
-                    CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET,
+                    CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,
                                            {fullPath: path, silent: true})
                         .done(function () {
                             result.resolve();
                         })
-                        .fail(function () {
-                            errorFiles.push(path);
+                        .fail(function (openErr) {
+                            errorFiles.push({path: path, error: openErr});
                             result.reject();
                         });
-                } else if (!err && item.isDirectory && filteredFiles.length === 1) {
+                } else if (!err && item.isDirectory && paths.length === 1) {
                     // One folder was dropped, open it.
                     ProjectManager.openProject(path)
                         .done(function () {
@@ -137,7 +112,7 @@ define(function (require, exports, module) {
                             result.reject();
                         });
                 } else {
-                    errorFiles.push(path);
+                    errorFiles.push({path: path, error: err || ERR_MULTIPLE_ITEMS_WITH_DIR});
                     result.reject();
                 }
             });
@@ -145,14 +120,23 @@ define(function (require, exports, module) {
             return result.promise();
         }, false)
             .fail(function () {
+                function errorToString(err) {
+                    if (err === ERR_MULTIPLE_ITEMS_WITH_DIR) {
+                        return Strings.ERROR_MIXED_DRAGDROP;
+                    } else {
+                        return FileUtils.getFileErrorString(err);
+                    }
+                }
+
                 if (errorFiles.length > 0) {
                     var message = Strings.ERROR_OPENING_FILES;
                     
                     message += "<ul class='dialog-list'>";
-                    errorFiles.forEach(function (file) {
+                    errorFiles.forEach(function (info) {
                         message += "<li><span class='dialog-filename'>" +
-                            StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(file)) +
-                            "</span></li>";
+                            StringUtils.breakableUrl(ProjectManager.makeProjectRelativeIfPossible(info.path)) +
+                            "</span> - " + errorToString(info.error) +
+                            "</li>";
                     });
                     message += "</ul>";
                     
@@ -165,10 +149,73 @@ define(function (require, exports, module) {
             });
     }
     
+    
+    /**
+     * Attaches global drag & drop handlers to this window. This enables dropping files/folders to open them, and also
+     * protects the Brackets app from being replaced by the browser trying to load the dropped file in its place.
+     */
+    function attachHandlers() {
+        
+        function handleDragOver(event) {
+            event = event.originalEvent || event;
+            
+            var files = event.dataTransfer.files;
+            if (files && files.length) {
+                event.stopPropagation();
+                event.preventDefault();
+                
+                var dropEffect = "none";
+                
+                // Don't allow drag-and-drop of files/folders when a modal dialog is showing.
+                if ($(".modal.instance").length === 0 && isValidDrop(event.dataTransfer.items)) {
+                    dropEffect = "copy";
+                }
+                event.dataTransfer.dropEffect = dropEffect;
+            }
+        }
+        
+        function handleDrop(event) {
+            event = event.originalEvent || event;
+            
+            var files = event.dataTransfer.files;
+            if (files && files.length) {
+                event.stopPropagation();
+                event.preventDefault();
+                
+                brackets.app.getDroppedFiles(function (err, paths) {
+                    if (!err) {
+                        openDroppedFiles(paths);
+                    }
+                });
+            }
+        }
+        
+        // For most of the window, only respond if nothing more specific in the UI has already grabbed the event (e.g.
+        // the Extension Manager drop-to-install zone, or an extension with a drop-to-upload zone in its panel)
+        $(window.document.body)
+            .on("dragover", handleDragOver)
+            .on("drop", handleDrop);
+        
+        // Over CodeMirror specifically, always pre-empt CodeMirror's drag event handling if files are being dragged - CM stops
+        // propagation on any drag event it sees, even when it's not a text drag/drop. But allow CM to handle all non-file drag
+        // events. See bug #10617.
+        window.document.body.addEventListener("dragover", function (event) {
+            if ($(event.target).closest(".CodeMirror").length) {
+                handleDragOver(event);
+            }
+        }, true);
+        window.document.body.addEventListener("drop", function (event) {
+            if ($(event.target).closest(".CodeMirror").length) {
+                handleDrop(event);
+            }
+        }, true);
+    }
+    
+    
     CommandManager.register(Strings.CMD_OPEN_DROPPED_FILES, Commands.FILE_OPEN_DROPPED_FILES, openDroppedFiles);
 
     // Export public API
+    exports.attachHandlers      = attachHandlers;
     exports.isValidDrop         = isValidDrop;
     exports.openDroppedFiles    = openDroppedFiles;
-    exports.filterFilesToOpen   = filterFilesToOpen;
 });

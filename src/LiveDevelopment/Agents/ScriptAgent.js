@@ -40,15 +40,6 @@ define(function ScriptAgent(require, exports, module) {
     var _idToScript; // id -> script info
     var _insertTrace; // the last recorded trace of a DOM insertion
 
-    /** Add a call stack trace to a node
-     * @param {integer} node id
-     * @param [{Debugger.CallFrame}] call stack
-     */
-    function _addTraceToNode(nodeId, trace) {
-        var node = DOMAgent.nodeWithId(nodeId);
-        node.trace = trace;
-    }
-
     // TODO: should the parameter to this be an ID rather than a URL?
     /** Get the script information for a given url
      * @param {string} url
@@ -129,8 +120,10 @@ define(function ScriptAgent(require, exports, module) {
      * @param {frame: Frame} res
      */
     function _onFrameNavigated(event, res) {
-        // Clear maps when navigating to a new page
-        _reset();
+        // Clear maps when navigating to a new page, but not if an iframe was loaded
+        if (!res.frame.parentId) {
+            _reset();
+        }
     }
 
     /** Initialize the agent */
@@ -146,13 +139,13 @@ define(function ScriptAgent(require, exports, module) {
             });
         });
 
-        $(Inspector.Page).on("frameNavigated.ScriptAgent", _onFrameNavigated);
-        $(DOMAgent).on("getDocument.ScriptAgent", _onGetDocument);
-        $(Inspector.Debugger)
+        Inspector.Page.on("frameNavigated.ScriptAgent", _onFrameNavigated);
+        DOMAgent.on("getDocument.ScriptAgent", _onGetDocument);
+        Inspector.Debugger
             .on("scriptParsed.ScriptAgent", _onScriptParsed)
             .on("scriptFailedToParse.ScriptAgent", _onScriptFailedToParse)
             .on("paused.ScriptAgent", _onPaused);
-        $(Inspector.DOM).on("childNodeInserted.ScriptAgent", _onChildNodeInserted);
+        Inspector.DOM.on("childNodeInserted.ScriptAgent", _onChildNodeInserted);
 
         return $.when(_load.promise(), enableResult.promise());
     }
@@ -160,10 +153,10 @@ define(function ScriptAgent(require, exports, module) {
     /** Clean up */
     function unload() {
         _reset();
-        $(Inspector.Page).off(".ScriptAgent");
-        $(DOMAgent).off(".ScriptAgent");
-        $(Inspector.Debugger).off(".ScriptAgent");
-        $(Inspector.DOM).off(".ScriptAgent");
+        Inspector.Page.off(".ScriptAgent");
+        DOMAgent.off(".ScriptAgent");
+        Inspector.Debugger.off(".ScriptAgent");
+        Inspector.DOM.off(".ScriptAgent");
     }
 
     // Export public functions

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, window */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs */
 /*unittests: QuickOpen*/
 
 define(function (require, exports, module) {
@@ -72,9 +72,6 @@ define(function (require, exports, module) {
         function expectSearchBarOpen() {
             expect(getSearchBar()[0]).toBeDefined();
         }
-        function expectSearchBarClosed() {
-            expect(getSearchBar()[0]).not.toBeDefined();
-        }
         
         function enterSearchText(str, timeoutLength) {
             timeoutLength = timeoutLength || 10;
@@ -105,8 +102,7 @@ define(function (require, exports, module) {
          */
         function getQuickOpenTest(quickOpenQuery, gotoLineQuery, file, line, col) {
             return function () {
-                var err = false,
-                    editor,
+                var editor,
                     $scroller;
                 
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
@@ -151,22 +147,27 @@ define(function (require, exports, module) {
                         enterSearchText(gotoLineQuery);
                     }
                 });
-                
-                if (gotoLineQuery) {
-                    waitsFor(function () {
-                        return getSearchField().val() === gotoLineQuery;
-                    }, "goto line entry timeout", 1000);
-                    
-                    runs(function () {
-                        pressEnter();
-                    });
-    
-                    // wait for ModalBar to close
-                    waitsFor(function () {
-                        return getSearchBar().length === 0;
-                    }, "ModalBar close", 1000);
-                }
-    
+
+                runs(function () {
+                    if (gotoLineQuery) {
+                        var editor = EditorManager.getCurrentFullEditor();
+                        SpecRunnerUtils.resizeEditor(editor, 0, 600);
+
+                        waitsFor(function () {
+                            return getSearchField().val() === gotoLineQuery;
+                        }, "goto line entry timeout", 1000);
+
+                        runs(function () {
+                            pressEnter();
+                        });
+
+                        // wait for ModalBar to close
+                        waitsFor(function () {
+                            return getSearchBar().length === 0;
+                        }, "ModalBar close", 1000);
+                    }
+                });
+
                 runs(function () {
                     // The user enters a 1-based number, but the reported position
                     // is 0 based, so we check for line-1, col-1.
@@ -177,8 +178,8 @@ define(function (require, exports, module) {
                     var editorHeight = $scroller.height();
                     var cursorPos = editor._codeMirror.cursorCoords(null, "page").bottom;
                     
-                    expect(cursorPos).toBeGreaterThan(editorHeight * 0.4 - offset);
-                    expect(cursorPos).toBeLessThan(editorHeight * 0.6 - offset);
+                    expect(cursorPos).toBeGreaterThan(editorHeight * 0.4 + offset);
+                    expect(cursorPos).toBeLessThan(editorHeight * 0.6 + offset);
                 });
             };
         }

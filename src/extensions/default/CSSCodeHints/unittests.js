@@ -28,9 +28,6 @@ define(function (require, exports, module) {
     "use strict";
    
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
-        DocumentManager = brackets.getModule("document/DocumentManager"),
-        FileUtils       = brackets.getModule("file/FileUtils"),
         testContentCSS  = require("text!unittest-files/regions.css"),
         testContentHTML = require("text!unittest-files/region-template.html"),
         CSSCodeHints    = require("main");
@@ -76,12 +73,19 @@ define(function (require, exports, module) {
             testDocument = null;
         }
 
+        function extractHintList(hints) {
+            return $.map(hints, function ($node) {
+                return $node.text();
+            });
+        }
+        
         // Ask provider for hints at current cursor position; expect it to return some
-        function expectHints(provider, implicitChar) {
+        function expectHints(provider, implicitChar, returnWholeObj) {
             expect(provider.hasHints(testEditor, implicitChar)).toBe(true);
             var hintsObj = provider.getHints();
             expect(hintsObj).toBeTruthy();
-            return hintsObj.hints; // return just the array of hints
+            // return just the array of hints if returnWholeObj is falsy
+            return returnWholeObj ? hintsObj : extractHintList(hintsObj.hints);
         }
         
         // Ask provider for hints at current cursor position; expect it NOT to return any
@@ -93,7 +97,17 @@ define(function (require, exports, module) {
             expect(hintList.indexOf("div")).toBe(-1);
             expect(hintList[0]).toBe(expectedFirstHint);
         }
-            
+
+        // compares lists to ensure they are the same
+        function verifyListsAreIdentical(hintList, values) {
+            var i;
+            expect(hintList.length).toBe(values.length);
+            for (i = 0; i < values.length; i++) {
+                expect(hintList[i]).toBe(values[i]);
+            }
+        }
+        
+        
         function selectHint(provider, expectedHint, implicitChar) {
             var hintList = expectHints(provider, implicitChar);
             expect(hintList.indexOf(expectedHint)).not.toBe(-1);
@@ -175,7 +189,11 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 9, ch: 12 });
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "border-color");  // filtered on "border-color"  
-                expect(hintList.length).toBe(1);
+                verifyListsAreIdentical(hintList, ["border-color",
+                                                   "border-left-color",
+                                                   "border-top-color",
+                                                   "border-bottom-color",
+                                                   "border-right-color"]);
             });
             
             it("should list prop-name hints at end of property-value finished by ;", function () {
@@ -383,8 +401,19 @@ define(function (require, exports, module) {
             it("should list prop-name hints inside multi-line styletags with cursor in last line", function () {
                 testEditor.setCursorPos({ line: 10, ch: 5 });    // inside style, after colo
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
-                verifyAttrHints(hintList, "color");  // filtered on "colo"
-                expect(hintList.length).toBe(1);
+                verifyListsAreIdentical(hintList, ["color",
+                                                   "border-color",
+                                                   "background-color",
+                                                   "border-left-color",
+                                                   "border-top-color",
+                                                   "outline-color",
+                                                   "border-bottom-color",
+                                                   "border-right-color",
+                                                   "text-decoration-color",
+                                                   "text-emphasis-color",
+                                                   "column-count",
+                                                   "column-rule-color",
+                                                   "background-blend-mode"]);
             });
             
             it("should NOT list prop-name hints between closed styletag and new opening styletag", function () {
@@ -450,7 +479,7 @@ define(function (require, exports, module) {
                 var expectedString = "shape-inside:polygon()";
 
                 testEditor.setCursorPos({ line: 1, ch: 15 });    // after shape-inside
-                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                expectHints(CSSCodeHints.cssPropHintProvider);
                 selectHint(CSSCodeHints.cssPropHintProvider, "polygon()");
                 expect(testDocument.getLine(1).length).toBe(expectedString.length);
                 expect(testDocument.getLine(1)).toBe(expectedString);
@@ -492,11 +521,11 @@ define(function (require, exports, module) {
                 verifyAllValues(hintList, ["auto", "circle()", "ellipse()", "inherit", "outside-shape", "polygon()", "rectangle()"]);
             });
 
-            it("should list 6 value-name hints for shape-outside", function () {
+            it("should list 16 value-name hints for shape-outside", function () {
                 testEditor.setCursorPos({ line: 2, ch: 16 });    // after shape-outside
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
-                verifyAttrHints(hintList, "auto");  // first hint should be auto
-                verifyAllValues(hintList, ["auto", "rectangle()", "circle()", "ellipse()", "polygon()", "inherit"]);
+                verifyAttrHints(hintList, "border-box");  // first hint should be border-box
+                verifyAllValues(hintList, ["none", "inherit", "circle()", "ellipse()", "polygon()", "inset()", "margin-box", "border-box", "padding-box", "content-box", "url()", "image()", "linear-gradient()", "radial-gradient()", "repeating-linear-gradient()", "repeating-radial-gradient()"]);
             });
 
             it("should list 2 value-name hints for region-fragment", function () {
@@ -527,7 +556,8 @@ define(function (require, exports, module) {
                 verifyAllValues(hintList, ["always", "auto", "avoid", "avoid-column", "avoid-page", "avoid-region", "column", "left", "page", "region", "right"]);
             });
 
-            it("should list 4 value-name hints for vendor prefixed region-* properties", function () {
+            // TODO: Need to add vendor prefixed properties for CSS code hint provider.
+            xit("should list 4 value-name hints for vendor prefixed region-* properties", function () {
                 testEditor.setCursorPos({ line: 7, ch: 16 });    // after -ms-region
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "region-break-after");  // first hint should be region-break-after
@@ -587,7 +617,7 @@ define(function (require, exports, module) {
                 
                 testEditor.setCursorPos({ line: 66, ch: 16 });    // after flow-from: m
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
-                verifyAllValues(hintList, ["main"]);
+                verifyListsAreIdentical(hintList, ["main", "lim"]);
             });
 
         });
@@ -632,6 +662,77 @@ define(function (require, exports, module) {
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 // some-named-flow should not be in the hint list since it is inside HTML text
                 verifyAllValues(hintList, []);
+            });
+        });
+
+        describe("Color names and swatches in a CSS file", function () {
+            beforeEach(function () {
+                setupTest(testContentCSS, "css");
+            });
+            
+            afterEach(function () {
+                tearDownTest();
+            });
+            
+            it("should list color names for color", function () {
+                testEditor.setCursorPos({ line: 98, ch: 11 }); // after color
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "aliceblue"); // first hint should be aliceblue
+            });
+            
+            it("should show color swatches for background-color", function () {
+                testEditor.setCursorPos({ line: 99, ch: 22 }); // after background-color
+                var hints = expectHints(CSSCodeHints.cssPropHintProvider, undefined, true).hints;
+                expect(hints[0].text()).toBe("aliceblue"); // first hint should be aliceblue
+                expect(hints[0].find(".color-swatch").length).toBe(1);
+                expect(hints[0].find(".color-swatch").css("backgroundColor")).toBe("rgb(240, 248, 255)");
+            });
+            
+            it("should filter out color names appropriately", function () {
+                testEditor.setCursorPos({ line: 100, ch: 27 }); // after border-left-color
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                verifyAttrHints(hintList, "deeppink"); // first hint should be deeppink
+                verifyAllValues(hintList, ["deeppink", "deepskyblue"]);
+            });
+            
+            it("should always include transparent and currentColor and they should not have a swatch, but class no-swatch-margin", function () {
+                testEditor.setCursorPos({ line: 101, ch: 22 }); // after border-color
+                var hints = expectHints(CSSCodeHints.cssPropHintProvider, undefined, true).hints,
+                    hintList = extractHintList(hints);
+                verifyAttrHints(hintList, "currentColor"); // first hint should be currentColor
+                verifyAllValues(hintList, ["currentColor", "darkmagenta", "transparent"]);
+                expect(hints[0].find(".color-swatch").length).toBe(0); // no swatch for currentColor
+                expect(hints[2].find(".color-swatch").length).toBe(0); // no swatch for transparent
+                expect(hints[0].hasClass("no-swatch-margin")).toBeTruthy(); // no-swatch-margin applied to currentColor
+                expect(hints[2].hasClass("no-swatch-margin")).toBeTruthy(); // no-swatch-margin applied to transparent
+            });
+
+            it("should remove class no-swatch-margin from transparent if it's the only one in the list", function () {
+                testEditor.setCursorPos({ line: 103, ch: 22 }); // after color
+                var hints = expectHints(CSSCodeHints.cssPropHintProvider, undefined, true).hints,
+                    hintList = extractHintList(hints);
+                verifyAllValues(hintList, ["transparent"]);
+                expect(hints[0].find(".color-swatch").length).toBe(0); // no swatch for transparent
+                expect(hints[0].hasClass("no-swatch-margin")).toBeFalsy(); // no-swatch-margin not applied to transparent
+            });
+            
+            it("should insert color names correctly", function () {
+                var expectedString  = "    border-left-color: deeppink;",
+                    line            = 100;
+
+                testEditor.setCursorPos({ line: line, ch: 27 }); // after border-left-color
+                expectHints(CSSCodeHints.cssPropHintProvider);
+                selectHint(CSSCodeHints.cssPropHintProvider, "deeppink");
+                expect(testDocument.getLine(line).length).toBe(expectedString.length);
+                expect(testDocument.getLine(line)).toBe(expectedString);
+                expectCursorAt({ line: line, ch: expectedString.length - 1 });
+            });
+            
+            
+            it("should not display color names for unrelated properties", function () {
+                testEditor.setCursorPos({ line: 102, ch: 12 }); // after height
+                var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
+                expect(hintList.indexOf("aliceblue")).toBe(-1);
             });
         });
 

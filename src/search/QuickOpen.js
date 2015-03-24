@@ -36,6 +36,8 @@ define(function (require, exports, module) {
     
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        MainViewManager     = require("view/MainViewManager"),
+        MainViewFactory     = require("view/MainViewFactory"),
         CommandManager      = require("command/CommandManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
@@ -48,13 +50,22 @@ define(function (require, exports, module) {
         StringMatch         = require("utils/StringMatch");
     
     
-    /** @const {RegExp} The regular expression to check the cursor position */
+    /**
+     * The regular expression to check the cursor position
+     * @const {RegExp}
+     */
     var CURSOR_POS_EXP = new RegExp(":([^,]+)?(,(.+)?)?");
     
-    /** @type Array.<QuickOpenPlugin> */
+    /**
+     * List of plugins
+     * @type {Array.<QuickOpenPlugin>}
+     */
     var plugins = [];
 
-    /** @type {QuickOpenPlugin} */
+    /**
+     * Current plugin
+     * @type {QuickOpenPlugin}
+     */
     var currentPlugin = null;
 
     /** @type {Array.<File>} */
@@ -122,15 +133,6 @@ define(function (require, exports, module) {
      * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
-        // Backwards compatibility (for now) for old fileTypes field, if newer languageIds not specified
-        if (pluginDef.fileTypes && !pluginDef.languageIds) {
-            console.warn("Using fileTypes for QuickOpen plugins is deprecated. Use languageIds instead.");
-            pluginDef.languageIds = pluginDef.fileTypes.map(function (extension) {
-                return LanguageManager.getLanguageForPath("file." + extension).getId();
-            });
-            delete pluginDef.fileTypes;
-        }
-        
         plugins.push(new QuickOpenPlugin(
             pluginDef.name,
             pluginDef.languageIds,
@@ -153,7 +155,6 @@ define(function (require, exports, module) {
         this.$searchField = undefined; // defined when showDialog() is called
         
         // ModalBar event handlers & callbacks
-        this._handleBeforeClose        = this._handleBeforeClose.bind(this);
         this._handleCloseBar           = this._handleCloseBar.bind(this);
         
         // QuickSearchField callbacks
@@ -251,8 +252,7 @@ define(function (require, exports, module) {
      *      Or null if the query is invalid
      */
     function extractCursorPos(query) {
-        var regInfo = query.match(CURSOR_POS_EXP),
-            result;
+        var regInfo = query.match(CURSOR_POS_EXP);
         
         if (query.length <= 1 || !regInfo ||
                 (regInfo[1] && isNaN(regInfo[1])) ||
@@ -298,12 +298,17 @@ define(function (require, exports, module) {
                 // fixup, and let the full close() be triggered later when the new editor takes focus.
                 doClose = false;
                 this.modalBar.prepareClose();
-                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
+                CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath})
                     .done(function () {
                         if (cursorPos) {
                             var editor = EditorManager.getCurrentFullEditor();
                             editor.setCursorPos(cursorPos.line, cursorPos.ch, true);
                         }
+                    })
+                    .always(function () {
+                        // Ensure we finish closing even if file failed to open, or file was already current (in
+                        // either case, we may not get a blur to trigger ModalBar to auto-close)
+                        self.close();
                     });
             } else if (cursorPos) {
                 EditorManager.getCurrentFullEditor().setCursorPos(cursorPos.line, cursorPos.ch, true);
@@ -312,7 +317,7 @@ define(function (require, exports, module) {
 
         if (doClose) {
             this.close();
-            EditorManager.focusEditor();
+            MainViewManager.focusActivePane();
         }
     };
 
@@ -327,17 +332,6 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Make sure ModalBar doesn't touch the scroll pos in cases where we're doing our own restoring instead.
-     */
-    QuickNavigateDialog.prototype._handleBeforeClose = function (reason) {
-        if (reason === ModalBar.CLOSE_ESCAPE) {
-            // Don't let ModalBar adjust scroll pos: we're going to revert it to its original pos. (In _handleCloseBar(),
-            // when the editor has been resized back to its original height, matching state when we saved the pos)
-            return { restoreScrollPos: false };
-        }
-    };
-
-    /**
      * Closes the search bar; if search bar is already closing, returns the Promise that is tracking the
      * existing close activity.
      * @return {$.Promise} Resolved when the search bar is entirely closed.
@@ -347,7 +341,7 @@ define(function (require, exports, module) {
             return this.closePromise;
         }
         
-        this.modalBar.close();  // calls _handleBeforeClose() and then _handleCloseBar(), setting closePromise
+        this.modalBar.close();  // triggers _handleCloseBar(), setting closePromise
 
         return this.closePromise;
     };
@@ -370,8 +364,9 @@ define(function (require, exports, module) {
         
         // Restore original selection / scroll pos if closed via Escape
         if (reason === ModalBar.CLOSE_ESCAPE) {
-            // We can reset the scroll position synchronously on the ModalBar "close" event (before the animation
-            // completes) since the editor has already been resized at this point.
+            // We can reset the scroll position synchronously on ModalBar's "close" event (before close animation
+            // completes) since ModalBar has already resized the editor and done its own scroll adjustment before
+            // this event fired - so anything we set here will override the pos (re)set by ModalBar.
             var editor = EditorManager.getCurrentFullEditor();
             if (this._origSelections) {
                 editor.setSelections(this._origSelections);
@@ -520,7 +515,7 @@ define(function (require, exports, module) {
             displayName += '<span title="sp:' + sd.special + ', m:' + sd.match +
                 ', ls:' + sd.lastSegment + ', b:' + sd.beginning +
                 ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + ', nsos: ' +
-                sd.notStartingOnSpecial + '">(' + item.matchGoodness + ') </span>';
+                sd.notStartingOnSpecial + ', upper: ' + sd.upper + '">(' + item.matchGoodness + ') </span>';
         }
         
         // Put the path pieces together, highlighting the matched parts
@@ -651,8 +646,7 @@ define(function (require, exports, module) {
         var searchBarHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='" + Strings.CMD_QUICK_OPEN + "\u2026' style='width: 30em'><span class='find-dialog-label'></span></div>";
         this.modalBar = new ModalBar(searchBarHTML, true);
         
-        this.modalBar.onBeforeClose = this._handleBeforeClose;
-        $(this.modalBar).on("close", this._handleCloseBar);
+        this.modalBar.on("close", this._handleCloseBar);
         
         this.$searchField = $("input#quickOpenSearch");
         
@@ -664,11 +658,17 @@ define(function (require, exports, module) {
             onCommit: this._handleItemSelect,
             onHighlight: this._handleItemHighlight
         });
+
+        // Return files that are non-binary, or binary files that have a custom viewer
+        function _filter(file) {
+            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() ||
+                MainViewFactory.findSuitableFactoryForPath(file.fullPath);
+        }
         
         // Start prefetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
         // caches are out of date, this list might take some time to asynchronously build, forcing searchFileList() to wait. In the
-        // meantime we show our old, stale fileList (unless the user has switched projects).
-        fileListPromise = ProjectManager.getAllFiles(true)
+        // meantime we show our old, stale fileList (unless the user has switched projects and we cleared it).
+        fileListPromise = ProjectManager.getAllFiles(_filter, true)
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;
@@ -676,8 +676,8 @@ define(function (require, exports, module) {
             }.bind(this));
         
         // Prepopulated query
-        this.setSearchFieldValue(prefix, initialString);
         this.$searchField.focus();
+        this.setSearchFieldValue(prefix, initialString);
     };
 
     function getCurrentEditorSelectedText() {
@@ -732,7 +732,7 @@ define(function (require, exports, module) {
     }
     
     // Listen for a change of project to invalidate our file list
-    $(ProjectManager).on("projectOpen", function () {
+    ProjectManager.on("projectOpen", function () {
         fileList = null;
     });
 
@@ -744,7 +744,7 @@ define(function (require, exports, module) {
     exports.addQuickOpenPlugin      = addQuickOpenPlugin;
     exports.highlightMatch          = highlightMatch;
     
-    // accessing these from this module will ultimately be deprecated
+    // Convenience exports for functions that most QuickOpen plugins would need.
     exports.stringMatch             = StringMatch.stringMatch;
     exports.SearchResult            = StringMatch.SearchResult;
     exports.basicMatchSort          = StringMatch.basicMatchSort;

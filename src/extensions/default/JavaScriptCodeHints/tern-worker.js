@@ -41,7 +41,8 @@ var config = {};
             Tern = tern;
             Infer = infer;
 
-            var ternServer  = null;
+            var ternServer  = null,
+                inferenceTimeout;
         
             // Save the tern callbacks for when we get the contents of the file
             var fileCallBacks = {};
@@ -64,6 +65,32 @@ var config = {};
             }
         
             /**
+             * Send a log message back from the worker to the main thread
+             * @private
+             * @param {string} msg - the log message
+             */
+            function _log(msg) {
+                self.postMessage({log: msg });
+            }
+            
+            /**
+             * Report exception
+             * @private
+             * @param {Error} e - the error object
+             */
+            function _reportError(e, file) {
+                if (e instanceof Infer.TimedOut) {
+                    // Post a message back to the main thread with timedout info
+                    self.postMessage({
+                        type: MessageIds.TERN_INFERENCE_TIMEDOUT,
+                        file: file
+                    });
+                } else {
+                    _log("Error thrown in tern_worker:" + e.message + "\n" + e.stack);
+                }
+            }
+            
+            /**
              * Handle a response from the main thread providing the contents of a file
              * @param {string} file - the name of the file
              * @param {string} text - the contents of the file
@@ -71,7 +98,11 @@ var config = {};
             function handleGetFile(file, text) {
                 var next = fileCallBacks[file];
                 if (next) {
-                    next(null, text);
+                    try {
+                        next(null, text);
+                    } catch (e) {
+                        _reportError(e, file);
+                    }
                 }
                 delete fileCallBacks[file];
             }
@@ -96,22 +127,6 @@ var config = {};
                     ternServer.addFile(file);
                 });
                 
-            }
-
-            /**
-             * Create a "full" update object.
-             *
-             * @param {string} path - full path of the file.
-             * @param {string} text - full text of the file.
-             * @return {{type: string, name: string, offsetLines: number, text: string}} -
-             * "full" update.
-
-             */
-            function createFullUpdate(path, text) {
-                return {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
-                        name: path,
-                        offsetLines: 0,
-                        text: text};
             }
 
             /**
@@ -154,7 +169,7 @@ var config = {};
                 query.expandWordForward = false;
                 query.lineCharPositions = true;
 
-                var request = {query: query, files: [], offset: offset};
+                var request = {query: query, files: [], offset: offset, timeout: inferenceTimeout};
                 if (fileInfo.type !== MessageIds.TERN_FILE_INFO_TYPE_EMPTY) {
                     request.files.push(fileInfo);
                 }
@@ -162,15 +177,6 @@ var config = {};
                 return request;
             }
 
-            /**
-             * Send a log message back from the worker to the main thread
-             * 
-             * @param {string} msg - the log message
-             */
-            function _log(msg) {
-                self.postMessage({log: msg });
-            }
-            
             /**
              * Get definition location
              * @param {{type: string, name: string, offsetLines: number, text: string}} fileInfo
@@ -184,35 +190,39 @@ var config = {};
             function getJumptoDef(fileInfo, offset) {
                 var request = buildRequest(fileInfo, "definition", offset);
                 // request.query.typeOnly = true;       // FIXME: tern doesn't work exactly right yet.
-                ternServer.request(request, function (error, data) {
-                    if (error) {
-                        _log("Error returned from Tern 'definition' request: " + error);
-                        self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG, file: fileInfo.name, offset: offset});
-                        return;
-                    }
-                    var isFunc = false,
-                        response = {type: MessageIds.TERN_JUMPTODEF_MSG,
-                                          file: fileInfo.name,
-                                          resultFile: data.file,
-                                          offset: offset,
-                                          start: data.start,
-                                          end: data.end
-                                         };
-
-                    request = buildRequest(fileInfo, "type", offset);
-                    // See if we can tell if the reference is to a Function type
+                
+                try {
                     ternServer.request(request, function (error, data) {
-                        if (!error) {
-                            response.isFunction = data.type.length > 2 && data.type.substring(0, 2) === "fn";
+                        if (error) {
+                            _log("Error returned from Tern 'definition' request: " + error);
+                            self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG, file: fileInfo.name, offset: offset});
+                            return;
                         }
-                        
-                        // Post a message back to the main thread with the definition
-                        self.postMessage(response);
-                    });
+                        var response = {type: MessageIds.TERN_JUMPTODEF_MSG,
+                                              file: fileInfo.name,
+                                              resultFile: data.file,
+                                              offset: offset,
+                                              start: data.start,
+                                              end: data.end
+                                             };
 
-                });
+                        request = buildRequest(fileInfo, "type", offset);
+                        // See if we can tell if the reference is to a Function type
+                        ternServer.request(request, function (error, data) {
+                            if (!error) {
+                                response.isFunction = data.type.length > 2 && data.type.substring(0, 2) === "fn";
+                            }
+
+                            // Post a message back to the main thread with the definition
+                            self.postMessage(response);
+                        });
+
+                    });
+                } catch (e) {
+                    _reportError(e, fileInfo.name);
+                }
             }
-        
+            
             /**
              * Get all the known properties for guessing.
              *
@@ -230,25 +240,29 @@ var config = {};
                 var request = buildRequest(fileInfo, "properties", offset),
                     i;
                 //_log("tern properties: request " + request.type + dir + " " + file);
-                ternServer.request(request, function (error, data) {
-                    var properties = [];
-                    if (error) {
-                        _log("Error returned from Tern 'properties' request: " + error);
-                    } else {
-                        //_log("tern properties: completions = " + data.completions.length);
-                        for (i = 0; i < data.completions.length; ++i) {
-                            var property = data.completions[i];
-                            properties.push({value: property, type: property.type, guess: true});
+                try {
+                    ternServer.request(request, function (error, data) {
+                        var properties = [];
+                        if (error) {
+                            _log("Error returned from Tern 'properties' request: " + error);
+                        } else {
+                            //_log("tern properties: completions = " + data.completions.length);
+                            for (i = 0; i < data.completions.length; ++i) {
+                                var property = data.completions[i];
+                                properties.push({value: property, type: property.type, guess: true});
+                            }
                         }
-                    }
-        
-                    // Post a message back to the main thread with the completions
-                    self.postMessage({type: type,
-                                      file: fileInfo.name,
-                                      offset: offset,
-                                      properties: properties
-                        });
-                });
+
+                        // Post a message back to the main thread with the completions
+                        self.postMessage({type: type,
+                                          file: fileInfo.name,
+                                          offset: offset,
+                                          properties: properties
+                            });
+                    });
+                } catch (e) {
+                    _reportError(e, fileInfo.name);
+                }
             }
                 
             /**
@@ -270,31 +284,35 @@ var config = {};
                     i;
         
                 //_log("request " + dir + " " + file + " " + offset /*+ " " + text */);
-                ternServer.request(request, function (error, data) {
-                    var completions = [];
-                    if (error) {
-                        _log("Error returned from Tern 'completions' request: " + error);
-                    } else {
-                        //_log("found " + data.completions.length + " for " + file + "@" + offset);
-                        for (i = 0; i < data.completions.length; ++i) {
-                            var completion = data.completions[i];
-                            completions.push({value: completion.name, type: completion.type, depth: completion.depth,
-                                guess: completion.guess, origin: completion.origin});
+                try {
+                    ternServer.request(request, function (error, data) {
+                        var completions = [];
+                        if (error) {
+                            _log("Error returned from Tern 'completions' request: " + error);
+                        } else {
+                            //_log("found " + data.completions.length + " for " + file + "@" + offset);
+                            for (i = 0; i < data.completions.length; ++i) {
+                                var completion = data.completions[i];
+                                completions.push({value: completion.name, type: completion.type, depth: completion.depth,
+                                    guess: completion.guess, origin: completion.origin});
+                            }
                         }
-                    }
-        
-                    if (completions.length > 0 || !isProperty) {
-                        // Post a message back to the main thread with the completions
-                        self.postMessage({type: MessageIds.TERN_COMPLETIONS_MSG,
-                            file: fileInfo.name,
-                            offset: offset,
-                            completions: completions
-                            });
-                    } else {
-                        // if there are no completions, then get all the properties
-                        getTernProperties(fileInfo, offset, MessageIds.TERN_COMPLETIONS_MSG);
-                    }
-                });
+
+                        if (completions.length > 0 || !isProperty) {
+                            // Post a message back to the main thread with the completions
+                            self.postMessage({type: MessageIds.TERN_COMPLETIONS_MSG,
+                                file: fileInfo.name,
+                                offset: offset,
+                                completions: completions
+                                });
+                        } else {
+                            // if there are no completions, then get all the properties
+                            getTernProperties(fileInfo, offset, MessageIds.TERN_COMPLETIONS_MSG);
+                        }
+                    });
+                } catch (e) {
+                    _reportError(e, fileInfo.name);
+                }
             }
 
             /**
@@ -512,8 +530,7 @@ var config = {};
                         }
                     });
                 } catch (e) {
-                    error = e.message;
-                    _log("Error thrown in tern_worker:" + error + "\n" + e.stack);
+                    _reportError(e, fileInfo.name);
                 }
 
                 // Post a message back to the main thread with the completions
@@ -561,15 +578,19 @@ var config = {};
              * @param {string} path     - the path of the file
              */
             function handlePrimePump(path) {
-                var fileInfo = createEmptyUpdate(path);
-                var request = buildRequest(fileInfo, "completions", {line: 0, ch: 0});
-        
-                ternServer.request(request, function (error, data) {
-                    // Post a message back to the main thread
-                    self.postMessage({type: MessageIds.TERN_PRIME_PUMP_MSG,
-                        path: path
-                        });
-                });
+                var fileInfo = createEmptyUpdate(path),
+                    request = buildRequest(fileInfo, "completions", {line: 0, ch: 0});
+                
+                try {
+                    ternServer.request(request, function (error, data) {
+                        // Post a message back to the main thread
+                        self.postMessage({type: MessageIds.TERN_PRIME_PUMP_MSG,
+                            path: path
+                            });
+                    });
+                } catch (e) {
+                    _reportError(e, path);
+                }
             }
             
             /**
@@ -594,6 +615,8 @@ var config = {};
                     
                     var env     = request.env,
                         files   = request.files;
+                    inferenceTimeout = request.timeout;
+                    
                     initTernServer(env, files);
                 } else if (type === MessageIds.TERN_COMPLETIONS_MSG) {
                     offset  = request.offset;

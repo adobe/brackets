@@ -23,24 +23,21 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, brackets, waitsForDone, spyOn, tinycolor, KeyEvent */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, runs, $, brackets, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
-    var SpecRunnerUtils   = brackets.getModule("spec/SpecRunnerUtils"),
-        Editor            = brackets.getModule("editor/Editor").Editor,
-        DocumentManager   = brackets.getModule("document/DocumentManager"),
-        Strings           = brackets.getModule("strings"),
-        KeyEvent          = brackets.getModule("utils/KeyEvent"),
-        testContentCSS    = require("text!unittest-files/unittests.css"),
-        testContentHTML   = require("text!unittest-files/unittests.html"),
-        provider          = require("main").inlineColorEditorProvider,
-        InlineColorEditor = require("InlineColorEditor").InlineColorEditor,
-        ColorEditor       = require("ColorEditor").ColorEditor;
-
-    require("thirdparty/tinycolor-min");
+    var KeyEvent           = brackets.getModule("utils/KeyEvent"),
+        PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
+        SpecRunnerUtils    = brackets.getModule("spec/SpecRunnerUtils"),
+        testContentCSS     = require("text!unittest-files/unittests.css"),
+        testContentHTML    = require("text!unittest-files/unittests.html"),
+        provider           = require("main").inlineColorEditorProvider,
+        InlineColorEditor  = require("InlineColorEditor").InlineColorEditor,
+        ColorEditor        = require("ColorEditor").ColorEditor,
+        tinycolor          = require("thirdparty/tinycolor-min");
 
     describe("Inline Color Editor - unit", function () {
 
@@ -216,6 +213,16 @@ define(function (require, exports, module) {
                         expect(inline.getCurrentRange()).toBeTruthy();
                     });
                 });
+
+                it("should update correct range of host document when the in-editor color string is invalid", function () {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
+                        testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 24});
+                        inline.colorEditor.setColorFromString("#c0c0c0");
+                        expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 23}});
+                        expect(testDocument.getRange({line: 1, ch: 16}, {line: 1, ch: 23})).toBe("#c0c0c0");
+                    });
+                });
     
             });
             
@@ -235,12 +242,12 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                it("should close itself if edit is made that destroys end bookmark and leaves color invalid", function () {
+                it("should close itself if edit is made that destroys end textmark and leaves color invalid", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
                         spyOn(inline, "close");
                         
-                        // Replace everything including the semicolon, so it crosses the bookmark boundary.
+                        // Replace everything including the semicolon, so it crosses the textmark boundary.
                         testDocument.replaceRange("rgb(255, 25", {line: 1, ch: 16}, {line: 1, ch: 24});
                         expect(inline.close).toHaveBeenCalled();
                     });
@@ -259,25 +266,23 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                it("should not update the end bookmark to a shorter valid match if the bookmark still exists and the color becomes invalid", function () {
+                it("should not update the end textmark and the color shown to a shorter valid match if the marker still exists and the color becomes invalid", function () {
                     makeColorEditor({line: 1, ch: 18});
                     runs(function () {
                         testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 23});
-                        expect(inline._color).toBe("#abcde");
+                        expect(inline._color).toBe("#abcdef");
                         expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}});
                     });
                 });
                 
-                // TODO: (issue #2166) The following test fails because if the end bookmark is deleted, we match the shorter
-                // #xxx string at the beginning of the color and assume that's valid, and then reset the bookmark
-                // to the end of that location.
-    //            it("should not update the end bookmark to a shorter valid match if the bookmark no longer exists and the color becomes invalid", function () {
-    //                makeColorEditor({line: 1, ch: 18}).done(function (inline) {
-    //                    testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 24});
-    //                    expect(inline._color).toBe("#abcde");
-    //                    expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}});
-    //                });
-    //            });
+                it("should not update the end textmark and the color shown to a shorter valid match if the marker no longer exists and the color becomes invalid", function () {
+                    makeColorEditor({line: 1, ch: 18});
+                    runs(function () {
+                        testDocument.replaceRange("", {line: 1, ch: 22}, {line: 1, ch: 24});
+                        expect(inline._color).toBe("#abcdef");
+                        expect(inline.getCurrentRange()).toEqual({start: {line: 1, ch: 16}, end: {line: 1, ch: 22}});
+                    });
+                });
                 
             });
             
@@ -387,7 +392,7 @@ define(function (require, exports, module) {
             
             /** Returns the colorEditor's current value as a string in its current format */
             function getColorString() {
-                return tinycolor(colorEditor.getColor()).toString();
+                return tinycolor(colorEditor.getColor()).getOriginalInput();
             }
             
             describe("simple load/commit", function () {
@@ -398,7 +403,7 @@ define(function (require, exports, module) {
                     
                     runs(function () {
                         makeUI(colorStr);
-                        expect(colorEditor.getColor().toString()).toBe(colorStr);
+                        expect(colorEditor.getColor().getOriginalInput()).toBe(colorStr);
                         expect(colorEditor.$colorValue.val()).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
     
@@ -427,7 +432,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         makeUI("#0a0a0a");
                         colorEditor.setColorFromString(colorStr);
-                        expect(colorEditor.getColor().toString()).toBe(colorStr);
+                        expect(colorEditor.getColor().getOriginalInput()).toBe(colorStr);
                         expect(colorEditor.$colorValue.val()).toBe(colorStr);
                         expect(tinycolor.equals(colorEditor.$currentColor.css("background-color"), colorStr)).toBe(true);
                         checkNear(tinycolor(colorEditor.$selection.css("background-color")).toHsv().h, tinycolor(colorStr).toHsv().h);
@@ -457,24 +462,24 @@ define(function (require, exports, module) {
                 
             });
             
-            describe("conversions", function () {
-                
-                /**
-                 * Test whether converting the given color to the given mode results in the expected color.
-                 * @param {string} initialColor The color to convert.
-                 * @param {string} mode The mode to convert to: most be "rgba", "hsla", or "hex".
-                 * @param {string} result The expected result of the conversion.
-                 */
-                function testConvert(initialColor, mode, result) {
-                    makeUI(initialColor);
-                    var buttonMap = {
-                        "rgba": "$rgbaButton",
-                        "hsla": "$hslButton",
-                        "hex": "$hexButton"
-                    };
-                    colorEditor[buttonMap[mode]].trigger("click");
-                    expect(colorEditor.getColor().toString()).toBe(result);
-                }
+            /**
+             * Test whether converting the given color to the given mode results in the expected color.
+             * @param {string} initialColor The color to convert.
+             * @param {string} mode The mode to convert to: must be "rgba", "hsla", or "hex".
+             * @param {string} result The expected result of the conversion.
+             */
+            function testConvert(initialColor, mode, result) {
+                makeUI(initialColor);
+                var buttonMap = {
+                    "rgba": "$rgbaButton",
+                    "hsla": "$hslButton",
+                    "hex": "$hexButton"
+                };
+                colorEditor[buttonMap[mode]].trigger("click");
+                expect(colorEditor.getColor().getOriginalInput()).toBe(result);
+            }
+            
+            describe("conversions in lower case", function () {
                 
                 it("should convert a hex color to rgb when mode button clicked", function () {
                     testConvert("#112233", "rgba", "rgb(17, 34, 51)");
@@ -505,6 +510,65 @@ define(function (require, exports, module) {
                 });
                 it("should convert an hsla color to rgba when mode button clicked", function () {
                     testConvert("hsla(152, 12%, 22%, 0.7)", "rgba", "rgba(49, 63, 57, 0.7)");
+                });
+                it("should convert a mixed case hsla color to rgba when mode button clicked", function () {
+                    testConvert("HsLa(152, 12%, 22%, 0.7)", "rgba", "rgba(49, 63, 57, 0.7)");
+                });
+                it("should convert a mixed case hex color to rgb when mode button clicked", function () {
+                    testConvert("#fFfFfF", "rgba", "rgb(255, 255, 255)");
+                });
+                
+            });
+            
+            describe("conversions in UPPER CASE", function () {
+                
+                beforeEach(function () {
+                    // Enable uppercase colors
+                    PreferencesManager.set("uppercaseColors", true);
+                });
+                afterEach(function () {
+                    // Re-disable uppercase colors
+                    PreferencesManager.set("uppercaseColors", false);
+                });
+                
+                it("should use uppercase colors", function () {
+                    expect(PreferencesManager.get("uppercaseColors")).toBe(true);
+                });
+                it("should convert a hex color to rgb in uppercase when mode button clicked", function () {
+                    testConvert("#112233", "rgba", "RGB(17, 34, 51)");
+                });
+                it("should convert a hex color to hsl in uppercase when mode button clicked", function () {
+                    testConvert("#112233", "hsla", "HSL(210, 50%, 13%)");
+                });
+                it("should convert an rgb color to hex in uppercase when mode button clicked", function () {
+                    testConvert("RGB(15, 160, 21)", "hex", "#0FA015");
+                });
+                it("should convert an rgba color to hex (dropping alpha) in uppercase when mode button clicked", function () {
+                    testConvert("RGBA(15, 160, 21, 0.5)", "hex", "#0FA015");
+                });
+                it("should convert an rgb color to hsl in uppercase when mode button clicked", function () {
+                    testConvert("RGB(15, 160, 21)", "hsla", "HSL(122, 83%, 34%)");
+                });
+                it("should convert an rgba color to hsla in uppercase when mode button clicked", function () {
+                    testConvert("RGBA(15, 160, 21, 0.3)", "hsla", "HSLA(122, 83%, 34%, 0.3)");
+                });
+                it("should convert an hsl color to hex in uppercase when mode button clicked", function () {
+                    testConvert("HSL(152, 12%, 22%)", "hex", "#313F39");
+                });
+                it("should convert an hsla color to hex (dropping alpha) in uppercase when mode button clicked", function () {
+                    testConvert("HSLA(152, 12%, 22%, 0.7)", "hex", "#313F39");
+                });
+                it("should convert an hsl color to rgb in uppercase when mode button clicked", function () {
+                    testConvert("HSL(152, 12%, 22%)", "rgba", "RGB(49, 63, 57)");
+                });
+                it("should convert an hsla color to rgba in uppercase when mode button clicked", function () {
+                    testConvert("HSLA(152, 12%, 22%, 0.7)", "rgba", "RGBA(49, 63, 57, 0.7)");
+                });
+                it("should convert a mixed case hsla color to rgba in uppercase when mode button clicked", function () {
+                    testConvert("HsLa(152, 12%, 22%, 0.7)", "rgba", "RGBA(49, 63, 57, 0.7)");
+                });
+                it("should convert a mixed case hex color to rgb in uppercase when mode button clicked", function () {
+                    testConvert("#fFfFfF", "rgba", "RGB(255, 255, 255)");
                 });
                 
             });

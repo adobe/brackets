@@ -29,24 +29,35 @@ maxerr: 50, browser: true */
 define(function (require, exports, module) {
     "use strict";
     
-    /** @define{number} Connection attempts to make before failing */
+    var EventDispatcher = require("utils/EventDispatcher");
+    
+    
+    /**
+     * Connection attempts to make before failing
+     * @type {number}
+     */
     var CONNECTION_ATTEMPTS = 10;
 
     /**
-     * @define{number} Milliseconds to wait before a particular connection
-     *     attempt is considered failed.
-     *
+     * Milliseconds to wait before a particular connection attempt is considered failed.
      * NOTE: It's okay for the connection timeout to be long because the
      * expected behavior of WebSockets is to send a "close" event as soon
      * as they realize they can't connect. So, we should rarely hit the
      * connection timeout even if we try to connect to a port that isn't open.
+     * @type {number}
      */
     var CONNECTION_TIMEOUT  = 10000; // 10 seconds
 
-    /** @define{number} Milliseconds to wait before retrying connecting */
+    /**
+     * Milliseconds to wait before retrying connecting
+     * @type {number}
+     */
     var RETRY_DELAY         = 500;   // 1/2 second
 
-    /** @define {number} Maximum value of the command ID counter */
+    /**
+     * Maximum value of the command ID counter
+     * @type  {number}
+     */
     var MAX_COUNTER_VALUE = 4294967295; // 2^32 - 1
     
     /**
@@ -104,8 +115,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @constructor
      * Provides an interface for interacting with the node server.
+     * @constructor
      */
     function NodeConnection() {
         this.domains = {};
@@ -113,9 +124,10 @@ define(function (require, exports, module) {
         this._pendingInterfaceRefreshDeferreds = [];
         this._pendingCommandDeferreds = [];
     }
+    EventDispatcher.makeEventDispatcher(NodeConnection.prototype);
     
     /**
-     * @type{Object}
+     * @type {Object}
      * Exposes the domains registered with the server. This object will
      * have a property for each registered domain. Each of those properties
      * will be an object containing properties for all the commands in that
@@ -130,7 +142,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type{Array.<string>}
+     * @type {Array.<string>}
      * List of module pathnames that should be re-registered if there is
      * a disconnection/connection (i.e. if the server died).
      */
@@ -138,35 +150,35 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type{WebSocket}
+     * @type {WebSocket}
      * The connection to the server
      */
     NodeConnection.prototype._ws = null;
     
     /**
      * @private
-     * @type{?number}
+     * @type {?number}
      * The port the WebSocket is currently connected to
      */
     NodeConnection.prototype._port = null;
     
     /**
      * @private
-     * @type{number}
+     * @type {number}
      * Unique ID for commands
      */
     NodeConnection.prototype._commandCount = 1;
     
     /**
      * @private
-     * @type{boolean}
+     * @type {boolean}
      * Whether to attempt reconnection if connection fails
      */
     NodeConnection.prototype._autoReconnect = false;
     
     /**
      * @private
-     * @type{Array.<jQuery.Deferred>}
+     * @type {Array.<jQuery.Deferred>}
      * List of deferred objects that should be resolved pending
      * a successful refresh of the API
      */
@@ -174,7 +186,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type{Array.<jQuery.Deferred>}
+     * @type {Array.<jQuery.Deferred>}
      * Array (indexed on command ID) of deferred objects that should be
      * resolved/rejected with the response of commands.
      */
@@ -252,10 +264,10 @@ define(function (require, exports, module) {
                 self._ws.onclose = function () {
                     if (self._autoReconnect) {
                         var $promise = self.connect(true);
-                        $(self).triggerHandler("close", [$promise]);
+                        self.trigger("close", $promise);
                     } else {
                         self._cleanup();
-                        $(self).triggerHandler("close");
+                        self.trigger("close");
                     }
                 };
                 deferred.resolve();
@@ -320,7 +332,7 @@ define(function (require, exports, module) {
 
     /**
      * Determines whether the NodeConnection is currently connected
-     * @return{boolean} Whether the NodeConnection is connected.
+     * @return {boolean} Whether the NodeConnection is connected.
      */
     NodeConnection.prototype.connected = function () {
         return !!(this._ws && this._ws.readyState === WebSocket.OPEN);
@@ -459,19 +471,13 @@ define(function (require, exports, module) {
         
         switch (m.type) {
         case "event":
-            var $this = $(this);
-
             if (m.message.domain === "base" && m.message.event === "newDomains") {
                 this._refreshInterface();
             }
             
-            // Event type for backwards compatibility for original design: "domain.event"
-            $this.triggerHandler(m.message.domain + "." + m.message.event,
-                                   m.message.parameters);
-
             // Event type "domain:event"
-            $this.triggerHandler(m.message.domain + ":" + m.message.event,
-                                   m.message.parameters);
+            EventDispatcher.triggerWithArray(this, m.message.domain + ":" + m.message.event,
+                                             m.message.parameters);
             break;
         case "commandResponse":
             responseDeferred = this._pendingCommandDeferreds[m.message.id];

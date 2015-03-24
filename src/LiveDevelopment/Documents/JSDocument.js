@@ -23,12 +23,12 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define */
 
 /**
  * JSDocument manages a single JavaScript source document
  *
- * # EDITING
+ * __EDITING__
  *
  * Editing the document will cause the script to be reloaded via the
  * ScriptAgent, which updates the implementation of all functions without
@@ -36,7 +36,7 @@
  * and a rerender method must be attached to every canvas that clears and
  * renders the canvas.
  *
- * # HIGHLIGHTING
+ * __HIGHLIGHTING__
  *
  * JSDocument supports highlighting nodes from the HighlightAgent. Support
  * for highlighting the nodes that were created / touched by the current
@@ -45,13 +45,15 @@
 define(function JSDocumentModule(require, exports, module) {
     "use strict";
 
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
-    var HighlightAgent = require("LiveDevelopment/Agents/HighlightAgent");
+    var EventDispatcher = require("utils/EventDispatcher"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        ScriptAgent     = require("LiveDevelopment/Agents/ScriptAgent"),
+        HighlightAgent  = require("LiveDevelopment/Agents/HighlightAgent");
 
-    /** Constructor
-     *
-     * @param {Document} the source document
+    /**
+     * @constructor
+     * @param {!Document} doc The source document from Brackets
+     * @param {!Editor} editor The editor for this document
      */
     var JSDocument = function JSDocument(doc, editor) {
         if (!editor) {
@@ -62,20 +64,23 @@ define(function JSDocumentModule(require, exports, module) {
         this.onHighlight = this.onHighlight.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onCursorActivity = this.onCursorActivity.bind(this);
-        $(HighlightAgent).on("highlight", this.onHighlight);
-        $(this.editor).on("change", this.onChange);
-        $(this.editor).on("cursorActivity", this.onCursorActivity);
+        HighlightAgent.on("highlight", this.onHighlight);
+        this.editor.on("change", this.onChange);
+        this.editor.on("cursorActivity", this.onCursorActivity);
         this.onCursorActivity();
     };
+    
+    // JSDocument doesn't dispatch events, but the "live document" interface requires having an on() API
+    EventDispatcher.makeEventDispatcher(JSDocument.prototype);
 
     /** Close the document */
     JSDocument.prototype.close = function close() {
         if (!this.editor) {
             return;
         }
-        $(HighlightAgent).off("highlight", this.onHighlight);
-        $(this.editor).off("change", this.onChange);
-        $(this.editor).off("cursorActivity", this.onCursorActivity);
+        HighlightAgent.off("highlight", this.onHighlight);
+        this.editor.off("change", this.onChange);
+        this.editor.off("cursorActivity", this.onCursorActivity);
         this.onHighlight();
     };
 

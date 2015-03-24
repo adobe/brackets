@@ -44,6 +44,7 @@ var testFilesDirectory = path.join(path.dirname(module.filename),
 
 var basicValidExtension    = path.join(testFilesDirectory, "basic-valid-extension.zip"),
     basicValidExtension2   = path.join(testFilesDirectory, "basic-valid-extension-2.0.zip"),
+    basicValidTheme        = path.join(testFilesDirectory, "basic-valid-theme-1.0.zip"),
     missingPackageJSON     = path.join(testFilesDirectory, "missing-package-json.zip"),
     invalidJSON            = path.join(testFilesDirectory, "invalid-json.zip"),
     invalidZip             = path.join(testFilesDirectory, "invalid-zip-file.zip"),
@@ -163,6 +164,15 @@ describe("Package Validation", function () {
             var errors = result.errors;
             expect(errors.length).toEqual(1);
             expect(errors[0][0]).toEqual("MISSING_MAIN");
+            done();
+        });
+    });
+    
+    it("should NOT require a main.js in the zip file for a theme", function (done) {
+        packageValidator.validate(basicValidTheme, {}, function (err, result) {
+            expect(err).toBeNull();
+            expect(result.errors.length).toEqual(0);
+            expect(result.metadata.theme).toBeDefined();
             done();
         });
     });

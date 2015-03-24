@@ -22,13 +22,12 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, xdescribe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, beforeFirst, afterLast */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsForDone, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var Async                      = require("utils/Async"),
-        FileSystem                 = require("filesystem/FileSystem"),
+    var FileSystem                 = require("filesystem/FileSystem"),
         FileUtils                  = require("file/FileUtils"),
         CSSUtils                   = require("language/CSSUtils"),
         HTMLUtils                  = require("language/HTMLUtils"),
@@ -38,17 +37,28 @@ define(function (require, exports, module) {
     var testPath                   = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
         simpleCssFileEntry         = FileSystem.getFileForPath(testPath + "/simple.css"),
         universalCssFileEntry      = FileSystem.getFileForPath(testPath + "/universal.css"),
+        propListCssFileEntry       = FileSystem.getFileForPath(testPath + "/property-list.css"),
         groupsFileEntry            = FileSystem.getFileForPath(testPath + "/groups.css"),
         offsetsCssFileEntry        = FileSystem.getFileForPath(testPath + "/offsets.css"),
         bootstrapCssFileEntry      = FileSystem.getFileForPath(testPath + "/bootstrap.css"),
         escapesCssFileEntry        = FileSystem.getFileForPath(testPath + "/escaped-identifiers.css"),
         embeddedHtmlFileEntry      = FileSystem.getFileForPath(testPath + "/embedded.html"),
-        cssRegionsFileEntry        = FileSystem.getFileForPath(testPath + "/regions.css");
+        cssRegionsFileEntry        = FileSystem.getFileForPath(testPath + "/regions.css"),
+        nestedGroupsFileEntry      = FileSystem.getFileForPath(testPath + "/panels.less");
         
     
     var contextTestCss             = require("text!spec/CSSUtils-test-files/contexts.css"),
         selectorPositionsTestCss   = require("text!spec/CSSUtils-test-files/selector-positions.css"),
-        simpleTestCss              = require("text!spec/CSSUtils-test-files/simple.css");
+        rangesTestCss              = require("text!spec/CSSUtils-test-files/ranges.css"),
+        simpleTestCss              = require("text!spec/CSSUtils-test-files/simple.css"),
+        mediaTestScss              = require("text!spec/CSSUtils-test-files/navbar.scss"),
+        mediaTestLess              = require("text!spec/CSSUtils-test-files/print.less"),
+        mixinTestScss              = require("text!spec/CSSUtils-test-files/table&button.scss"),
+        mixinTestLess              = require("text!spec/CSSUtils-test-files/mixins.less"),
+        includeMixinTestScss       = require("text!spec/CSSUtils-test-files/include-mixin.scss"),
+        parentSelectorTestLess     = require("text!spec/CSSUtils-test-files/parent-selector.less"),
+        varInterpolationTestScss   = require("text!spec/CSSUtils-test-files/variables.scss"),
+        varInterpolationTestLess   = require("text!spec/CSSUtils-test-files/variables.less");
     
     /**
      * Verifies whether one of the results returned by CSSUtils._findAllMatchingSelectorsInText()
@@ -65,17 +75,14 @@ define(function (require, exports, module) {
         
         if (fileEntry) {
             spec.addMatchers({toMatchSelector: toMatchSelector});
-            
-            var doneLoading = false;
-            
+
             runs(function () {
-                FileUtils.readAsText(fileEntry)
+                var promise = FileUtils.readAsText(fileEntry)
                     .done(function (text) {
                         spec.fileContent = text;
                     });
+                waitsForDone(promise);
             });
-            
-            waitsFor(function () { return (spec.fileContent !== null); }, 1000);
         }
     }
     
@@ -95,6 +102,20 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should parse an empty string with less mode", function () {
+                runs(function () {
+                    var result = CSSUtils._findAllMatchingSelectorsInText("", { tag: "div" }, "text/x-less");
+                    expect(result.length).toEqual(0);
+                });
+            });
+            
+            it("should parse an empty string with scss mode", function () {
+                runs(function () {
+                    var result = CSSUtils._findAllMatchingSelectorsInText("", { tag: "div" }, "text/x-scss");
+                    expect(result.length).toEqual(0);
+                });
+            });
+            
             // it("should parse simple selectors from more than one file", function () {
             //     // TODO: it'd be nice to revive this test by shimming FileIndexManager.getFileInfoList() or something
             // });
@@ -107,8 +128,8 @@ define(function (require, exports, module) {
              * results to equal the length of 'ranges'; each entry in range gives the {start, end}
              * of the expected line range for that Nth result.
              */
-            function expectRuleRanges(spec, cssCode, selector, ranges) {
-                var result = CSSUtils._findAllMatchingSelectorsInText(cssCode, selector);
+            function expectRuleRanges(spec, cssCode, selector, ranges, mode) {
+                var result = CSSUtils._findAllMatchingSelectorsInText(cssCode, selector, mode);
                 spec.expect(result.length).toEqual(ranges.length);
                 ranges.forEach(function (range, i) {
                     spec.expect(result[i].ruleStartLine).toEqual(range.start);
@@ -125,8 +146,8 @@ define(function (require, exports, module) {
              * Expects the numbers of results to equal the length of 'ranges'; each entry in range gives 
              * the {start, end} of the expected line range for that Nth result.
              */
-            function expectGroupRanges(spec, cssCode, selector, ranges) {
-                var result = CSSUtils._findAllMatchingSelectorsInText(cssCode, selector);
+            function expectGroupRanges(spec, cssCode, selector, ranges, mode) {
+                var result = CSSUtils._findAllMatchingSelectorsInText(cssCode, selector, mode);
                 spec.expect(result.length).toEqual(ranges.length);
                 ranges.forEach(function (range, i) {
                     spec.expect(result[i].selectorGroupStartLine).toEqual(range.start);
@@ -176,6 +197,71 @@ define(function (require, exports, module) {
                     expectGroupRanges(this, this.fileContent, ".f", [{start: 31, end: 31}]);
                     expectGroupRanges(this, this.fileContent, ".g", [{start: 31, end: 34}]);
                     expectGroupRanges(this, this.fileContent, ".h", [{start: 31, end: 34}]);
+                    
+                });
+            });
+
+            it("should return correct rule ranges for rules with comma separators in property values", function () {
+                runs(function () {
+                    init(this, propListCssFileEntry);
+                });
+                
+                runs(function () {
+                    // https://github.com/adobe/brackets/issues/9008
+                    expectRuleRanges(this, this.fileContent, "h1", [{start:  0, end:  2}]);
+                    
+                    // https://github.com/adobe/brackets/issues/8966
+                    expectRuleRanges(this, this.fileContent, ".alert", [{start:  4, end:  8}]);
+                });
+            });
+            
+            it("should return correct rule range and group range for different nested levels", function () {
+                runs(function () {
+                    init(this, nestedGroupsFileEntry);
+                });
+                
+                runs(function () {
+                    expectRuleRanges(this, this.fileContent, ".table", [
+                        {start: 6, end: 9}, {start: 6, end: 9},
+                        {start: 10, end: 26}, {start: 10, end: 26},
+                        {start: 27, end: 43}, {start: 27, end: 43},
+                        {start: 44, end: 47}
+                    ], "text/x-less");
+                    expectGroupRanges(this, this.fileContent, ".table", [
+                        {start: 6, end: 9}, {start: 6, end: 9},
+                        {start: 11, end: 26}, {start: 11, end: 26},
+                        {start: 28, end: 43}, {start: 28, end: 43},
+                        {start: 44, end: 47}
+                    ], "text/x-less");
+                    
+                    expectRuleRanges(this, this.fileContent, "tbody", [
+                        {start: 13, end: 25}, {start: 30, end: 42}, {start: 55, end: 76}
+                    ], "text/x-less");
+                    expectGroupRanges(this, this.fileContent, "tbody", [
+                        {start: 13, end: 25}, {start: 30, end: 42}, {start: 55, end: 76}
+                    ], "text/x-less");
+                    
+                    expectRuleRanges(this, this.fileContent, "thead", [
+                        {start: 13, end: 25}, {start: 55, end: 76}
+                    ], "text/x-less");
+                    expectGroupRanges(this, this.fileContent, "thead", [
+                        {start: 13, end: 25}, {start: 55, end: 76}
+                    ], "text/x-less");
+                    
+                    expectRuleRanges(this, this.fileContent, "tr", [
+                        {start: 15, end: 24}, {start: 32, end: 41}, {start: 58, end: 75}
+                    ], "text/x-less");
+                    
+                    expectRuleRanges(this, this.fileContent, "th", [
+                        {start: 16, end: 19}, {start: 20, end: 23}, {start: 33, end: 36},
+                        {start: 37, end: 40}, {start: 48, end: 51}, {start: 59, end: 62},
+                        {start: 63, end: 66}, {start: 67, end: 70}, {start: 71, end: 74}
+                    ], "text/x-less");
+                    expectGroupRanges(this, this.fileContent, "th", [
+                        {start: 16, end: 19}, {start: 20, end: 23}, {start: 33, end: 36},
+                        {start: 37, end: 40}, {start: 48, end: 51}, {start: 59, end: 62},
+                        {start: 63, end: 66}, {start: 67, end: 70}, {start: 71, end: 74}
+                    ], "text/x-less");
                     
                 });
             });
@@ -395,6 +481,15 @@ define(function (require, exports, module) {
                 expect(selector).toEqual("");
             });
             
+            // https://github.com/adobe/brackets/issues/9002
+            it("should not hang when the cursor is after '{' or '}' inside comments", function () {
+                var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 53, ch: 3});   // after {
+                expect(selector).toEqual("");
+                
+                selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 55, ch: 1}); // after }
+                expect(selector).toEqual("");
+            });
+
             it("should find rules adjacent to comments", function () {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 47, ch: 4});
                 expect(selector).toEqual("div");
@@ -596,8 +691,40 @@ define(function (require, exports, module) {
                 expect(selector).toEqual(".foo");
             });
         });
+        
+        describe("reduceStyleSheetForRegExParsing", function () {
+            it("should remove css comment in a line", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(".test { color: #123; /* unbalanced paren :) */ margin: 0; }");
+                expect(result).toEqual(".test { color: #123;  margin: 0; }");
+            });
+            it("should remove css comment across newlines", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(".foo {\n  background-color: rgb(0, 63, 255); /* start of comment\n end of comment */\n  margin: 0;\n}\n");
+                expect(result).toEqual(".foo {\n  background-color: rgb(0, 63, 255); \n  margin: 0;\n}\n");
+            });
+            it("should remove multiple css comments", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(".test { color: hsl(0, 100%, 50%); /* unbalanced paren :) */ margin: 0; } .foo { background-color: orange; /* comment */ margin: 1px; }");
+                expect(result).toEqual(".test { color: hsl(0, 100%, 50%);  margin: 0; } .foo { background-color: orange;  margin: 1px; }");
+            });
+            it("should remove css string with single quotes", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(".test { content: '('; background-image: url('bg.svg'); padding: 0; }");
+                expect(result).toEqual(".test { content: ; background-image: url(); padding: 0; }");
+            });
+            it("should remove css string with double quotes", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing('.test-content { border: 0; background-image: url("bg.svg"); content: ">"; }');
+                expect(result).toEqual('.test-content { border: 0; background-image: url(); content: ; }');
+            });
+            it("should remove both comment and css content property", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(".test { color: #123; /* unbalanced paren :-) */ margin: 0; content: ')'; padding: 0; }");
+                expect(result).toEqual(".test { color: #123;  margin: 0; content: ; padding: 0; }");
+            });
+            it("should otherwise not alter stylesheet text", function () {
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(".test { color: #1254ef; margin: 0.1em; filter: blur(); }");
+                expect(result).toEqual(".test { color: #1254ef; margin: 0.1em; filter: blur(); }");
+            });
+        });
     }); // describe("CSSUtils")
 
+    
     
     describe("CSS Parsing", function () {
         
@@ -605,7 +732,7 @@ define(function (require, exports, module) {
             match,
             expectParseError;
         
-        function _findMatchingRules(cssCode, tagInfo) {
+        function _findMatchingRules(cssCode, tagInfo, mode) {
             if (tagInfo) {
                 var selector = "";
                 if (tagInfo.tag) {
@@ -617,10 +744,10 @@ define(function (require, exports, module) {
                 if (tagInfo.id) {
                     selector += "#" + tagInfo.id;
                 }
-                return CSSUtils._findAllMatchingSelectorsInText(cssCode, selector);
+                return CSSUtils._findAllMatchingSelectorsInText(cssCode, selector, mode);
             } else {
                 // If !tagInfo, we don't care about results; only making sure parse/search doesn't crash
-                CSSUtils._findAllMatchingSelectorsInText(cssCode, "dummy");
+                CSSUtils._findAllMatchingSelectorsInText(cssCode, "dummy", mode);
                 return null;
             }
         }
@@ -630,10 +757,10 @@ define(function (require, exports, module) {
          * the given cssCode string in isolation (no CSS files are loaded). If tagInfo not specified,
          * returns no results; only tests that parsing plus a simple search won't crash.
          */
-        var _match = function (cssCode, tagInfo) {
+        var _match = function (cssCode, tagInfo, mode) {
             lastCssCode = cssCode;
             try {
-                return _findMatchingRules(cssCode, tagInfo);
+                return _findMatchingRules(cssCode, tagInfo, mode);
             } catch (e) {
                 this.fail(e.message + ": " + cssCode);
                 return [];
@@ -641,10 +768,13 @@ define(function (require, exports, module) {
         };
         
         /** Tests against the same CSS text as the last call to match() */
-        function matchAgain(tagInfo) {
-            return match(lastCssCode, tagInfo);
+        function matchAgain(tagInfo, mode) {
+            return match(lastCssCode, tagInfo, mode);
         }
         
+        function expectCompleteSelectors(selectorInfo, expectedStr) {
+            expect(CSSUtils.getCompleteSelectors(selectorInfo)).toBe(expectedStr);
+        }
         
         /**
          * Test helper function: expects CSS parsing to fail at the given 0-based offset within the
@@ -1199,6 +1329,27 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
             });
                 
+            it("should find selectors that are after a rule starting with a pseudo selector/element", function () {
+                var css = ":focus { color:red; } \n" +
+                          "div { color:blue; } \n" +
+                          "::selection { color:green; } \n" +
+                          ".Foo { color:black } \n" +
+                          "#bar { color:blue } \n" +
+                          "#baR { color:white }";
+                           
+                var result = match(css, { tag: "div" });
+                expect(result.length).toBe(1);
+
+                result = matchAgain({ clazz: "Foo" });
+                expect(result.length).toBe(1);
+                
+                result = matchAgain({ id: "bar" });
+                expect(result.length).toBe(1);
+                
+                result = matchAgain({ id: "baR" });
+                expect(result.length).toBe(1);
+            });
+            
         }); // describe("Simple selectors")
         
         
@@ -1431,8 +1582,291 @@ define(function (require, exports, module) {
             
         }); // describe("Known Issues")    
 
+        describe("Nested rules defined inside @media (SCSS)", function () {
+            var result;
+            it("should find all different levels of nested selectors", function () {
+                result = match(mediaTestScss, { tag: "a" }, "text/x-scss");
+                expect(result.length).toBe(6);
+
+                result = matchAgain({ clazz: "navbar-right" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".navbar-nav / &.navbar-right:last-child");
+
+                result = matchAgain({ clazz: "dropdown-menu" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".navbar-nav / .open .dropdown-menu");
+
+                result = matchAgain({ clazz: "dropdown-header" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".navbar-nav / .open .dropdown-menu / .dropdown-header");
+            
+                result = matchAgain({ clazz: "navbar-nav" }, "text/x-scss");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".navbar-nav");
+                expectCompleteSelectors(result[1], ".navbar-nav / &.navbar-right:last-child");
+            });
+
+            it("should find the only one li tag selector that is also the right most of combinators", function () {
+                result = matchAgain({ tag: "li" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".navbar-nav / > li");
+            });
+
+            it("should not find a nested parent selector of a descendant combinator", function () {
+                // Verify that 'open' won't match '.open .dropdown-menu {}' rule
+                result = matchAgain({ clazz: "open" }, "text/x-scss");
+                expect(result.length).toBe(0);
+            });
+            
+        }); // describe("Nested rules defined inside @media (SCSS)")    
         
-        describe("CSS Intgration Tests", function () {
+        describe("Nested rules defined inside @media (LESS)", function () {
+            var result;
+            it("should find all different levels of nested selectors", function () {
+                result = match(mediaTestLess, { tag: "a" }, "text/x-less");
+                expect(result.length).toBe(6);
+                
+                result = matchAgain({ tag: "th" }, "text/x-less");
+                expect(result.length).toBe(3);
+                expectCompleteSelectors(result[0], "*");
+                expectCompleteSelectors(result[1], ".table / th");
+                expectCompleteSelectors(result[2], ".table-bordered / th");
+
+                result = matchAgain({ clazz: "btn" }, "text/x-less");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".btn");
+                expectCompleteSelectors(result[1], ".dropup > .btn");
+
+                result = matchAgain({ clazz: "table" }, "text/x-less");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".table");
+                expectCompleteSelectors(result[1], ".table");
+                
+                result = matchAgain({ clazz: "caret" }, "text/x-less");
+                expect(result.length).toBe(1);
+                // https://github.com/adobe/brackets/issues/8894
+                expectCompleteSelectors(result[0], ".btn, .dropup > .btn / > .caret");
+            });
+            
+            it("should not find a nested parent selector of a child combinator", function () {
+                // Verify that 'dropup' won't match '.dropup > .btn' rule
+                result = matchAgain({ clazz: "dropup" }, "text/x-less");
+                expect(result.length).toBe(0);
+            });
+            
+        }); // describe("Nested rules defined inside @media (LESS)")    
+        
+        describe("Nested rules with SCSS mixins", function () {
+            var result;
+            it("should find all different levels of nested selectors", function () {
+                result = match(mixinTestScss, { clazz: "table" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], "@mixin table-row-variant($state, $background) / .table");
+                
+                result = matchAgain({ tag: "th" }, "text/x-scss");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], "@mixin table-row-variant($state, $background) / .table / > thead, > tbody, > tfoot / > .#{$state} > th");
+                expectCompleteSelectors(result[1], "@mixin table-row-variant($state, $background) / .table-hover > tbody / > .#{$state}:hover > th");
+
+                result = matchAgain({ clazz: "dropdown-toggle" }, "text/x-scss");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], "@mixin button-variant($color, $background, $border) / .open & / &.dropdown-toggle");
+                expectCompleteSelectors(result[1], "@mixin button-variant($color, $background, $border) / .open & / &.dropdown-toggle");
+
+                result = matchAgain({ clazz: "badge" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], "@mixin button-variant($color, $background, $border) / .badge");
+            });
+            
+            it("should not find a nested parent selector of a descendant combinator", function () {
+                result = matchAgain({ tag: "tr" }, "text/x-scss");
+                expect(result.length).toBe(0);
+            });
+            
+        }); // describe("Nested rules with SCSS mixins")    
+        
+        describe("Nested rules with LESS mixins", function () {
+            var result;
+            it("should find all different levels of nested selectors", function () {
+                result = match(mixinTestLess, { clazz: "panel-body" }, "text/x-less");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".panel-variant(@border; @heading-text-color; @heading-bg-color; @heading-border) / & > .panel-heading / + .panel-collapse .panel-body");
+                expectCompleteSelectors(result[1], ".panel-variant(@border; @heading-text-color; @heading-bg-color; @heading-border) / & > .panel-footer / + .panel-collapse .panel-body");
+                
+                result = matchAgain({ clazz: "panel-heading" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".panel-variant(@border; @heading-text-color; @heading-bg-color; @heading-border) / & > .panel-heading");
+                
+                result = matchAgain({ clazz: "panel-footer" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".panel-variant(@border; @heading-text-color; @heading-bg-color; @heading-border) / & > .panel-footer");
+                
+                result = matchAgain({ clazz: "input-group-addon" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".form-control-validation(@text-color: #555; @border-color: #ccc; @background-color: #f5f5f5) / .input-group-addon");
+            });
+            
+            // https://github.com/adobe/brackets/issues/8852
+            it("should find the rule that follows the code passing in a ruleset to a mixin", function () {
+                result = matchAgain({ clazz: "after-passing-ruleset-to-mixin" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-passing-ruleset-to-mixin");
+            });
+            
+            // https://github.com/adobe/brackets/issues/8850
+            it("should find the rule that succeeds the mixin with multiple parameters having default values and semicolons", function () {
+                result = matchAgain({ tag: "div" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], "div");
+            });
+        }); // describe("Nested rules with LESS mixins")    
+        
+        describe("Variable interpolation in SCSS", function () {
+            var result;
+            // https://github.com/adobe/brackets/issues/8870
+            it("should find a rule that has a variable interpolated selector", function () {
+                // Verify that "#{$name} a" can be searched with "a" tag
+                result = match(varInterpolationTestScss, { tag: "a" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".#{$name} a");
+            });
+
+            // https://github.com/adobe/brackets/issues/8851
+            it("should find rules after a rule with variable interpolated selector", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-selector" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-selector");
+            });
+            
+            // https://github.com/adobe/brackets/issues/8875
+            it("should find rules after a rule with variable interpolated property", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-property" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-property");
+            });
+                        
+            it("should find rules after a rule with variable interpolated url", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-url" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-url");
+            });
+        }); // describe("Variable interpolation in SCSS")
+        
+        describe("Variable interpolation in LESS", function () {
+            var result;
+            // https://github.com/adobe/brackets/issues/8870
+            it("should find rules with variable interpolated selectors", function () {
+                result = match(varInterpolationTestLess, { clazz: "@{mySelector}" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".@{mySelector}");
+            });
+
+            // https://github.com/adobe/brackets/issues/8851
+            it("should find rules after a rule with variable interpolated selector", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-selector" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-selector");
+            });
+            
+            // https://github.com/adobe/brackets/issues/8875
+            it("should find rules after a rule with variable interpolated property", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-property" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-property");
+            });
+                        
+            it("should find rules after a rule with variable interpolated url", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-url" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-url");
+            });
+        }); // describe("Variable interpolation in LESS")
+
+        describe("Parsing SCSS variable interpolation as LESS", function () {
+            var result;
+            it("should find a rule that has a variable interpolated selector", function () {
+                // Verify that "#{$name} a" can be searched with "a" tag
+                result = match(varInterpolationTestScss, { tag: "a" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".#{$name} a");
+            });
+
+            it("should find rules after a rule with variable interpolated selector", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-selector" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-selector");
+            });
+            
+            // https://github.com/adobe/brackets/issues/8965
+            it("should find rules after a rule with variable interpolated property", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-property" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-property");
+            });
+                        
+            it("should find rules after a rule with variable interpolated url", function () {
+                result = matchAgain({ clazz: "after-variable-interpolated-url" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".after-variable-interpolated-url");
+            });
+        }); // describe("Parsing SCSS variable interpolation as LESS")
+        
+        describe("Reference parent selector with &", function () {
+            var result;
+            it("should find rules that are prefixed with &", function () {
+                result = match(parentSelectorTestLess, { clazz: "button-custom" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".button / &-custom");
+
+                result = matchAgain({ clazz: "button-ok" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".button / &-ok");
+            });
+
+            it("should find rules that prepend a selector to the inherited parent selector using &", function () {
+                result = matchAgain({ clazz: "menu" }, "text/x-less");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".header / .menu");
+                expectCompleteSelectors(result[1], ".header / .menu / .no-borderradius &");
+            });
+            
+            it("should find rules that have multiple & references to multiple levels of parent selectors", function () {
+                result = matchAgain({ clazz: "parent" }, "text/x-less");
+                expect(result.length).toBe(5);
+                expectCompleteSelectors(result[0], ".grand / .parent");
+                expectCompleteSelectors(result[1], ".grand / .parent / & > &");
+                expectCompleteSelectors(result[2], ".grand / .parent / & &");
+                expectCompleteSelectors(result[3], ".grand / .parent / &&");
+                expectCompleteSelectors(result[4], ".grand / .parent / &");
+
+                result = matchAgain({ clazz: "parentish" }, "text/x-less");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".grand / .parent / &ish");
+            });
+
+            it("should not find a nested rule that has parent selector & as the rightmost selector", function () {
+                // Verify that '.no-borderradius' won't match '.no-borderradius & {}' rule
+                result = matchAgain({ clazz: "no-borderradius" }, "text/x-less");
+                expect(result.length).toBe(0);
+            });
+        }); // describe("Reference parent selector with &")
+
+        // https://github.com/adobe/brackets/issues/8945
+        describe("Nested rules following an @include block", function () {
+            it("should find rules that succeed @include blocks", function () {
+                var result = match(includeMixinTestScss, { tag: "h3" }, "text/x-scss");
+                expect(result.length).toBe(1);
+                expectCompleteSelectors(result[0], ".sidebar / h3");
+
+                result = matchAgain({ tag: "a" }, "text/x-scss");
+                expect(result.length).toBe(2);
+                expectCompleteSelectors(result[0], ".sidebar / a");
+                expectCompleteSelectors(result[1], ".sidebar / a / &:hover");
+            });
+        }); // describe("Nested rules following an @include block")
+        
+        
+        describe("CSS Integration Tests", function () {
             this.category = "integration";
             
             var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
@@ -1472,10 +1906,10 @@ define(function (require, exports, module) {
                 it("should include comment preceding selector (issue #403)", function () {
                     var rules;
                     runs(function () {
-                        CSSUtils.findMatchingRules("#issue403")
+                        var promise = CSSUtils.findMatchingRules("#issue403")
                             .done(function (result) { rules = result; });
+                        waitsForDone(promise, "CSSUtils.findMatchingRules()");
                     });
-                    waitsFor(function () { return rules !== undefined; }, "CSSUtils.findMatchingRules() timeout", 1000);
                     
                     runs(function () {
                         expect(rules.length).toBe(1);
@@ -1483,21 +1917,29 @@ define(function (require, exports, module) {
                         expect(rules[0].lineEnd).toBe(7);
                     });
                 });
+                
+                it("should continue search despite unreadable files (issue #10013)", function () {
+                    runs(function () {
+                        // Add a nonexistent CSS file to the ProjectManager.getAllFiles() result, which will force a file IO error
+                        // when we try to read the file later. Similar errors may arise in real-world for non-UTF files, etc.
+                        SpecRunnerUtils.injectIntoGetAllFiles(testWindow, testPath + "/doesNotExist.css");
+                        
+                        var promise = CSSUtils.findMatchingRules("html");
+                        promise.done(function (result) {
+                            expect(result.length).toBeGreaterThan(0);
+                        });
+                        waitsForDone(promise, "CSSUtils.findMatchingRules()");
+                    });
+                });
             });
             
             describe("Working with unsaved changes", function () {
                 
                 it("should return the correct offsets if the file has changed", function () {
-                    var didOpen = false,
-                        gotError = false;
-                    
                     runs(function () {
-                        FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
-                            .done(function () { didOpen = true; })
-                            .fail(function () { gotError = true; });
+                        var promise = FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER);
+                        waitsForDone(promise, "FileViewController.openAndSelectDocument()");
                     });
-                    
-                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
                     
                     var rules = null;
                     
@@ -1508,13 +1950,12 @@ define(function (require, exports, module) {
                         doc.setText("\n\n\n\n" + doc.getText());
                         
                         // Look for ".FIRSTGRADE"
-                        CSSUtils.findMatchingRules(".FIRSTGRADE")
+                        var promise = CSSUtils.findMatchingRules(".FIRSTGRADE")
                             .done(function (result) { rules = result; });
+                        waitsForDone(promise, "CSSUtils.findMatchingRules()");
                         
                         doc = null;
                     });
-                    
-                    waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
                     
                     runs(function () {
                         expect(rules.length).toBe(1);
@@ -1524,16 +1965,10 @@ define(function (require, exports, module) {
                 });
                 
                 it("should return a newly created rule in an unsaved file", function () {
-                    var didOpen = false,
-                        gotError = false;
-                    
                     runs(function () {
-                        FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
-                            .done(function () { didOpen = true; })
-                            .fail(function () { gotError = true; });
+                        var promise = FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER);
+                        waitsForDone(promise, "FileViewController.openAndSelectDocument()");
                     });
-                    
-                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
                     
                     var rules = null;
                     
@@ -1544,13 +1979,12 @@ define(function (require, exports, module) {
                         doc.setText(doc.getText() + "\n\n.TESTSELECTOR {\n    font-size: 12px;\n}\n");
                         
                         // Look for the selector we just created
-                        CSSUtils.findMatchingRules(".TESTSELECTOR")
+                        var promise = CSSUtils.findMatchingRules(".TESTSELECTOR")
                             .done(function (result) { rules = result; });
+                        waitsForDone(promise, "CSSUtils.findMatchingRules()");
     
                         doc = null;
                     });
-                    
-                    waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
                     
                     runs(function () {
                         expect(rules.length).toBe(1);
@@ -1562,6 +1996,8 @@ define(function (require, exports, module) {
         });
         
     }); //describe("CSS Parsing")
+    
+    
     
     describe("CSSUtils - Other", function () {
         function doAddRuleTest(options) {
@@ -1709,7 +2145,9 @@ define(function (require, exports, module) {
             range.dispose();
         });
     });
-
+    
+    
+    
     // Unit Tests: "HTMLUtils (css)"
     describe("HTMLUtils InlineEditorProviders", function () {
         var editor;
@@ -1749,6 +2187,8 @@ define(function (require, exports, module) {
         });
     });
     
+    
+    
     // These tests are based on the implementation spec at https://github.com/adobe/brackets/wiki/CSS-Context-API-implementation-spec.
     describe("CSS Context Info", function () {
         var contextTest = SpecRunnerUtils.parseOffsetsFromText(contextTestCss),
@@ -1773,6 +2213,7 @@ define(function (require, exports, module) {
             expect(result.isNewItem).toBe(expected.isNewItem === undefined ? false : expected.isNewItem);
             expect(result.index).toBe(expected.index === undefined ? -1 : expected.index);
             expect(result.values).toEqual(expected.values === undefined ? [] : expected.values);
+            expect(result.range).toEqual(expected.range);
         }
         
         function checkInfoAtOffsets(first, last, expected) {
@@ -1835,6 +2276,8 @@ define(function (require, exports, module) {
                 
             it("should return PROP_VALUE with 'new value' flag set immediately after colon", function () {
                 [9, 85].forEach(function (offset) {
+                    var range = (offset === 9) ? {start: { line: 1, ch: 11 }, end: { line: 1, ch: 15 }}
+                                               : {start: { line: 25, ch: 20 }, end: { line: 25, ch: 24 }};
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[offset]);
                     expect(result).toEqual({
                         context: CSSUtils.PROP_VALUE,
@@ -1842,7 +2285,8 @@ define(function (require, exports, module) {
                         name: "width",
                         index: 0,
                         values: ["100%"],
-                        isNewItem: true
+                        isNewItem: true,
+                        range: range
                     });
                 });
             });
@@ -1853,14 +2297,16 @@ define(function (require, exports, module) {
                     name: "width",
                     index: 0,
                     values: ["100%"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 1, ch: 11 }, end: { line: 1, ch: 15 }}
                 });
                 checkInfoAtOffsets(86, 88, {
                     context: CSSUtils.PROP_VALUE,
                     name: "width",
                     index: 0,
                     values: ["100%"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 25, ch: 20 }, end: { line: 25, ch: 24 }}
                 });
             });
                 
@@ -1869,7 +2315,8 @@ define(function (require, exports, module) {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
                     index: 0,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value property", function () {
@@ -1880,7 +2327,8 @@ define(function (require, exports, module) {
                     offset: 0,
                     isNewItem: true,
                     index: 1,
-                    values: ['"Helvetica Neue",', 'Arial, ', 'sans-serif'] // whitespace after cursor is deliberately lost
+                    values: ['"Helvetica Neue",', 'Arial, ', 'sans-serif'], // whitespace after cursor is deliberately lost
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with correct values at beginning/middle of second multi-value property", function () {
@@ -1888,7 +2336,8 @@ define(function (require, exports, module) {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
                     index: 1,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with 'new value' flag set at end of second multi-value property", function () {
@@ -1899,7 +2348,8 @@ define(function (require, exports, module) {
                     offset: 0,
                     isNewItem: true,
                     index: 2,
-                    values: ['"Helvetica Neue", ', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                    values: ['"Helvetica Neue", ', 'Arial,', 'sans-serif'], // whitespace after cursor is deliberately lost
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with correct values at beginning/middle/end of third multi-value property", function () {
@@ -1908,7 +2358,8 @@ define(function (require, exports, module) {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
                     index: 2,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             
@@ -1918,7 +2369,8 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 0,
-                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 it("should return PROP_VALUE with 'new value' flag set at end of double-quoted multi-value multi-line property", function () {
@@ -1929,7 +2381,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 1,
-                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'], // whitespace after cursor is deliberately lost
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 it("should return PROP_VALUE with correct values at beginning/middle of second multi-value multi-line property", function () {
@@ -1937,7 +2390,8 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 1,
-                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif']
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 it("should return PROP_VALUE with 'new value' flag set at end of second multi-value multi-line property", function () {
@@ -1948,7 +2402,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 2,
-                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'] // whitespace after cursor is deliberately lost
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'], // whitespace after cursor is deliberately lost
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 it("should return PROP_VALUE with correct values at beginning/middle/end of third multi-value multi-line property", function () {
@@ -1957,7 +2412,8 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 2,
-                        values: ['"Helvetica Neue",        ', 'Arial,        ', 'sans-serif']
+                        values: ['"Helvetica Neue",        ', 'Arial,        ', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 
@@ -1969,7 +2425,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 0,
-                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
+                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
                 
@@ -1982,7 +2439,8 @@ define(function (require, exports, module) {
                             offset: 0,
                             isNewItem: true,
                             index: i,
-                            values: ['"Helvetica Neue",', 'Arial,', 'sans-serif']
+                            values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'],
+                            range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                         });
                     }
 
@@ -1994,7 +2452,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 2,
-                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif']
+                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'],
+                        range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
             }); // multi-line cases
@@ -2007,7 +2466,8 @@ define(function (require, exports, module) {
                     offset: 0,
                     isNewItem: true,
                     index: 0,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif']
+                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
             it("should return PROP_VALUE with 'new value' flag and existing values at end of line after comma (possibly with whitespace)", function () {
@@ -2019,7 +2479,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 1,
-                        values: ["Arial,"]
+                        values: ["Arial,"],
+                        range: {start: { line: 28 + ((i - 46) * 3), ch: 17 }, end: { line: 28 + ((i - 46) * 3), ch: 23 }}
                     });
                 }
                 for (i = 48; i <= 49; i++) {
@@ -2030,12 +2491,15 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 1,
-                        values: ["Arial, "]
+                        values: ["Arial, "],
+                        range: {start: { line: 34 + ((i - 48) * 3), ch: 17 }, end: { line: 34 + ((i - 48) * 3), ch: 23 }}
                     });
                 }
             });
             
             it("should return PROP_VALUE with 'new value' flag at end of line when there are no existing values", function () {
+                var lineArray = [41, 44, 47, 50, 112],
+                    columnArray = [10, 11, 10, 11, 10];
                 for (i = 70; i <= 74; i++) {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i]);
                     expect(result).toEqual({
@@ -2044,7 +2508,9 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 0,
-                        values: []
+                        values: [],
+                        range: {start: { line: lineArray[i - 70], ch: columnArray[i - 70] },
+                                end: { line: lineArray[i - 70], ch: columnArray[i - 70] }}
                     });
                 }
             });
@@ -2059,7 +2525,8 @@ define(function (require, exports, module) {
                         offset: 0,
                         index: i,
                         values: ["rgba(50, ", "100, ", "200, ", "0.3)"],
-                        isNewItem: false
+                        isNewItem: false,
+                        range: {start: { line: 54, ch: 11 }, end: { line: 54, ch: 34 }}
                     });
                 }
             });
@@ -2072,7 +2539,8 @@ define(function (require, exports, module) {
                     offset: 1,
                     index: 1,
                     values: ["linear-gradient(to ", "right, ", "rgba(255,", "255,", "0), ", "#fff)"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 71, ch: 16 }, end: { line: 71, ch: 64 }}
                 });
             });
             
@@ -2084,7 +2552,8 @@ define(function (require, exports, module) {
                     offset: 1,
                     index: 1,
                     values: ["polygon(", "0 ", "0)"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 58, ch: 18 }, end: { line: 58, ch: 30 }}
                 });
             });
             
@@ -2096,11 +2565,36 @@ define(function (require, exports, module) {
                     offset: 1,
                     index: 1,
                     values: ["polygon(", "nonzero, ", "0 ", "0)"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 62, ch: 18 }, end: { line: 62, ch: 39 }}
                 });
             });
             
+            it("should return unprefixed PROP_NAME", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[111]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_NAME,
+                    name: "transform",
+                    offset: 1,
+                    index: -1,
+                    values: [],
+                    isNewItem: false
+                });
+            });
+
+            it("should return prefixed PROP_NAME when inside a prefixed property name", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[110]);
+                expect(result).toEqual({
+                    context: CSSUtils.PROP_NAME,
+                    name: "-webkit-transform",
+                    offset: 1,
+                    index: -1,
+                    values: [],
+                    isNewItem: false
+                });
+            });
         });
+        
         
         describe("quoting", function () {
             
@@ -2110,7 +2604,8 @@ define(function (require, exports, module) {
                     name: "font-family",
                     index: 0,
                     values: ["'Helvetica Neue', ", "Arial"],
-                    isNewItem: false
+                    isNewItem: false,
+                    range: {start: { line: 75, ch: 17 }, end: { line: 75, ch: 40 }}
                 });
             });
             it("should properly parse values with special characters", function () {
@@ -2123,12 +2618,14 @@ define(function (require, exports, module) {
                         name: "font-family",
                         index: 0,
                         values: [values[i]],
-                        isNewItem: false
+                        isNewItem: false,
+                        range: {start: { line: 79 + i, ch: 17 }, end: { line: 79 + i, ch: 17 + values[i].length }}
                     });
                 }
             });
             
         });
+
         
         describe("invalid contexts", function () {
             
@@ -2169,6 +2666,99 @@ define(function (require, exports, module) {
             });
         });
     });
+    
+    
+    
+    // These are tests related to Shapes editor requirements for determining the start/end range of a css property
+    describe("CSS Context Info Ranges", function () {
+
+        // NOTE: check ranges for simple cases without whitespace is 
+        describe("ranging for getInfoAtPos results with whitespace", function () {
+            var testEditor,
+                result;
+            
+            beforeEach(function () {
+                var mock = SpecRunnerUtils.createMockEditor(rangesTestCss, "css");
+                testEditor = mock.editor;
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.destroyMockEditor(testEditor.document);
+                testEditor = null;
+            });
+
+            it("should return the correct range of a prop when cursor is on whitespace between function args", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 20, line: 4});
+                expect(result.range.start).toEqual({
+                    ch: 18,
+                    line: 3
+                });
+                expect(result.range.end).toEqual({
+                    ch: 5,
+                    line: 6
+                });
+            });
+            
+            it("should return the correct range of a prop when cursor is between characters in function args", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 26, line: 9});
+                expect(result.range.start).toEqual({
+                    ch: 18,
+                    line: 8
+                });
+                expect(result.range.end).toEqual({
+                    ch: 5,
+                    line: 13
+                });
+            });
+            it("should return the correct range of a prop when cursor is between characters in prop name with function args with whitespace", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 21, line: 15});
+                expect(result.range.start).toEqual({
+                    ch: 18,
+                    line: 15
+                });
+                expect(result.range.end).toEqual({
+                    ch: 5,
+                    line: 22
+                });
+            });
+            it("should return the correct range of a prop when cursor is on function arg delimiter with whitespace", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 29, line: 30});
+                expect(result.range.start).toEqual({
+                    ch: 0,
+                    line: 26
+                });
+                expect(result.range.end).toEqual({
+                    ch: 41,
+                    line: 36
+                });
+            });
+            it("should return the correct range of a prop when cursor is between value and unit with whitespace", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 85, line: 49});
+                expect(result.range.start).toEqual({
+                    ch: 12,
+                    line: 49
+                });
+                expect(result.range.end).toEqual({
+                    ch: 90,
+                    line: 50
+                });
+            });
+            
+            it("should return the correct range of a prop when cursor is at the start of whitespace of a vendor prop value w/whitespace", function () {
+                result = CSSUtils.getInfoAtPos(testEditor, {ch: 13, line: 49});
+                expect(result.range.start).toEqual({
+                    ch: 12,
+                    line: 49
+                });
+                expect(result.range.end).toEqual({
+                    ch: 90,
+                    line: 50
+                });
+            });
+        });
+    });
+    
+    
     
     describe("CSS Regions", function () {
         beforeEach(function () {

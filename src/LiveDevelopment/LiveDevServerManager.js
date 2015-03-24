@@ -24,7 +24,7 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define */
 
-/*
+/**
  * LiveDevServerManager Overview:
  *
  * The LiveDevServerManager allows extensions to register to be Live Development
@@ -35,19 +35,15 @@
  * It is very likely that it will be changed in the near future and/or
  * removed entirely.
  *
- * # LiveDevServerManager.getServer(localPath)
+ *   `LiveDevServerManager.getServer(localPath)`
  *
  * Returns highest priority server (BaseServer) that can serve the local file.
  *
  * A Live Development server must implement the BaseServer API. See
  * LiveDevelopment/Servers/BaseServer base class.
  */
-
 define(function (require, exports, module) {
     "use strict";
-
-    var FileUtils           = require("file/FileUtils"),
-        ProjectManager      = require("project/ProjectManager");
 
     var _serverProviders   = [];
 

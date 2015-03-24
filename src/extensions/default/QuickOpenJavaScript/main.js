@@ -32,7 +32,8 @@ define(function (require, exports, module) {
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         QuickOpen           = brackets.getModule("search/QuickOpen"),
         JSUtils             = brackets.getModule("language/JSUtils"),
-        DocumentManager     = brackets.getModule("document/DocumentManager");
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
+        StringMatch         = brackets.getModule("utils/StringMatch");
 
 
    /** 
@@ -80,7 +81,7 @@ define(function (require, exports, module) {
     /**
      * @param {string} query what the user is searching for
      * @param {StringMatch.StringMatcher} matcher object that caches search-in-progress data
-     * @returns {Array.<SearchResult>} sorted and filtered results that match the query
+     * @return {Array.<SearchResult>} sorted and filtered results that match the query
      */
     function search(query, matcher) {
         var functionList = matcher.functionList;
@@ -100,7 +101,7 @@ define(function (require, exports, module) {
         });
         
         // Sort based on ranking & basic alphabetical order
-        QuickOpen.basicMatchSort(filteredList);
+        StringMatch.basicMatchSort(filteredList);
 
         return filteredList;
     }

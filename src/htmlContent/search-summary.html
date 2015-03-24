@@ -1,8 +1,18 @@
-<div class="fixed-col">{{Strings.FIND_IN_FILES_TITLE_PART1}}</div>
+{{#replace}}
+<div class="fixed-col"><input type="checkbox" class="check-all" {{#allChecked}}checked="checked"{{/allChecked}} /></div>
+{{/replace}}
+<div class="fixed-col">{{titleLabel}} &quot;</div>
 <div class="contracting-col">{{query}}</div>
-<div class="fixed-col">{{Strings.FIND_IN_FILES_TITLE_PART2}}</div>
+<div class="fixed-col">&quot;</div>
+{{#replace}}
+<div class="fixed-col">&nbsp;{{Strings.FIND_REPLACE_TITLE_WITH}} &quot;</div>
+<div class="contracting-col">{{replaceWith}}</div>
+<div class="fixed-col">&quot;</div>
+{{/replace}}
+{{#scope}}
 <div class="contracting-col">{{{scope}}}</div>
-<div class="fixed-col">{{{summary}}}</div>
+{{/scope}}
+<div class="fixed-col">&nbsp;{{{summary}}}</div>
 {{#hasPages}}
 <div class="pagination-col">
     <span class="first-page {{^hasPrev}}disabled{{/hasPrev}}"></span>
@@ -12,3 +22,8 @@
     <span class="last-page {{^hasNext}}disabled{{/hasNext}}"></span>
 </div>
 {{/hasPages}}
+{{#replace}}
+<div class="replace-col">
+    <button class="btn small replace-checked">{{Strings.BUTTON_REPLACE}}</button>
+</div>
+{{/replace}}

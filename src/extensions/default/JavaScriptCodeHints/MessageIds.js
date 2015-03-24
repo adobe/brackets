@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         TERN_PRIME_PUMP_MSG         = "PrimePump",
         TERN_GET_GUESSES_MSG        = "GetGuesses",
         TERN_WORKER_READY           = "WorkerReady",
+        TERN_INFERENCE_TIMEDOUT     = "InferenceTimedOut",
         SET_CONFIG                  = "SetConfig";
 
     // Message parameter constants
@@ -58,6 +59,7 @@ define(function (require, exports, module) {
     exports.TERN_FILE_INFO_TYPE_PART    = TERN_FILE_INFO_TYPE_PART;
     exports.TERN_FILE_INFO_TYPE_FULL    = TERN_FILE_INFO_TYPE_FULL;
     exports.TERN_FILE_INFO_TYPE_EMPTY   = TERN_FILE_INFO_TYPE_EMPTY;
+    exports.TERN_INFERENCE_TIMEDOUT     = TERN_INFERENCE_TIMEDOUT;
     exports.SET_CONFIG                  = SET_CONFIG;
 });
 

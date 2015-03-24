@@ -24,25 +24,25 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, WebSocket, FileError, window, XMLHttpRequest */
+/*global define, $, WebSocket, FileError, XMLHttpRequest */
 
  /**
  * Inspector manages the connection to Chrome/Chromium's remote debugger.
  * See inspector.html for the documentation of the remote debugger.
  *
- * # SETUP
+ * __SETUP__
  *
  * To enable remote debugging in Chrome or Chromium open either application
  * with the following parameters:
  *
- *   --enable-remote-debugger --remote-debugging-port=9222
+ *     --enable-remote-debugger --remote-debugging-port=9222
  *
  * This will open an HTTP server on the specified port, which can be used to
  * browse the available remote debugger sessions. In general, every open
  * browser tab can host an individual remote debugger session. The
  * available interfaces can be exported by requesting:
  *
- *   http://127.0.0.1:9222/json
+ *     http://127.0.0.1:9222/json
  *
  * The response is a JSON-formatted array that specifies all available remote
  * debugger sessions including the remote debugging web sockets.
@@ -52,7 +52,7 @@
  * connect to it via `connectToURL(url)`. The later returns a promise. To 
  * disconnect use `disconnect()`.
  *
- * # EVENTS
+ * __EVENTS__
  *
  * Inspector dispatches several connectivity-related events + all remote debugger
  * events (see below). Event handlers are attached via `on(event, function)` and
@@ -62,9 +62,9 @@
  *   `disconnect` Inspector did disconnect from the remote debugger
  *   `error`      Inspector encountered an error
  *   `message`    Inspector received a message from the remote debugger - this
- *                  provides a low-level entry point to remote debugger events
+ *                provides a low-level entry point to remote debugger events
  *
- * # REMOTE DEBUGGER COMMANDS
+ * __REMOTE DEBUGGER COMMANDS__
  *
  * Commands are executed by calling `{Domain}.{Command}()` with the parameters
  * specified in the order of the remote debugger documentation. These command
@@ -74,7 +74,7 @@
  * transmits the command to the remote debugger. If the last parameter of any
  * command function call is a function, it will be used as the callback.
  *
- * # REMOTE DEBUGGER EVENTS
+ * __REMOTE DEBUGGER EVENTS__
  *
  * Debugger events are dispatched as regular events using {Domain}.{Event} as
  * the event name. The handler function will be called with a single parameter
@@ -83,10 +83,8 @@
 define(function Inspector(require, exports, module) {
     "use strict";
 
-    var Async = require("utils/Async");
-
-    // jQuery exports object for events
-    var $exports = $(exports);
+    var Async           = require("utils/Async"),
+        EventDispatcher = require("utils/EventDispatcher");
 
     /**
      * Map message IDs to the callback function and original JSON message
@@ -94,9 +92,10 @@ define(function Inspector(require, exports, module) {
      */
     var _messageCallbacks = {};
 
-    var _messageId = 1; // id used for remote method calls, auto-incrementing
-    var _socket; // remote debugger WebSocket
-    var _connectDeferred; // The deferred connect
+    var _messageId = 1,     // id used for remote method calls, auto-incrementing
+        _socket,            // remote debugger WebSocket
+        _connectDeferred,   // The deferred connect
+        _userAgent = "";    // user agent string
 
     /** Check a parameter value against the given signature
      * This only checks for optional parameters, not types
@@ -182,7 +181,7 @@ define(function Inspector(require, exports, module) {
     /** WebSocket did close */
     function _onDisconnect() {
         _socket = undefined;
-        $exports.triggerHandler("disconnect");
+        exports.trigger("disconnect");
     }
 
     /** WebSocket reported an error */
@@ -191,7 +190,7 @@ define(function Inspector(require, exports, module) {
             _connectDeferred.reject();
             _connectDeferred = null;
         }
-        $exports.triggerHandler("error", [error]);
+        exports.trigger("error", error);
     }
 
     /** WebSocket did open */
@@ -200,7 +199,7 @@ define(function Inspector(require, exports, module) {
             _connectDeferred.resolve();
             _connectDeferred = null;
         }
-        $exports.triggerHandler("connect");
+        exports.trigger("connect");
     }
 
     /** Received message from the WebSocket
@@ -226,14 +225,14 @@ define(function Inspector(require, exports, module) {
                 domain = domainAndMethod[0],
                 method = domainAndMethod[1];
 
-            $(exports[domain]).triggerHandler(method, response.params);
+            EventDispatcher.triggerWithArray(exports[domain], method, response.params);
         }
 
         // Always fire event handlers for all messages/errors
-        $exports.triggerHandler("message", [response]);
+        exports.trigger("message", response);
 
         if (response.error) {
-            $exports.triggerHandler("error", [response.error, msgText]);
+            exports.trigger("error", response.error, msgText);
         }
     }
 
@@ -265,22 +264,6 @@ define(function Inspector(require, exports, module) {
         request.send(null);
 
         return def.promise();
-    }
-
-    /** Register a handler to be called when the given event is triggered
-     * @param {string} event name
-     * @param {function} handler function
-     */
-    function on(name, handler) {
-        $exports.on(name, handler);
-    }
-
-    /** Remove the given or all event handler(s) for the given event or remove all event handlers
-     * @param {string} optional event name
-     * @param {function} optional handler function
-     */
-    function off(name, handler) {
-        $exports.off(name, handler);
     }
 
     /**
@@ -368,6 +351,22 @@ define(function Inspector(require, exports, module) {
         return _socket !== undefined && _socket.readyState === WebSocket.OPEN;
     }
 
+    /**
+     * Get user agent string
+     * @return {string}
+     */
+    function getUserAgent() {
+        return _userAgent;
+    }
+
+    /**
+     * Set user agent string
+     * @param {string} userAgent User agent string returned from Chrome
+     */
+    function setUserAgent(userAgent) {
+        _userAgent = userAgent;
+    }
+
     /** Initialize the Inspector
      * Read the Inspector.json configuration and define the command objects
      * -> Inspector.domain.command()
@@ -378,25 +377,30 @@ define(function Inspector(require, exports, module) {
         var InspectorText = require("text!LiveDevelopment/Inspector/Inspector.json"),
             InspectorJSON = JSON.parse(InspectorText);
         
-        var i, j, domain, domainDef, command;
+        var i, j, domain, command;
         for (i in InspectorJSON.domains) {
             domain = InspectorJSON.domains[i];
-            exports[domain.domain] = {};
+            var exportedDomain = {};
+            exports[domain.domain] = exportedDomain;
+            EventDispatcher.makeEventDispatcher(exportedDomain);
             for (j in domain.commands) {
                 command = domain.commands[j];
-                exports[domain.domain][command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
+                exportedDomain[command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
             }
         }
     }
-
+    
+    
+    EventDispatcher.makeEventDispatcher(exports);
+    
     // Export public functions
+    exports.connect              = connect;
+    exports.connected            = connected;
+    exports.connectToURL         = connectToURL;
+    exports.disconnect           = disconnect;
     exports.getDebuggableWindows = getDebuggableWindows;
-    exports.on = on;
-    exports.off = off;
-    exports.disconnect = disconnect;
-    exports.connect = connect;
-    exports.connectToURL = connectToURL;
-    exports.connected = connected;
-    exports.send = send;
-    exports.init = init;
+    exports.getUserAgent         = getUserAgent;
+    exports.init                 = init;
+    exports.send                 = send;
+    exports.setUserAgent         = setUserAgent;
 });

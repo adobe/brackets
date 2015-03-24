@@ -31,7 +31,6 @@ define(function (require, exports, module) {
     var FileSystemEntry = require("filesystem/FileSystemEntry");
     
     /*
-     * @constructor
      * Model for a file system Directory.
      *
      * This class should *not* be instantiated directly. Use FileSystem.getDirectoryForPath,
@@ -41,6 +40,7 @@ define(function (require, exports, module) {
      *
      * See the FileSystem class for more details.
      *
+     * @constructor
      * @param {!string} fullPath The full path for this Directory.
      * @param {!FileSystem} fileSystem The file system associated with this Directory.
      */

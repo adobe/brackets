@@ -30,6 +30,7 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var EditorManager       = require("editor/EditorManager"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         KeyEvent            = require("utils/KeyEvent");
     
     /**
@@ -64,6 +65,7 @@ define(function (require, exports, module) {
     InlineWidget.prototype.$htmlContent = null;
     InlineWidget.prototype.id = null;
     InlineWidget.prototype.hostEditor = null;
+    EventDispatcher.makeEventDispatcher(InlineWidget.prototype);
 
     /**
      * Initial height of inline widget in pixels. Can be changed later via hostEditor.setInlineWidgetHeight()
@@ -80,7 +82,9 @@ define(function (require, exports, module) {
         // closeInlineWidget() causes our onClosed() handler to be called
     };
     
-    /** @return {boolean} True if any part of the inline widget is focused */
+    /**
+     * @return {boolean} True if any part of the inline widget is focused
+     */
     InlineWidget.prototype.hasFocus = function () {
         var focusedItem = window.document.activeElement,
             htmlContent = this.$htmlContent[0];
@@ -91,7 +95,7 @@ define(function (require, exports, module) {
      * Called any time inline is closed, whether manually or automatically.
      */
     InlineWidget.prototype.onClosed = function () {
-        $(this).triggerHandler("close");
+        this.trigger("close");
     };
 
     /**
@@ -102,7 +106,7 @@ define(function (require, exports, module) {
      * set the initial height (required to animate it open). The widget will never open otherwise.
      */
     InlineWidget.prototype.onAdded = function () {
-        $(this).triggerHandler("add");
+        this.trigger("add");
     };
 
     /**

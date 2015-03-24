@@ -1,0 +1,130 @@
+.banner-new2 {
+     background-color: blue;
+}
+
+.level1 {
+    border: 10px;
+    .level2 {
+        border: 20px;
+        padding: 10px;
+        border-style: groove;
+        .level3 {
+            color: red;
+        }
+    }
+}
+
+/* This is a single line block comment that should appear in the inline editor as first line */
+.comment1 {
+    text-align: center;
+}
+
+/* This is a multiline block comment
+ * that should appear in the inline editor
+ */
+.comment2 {
+    text-decoration: overline;
+}
+
+.comment3 {
+    text-decoration: underline; /* EOL comment {}(,;:) */
+}
+
+// This is a single line comment that should appear in the inline editor as first line
+.comment4 {
+    text-align: center;
+}
+
+// This is a multi line comment
+// that should appear in the inline editor
+.comment5 {
+    text-decoration: overline;
+}
+
+.confuse1 {
+    /* {this comment is special(;:,)} */
+    .special {
+        color: #ff8000;
+    }
+}
+
+.compressed{color:red}
+
+// selector groups
+#main {
+    .uno, .dos {
+        color: red
+    }
+
+    .dos {
+        font-size: 20px;
+    }
+}
+
+#main2 {
+    .tres,
+    .quattro {
+        color: blue;
+    }
+}
+
+// Variables
+@mySelector: testbanner;
+
+// Usage
+.@{mySelector} {
+  font-weight: bold;
+  line-height: 40px;
+  margin: 0 auto;
+}
+
+// Mixins
+.a, #b {
+    color: red;
+}
+
+.mixina-class {
+    .a();
+}
+
+.mixinb-id {
+    #b();
+}
+
+.desktop-and-old-ie(@rules) {
+  @media screen and (min-width: 1200) { @rules; }
+  html.lt-ie9 &                       { @rules; }
+}
+
+header {
+  background-color: blue;
+
+  .desktop-and-old-ie({
+    background-color: red;
+  });
+}
+
+@property: color;
+
+.widget {
+    @{property}: #0ee;
+    background-@{property}: #999;
+}
+
+.border-radius(@radius: 5px) {
+    -webkit-border-radius: @radius;
+        -moz-border-radius: @radius;
+            border-radius: @radius;
+}
+
+#header-mixin-paramterized-default {
+    .border-radius;
+}
+
+#header-mixin-paramterized-custom {
+    .border-radius(10px);
+    #header-mixin-paramterized-custom-1 {
+        .border-radius(20px);
+    }
+
+}

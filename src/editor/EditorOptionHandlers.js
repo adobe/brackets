@@ -22,19 +22,18 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var AppInit                 = require("utils/AppInit"),
-        Editor                  = require("editor/Editor").Editor,
-        EditorManager           = require("editor/EditorManager"),
-        Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        Strings                 = require("strings"),
-        _                       = require("thirdparty/lodash");
+    var AppInit             = require("utils/AppInit"),
+        Editor              = require("editor/Editor").Editor,
+        Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        Strings             = require("strings"),
+        _                   = require("thirdparty/lodash");
     
     // Constants for the preferences referred to in this file
     var SHOW_LINE_NUMBERS = "showLineNumbers",
@@ -91,6 +90,10 @@ define(function (require, exports, module) {
         _.each(_optionMapping, function (commandName, prefName) {
             CommandManager.get(commandName).setChecked(PreferencesManager.get(prefName));
         });
+        
+        if (!Editor.getShowLineNumbers()) {
+            Editor._toggleLinePadding(true);
+        }
     }
     
     CommandManager.register(Strings.CMD_TOGGLE_LINE_NUMBERS, Commands.TOGGLE_LINE_NUMBERS, _getToggler(SHOW_LINE_NUMBERS));

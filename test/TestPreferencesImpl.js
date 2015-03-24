@@ -22,7 +22,7 @@
  */
 
 
-/*global define, $, localStorage, brackets, console */
+/*global define, $ */
 
 /**
  * Generates the fully configured preferences systems used IN TESTING. This configuration does
@@ -62,11 +62,20 @@ define(function (require, exports, module) {
     // Create a Project scope
     var projectStorage          = new PreferencesBase.FileStorage(undefined, true),
         projectScope            = new PreferencesBase.Scope(projectStorage),
-        projectPathLayer        = new PreferencesBase.PathLayer();
+        projectPathLayer        = new PreferencesBase.PathLayer(),
+        projectLanguageLayer    = new PreferencesBase.LanguageLayer();
 
     projectScope.addLayer(projectPathLayer);
+    projectScope.addLayer(projectLanguageLayer);
+    
+    var userScope           = new PreferencesBase.Scope(new PreferencesBase.MemoryStorage()),
+        userPathLayer       = new PreferencesBase.PathLayer(),
+        userLanguageLayer   = new PreferencesBase.LanguageLayer();
+    
+    userScope.addLayer(userPathLayer);
+    userScope.addLayer(userLanguageLayer);
 
-    var userScopeLoading = manager.addScope("user", new PreferencesBase.MemoryStorage());
+    var userScopeLoading = manager.addScope("user", userScope);
 
     // Set up the .brackets.json file handling
     manager.addScope("project", projectScope, {
@@ -87,6 +96,10 @@ define(function (require, exports, module) {
     smUserScope.addLayer(stateProjectLayer);
     var smUserScopeLoading = stateManager.addScope("user", smUserScope);
     
+    function _reloadUserPrefs() {
+        return;
+    }
+    
     // Semi-Public API. Use this at your own risk. The public API is in PreferencesManager.
     exports.manager             = manager;
     exports.projectStorage      = projectStorage;
@@ -98,6 +111,7 @@ define(function (require, exports, module) {
     exports.userPrefFile        = userPrefFile;
     exports.isUserScopeCorrupt  = isUserScopeCorrupt;
     exports.managerReady        = _prefManagerReadyDeferred.promise();
+    exports.reloadUserPrefs    = _reloadUserPrefs;
     exports.STATE_FILENAME      = STATE_FILENAME;
     exports.SETTINGS_FILENAME   = SETTINGS_FILENAME;
 });

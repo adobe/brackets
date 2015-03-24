@@ -1,4 +1,4 @@
-{
+﻿{
     "file.newDoc":  [
         "Ctrl-N"
     ],
@@ -25,6 +25,11 @@
     ],    
     "file.liveFilePreview":  [
         "Ctrl-Alt-P"
+    ],
+    "file.reloadLivePreview": [
+        {
+            "key": "Ctrl-Shift-R"
+        }
     ],
     "file.previewHighlight":  [
         "Ctrl-Shift-C"
@@ -78,58 +83,6 @@
         {
             "key": "Shift-Alt-Down",
             "displayKey": "Shift-Alt-↓"
-        }
-    ],
-    "edit.find":  [
-        "Ctrl-F"
-    ],
-    "edit.findInFiles":  [
-        "Ctrl-Shift-F"
-    ],
-    "edit.findNext":  [
-        {
-            "key": "F3"
-        },
-        {
-            "key": "Cmd-G",
-            "platform": "mac"
-        }
-    ],
-    "edit.findPrevious":  [
-        {
-            "key": "Shift-F3"
-        },
-        {
-            "key": "Cmd-Shift-G",
-            "platform": "mac"
-        }
-    ],
-    "edit.findAllAndSelect": [
-        {
-            "key": "Alt-F3"
-        },
-        {
-            "key": "Cmd-Ctrl-G",
-            "platform": "mac"
-        }
-    ],
-    "edit.addNextMatch": [
-        {
-            "key": "Ctrl-B"
-        }
-    ],
-    "edit.skipCurrentMatch": [
-        {
-            "key": "Ctrl-Shift-B"
-        }
-    ],
-    "edit.replace":  [
-        {
-            "key": "Ctrl-H"
-        },
-        {
-            "key": "Cmd-Alt-F",
-            "platform": "mac"
         }
     ],
     "edit.indent":  [
@@ -197,23 +150,89 @@
             "platform": "mac"
         }
     ],
+    "cmd.find":  [
+        "Ctrl-F"
+    ],
+    "cmd.findInFiles":  [
+        "Ctrl-Shift-F"
+    ],
+    "cmd.replaceInFiles":  [
+        {
+            "key": "Ctrl-Shift-H"
+        },
+        {
+            "key": "Cmd-Opt-Shift-F",
+            "platform": "mac"
+        }
+    ],
+    "cmd.findNext":  [
+        {
+            "key": "F3"
+        },
+        {
+            "key": "Cmd-G",
+            "platform": "mac"
+        }
+    ],
+    "cmd.findPrevious":  [
+        {
+            "key": "Shift-F3"
+        },
+        {
+            "key": "Cmd-Shift-G",
+            "platform": "mac"
+        }
+    ],
+    "cmd.findAllAndSelect": [
+        {
+            "key": "Alt-F3"
+        },
+        {
+            "key": "Cmd-Ctrl-G",
+            "platform": "mac"
+        }
+    ],
+    "cmd.addNextMatch": [
+        {
+            "key": "Ctrl-B"
+        }
+    ],
+    "cmd.skipCurrentMatch": [
+        {
+            "key": "Ctrl-Shift-B"
+        }
+    ],
+    "cmd.replace":  [
+        {
+            "key": "Ctrl-H"
+        },
+        {
+            "key": "Cmd-Opt-F",
+            "platform": "mac"
+        }
+    ],
     "view.hideSidebar":  [
-        "Ctrl-Shift-H"
+        {   
+            "key" : "Ctrl-Alt-H"
+        },
+        {
+            "key": "Cmd-Shift-H",
+            "platform": "mac"
+        }
     ],
     "view.increaseFontSize":  [
         {
             "key": "Ctrl-=",
-            "displayKey": "Cmd-+"
+            "displayKey": "Ctrl-+"
         },
         {
-            "key": "Ctrl-+",
-            "displayKey": "Cmd-+"
+            "key": "Ctrl-+"
         }
     ],
     "view.decreaseFontSize":  [
         {
             "key": "Ctrl--",
-            "displayKey": "Cmd-−"
+            "displayKey": "Ctrl-−"
         }
     ],
     "view.restoreFontSize":  [
@@ -225,8 +244,8 @@
             "displayKey": "Ctrl-\u2191"
         },
         {
-            "key": "Ctrl-Alt-Up",
-            "displayKey": "Ctrl-Alt-\u2191",
+            "key": "Ctrl-Opt-Up",
+            "displayKey": "Ctrl-Opt-\u2191",
             "platform": "mac"
         }
     ],
@@ -236,8 +255,8 @@
             "displayKey": "Ctrl-\u2193"
         },
         {
-            "key": "Ctrl-Alt-Down",
-            "displayKey": "Ctrl-Alt-\u2193",
+            "key": "Ctrl-Opt-Down",
+            "displayKey": "Ctrl-Opt-\u2193",
             "platform": "mac"
         }
     ],
@@ -313,7 +332,7 @@
         }
     ],
     "navigate.newRule":  [
-        "Cmd-Alt-N"
+        "Ctrl-Alt-N"
     ],
     "file.rename":  [
         "F2"

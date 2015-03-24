@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 /**
  * FileSystem is a model object representing a complete file system. This object creates
@@ -54,28 +54,29 @@
  * FileSystem dispatches the following events:
  * (NOTE: attach to these events via `FileSystem.on()` - not `$(FileSystem).on()`)
  * 
- *    change - Sent whenever there is a change in the file system. The handler
- *          is passed up to three arguments: the changed entry and, if that changed entry 
- *          is a Directory, a list of entries added to the directory and a list of entries 
- *          removed from the Directory. The entry argument can be:
- *          *  a File - the contents of the file have changed, and should be reloaded.
- *          *  a Directory - an immediate child of the directory has been added, removed,
- *             or renamed/moved. Not triggered for "grandchildren".
- *               - If the added & removed arguments are null, we don't know what was added/removed:
- *                 clients should assume the whole subtree may have changed.
- *               - If the added & removed arguments are 0-length, there's no net change in the set
- *                 of files but a file may have been replaced: clients should assume the contents
- *                 of any immediate child file may have changed.
- *          *  null - a 'wholesale' change happened, and you should assume everything may
- *             have changed.
- *          For changes made externally, there may be a significant delay before a "change" event
- *          is dispatched.
- *    rename - Sent whenever a File or Directory is renamed. All affected File and Directory
- *          objects have been updated to reflect the new path by the time this event is dispatched.
- *          This event should be used to trigger any UI updates that may need to occur when a path
- *          has changed. Note that these events will only be sent for rename operations that happen
- *          within the filesystem. If a file is renamed externally, a change event on the parent
- *          directory will be sent instead.
+ * __change__ - Sent whenever there is a change in the file system. The handler
+ *   is passed up to three arguments: the changed entry and, if that changed entry 
+ *   is a Directory, a list of entries added to the directory and a list of entries 
+ *   removed from the Directory. The entry argument can be:
+ *   *  a File - the contents of the file have changed, and should be reloaded.
+ *   *  a Directory - an immediate child of the directory has been added, removed,
+ *      or renamed/moved. Not triggered for "grandchildren".
+ *      - If the added & removed arguments are null, we don't know what was added/removed:
+ *        clients should assume the whole subtree may have changed.
+ *      - If the added & removed arguments are 0-length, there's no net change in the set
+ *        of files but a file may have been replaced: clients should assume the contents
+ *        of any immediate child file may have changed.
+ *   *  null - a 'wholesale' change happened, and you should assume everything may
+ *      have changed.
+ *   For changes made externally, there may be a significant delay before a "change" event
+ *   is dispatched.
+ *
+ * __rename__ - Sent whenever a File or Directory is renamed. All affected File and Directory
+ *   objects have been updated to reflect the new path by the time this event is dispatched.
+ *   This event should be used to trigger any UI updates that may need to occur when a path
+ *   has changed. Note that these events will only be sent for rename operations that happen
+ *   within the filesystem. If a file is renamed externally, a change event on the parent
+ *   directory will be sent instead.
  * 
  * FileSystem may perform caching. But it guarantees:
  *    * File contents & metadata - reads are guaranteed to be up to date (cached data is not used
@@ -95,11 +96,12 @@ define(function (require, exports, module) {
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex"),
         FileSystemError = require("filesystem/FileSystemError"),
-        WatchedRoot     = require("filesystem/WatchedRoot");
+        WatchedRoot     = require("filesystem/WatchedRoot"),
+        EventDispatcher = require("utils/EventDispatcher");
     
     /**
-     * @constructor
      * The FileSystem is not usable until init() signals its callback.
+     * @constructor
      */
     function FileSystem() {
         // Create a file index
@@ -114,6 +116,7 @@ define(function (require, exports, module) {
         // Initialize the queue of pending external changes
         this._externalChanges = [];
     }
+    EventDispatcher.makeEventDispatcher(FileSystem.prototype);
     
     /**
      * The low-level file system implementation used by this object. 
@@ -220,7 +223,7 @@ define(function (require, exports, module) {
      * objects which contain a file entry, filter function, and an indication of
      * whether the watched root is inactive, starting up or fully active.
      * 
-     * @type{Object.<string, WatchedRoot>}
+     * @type {Object.<string, WatchedRoot>}
      */
     FileSystem.prototype._watchedRoots = null;
     
@@ -228,8 +231,8 @@ define(function (require, exports, module) {
      * Finds a parent watched root for a given path, or returns null if a parent
      * watched root does not exist.
      * 
-     * @param{string} fullPath The child path for which a parent watched root is to be found
-     * @return{?{entry: FileSystemEntry, filter: function(string) boolean}} The parent
+     * @param {string} fullPath The child path for which a parent watched root is to be found
+     * @return {?{entry: FileSystemEntry, filter: function(string) boolean}} The parent
      *      watched root, if it exists, or null.
      */
     FileSystem.prototype._findWatchedRootForPath = function (fullPath) {
@@ -668,7 +671,7 @@ define(function (require, exports, module) {
      * @param {string} newPath The entry's current fullPath
      */
     FileSystem.prototype._fireRenameEvent = function (oldPath, newPath) {
-        $(this).trigger("rename", [oldPath, newPath]);
+        this.trigger("rename", oldPath, newPath);
     };
 
     /**
@@ -681,7 +684,7 @@ define(function (require, exports, module) {
      *      is a set of removed entries from the directory.
      */
     FileSystem.prototype._fireChangeEvent = function (entry, added, removed) {
-        $(this).trigger("change", [entry, added, removed]);
+        this.trigger("change", entry, added, removed);
     };
     
     /**
@@ -815,7 +818,16 @@ define(function (require, exports, module) {
             }
         }
     };
-        
+    
+    /**
+     * Clears all cached content. Because of the performance implications of this, this should only be used if
+     * there is a suspicion that the file system has not been updated through the normal file watchers
+     * mechanism.
+     */
+    FileSystem.prototype.clearAllCaches = function () {
+        this._handleExternalChange(null);
+    };
+    
     /**
      * Start watching a filesystem root entry.
      * 
@@ -964,6 +976,7 @@ define(function (require, exports, module) {
     exports.showSaveDialog = _wrap(FileSystem.prototype.showSaveDialog);
     exports.watch = _wrap(FileSystem.prototype.watch);
     exports.unwatch = _wrap(FileSystem.prototype.unwatch);
+    exports.clearAllCaches = _wrap(FileSystem.prototype.clearAllCaches);
     
     // Static public utility methods
     exports.isAbsolutePath = FileSystem.isAbsolutePath;
@@ -978,7 +991,7 @@ define(function (require, exports, module) {
      * @param {function} handler The handler for the event
      */
     exports.on = function (event, handler) {
-        $(_instance).on(event, handler);
+        _instance.on(event, handler);
     };
     
     /**
@@ -988,7 +1001,7 @@ define(function (require, exports, module) {
      * @param {function} handler The handler for the event
      */
     exports.off = function (event, handler) {
-        $(_instance).off(event, handler);
+        _instance.off(event, handler);
     };
     
     // Export the FileSystem class as "private" for unit testing only.

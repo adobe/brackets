@@ -23,23 +23,19 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, $, brackets, waitsForDone, spyOn, tinycolor, KeyEvent */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, $, brackets, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
     
     var main            = require("main"),
-        NodeConnection  = brackets.getModule("utils/NodeConnection"),
         FileUtils       = brackets.getModule("file/FileUtils"),
-        SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         StaticServer    = require("StaticServer");
     
-    var testFolder     = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files";
+    var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files";
     
     var CONNECT_TIMEOUT = 20000;
-    
-    var LOCALHOST_PORT_PARSER_RE = /http:\/\/127\.0\.0\.1:(\d+)\//;
-            
+
     function makeBaseUrl(serverInfo) {
         return "http://" + serverInfo.address + ":" + serverInfo.port;
     }
@@ -65,11 +61,11 @@ define(function (require, exports, module) {
                         nodeDomain = main._nodeDomain;
                         nodeConnection = nodeDomain.connection;
 
-                        waitsFor(function () { return nodeDomain.ready(); }, "NodeConnection connected", CONNECT_TIMEOUT);
+                        waitsFor(function () { return nodeDomain.ready(); }, "NodeDomain connected", CONNECT_TIMEOUT);
                     });
 
                     runs(function () {
-                        $(nodeConnection).on("base.log", function (event, level, timestamp, message) {
+                        nodeConnection.on("base:log", function (event, level, timestamp, message) {
                             logs.push({level: level, message: message});
                         });
                     });
@@ -85,7 +81,7 @@ define(function (require, exports, module) {
 
             function onRequestFilter(callback) {
                 // only handle the first event
-                $(nodeConnection).one("staticServer.requestFilter", function cb(event, request) {
+                nodeConnection.one("staticServer:requestFilter", function cb(event, request) {
                     callback(request);
                 });
             }
@@ -504,9 +500,6 @@ define(function (require, exports, module) {
                 waitsFor(function () { return text; }, "waiting for text from server");
 
                 runs(function () {
-                    var expectedWarning = "writeFilteredResponse: Missing callback for " +
-                        path + "/index.txt. This command must only be called after a requestFilter event has fired for a path.";
-
                     // verify console warning
                     expect(logs.length).toBe(2);
 
@@ -608,7 +601,6 @@ define(function (require, exports, module) {
                     fileRelPath     = "subdir/index.html",
                     file1Path       = projectPath + fileRelPath,
                     file2Path       = outsidePath + fileRelPath,
-                    file1FileUrl    = encodeURI(fileProtocol + projectPath + fileRelPath),
                     file2FileUrl    = encodeURI(fileProtocol + outsidePath + fileRelPath),
                     file1ServerUrl  = config.baseUrl + encodeURI(fileRelPath),
                     server          = new StaticServer(config);
@@ -645,7 +637,7 @@ define(function (require, exports, module) {
             });
             
             it("should decline serving if not connected to node", function () {
-                // mock NodeConnection state to be disconnected
+                // mock NodeDomain state to be disconnected
                 config.nodeDomain = { ready: function () { return false; } };
 
                 var server = new StaticServer(config);

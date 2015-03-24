@@ -54,7 +54,7 @@ Here are some ideas:
 
 * [Starter bugs](https://github.com/adobe/brackets/issues?labels=starter+bug&state=open) can
   provide a good intro to the Brackets code.
-* [Extension ideas](https://github.com/adobe/brackets/issues?labels=Extension+Idea&state=closed)
+* [Extension ideas](https://github.com/adobe/brackets/issues?q=label%3A%22Extension+Idea%22)
   are feature requests that we think would be best implemented as an add-on; it's up to the
   Brackets community to write them!
 * [Starter features](http://bit.ly/BracketsBacklog) are a bit larger in scope. Be sure to discuss

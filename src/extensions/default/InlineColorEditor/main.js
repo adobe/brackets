@@ -22,13 +22,12 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, document */
+/*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
     
     var EditorManager       = brackets.getModule("editor/EditorManager"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         InlineColorEditor   = require("InlineColorEditor").InlineColorEditor,
         ColorUtils          = brackets.getModule("utils/ColorUtils");
@@ -40,11 +39,10 @@ define(function (require, exports, module) {
      *
      * @param {Editor} hostEditor
      * @param {{line:Number, ch:Number}} pos
-     * @return {?{color:String, start:TextMarker, end:TextMarker}}
+     * @return {?{color:String, marker:TextMarker}}
      */
     function prepareEditorForProvider(hostEditor, pos) {
-        var colorPicker, colorRegEx, cursorLine, inlineColorEditor, match, result,
-            sel, start, end, startBookmark, endBookmark;
+        var colorRegEx, cursorLine, match, sel, start, end, endPos, marker;
         
         sel = hostEditor.getSelection();
         if (sel.start.line !== sel.end.line) {
@@ -70,16 +68,14 @@ define(function (require, exports, module) {
         // Adjust pos to the beginning of the match so that the inline editor won't get 
         // dismissed while we're updating the color with the new values from user's inline editing.
         pos.ch = start;
+        endPos = {line: pos.line, ch: end};
         
-        startBookmark = hostEditor._codeMirror.setBookmark(pos);
-        endBookmark = hostEditor._codeMirror.setBookmark({ line: pos.line, ch: end });
-        
-        hostEditor.setSelection(pos, { line: pos.line, ch: end });
+        marker = hostEditor._codeMirror.markText(pos, endPos);
+        hostEditor.setSelection(pos, endPos);
         
         return {
             color: match[0],
-            start: startBookmark,
-            end: endBookmark
+            marker: marker
         };
     }
     
@@ -100,7 +96,7 @@ define(function (require, exports, module) {
         if (!context) {
             return null;
         } else {
-            inlineColorEditor = new InlineColorEditor(context.color, context.start, context.end);
+            inlineColorEditor = new InlineColorEditor(context.color, context.marker);
             inlineColorEditor.load(hostEditor);
     
             result = new $.Deferred();
@@ -111,7 +107,7 @@ define(function (require, exports, module) {
     
     
     // Initialize extension
-    ExtensionUtils.loadStyleSheet(module, "css/main.css");
+    ExtensionUtils.loadStyleSheet(module, "css/main.less");
     
     EditorManager.registerInlineEditProvider(inlineColorEditorProvider);
     

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50*/
-/*global $, define, brackets, InvalidateStateError, window */
+/*global define */
 
 /**
  * @deprecated
@@ -271,7 +271,9 @@ define(function (require, exports, module) {
     
     // Fail-fast stubs for key methods that are not shimmed -- callers will break but with clear guidance in the exception message
     
-    /** @deprecated */
+    /**
+     * @deprecated
+     */
     Directory.prototype.getDirectory = function () {
         throw new Error("Directory.getDirectory() has been removed. Use FileSystem.getDirectoryForPath() and/or Directory.create() instead.");
     };

@@ -28,7 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var NodeConnection = require("utils/NodeConnection");
+    var NodeConnection = require("utils/NodeConnection"),
+        EventDispatcher = require("utils/EventDispatcher");
     
     // Used to remove all listeners at once when the connection drops
     var EVENT_NAMESPACE = ".NodeDomainEvent";
@@ -40,20 +41,20 @@ define(function (require, exports, module) {
      * a promise-returning method that can safely be called regardless of the
      * current status of the underlying connection. Example usage:
      * 
-     * var myDomain = new NodeDomain("someDomain", "/path/to/SomeDomainDef.js"),
-     *     $result = myDomain.exec("someCommand", arg1, arg2);
-     * 
-     * $result.done(function (value) {
-     *     // the command succeeded!
-     * });
-     * 
-     * $result.fail(function (err) {
-     *     // the command failed; act accordingly!
-     * });
+     *     var myDomain = new NodeDomain("someDomain", "/path/to/SomeDomainDef.js"),
+     *         $result = myDomain.exec("someCommand", arg1, arg2);
+     *     
+     *     $result.done(function (value) {
+     *         // the command succeeded!
+     *     });
+     *     
+     *     $result.fail(function (err) {
+     *         // the command failed; act accordingly!
+     *     });
      * 
      * To handle domain events, just listen for the event on the domain:
      * 
-     * $(myDomain).on("someEvent", someHandler);
+     *     myDomain.on("someEvent", someHandler);
      * 
      * @constructor
      * @param {string} domainName Name of the registered Node Domain
@@ -70,17 +71,18 @@ define(function (require, exports, module) {
         this._connectionPromise = connection.connect(true)
             .then(this._load);
         
-        $(connection).on("close", function (event, promise) {
-            $(this.connection).off(EVENT_NAMESPACE);
+        connection.on("close", function (event, promise) {
+            this.connection.off(EVENT_NAMESPACE);
             this._domainLoaded = false;
             this._connectionPromise = promise.then(this._load);
         }.bind(this));
     }
+    EventDispatcher.makeEventDispatcher(NodeDomain.prototype);
     
     /** 
      * The underlying Node connection object for this domain.
      * 
-     * @type {!NodeConnection} 
+     * @type {NodeConnection} 
      */
     NodeDomain.prototype.connection = null;
 
@@ -136,9 +138,9 @@ define(function (require, exports, module) {
                 eventNames.forEach(function (domainEvent) {
                     var connectionEvent = this._domainName + ":" + domainEvent + EVENT_NAMESPACE;
                     
-                    $(connection).on(connectionEvent, function () {
+                    connection.on(connectionEvent, function () {
                         var params = Array.prototype.slice.call(arguments, 1);
-                        $(this).triggerHandler(domainEvent, params);
+                        EventDispatcher.triggerWithArray(this, domainEvent, params);
                     }.bind(this));
                 }, this);
             }.bind(this))

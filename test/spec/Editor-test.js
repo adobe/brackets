@@ -23,14 +23,12 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, jasmine: false */
+/*global define, describe, it, expect, beforeEach, afterEach, jasmine, spyOn */
 
 define(function (require, exports, module) {
     'use strict';
     
     var Editor              = require("editor/Editor").Editor,
-        EditorManager       = require("editor/EditorManager"),
-        KeyEvent            = require("utils/KeyEvent"),
         LanguageManager     = require("language/LanguageManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
@@ -100,7 +98,7 @@ define(function (require, exports, module) {
             it("should trigger a synchronous Document change event when an edit is performed", function () {
                 var changeFired = false;
                 function changeHandler(event, doc, changeList) {
-                    $(myDocument).off("change", changeHandler);
+                    myDocument.off("change", changeHandler);
                     changeFired = true;
                     expect(doc).toBe(myDocument);
                     expect(changeList.length).toBe(1);
@@ -108,7 +106,7 @@ define(function (require, exports, module) {
                     expect(changeList[0].to).toEqual({line: 1, ch: 0});
                     expect(changeList[0].text).toEqual(["new content"]);
                 }
-                $(myDocument).on("change", changeHandler);
+                myDocument.on("change", changeHandler);
                 myEditor._codeMirror.setValue("new content");
                 expect(changeFired).toBe(true);
             });
@@ -116,7 +114,7 @@ define(function (require, exports, module) {
             it("should send an array of multiple change records for an operation", function () {
                 var cm = myEditor._codeMirror,
                     changeHandler = jasmine.createSpy();
-                $(myDocument).on("change", changeHandler);
+                myDocument.on("change", changeHandler);
                 cm.operation(function () {
                     cm.replaceRange("inserted", {line: 1, ch: 0});
                     cm.replaceRange("", {line: 0, ch: 0}, {line: 0, ch: 4});
@@ -151,10 +149,24 @@ define(function (require, exports, module) {
             it("should not have focus until explicitly set", function () {
                 expect(myEditor.hasFocus()).toBe(false);
             });
-            
             it("should be able to detect when it has focus", function () {
+                /*
+                 * @note: This test really just ensures that
+                 *          calling the editor's focus method
+                 *          will call the codeMirror focus method 
+                 *        This is due to the fact that focusing the editor
+                 *          may not actually focus the editor if the app 
+                 *          doesn't have the keyboard focus which changed
+                 *          with cef 2171
+                 * @todo: This will need to be replaced with
+                 *       checks to see that the editor is the "active" element
+                 *       rather than have the input focus after focusing 
+                 *       the editor
+                 * @see: https://github.com/adobe/brackets/issues/9972
+                 */
+                spyOn(myEditor._codeMirror, "focus").andCallThrough();
                 myEditor.focus();
-                expect(myEditor.hasFocus()).toBe(true);
+                expect(myEditor._codeMirror.focus).toHaveBeenCalled();
             });
         });
         
@@ -958,7 +970,6 @@ define(function (require, exports, module) {
             });
             
             function checkSoftTab(sel, dir, command, expectedSel, expectedText) {
-                var input, endPos;
                 expectedText = expectedText || myEditor.document.getText();
 
                 if (Array.isArray(sel)) {
@@ -1599,7 +1610,7 @@ define(function (require, exports, module) {
                 makeEditor(content, true);
                 myEditor.setSelection({line: 1, ch: 0}, {line: 3, ch: 1});
                 myEditor._handleTabKey();
-                expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 2}, end: {line: 3, ch: 2}, reversed: false});
+                expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 0}, end: {line: 3, ch: 2}, reversed: false});
                 
                 var lines = content.split("\n");
                 for (i = 1; i <= 3; i++) {
@@ -1613,8 +1624,7 @@ define(function (require, exports, module) {
                     "    if (bar) {\n" +
                     "    indentme();\n" +
                     "    }\n" +
-                    "}",
-                    i;
+                    "}";
                 makeEditor(content);
                 myEditor.setSelection({line: 2, ch: 9}, {line: 2, ch: 9}); // should add three spaces to get to column 12
                 myEditor._handleTabKey();
@@ -1630,8 +1640,7 @@ define(function (require, exports, module) {
                     "\tif (bar) {\n" +
                     "\tindentme();\n" +
                     "\t}\n" +
-                    "}",
-                    i;
+                    "}";
                 makeEditor(content, true);
                 myEditor.setSelection({line: 2, ch: 5}, {line: 2, ch: 5});
                 myEditor._handleTabKey();
@@ -1647,8 +1656,7 @@ define(function (require, exports, module) {
                     "    if (bar) {\n" +
                     "    indentme();\n" +
                     "    }\n" +
-                    "}",
-                    i;
+                    "}";
                 makeEditor(content);
                 myEditor.setSelection({line: 2, ch: 9}, {line: 2, ch: 14}); // should add three spaces to get to column 12
                 myEditor._handleTabKey();
@@ -1664,8 +1672,7 @@ define(function (require, exports, module) {
                     "\tif (bar) {\n" +
                     "\tindentme();\n" +
                     "\t}\n" +
-                    "}",
-                    i;
+                    "}";
                 makeEditor(content, true);
                 myEditor.setSelection({line: 2, ch: 5}, {line: 2, ch: 8});
                 myEditor._handleTabKey();
@@ -1690,8 +1697,7 @@ define(function (require, exports, module) {
                         "    if (bar) {\n" +
                         "    indentme();\n" +
                         "    }\n" +
-                        "}",
-                        i;
+                        "}";
                     makeEditor(content);
                     myEditor.setSelections([{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: true},
                                             {start: {line: 2, ch: 6}, end: {line: 3, ch: 3}}]);
@@ -1711,8 +1717,7 @@ define(function (require, exports, module) {
                         "\tif (bar) {\n" +
                         "\tindentme();\n" +
                         "\t}\n" +
-                        "}",
-                        i;
+                        "}";
                     makeEditor(content, true);
                     myEditor.setSelections([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: true},
                                             {start: {line: 2, ch: 3}, end: {line: 3, ch: 1}}]);
@@ -1732,8 +1737,7 @@ define(function (require, exports, module) {
                         "    if (bar) {\n" +
                         "    indentme();\n" +
                         "    }\n" +
-                        "}",
-                        i;
+                        "}";
                     makeEditor(content);
                     myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 3}},
                                             {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}},
@@ -1755,8 +1759,7 @@ define(function (require, exports, module) {
                         "\tif (bar) {\n" +
                         "\tindentme();\n" +
                         "\t}\n" +
-                        "}",
-                        i;
+                        "}";
                     makeEditor(content, true);
                     myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 3}},
                                             {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}},
@@ -1778,8 +1781,7 @@ define(function (require, exports, module) {
                         "    if (bar) {\n" +
                         "    indentme();\n" +
                         "    }\n" +
-                        "}",
-                        i;
+                        "}";
                     makeEditor(content);
                     myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 6}},
                                             {start: {line: 2, ch: 6}, end: {line: 2, ch: 9}},
@@ -1801,8 +1803,7 @@ define(function (require, exports, module) {
                         "\tif (bar) {\n" +
                         "\tindentme();\n" +
                         "\t}\n" +
-                        "}",
-                        i;
+                        "}";
                     makeEditor(content, true);
                     myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 6}},
                                             {start: {line: 2, ch: 6}, end: {line: 2, ch: 9}},
@@ -1824,8 +1825,7 @@ define(function (require, exports, module) {
                         "    if (bar) {\n" +
                         "    indentme();\n" +
                         "    }\n" +
-                        "}",
-                        i;
+                        "}";
                     makeEditor(content);
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true}, // should not move
                                             {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]); // should get indented and move
@@ -1844,8 +1844,7 @@ define(function (require, exports, module) {
                         "\tif (bar) {\n" +
                         "\tindentme();\n" +
                         "\t}\n" +
-                        "}",
-                        i;
+                        "}";
                     makeEditor(content, true);
                     myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: true}, // should not move
                                             {start: {line: 2, ch: 1}, end: {line: 2, ch: 1}}]); // should get indented and move
@@ -1864,8 +1863,7 @@ define(function (require, exports, module) {
                         "    if (bar) {\n" +
                         "    indentme();\n" +
                         "    }\n" +
-                        "}",
-                        i;
+                        "}";
                     makeEditor(content);
                     myEditor.setSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true}, // should not move
                                             {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}}]); // should get indented and move
@@ -1883,8 +1881,7 @@ define(function (require, exports, module) {
                         "\tif (bar) {\n" +
                         "\tindentme();\n" +
                         "\t}\n" +
-                        "}",
-                        i;
+                        "}";
                     makeEditor(content, true);
                     myEditor.setSelections([{start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true}, // should not move
                                             {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}]); // should get indented and move
@@ -1902,8 +1899,7 @@ define(function (require, exports, module) {
                         "    if (bar) {\n" +
                         "        indentme();\n" + // indent already correct
                         "    }\n" +
-                        "}",
-                        i;
+                        "}";
                     makeEditor(content);
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
                                             {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}}]);
@@ -1922,8 +1918,7 @@ define(function (require, exports, module) {
                         "\tif (bar) {\n" +
                         "\t\tindentme();\n" + // indent already correct
                         "\t}\n" +
-                        "}",
-                        i;
+                        "}";
                     makeEditor(content, true);
                     myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
                                             {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}}]);

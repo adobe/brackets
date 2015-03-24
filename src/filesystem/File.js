@@ -28,12 +28,10 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystemEntry = require("filesystem/FileSystemEntry"),
-        FileSystemError = require("filesystem/FileSystemError");
+    var FileSystemEntry = require("filesystem/FileSystemEntry");
     
     
     /*
-     * @constructor
      * Model for a File.
      *
      * This class should *not* be instantiated directly. Use FileSystem.getFileForPath,
@@ -41,6 +39,7 @@ define(function (require, exports, module) {
      *
      * See the FileSystem class for more details.
      *
+     * @constructor
      * @param {!string} fullPath The full path for this File.
      * @param {!FileSystem} fileSystem The file system associated with this File.
      */

@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*jslint regexp: true, vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -36,7 +36,9 @@ define(function (require, exports, module) {
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
+        LanguageManager         = require("language/LanguageManager"),
         ProjectManager          = require("project/ProjectManager"),
+        FileUtils               = require("file/FileUtils"),
         HTMLUtils               = require("language/HTMLUtils"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
         Strings                 = require("strings"),
@@ -47,7 +49,7 @@ define(function (require, exports, module) {
         _newRuleHandlers = [];
 
     function _getCSSFilesInProject() {
-        return ProjectManager.getAllFiles(ProjectManager.getLanguageFilter("css"));
+        return ProjectManager.getAllFiles(ProjectManager.getLanguageFilter(["css", "less", "scss"]));
     }
     
     /**
@@ -75,21 +77,21 @@ define(function (require, exports, module) {
                 //   class="error-dialog modal hide"
                 // and the insertion point is inside "modal", we want ".modal"
                 var attributeValue = tagInfo.attr.value;
-                var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
-                var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
-                selectorName = "." +
-                    attributeValue.substring(
-                        startIndex === -1 ? 0 : startIndex + 1,
-                        endIndex === -1 ? attributeValue.length : endIndex
-                    );
-                
-                // If the insertion point is surrounded by space, selectorName is "."
-                // Check for that here
-                if (selectorName === ".") {
-                    selectorName = "";
-                }
-                
-                if (selectorName === "") {
+                if (/\S/.test(attributeValue)) {
+                    var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
+                    var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
+                    selectorName = "." +
+                        attributeValue.substring(
+                            startIndex === -1 ? 0 : startIndex + 1,
+                            endIndex === -1 ? attributeValue.length : endIndex
+                        );
+
+                    // If the insertion point is surrounded by space between two classnames, selectorName is "."
+                    if (selectorName === ".") {
+                        selectorName = "";
+                        reason = Strings.ERROR_CSSQUICKEDIT_BETWEENCLASSES;
+                    }
+                } else {
                     reason = Strings.ERROR_CSSQUICKEDIT_CLASSNOTFOUND;
                 }
             } else if (tagInfo.attr.name === "id") {
@@ -146,7 +148,7 @@ define(function (require, exports, module) {
     /** Item renderer for stylesheet-picker dropdown */
     function _stylesheetListRenderer(item) {
         var html = "<span class='stylesheet-name'>" + _.escape(item.name);
-        if (item.subDirStr.length) {
+        if (item.subDirStr) {
             html += "<span class='stylesheet-dir'> — " + _.escape(item.subDirStr) + "</span>";
         }
         html += "</span>";
@@ -160,9 +162,9 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {?$.Promise} synchronously resolved with an InlineWidget, or
-     *         {string} if pos is in tag but not in tag name, class attr, or id attr, or
-     *         null if we're not going to provide anything.
+     * @return {?$.Promise} synchronously resolved with an InlineWidget; or error
+     *         {string} if pos is in tag but not in tag name, class attr, or id attr; or null if the
+     *         selection isn't even close to a context where we could provide anything.
      */
     function htmlToCSSProvider(hostEditor, pos) {
 
@@ -240,65 +242,52 @@ define(function (require, exports, module) {
         
         /**
          * @private
-         * Sort fileInfo objects by name then sub-directory
+         * Sort files with LESS/SCSS above CSS, and then within each grouping sort by path & filename
+         * (the same order we use for Find in Files)
+         * @param {!File} a, b
+         * @return {number}
          */
-        function _sortFileInfos(a, b) {
-            var nameComparison = a.name.localeCompare(b.name);
-            if (nameComparison !== 0) {
-                return nameComparison;
+        function _fileComparator(a, b) {
+            var aIsCSS = LanguageManager.getLanguageForPath(a.fullPath).getId() === "css",
+                bIsCSS = LanguageManager.getLanguageForPath(b.fullPath).getId() === "css";
+            if (aIsCSS && !bIsCSS) {
+                return 1;
+            } else if (!aIsCSS && bIsCSS) {
+                return -1;
+            } else {
+                return FileUtils.comparePaths(a.fullPath, b.fullPath);
             }
-            return a.subDirStr.localeCompare(b.subDirStr);
         }
         
         /**
          * @private
          * Prepare file list for display
          */
-        function _prepFileList(fileInfos) {
-            var i, j, firstDupeIndex,
-                displayPaths = [],
-                dupeList = [];
+        function _prepFileList(files) {
+            // First, sort list (the same ordering we use for the results list)
+            files.sort(_fileComparator);
             
-            // Add subdir field to each entry
-            fileInfos.forEach(function (fileInfo) {
-                fileInfo.subDirStr = "";
+            // Find any files that share the same name (with different path)
+            var fileNames = {};
+            files.forEach(function (file) {
+                if (!fileNames[file.name]) {
+                    fileNames[file.name] = [];
+                }
+                fileNames[file.name].push(file);
+            });
+            
+            // For any duplicate filenames, set subDirStr to a path snippet the helps
+            // the user distinguish each file in the list.
+            _.forEach(fileNames, function (files) {
+                if (files.length > 1) {
+                    var displayPaths = ViewUtils.getDirNamesForDuplicateFiles(files);
+                    files.forEach(function (file, i) {
+                        file.subDirStr = displayPaths[i];
+                    });
+                }
             });
 
-            // Add directory path to files with the same name so they can be
-            // distinguished in list. Start with list sorted by name.
-            fileInfos.sort(_sortFileInfos);
-
-            // For identical names, add a subdir
-            for (i = 1; i < fileInfos.length; i++) {
-                if (_sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
-                    // Duplicates found
-                    firstDupeIndex = i - 1;
-                    dupeList.push(fileInfos[i - 1]);
-                    dupeList.push(fileInfos[i]);
-
-                    // Lookahead for more dupes
-                    while (++i < fileInfos.length &&
-                            _sortFileInfos(dupeList[0], fileInfos[i]) === 0) {
-                        dupeList.push(fileInfos[i]);
-                    }
-
-                    // Get minimum subdir to make each unique
-                    displayPaths = ViewUtils.getDirNamesForDuplicateFiles(dupeList);
-
-                    // Add a subdir to each dupe entry
-                    for (j = 0; j < displayPaths.length; j++) {
-                        fileInfos[firstDupeIndex + j].subDirStr = displayPaths[j];
-                    }
-
-                    // Release memory
-                    dupeList = [];
-                }
-            }
-            
-            // Sort by name again, so paths are sorted
-            fileInfos.sort(_sortFileInfos);
-
-            return fileInfos;
+            return files;
         }
         
         function _onHostEditorScroll() {
@@ -309,17 +298,18 @@ define(function (require, exports, module) {
             .done(function (rules) {
                 var inlineEditorDeferred = new $.Deferred();
                 cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(CSSUtils.consolidateRules(rules),
-                                                                                    _getNoRulesMsg, CSSUtils.getRangeSelectors);
+                                                                                    _getNoRulesMsg, CSSUtils.getRangeSelectors,
+                                                                                    _fileComparator);
                 cssInlineEditor.load(hostEditor);
                 cssInlineEditor.$htmlContent
                     .on("focusin", _updateCommands)
                     .on("focusout", _updateCommands);
-                $(cssInlineEditor).on("add", function () {
+                cssInlineEditor.on("add", function () {
                     inlineEditorDeferred.resolve();
                 });
-                $(cssInlineEditor).on("close", function () {
+                cssInlineEditor.on("close", function () {
                     newRuleButton.closeDropdown();
-                    $(hostEditor).off("scroll", _onHostEditorScroll);
+                    hostEditor.off("scroll", _onHostEditorScroll);
                 });
 
                 var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
@@ -329,7 +319,7 @@ define(function (require, exports, module) {
                 $header.append(newRuleButton.$button);
                 _newRuleHandlers.push({inlineEditor: cssInlineEditor, handler: _handleNewRuleClick});
                 
-                $(hostEditor).on("scroll", _onHostEditorScroll);
+                hostEditor.on("scroll", _onHostEditorScroll);
                 
                 result.resolve(cssInlineEditor);
                 
@@ -362,15 +352,15 @@ define(function (require, exports, module) {
                             } else {
                                 // Fill out remaining dropdown attributes otherwise
                                 newRuleButton.items = cssFileInfos;
-                                $(newRuleButton).on("select", _onDropdownSelect);
+                                newRuleButton.on("select", _onDropdownSelect);
                             }
                         }
                         
                         _updateCommands();
                     });
             })
-            .fail(function () {
-                console.log("Error in findMatchingRules()");
+            .fail(function (error) {
+                console.warn("Error in findMatchingRules()", error);
                 result.reject();
             });
         

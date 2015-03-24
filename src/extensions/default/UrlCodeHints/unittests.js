@@ -23,18 +23,17 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
 
     // Modules from the SpecRunner window
-    var DocumentManager     = brackets.getModule("document/DocumentManager"),
-        Editor              = brackets.getModule("editor/Editor").Editor,
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
-        SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
-        UrlCodeHints        = require("main");
+    var MasterDocumentManager     = brackets.getModule("document/DocumentManager"),
+        MasterMainViewManager     = brackets.getModule("view/MainViewManager"),
+        FileUtils                 = brackets.getModule("file/FileUtils"),
+        SpecRunnerUtils           = brackets.getModule("spec/SpecRunnerUtils"),
+        UrlCodeHints              = require("main");
 
 
     describe("Url Code Hinting", function () {
@@ -42,7 +41,7 @@ define(function (require, exports, module) {
         var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
             testHtmlPath    = extensionPath + "/testfiles/test.html",
             testCssPath     = extensionPath + "/testfiles/subfolder/test.css",
-            testWindow,
+            testScssPath    = extensionPath + "/testfiles/subfolder/test.scss",
             testDocument,
             testEditor,
             hintsObj;
@@ -52,7 +51,7 @@ define(function (require, exports, module) {
         // strategically so that they sort the same on all OS's (i.e. folders are listed
         // first, and then files), but this is not true for UrlCodeHints folder.
         var testfilesDirHints       = [ "subfolder/", "test.html"],
-            subfolderDirHints       = [ "chevron.png", "test.css", "test.js"],
+            subfolderDirHints       = [ "chevron.png", "test.css", "test.js", "test.scss"],
             UrlCodeHintsDirHintsMac = [ "../data.json", "../main.js", "../testfiles/", "../unittests.js"],
             UrlCodeHintsDirHints    = [ "../testfiles/", "../data.json", "../main.js", "../unittests.js"];
         
@@ -68,7 +67,7 @@ define(function (require, exports, module) {
 
         function setupTests(testFilePath) {
             runs(function () {
-                DocumentManager.getDocumentForPath(testFilePath).done(function (doc) {
+                MasterDocumentManager.getDocumentForPath(testFilePath).done(function (doc) {
                     testDocument = doc;
                 });
             });
@@ -80,7 +79,7 @@ define(function (require, exports, module) {
             // create Editor instance (containing a CodeMirror instance)
             runs(function () {
                 testEditor = createMockEditor(testDocument);
-                DocumentManager.setCurrentDocument(testDocument);
+                MasterMainViewManager._edit(MasterMainViewManager.ACTIVE_PANE, testDocument);
             });
         }
         
@@ -88,8 +87,7 @@ define(function (require, exports, module) {
             runs(function () {
                 // The following call ensures that the document is reloaded
                 // from disk before each test
-                DocumentManager.closeAll();
-                
+                MasterMainViewManager._closeAll(MasterMainViewManager.ALL_PANES);
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testEditor = null;
                 testDocument = null;
@@ -145,7 +143,7 @@ define(function (require, exports, module) {
 
             it("should hint for href attribute", function () {
                 runs(function () {
-                    testEditor.setCursorPos({ line: 12, ch: 12 });
+                    testEditor.setCursorPos({ line: 14, ch: 12 });
 
                     // Must reset hintsObj before every call to expectAsyncHints()
                     hintsObj = null;
@@ -159,7 +157,7 @@ define(function (require, exports, module) {
 
             it("should hint for src attribute", function () {
                 runs(function () {
-                    testEditor.setCursorPos({ line: 13, ch: 13 });
+                    testEditor.setCursorPos({ line: 15, ch: 13 });
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
@@ -171,27 +169,27 @@ define(function (require, exports, module) {
             
             it("should not hint for type attribute", function () {
                 runs(function () {
-                    testEditor.setCursorPos({ line: 13, ch: 21 });
+                    testEditor.setCursorPos({ line: 15, ch: 21 });
                     expectNoHints(UrlCodeHints.hintProvider);
                 });
             });
             
             it("should not hint in query part of url", function () {
                 runs(function () {
-                    testEditor.setCursorPos({ line: 18, ch: 31 });
+                    testEditor.setCursorPos({ line: 20, ch: 31 });
                     expectNoHints(UrlCodeHints.hintProvider);
                 });
             });
             
             it("should hint up 1 folder for '../'", function () {
                 runs(function () {
-                    testEditor.setCursorPos({ line: 19, ch: 14 });
+                    testEditor.setCursorPos({ line: 21, ch: 14 });
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
                 
                 runs(function () {
-                    var expectedHints = (brackets.platform === "mac") ? UrlCodeHintsDirHintsMac : UrlCodeHintsDirHints;
+                    var expectedHints = (brackets.platform !== "win") ? UrlCodeHintsDirHintsMac : UrlCodeHintsDirHints;
                     verifyUrlHints(hintsObj.hints, expectedHints);
                 });
             });
@@ -264,7 +262,7 @@ define(function (require, exports, module) {
 
             it("should not hint for background-image outside of url()", function () {
                 runs(function () {
-                    testEditor.setCursorPos({ line: 9, ch: 20 });
+                    testEditor.setCursorPos({ line: 11, ch: 20 });
                     expectNoHints(UrlCodeHints.hintProvider);
                 });
             });
@@ -272,17 +270,33 @@ define(function (require, exports, module) {
 
         describe("Url Code Hints in a subfolder", function () {
 
-            beforeFirst(function () {
-                setupTests(testCssPath);
-            });
-
-            afterLast(function () {
+            afterEach(function () {
                 tearDownTests();
             });
 
-            it("should hint for background-image: url()", function () {
+            it("should hint for background-image: url() in CSS", function () {
+                runs(function () {
+                    setupTests(testCssPath);
+                });
+
                 runs(function () {
                     testEditor.setCursorPos({ line: 3, ch: 26 });
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    verifyUrlHints(hintsObj.hints, subfolderDirHints);
+                });
+            });
+
+            it("should hint for background-image: url() in SCSS", function () {
+                runs(function () {
+                    setupTests(testScssPath);
+                });
+
+                runs(function () {
+                    testEditor.setCursorPos({ line: 4, ch: 34 });
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
@@ -302,6 +316,7 @@ define(function (require, exports, module) {
                 CommandManager,
                 Commands,
                 DocumentManager,
+                MainViewManager,
                 EditorManager;
 
             it("should hint site root '/'", function () {
@@ -314,6 +329,7 @@ define(function (require, exports, module) {
                         Commands        = brackets.test.Commands;
                         DocumentManager = brackets.test.DocumentManager;
                         EditorManager   = brackets.test.EditorManager;
+                        MainViewManager = brackets.test.MainViewManager;
                     });
                 });
 
@@ -337,9 +353,9 @@ define(function (require, exports, module) {
                 }, "Unable to open test document", 2000);
 
                 runs(function () {
-                    DocumentManager.setCurrentDocument(testDocument);
+                    MainViewManager._edit(MainViewManager.ACTIVE_PANE, testDocument);
                     testEditor = EditorManager.getCurrentFullEditor();
-                    testEditor.setCursorPos({ line: 20, ch: 12 });
+                    testEditor.setCursorPos({ line: 22, ch: 12 });
                     CommandManager.execute(Commands.SHOW_CODE_HINTS);
                 });
 
@@ -361,6 +377,7 @@ define(function (require, exports, module) {
                     Commands         = null;
                     DocumentManager  = null;
                     EditorManager    = null;
+                    MainViewManager  = null;
                     SpecRunnerUtils.closeTestWindow();
                 });
             });
@@ -378,9 +395,9 @@ define(function (require, exports, module) {
             });
 
             it("should handle unclosed url(", function () {
-                var pos1    = { line: 9, ch: 20 },
-                    pos2    = { line: 9, ch: 24 },
-                    pos3    = { line: 9, ch: 34 };
+                var pos1    = { line: 11, ch: 20 },
+                    pos2    = { line: 11, ch: 24 },
+                    pos3    = { line: 11, ch: 34 };
 
                 runs(function () {
                     testEditor.setCursorPos(pos1);
@@ -406,9 +423,9 @@ define(function (require, exports, module) {
             });
             
             it("should handle unclosed url( with unclosed single-quote", function () {
-                var pos1    = { line: 9, ch: 20 },
-                    pos2    = { line: 9, ch: 25 },
-                    pos3    = { line: 9, ch: 36 };
+                var pos1    = { line: 11, ch: 20 },
+                    pos2    = { line: 11, ch: 25 },
+                    pos3    = { line: 11, ch: 36 };
 
                 runs(function () {
                     testEditor.setCursorPos(pos1);
@@ -435,12 +452,64 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should keep hints open after inserting folder", function () {
-                var pos1    = { line: 9, ch: 20 },
-                    pos2    = { line: 9, ch: 25 },
-                    pos3    = { line: 9, ch: 35 },
-                    pos4    = { line: 9, ch: 37 },
-                    pos5    = { line: 9, ch: 48 };
+            it("should keep hints open after inserting folder in HTML", function () {
+                var pos1    = { line: 18, ch: 12 },
+                    pos2    = { line: 18, ch: 22 },
+                    pos3    = { line: 18, ch: 33 },
+                    pos4    = { line: 18, ch: 34 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos1);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(2);
+                    expect(hintsObj.hints[0]).toBe("subfolder/");
+                    
+                    // True indicates hints were remain open after insertion of folder
+                    // (i.e. showing contents of inserted folder)
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
+                    
+                    // Hint was added with closing double-quote and closing paren
+                    expect(testDocument.getRange(pos1, pos2)).toEqual("subfolder/");
+                    
+                    // Cursor remains inside quote
+                    expect(testEditor.getCursorPos()).toEqual(pos2);
+
+                    // Get hints of inserted folder
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
+
+                    // Complete path is displayed
+                    expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
+                    
+                    // False indicates hints were closed after insertion
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(false);
+                    
+                    // Hint was added
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/chevron.png");
+                    
+                    // Cursor was moved past closing double-quote and closing paren
+                    expect(testEditor.getCursorPos()).toEqual(pos4);
+                });
+            });
+
+            it("should keep hints open after inserting folder in CSS", function () {
+                var pos1    = { line: 11, ch: 20 },
+                    pos2    = { line: 11, ch: 25 },
+                    pos3    = { line: 11, ch: 35 },
+                    pos4    = { line: 11, ch: 37 },
+                    pos5    = { line: 11, ch: 48 };
 
                 runs(function () {
                     testEditor.setCursorPos(pos1);
@@ -474,8 +543,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
-                    expect(hintsObj.hints.length).toBe(3);
-                    
+                    expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
+
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
                     
@@ -487,6 +556,302 @@ define(function (require, exports, module) {
                     
                     // Cursor was moved past closing double-quote and closing paren
                     expect(testEditor.getCursorPos()).toEqual(pos5);
+                });
+            });
+
+            it("should insert folder and replace file in HTML", function () {
+                var pos1    = { line: 23, ch: 11 },
+                    pos2    = { line: 23, ch: 21 },
+                    pos3    = { line: 23, ch: 31 },
+                    pos4    = { line: 23, ch: 32 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos1);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(2);
+                    expect(hintsObj.hints[0]).toBe("subfolder/");
+                    
+                    // True indicates hints were remain open after insertion of folder
+                    // (i.e. showing contents of inserted folder)
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
+                    
+                    // Folder was inserted (i.e. filename was not removed)
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/test2.html");
+                    
+                    // Cursor is at end of inserted folder
+                    expect(testEditor.getCursorPos()).toEqual(pos2);
+
+                    // Get hints of inserted folder
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
+                    
+                    // Complete path is displayed
+                    expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
+                    
+                    // False indicates hints were closed after insertion
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(false);
+                    
+                    // Filename was replaced
+                    expect(testDocument.getRange(pos1, pos4)).toEqual("subfolder/chevron.png");
+                });
+            });
+
+            it("should insert filtered folder in HTML", function () {
+                var pos1    = { line: 23, ch: 11 },
+                    pos2    = { line: 23, ch: 14 },
+                    pos3    = { line: 23, ch: 31 };
+
+                runs(function () {
+                    testDocument.replaceRange("sub", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("subfolder/");
+
+                    // Partially existing folder was inserted correctly
+                    UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0]);
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/test2.html");
+                });
+            });
+
+            it("should replace filtered file in HTML", function () {
+                var pos1    = { line: 23, ch: 11 },
+                    pos2    = { line: 23, ch: 14 },
+                    pos3    = { line: 23, ch: 21 };
+
+                runs(function () {
+                    testDocument.replaceRange("tes", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("test.html");
+
+                    // Partially existing file was replaced correctly
+                    UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0]);
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("test.html'");
+                });
+            });
+
+            it("should insert folder and replace file in CSS", function () {
+                var pos1    = { line: 10, ch: 24 },
+                    pos2    = { line: 10, ch: 34 },
+                    pos3    = { line: 10, ch: 43 },
+                    pos4    = { line: 10, ch: 45 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos1);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(2);
+                    expect(hintsObj.hints[0]).toBe("subfolder/");
+                    
+                    // True indicates hints were remain open after insertion of folder
+                    // (i.e. showing contents of inserted folder)
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
+                    
+                    // Folder was inserted (i.e. filename was not removed)
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/dummy.jpg");
+                    
+                    // Cursor is at end of inserted folder
+                    expect(testEditor.getCursorPos()).toEqual(pos2);
+
+                    // Get hints of inserted folder
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
+                    
+                    // Complete path is displayed
+                    expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
+                    
+                    // False indicates hints were closed after insertion
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(false);
+                    
+                    // Filename was replaced
+                    expect(testDocument.getRange(pos1, pos4)).toEqual("subfolder/chevron.png");
+                });
+            });
+
+            it("should insert filtered folder in CSS", function () {
+                var pos1    = { line: 10, ch: 24 },
+                    pos2    = { line: 10, ch: 27 },
+                    pos3    = { line: 10, ch: 43 };
+
+                runs(function () {
+                    testDocument.replaceRange("sub", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("subfolder/");
+
+                    // Partially existing folder was inserted correctly
+                    UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0]);
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/dummy.jpg");
+                });
+            });
+
+            it("should replace filtered file in CSS", function () {
+                var pos1    = { line: 10, ch: 24 },
+                    pos2    = { line: 10, ch: 27 },
+                    pos3    = { line: 10, ch: 34 };
+
+                runs(function () {
+                    testDocument.replaceRange("tes", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("test.html");
+
+                    // Partially existing file was replaced correctly
+                    UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0]);
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("test.html)");
+                });
+            });
+
+            it("should collapse consecutive path separators when inserting folder in HTML", function () {
+                var pos1    = { line: 22, ch: 11 },
+                    pos2    = { line: 22, ch: 22 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos1);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(2);
+                    expect(hintsObj.hints[0]).toBe("subfolder/");
+
+                    // True indicates hints were remain open after insertion of folder
+                    // (i.e. showing contents of inserted folder)
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
+
+                    // Folder was inserted and there's only 1 slash afterwards
+                    expect(testDocument.getRange(pos1, pos2)).toEqual("subfolder/'");
+                });
+            });
+
+            it("should collapse consecutive path separators when inserting folder in CSS", function () {
+                var pos1    = { line: 9, ch: 15 },
+                    pos2    = { line: 9, ch: 26 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos1);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(2);
+                    expect(hintsObj.hints[0]).toBe("subfolder/");
+
+                    // True indicates hints were remain open after insertion of folder
+                    // (i.e. showing contents of inserted folder)
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
+
+                    // Folder was inserted and there's only 1 slash afterwards
+                    expect(testDocument.getRange(pos1, pos2)).toEqual("subfolder/\"");
+                });
+            });
+
+            it("should show & insert case insensitive hints in HTML", function () {
+                var pos1    = { line: 18, ch: 12 },
+                    pos2    = { line: 18, ch: 13 },
+                    pos3    = { line: 18, ch: 21 };
+
+                runs(function () {
+                    // Insert letter that matches filename, but with different case
+                    testDocument.replaceRange("T", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("test.html");
+
+                    UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0]);
+
+                    // Filename case from list was inserted (overriding case inserted in page)
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("test.html");
+                });
+            });
+
+            it("should show & insert case insensitive hints in CSS", function () {
+                var pos1    = { line: 6, ch: 24 },
+                    pos2    = { line: 6, ch: 25 },
+                    pos3    = { line: 6, ch: 33 };
+
+                runs(function () {
+                    // Insert letter that matches filename, but with different case
+                    testDocument.replaceRange("T", pos1, pos1);
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("test.html");
+
+                    UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0]);
+
+                    // Filename case from list was inserted (overriding case inserted in page)
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("test.html");
                 });
             });
         });

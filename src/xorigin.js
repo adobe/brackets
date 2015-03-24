@@ -23,10 +23,13 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global brackets: true, navigator:true, document:true, window:true */
+
+/**
+ * Function to test whether a given error represents an illegal cross origin access
+ */
 (function () {
     "use strict";
 
-    // Function to test whether a given error represents an illegal cross origin access
     var testCrossOriginError;
 
     if (navigator.userAgent.search(" Chrome/") !== -1) {

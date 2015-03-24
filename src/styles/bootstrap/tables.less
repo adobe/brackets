@@ -154,7 +154,7 @@ table {
 
 // Default zebra-stripe styles (alternating gray and transparent backgrounds)
 .table-striped {
-  tbody {
+  > tbody {
     > tr:nth-child(odd) > td,
     > tr:nth-child(odd) > th {
       background-color: @tableBackgroundAccent;
@@ -167,7 +167,7 @@ table {
 // ------------
 // Placed here since it has to come after the potential zebra striping
 .table-hover {
-  tbody {
+  > tbody {
     tr:hover > td,
     tr:hover > th {
       background-color: @tableBackgroundHover;

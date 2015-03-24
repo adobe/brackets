@@ -48,7 +48,16 @@
     "metadata": {
       "name": "mock-extension-1",
       "description": "First mock extension",
-      "version": "1.0.0"
+      "title": "Mock extension title",
+      "version": "1.0.0",
+      "i18n": [ "en", "fr" ],
+      "package-i18n": {
+        "fr": {
+          "description": "Première prolongation maquette",
+          "title": "Titre d'extension Mock",
+          "warnings": "Shouldn't be used"
+        }
+      }
     },
     "owner": "github:mockuser",
     "versions": [

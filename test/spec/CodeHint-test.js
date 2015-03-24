@@ -22,14 +22,13 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waits, waitsForDone, expect, $, beforeFirst, afterLast  */
+/*global define, describe, beforeEach, afterEach, it, runs, waitsForDone, expect, $, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
-    var HTMLUtils       = require("language/HTMLUtils"),
-        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         KeyEvent        = require("utils/KeyEvent"),
         Commands        = require("command/Commands"),
         EditorManager,      // loaded from brackets.test
@@ -38,8 +37,7 @@ define(function (require, exports, module) {
         KeyBindingManager;
 
     var testPath = SpecRunnerUtils.getTestPath("/spec/CodeHint-test-files"),
-        testWindow,
-        initCodeHintTest;
+        testWindow;
 
     describe("CodeHintManager", function () {
         this.category = "integration";
@@ -48,7 +46,8 @@ define(function (require, exports, module) {
          * Performs setup for a code hint test. Opens a file and set pos.
          * 
          * @param {!string} openFile Project relative file path to open in a main editor.
-         * @param {!number} openPos The pos within openFile to place the IP.
+         * @param {!number|Array} openPos The pos within openFile to place the IP, or an array
+         *      representing a multiple selection to set.
          */
         function initCodeHintTest(openFile, openPos) {
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
@@ -60,7 +59,11 @@ define(function (require, exports, module) {
             
             runs(function () {
                 var editor = EditorManager.getCurrentFullEditor();
-                editor.setCursorPos(openPos.line, openPos.ch);
+                if (Array.isArray(openPos)) {
+                    editor.setSelections(openPos);
+                } else {
+                    editor.setCursorPos(openPos.line, openPos.ch);
+                }
             });
         }
         
@@ -110,6 +113,49 @@ define(function (require, exports, module) {
             expect(codeHintList.isOpen()).toBe(true);
             return codeHintList;
         }
+        
+        // TODO: There seems to be an issue with CodeHintManager._removeHintProvider because of which the tests 
+        // added for "Hint Provider Registration" are interfering with this test case 
+        // (mock provider added for new language shows up for RegExp, even though no code hint should show up)
+        // I am unable to reproduce this in a real scenario though/
+        // This is the reason this test case is being added before the registration test cases.
+        // We need to either figure out whats going wrong with register or change the RegExp code hint fix to bail
+        // before HintUtils (Something like the fix for no code hints for multiple selection)
+        describe("RegExp codehint tests", function () {
+            it("should not show codehints for regular expression in a script block in html", function () {
+                var editor,
+                    pos = {line: 8, ch: 30};
+
+                // Place cursor inside a sample regular expression
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", pos);
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    invokeCodeHints();
+                    expectNoHints();
+                    editor = null;
+                });
+            });
+            
+            it("should not show codehints for regular expression in a Javascript file", function () {
+                var editor,
+                    pos = {line: 2, ch: 30};
+
+                // Place cursor inside a sample regular expression
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("testRegexp.js", pos);
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    invokeCodeHints();
+                    expectNoHints();
+                    editor = null;
+                });
+            });
+        });
         
         describe("Hint Provider Registration", function () {
             beforeEach(function () {
@@ -223,13 +269,49 @@ define(function (require, exports, module) {
 
                     // doesn't matter what was inserted, but line should be different
                     var newPos = editor.getCursorPos();
-                    lineAfter = editor.document.getLine(pos.line);
+                    lineAfter = editor.document.getLine(newPos.line);
                     expect(lineBefore).not.toEqual(lineAfter);
                     
                     // and popup should auto-close
                     expectNoHints();
 
                     editor = null;
+                });
+            });
+            
+            it("should not show code hints if there is a multiple selection", function () {
+                // minimal markup with an open '<' before IP
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", [
+                    {start: {line: 3, ch: 1}, end: {line: 3, ch: 1}, primary: true},
+                    {start: {line: 4, ch: 1}, end: {line: 4, ch: 1}}
+                ]);
+
+                runs(function () {
+                    invokeCodeHints();
+                    expectNoHints();
+                });
+            });
+
+            it("should dismiss existing code hints if selection changes to a multiple selection", function () {
+                var editor;
+
+                initCodeHintTest("test1.html", {line: 3, ch: 1});
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+
+                    invokeCodeHints();
+                    expectSomeHints();
+                });
+                
+                runs(function () {
+                    editor.setSelections([
+                        {start: {line: 3, ch: 1}, end: {line: 3, ch: 1}, primary: true},
+                        {start: {line: 4, ch: 1}, end: {line: 4, ch: 1}}
+                    ]);
+                    expectNoHints();
                 });
             });
 
