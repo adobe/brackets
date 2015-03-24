@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         FileUtils           = brackets.getModule("file/FileUtils"),
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        LanguageManager     = brackets.getModule("language/LanguageManager"),
         Strings             = brackets.getModule("strings"),
         ViewUtils           = brackets.getModule("utils/ViewUtils"),
         TokenUtils          = brackets.getModule("utils/TokenUtils");
@@ -450,67 +451,80 @@ define(function (require, exports, module) {
             }
         }
         
-        if (tokenString) {
-            // Strip leading/trailing quotes, if present
-            tokenString = tokenString.replace(/(^['"])|(['"]$)/g, "");
-            
-            if (/^(data\:image)|(\.gif|\.png|\.jpg|\.jpeg|\.webp|\.svg)$/i.test(tokenString)) {
-                var sPos, ePos;
-                var docPath = editor.document.file.fullPath;
-                var imgPath;
-                
-                if (PathUtils.isAbsoluteUrl(tokenString)) {
-                    imgPath = tokenString;
-                } else {
-                    imgPath = "file:///" + FileUtils.getDirectoryPath(docPath) + tokenString;
-                }
-                
-                if (urlMatch) {
-                    sPos = {line: pos.line, ch: urlMatch.index};
-                    ePos = {line: pos.line, ch: urlMatch.index + urlMatch[0].length};
-                } else {
-                    sPos = {line: pos.line, ch: token.start};
-                    ePos = {line: pos.line, ch: token.end};
-                }
-                
-                if (imgPath) {
-                    var imgPreview = "<div class='image-preview'>"          +
-                                     "    <img src=\"" + imgPath + "\">"    +
-                                     "</div>";
-                    var coord = cm.charCoords(sPos);
-                    var xpos = (cm.charCoords(ePos).left - coord.left) / 2 + coord.left;
-                    
-                    var showHandler = function () {
-                        // Hide the preview container until the image is loaded.
-                        $previewContainer.hide();
-                                                    
-                        
-                        $previewContainer.find(".image-preview > img").on("load", function () {
-                            $previewContent
-                                .append("<div class='img-size'>" +
-                                            this.naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS +
-                                        "</div>"
-                                    );
-                            $previewContainer.show();
-                            positionPreview(editor, popoverState.xpos, popoverState.ytop, popoverState.ybot);
-                        });
-                    };
-                    
-                    return {
-                        start: sPos,
-                        end: ePos,
-                        content: imgPreview,
-                        onShow: showHandler,
-                        xpos: xpos,
-                        ytop: coord.top,
-                        ybot: coord.bottom,
-                        _imgPath: imgPath
-                    };
-                }
-            }
+        if (!tokenString) {
+            return null;
         }
-        
-        return null;
+
+        // Strip leading/trailing quotes, if present
+        tokenString = tokenString.replace(/(^['"])|(['"]$)/g, "");
+
+        var sPos, ePos;
+        var docPath = editor.document.file.fullPath;
+        var imgPath;
+
+        // Determine whether or not this URL/path is likely to be an image.
+        var parsed = PathUtils.parseUrl(tokenString);
+        var hasProtocol = parsed.protocol !== "";
+        var ext = parsed.filenameExtension.replace(/^\./, '');
+        var language = LanguageManager.getLanguageForExtension(ext);
+        var id = language && language.getId();
+        var isImage = id === "image" || id === "svg";
+
+        // Use this URL if this is an absolute URL and either points to a
+        // filename with a known image extension, or lacks an extension (e.g.,
+        // a web service that returns an image).
+        if (hasProtocol && (isImage || !ext)) {
+            imgPath = tokenString;
+        }
+        // Use this filename if this is a path with a known image extension.
+        else if (!hasProtocol && isImage) {
+            imgPath = "file:///" + FileUtils.getDirectoryPath(docPath) + tokenString;
+        } else {
+            return null;
+        }
+
+        if (urlMatch) {
+            sPos = {line: pos.line, ch: urlMatch.index};
+            ePos = {line: pos.line, ch: urlMatch.index + urlMatch[0].length};
+        } else {
+            sPos = {line: pos.line, ch: token.start};
+            ePos = {line: pos.line, ch: token.end};
+        }
+
+        var imgPreview = "<div class='image-preview'>"          +
+                         "    <img src=\"" + imgPath + "\">"    +
+                         "</div>";
+        var coord = cm.charCoords(sPos);
+        var xpos = (cm.charCoords(ePos).left - coord.left) / 2 + coord.left;
+
+        var showHandler = function () {
+            // Hide the preview container until the image is loaded.
+            $previewContainer.hide();
+
+            $previewContainer.find(".image-preview > img").on("load", function () {
+                $previewContent
+                    .append("<div class='img-size'>" +
+                                this.naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS +
+                            "</div>"
+                        );
+                $previewContainer.show();
+                positionPreview(editor, popoverState.xpos, popoverState.ytop, popoverState.ybot);
+            }).on("error", function (e) {
+                e.preventDefault();
+                hidePreview();
+            });
+        };
+
+        return {
+            start: sPos,
+            end: ePos,
+            content: imgPreview,
+            onShow: showHandler,
+            xpos: xpos,
+            ytop: coord.top,
+            ybot: coord.bottom,
+            _imgPath: imgPath
+        };
     }
     
 
