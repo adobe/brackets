@@ -36,6 +36,9 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var EventDispatcher = require("utils/EventDispatcher");
+    
+    
     /**
      * Map of all registered global commands
      * @type {Object.<commandID: string, Command>}
@@ -71,6 +74,7 @@ define(function (require, exports, module) {
         this._checked = undefined;
         this._enabled = true;
     }
+    EventDispatcher.makeEventDispatcher(Command.prototype);
 
     /**
      * Get command id
@@ -122,7 +126,7 @@ define(function (require, exports, module) {
         this._enabled = enabled;
 
         if (changed) {
-            $(this).triggerHandler("enabledStateChange");
+            this.trigger("enabledStateChange");
         }
     };
 
@@ -136,7 +140,7 @@ define(function (require, exports, module) {
         this._checked = checked;
 
         if (changed) {
-            $(this).triggerHandler("checkedStateChange");
+            this.trigger("checkedStateChange");
         }
     };
 
@@ -163,7 +167,7 @@ define(function (require, exports, module) {
         this._name = name;
 
         if (changed) {
-            $(this).triggerHandler("nameChange");
+            this.trigger("nameChange");
         }
     };
 
@@ -203,7 +207,7 @@ define(function (require, exports, module) {
         var command = new Command(name, id, commandFn);
         _commands[id] = command;
         
-        $(exports).triggerHandler("commandRegistered", [command]);
+        exports.trigger("commandRegistered", command);
         
         return command;
     }
@@ -233,7 +237,7 @@ define(function (require, exports, module) {
         var command = new Command(null, id, commandFn);
         _commands[id] = command;
         
-        $(exports).triggerHandler("commandRegistered", [command]);
+        exports.trigger("commandRegistered", command);
         
         return command;
     }
@@ -283,7 +287,7 @@ define(function (require, exports, module) {
         
         if (command) {
             try {
-                $(exports).triggerHandler("beforeExecuteCommand", id);
+                exports.trigger("beforeExecuteCommand", id);
             } catch (err) {
                 console.error(err);
             }
@@ -295,6 +299,8 @@ define(function (require, exports, module) {
             });
         }
     }
+    
+    EventDispatcher.makeEventDispatcher(exports);
 
     // Define public API
     exports.register            = register;

@@ -39,6 +39,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                   = require("thirdparty/lodash"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         Package             = require("extensibility/Package"),
         AppInit             = require("utils/AppInit"),
         Async               = require("utils/Async"),
@@ -148,7 +149,7 @@ define(function (require, exports, module) {
             }
         }
 
-        $(exports).triggerHandler("registryUpdate", [id]);
+        exports.trigger("registryUpdate", id);
     }
 
 
@@ -216,7 +217,7 @@ define(function (require, exports, module) {
                     extensions[id].registryInfo = data[id];
                     synchronizeEntry(id);
                 });
-                $(exports).triggerHandler("registryDownload");
+                exports.trigger("registryDownload");
                 pendingDownloadRegistry.resolve();
             })
             .fail(function () {
@@ -267,7 +268,7 @@ define(function (require, exports, module) {
             };
             synchronizeEntry(id);
             loadTheme(id);
-            $(exports).triggerHandler("statusChange", [id]);
+            exports.trigger("statusChange", id);
         }
 
         ExtensionUtils.loadPackageJson(path)
@@ -385,7 +386,7 @@ define(function (require, exports, module) {
                 .done(function () {
                     extensions[id].installInfo = null;
                     result.resolve();
-                    $(exports).triggerHandler("statusChange", [id]);
+                    exports.trigger("statusChange", id);
                 })
                 .fail(function (err) {
                     result.reject(err);
@@ -447,7 +448,7 @@ define(function (require, exports, module) {
         } else {
             delete _idsToRemove[id];
         }
-        $(exports).triggerHandler("statusChange", [id]);
+        exports.trigger("statusChange", id);
     }
 
     /**
@@ -486,7 +487,7 @@ define(function (require, exports, module) {
             var id = installationResult.name;
             delete _idsToRemove[id];
             _idsToUpdate[id] = installationResult;
-            $(exports).triggerHandler("statusChange", [id]);
+            exports.trigger("statusChange", id);
         }
     }
 
@@ -504,7 +505,7 @@ define(function (require, exports, module) {
             FileSystem.getFileForPath(installationResult.localPath).unlink();
         }
         delete _idsToUpdate[id];
-        $(exports).triggerHandler("statusChange", [id]);
+        exports.trigger("statusChange", id);
     }
 
     /**
@@ -693,6 +694,8 @@ define(function (require, exports, module) {
                 // Async.doInParallel() fails if some are successful, so write errors
                 // to console and always resolve
                 errorArray.forEach(function (errorObj) {
+                    // If we rejected without an error argument, it means it was no problem
+                    // (e.g. same version of extension is already installed)
                     if (errorObj.error) {
                         if (errorObj.error.forEach) {
                             console.error("Errors for", errorObj.item);
@@ -740,10 +743,8 @@ define(function (require, exports, module) {
 
             // Always resolve the outer promise
             updatePromise.always(function () {
-                if (result.installZips.length > 0 || result.updateZips.length > 0) {
-                    // Keep track of auto-installed extensions so we only install an extension once
-                    PreferencesManager.setViewState(FOLDER_AUTOINSTALL, autoExtensions);
-                }
+                // Keep track of auto-installed extensions so we only install an extension once
+                PreferencesManager.setViewState(FOLDER_AUTOINSTALL, autoExtensions);
 
                 deferred.resolve();
             });
@@ -759,9 +760,12 @@ define(function (require, exports, module) {
     });
 
     // Listen to extension load and loadFailed events
-    $(ExtensionLoader)
+    ExtensionLoader
         .on("load", _handleExtensionLoad)
         .on("loadFailed", _handleExtensionLoad);
+    
+    
+    EventDispatcher.makeEventDispatcher(exports);
 
     // Public exports
     exports.downloadRegistry        = downloadRegistry;

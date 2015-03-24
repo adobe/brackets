@@ -117,34 +117,30 @@ define(function (require, exports, module) {
     
 
     // Constants for scoring
-    var SPECIAL_CASE_POINTS = 50;           // Both a Special and a Case match
     var SPECIAL_POINTS = 40;
     var MATCH_POINTS = 10;
-    var MATCH_CASE_POINTS = 7;              // Consecutive non-case matches have higher priority
+    var UPPER_CASE_MATCH = 100;
     var CONSECUTIVE_MATCHES_POINTS = 8;
     var BEGINNING_OF_NAME_POINTS = 13;
     var LAST_SEGMENT_BOOST = 1;
     var DEDUCTION_FOR_LENGTH = 0.2;
     var NOT_STARTING_ON_SPECIAL_PENALTY = 25;
     
-    function SpecialCaseMatch(index) {
-        this.index = index;
-    }
-    
     // Used in match lists to designate matches of "special" characters (see
     // findSpecialCharacters above
-    function SpecialMatch(index) {
+    function SpecialMatch(index, upper) {
         this.index = index;
+        if (upper) {
+            this.upper = upper;
+        }
     }
     
     // Used in match lists to designate any matched characters that are not special
-    function NormalMatch(index) {
+    function NormalMatch(index, upper) {
         this.index = index;
-    }
-
-    // Used in match lists to designate any matched characters that are case-sensitive matches
-    function CaseMatch(index) {
-        this.index = index;
+        if (upper) {
+            this.upper = upper;
+        }
     }
     
     /*
@@ -272,11 +268,13 @@ define(function (require, exports, module) {
                 } else if (query[queryCounter] === str[specials[i]]) {
                     // we have a match! do the required tracking
                     strCounter = specials[i];
-                    if (originalQuery[queryCounter] === originalStr[strCounter]) {
-                        result.push(new SpecialCaseMatch(strCounter));
-                    } else {
-                        result.push(new SpecialMatch(strCounter));
-                    }
+                    
+                    // Upper case match check:
+                    // If the query and original string matched, but the original string
+                    // and the lower case version did not, that means that the original
+                    // was upper case.
+                    var upper = originalQuery[queryCounter] === originalStr[strCounter] && originalStr[strCounter] !== str[strCounter];
+                    result.push(new SpecialMatch(strCounter, upper));
                     specialsCounter = i;
                     queryCounter++;
                     strCounter++;
@@ -310,7 +308,7 @@ define(function (require, exports, module) {
                 // searching from.
                 queryCounter--;
                 
-                if (item instanceof SpecialMatch || item instanceof SpecialCaseMatch) {
+                if (item instanceof SpecialMatch) {
                     // pulled off a special, which means we need to make that special available
                     // for matching again
                     specialsCounter--;
@@ -357,11 +355,11 @@ define(function (require, exports, module) {
                     // we look character by character for matches
                     if (query[queryCounter] === str[strCounter]) {
                         // got a match! record it, and switch back to searching specials
-                        if (originalQuery[queryCounter] === originalStr[strCounter]) {
-                            result.push(new CaseMatch(strCounter++));
-                        } else {
-                            result.push(new NormalMatch(strCounter++));
-                        }
+                        
+                        // See the specials section above for a comment on the expression
+                        // for `upper` below.
+                        var upper = originalQuery[queryCounter] === originalStr[strCounter] && originalStr[strCounter] !== str[strCounter];
+                        result.push(new NormalMatch(strCounter++, upper));
 
                         queryCounter++;
                         state = SPECIALS_MATCH;
@@ -517,7 +515,7 @@ define(function (require, exports, module) {
             scoreDebug = {
                 special: 0,
                 match: 0,
-                case: 0,
+                upper: 0,
                 lastSegment: 0,
                 beginning: 0,
                 lengthDeduction: 0,
@@ -581,11 +579,11 @@ define(function (require, exports, module) {
             }
             newPoints += MATCH_POINTS;
             
-            if (match instanceof CaseMatch || match instanceof SpecialCaseMatch) {
+            if (match.upper) {
                 if (DEBUG_SCORES) {
-                    scoreDebug.case += MATCH_CASE_POINTS;
+                    scoreDebug.upper += UPPER_CASE_MATCH;
                 }
-                newPoints += MATCH_CASE_POINTS;
+                newPoints += UPPER_CASE_MATCH;
             }
                         
             // A bonus is given for characters that match at the beginning
@@ -635,11 +633,6 @@ define(function (require, exports, module) {
                     scoreDebug.special += SPECIAL_POINTS;
                 }
                 newPoints += SPECIAL_POINTS;
-            } else if (match instanceof SpecialCaseMatch) {
-                if (DEBUG_SCORES) {
-                    scoreDebug.special += SPECIAL_CASE_POINTS;
-                }
-                newPoints += SPECIAL_CASE_POINTS;
             }
             
             score += newPoints;
@@ -666,7 +659,7 @@ define(function (require, exports, module) {
                 // Check to see if this new matched range is starting on a special
                 // character. We penalize those ranges that don't, because most
                 // people will search on the logical boundaries of the name
-                currentRangeStartedOnSpecial = match instanceof SpecialMatch || match instanceof SpecialCaseMatch;
+                currentRangeStartedOnSpecial = match instanceof SpecialMatch;
             } else {
                 currentRange.text += str[c];
             }
@@ -990,9 +983,7 @@ define(function (require, exports, module) {
     exports._setDebugScores         = _setDebugScores;
     exports._generateMatchList      = _generateMatchList;
     exports._SpecialMatch           = SpecialMatch;
-    exports._SpecialCaseMatch       = SpecialCaseMatch;
     exports._NormalMatch            = NormalMatch;
-    exports._CaseMatch              = CaseMatch;
     exports._computeRangesAndScore  = _computeRangesAndScore;
 
     // public exports

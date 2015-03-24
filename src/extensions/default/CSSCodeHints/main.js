@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         LanguageManager = brackets.getModule("language/LanguageManager"),
         TokenUtils      = brackets.getModule("utils/TokenUtils"),
         StringMatch     = brackets.getModule("utils/StringMatch"),
+        ColorUtils      = brackets.getModule("utils/ColorUtils"),
         CSSProperties   = require("text!CSSProperties.json"),
         properties      = JSON.parse(CSSProperties);
     
@@ -174,16 +175,20 @@ define(function (require, exports, module) {
         return true;
     };
 
-    /*
+    /**
      * Returns a sorted and formatted list of hints with the query substring
      * highlighted.
      * 
      * @param {Array.<Object>} hints - the list of hints to format
      * @param {string} query - querystring used for highlighting matched
-     *      poritions of each hint
+     *      portions of each hint
      * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
      */
     function formatHints(hints, query) {
+        var hasColorSwatch = hints.some(function (token) {
+            return token.color;
+        });
+
         StringMatch.basicMatchSort(hints);
         return hints.map(function (token) {
             var $hintObj = $("<span>").addClass("brackets-css-hints");
@@ -203,7 +208,9 @@ define(function (require, exports, module) {
                 $hintObj.text(token.value);
             }
 
-            $hintObj.data("token", token);
+            if (hasColorSwatch) {
+                $hintObj = ColorUtils.formatColorHint($hintObj, token.color);
+            }
 
             return $hintObj;
         });
@@ -241,6 +248,7 @@ define(function (require, exports, module) {
             valueNeedle = "",
             context = this.info.context,
             valueArray,
+            type,
             namedFlows,
             result,
             selectInitial = false;
@@ -272,7 +280,8 @@ define(function (require, exports, module) {
             }
             
             valueArray = properties[needle].values;
-            if (properties[needle].type === "named-flow") {
+            type = properties[needle].type;
+            if (type === "named-flow") {
                 namedFlows = this.getNamedFlows();
                 
                 if (valueNeedle.length === this.info.offset && namedFlows.indexOf(valueNeedle) !== -1) {
@@ -282,11 +291,20 @@ define(function (require, exports, module) {
                 }
                 
                 valueArray = valueArray.concat(namedFlows);
+            } else if (type === "color") {
+                valueArray = valueArray.concat(ColorUtils.COLOR_NAMES.map(function (color) {
+                    return { text: color, color: color };
+                }));
+                valueArray.push("transparent", "currentColor");
             }
             
-            result = $.map(valueArray, function (pvalue, pindex) {
-                var result = StringMatch.stringMatch(pvalue, valueNeedle, stringMatcherOptions);
+            result = $.map(valueArray, function (pvalue) {
+                var result = StringMatch.stringMatch(pvalue.text || pvalue, valueNeedle, stringMatcherOptions);
                 if (result) {
+                    if (pvalue.color) {
+                        result.color = pvalue.color;
+                    }
+
                     return result;
                 }
             });

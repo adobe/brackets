@@ -23,11 +23,7 @@
 
 
 /*jslint regexp: true, vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-<<<<<<< HEAD
-/*global define, $, window, Promise, Mustache */
-=======
 /*global define, $ */
->>>>>>> upstream/master
 
 define(function (require, exports, module) {
     "use strict";
@@ -40,7 +36,9 @@ define(function (require, exports, module) {
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
         Editor                  = require("editor/Editor").Editor,
+        LanguageManager         = require("language/LanguageManager"),
         ProjectManager          = require("project/ProjectManager"),
+        FileUtils               = require("file/FileUtils"),
         HTMLUtils               = require("language/HTMLUtils"),
         MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
         Strings                 = require("strings"),
@@ -124,11 +122,11 @@ define(function (require, exports, module) {
      * @param {string} path The path to the stylesheet file.
      */
     function _addRule(selectorName, inlineEditor, path) {
-        DocumentManager.getDocumentForPath(path).then(function (styleDoc) {
+        DocumentManager.getDocumentForPath(path).done(function (styleDoc) {
             var newRuleInfo = CSSUtils.addRuleToDocument(styleDoc, selectorName, Editor.getUseTabChar(path), Editor.getSpaceUnits(path));
             inlineEditor.addAndSelectRange(selectorName, styleDoc, newRuleInfo.range.from.line, newRuleInfo.range.to.line);
             inlineEditor.editor.setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
-        }, null);
+        });
     }
     
     /**
@@ -150,7 +148,7 @@ define(function (require, exports, module) {
     /** Item renderer for stylesheet-picker dropdown */
     function _stylesheetListRenderer(item) {
         var html = "<span class='stylesheet-name'>" + _.escape(item.name);
-        if (item.subDirStr.length) {
+        if (item.subDirStr) {
             html += "<span class='stylesheet-dir'> — " + _.escape(item.subDirStr) + "</span>";
         }
         html += "</span>";
@@ -188,7 +186,9 @@ define(function (require, exports, module) {
             return selectorResult.reason || null;
         }
         
-        var selectorName = selectorResult.selectorName,
+        var selectorName = selectorResult.selectorName;
+
+        var result = new $.Deferred(),
             cssInlineEditor,
             cssFileInfos = [],
             newRuleButton;
@@ -208,11 +208,11 @@ define(function (require, exports, module) {
          * @return {$.Promise} a promise that is resolved with the message to show. Never rejected.
          */
         function _getNoRulesMsg() {
-            return new Promise(function (resolve, reject) {
-                _getCSSFilesInProject().then(function (fileInfos) {
-                    resolve(fileInfos.length ? Strings.CSS_QUICK_EDIT_NO_MATCHES : Strings.CSS_QUICK_EDIT_NO_STYLESHEETS);
-                }, null);
+            var result = new $.Deferred();
+            _getCSSFilesInProject().done(function (fileInfos) {
+                result.resolve(fileInfos.length ? Strings.CSS_QUICK_EDIT_NO_MATCHES : Strings.CSS_QUICK_EDIT_NO_STYLESHEETS);
             });
+            return result;
         }
         
         /**
@@ -242,150 +242,129 @@ define(function (require, exports, module) {
         
         /**
          * @private
-         * Sort fileInfo objects by name then sub-directory
+         * Sort files with LESS/SCSS above CSS, and then within each grouping sort by path & filename
+         * (the same order we use for Find in Files)
+         * @param {!File} a, b
+         * @return {number}
          */
-        function _sortFileInfos(a, b) {
-            var nameComparison = a.name.localeCompare(b.name);
-            if (nameComparison !== 0) {
-                return nameComparison;
+        function _fileComparator(a, b) {
+            var aIsCSS = LanguageManager.getLanguageForPath(a.fullPath).getId() === "css",
+                bIsCSS = LanguageManager.getLanguageForPath(b.fullPath).getId() === "css";
+            if (aIsCSS && !bIsCSS) {
+                return 1;
+            } else if (!aIsCSS && bIsCSS) {
+                return -1;
+            } else {
+                return FileUtils.comparePaths(a.fullPath, b.fullPath);
             }
-            return a.subDirStr.localeCompare(b.subDirStr);
         }
         
         /**
          * @private
          * Prepare file list for display
          */
-        function _prepFileList(fileInfos) {
-            var i, j, firstDupeIndex,
-                displayPaths = [],
-                dupeList = [];
+        function _prepFileList(files) {
+            // First, sort list (the same ordering we use for the results list)
+            files.sort(_fileComparator);
             
-            // Add subdir field to each entry
-            fileInfos.forEach(function (fileInfo) {
-                fileInfo.subDirStr = "";
+            // Find any files that share the same name (with different path)
+            var fileNames = {};
+            files.forEach(function (file) {
+                if (!fileNames[file.name]) {
+                    fileNames[file.name] = [];
+                }
+                fileNames[file.name].push(file);
+            });
+            
+            // For any duplicate filenames, set subDirStr to a path snippet the helps
+            // the user distinguish each file in the list.
+            _.forEach(fileNames, function (files) {
+                if (files.length > 1) {
+                    var displayPaths = ViewUtils.getDirNamesForDuplicateFiles(files);
+                    files.forEach(function (file, i) {
+                        file.subDirStr = displayPaths[i];
+                    });
+                }
             });
 
-            // Add directory path to files with the same name so they can be
-            // distinguished in list. Start with list sorted by name.
-            fileInfos.sort(_sortFileInfos);
-
-            // For identical names, add a subdir
-            for (i = 1; i < fileInfos.length; i++) {
-                if (_sortFileInfos(fileInfos[i - 1], fileInfos[i]) === 0) {
-                    // Duplicates found
-                    firstDupeIndex = i - 1;
-                    dupeList.push(fileInfos[i - 1]);
-                    dupeList.push(fileInfos[i]);
-
-                    // Lookahead for more dupes
-                    while (++i < fileInfos.length &&
-                            _sortFileInfos(dupeList[0], fileInfos[i]) === 0) {
-                        dupeList.push(fileInfos[i]);
-                    }
-
-                    // Get minimum subdir to make each unique
-                    displayPaths = ViewUtils.getDirNamesForDuplicateFiles(dupeList);
-
-                    // Add a subdir to each dupe entry
-                    for (j = 0; j < displayPaths.length; j++) {
-                        fileInfos[firstDupeIndex + j].subDirStr = displayPaths[j];
-                    }
-
-                    // Release memory
-                    dupeList = [];
-                }
-            }
-            
-            // Sort by name again, so paths are sorted
-            fileInfos.sort(_sortFileInfos);
-
-            return fileInfos;
+            return files;
         }
         
         function _onHostEditorScroll() {
             newRuleButton.closeDropdown();
         }
         
-        var result = new Promise(function (resolve, reject) {
+        CSSUtils.findMatchingRules(selectorName, hostEditor.document)
+            .done(function (rules) {
+                var inlineEditorDeferred = new $.Deferred();
+                cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(CSSUtils.consolidateRules(rules),
+                                                                                    _getNoRulesMsg, CSSUtils.getRangeSelectors,
+                                                                                    _fileComparator);
+                cssInlineEditor.load(hostEditor);
+                cssInlineEditor.$htmlContent
+                    .on("focusin", _updateCommands)
+                    .on("focusout", _updateCommands);
+                cssInlineEditor.on("add", function () {
+                    inlineEditorDeferred.resolve();
+                });
+                cssInlineEditor.on("close", function () {
+                    newRuleButton.closeDropdown();
+                    hostEditor.off("scroll", _onHostEditorScroll);
+                });
 
-            CSSUtils.findMatchingRules(selectorName, hostEditor.document).then(
-                function (rules) {
-                    cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(
-                        CSSUtils.consolidateRules(rules),
-                        _getNoRulesMsg,
-                        CSSUtils.getRangeSelectors
-                    );
-                    cssInlineEditor.load(hostEditor);
-                    cssInlineEditor.$htmlContent
-                        .on("focusin", _updateCommands)
-                        .on("focusout", _updateCommands);
-                    $(cssInlineEditor).on("close", function () {
-                        newRuleButton.closeDropdown();
-                        $(hostEditor).off("scroll", _onHostEditorScroll);
-                    });
+                var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
+                newRuleButton = new DropdownButton(Strings.BUTTON_NEW_RULE, [], _stylesheetListRenderer); // actual item list populated later, below
+                newRuleButton.$button.addClass("disabled");  // disabled until list is known
+                newRuleButton.$button.addClass("btn-mini stylesheet-button");
+                $header.append(newRuleButton.$button);
+                _newRuleHandlers.push({inlineEditor: cssInlineEditor, handler: _handleNewRuleClick});
+                
+                hostEditor.on("scroll", _onHostEditorScroll);
+                
+                result.resolve(cssInlineEditor);
+                
 
-                    var inlineEditorPromise = new Promise(function (resolve, reject) {
-                        $(cssInlineEditor).on("add", function () {
-                            resolve();
-                        });
-                    });
-
-                    var $header = $(".inline-editor-header", cssInlineEditor.$htmlContent);
-                    newRuleButton = new DropdownButton(Strings.BUTTON_NEW_RULE, [], _stylesheetListRenderer); // actual item list populated later, below
-                    newRuleButton.$button.addClass("disabled");  // disabled until list is known
-                    newRuleButton.$button.addClass("btn-mini stylesheet-button");
-                    $header.append(newRuleButton.$button);
-                    _newRuleHandlers.push({inlineEditor: cssInlineEditor, handler: _handleNewRuleClick});
-
-                    $(hostEditor).on("scroll", _onHostEditorScroll);
-
-                    resolve(cssInlineEditor);
-
-
-                    // Now that dialog has been built, collect list of stylesheets
-                    var stylesheetsPromise = _getCSSFilesInProject();
-
-                    // After both the stylesheets are loaded and the inline editor has been added to the DOM,
-                    // update the UI accordingly. (Those can happen in either order, so we need to wait for both.)
-                    // Note that the stylesheetsPromise needs to be passed first in order for the fileInfos to be
-                    // properly passed to the handler, since Promise.all() passes the results in order of the argument
-                    // list.
-                    Promise.all([stylesheetsPromise, inlineEditorPromise])
-                        .then(function (fileInfos) {
-                            cssFileInfos = _prepFileList(fileInfos);
-
-                            // "New Rule" button is disabled by default and gets enabled
-                            // here if there are any stylesheets in project
-                            if (cssFileInfos.length > 0) {
-                                newRuleButton.$button.removeClass("disabled");
-                                if (!rules.length) {
-                                    // Force focus to the button so the user can create a new rule from the keyboard.
-                                    newRuleButton.$button.focus();
-                                }
-
-                                if (cssFileInfos.length === 1) {
-                                    // Make it look & feel like a plain button in this case
-                                    newRuleButton.$button.removeClass("btn-dropdown");
-                                    newRuleButton.$button.on("click", _handleNewRuleClick);
-                                } else {
-                                    // Fill out remaining dropdown attributes otherwise
-                                    newRuleButton.items = cssFileInfos;
-                                    $(newRuleButton).on("select", _onDropdownSelect);
-                                }
+                // Now that dialog has been built, collect list of stylesheets
+                var stylesheetsPromise = _getCSSFilesInProject();
+                
+                // After both the stylesheets are loaded and the inline editor has been added to the DOM,
+                // update the UI accordingly. (Those can happen in either order, so we need to wait for both.)
+                // Note that the stylesheetsPromise needs to be passed first in order for the fileInfos to be
+                // properly passed to the handler, since $.when() passes the results in order of the argument
+                // list.
+                $.when(stylesheetsPromise, inlineEditorDeferred.promise())
+                    .done(function (fileInfos) {
+                        cssFileInfos = _prepFileList(fileInfos);
+                        
+                        // "New Rule" button is disabled by default and gets enabled
+                        // here if there are any stylesheets in project
+                        if (cssFileInfos.length > 0) {
+                            newRuleButton.$button.removeClass("disabled");
+                            if (!rules.length) {
+                                // Force focus to the button so the user can create a new rule from the keyboard.
+                                newRuleButton.$button.focus();
                             }
-
-                            _updateCommands();
-                        }, null);
-                },
-                function () {
-                    console.log("Error in findMatchingRules()");
-                    reject();
-                }
-            );
-        });
+                            
+                            if (cssFileInfos.length === 1) {
+                                // Make it look & feel like a plain button in this case
+                                newRuleButton.$button.removeClass("btn-dropdown");
+                                newRuleButton.$button.on("click", _handleNewRuleClick);
+                            } else {
+                                // Fill out remaining dropdown attributes otherwise
+                                newRuleButton.items = cssFileInfos;
+                                newRuleButton.on("select", _onDropdownSelect);
+                            }
+                        }
+                        
+                        _updateCommands();
+                    });
+            })
+            .fail(function (error) {
+                console.warn("Error in findMatchingRules()", error);
+                result.reject();
+            });
         
-        return result;
+        return result.promise();
     }
 
     EditorManager.registerInlineEditProvider(htmlToCSSProvider);

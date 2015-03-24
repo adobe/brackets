@@ -198,6 +198,24 @@ define({
     "PROJECT_LOADING"   : "Učitavanje\u2026",
     "UNTITLED"          : "Neimenovan",
     "WORKING_FILES"     : "Radne datoteke",
+    
+    /**
+     * MainViewManager
+     */
+    "TOP"               : "Vrh",
+    "BOTTOM"            : "Dno",
+    "LEFT"              : "Lijevo",
+    "RIGHT"             : "Desno",
+
+    "CMD_SPLITVIEW_NONE"        : "Bez prepolavljanja",
+    "CMD_SPLITVIEW_VERTICAL"    : "Prepolovi okomito",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Prepolovi vodoravno",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Prepolovi editor okomito ili vodoravno",
+    "GEAR_MENU_TOOLTIP"         : "Definiraj radni skup",
+
+    "SPLITVIEW_INFO_TITLE"              : "Već otvoreno",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Datoteka je već otvorena u drugom panelu. {APP_NAME} će uskoro podržavati otvaranje iste datoteke u više od jednog panela. Do tada, datoteka će biti prikazana u panelu u kojem je već otvorena.<br /><br />(Ovu ćeš poruku vidjeti samo jednom.)",
+
 
     /**
      * Keyboard modifier names
@@ -330,6 +348,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortiraj po imenu",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortiraj po tipu",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatsko sortiranje",
+    "CMD_THEMES"                          : "Teme\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigacija",
@@ -391,6 +410,14 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Osnovna URL adresa ne smije sadržavati hasheve (hashes) poput \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Posebni znakovi kao '{0}' moraju biti %-enkodirani.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Nepoznata greška prilikom parsiranja osnovne URL adrese",
+    "EMPTY_VIEW_HEADER"                    : "<em>Otvori datoteku dok je ovaj panel u fokusu</em>",
+    
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Trenutna Tema",
+    "USE_THEME_SCROLLBARS"                 : "Koristi scrollbarove teme",
+    "FONT_SIZE"                            : "Veličina Fonta",
+    "FONT_FAMILY"                          : "Obitelj Fonta",
+    "THEMES_SETTINGS"                      : "Postavke Teme",
     
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Novo Pravilo",
@@ -438,6 +465,8 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Manager extenzija",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Pristupanje registru extenzije nije moguće. Pokušajte kasnije.",
+    "INSTALL_EXTENSION_DRAG"               : "Dovuci .zip ovdje ili",
+    "INSTALL_EXTENSION_DROP"               : "Ispusti .zip da instaliraš",
     "INSTALL_FROM_URL"                     : "Instaliraj sa linka URL\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
@@ -474,6 +503,7 @@ define({
     "REGISTRY_SANITY_CHECK_WARNING"        : "Budite oprezni prilikom instalacije extenzija koje potječu iz nepoznatih izvora.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Instalirano",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dostupno",
+    "EXTENSIONS_THEMES_TITLE"              : "Teme",
     "EXTENSIONS_UPDATES_TITLE"             : "Obnovljene verzije",
     
     "INLINE_EDITOR_NO_MATCHES"             : "Poklapanja nisu nađena.",
@@ -503,6 +533,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Zapiši u konzolu stanje Node-a",
     "CMD_RESTART_NODE"                          : "Ponovo pokreni Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Prikaži greške u statusnoj traci",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Otvori Brackets Izvor",
     
     "LANGUAGE_TITLE"                            : "Promjeni Jezik",
     "LANGUAGE_MESSAGE"                          : "Jezik:",

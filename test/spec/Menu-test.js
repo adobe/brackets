@@ -184,7 +184,7 @@ define(function (require, exports, module) {
                     CommandManager.register("Brackets Test Command Custom 51", "Menu-test.command51", function () {});
                     cmenu.addMenuItem("Menu-test.command51");
 
-                    testWindow.$(cmenu).on("beforeContextMenuOpen", function () {
+                    cmenu.on("beforeContextMenuOpen", function () {
                         openEvent = true;
                     });
 
@@ -955,7 +955,7 @@ define(function (require, exports, module) {
                     CommandManager.register("Brackets Test Command Custom 51", "Menu-test.command51", function () {});
                     cmenu.addMenuItem("Menu-test.command51");
 
-                    testWindow.$(cmenu).on("beforeContextMenuOpen", function () {
+                    cmenu.on("beforeContextMenuOpen", function () {
                         openEvent = true;
                     });
 

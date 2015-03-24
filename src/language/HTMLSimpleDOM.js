@@ -280,7 +280,10 @@ define(function (require, exports, module) {
         // Appropriate timer is used, and the other is discarded.
         var timerBuildFull = "HTMLInstr. Build DOM Full";
         var timerBuildPart = "HTMLInstr. Build DOM Partial";
-        PerfUtils.markStart([timerBuildFull, timerBuildPart]);
+        var timers; // timer handles
+        timers = PerfUtils.markStart([timerBuildFull, timerBuildPart]);
+        timerBuildFull = timers[0];
+        timerBuildPart = timers[1];
         
         function closeTag(endIndex, endPos) {
             lastClosedTag = stack[stack.length - 1];

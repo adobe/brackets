@@ -31,7 +31,6 @@ define(function (require, exports, module) {
     var AppInit         = brackets.getModule("utils/AppInit"),
         CodeHintManager = brackets.getModule("editor/CodeHintManager"),
         CSSUtils        = brackets.getModule("language/CSSUtils"),
-        EditorManager   = brackets.getModule("editor/EditorManager"),
         FileSystem      = brackets.getModule("filesystem/FileSystem"),
         FileUtils       = brackets.getModule("file/FileUtils"),
         HTMLUtils       = brackets.getModule("language/HTMLUtils"),
@@ -60,7 +59,6 @@ define(function (require, exports, module) {
         var directory,
             doc,
             docDir,
-            editor,
             queryDir = "",
             queryUrl,
             result = [],
@@ -68,13 +66,7 @@ define(function (require, exports, module) {
             targetDir,
             unfiltered = [];
 
-        // get path to document in focused editor
-        editor = EditorManager.getFocusedEditor();
-        if (!editor) {
-            return result;
-        }
-
-        doc = editor.document;
+        doc = this.editor && this.editor.document;
         if (!doc || !doc.file) {
             return result;
         }

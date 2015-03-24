@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),
         FileUtils         = require("file/FileUtils"),
+        LanguageManager   = require("language/LanguageManager"),
         FileTreeViewModel = require("project/FileTreeViewModel"),
         ViewUtils         = require("utils/ViewUtils"),
         KeyEvent          = require("utils/KeyEvent");
@@ -139,11 +140,11 @@ define(function (require, exports, module) {
          * The rename or create operation can be completed or canceled by actions outside of
          * this component, so we keep the model up to date by sending every update via an action.
          */
-        handleKeyUp: function (e) {
+        handleInput: function (e) {
             this.props.actions.setRenameValue(this.refs.name.getDOMNode().value.trim());
 
             if (e.keyCode !== KeyEvent.DOM_VK_LEFT &&
-                e.keyCode !== KeyEvent.DOM_VK_RIGHT) {
+                    e.keyCode !== KeyEvent.DOM_VK_RIGHT) {
                 // update the width of the input field
                 var domNode = this.refs.name.getDOMNode(),
                     newWidth = _measureText(domNode.value);
@@ -178,7 +179,7 @@ define(function (require, exports, module) {
          */
         componentDidMount: function () {
             var fullname = this.props.name,
-                extension = FileUtils.getSmartFileExtension(fullname);
+                extension = LanguageManager.getCompoundFileExtension(fullname);
 
             var node = this.refs.name.getDOMNode();
             node.setSelectionRange(0, _getName(fullname, extension).length);
@@ -194,7 +195,7 @@ define(function (require, exports, module) {
                 defaultValue: this.props.name,
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
-                onKeyUp: this.handleKeyUp,
+                onInput: this.handleInput,
                 onClick: this.handleClick,
                 onBlur: this.handleBlur,
                 style: {
@@ -222,6 +223,12 @@ define(function (require, exports, module) {
                 this.props.actions.setContext(this.myPath());
                 return false;
             }
+            // Return true only for mouse down in rename mode.
+            if (this.props.entry.get("rename")) {
+                e.stopPropagation();
+                return true;
+            }
+            return false;
         }
     };
 
@@ -258,16 +265,16 @@ define(function (require, exports, module) {
                 result = extensions.get("icons").map(function (callback) {
                     try {
                         var result = callback(data);
-                        if (!React.isValidComponent(result)) {
+                        if (result && !React.isValidComponent(result)) {
                             result = React.DOM.span({
                                 dangerouslySetInnerHTML: {
                                     __html: $(result)[0].outerHTML
                                 }
                             });
                         }
-                        return result;
+                        return result;  // by this point, returns either undefined or a React object
                     } catch (e) {
-                        console.warn("Exception thrown in FileTreeView icon provider:", e);
+                        console.error("Exception thrown in FileTreeView icon provider: " + e, e.stack);
                     }
                 }).filter(isDefined).toArray();
             }
@@ -296,7 +303,7 @@ define(function (require, exports, module) {
                     try {
                         return callback(data);
                     } catch (e) {
-                        console.warn("Exception thrown in FileTreeView addClass provider:", e);
+                        console.error("Exception thrown in FileTreeView addClass provider: " + e, e.stack);
                     }
                 }).filter(isDefined).toArray().join(" ");
             }
@@ -419,7 +426,7 @@ define(function (require, exports, module) {
         /**
          * Create the data object to pass to extensions.
          *
-         * @return {{name: {string}, isFile: {boolean}, fullPath: {string}}} Data for extensions
+         * @return {!{name:string, isFile:boolean, fullPath:string}} Data for extensions
          */
         getDataForExtension: function () {
             return {
@@ -431,7 +438,7 @@ define(function (require, exports, module) {
 
         render: function () {
             var fullname = this.props.name,
-                extension = FileUtils.getSmartFileExtension(fullname),
+                extension = LanguageManager.getCompoundFileExtension(fullname),
                 name = _getName(fullname, extension);
 
             if (extension) {
@@ -539,6 +546,17 @@ define(function (require, exports, module) {
     var directoryRenameInput = React.createClass({
         mixins: [renameBehavior],
 
+        /**
+         * When this component is displayed, we scroll it into view and select the folder name.
+         */
+        componentDidMount: function () {
+            var fullname = this.props.name;
+
+            var node = this.refs.name.getDOMNode();
+            node.setSelectionRange(0, fullname.length);
+            ViewUtils.scrollElementIntoView($("#project-files-container"), $(node), true);
+        },
+
         render: function () {
             var width = _measureText(this.props.name);
 
@@ -548,7 +566,7 @@ define(function (require, exports, module) {
                 defaultValue: this.props.name,
                 autoFocus: true,
                 onKeyDown: this.handleKeyDown,
-                onKeyUp: this.handleKeyUp,
+                onInput: this.handleInput,
                 onBlur: this.handleBlur,
                 style: {
                     width: width
@@ -777,19 +795,9 @@ define(function (require, exports, module) {
      * Props:
      * * selectionViewInfo: Immutable.Map with width, scrollTop, scrollLeft and offsetTop for the tree container
      * * visible: should this be visible now
-     * * widthAdjustment: if this box should not fill the entire width, pass in a positive number here which is subtracted from the width in selectionViewInfo
+     * * selectedClassName: class name applied to the element that is selected
      */
     var fileSelectionBox = React.createClass({
-
-        /**
-         * Sets up initial state.
-         */
-        getInitialState: function () {
-            return {
-                initialScroll: 0
-            };
-        },
-
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
@@ -813,7 +821,7 @@ define(function (require, exports, module) {
         render: function () {
             var selectionViewInfo = this.props.selectionViewInfo,
                 left = selectionViewInfo.get("scrollLeft"),
-                width = selectionViewInfo.get("width") - this.props.widthAdjustment,
+                width = selectionViewInfo.get("width"),
                 scrollWidth = selectionViewInfo.get("scrollWidth");
 
             // Avoid endless horizontal scrolling
@@ -826,6 +834,79 @@ define(function (require, exports, module) {
                     overflow: "auto",
                     left: left,
                     width: width,
+                    display: this.props.visible ? "block" : "none"
+                },
+                className: this.props.className
+            });
+        }
+    });
+    
+    /**
+     * On Windows and Linux, the selection bar in the tree does not extend over the scroll bar.
+     * The selectionExtension sits on top of the scroll bar to make the selection bar appear to span the
+     * whole width of the sidebar.
+     *
+     * Props:
+     * * selectionViewInfo: Immutable.Map with width, scrollTop, scrollLeft and offsetTop for the tree container
+     * * visible: should this be visible now
+     * * selectedClassName: class name applied to the element that is selected
+     * * className: class to be applied to the extension element
+     */
+    var selectionExtension = React.createClass({
+        /**
+         * When the component has updated in the DOM, reposition it to where the currently
+         * selected node is located now.
+         */
+        componentDidUpdate: function () {
+            if (!this.props.visible) {
+                return;
+            }
+
+            var node = this.getDOMNode(),
+                selectedNode = $(node.parentNode).find(this.props.selectedClassName),
+                selectionViewInfo = this.props.selectionViewInfo;
+
+            if (selectedNode.length === 0) {
+                return;
+            }
+
+            var top = selectedNode.offset().top,
+                baselineHeight = node.dataset.initialHeight,
+                height = baselineHeight,
+                scrollerTop = selectionViewInfo.get("offsetTop");
+
+            if (!baselineHeight) {
+                baselineHeight = $(node).outerHeight();
+                node.dataset.initialHeight = baselineHeight;
+                height = baselineHeight;
+            }
+
+            // Check to see if the selection is completely scrolled out of view
+            // to prevent the extension from appearing in the working set area.
+            if (top < scrollerTop - baselineHeight) {
+                node.style.display = "none";
+                return;
+            }
+
+            node.style.display = "block";
+
+            // The selectionExtension sits on top of the other nodes
+            // so we need to shrink it if only part of the selection node is visible
+            if (top < scrollerTop) {
+                var difference = scrollerTop - top;
+                top += difference;
+                height = parseInt(height, 10);
+                height -= difference;
+            }
+
+            node.style.top = top + "px";
+            node.style.height = height + "px";
+            node.style.left = selectionViewInfo.get("width") - $(node).outerWidth() + "px";
+        },
+
+        render: function () {
+            return DOM.div({
+                style: {
                     display: this.props.visible ? "block" : "none"
                 },
                 className: this.props.className
@@ -845,6 +926,7 @@ define(function (require, exports, module) {
      * * actions: the action creator responsible for communicating actions the user has taken
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
+     * * platform: platform that Brackets is running on
      */
     var fileTreeView = React.createClass({
 
@@ -865,7 +947,6 @@ define(function (require, exports, module) {
                 selectionViewInfo: this.props.selectionViewInfo,
                 className: "filetree-selection",
                 visible: this.props.selectionViewInfo.get("hasSelection"),
-                widthAdjustment: 0,
                 selectedClassName: ".selected-node",
                 forceUpdate: true
             }),
@@ -874,16 +955,24 @@ define(function (require, exports, module) {
                     selectionViewInfo: this.props.selectionViewInfo,
                     className: "filetree-context",
                     visible: this.props.selectionViewInfo.get("hasContext"),
-                    widthAdjustment: 0,
                     selectedClassName: ".context-node",
                     forceUpdate: true
-                });
-
-            return DOM.div(
-                null,
-                selectionBackground,
-                contextBackground,
-                directoryContents({
+                }),
+                extensionForSelection = selectionExtension({
+                    selectionViewInfo: this.props.selectionViewInfo,
+                    selectedClassName: ".selected-node",
+                    visible: this.props.selectionViewInfo.get("hasSelection"),
+                    forceUpdate: true,
+                    className: "filetree-selection-extension"
+                }),
+                extensionForContext = selectionExtension({
+                    selectionViewInfo: this.props.selectionViewInfo,
+                    selectedClassName: ".context-node",
+                    visible: this.props.selectionViewInfo.get("hasContext"),
+                    forceUpdate: true,
+                    className: "filetree-context-extension"
+                }),
+                contents = directoryContents({
                     isRoot: true,
                     parentPath: this.props.parentPath,
                     sortDirectoriesFirst: this.props.sortDirectoriesFirst,
@@ -892,7 +981,15 @@ define(function (require, exports, module) {
                     actions: this.props.actions,
                     forceRender: this.props.forceRender,
                     platform: this.props.platform
-                })
+                });
+            
+            return DOM.div(
+                null,
+                selectionBackground,
+                contextBackground,
+                extensionForSelection,
+                extensionForContext,
+                contents
             );
         }
     });
@@ -947,29 +1044,14 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Adds an icon provider. The icon provider is a function which takes a data object and
-     * returns a React.DOM.ins instance for the icons within the tree. The callback can
-     * alternatively return a string, DOM node or a jQuery object for the ins node to be added.
-     *
-     * The data object contains:
-     *
-     * * `name`: the file or directory name
-     * * `fullPath`: full path to the file or directory
-     * * `isFile`: true if it's a file, false if it's a directory
+     * @see {@link ProjectManager::#addIconProvider}
      */
     function addIconProvider(callback) {
         _addExtension("icons", callback);
     }
 
     /**
-     * Adds an additional classes provider which can return classes that should be added to a
-     * given file or directory in the tree.
-     *
-     * The data object contains:
-     *
-     * * `name`: the file or directory name
-     * * `fullPath`: full path to the file or directory
-     * * `isFile`: true if it's a file, false if it's a directory
+     * @see {@link ProjectManager::#addClassesProvider}
      */
     function addClassesProvider(callback) {
         _addExtension("addClass", callback);

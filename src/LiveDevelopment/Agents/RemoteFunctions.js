@@ -308,7 +308,7 @@ function RemoteFunctions(experimental) {
                 
                 window.setTimeout(function () {
                     _setStyleValues(animateEndValues, highlight.style);
-                }, 0);
+                }, 20);
             }
         
             window.document.body.appendChild(highlight);
@@ -660,7 +660,11 @@ function RemoteFunctions(experimental) {
             } else {
                 lastRemovedWasText = isText;
 
-                current.remove();
+                if (current.remove) {
+                    current.remove();
+                } else if (current.parentNode && current.parentNode.removeChild) {
+                    current.parentNode.removeChild(current);
+                }
                 current = next;
             }
         }
@@ -698,7 +702,11 @@ function RemoteFunctions(experimental) {
                 edit.tagIDs.forEach(function (tagID) {
                     var node = self._queryBracketsID(tagID);
                     self.rememberedNodes[tagID] = node;
-                    node.remove();
+                    if (node.remove) {
+                        node.remove();
+                    } else if (node.parentNode && node.parentNode.removeChild) {
+                        node.parentNode.removeChild(node);
+                    }
                 });
                 return;
             }
@@ -720,7 +728,11 @@ function RemoteFunctions(experimental) {
                 targetElement.removeAttribute(edit.attribute);
                 break;
             case "elementDelete":
-                targetElement.remove();
+                if (targetElement.remove) {
+                    targetElement.remove();
+                } else if (targetElement.parentNode && targetElement.parentNode.removeChild) {
+                    targetElement.parentNode.removeChild(targetElement);
+                }
                 break;
             case "elementInsert":
                 childElement = null;

@@ -57,13 +57,15 @@ html, body {
     /* Turn off subpixel antialiasing on Mac since it flickers during animations. */
     -webkit-font-smoothing: antialiased;
 
-    /* This is a hack to avoid flicker when animations (like inline editors) that use the GPU complete.
-       It seems that we have to put it here rather than on the animated element in order to prevent the
-       entire window from flashing.
-       See: http://stackoverflow.com/questions/3461441/prevent-flicker-on-webkit-transition-of-webkit-transform
-    */
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    // This is a hack to avoid flicker when animations (like inline editors) that use the GPU complete.
+    // It seems that we have to put it here rather than on the animated element in order to prevent the
+    // entire window from flashing.
+    // See: http://stackoverflow.com/questions/3461441/prevent-flicker-on-webkit-transition-of-webkit-transform
+    // Mac-only though, since this would turn off subpixel antialiasing (ClearType) on Windows
+    &.platform-mac {
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
 
     .dark,
     &.dark {
@@ -325,7 +327,6 @@ a, img {
     /* Placeholder shown when there is no editor open */
 
     .view-pane {
-        opacity: 0.7; // quieten inactive pane
         display: block;
         margin: 0;
         overflow: hidden;
@@ -351,9 +352,8 @@ a, img {
             .image-centering {
                 display: inline-block;
                 vertical-align: middle;
-                margin-top: -50px; /* Offset as vertical align takes image metadata into account */
-                max-width: 90%;
-                max-height: 90%;
+                width: 90%; //As long as the width isn't set on the image itself theres no need for max-width/height
+                height: 90%;
             }
             .image-data {
                 font-weight: @font-weight-semibold;
@@ -371,7 +371,7 @@ a, img {
         .image-preview {
             background: url(images/preview_bg.png);
             box-shadow: 0 1px 3px @bc-shadow;
-            max-height: 90%;
+            max-height: 100%;
 
             .dark & {
                 background: url(images/preview_bg_dark.png);
@@ -402,6 +402,7 @@ a, img {
 
         .image {
             position: relative;
+            height: calc(~'100% - 53px');//.image-header height+margin
         }
 
         .image-guide,
@@ -437,7 +438,7 @@ a, img {
             color: @bc-text-alt;
             background-color: rgba(0, 0, 0, 0.8);
             font-size: 11px;
-            font-family: SourceCodePro;
+            font-family: @sourceFontFamily;
             line-height: 13px;
             border-radius: 3px;
             box-shadow: 0 1px 3px @bc-shadow;
@@ -478,6 +479,7 @@ a, img {
         }
     }
     .pane-header {
+        opacity: 0.7; // quieten inactive pane header
         box-sizing: border-box;
         border-bottom:  1px solid rgba(0, 0, 0, 0.05);
         padding: 5px 10px;
@@ -492,9 +494,9 @@ a, img {
         }
     }
     .active-pane {
-        opacity: 1;
         
         .pane-header {
+            opacity: 1;
             color: @bc-menu-text;
 
             .dark & {
@@ -638,7 +640,7 @@ a, img {
 
     .line-number {
         color: @bc-text-thin-quiet;
-        font-family: SourceCodePro;
+        font-family: @sourceFontFamily;
         font-size: 11px;
         padding: 4px 0 0 15px;
         text-align: right;
@@ -829,6 +831,7 @@ a, img {
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
+        white-space: nowrap;
         
         &.selected a {
             color: @open-working-file-name-highlight;
@@ -878,10 +881,20 @@ a, img {
     position: absolute;
 }
 
-.sidebar-selection-extension {
+.sidebar-selection-extension, .filetree-selection-extension {
     background: @bc-sidebar-selection;
     border-top: 1px solid @bc-shadow-small;
     border-bottom: 1px solid @bc-highlight;
+    box-sizing: border-box;
+    height: 23px;
+    width: 9px; /* quiet scrollbar width */
+    position: fixed;
+
+    z-index: @z-index-brackets-selection-extension; /* scroller-shadow appears above the extension */
+}
+
+.filetree-context-extension {
+    background: rgba(255, 255, 255, 0.06);
     box-sizing: border-box;
     height: 23px;
     width: 9px; /* quiet scrollbar width */
@@ -1201,7 +1214,7 @@ a, img {
 
         ul {
             margin: 0;
-            padding: @top-margin 0px;
+            padding: 10px 0px 10px 5px;
             list-style: none;
         }
 
@@ -1216,9 +1229,21 @@ a, img {
             .dark & {
                 color: @dark-bc-text-emphasized;
             }
+            
+            &.section-header {
+                padding-left: 0;
+                padding-bottom: 0;
+                .disclosure-triangle {
+                    .expand-collapse-triangle();
+                }
+                .filename {
+                    font-weight: @font-weight-semibold;
+                }
+            }
 
             .related-file {
                 color: @bc-text-thin-quiet;
+                padding-left: 3px;
                 
                 .dark & {
                     color: @dark-bc-text-thin-quiet;
@@ -1345,6 +1370,9 @@ a, img {
 
 .search-results .disclosure-triangle,
 #problems-panel .disclosure-triangle {
+    .expand-collapse-triangle();
+}
+.expand-collapse-triangle() {
     .jstree-sprite;
     display: inline-block;
     background-position: 7px 5px;
@@ -1688,6 +1716,12 @@ textarea.exclusions-editor {
         border-top: 1px solid #e0d123;
         border-bottom: 1px solid #d4c620;
         opacity: 0.85;  // allow thumb to show through
+        &.tickmark-current {
+            background-color: #ed9823;
+            border-top: 1px solid #dd9128;
+            border-bottom: 1px solid #cb8320;
+            z-index: 1;  // ensure this one appears above overlapping sibling highlights
+        }
     }
 }
 

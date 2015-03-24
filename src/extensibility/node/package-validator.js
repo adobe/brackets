@@ -270,7 +270,7 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
     unzipper.on("error", function (err) {
         // General error to report for problems reading the file
         callback(null, {
-            errors: [[Errors.INVALID_ZIP_FILE, zipPath]]
+            errors: [[Errors.INVALID_ZIP_FILE, zipPath, err]]
         });
         return;
     });

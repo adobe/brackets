@@ -201,7 +201,7 @@ define(function (require, exports, module) {
             startSearch(_findBar.getReplaceText());
         }
         
-        $(_findBar)
+        _findBar
             .on("doFind.FindInFiles", function () {
                 // Subtle issue: we can't just pass startSearch directly as the handler, because
                 // we don't want it to get the event object as an argument.
@@ -209,14 +209,14 @@ define(function (require, exports, module) {
             })
             .on("queryChange.FindInFiles", handleQueryChange)
             .on("close.FindInFiles", function (e) {
-                $(_findBar).off(".FindInFiles");
+                _findBar.off(".FindInFiles");
                 _findBar = null;
             });
         
         if (showReplace) {
             // We shouldn't get a "doReplace" in this case, since the Replace button
             // is hidden when we set options.multifile.
-            $(_findBar).on("doReplaceAll.FindInFiles", startReplace);
+            _findBar.on("doReplaceAll.FindInFiles", startReplace);
         }
         
         var oldModalBarHeight = _findBar._modalBar.height();
@@ -369,7 +369,7 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         var model = FindInFiles.searchModel;
         _resultsView = new SearchResultsView(model, "find-in-files-results", "find-in-files.results");
-        $(_resultsView)
+        _resultsView
             .on("replaceAll", function () {
                 _finishReplaceAll(model);
             })
@@ -379,15 +379,13 @@ define(function (require, exports, module) {
     });
     
     // Initialize: register listeners
-    $(ProjectManager).on("beforeProjectClose", function () { _resultsView.close(); });
+    ProjectManager.on("beforeProjectClose", function () { _resultsView.close(); });
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,       Commands.CMD_FIND_IN_FILES,       _showFindBar);
-    CommandManager.register(Strings.CMD_FIND_IN_SELECTED,    Commands.CMD_FIND_IN_SELECTED,    _showFindBarForSubtree);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,     Commands.CMD_FIND_IN_SUBTREE,     _showFindBarForSubtree);
     
     CommandManager.register(Strings.CMD_REPLACE_IN_FILES,    Commands.CMD_REPLACE_IN_FILES,    _showReplaceBar);
-    CommandManager.register(Strings.CMD_REPLACE_IN_SELECTED, Commands.CMD_REPLACE_IN_SELECTED, _showReplaceBarForSubtree);
     CommandManager.register(Strings.CMD_REPLACE_IN_SUBTREE,  Commands.CMD_REPLACE_IN_SUBTREE,  _showReplaceBarForSubtree);
     
     // Public exports
