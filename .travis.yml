@@ -9,15 +9,13 @@ branches:
   - bramble
 deploy:
   provider: s3
-  access_key_id: AKIAJUGOXM6YIWNJL4JA
+  access_key_id: AKIAJZZYAKJA33TQEHLA
   secret_access_key:
-    secure: NHgLUUfeDkoHfjBNTbI2O7i3mKqUP7iXeM0os6ck/MJT0Ki0PSq9tZFP/8622AUbGGMW8saicq9IaDuOS51VmH9k4Fn7VpLgaVQSK1WfjoTevNFr5xrXOuMMFrrwatvpLN5NByyCZ4fwvoYPd6bM9NHLh5jijWjeeeOEfqXXb7Y=
-  bucket: cdot-bramble
+    secure: PUmptcr3naHfuC1FU8q7F3OEbnbCzfKaTYleJDpYjz7lSt24zoXD5epaTcusva4SafMS3I5NeKZ79YmDrn2ONEyLdyPCLKNScOFEClhjFNeuMOrf63fK3MO1RwNtJ2Rvjwwi2k+/pVaVUXKcr287JWywDZUZfYp7DjxJdNU6JZ0=
+  bucket: mozillathimblelivepreview.net
   local-dir: dist
-  upload-dir: dist
+  upload-dir: bramble/dist
   acl: public_read
-  skip_cleanup: true
   on:
     repo: humphd/brackets
     branch: bramble
-
