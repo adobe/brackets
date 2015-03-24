@@ -9,12 +9,15 @@ branches:
   - bramble
 deploy:
   provider: s3
-  bucket: cdot-bramble
-  skip_cleanup: true
-  local_dir: dist
-  endpoint: cdot-bramble.s3-website-us-west-2.amazonaws.com
-  region: us-west-2
-  access_key_id:
-    secure: DNrGD/mXEsRB73FCQrLG9YQGGkhKPjpN6shq9kCVVzujsgFFgYHbtDUk9H2WHo5iYVx6qr0lPdTTHB1mfPyr4Prf87hcJagXwCqqT2R6FYSijdiDu56FRHjO/3YHXNkHUCWoz+Iivad682EpVbTdw99B4WPYcSrn5ay59yUv1P4=
+  access_key_id: AKIAJUGOXM6YIWNJL4JA
   secret_access_key:
-    secure: P6cutaDapDiCo7v1AQ03uXWTXFgB8UQR/EWO/v/X3uhfAG1eev5o6q1QF2Q7m5IIt42iOupBMe4sIlktGyNkS0+rD1+kemIZco1IxZU/2GoHSx8rQknhsfo3C1kS487bujmYjb9n/Xx/JHGEZP9DcW0U5HHeuVA5zNzDGUDtVQ0=
+    secure: NHgLUUfeDkoHfjBNTbI2O7i3mKqUP7iXeM0os6ck/MJT0Ki0PSq9tZFP/8622AUbGGMW8saicq9IaDuOS51VmH9k4Fn7VpLgaVQSK1WfjoTevNFr5xrXOuMMFrrwatvpLN5NByyCZ4fwvoYPd6bM9NHLh5jijWjeeeOEfqXXb7Y=
+  bucket: cdot-bramble
+  local-dir: dist
+  upload-dir: dist
+  acl: public_read
+  skip_cleanup: true
+  on:
+    repo: humphd/brackets
+    branch: bramble
+
