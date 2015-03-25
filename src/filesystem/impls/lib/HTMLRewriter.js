@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, appshell, DOMParser */
+/*global define, DOMParser */
 define(function (require, exports, module) {
     "use strict";
 
@@ -7,8 +7,7 @@ define(function (require, exports, module) {
     var Log = require("filesystem/impls/lib/log");
     var Async = require("filesystem/impls/lib/async");
     var CSSRewriter = require("filesystem/impls/lib/CSSRewriter");
-
-    var Filer = appshell.Filer;
+    var Filer = require("filesystem/impls/filer/BracketsFiler");
     var Path = Filer.Path;
 
     /**

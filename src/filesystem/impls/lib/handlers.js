@@ -7,7 +7,7 @@ define(function (require, exports, module) {
     var Log = require("filesystem/impls/lib/log");
     var HTMLRewriter = require("filesystem/impls/lib/HTMLRewriter");
     var CSSRewriter = require("filesystem/impls/lib/CSSRewriter");
-    var Filer = require("thirdparty/filer/dist/filer");
+    var Filer = require("filesystem/impls/filer/BracketsFiler");
     var Path  = Filer.Path;
 
     function _handle404(err, path, callback) {

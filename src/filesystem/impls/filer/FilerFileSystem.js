@@ -1,32 +1,20 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, appshell */
+/*global define */
 
 define(function (require, exports, module) {
     "use strict";
 
     var FileSystemError = require("filesystem/FileSystemError"),
         FileSystemStats = require("filesystem/FileSystemStats"),
-        Filer           = require("thirdparty/filer/dist/filer"),
+        Filer           = require("filesystem/impls/filer/BracketsFiler"),
         Dialog          = require("thirdparty/filer-dialogs/filer-dialogs"),
         BlobUtils       = require("filesystem/impls/filer/BlobUtils");
 
-    var fs,
+    var fs              = Filer.fs(),
         Path            = Filer.Path,
         watchers        = {};
 
     var _changeCallback;            // Callback to notify FileSystem of watcher changes
-
-    Filer.fs = function() {
-        if(fs) {
-            return fs;
-        }
-
-        return new Filer.FileSystem({provider: new Filer.FileSystem.providers.Memory()});
-    };
-
-    fs = Filer.fs();
-
-    appshell.Filer = Filer;
 
     function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
         Dialog.showOpenDialog.apply(null, arguments);

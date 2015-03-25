@@ -10,7 +10,7 @@ define(function (require, exports, module) {
     // BlobUtils provides an opportunistic cache for BLOB Object URLs
     // which can be looked-up synchronously.
 
-    var Filer = require("thirdparty/filer/dist/filer");
+    var Filer = require("filesystem/impls/filer/BracketsFiler");
     var Path  = Filer.Path;
 
     // 2-way cache for blob URL to path for looking up either way:

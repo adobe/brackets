@@ -1,11 +1,10 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, appshell */
+/*global define */
 define(function (require, exports) {
     "use strict";
 
     var Content = require("filesystem/impls/lib/content");
-
-    var Filer = appshell.Filer;
+    var Filer = require("filesystem/impls/filer/BracketsFiler");
     var Path = Filer.Path;
 
     /**
