@@ -12,9 +12,9 @@ deploy:
   access_key_id: AKIAJZZYAKJA33TQEHLA
   secret_access_key:
     secure: PUmptcr3naHfuC1FU8q7F3OEbnbCzfKaTYleJDpYjz7lSt24zoXD5epaTcusva4SafMS3I5NeKZ79YmDrn2ONEyLdyPCLKNScOFEClhjFNeuMOrf63fK3MO1RwNtJ2Rvjwwi2k+/pVaVUXKcr287JWywDZUZfYp7DjxJdNU6JZ0=
-  bucket: mozillathimblelivepreview.net
+  bucket: mozillathimblelivepreview.net/bramble
   local-dir: dist
-  upload-dir: bramble/dist
+  upload-dir: dist
   acl: public_read
   skip_cleanup: true
   on:
