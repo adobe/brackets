@@ -42,8 +42,8 @@ define(function (require, exports, module) {
     // Parse URL params
     var params = new UrlParams();
     /**
-    * Show dialog for fist time to the user regarding log capturing by Brackets
-    */
+     * Show dialog for fist time to the user regarding log capturing by Brackets
+     */
     function showDialogHealthDataNotification() {
         var hdPref   = prefs.get("healthDataTracking"),
             template = Mustache.render(HealthDataNotificationDialog, {"Strings": Strings, "hdPref": hdPref}),
@@ -77,7 +77,7 @@ define(function (require, exports, module) {
     
     AppInit.appReady(function () {
         params.parse();
-        // check for showing the HealthData Notification to the user. It will be shown one time.
+        // check for showing the HealthData Notification to the user. It will be shown one time. Does not check in testing environment
         if (!params.get("skipHealthDataNotification")) {
             var isShown = PreferencesManager.getViewState("healthDataNotification");
 

@@ -29,6 +29,10 @@ define(function (require, exports, module) {
     
     var ExtensionManager = require("extensibility/ExtensionManager");
     
+    /**
+     * Get the OS Version
+     * @return {String} version of OS 
+     */
     function getOSVersion() {
         var winOSStrings = {
             "5.0" : "Windows 2000",
@@ -59,6 +63,13 @@ define(function (require, exports, module) {
         return osVersion;
     }
     
+    /**
+     * @private
+     * Check for each user installed extensions if present in registry.
+     * @param {Object} object that contains information about extensions fetched from registry
+     * @param {Object} all user installed extensions
+     * return {Array} userInstalledExtensions
+     */
     function getUserExtensionsInRegistry(registryObject, userExtensions) {
         var userInstalledExtensions = [];
         Object.keys(userExtensions).forEach(function (extensionId) {
@@ -73,7 +84,10 @@ define(function (require, exports, module) {
         
         return userInstalledExtensions;
     }
-    
+   
+    /**
+     * Utility function to get the user installed extension which are present in the registry
+     */
     function getInstalledExtensions() {
         var result = new $.Deferred();
         var registryExtensions = ExtensionManager.registryObject,

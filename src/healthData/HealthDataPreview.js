@@ -34,10 +34,10 @@ define(function (require, exports, module) {
         HealthDataManager       = require("healthData/HealthDataManager");
 
     var prefs = PreferencesManager.getExtensionPrefs("healthData");
-    /** 
-    * Show dialog for previewing the data send to server for Health Data
-    */
     
+    /** 
+     * Show dialog for previewing the data send to server for Health Data
+     */  
     function previewHealthDataFile() {
         var result = new $.Deferred();
         

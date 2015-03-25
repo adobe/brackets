@@ -43,7 +43,7 @@ define(function (require, exports, module) {
     var params = new UrlParams();
     params.parse();
 
-    /*
+    /**
      * Get the health data which will be send to the server. Initially it is only one time data.
      */
     function getHealthData() {
@@ -76,6 +76,9 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Send data to the server
+     */
     function sendHealthDataToServer() {
         var result = new $.Deferred();
         
