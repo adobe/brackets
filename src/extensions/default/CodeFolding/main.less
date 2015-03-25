@@ -1,0 +1,54 @@
+@font-size: 1.2em;
+@color: #aaa;
+
+.CodeMirror-foldgutter {
+	&-open:after {
+    	content: "\25bc";
+		font-size: @font-size;
+		color: @color;
+	}
+	&-folded:after {
+    	content: "\25b6";
+		font-size: @font-size;
+		color: @color;
+	}
+}
+
+.CodeMirror-foldgutter,
+.CodeMirror-foldgutter-open,
+.CodeMirror-foldgutter-folded,
+.CodeMirror-foldgutter-blank {
+    width: @font-size;
+    cursor: default;
+    line-height: 100%;
+}
+
+.CodeMirror-gutter-elt {
+    height: 100% !important;
+}
+
+.CodeMirror-foldmarker {
+    padding-right: 5px;
+    padding-left: 5px;
+    margin-right: 3px;
+    margin-left: 3px;
+    border-radius: 3px;
+    cursor: pointer;
+	border: 1px solid lighten(@color, 10%);
+	color: darken(@color, 20%);
+	background-color: lighten(@color, 20%);
+    
+    &:after {
+        content: "\2194";   
+    }
+}
+
+#code-folding-settings-dialog {
+	label {
+		width: 40%;
+		padding-right: 10px;
+	}
+	input[type=number] {
+		width: 40px;	
+	}
+}
