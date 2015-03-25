@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $, window, Promise */
 
 /**
  * EditorManager owns the UI for the editor area. This essentially mirrors the 'current document'
@@ -219,65 +219,65 @@ define(function (require, exports, module) {
      * @param {Array.<{priority:number, provider:function(...)}>} providers 
      *      prioritized list of providers
      * @param {string=} defaultErrorMsg Default message to display if no providers return non-null
-     * @return {$.Promise} a promise that will be resolved when an InlineWidget 
+     * @return {Promise} a promise that will be resolved when an InlineWidget 
      *      is created or rejected if no inline providers have offered one.
      */
     function _openInlineWidget(editor, providers, defaultErrorMsg) {
         PerfUtils.markStart(PerfUtils.INLINE_WIDGET_OPEN);
-        
-        // Run through inline-editor providers until one responds
-        var pos = editor.getCursorPos(),
-            inlinePromise,
-            i,
-            result = new $.Deferred(),
-            errorMsg,
-            providerRet;
-        
-        // Query each provider in priority order. Provider may return:
-        // 1. `null` to indicate it does not apply to current cursor position
-        // 2. promise that should resolve to an InlineWidget
-        // 3. string which indicates provider does apply to current cursor position,
-        //    but reason it could not create InlineWidget
-        //
-        // Keep looping until a provider is found. If a provider is not found,
-        // display highest priority error message that was found, otherwise display
-        // default error message
-        for (i = 0; i < providers.length && !inlinePromise; i++) {
-            var provider = providers[i].provider;
-            providerRet = provider(editor, pos);
-            if (providerRet) {
-                if (providerRet.hasOwnProperty("done")) {
-                    inlinePromise = providerRet;
-                } else if (!errorMsg && typeof (providerRet) === "string") {
-                    errorMsg = providerRet;
+
+        return new Promise(function (resolve, reject) {
+
+            // Run through inline-editor providers until one responds
+            var pos = editor.getCursorPos(),
+                inlinePromise,
+                i,
+                errorMsg,
+                providerRet;
+
+            // Query each provider in priority order. Provider may return:
+            // 1. `null` to indicate it does not apply to current cursor position
+            // 2. promise that should resolve to an InlineWidget
+            // 3. string which indicates provider does apply to current cursor position,
+            //    but reason it could not create InlineWidget
+            //
+            // Keep looping until a provider is found. If a provider is not found,
+            // display highest priority error message that was found, otherwise display
+            // default error message
+            for (i = 0; i < providers.length && !inlinePromise; i++) {
+                var provider = providers[i].provider;
+                providerRet = provider(editor, pos);
+                if (providerRet) {
+                    if (providerRet.hasOwnProperty("done")) {
+                        inlinePromise = providerRet;
+                    } else if (!errorMsg && typeof (providerRet) === "string") {
+                        errorMsg = providerRet;
+                    }
                 }
             }
-        }
 
-        // Use default error message if none other provided
-        errorMsg = errorMsg || defaultErrorMsg;
-        
-        // If one of them will provide a widget, show it inline once ready
-        if (inlinePromise) {
-            inlinePromise.done(function (inlineWidget) {
-                editor.addInlineWidget(pos, inlineWidget).done(function () {
-                    PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
-                    result.resolve();
+            // Use default error message if none other provided
+            errorMsg = errorMsg || defaultErrorMsg;
+
+            // If one of them will provide a widget, show it inline once ready
+            if (inlinePromise) {
+                inlinePromise.then(function (inlineWidget) {
+                    editor.addInlineWidget(pos, inlineWidget).then(function () {
+                        PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
+                        resolve();
+                    }, null);
+                }, function () {
+                    // terminate timer that was started above
+                    PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
+                    editor.displayErrorMessageAtCursor(errorMsg);
+                    reject();
                 });
-            }).fail(function () {
+            } else {
                 // terminate timer that was started above
                 PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
                 editor.displayErrorMessageAtCursor(errorMsg);
-                result.reject();
-            });
-        } else {
-            // terminate timer that was started above
-            PerfUtils.finalizeMeasurement(PerfUtils.INLINE_WIDGET_OPEN);
-            editor.displayErrorMessageAtCursor(errorMsg);
-            result.reject();
-        }
-        
-        return result.promise();
+                reject();
+            }
+        });
     }
     
     
@@ -371,7 +371,7 @@ define(function (require, exports, module) {
      * is). The widget's onClosed() callback will be run as a result.
      * @param {!Editor} hostEditor The editor containing the widget.
      * @param {!InlineWidget} inlineWidget The inline widget to close.
-     * @return {$.Promise} A promise that's resolved when the widget is fully closed.
+     * @return {Promise} A promise that's resolved when the widget is fully closed.
      */
     function closeInlineWidget(hostEditor, inlineWidget) {
         // If widget has focus, return it to the hostEditor & move the cursor to where the inline used to be
@@ -396,7 +396,7 @@ define(function (require, exports, module) {
      * An optional priority parameter is used to give providers with higher priority an opportunity
      * to provide an inline editor before providers with lower priority.
      * 
-     * @param {function(!Editor, !{line:number, ch:number}):?($.Promise|string)} provider
+     * @param {function(!Editor, !{line:number, ch:number}):?(Promise|string)} provider
      * @param {number=} priority 
      * The provider returns a promise that will be resolved with an InlineWidget, or returns a string
      * indicating why the provider cannot respond to this case (or returns null to indicate no reason).
@@ -414,7 +414,7 @@ define(function (require, exports, module) {
      * An optional priority parameter is used to give providers with higher priority an opportunity
      * to provide an inline editor before providers with lower priority.
      * 
-     * @param {function(!Editor, !{line:number, ch:number}):?($.Promise|string)} provider
+     * @param {function(!Editor, !{line:number, ch:number}):?(Promise|string)} provider
      * @param {number=} priority 
      * The provider returns a promise that will be resolved with an InlineWidget, or returns a string
      * indicating why the provider cannot respond to this case (or returns null to indicate no reason).
@@ -431,7 +431,7 @@ define(function (require, exports, module) {
      * registered provider is asked if it wants to provide jump-to-definition results, given
      * the current editor and cursor location. 
      * 
-     * @param {function(!Editor, !{line:number, ch:number}):?$.Promise} provider
+     * @param {function(!Editor, !{line:number, ch:number}):?Promise} provider
      * The provider returns a promise that is resolved whenever it's done handling the operation,
      * or returns null to indicate the provider doesn't want to respond to this case. It is entirely
      * up to the provider to open the file containing the definition, select the appropriate text, etc.
@@ -694,12 +694,59 @@ define(function (require, exports, module) {
     }
 
     
+<<<<<<< HEAD
+    
+    /**
+     * Closes any focused inline widget. Else, asynchronously asks providers to create one.
+     *
+     * @param {Array.<{priority:number, provider:function(...)}>} providers 
+     *   prioritized list of providers
+     * @param {string=} errorMsg Default message to display if no providers return non-null
+     * @return {!Promise} A promise resolved with true if an inline widget is opened or false
+     *   when closed. Rejected if there is neither an existing widget to close nor a provider
+     *   willing to create a widget (or if no editor is open).
+     */
+    function _toggleInlineWidget(providers, errorMsg) {
+        return new Promise(function (resolve, reject) {
+
+            if (_currentEditor) {
+                var inlineWidget = getFocusedInlineWidget();
+
+                if (inlineWidget) {
+                    // an inline widget's editor has focus, so close it
+                    PerfUtils.markStart(PerfUtils.INLINE_WIDGET_CLOSE);
+                    inlineWidget.close().then(function () {
+                        PerfUtils.addMeasurement(PerfUtils.INLINE_WIDGET_CLOSE);
+                        // return a resolved promise to CommandManager
+                        resolve(false);
+                    }, null);
+                } else {
+                    // main editor has focus, so create an inline editor
+                    _openInlineWidget(_currentEditor, providers, errorMsg).then(function () {
+                        resolve(true);
+                    }, function () {
+                        reject();
+                    });
+                }
+            } else {
+                // Can not open an inline editor without a host editor
+                reject();
+            }
+        });
+    }
+    
+    /**
+=======
   /**
+>>>>>>> upstream/master
      * Asynchronously asks providers to handle jump-to-definition.
      * @return {!Promise} Resolved when the provider signals that it's done; rejected if no
      *      provider responded or the provider that responded failed.
      */
     function _doJumpToDef() {
+<<<<<<< HEAD
+        return new Promise(function (resolve, reject) {
+=======
         var providers = _jumpToDefProviders;
         var promise,
             i,
@@ -709,36 +756,44 @@ define(function (require, exports, module) {
         
         if (editor) {
             var pos = editor.getCursorPos();
+>>>>>>> upstream/master
 
-            PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
-            
-            // Run through providers until one responds
-            for (i = 0; i < providers.length && !promise; i++) {
-                var provider = providers[i];
-                promise = provider(editor, pos);
-            }
+            var providers = _jumpToDefProviders,
+                promise,
+                i;
 
-            // Will one of them will provide a result?
-            if (promise) {
-                promise.done(function () {
-                    PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
-                    result.resolve();
-                }).fail(function () {
+            var editor = getActiveEditor();
+            if (editor) {
+                var pos = editor.getCursorPos();
+
+                PerfUtils.markStart(PerfUtils.JUMP_TO_DEFINITION);
+
+                // Run through providers until one responds
+                for (i = 0; i < providers.length && !promise; i++) {
+                    var provider = providers[i];
+                    promise = provider(editor, pos);
+                }
+
+                // Will one of them will provide a result?
+                if (promise) {
+                    promise.then(function () {
+                        PerfUtils.addMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                        resolve();
+                    }, function () {
+                        // terminate timer that was started above
+                        PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
+                        reject();
+                    });
+                } else {
                     // terminate timer that was started above
                     PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
-                    result.reject();
-                });
+                    reject();
+                }
+
             } else {
-                // terminate timer that was started above
-                PerfUtils.finalizeMeasurement(PerfUtils.JUMP_TO_DEFINITION);
-                result.reject();
+                reject();
             }
-            
-        } else {
-            result.reject();
-        }
-        
-        return result.promise();
+        });
     }
     
     

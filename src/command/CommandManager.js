@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, Promise */
 
  /**
   * Manages global application commands that can be called from menu items, key bindings, or subparts
@@ -91,14 +91,18 @@ define(function (require, exports, module) {
      */
     Command.prototype.execute = function () {
         if (!this._enabled) {
-            return (new $.Deferred()).reject().promise();
+            return new Promise(function (resolve, reject) {
+                reject();
+            });
         }
         
         var result = this._commandFn.apply(this, arguments);
         if (!result) {
             // If command does not return a promise, assume that it handled the
             // command and return a resolved promise
-            return (new $.Deferred()).resolve().promise();
+            return new Promise(function (resolve, reject) {
+                resolve();
+            });
         } else {
             return result;
         }
@@ -290,7 +294,9 @@ define(function (require, exports, module) {
             
             return command.execute.apply(command, Array.prototype.slice.call(arguments, 1));
         } else {
-            return (new $.Deferred()).reject().promise();
+            return new Promise(function (resolve, reject) {
+                reject();
+            });
         }
     }
     
