@@ -38,7 +38,7 @@ define(function (require, exports, module) {
 									endCh = nextClose;
 									end = i;
 									return {from: CodeMirror.Pos(line, stack[0]),
-											 to: CodeMirror.Pos(end, endCh)};
+                                            to: CodeMirror.Pos(end, endCh)};
 								}
 								stack.pop();
 							}

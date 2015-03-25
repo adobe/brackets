@@ -4,7 +4,7 @@
  * @date 8/23/14 15:45:35 PM
  */
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, require, brackets, window */
+/*global define*/
 define(function (require, exports, module) {
 	"use strict";
     

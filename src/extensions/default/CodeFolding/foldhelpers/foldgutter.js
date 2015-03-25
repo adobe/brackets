@@ -5,7 +5,7 @@
  * @date 10/24/13 10:14:01 AM
  */
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, document, clearTimeout, setTimeout, $*/
+/*global define, brackets, document, window, $*/
 define(function (require, exports, module) {
     "use strict";
     var CodeMirror = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror");
@@ -74,7 +74,7 @@ define(function (require, exports, module) {
                 gutter update after the viewport has been drawn.
             */
             if (i === to) {
-                setTimeout(function () {
+                window.setTimeout(function () {
                     var vp = cm.getViewport();
                     updateFoldInfo(cm, vp.from, vp.to);
                 }, 200);
@@ -188,8 +188,8 @@ define(function (require, exports, module) {
                 }
                 state.from = changeObj.from.line;
                 state.to = 0;
-                clearTimeout(state.changeUpdate);
-                state.changeUpdate = setTimeout(function () {
+                window.clearTimeout(state.changeUpdate);
+                state.changeUpdate = window.setTimeout(function () {
                     updateInViewport(cm);
                 }, prefs.getSetting("foldOnChangeTimeSpan") || 600);
             }
@@ -197,8 +197,8 @@ define(function (require, exports, module) {
         
         function onViewportChange(cm) {
             var state = cm.state.foldGutter;
-            clearTimeout(state.changeUpdate);
-            state.changeUpdate = setTimeout(function () {
+            window.clearTimeout(state.changeUpdate);
+            state.changeUpdate = window.setTimeout(function () {
                 var vp = cm.getViewport();
                 if (state.from === state.to || vp.from - state.to > 20 || state.from - vp.to > 20) {
                     updateInViewport(cm);

@@ -26,7 +26,7 @@
  * @date 10/24/13 9:35:26 AM
  */
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, d3, require, $, brackets, window, MouseEvent */
+/*global define, require, $, brackets*/
 
 require.config({
     paths: {
@@ -48,7 +48,6 @@ define(function (require, exports, module) {
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
 		Menus					= brackets.getModule("command/Menus"),
         _prefs                  = require("./Prefs"),
-        CODE_FOLD_EXT           = "javascript.code.folding",
         COLLAPSE_ALL            = "codefolding.collapse.all",
         COLLAPSE                = "codefolding.collapse",
         EXPAND                  = "codefolding.expand",
@@ -87,24 +86,6 @@ define(function (require, exports, module) {
     CodeMirror.registerHelper("fold", "stex", latexFold);
 	CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
 	CodeMirror.registerHelper("fold", "tornado", CodeMirror.helpers.fold.brace);
-    
-    /** gets the folded regions in the editor.
-	 * @returns a map containing {linenumber: {from, to}}
-	 */
-	function getLineFoldsInEditor(editor) {
-		var cm = editor._codeMirror, i, folds = {};
-		if (cm) {
-			var marks = cm.getAllMarks();
-			marks.filter(function (m) {return m.__isFold; })
-				.forEach(function (mark) {
-					var range = mark.find();
-					if (range) {
-						folds[range.from.line] = range;
-					}
-				});
-		}
-		return folds;
-	}
 	
 	/**
         Restores the linefolds in the editor using values fetched from the preference store
@@ -114,12 +95,11 @@ define(function (require, exports, module) {
     */
     function restoreLineFolds(editor) {
 		var saveFolds = _prefs.getSetting("saveFoldStates");
-        var rf = CodeMirror.fold.auto;
         if (editor && saveFolds) {
-            var cm = editor._codeMirror, foldFunc;
+            var cm = editor._codeMirror;
             if (!cm) {return; }
-            var path = editor.document.file.fullPath, keys;
-            var folds = cm._lineFolds || _prefs.get(path), vp = cm.getViewport();
+            var path = editor.document.file.fullPath;
+            var folds = cm._lineFolds || _prefs.get(path);
             cm._lineFolds = cm.getValidFolds(folds);
             _prefs.set(path, cm._lineFolds);
             Object.keys(cm._lineFolds).forEach(function (line) {
@@ -144,7 +124,7 @@ define(function (require, exports, module) {
     function onGutterClick(cm, line, gutter, event) {
         var opts = cm.state.foldGutter.options, pos = CodeMirror.Pos(line);
         if (gutter !== opts.gutter) { return; }
-        var editor = EditorManager.getActiveEditor(), range, i;
+        var range;
         var _lineFolds = cm._lineFolds;
         if (cm.isFolded(line)) {
             if (event.altKey) {//unfold code including children
@@ -229,7 +209,7 @@ define(function (require, exports, module) {
     function collapseAll() {
         var editor = EditorManager.getFocusedEditor();
         if (editor && editor._codeMirror) {
-            var i, cm = editor._codeMirror, range;
+            var cm = editor._codeMirror;
             CodeMirror.commands.foldToLevel(cm);
         }
     }
@@ -239,7 +219,7 @@ define(function (require, exports, module) {
     function expandAll() {
         var editor = EditorManager.getFocusedEditor();
         if (editor && editor._codeMirror) {
-            var i, cm = editor._codeMirror;
+            var cm = editor._codeMirror;
             CodeMirror.commands.unfoldAll(cm);
         }
     }

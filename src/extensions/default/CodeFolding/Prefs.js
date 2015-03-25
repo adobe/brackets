@@ -9,7 +9,6 @@
 define(function (require, exports, module) {
     "use strict";
     var PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
-        _prefs                  = PreferencesManager.getExtensionPrefs("code-folding"),
         stateManager            = PreferencesManager.stateManager.getPrefixedSystem("code-folding"),
 		DefaultSettings			= require("DefaultSettings"),
         store = {},

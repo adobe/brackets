@@ -126,7 +126,7 @@ define(function (require, exports, module) {
         CodeMirror.defineExtension("getValidFolds", function (folds) {
             var keys, rf = CodeMirror.fold.auto, cm = this, result = {};
             if (folds && (keys = Object.keys(folds)).length) {
-                var i, range, cachedRange;
+                var range, cachedRange;
                 keys.forEach(function (lineNumber) {
                     lineNumber = +lineNumber;
                     if (lineNumber >= cm.firstLine() && lineNumber <= cm.lastLine()) {
@@ -168,7 +168,7 @@ define(function (require, exports, module) {
             var rf = CodeMirror.fold.auto, level = prefs.getSetting("maxFoldLevel");
             function foldLevel(n, from, to) {
                 if (n > 0) {
-                    var i = from, e, range;
+                    var i = from, range;
                     while (i < to) {
                         range = rf(cm, CodeMirror.Pos(i, 0));
                         if (range) {
