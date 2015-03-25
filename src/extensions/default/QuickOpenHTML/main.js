@@ -118,19 +118,19 @@ define(function (require, exports, module) {
      * @param {boolean} returns true if this plug-in wants to provide results for this query
      */
     function match(query) {
-        if (query[0] === "@") {
-            return true;
-        }
+        return (query[0] === "@");
     }
 
 
     /**
-     * Scroll top the selected item in the current document (unless no query string entered yet,
+     * Scroll to the selected item in the current document (unless no query string entered yet,
      * in which case the topmost list item is irrelevant)
      * @param {?SearchResult} selectedItem
+     * @param {string} query
+     * @param {boolean} explicit False if this is only highlighted due to being at top of list after search()
      */
-    function itemFocus(selectedItem, query, force) {
-        if (!selectedItem || (query.length < 2 && !force)) {
+    function itemFocus(selectedItem, query, explicit) {
+        if (!selectedItem || (query.length < 2 && !explicit)) {
             return;
         }
         var fileLocation = selectedItem.fileLocation;

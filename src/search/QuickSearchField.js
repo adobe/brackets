@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, setTimeout */
+/*global define, $, setTimeout */
 
 
 /*
@@ -63,10 +63,11 @@ define(function (require, exports, module) {
      *          query. If the current result list is not up to date with the query text at the time Enter is
      *          pressed, waits until it is before running this callback. If Enter pressed with no results, passed
      *          null. The popup remains open after this event.
-     * @param {!function(*, string):void} options.onHighlight
-     *          Called when an item is highlighted via the arrow keys. Passed the item and the current query.
-     *          Always called once with the top item in the result list, each time the list is updated (because
-     *          the top item is always initially highlighted).
+     * @param {!function(*, string, boolean):void} options.onHighlight
+     *          Called when an item is highlighted in the list. Passed the item, the current query, and a flag that is
+     *          true if the item was highlighted explicitly (arrow keys), not simply due to a results list update. Since
+     *          the top item in the list is always initially highlighted, every time the list is updated onHighlight()
+     *          is called with the top item and with the explicit flag set to false.
      * @param {?number} options.maxResults
      *          Maximum number of items from resultProvider() to display in the popup.
      * @param {?number} options.verticalAdjust
@@ -151,7 +152,7 @@ define(function (require, exports, module) {
                 } else {
                     this._highlightIndex++;
                 }
-                this._updateHighlight();
+                this._updateHighlight(true);
             }
             event.preventDefault(); // treated as Home key otherwise
             
@@ -162,7 +163,7 @@ define(function (require, exports, module) {
                 } else {
                     this._highlightIndex--;
                 }
-                this._updateHighlight();
+                this._updateHighlight(true);
             }
             event.preventDefault(); // treated as End key otherwise
         }
@@ -179,13 +180,13 @@ define(function (require, exports, module) {
     };
     
     /** Update display to reflect value of _highlightIndex, & call onHighlight() */
-    QuickSearchField.prototype._updateHighlight = function () {
+    QuickSearchField.prototype._updateHighlight = function (explicit) {
         var $items = this._$dropdown.find("li");
         $items.removeClass("highlight");
         if (this._highlightIndex !== null) {
             $items.eq(this._highlightIndex).addClass("highlight");
             
-            this.options.onHighlight(this._displayedResults[this._highlightIndex], this.$input.val());
+            this.options.onHighlight(this._displayedResults[this._highlightIndex], this.$input.val(), explicit);
         }
     };
     
@@ -286,7 +287,7 @@ define(function (require, exports, module) {
             this._openDropdown(html);
             
             // Highlight top item and trigger highlight callback
-            this._updateHighlight();
+            this._updateHighlight(false);
         }
         
         // If Enter key was pressed earlier, handle it now that we've gotten results back

@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         var $mockInput,
             searchField,
             provider,
+            mockResults,
             onCommit;
         
         beforeEach(function () {
@@ -50,9 +51,20 @@ define(function (require, exports, module) {
                 formatter: function (item) { return "<li>" + item + "</li>"; },
                 resultProvider: function (query) { return provider(query); },
                 onCommit: function (item, query) { return onCommit(item, query); },
-                onHighlight: function (item, query) { }
+                onHighlight: jasmine.createSpy()
             };
             searchField = new QuickSearchField($mockInput, options);
+            
+            // Many tests start from this results template, but they can modify it to customize
+            mockResults = {
+                "f": ["one", "two", "three", "four"],
+                "foo": ["one", "two", "three"],
+                "foobar": ["three"],
+                "bar": ["five"]
+            };
+            mockResults.fo = mockResults.f;
+            mockResults.foob = mockResults.foo;
+            mockResults.fooba = mockResults.foo;
         });
 
         afterEach(function () {
@@ -61,20 +73,10 @@ define(function (require, exports, module) {
         });
         
         
-        var mockResults = {
-            "f": ["one", "two", "three", "four"],
-            "foo": ["one", "two", "three"],
-            "foobar": ["three"],
-            "bar": ["five"]
-        };
-        mockResults.fo = mockResults.f;
-        mockResults.foob = mockResults.foo;
-        mockResults.fooba = mockResults.foo;
-        
         /** Sets provider to a function that synchronously returns results from mockResults */
         function makeSyncProvider() {
             provider = jasmine.createSpy().andCallFake(function (query) {
-                return mockResults[query];
+                return mockResults[query || "<blank>"];
             });
         }
         
@@ -86,7 +88,7 @@ define(function (require, exports, module) {
             provider = jasmine.createSpy().andCallFake(function (query) {
                 var promise = new $.Deferred();
                 provider.futures.push(function () {
-                    promise.resolve(mockResults[query]);
+                    promise.resolve(mockResults[query || "<blank>"]);
                 });
                 return promise;
             });
@@ -108,6 +110,12 @@ define(function (require, exports, module) {
             SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", $mockInput[0]);
             SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keypress", $mockInput[0]);
             SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keyup", $mockInput[0]);
+        }
+        
+        function pressDownArow() {
+            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_DOWN, "keydown", $mockInput[0]);
+            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_DOWN, "keypress", $mockInput[0]);
+            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_DOWN, "keyup", $mockInput[0]);
         }
         
         function expectListContents(list) {
@@ -156,6 +164,32 @@ define(function (require, exports, module) {
             runs(function () {
                 expect(onCommit).toHaveBeenCalledWith("one", "foo");
                 expect(provider.callCount).toBe(1);  // shouldn't need to query provider a 2nd time
+            });
+        });
+        
+        it("highlights correcct item in list", function () {
+            runs(function () {
+                makeSyncProvider();
+                mockResults["<blank>"] = mockResults.f;
+                
+                searchField.updateResults();
+                
+                expect(provider.callCount).toEqual(1);
+                expect(searchField.options.onHighlight.callCount).toEqual(1);
+                expect(searchField.options.onHighlight).toHaveBeenCalledWith("one", "", false);
+                
+                pressDownArow();
+                
+                expect(provider.callCount).toEqual(1);
+                expect(searchField.options.onHighlight.callCount).toEqual(2);
+                expect(searchField.options.onHighlight).toHaveBeenCalledWith("two", "", true);
+                
+                enterSearchText("foo");
+                waitsFor(function () { return provider.callCount === 2; });
+            });
+            runs(function () {
+                expect(searchField.options.onHighlight.callCount).toEqual(3);
+                expect(searchField.options.onHighlight).toHaveBeenCalledWith("one", "foo", false);
             });
         });
         
