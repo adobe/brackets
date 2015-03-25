@@ -1,0 +1,65 @@
+<div id="code-folding-settings-dialog" class="modal">
+    <div class="modal-header">
+        <h1 class="dialog-title">{{CODE_FOLDING_SETTINGS}}</h1>
+    </div>
+    <div class="modal-body">
+		<form class="form-horizontal">
+		
+			<div class="control-group">
+				<label class="control-label" for="min-fold-size" title="{{MIN_FOLD_SIZE_HELP}}">
+					{{MIN_FOLD_SIZE}}
+				</label>	
+				<div class="controls">
+					<input type="number" min="2" id="min-fold-size" pattern="\d+"/>
+				</div>
+			</div>
+			
+            <div class="control-group">
+				<label class="control-label" for="max-fold-level" title="{{MAX_FOLD_LEVEL_HELP}}">
+                    {{MAX_FOLD_LEVEL}}
+				</label>	
+				<div class="controls">
+					<input type="number" min="1" id="max-fold-level" pattern="\d+"/>
+				</div>
+            </div>
+			<div class="control-group">
+				<label class="control-label" for="save-fold-states" title="{{SAVE_FOLD_STATES_HELP}}">
+					{{SAVE_FOLD_STATES}}
+				</label>
+				<div class="controls">
+					<input type="checkbox" id="save-fold-states"/>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="settings-always-use-indent-fold" title="{{ALWAYS_USE_INDENT_FOLD_HELP}}">
+					{{ALWAYS_USE_INDENT_FOLD}}
+				</label>
+				<div class="controls">
+					<input type="checkbox" id="always-use-indent-fold"/>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="enable-region-folding">
+					{{ENABLE_REGION_FOLDING}} 
+				</label>
+				<div class="controls">
+					<input type="checkbox" id="enable-region-folding"/>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="fade-fold-buttons" title="{{FADE_FOLD_BUTTONS_HELP}}">
+					{{FADE_FOLD_BUTTONS}}
+				</label>
+				<div class="controls">
+					<input type="checkbox" id="fade-fold-buttons"/>
+				</div>
+			</div>
+		</form>
+
+   </div>
+    <div class="modal-footer">
+        <button data-button-id="ok" class="dialog-button btn primary left">{{BUTTON_SAVE}}</button>
+        <button data-button-id="defaults" class="dialog-button btn left">{{BUTTON_DEFAULTS}}</button>
+        <button data-button-id="cancel" class="dialog-button btn cancel">{{BUTTON_CANCEL}}</button>
+    </div>
+</div>
