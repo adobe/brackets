@@ -93,9 +93,7 @@ define(function (require, exports, module) {
         NativeApp               = require("utils/NativeApp"),
         DeprecationWarning      = require("utils/DeprecationWarning"),
         ViewCommandHandlers     = require("view/ViewCommandHandlers"),
-        MainViewManager         = require("view/MainViewManager"),
-        HealthDataNotification  = require("healthData/HealthDataNotification"),
-        HealthDataManager       = require("healthData/HealthDataManager");
+        MainViewManager         = require("view/MainViewManager");
 
     // load modules for later use
     require("utils/Global");

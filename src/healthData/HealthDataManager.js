@@ -122,7 +122,7 @@ define(function (require, exports, module) {
     function _checkHealthDataExport() {
         var result = new $.Deferred();
         var isHDTracking = prefs.get("healthDataTracking");
-        clearTimeout(timeoutVar);
+        window.clearTimeout(timeoutVar);
 
         if (isHDTracking) {
 
@@ -166,7 +166,7 @@ define(function (require, exports, module) {
     });
 
     window.addEventListener("offline", function () {
-        clearTimeout(timeoutVar);
+        window.clearTimeout(timeoutVar);
     });
 
     AppInit.appReady(function () {

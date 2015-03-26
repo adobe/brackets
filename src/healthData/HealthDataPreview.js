@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, Mustache, brackets, $ */
+/*global define, Mustache, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -37,7 +37,7 @@ define(function (require, exports, module) {
     
     /** 
      * Show dialog for previewing the data send to server for Health Data
-     */  
+     */
     function previewHealthDataFile() {
         var result = new $.Deferred();
         

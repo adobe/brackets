@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, runs, beforeEach, it, afterEach, expect, waitsForDone, waitsFor, spyOn, waitsForFail */
+/*global define, $, describe, runs, beforeEach, it, afterEach, expect, waitsForDone, waitsForFail */
 /*unittests: QuickOpen*/
 
 define(function (require, exports, module) {
@@ -38,7 +38,7 @@ define(function (require, exports, module) {
 
         beforeEach(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                testWindow = w;        
+                testWindow = w;
             });
 
         });
@@ -86,7 +86,7 @@ define(function (require, exports, module) {
             var HealthDataNotification;
             
             beforeEach(function () {
-                HealthDataNotification = testWindow.brackets.test.HealthDataNotification; 
+                HealthDataNotification = testWindow.brackets.test.HealthDataNotification;
             });
             
             afterEach(function () {
@@ -103,7 +103,7 @@ define(function (require, exports, module) {
             var HealthDataPreview;
             
             beforeEach(function () {
-                HealthDataPreview = testWindow.brackets.test.HealthDataPreview; 
+                HealthDataPreview = testWindow.brackets.test.HealthDataPreview;
             });
             
             afterEach(function () {
