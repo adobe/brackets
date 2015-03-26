@@ -10,7 +10,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Async = brackets.getModule('utils/Async');
+    var Async = require('utils/Async');
     var noop = function() {};
 
     exports.eachSeries = function(array, iterator, callback) {
