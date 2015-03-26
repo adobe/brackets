@@ -34,12 +34,13 @@ define(function (require, exports, module) {
         HealthDataManager       = require("healthData/HealthDataManager");
 
     var prefs = PreferencesManager.getExtensionPrefs("healthData");
-    /** 
-    * Show dialog for previewing the data send to server for Health Data
-    */
     
+    /** 
+     * Show dialog for previewing the data send to server for Health Data
+     */  
     function previewHealthDataFile() {
-
+        var result = new $.Deferred();
+        
         HealthDataManager.getHealthData().done(function (healthDataObject) {
             var content = JSON.stringify(healthDataObject, null, 4);
             content = content.replace(/ /g, "&nbsp;");
@@ -62,8 +63,11 @@ define(function (require, exports, module) {
                     }
                 }
             });
+
+            return result.resolve();
         });
         
+        return result.promise();
     }
     
     exports.previewHealthDataFile = previewHealthDataFile;

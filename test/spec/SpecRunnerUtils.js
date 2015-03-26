@@ -527,6 +527,9 @@ define(function (require, exports, module) {
             // signals that main.js should configure RequireJS for tests
             params.put("testEnvironment", true);
             
+            // disable showing health data notification
+            params.put("skipHealthDataNotification", true);
+            
             // option to launch test window with either native or HTML menus
             if (options && options.hasOwnProperty("hasNativeMenus")) {
                 params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));

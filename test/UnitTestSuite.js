@@ -91,4 +91,5 @@ define(function (require, exports, module) {
     require("spec/WorkingSetView-test");
     require("spec/WorkingSetSort-test");
     require("spec/XMLUtils-test");
+    require("spec/HealthData-test");
 });
