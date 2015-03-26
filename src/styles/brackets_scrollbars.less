@@ -21,6 +21,10 @@
  *
  */
 
+.scrollbar-button(@char; @color) {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='12px' width='12px'><text x='0' y='12' fill='@{color}' font-size='12'>@{char}</text></svg>");
+}
+
 /* Temporary implementation of unobtrusive scrollbars.
    FUTURE: These currently rely on nonstandard WebKit styles, and don't have all the right behavior.
    Longer-term, we'll need to implement custom scrollbars. */
@@ -73,6 +77,10 @@
     :hover::-webkit-scrollbar-thumb:horizontal,
     :focus::-webkit-scrollbar-thumb:horizontal {
         min-width: 20px;
+    }
+    
+    ::-webkit-scrollbar-button {
+        display: none;
     }
 }
 
@@ -139,6 +147,52 @@
     ::-webkit-scrollbar-corner {
         background: none;
     }
+    
+    ::-webkit-scrollbar-button {
+        background-repeat: no-repeat;
+        height: 15px;
+        width: 15px;
+
+        &:vertical:decrement {
+            .scrollbar-button("▲", #535353);
+            background-position: 0 -2px;
+        }
+        &:vertical:increment {
+            .scrollbar-button("▼", #535353);
+            background-position: 0 1px;
+        }
+        &:horizontal:decrement {
+            .scrollbar-button("◄", #535353);
+            background-position: 0 -2px;
+        }
+        &:horizontal:increment {
+            .scrollbar-button("►", #535353);
+            background-position: 3px -2px;
+        }
+
+
+        &:hover,
+        &:focus {
+            background-color: lighten(@win-scrollbar-thumb-hover, 10%);
+        }
+        &:active {
+            background-color: lighten(@win-scrollbar-thumb-active, 10%);
+
+            &:vertical:decrement {
+                .scrollbar-button("▲"; #cbcbcb);
+            }
+            &:vertical:increment {
+                .scrollbar-button("▼"; #cbcbcb);
+            }
+            &:horizontal:decrement {
+                .scrollbar-button("◄"; #cbcbcb);
+            }
+            &:horizontal:increment {
+                .scrollbar-button("►"; #cbcbcb);
+            }
+        }
+    }
+
 }
 
 
@@ -167,6 +221,42 @@
         }
         ::-webkit-scrollbar-thumb:active {
             box-shadow: 0 0 0 12px rgb(169, 169, 169) inset;
+        }
+        
+        ::-webkit-scrollbar-button {
+            &:vertical:decrement {
+                .scrollbar-button("▲", #ababab);
+            }
+            &:vertical:increment {
+                .scrollbar-button("▼", #ababab);
+            }
+            &:horizontal:decrement {
+                .scrollbar-button("◄", #ababab);
+            }
+            &:horizontal:increment {
+                .scrollbar-button("►", #ababab);
+            }
+
+            &:hover,
+            &:focus {
+                background-color: #595959;
+            }
+            &:active {
+                background-color: #a9a9a9;
+
+                &:vertical:decrement {
+                    .scrollbar-button("▲"; #000);
+                }
+                &:vertical:increment {
+                    .scrollbar-button("▼"; #000);
+                }
+                &:horizontal:decrement {
+                    .scrollbar-button("◄"; #000);
+                }
+                &:horizontal:increment {
+                    .scrollbar-button("►"; #000);
+                }
+            }
         }
     }
 
