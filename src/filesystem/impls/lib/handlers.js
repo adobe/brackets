@@ -23,7 +23,7 @@ define(function (require, exports, module) {
         callback(err, Content.toURL(html, 'text/html'));
     }
 
-    function _handleHTML(path, content, callback) {
+    function _handleHTML(path, content, mime, callback) {
         HTMLRewriter.rewrite(path, content, function(err, html) {
             if(err) {
                 Log.error('unable to read html for `' + path + '`');
@@ -31,11 +31,11 @@ define(function (require, exports, module) {
                 return _handle404(err, path, callback);
             }
 
-            callback(null, Content.toURL(html));
+            callback(null, Content.toURL(html, mime));
         });
     }
 
-    function _handleCSS(path, content, callback) {
+    function _handleCSS(path, content, mime, callback) {
         CSSRewriter.rewrite(path, content, function(err, css) {
             if(err) {
                 Log.error('unable to read css for `' + path + '`');
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
                 return _handle404(err, path, callback);
             }
 
-            callback(null, Content.toURL(css));
+            callback(null, Content.toURL(css, mime));
         });
     }
 
@@ -54,6 +54,7 @@ define(function (require, exports, module) {
         var fs = Filer.fs();
         var ext = Path.extname(path);
         var encoding = Content.isUTF8Encoded(ext) && 'utf8';
+        var mimeType = Content.mimeFromExt(ext);
 
         fs.readFile(path, encoding, function(err, data) {
             if(err) {
@@ -62,11 +63,11 @@ define(function (require, exports, module) {
             }
 
             if(Content.isHTML(ext)) {
-                _handleHTML(path, data, callback);
+                _handleHTML(path, data, mimeType, callback);
             } else if(Content.isCSS(ext)) {
-                _handleCSS(path, data, callback);
+                _handleCSS(path, data, mimeType, callback);
             } else {
-                callback(null, Content.toURL(data));
+                callback(null, Content.toURL(data, mimeType));
             }
         });
     }
