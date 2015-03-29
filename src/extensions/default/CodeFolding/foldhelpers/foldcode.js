@@ -8,95 +8,101 @@
 /*global define, brackets, document*/
 define(function (require, exports, module) {
     "use strict";
-    var CodeMirror = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
-		prefs = require("Prefs");
+    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+        prefs               = require("Prefs");
 
-    module.exports = function () {
-        function doFold(cm, pos, options, force) {
-            force = force || "fold";
-            if (typeof pos === "number") {
-                pos = CodeMirror.Pos(pos, 0);
+    function doFold(cm, pos, options, force) {
+        options = options || {};
+        force = force || "fold";
+        if (typeof pos === "number") {
+            pos = CodeMirror.Pos(pos, 0);
+        }
+        var finder = options.rangeFinder || CodeMirror.fold.auto;
+        var minSize = options.minFoldSize || prefs.getSetting("minFoldSize");
+
+        function getRange(allowFolded) {
+            var range = options.range || finder(cm, pos);
+            if (!range || range.to.line - range.from.line < minSize) {
+                return null;
             }
-            var finder = (options && options.rangeFinder) || CodeMirror.fold.auto;
-            var minSize = (options && options.minFoldSize) || prefs.getSetting("minFoldSize");
-
-            function getRange(allowFolded) {
-                var range = options && options.range ? options.range : finder(cm, pos);
-                if (!range || range.to.line - range.from.line < minSize) {
-                    return null;
+            var marks = cm.findMarksAt(range.from),
+                i,
+                lastMark,
+                foldMarks;
+            for (i = 0; i < marks.length; ++i) {
+                if (marks[i].__isFold && force !== "fold") {
+                    if (!allowFolded) {
+                        return null;
+                    }
+                    range.cleared = true;
+                    marks[i].clear();
                 }
-                var marks = cm.findMarksAt(range.from),
-                    i;
-                for (i = 0; i < marks.length; ++i) {
-                    if (marks[i].__isFold && force !== "fold") {
-                        if (!allowFolded) {
-                            return null;
-                        }
-                        range.cleared = true;
-                        marks[i].clear();
+            }
+            //check for overlapping folds
+            if (marks && marks.length) {
+                foldMarks = marks.filter(function (d) {
+                    return d.__isFold;
+                });
+                if (foldMarks && foldMarks.length) {
+                    lastMark = foldMarks[foldMarks.length - 1].find();
+                    if (lastMark && range.from.line <= lastMark.to.line && lastMark.to.line < range.to.line) {
+                        return null;
                     }
                 }
-                //check for overlapping folds
-                var lastMark, foldMarks;
-                if (marks && marks.length) {
-                    foldMarks = marks.filter(function (d) { return d.__isFold; });
-                    if (foldMarks && foldMarks.length) {
-                        lastMark = foldMarks[foldMarks.length - 1].find();
-                        if (lastMark && range.from.line <= lastMark.to.line && lastMark.to.line < range.to.line) {
-                            return null;
-                        }
-                    }
-                }
-                return range;
             }
-
-            function makeWidget() {
-                var widget = document.createElement("span");
-                widget.className = "CodeMirror-foldmarker";
-                return widget;
-            }
-
-            var range = getRange(true);
-            if (options && options.scanUp) {
-                while (!range && pos.line > cm.firstLine()) {
-                    pos = CodeMirror.Pos(pos.line - 1, 0);
-                    range = getRange(false);
-                }
-            }
-            if (!range || range.cleared || force === "unfold" || range.to.line - range.from.line < minSize) {
-                if (range) { range.cleared = false; }
-                return;
-            }
-
-            var myWidget = makeWidget();
-            var myRange = cm.markText(range.from, range.to, {
-                replacedWith: myWidget,
-                clearOnEnter: true,
-                __isFold: true
-            });
-            CodeMirror.on(myWidget, "mousedown", function () {
-                myRange.clear();
-            });
-            myRange.on("clear", function (from, to) {
-                delete cm._lineFolds[from.line];
-                CodeMirror.signal(cm, "unfold", cm, from, to);
-            });
-            
-            if (force === "fold") {
-                delete range.cleared;
-                cm._lineFolds[pos.line] = range;
-            } else {
-                delete cm._lineFolds[pos.line];
-            }
-            CodeMirror.signal(cm, force, cm, range.from, range.to);
             return range;
         }
 
+        function makeWidget() {
+            var widget = document.createElement("span");
+            widget.className = "CodeMirror-foldmarker";
+            return widget;
+        }
+
+        var range = getRange(true);
+        if (options.scanUp) {
+            while (!range && pos.line > cm.firstLine()) {
+                pos = CodeMirror.Pos(pos.line - 1, 0);
+                range = getRange(false);
+            }
+        }
+        if (!range || range.cleared || force === "unfold" || range.to.line - range.from.line < minSize) {
+            if (range) { range.cleared = false; }
+            return;
+        }
+
+        var myWidget = makeWidget();
+        var myRange = cm.markText(range.from, range.to, {
+            replacedWith: myWidget,
+            clearOnEnter: true,
+            __isFold: true
+        });
+        CodeMirror.on(myWidget, "mousedown", function () {
+            myRange.clear();
+        });
+        myRange.on("clear", function (from, to) {
+            delete cm._lineFolds[from.line];
+            CodeMirror.signal(cm, "unfold", cm, from, to);
+        });
+
+        if (force === "fold") {
+            delete range.cleared;
+            cm._lineFolds[pos.line] = range;
+        } else {
+            delete cm._lineFolds[pos.line];
+        }
+        CodeMirror.signal(cm, force, cm, range.from, range.to);
+        return range;
+    }
+
+    /**
+        Initialises extensions and helpers on the CodeMirror object
+    */
+    function init() {
         CodeMirror.defineExtension("foldCode", function (pos, options, force) {
             return doFold(this, pos, options, force);
         });
 
-        //define an unfoldCode extension to quickly unfold folded code
         CodeMirror.defineExtension("unfoldCode", function (pos, options) {
             return doFold(this, pos, options, "unfold");
         });
@@ -152,11 +158,23 @@ define(function (require, exports, module) {
         CodeMirror.commands.unfold = function (cm, options, force) {
             cm.foldCode(cm.getCursor(), options, "unfold");
         };
+
         CodeMirror.commands.foldAll = function (cm) {
             cm.operation(function () {
                 var i, e;
                 for (i = cm.firstLine(), e = cm.lastLine(); i <= e; i++) {
                     cm.foldCode(CodeMirror.Pos(i, 0), null, "fold");
+                }
+            });
+        };
+
+        CodeMirror.commands.unfoldAll = function (cm, from, to) {
+            from = from || cm.firstLine();
+            to = to || cm.lastLine();
+            cm.operation(function () {
+                var i, e;
+                for (i = from, e = to; i <= e; i++) {
+                    if (cm.isFolded(i)) { cm.unfoldCode(i, {range: cm._lineFolds[i]}); }
                 }
             });
         };
@@ -188,30 +206,21 @@ define(function (require, exports, module) {
                 foldLevel(level, start, end);
             });
         };
-        
-        CodeMirror.commands.unfoldAll = function (cm, from, to) {
-            from = from || cm.firstLine();
-            to = to || cm.lastLine();
-            cm.operation(function () {
-                var i, e;
-                for (i = from, e = to; i <= e; i++) {
-                    if (cm.isFolded(i)) { cm.unfoldCode(i, {range: cm._lineFolds[i]}); }
-                }
-            });
-        };
 
         CodeMirror.registerHelper("fold", "auto", function (cm, start) {
             var helpers = cm.getHelpers(start, "fold"), i, cur;
-			//ensure mode helper is loaded if there is one
-			var mode = cm.getMode().name;
-			var modeHelper = CodeMirror.fold[mode];
-			if (modeHelper && helpers.indexOf(modeHelper) < 0) {
-				helpers.push(modeHelper);
-			}
+            //ensure mode helper is loaded if there is one
+            var mode = cm.getMode().name;
+            var modeHelper = CodeMirror.fold[mode];
+            if (modeHelper && helpers.indexOf(modeHelper) < 0) {
+                helpers.push(modeHelper);
+            }
             for (i = 0; i < helpers.length; i++) {
                 cur = helpers[i](cm, start);
                 if (cur) { return cur; }
             }
         });
-    };
+    }
+
+    exports.init = init;
 });

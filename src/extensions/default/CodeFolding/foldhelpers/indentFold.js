@@ -10,7 +10,7 @@ define(function (require, exports, module) {
     "use strict";
     var CodeMirror = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror");
     var cols = CodeMirror.countColumn, pos = CodeMirror.Pos;
-   
+
     function lastNonEmptyLineNumber(cm) {
         var lc = cm.lastLine(), line = cm.getLine(lc);
         while (lc > 0 && line.trim().length === 0) {
@@ -19,10 +19,10 @@ define(function (require, exports, module) {
         }
         return lc;
     }
-    
-    module.exports = function (cm, start) {
+
+    function indentFold(cm, start) {
         var lineText = cm.getLine(start.line), tabSize = cm.getOption("tabSize");
-        
+
         var lineIndent = cols(lineText, null, tabSize), collapsible = false, lineCount = cm.lineCount();
         var token = cm.getTokenAt(pos(start.line, lineIndent + 1));
         //no folding for blank lines or commented lines
@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         for (i = start.line + 1; i < lineCount; i++) {
             currentLine = cm.getLine(i);
             indent = cols(currentLine, null, tabSize);
-            
+
             token = cm.getTokenAt(pos(i, indent + 1));
             //only fold for non blank lines or non commented lines
             if (currentLine.trim().length !== 0 && (token && token.type !== "comment")) {
@@ -47,7 +47,7 @@ define(function (require, exports, module) {
                                 to: pos(i - 1, cm.getLine(i - 1).length)};
                     }
                 }
-                   
+
                 if (indent === lineIndent || indent < lineIndent) {
                     return;
                 }
@@ -58,5 +58,7 @@ define(function (require, exports, module) {
             i = lastNonEmptyLineNumber(cm);
             return {from: pos(start.line, lineText.length), to: pos(i, cm.getLine(i).length)};
         }
-    };
+    }
+
+    module.exports = indentFold;
 });
