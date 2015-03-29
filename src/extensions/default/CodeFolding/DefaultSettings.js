@@ -9,6 +9,7 @@ define(function (require, exports, module) {
     "use strict";
 
     module.exports = {
+        enabled: true,
         minFoldSize: 2,
         saveFoldStates: true,
         alwaysUseIndentFold: true,

@@ -74,8 +74,6 @@ define(function (require, exports, module) {
         latexFold               = require("foldhelpers/latex-fold"),
         regionFold              = require("foldhelpers/region-fold");
 
-
-
     /**
         Restores the linefolds in the editor using values fetched from the preference store
         Checks the document to ensure that changes have not been made (e.g., in a different editor)
@@ -254,8 +252,57 @@ define(function (require, exports, module) {
         saveLineFolds(EditorManager.getCurrentFullEditor());
     }
 
-    function showSettingsDialog() {
-        SettingsDialog.show(function () {
+    /**
+        Initialise the extension
+    */
+    function init() {
+        if ([undefined, true].indexOf(_prefs.getSetting("enabled")) > -1) {
+            foldCode.init();
+            foldGutter.init();
+            //register a global fold helper based on indentation folds
+            CodeMirror.registerGlobalHelper("fold", "indent", function (mode, cm) {
+                return _prefs.getSetting("alwaysUseIndentFold");
+            }, indentFold);
+
+            CodeMirror.registerGlobalHelper("fold", "region", function (mode, cm) {
+                return _prefs.getSetting("enableRegionFolding");
+            }, regionFold);
+
+            CodeMirror.registerHelper("fold", "stex", latexFold);
+            CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
+            CodeMirror.registerHelper("fold", "tornado", CodeMirror.helpers.fold.brace);
+
+            $(EditorManager).on("activeEditorChange", onActiveEditorChanged);
+            $(DocumentManager).on("documentRefreshed", function (event, doc) {
+                restoreLineFolds(doc._masterEditor);
+            });
+
+            $(ProjectManager).on("beforeProjectClose beforeAppClose", saveBeforeClose);
+
+            CommandManager.register(Strings.CODE_FOLDING_SETTINGS + "...", CODE_FOLDING_SETTINGS, function () {
+                SettingsDialog.show();
+            });
+            CommandManager.register(Strings.COLLAPSE_ALL, COLLAPSE_ALL, collapseAll);
+            CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);
+
+            CommandManager.register(Strings.COLLAPSE_CUSTOM_REGIONS, COLLAPSE_CUSTOM_REGIONS, collapseCustomRegions);
+
+            CommandManager.register(Strings.COLLAPSE_CURRENT, COLLAPSE, collapseCurrent);
+            CommandManager.register(Strings.EXPAND_CURRENT, EXPAND, expandCurrent);
+
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider();
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CODE_FOLDING_SETTINGS);
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE);
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_ALL);
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND_ALL);
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_CUSTOM_REGIONS);
+
+            KeyBindingManager.addBinding(COLLAPSE, "Ctrl-Alt-C");
+            KeyBindingManager.addBinding(EXPAND, "Ctrl-Alt-X");
+            KeyBindingManager.addBinding(COLLAPSE_ALL, "Alt-1");
+            KeyBindingManager.addBinding(EXPAND_ALL, "Shift-Alt-1");
+
             var editor = EditorManager.getCurrentFullEditor();
             if (editor) {
                 var cm = editor._codeMirror;
@@ -265,50 +312,14 @@ define(function (require, exports, module) {
                     foldGutter.updateInViewport(cm);
                 }
             }
-        });
+        } else {
+            CommandManager.register(Strings.CODE_FOLDING_SETTINGS + "...", CODE_FOLDING_SETTINGS, function () {
+                SettingsDialog.show();
+            });
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider();
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CODE_FOLDING_SETTINGS);
+        }
     }
 
-    foldCode.init();
-    foldGutter.init();
-    //register a global fold helper based on indentation folds
-    CodeMirror.registerGlobalHelper("fold", "indent", function (mode, cm) {
-        return _prefs.getSetting("alwaysUseIndentFold");
-    }, indentFold);
-
-    CodeMirror.registerGlobalHelper("fold", "region", function (mode, cm) {
-        return _prefs.getSetting("enableRegionFolding");
-    }, regionFold);
-
-    CodeMirror.registerHelper("fold", "stex", latexFold);
-    CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
-    CodeMirror.registerHelper("fold", "tornado", CodeMirror.helpers.fold.brace);
-
-    $(EditorManager).on("activeEditorChange", onActiveEditorChanged);
-    $(DocumentManager).on("documentRefreshed", function (event, doc) {
-        restoreLineFolds(doc._masterEditor);
-    });
-
-    $(ProjectManager).on("beforeProjectClose beforeAppClose", saveBeforeClose);
-
-    CommandManager.register(Strings.CODE_FOLDING_SETTINGS + "...", CODE_FOLDING_SETTINGS, showSettingsDialog);
-    CommandManager.register(Strings.COLLAPSE_ALL, COLLAPSE_ALL, collapseAll);
-    CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);
-
-    CommandManager.register(Strings.COLLAPSE_CUSTOM_REGIONS, COLLAPSE_CUSTOM_REGIONS, collapseCustomRegions);
-
-    CommandManager.register(Strings.COLLAPSE_CURRENT, COLLAPSE, collapseCurrent);
-    CommandManager.register(Strings.EXPAND_CURRENT, EXPAND, expandCurrent);
-
-    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider();
-    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CODE_FOLDING_SETTINGS);
-    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE);
-    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
-    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_ALL);
-    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND_ALL);
-    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_CUSTOM_REGIONS);
-
-    KeyBindingManager.addBinding(COLLAPSE, "Ctrl-Alt-C");
-    KeyBindingManager.addBinding(EXPAND, "Ctrl-Alt-X");
-    KeyBindingManager.addBinding(COLLAPSE_ALL, "Alt-1");
-    KeyBindingManager.addBinding(EXPAND_ALL, "Shift-Alt-1");
+    init();
 });
