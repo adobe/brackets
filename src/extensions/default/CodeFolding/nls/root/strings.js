@@ -47,12 +47,10 @@ define({
     "FADE_FOLD_BUTTONS_HELP"        : "Hides the fold buttons unless the mouse is over the gutter",
     "MAX_FOLD_LEVEL"                : "Maximum number of nested folds",
     "MAX_FOLD_LEVEL_HELP"           : "Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files.",
-    "BUTTON_SAVE"                   : "Save",
-    "BUTTON_DEFAULTS"               : "Restore defaults",
-    "BUTTON_CANCEL"                 : "Cancel",
+    "RESTORE_DEFAULTS"               : "Restore defaults",
 
     // Endregion
     "CONFIRM_RELOAD_BRACKETS"       : "Would you like to reload Brackets to apply the new settings? You will be prompted to save changes on unsaved documents.",
     "RELOAD_BRACKETS"               : "Reload Brackets",
-    "BUTTON_RELOAD"                 : "Reload"
+    "RELOAD"                 : "Reload"
 });

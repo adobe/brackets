@@ -39,7 +39,7 @@ require.config({
 define(function (require, exports, module) {
     "use strict";
     var CodeMirror = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror");
-    var Strings = require("strings");
+    var Strings = brackets.getModule("strings");
     var CommandManager          = brackets.getModule("command/CommandManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         EditorManager           = brackets.getModule("editor/EditorManager"),

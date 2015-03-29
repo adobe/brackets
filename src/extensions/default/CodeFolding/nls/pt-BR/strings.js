@@ -44,12 +44,10 @@ define({
     "ALWAYS_USE_INDENT_FOLD_HELP"   : "Usa a Indentação como guia para o Dobramento",
     "FADE_FOLD_BUTTONS"             : "Ocultar os botões de Dobramento",
     "FADE_FOLD_BUTTONS_HELP"        : "Oculta os botões quando o cursor não está sobre eles",
-    "BUTTON_SAVE"                   : "Salvar",
-    "BUTTON_DEFAULTS"               : "Restaurar Opções",
-    "BUTTON_CANCEL"                 : "Cancelar",
+    "RESTORE_DEFAULTS"              : "Restaurar Opções",
 
     // Endregion
     "CONFIRM_RELOAD_BRACKETS"       : "Deseja reiniciar o Brackets para aplicar as novas configurações? Haverá a possibilidade de salvar os arquivos editados.",
     "RELOAD_BRACKETS"               : "Reiniciar Brackets",
-    "BUTTON_RELOAD"                 : "Recarregar"
+    "RELOAD"                 : "Recarregar"
 });

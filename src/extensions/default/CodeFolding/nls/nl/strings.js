@@ -46,12 +46,10 @@ define({
     "FADE_FOLD_BUTTONS_HELP"        : "Verberg de vouwknoppen, behalve als de muis over de goot hangt",
     //"USE_KEYBOARD_SHORTCUTS"      : "Gebruik toetsenbordshortcuts",
     //"REMAP_KEYBOARD_SHORTCUTS"    : "Aanpassen toetsenbordshortcuts",
-    "BUTTON_SAVE"                   : "Opslaan",
-    "BUTTON_DEFAULTS"               : "Herstel standaarden",
-    "BUTTON_CANCEL"                 : "Annuleren",
+    "RESTORE_DEFAULTS"               : "Herstel standaarden",
 
     // Endregion
     "CONFIRM_RELOAD_BRACKETS"       : "Wil je Brackets herstarten om de nieuwe instelingen toe te passen? Je zal gevraagd worden om wijzigingen in nog niet opgeslagen documenten op te slaan.",
     "RELOAD_BRACKETS"               : "Herstart Brackets",
-    "BUTTON_RELOAD"                 : "Herstart"
+    "RELOAD"                 : "Herstart"
 });
