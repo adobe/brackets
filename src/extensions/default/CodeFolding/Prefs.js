@@ -9,7 +9,7 @@
 define(function (require, exports, module) {
     "use strict";
     var PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
-        stateManager            = PreferencesManager.stateManager.getPrefixedSystem("code-folding"),
+        prefs            = PreferencesManager.getExtensionPrefs("code-folding"),
         DefaultSettings			= require("DefaultSettings"),
         store = {},
         settings = {},
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
         @returns {number: {from: {line, ch}, to: {line, ch}}} the line folds for the document at the specified path
     */
     function get(path) {
-        store = (stateManager.get(foldsKey) || {});
+        store = (prefs.get(foldsKey) || {});
         return inflate(store[path]);
     }
 
@@ -66,8 +66,7 @@ define(function (require, exports, module) {
     */
     function set(path, folds) {
         store[path] = simplify(folds);
-        stateManager.set(foldsKey, store);
-        stateManager.save();
+        prefs.set(foldsKey, store);
     }
 
     /**
@@ -76,7 +75,7 @@ define(function (require, exports, module) {
         @returns {string} the setting with the specified key
     */
     function getSetting(key) {
-        settings = (stateManager.get("settings") || DefaultSettings);
+        settings = (prefs.get("settings") || DefaultSettings);
         return settings[key];
     }
 
@@ -87,8 +86,7 @@ define(function (require, exports, module) {
     */
     function setSetting(key, value) {
         settings[key] = value;
-        stateManager.set("settings", settings);
-        stateManager.save();
+        prefs.set("settings", settings);
     }
 
     /**
@@ -107,8 +105,7 @@ define(function (require, exports, module) {
         Clears all the saved line folds for all documents.
     */
     function clearAllFolds() {
-        stateManager.set(foldsKey, {});
-        stateManager.save();
+        prefs.set(foldsKey, {});
     }
 
     module.exports.get = get;
