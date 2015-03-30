@@ -22,7 +22,7 @@ define(function (require, exports, module) {
     */
     function simplify(folds) {
         if (!folds) {
-            return folds;
+            return;
         }
         var res = {}, range;
         Object.keys(folds).forEach(function (line) {
@@ -39,7 +39,7 @@ define(function (require, exports, module) {
     */
     function inflate(folds) {
         if (!folds) {
-            return folds;
+            return;
         }
          //transform the folds into objects with from and to properties
         var ranges = {}, obj;
