@@ -5,7 +5,6 @@ define(function (require, exports, module) {
     "use strict";
 
     var Handlers = require("filesystem/impls/lib/handlers");
-    var Log = require("filesystem/impls/lib/log");
 
     // BlobUtils provides an opportunistic cache for BLOB Object URLs
     // which can be looked-up synchronously.
@@ -65,9 +64,10 @@ define(function (require, exports, module) {
 
         var url = blobURLs[filename];
 
-        // We expect this to exist, if it doesn't, warn.
+        // We expect this to exist, if it doesn't,
+        // return path back unchanged
         if(!url) {
-            Log.error("no blob URL for `" + filename + "`.");
+            return filename;
         }
 
         return url;
@@ -77,9 +77,10 @@ define(function (require, exports, module) {
     function getFilename(blobUrl) {
         var filename = paths[blobUrl];
 
-        // We expect this to exist, if it doesn't, warn.
+        // We expect this to exist, if it doesn't,
+        // return path back unchanged
         if(!filename) {
-            Log.error("no path for `" + blobUrl + "`.");
+            return blobUrl;
         }
 
         return filename;
