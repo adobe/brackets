@@ -8,7 +8,8 @@ define(function (require, exports, module) {
         FileSystemStats = require("filesystem/FileSystemStats"),
         Filer           = require("filesystem/impls/filer/BracketsFiler"),
         Dialog          = require("thirdparty/filer-dialogs/filer-dialogs"),
-        BlobUtils       = require("filesystem/impls/filer/BlobUtils");
+        BlobUtils       = require("filesystem/impls/filer/BlobUtils"),
+        Content         = require("extensions/default/brackets-browser-livedev/nohost/src/content");
 
     var fs              = Filer.fs(),
         Path            = Filer.Path,
@@ -227,17 +228,26 @@ define(function (require, exports, module) {
                     return;
                 }
 
-                // Add a BLOB cache record for this filename
-                BlobUtils.cache(path, function(err) {
-                    if(err) {
-                        callback(_mapError(err));
-                        return;
-                    }
-
+                function doStat() {
                     stat(path, function (err, stat) {
                         callback(_mapError(err), stat, created);
                     });
-                });
+                }
+
+                // Add a BLOB cache record for this filename
+                // only if it's not an HTML file
+                if(!Content.isHTML(Path.extname(path))) {
+                    BlobUtils.cache(path, function(err) {
+                        if(err) {
+                            callback(_mapError(err));
+                            return;
+                        }
+
+                        doStat();
+                    });
+                } else {
+                    doStat();
+                }
             });
         }
 
