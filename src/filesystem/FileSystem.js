@@ -664,6 +664,10 @@ define(function (require, exports, module) {
         this._impl.showSaveDialog(title, initialPath, proposedNewFilename, callback);
     };
 
+    FileSystem.prototype.getOSInstallLocation = function (callback) {
+        this._impl.getOSInstallLocation(callback);
+    };
+
     /**
      * Fire a rename event. Clients listen for these events using FileSystem.on.
      * 
@@ -974,6 +978,7 @@ define(function (require, exports, module) {
     exports.resolve = _wrap(FileSystem.prototype.resolve);
     exports.showOpenDialog = _wrap(FileSystem.prototype.showOpenDialog);
     exports.showSaveDialog = _wrap(FileSystem.prototype.showSaveDialog);
+    exports.getOSInstallLocation = _wrap(FileSystem.prototype.getOSInstallLocation);
     exports.watch = _wrap(FileSystem.prototype.watch);
     exports.unwatch = _wrap(FileSystem.prototype.unwatch);
     exports.clearAllCaches = _wrap(FileSystem.prototype.clearAllCaches);

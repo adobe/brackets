@@ -218,6 +218,10 @@ define(function (require, exports, module) {
         appshell.fs.showSaveDialog(title, initialPath, proposedNewFilename, _wrap(callback));
     }
     
+    function getOSInstallLocation(callback) {
+        appshell.fs.getOSInstallLocation(_wrap(callback));
+    }
+
     /**
      * Stat the file or directory at the given path, calling back
      * asynchronously with either a FileSystemError string or the entry's
@@ -567,21 +571,22 @@ define(function (require, exports, module) {
 
     
     // Export public API
-    exports.showOpenDialog  = showOpenDialog;
-    exports.showSaveDialog  = showSaveDialog;
-    exports.exists          = exists;
-    exports.readdir         = readdir;
-    exports.mkdir           = mkdir;
-    exports.rename          = rename;
-    exports.stat            = stat;
-    exports.readFile        = readFile;
-    exports.writeFile       = writeFile;
-    exports.unlink          = unlink;
-    exports.moveToTrash     = moveToTrash;
-    exports.initWatchers    = initWatchers;
-    exports.watchPath       = watchPath;
-    exports.unwatchPath     = unwatchPath;
-    exports.unwatchAll      = unwatchAll;
+    exports.showOpenDialog          = showOpenDialog;
+    exports.showSaveDialog          = showSaveDialog;
+    exports.getOSInstallLocation    = getOSInstallLocation;
+    exports.exists                  = exists;
+    exports.readdir                 = readdir;
+    exports.mkdir                   = mkdir;
+    exports.rename                  = rename;
+    exports.stat                    = stat;
+    exports.readFile                = readFile;
+    exports.writeFile               = writeFile;
+    exports.unlink                  = unlink;
+    exports.moveToTrash             = moveToTrash;
+    exports.initWatchers            = initWatchers;
+    exports.watchPath               = watchPath;
+    exports.unwatchPath             = unwatchPath;
+    exports.unwatchAll              = unwatchAll;
     
     /**
      * Indicates whether or not recursive watching notifications are supported
