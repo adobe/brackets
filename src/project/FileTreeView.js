@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var React             = require("thirdparty/react"),
+        Classnames        = require("thirdparty/classnames"),
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),
         FileUtils         = require("file/FileUtils"),
@@ -448,7 +449,7 @@ define(function (require, exports, module) {
             }
 
             var nameDisplay,
-                cx = React.addons.classSet;
+                cx = Classnames;
 
             var fileClasses = cx({
                 'jstree-clicked selected-node': this.props.entry.get("selected"),
