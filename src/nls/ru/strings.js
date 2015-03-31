@@ -164,7 +164,7 @@ define({
     "FIND_REPLACE_TITLE_WITH"           : "на",
     "FIND_TITLE_LABEL"                  : "Найдено",
     "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} в {3}",
-    
+
     // Find in Files
     "FIND_IN_FILES_TITLE_PART1"         : "\"",
     "FIND_IN_FILES_TITLE_PART2"         : "\" найдено",
@@ -336,7 +336,7 @@ define({
     "CMD_REPLACE_IN_FILES"                : "Заменить в файлах",
     "CMD_REPLACE_IN_SELECTED"             : "Заменить в выделенном файле/директории",
     "CMD_REPLACE_IN_SUBTREE"              : "Заменить в\u2026",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "Вид",
     "CMD_HIDE_SIDEBAR"                    : "Скрыть боковую панель",
@@ -568,7 +568,6 @@ define({
     "DOCS_MORE_LINK"                            : "Подробнее\u2026",
 
     //extensions/default/CodeFolding
-    "CODE_FOLDING_SETTINGS"         : "Настройки Code Folding",
     "COLLAPSE_ALL"                  : "Свернуть все",
     "EXPAND_ALL"                    : "Развернуть все",
     "COLLAPSE_CURRENT"              : "Свернуть текущий",
@@ -584,11 +583,5 @@ define({
     "FADE_FOLD_BUTTONS"             : "Скрывать кнопки для фолдинга",
     "FADE_FOLD_BUTTONS_HELP"        : "Отображать кнопки для фолдинга только при наведении",
     "MAX_FOLD_LEVEL"                : "Максимальное число вложенных сворачиваний",
-    "MAX_FOLD_LEVEL_HELP"           : "Используется для ограничения числа вложенных сворачиваний, чтобы свернуть воспользуйтесь Вид-> Свернуть Все или зажмите Alt во время сворачивания. Это улучшит производительность для больших файлов.",
-    "BUTTON_SAVE"                   : "Сохранить",
-    "BUTTON_DEFAULTS"               : "Востановить значения по умолчанию",
-    "BUTTON_CANCEL"                 : "Отмена",
-    "CONFIRM_RELOAD_BRACKETS"       : "Вы хотите перезагрузить Brackets, чтобы применить новые параметры? Вам будет предложено сохранить все изменения.",
-    "RELOAD_BRACKETS"               : "Перегрузить Brackets",
-    "BUTTON_RELOAD"                 : "Перегрузить"
+    "MAX_FOLD_LEVEL_HELP"           : "Используется для ограничения числа вложенных сворачиваний, чтобы свернуть воспользуйтесь Вид-> Свернуть Все или зажмите Alt во время сворачивания. Это улучшит производительность для больших файлов."
 });

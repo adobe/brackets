@@ -626,7 +626,6 @@ define({
 
     //extensions/default/CodeFolding
     "ENABLE_CODE_FOLDING"           : "Enable code folding",
-    "CODE_FOLDING_SETTINGS"         : "Code Folding Settings",
     "COLLAPSE_ALL"                  : "Collapse All",
     "EXPAND_ALL"                    : "Expand All",
     "COLLAPSE_CURRENT"              : "Collapse Current",
@@ -642,9 +641,5 @@ define({
     "FADE_FOLD_BUTTONS"             : "Fade fold buttons",
     "FADE_FOLD_BUTTONS_HELP"        : "Hides the fold buttons unless the mouse is over the gutter",
     "MAX_FOLD_LEVEL"                : "Maximum number of nested folds",
-    "MAX_FOLD_LEVEL_HELP"           : "Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files.",
-    "RESTORE_DEFAULTS"               : "Restore defaults",
-    "CONFIRM_RELOAD_BRACKETS"       : "Would you like to reload Brackets to apply the new settings? You will be prompted to save changes on unsaved documents.",
-    "RELOAD_BRACKETS"               : "Reload {APP_NAME}",
-    "RELOAD"                        : "Reload"
+    "MAX_FOLD_LEVEL_HELP"           : "Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files."
 });

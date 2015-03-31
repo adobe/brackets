@@ -52,10 +52,8 @@ define(function (require, exports, module) {
         COLLAPSE                = "codefolding.collapse",
         EXPAND                  = "codefolding.expand",
         EXPAND_ALL              = "codefolding.expand.all",
-        CODE_FOLDING_SETTINGS	= "codefolding.settings",
         gutterName              = "CodeMirror-foldgutter",
-        COLLAPSE_CUSTOM_REGIONS = "codefolding.collapse.customregions",
-        SettingsDialog			= require("SettingsDialog");
+        COLLAPSE_CUSTOM_REGIONS = "codefolding.collapse.customregions";
 
     ExtensionUtils.loadStyleSheet(module, "main.less");
 
@@ -279,9 +277,6 @@ define(function (require, exports, module) {
 
             $(ProjectManager).on("beforeProjectClose beforeAppClose", saveBeforeClose);
 
-            CommandManager.register(Strings.CODE_FOLDING_SETTINGS + "...", CODE_FOLDING_SETTINGS, function () {
-                SettingsDialog.show();
-            });
             CommandManager.register(Strings.COLLAPSE_ALL, COLLAPSE_ALL, collapseAll);
             CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);
 
@@ -291,15 +286,14 @@ define(function (require, exports, module) {
             CommandManager.register(Strings.EXPAND_CURRENT, EXPAND, expandCurrent);
 
             Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider();
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CODE_FOLDING_SETTINGS);
             Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE);
             Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
             Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_ALL);
             Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND_ALL);
             Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_CUSTOM_REGIONS);
 
-            KeyBindingManager.addBinding(COLLAPSE, "Ctrl-Alt-C");
-            KeyBindingManager.addBinding(EXPAND, "Ctrl-Alt-X");
+            KeyBindingManager.addBinding(COLLAPSE, "Ctrl-Alt-[");
+            KeyBindingManager.addBinding(EXPAND, "Ctrl-Alt-]");
             KeyBindingManager.addBinding(COLLAPSE_ALL, "Alt-1");
             KeyBindingManager.addBinding(EXPAND_ALL, "Shift-Alt-1");
 
@@ -312,12 +306,6 @@ define(function (require, exports, module) {
                     foldGutter.updateInViewport(cm);
                 }
             }
-        } else {
-            CommandManager.register(Strings.CODE_FOLDING_SETTINGS + "...", CODE_FOLDING_SETTINGS, function () {
-                SettingsDialog.show();
-            });
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider();
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CODE_FOLDING_SETTINGS);
         }
     }
 

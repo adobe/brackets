@@ -628,7 +628,6 @@ define({
     "DOCS_MORE_LINK"                            : "Leia mais",
 
     //extensions/default/CodeFolding
-    "CODE_FOLDING_SETTINGS"         : "Opções de Dobramento",
     "COLLAPSE_ALL"                  : "Dobrar Tudo",
     "EXPAND_ALL"                    : "Expandir Tudo",
     "COLLAPSE_CURRENT"              : "Dobrar Posição Atual",
@@ -642,10 +641,6 @@ define({
     "ALWAYS_USE_INDENT_FOLD"        : "Sempre Usar Dobramento por Indentação",
     "ALWAYS_USE_INDENT_FOLD_HELP"   : "Usa a Indentação como guia para o Dobramento",
     "FADE_FOLD_BUTTONS"             : "Ocultar os botões de Dobramento",
-    "FADE_FOLD_BUTTONS_HELP"        : "Oculta os botões quando o cursor não está sobre eles",
-    "RESTORE_DEFAULTS"              : "Restaurar Opções",
-    "CONFIRM_RELOAD_BRACKETS"       : "Deseja reiniciar o Brackets para aplicar as novas configurações? Haverá a possibilidade de salvar os arquivos editados.",
-    "RELOAD_BRACKETS"               : "Reiniciar Brackets",
-    "RELOAD"                 : "Recarregar"
+    "FADE_FOLD_BUTTONS_HELP"        : "Oculta os botões quando o cursor não está sobre eles"
 });
 /* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */

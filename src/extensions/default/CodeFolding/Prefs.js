@@ -9,11 +9,28 @@
 define(function (require, exports, module) {
     "use strict";
     var PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
-        prefs            = PreferencesManager.getExtensionPrefs("code-folding"),
-        DefaultSettings			= require("DefaultSettings"),
-        store = {},
-        settings = {},
-        foldsKey = "folds";
+        prefs                   = PreferencesManager.getExtensionPrefs("code-folding"),
+        strings                 = brackets.getModule("strings"),
+        store                   = {},
+        foldsKey                = "folds";
+
+    //default preference values
+    prefs.definePreference("enabled", "boolean", true,
+                           {name: strings.ENABLE_CODE_FOLDING, description: strings.ENABLE_CODE_FOLDING});
+    prefs.definePreference("minFoldSize", "number", 2,
+                           {name: strings.MIN_FOLD_SIZE, description: strings.MIN_FOLD_SIZE_HELP});
+    prefs.definePreference("saveFoldStates", "boolean", true,
+                           {name: strings.SAVE_FOLD_STATES, description: strings.SAVE_FOLD_STATES_HELP});
+    prefs.definePreference("alwaysUseIndentFold", "boolean", true,
+                           {name: strings.ALWAYS_USE_INDENT_FOLD, description: strings.ALWAYS_USE_INDENT_FOLD_HELP});
+    prefs.definePreference("enableRegionFolding", "boolean", true,
+                           {name: strings.ENABLE_REGION_FOLDING, description: strings.ENABLE_REGION_FOLDING});
+    prefs.definePreference("fadeFoldButtons", "boolean", false,
+                           {name: strings.FADE_FOLD_BUTTONS, description: strings.FADE_FOLD_BUTTONS_HELP});
+    prefs.definePreference("maxFoldLevel", "number", 2,
+                           {name: strings.MAX_FOLD_LEVEL, description: strings.MAX_FOLD_LEVEL_HELP});
+    prefs.definePreference("folds", "object", {});
+
     /**
         Simplifies the fold ranges into an array of pairs of numbers.
         @param {!{number: {from: {ch, line}, to: {ch, line}} folds the raw fold ranges indexed by line numbers
@@ -75,18 +92,7 @@ define(function (require, exports, module) {
         @returns {string} the setting with the specified key
     */
     function getSetting(key) {
-        settings = (prefs.get("settings") || DefaultSettings);
-        return settings[key];
-    }
-
-    /**
-        Save the code folding setting with the specified key using the specified value
-        @param {!string} key
-        @param {!string} value
-    */
-    function setSetting(key, value) {
-        settings[key] = value;
-        prefs.set("settings", settings);
+        return prefs.get(key, PreferencesManager.CURRENT_PROJECT);
     }
 
     /**
@@ -95,7 +101,7 @@ define(function (require, exports, module) {
     */
     function getAllSettings() {
         var res = {};
-        Object.keys(DefaultSettings).forEach(function (key) {
+        prefs.getKeys().forEach(function (key) {
             res[key] = getSetting(key);
         });
         return res;
@@ -113,8 +119,6 @@ define(function (require, exports, module) {
     module.exports.set = set;
 
     module.exports.getSetting = getSetting;
-
-    module.exports.setSetting = setSetting;
 
     module.exports.getAllSettings = getAllSettings;
 

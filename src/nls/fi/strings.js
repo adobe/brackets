@@ -627,7 +627,6 @@ define({
     "DOCS_MORE_LINK"                            : "Lue lisää",
 
     //extensions/default/CodeFolding
-    "CODE_FOLDING_SETTINGS"         : "Koodin laskostuksen asetukset",
     "COLLAPSE_ALL"                  : "Pienennä kaikki",
     "EXPAND_ALL"                    : "Laajenna kaikki",
     "COLLAPSE_CURRENT"              : "Pienennä nykyinen",
@@ -643,11 +642,7 @@ define({
     "FADE_FOLD_BUTTONS"             : "Häivytä laskostuspainikkeet",
     "FADE_FOLD_BUTTONS_HELP"        : "Piilottaa laskostuspainikkeet, ellei osoitin ole sivumarginaalin päällä",
     "MAX_FOLD_LEVEL"                : "Suurin sallittu sisäkkäisten laskosten määrä",
-    "MAX_FOLD_LEVEL_HELP"           : "Käytetään rajoittamaan sisäkkäisten laskosten määrää etsittäessä ja pienennettäessä, kun käytetään Näytä -> Pienennä kaikki \u2011komentoa tai kun Alt-näppäintä pidetään alhaalla pienennettäessä. Pitäisi parantaa suurten tiedostojen suorituskykyä.",
-    "RESTORE_DEFAULTS"               : "Palauta oletukset",
-    "CONFIRM_RELOAD_BRACKETS"       : "Haluatko ladata Bracketsin uudelleen ottaaksesi uudet asetukset käyttöön? Sinua pyydetään tallentamaan muutokset tallentamattomiin dokumentteihin.",
-    "RELOAD_BRACKETS"               : "Lataa Brackets uudelleen",
-    "RELOAD"                        : "Lataa uudelleen"
+    "MAX_FOLD_LEVEL_HELP"           : "Käytetään rajoittamaan sisäkkäisten laskosten määrää etsittäessä ja pienennettäessä, kun käytetään Näytä -> Pienennä kaikki \u2011komentoa tai kun Alt-näppäintä pidetään alhaalla pienennettäessä. Pitäisi parantaa suurten tiedostojen suorituskykyä."
 });
 
 /* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */

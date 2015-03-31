@@ -458,7 +458,6 @@ define({
     "DOCS_MORE_LINK"                            : "Lees meer",
 
     //extensions/default/CodeFolding
-    "CODE_FOLDING_SETTINGS"         : "Code Folding instellingen",
     "COLLAPSE_ALL"                  : "Alles inklappen",
     "EXPAND_ALL"                    : "Alles uitklappen",
     "COLLAPSE_CURRENT"              : "Huidige inklappen",
@@ -472,10 +471,6 @@ define({
     "ALWAYS_USE_INDENT_FOLD"        : "Altijd vouwindentatie gebruiken",
     "ALWAYS_USE_INDENT_FOLD_HELP"   : "Altijd het indentatieniveau als vouwrichtlijn gebruiken",
     "FADE_FOLD_BUTTONS"             : "Vouwknoppen vervagen",
-    "FADE_FOLD_BUTTONS_HELP"        : "Verberg de vouwknoppen, behalve als de muis over de goot hangt",
-    "RESTORE_DEFAULTS"               : "Herstel standaarden",
-    "CONFIRM_RELOAD_BRACKETS"       : "Wil je Brackets herstarten om de nieuwe instelingen toe te passen? Je zal gevraagd worden om wijzigingen in nog niet opgeslagen documenten op te slaan.",
-    "RELOAD_BRACKETS"               : "Herstart Brackets",
-    "RELOAD"                 : "Herstart"
+    "FADE_FOLD_BUTTONS_HELP"        : "Verberg de vouwknoppen, behalve als de muis over de goot hangt"
 });
 /* Last translated for 752856d58d2e9dde14e1af6be615bb7080727b7a */
