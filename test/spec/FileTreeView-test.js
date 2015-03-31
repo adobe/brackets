@@ -211,7 +211,7 @@ define(function (require, exports, module) {
                     })
                 }));
                 var input = RTU.findRenderedDOMComponentWithTag(rendered, "input");
-                expect(input.props.value).toBe("afile.js");
+                expect(input.props.defaultValue).toBe("afile.js");
             });
             
             it("should re-render as needed", function () {
@@ -391,7 +391,7 @@ define(function (require, exports, module) {
                     })
                 }));
                 var input = RTU.findRenderedDOMComponentWithTag(rendered, "input");
-                expect(input.props.value).toBe("thedir");
+                expect(input.props.defaultValue).toBe("thedir");
             });
             
             it("should be able to list files", function () {
