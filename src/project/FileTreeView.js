@@ -170,7 +170,7 @@ define(function (require, exports, module) {
      * * name: the name of the file, including the extension
      * * actions: the action creator responsible for communicating actions the user has taken
      */
-    var fileRenameInput = React.createClass({
+    var fileRenameInput = React.createFactory(React.createClass({
         mixins: [renameBehavior],
 
         /**
@@ -204,7 +204,7 @@ define(function (require, exports, module) {
                 ref: "name"
             });
         }
-    });
+    }));
 
     /**
      * @private
@@ -325,7 +325,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    var fileNode = React.createClass({
+    var fileNode = React.createFactory(React.createClass({
         mixins: [contextSettable, pathComputer, extendable],
 
         /**
@@ -482,7 +482,7 @@ define(function (require, exports, module) {
                 }, " "),
                 nameDisplay);
         }
-    });
+    }));
 
     /**
      * @private
@@ -543,7 +543,7 @@ define(function (require, exports, module) {
      * * name: the name of the file, including the extension
      * * actions: the action creator responsible for communicating actions the user has taken
      */
-    var directoryRenameInput = React.createClass({
+    var directoryRenameInput = React.createFactory(React.createClass({
         mixins: [renameBehavior],
 
         /**
@@ -575,7 +575,7 @@ define(function (require, exports, module) {
                 ref: "name"
             });
         }
-    });
+    }));
 
     /**
      * @private
@@ -591,7 +591,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    directoryNode = React.createClass({
+    directoryNode = React.createFactory(React.createClass({
         mixins: [contextSettable, pathComputer, extendable],
 
         /**
@@ -718,7 +718,7 @@ define(function (require, exports, module) {
                 nameDisplay,
                 childNodes);
         }
-    });
+    }));
 
     /**
      * @private
@@ -734,7 +734,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    directoryContents = React.createClass({
+    directoryContents = React.createFactory(React.createClass({
 
         /**
          * Need to re-render if the sort order or the contents change.
@@ -785,7 +785,7 @@ define(function (require, exports, module) {
                 }
             }.bind(this)).toArray());
         }
-    });
+    }));
 
     /**
      * Displays the absolutely positioned box for the selection or context in the
@@ -797,7 +797,7 @@ define(function (require, exports, module) {
      * * visible: should this be visible now
      * * selectedClassName: class name applied to the element that is selected
      */
-    var fileSelectionBox = React.createClass({
+    var fileSelectionBox = React.createFactory(React.createClass({
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
@@ -839,7 +839,7 @@ define(function (require, exports, module) {
                 className: this.props.className
             });
         }
-    });
+    }));
     
     /**
      * On Windows and Linux, the selection bar in the tree does not extend over the scroll bar.
@@ -852,7 +852,7 @@ define(function (require, exports, module) {
      * * selectedClassName: class name applied to the element that is selected
      * * className: class to be applied to the extension element
      */
-    var selectionExtension = React.createClass({
+    var selectionExtension = React.createFactory(React.createClass({
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
@@ -912,7 +912,7 @@ define(function (require, exports, module) {
                 className: this.props.className
             });
         }
-    });
+    }));
 
     /**
      * @private
@@ -928,7 +928,7 @@ define(function (require, exports, module) {
      * * forceRender: causes the component to run render
      * * platform: platform that Brackets is running on
      */
-    var fileTreeView = React.createClass({
+    var fileTreeView = React.createFactory(React.createClass({
 
         /**
          * Update for any change in the tree data or directory sorting preference.
@@ -992,7 +992,7 @@ define(function (require, exports, module) {
                 contents
             );
         }
-    });
+    }));
 
     /**
      * Renders the file tree to the given element.
@@ -1009,7 +1009,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        React.renderComponent(fileTreeView({
+        React.render(fileTreeView({
             treeData: viewModel.treeData,
             selectionViewInfo: viewModel.selectionViewInfo,
             sortDirectoriesFirst: viewModel.sortDirectoriesFirst,
