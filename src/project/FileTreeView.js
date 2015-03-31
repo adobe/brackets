@@ -120,9 +120,8 @@ define(function (require, exports, module) {
         handleClick: function (e) {
             e.stopPropagation();
             if (e.button !== LEFT_MOUSE_BUTTON) {
-                return false;
+                e.preventDefault();
             }
-            return true;
         },
 
         /**
@@ -219,17 +218,18 @@ define(function (require, exports, module) {
          * Send matching mouseDown events to the action creator as a setContext action.
          */
         handleMouseDown: function (e) {
+            e.stopPropagation();
             if (e.button === RIGHT_MOUSE_BUTTON ||
                     (this.props.platform === "mac" && e.button === LEFT_MOUSE_BUTTON && e.ctrlKey)) {
                 this.props.actions.setContext(this.myPath());
-                return false;
+                e.preventDefault();
+                return;
             }
             // Return true only for mouse down in rename mode.
             if (this.props.entry.get("rename")) {
-                e.stopPropagation();
-                return true;
+                return;
             }
-            return false;
+            e.preventDefault();
         }
     };
 
@@ -391,7 +391,7 @@ define(function (require, exports, module) {
         handleClick: function (e) {
             // If we're renaming, allow the click to go through to the rename input.
             if (this.props.entry.get("rename")) {
-                return true;
+                return;
             }
 
             if (e.button !== LEFT_MOUSE_BUTTON) {
@@ -408,7 +408,8 @@ define(function (require, exports, module) {
             } else {
                 this.props.actions.setSelected(this.myPath());
             }
-            return false;
+            e.stopPropagation();
+            e.preventDefault();
         },
 
         /**
@@ -639,7 +640,8 @@ define(function (require, exports, module) {
                 // directory toggle with no modifier
                 this.props.actions.setDirectoryOpen(this.myPath(), setOpen);
             }
-            return false;
+            event.stopPropagation();
+            event.preventDefault();
         },
 
         /**
