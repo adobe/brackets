@@ -48,6 +48,7 @@ define(function (require, exports, module) {
         });
         return res;
     }
+
     /**
         Inflates the fold ranges stored as simplified numeric arrays. The inflation converts the data into
         objects whose keys are line numbers and whose values are objects in the format {from: {line, ch}, to: {line, ch}}.
@@ -92,7 +93,7 @@ define(function (require, exports, module) {
         @returns {string} the setting with the specified key
     */
     function getSetting(key) {
-        return prefs.get(key, PreferencesManager.CURRENT_PROJECT);
+        return prefs.get(key);
     }
 
     /**

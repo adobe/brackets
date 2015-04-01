@@ -300,9 +300,9 @@ define(function (require, exports, module) {
         });
     }
 
+
     exports.init = init;
     exports.clearGutter = clearGutter;
-
     exports.updateInViewport = updateInViewport;
 
 });

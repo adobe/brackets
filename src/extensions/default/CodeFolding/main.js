@@ -38,9 +38,10 @@ require.config({
 
 define(function (require, exports, module) {
     "use strict";
-    var CodeMirror = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror");
-    var Strings = brackets.getModule("strings");
-    var CommandManager          = brackets.getModule("command/CommandManager"),
+    var CodeMirror              = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+        Strings                 = brackets.getModule("strings"),
+        AppInit                 = brackets.getModule("utils/AppInit"),
+        CommandManager          = brackets.getModule("command/CommandManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
         ProjectManager          = brackets.getModule("project/ProjectManager"),
@@ -93,7 +94,9 @@ define(function (require, exports, module) {
         }
     }
 
-    /**Saves the line folds in the editor using the preference storage**/
+    /**
+        Saves the line folds in the editor using the preference storage
+    **/
     function saveLineFolds(editor) {
         var saveFolds = _prefs.getSetting("saveFoldStates");
         if (!editor || !saveFolds) { return; }
@@ -168,6 +171,7 @@ define(function (require, exports, module) {
             }
         }
     }
+
     /**
         Expands the code region at the current cursor position.
     */
@@ -178,6 +182,7 @@ define(function (require, exports, module) {
             cm.unfoldCode(cursor.line);
         }
     }
+
     /**
         Collapses all foldable regions in the current document. Folding is done up to a level 'n'
         which is defined in the preferences. Levels refer to fold heirarchies e.g., for the following
@@ -198,6 +203,7 @@ define(function (require, exports, module) {
             CodeMirror.commands.foldToLevel(cm);
         }
     }
+
     /**
         Expands all folded regions in the current document
     */
@@ -209,7 +215,7 @@ define(function (require, exports, module) {
         }
     }
 
-    function registerHandlers(editor) {
+    function createGutter(editor) {
         var cm = editor._codeMirror;
         if (cm) {
             var path = editor.document.file.fullPath, _lineFolds = _prefs.get(path);
@@ -237,12 +243,14 @@ define(function (require, exports, module) {
     }
 
     function onActiveEditorChanged(event, current, previous) {
-        if (current && current._codeMirror.getOption("gutters").indexOf(gutterName) === -1) {
-            registerHandlers(current);
-            restoreLineFolds(current);
-        }
-        if (previous) {
-            saveLineFolds(previous);
+        if (_prefs.getSetting("enabled")) {
+            if (current && current._codeMirror.getOption("gutters").indexOf(gutterName) === -1) {
+                createGutter(current);
+                restoreLineFolds(current);
+            }
+            if (previous) {
+                saveLineFolds(previous);
+            }
         }
     }
 
@@ -254,7 +262,7 @@ define(function (require, exports, module) {
         Initialise the extension
     */
     function init() {
-        if ([undefined, true].indexOf(_prefs.getSetting("enabled")) > -1) {
+        if (_prefs.getSetting("enabled")) {
             foldCode.init();
             foldGutter.init();
             //register a global fold helper based on indentation folds
@@ -272,7 +280,9 @@ define(function (require, exports, module) {
 
             $(EditorManager).on("activeEditorChange", onActiveEditorChanged);
             $(DocumentManager).on("documentRefreshed", function (event, doc) {
-                restoreLineFolds(doc._masterEditor);
+                if (_prefs.getSetting("enabled")) {
+                    restoreLineFolds(doc._masterEditor);
+                }
             });
 
             $(ProjectManager).on("beforeProjectClose beforeAppClose", saveBeforeClose);
@@ -309,5 +319,5 @@ define(function (require, exports, module) {
         }
     }
 
-    init();
+    AppInit.appReady(init);
 });
