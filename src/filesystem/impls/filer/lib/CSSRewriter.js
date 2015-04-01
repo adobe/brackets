@@ -4,82 +4,76 @@ define(function (require, exports) {
     "use strict";
 
     var Content = require("filesystem/impls/filer/lib/content");
-    var Filer = require("filesystem/impls/filer/BracketsFiler");
-    var Path = Filer.Path;
+    var Path = require("filesystem/impls/filer/BracketsFiler").Path;
+    var BlobUtils = require("filesystem/impls/filer/BlobUtils");
 
     /**
      * Rewrite all url(...) references to blob URL Objects from the fs.
      */
     function CSSRewriter(path, css) {
-        this.fs = Filer.fs();
         this.path = path;
         this.dir = Path.dirname(path);
         this.css = css;
     }
 
-    CSSRewriter.prototype.urls = function(callback) {
-        var fs = this.fs;
-        var path = this.path;
+    CSSRewriter.prototype.urls = function() {
         var dir = this.dir;
         var css = this.css;
+        var replacements = [];
 
         // Do a two stage pass of the css content, replacing all interesting url(...)
         // uses with the contents of files in the server root.
         // Thanks to Pomax for helping with this
-        function aggregate(content, callback) {
+        function aggregate(content) {
             var urls = [];
+            var urlRegex = new RegExp('url\\([\\\'\\"]\\?([^\\\'\\"\\)]+)[\\\'\\"]\\?\\)', 'g');
 
-            function fetch(input, replacements, next) {
+            function fetch(input) {
                 if(input.length === 0) {
-                    return next(false, replacements);
+                    return;
                 }
 
                 var filename = input.splice(0,1)[0];
-                fs.readFile(Path.resolve(dir, filename), null, function(err, data) {
-                    if(err) {
-                        return next("failed on " + path, replacements);
-                    }
+                var path = Path.resolve(dir, filename);
 
-                    // Queue a function to do the replacement in the second pass
-                    replacements.push(function(content) {
-                        // Swap the filename with the contents of the file
-                        var filenameCleaned = filename.replace(/\./g, '\\.').replace(/\//g, '\\/');
-                        var regex = new RegExp(filenameCleaned, 'gm');
-                        var mime = Content.mimeFromExt(Path.extname(filename));
-                        return content.replace(regex, Content.toURL(data, mime));
-                    });
-                    fetch(input, replacements, next);
+                replacements.push(function(content) {
+                    // Swap the filename with the blob url
+                    var period = new RegExp('\\.', 'g');
+                    var forwardSlash = new RegExp('\\/', 'g');
+                    var filenameCleaned = filename.replace(period, '\\.').replace(forwardSlash, '\\/');
+                    var regex = new RegExp(filenameCleaned, 'gm');
+                    return content.replace(regex, BlobUtils.getUrl(path));
                 });
+
+                fetch(input);
             }
 
-            function fetchFiles(list, next) {
-                fetch(list, [], next);
+            function fetchFiles(list) {
+                fetch(list);
             }
 
-            content.replace(/url\(['"]?([^'"\)]+)['"]?\)/g, function(_, url) {
+            content.replace(urlRegex, function(_, url) {
                 if(!Content.isRelativeURL(url)) {
                     return;
                 }
                 urls.push(url);
             });
-            fetchFiles(urls, callback);
+
+            fetchFiles(urls);
         }
 
-        aggregate(css, function(err, replacements) {
-            if(err) {
-                callback(err);
-                return;
-            }
-            replacements.forEach(function(replacement) {
-                css = replacement(css);
-            });
-            callback(null, css);
+        aggregate(css);
+
+        replacements.forEach(function(replacement) {
+            css = replacement(css);
         });
+
+        return css;
     };
 
-    function rewrite(path, css, callback) {
+    function rewrite(path, css) {
         var rewriter = new CSSRewriter(path, css);
-        rewriter.urls(callback);
+        return rewriter.urls();
     }
 
     exports.rewrite = rewrite;

@@ -9,8 +9,7 @@ define(function (require, exports, module) {
     // BlobUtils provides an opportunistic cache for BLOB Object URLs
     // which can be looked-up synchronously.
 
-    var Filer = require("filesystem/impls/filer/BracketsFiler");
-    var Path  = Filer.Path;
+    var Path  = require("filesystem/impls/filer/BracketsFiler").Path;
 
     // 2-way cache for blob URL to path for looking up either way:
     // * paths - paths keyed on blobUrls
@@ -19,19 +18,17 @@ define(function (require, exports, module) {
     var blobURLs = {};
 
     // Generate a BLOB URL for the given filename and cache it
-    function cache(filename, callback) {
+    function cache(filename, content) {
         filename = Path.normalize(filename);
 
-        Handlers.handleFile(filename, function(err, url) {
-            // If there's an existing entry for this, remove it.
-            remove(filename);
+        var url = Handlers.handleFile(filename, content);
 
-            // Now make a new set of cache entries
-            blobURLs[filename] = url;
-            paths[url] = filename;
+        // If there's an existing entry for this, remove it.
+        remove(filename);
 
-            callback(err);
-        });
+        // Now make a new set of cache entries
+        blobURLs[filename] = url;
+        paths[url] = filename;
     }
 
     // Remove the cached BLOB URL for the given filename

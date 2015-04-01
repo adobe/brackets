@@ -228,26 +228,15 @@ define(function (require, exports, module) {
                     return;
                 }
 
-                function doStat() {
-                    stat(path, function (err, stat) {
-                        callback(_mapError(err), stat, created);
-                    });
-                }
-
                 // Add a BLOB cache record for this filename
                 // only if it's not an HTML file
                 if(!Content.isHTML(Path.extname(path))) {
-                    BlobUtils.cache(path, function(err) {
-                        if(err) {
-                            callback(_mapError(err));
-                            return;
-                        }
-
-                        doStat();
-                    });
-                } else {
-                    doStat();
+                    BlobUtils.cache(path, data);
                 }
+
+                stat(path, function (err, stat) {
+                    callback(_mapError(err), stat, created);
+                });
             });
         }
 

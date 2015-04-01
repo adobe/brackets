@@ -4,18 +4,15 @@ define(function (require, exports, module) {
     "use strict";
 
     var Content = require("filesystem/impls/filer/lib/content");
-    var Log = require("filesystem/impls/filer/lib/log");
-    var Async = require("filesystem/impls/filer/lib/async");
     var CSSRewriter = require("filesystem/impls/filer/lib/CSSRewriter");
-    var Filer = require("filesystem/impls/filer/BracketsFiler");
-    var Path = Filer.Path;
+    var BlobUtils = require("filesystem/impls/filer/BlobUtils");
+    var Path = require("filesystem/impls/filer/BracketsFiler").Path;
 
     /**
      * Rewrite all external resources (links, scripts, img sources, ...) to
      * blob URL Objects from the fs.
      */
     function HTMLRewriter(path, html) {
-        this.fs = Filer.fs();
         this.path = path;
         this.dir = Path.dirname(path);
 
@@ -24,166 +21,103 @@ define(function (require, exports, module) {
         this.doc = parser.parseFromString(html, 'text/html');
     }
 
-    HTMLRewriter.prototype.elements = function(type, urlType, mime, callback) {
-        var elems = this.doc.querySelectorAll(type);
-        var fs = this.fs;
+    HTMLRewriter.prototype.elements = function(type, urlType) {
+        var elements = this.doc.querySelectorAll(type);
         var dir = this.dir;
 
-        Async.eachSeries(elems, function(elem, callback) {
+        function rewritePath(element) {
             // Skip any links for protocols (we only want relative paths)
-            var url = elem.getAttribute(urlType);
-            if(!Content.isRelativeURL(url)) {
-                return callback();
+            var path = element.getAttribute(urlType);
+            if(!Content.isRelativeURL(path)) {
+                return;
             }
 
-            var path = Path.resolve(dir, url);
-            fs.exists(path, function(found) {
-                if(!found) {
-                    return callback();
-                }
-
-                fs.readFile(path, null, function(err, data) {
-                    if(err) {
-                        return callback(err);
-                    }
-
-                    mime = mime || Content.mimeFromExt(Path.extname(path));
-                    elem[urlType] = Content.toURL(data, mime);
-                    callback();
-                });
-            });
-        }, function eachSeriesfinished(err) {
-            if(err) {
-                Log.error(err);
-            }
-            callback();
-        });
-    };
-
-    HTMLRewriter.prototype.links = function(callback) {
-        var dir = this.dir;
-        var fs = this.fs;
-        var elems = this.doc.querySelectorAll('link');
-
-        Async.eachSeries(elems, function(elem, callback) {
-            var url = elem.getAttribute('href');
-            if(!Content.isRelativeURL(url)) {
-                return callback();
-            }
-
-            var path = Path.resolve(dir, url);
-            var ext = Path.extname(path);
-
-            fs.exists(path, function(found) {
-                if(!found) {
-                    return callback();
-                }
-
-                fs.readFile(path, 'utf8', function(err, data) {
-                    if(err) {
-                        return callback(err);
-                    }
-
-                    if(Content.isHTML(ext)) {
-                        rewrite(path, data, function(err, html) {
-                            elem.href = Content.toURL(html, 'text/html');
-                            callback();
-                        });
-                    } else if(Content.isCSS(ext)) {
-                        CSSRewriter.rewrite(path, data, function(err, css) {
-                            elem.href = Content.toURL(css, 'text/css');
-                            callback();
-                        });
-                    }
-                    callback();
-                });
-            });
-        }, function eachSeriesFinished(err) {
-            if(err) {
-                Log.error(err);
-            }
-            callback();
-        });
-    };
-
-    HTMLRewriter.prototype.styles = function(callback) {
-        var path = this.path;
-        var elems = this.doc.querySelectorAll('style');
-
-        Async.eachSeries(elems, function(elem, callback) {
-            var content = elem.innerHTML;
-            if(!content) {
-                return callback();
-            }
-
-            CSSRewriter.rewrite(path, content, function(err, css) {
-                if(err) {
-                    Log.error(err);
-                    return callback(err);
-                }
-                elem.innerHTML = css;
-                callback();
-            });
-        }, function(err) {
-            if(err) {
-                Log.error(err);
-            }
-            callback();
-        });
-    };
-
-    HTMLRewriter.prototype.styleAttributes = function(callback) {
-        var path = this.path;
-        var elems = this.doc.querySelectorAll('[style]');
-
-        Async.eachSeries(elems, function(elem, callback) {
-            var content = elem.getAttribute('style');
-            if(!content) {
-                return callback();
-            }
-
-            CSSRewriter.rewrite(path, content, function(err, css) {
-                if(err) {
-                    Log.error(err);
-                    return callback(err);
-                }
-                elem.setAttribute('style', css);
-                callback();
-            });
-        }, function(err) {
-            if(err) {
-                Log.error(err);
-            }
-            callback();
-        });
-    };
-
-    function rewrite(path, html, callback) {
-        var rewriter = new HTMLRewriter(path, html);
-
-        function iterator(functionName) {
-            var args = Array.prototype.slice.call(arguments, 1);
-
-            return function (callback) {
-                rewriter[functionName].apply(rewriter, args.concat([callback]));
-            };
+            // Get the Blob Url from cache
+            element[urlType] = BlobUtils.getUrl(Path.resolve(dir, path));
         }
 
-        Async.series([
-            iterator("links"),
-            iterator("styles"),
-            iterator("styleAttributes"),
-            iterator("elements", 'iframe', 'src', null),
-            iterator("elements", 'img', 'src', null),
-            iterator("elements", 'script', 'src', 'text/javascript'),
-            iterator("elements", 'source', 'src', null),
-            iterator("elements", 'video', 'src', null),
-            iterator("elements", 'audio', 'src', null),
-        ], function finishedRewriteSeries(err, result) {
-            // Return the processed HTML
-            var html = rewriter.doc.documentElement.outerHTML;
-            callback(err, html);
-        });
+        if(!elements) {
+            return;
+        }
+
+        Array.prototype.forEach.call(elements, rewritePath);
+    };
+
+    HTMLRewriter.prototype.links = function() {
+        var dir = this.dir;
+        var elements = this.doc.querySelectorAll('link');
+
+        function rewritePath(element) {
+            var path = element.getAttribute('href');
+            if(!Content.isRelativeURL(path)) {
+                return;
+            }
+
+            element.href = BlobUtils.getUrl(Path.resolve(dir, path));
+        }
+
+        if(!elements) {
+            return;
+        }
+
+        Array.prototype.forEach.call(elements, rewritePath);
+    };
+
+    HTMLRewriter.prototype.styles = function() {
+        var path = this.path;
+        var elements = this.doc.querySelectorAll('style');
+
+        function rewritePath(element) {
+            var content = element.innerHTML;
+            if(!content) {
+                return;
+            }
+
+            element.innerHTML = CSSRewriter.rewrite(path, content);
+        }
+
+        if(!elements) {
+            return;
+        }
+
+        Array.prototype.forEach.call(elements, rewritePath);
+    };
+
+    HTMLRewriter.prototype.styleAttributes = function() {
+        var path = this.path;
+        var elements = this.doc.querySelectorAll('[style]');
+
+        function rewritePath(element) {
+            var content = element.getAttribute('style');
+            if(!content) {
+                return;
+            }
+
+            element.setAttribute('style', CSSRewriter.rewrite(path, content));
+        }
+
+        if(!elements) {
+            return;
+        }
+
+        Array.prototype.forEach.call(elements, rewritePath);
+    };
+
+    function rewrite(path, html) {
+        var rewriter = new HTMLRewriter(path, html);
+
+        rewriter.links();
+        rewriter.styles();
+        rewriter.styleAttributes();
+        rewriter.elements('iframe', 'src');
+        rewriter.elements('img', 'src');
+        rewriter.elements('script', 'src');
+        rewriter.elements('source', 'src');
+        rewriter.elements('video', 'src');
+        rewriter.elements('audio', 'src');
+
+        // Return the processed HTML
+        return rewriter.doc.documentElement.outerHTML;
     }
 
     exports.rewrite = rewrite;
