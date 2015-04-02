@@ -37,7 +37,7 @@ define(function (require, exports, module) {
 
     prefs.definePreference("healthDataTracking", "boolean", true);
 
-    var ONE_DAY = 20 * 1000,
+    var ONE_DAY = 24 * 60 * 60 * 1000,
         timeoutVar;
 
     var params = new UrlParams();
