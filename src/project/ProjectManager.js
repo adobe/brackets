@@ -820,6 +820,42 @@ define(function (require, exports, module) {
         // Some legacy code calls this API with a non-canonical path
         rootPath = ProjectModel._ensureTrailingSlash(rootPath);
 
+        var projectPrefFullPath = (rootPath + SETTINGS_FILENAME),
+            file   = FileSystem.getFileForPath(projectPrefFullPath),
+            result = new $.Deferred(),
+            corrupt = false;
+       
+        //Verify that the project preferences file (.brackets.json) is NOT corrupted.
+        //If corrupted, display the error message and open the file in editor for the user to edit.
+        FileUtils.readAsText(file)
+            .done(function (text) {
+                try {
+                    if (text) {
+                        var json = JSON.parse(text);                        
+                    }
+                } catch (err) {
+                    // Cannot parse the text read from the project preferences file.
+                    corrupt = true;
+                    var info = MainViewManager.findInAllWorkingSets(projectPrefFullPath);
+                    var paneId;
+                    if (info.length) {
+                        paneId = info[0].paneId;
+                    }
+                    FileViewController.openFileAndAddToWorkingSet(projectPrefFullPath, paneId)
+                        .done(function () {
+                            Dialogs.showModalDialog(
+                                DefaultDialogs.DIALOG_ID_ERROR,
+                                Strings.ERROR_PREFS_CORRUPT_TITLE,
+                                Strings.ERROR_PROJ_PREFS_CORRUPT
+                            ).done(function () {
+                                // give the focus back to the editor with the pref file
+                                MainViewManager.focusActivePane();
+                            });
+                        });                        
+
+                }
+            });
+
         if (isUpdating) {
             // We're just refreshing. Don't need to unwatch the project root, so we can start loading immediately.
             startLoad.resolve();
