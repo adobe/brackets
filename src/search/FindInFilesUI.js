@@ -180,6 +180,10 @@ define(function (require, exports, module) {
                 _findBar.showError(queryResult.error);
             }
         }
+
+        function handleExclusionSetChange() {
+            _findBar.showError(null);
+        }
         
         function startSearch(replaceText) {
             var queryInfo = _findBar.getQueryInfo();
@@ -231,6 +235,8 @@ define(function (require, exports, module) {
             };
 
             filterPicker = FileFilters.createFilterPicker(exclusionsContext, _findBar);
+            // On change to exclusion set, clear errors if any in FindBar.
+            FileFilters.on("exclusionSetChange", handleExclusionSetChange);
             // TODO: include in FindBar? (and disable it when FindBar is disabled)
             _findBar._modalBar.getRoot().find(".scope-group").append(filterPicker);
         }
