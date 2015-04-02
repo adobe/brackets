@@ -821,21 +821,18 @@ define(function (require, exports, module) {
         rootPath = ProjectModel._ensureTrailingSlash(rootPath);
 
         var projectPrefFullPath = (rootPath + SETTINGS_FILENAME),
-            file   = FileSystem.getFileForPath(projectPrefFullPath),
-            result = new $.Deferred(),
-            corrupt = false;
-       
+            file   = FileSystem.getFileForPath(projectPrefFullPath);
+            
         //Verify that the project preferences file (.brackets.json) is NOT corrupted.
         //If corrupted, display the error message and open the file in editor for the user to edit.
         FileUtils.readAsText(file)
             .done(function (text) {
                 try {
                     if (text) {
-                        var json = JSON.parse(text);                        
+                        JSON.parse(text);
                     }
                 } catch (err) {
                     // Cannot parse the text read from the project preferences file.
-                    corrupt = true;
                     var info = MainViewManager.findInAllWorkingSets(projectPrefFullPath);
                     var paneId;
                     if (info.length) {
@@ -851,8 +848,7 @@ define(function (require, exports, module) {
                                 // give the focus back to the editor with the pref file
                                 MainViewManager.focusActivePane();
                             });
-                        });                        
-
+                        });
                 }
             });
 
