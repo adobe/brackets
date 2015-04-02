@@ -3,10 +3,10 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Content = require("filesystem/impls/lib/content");
-    var Log = require("filesystem/impls/lib/log");
-    var HTMLRewriter = require("filesystem/impls/lib/HTMLRewriter");
-    var CSSRewriter = require("filesystem/impls/lib/CSSRewriter");
+    var Content = require("filesystem/impls/filer/lib/content");
+    var Log = require("filesystem/impls/filer/lib/log");
+    var HTMLRewriter = require("filesystem/impls/filer/lib/HTMLRewriter");
+    var CSSRewriter = require("filesystem/impls/filer/lib/CSSRewriter");
     var Filer = require("filesystem/impls/filer/BracketsFiler");
     var Path  = Filer.Path;
 

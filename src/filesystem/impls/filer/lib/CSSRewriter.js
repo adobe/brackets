@@ -3,7 +3,7 @@
 define(function (require, exports) {
     "use strict";
 
-    var Content = require("filesystem/impls/lib/content");
+    var Content = require("filesystem/impls/filer/lib/content");
     var Filer = require("filesystem/impls/filer/BracketsFiler");
     var Path = Filer.Path;
 

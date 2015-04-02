@@ -9,7 +9,7 @@ define(function (require, exports, module) {
         Filer           = require("filesystem/impls/filer/BracketsFiler"),
         Dialog          = require("thirdparty/filer-dialogs/filer-dialogs"),
         BlobUtils       = require("filesystem/impls/filer/BlobUtils"),
-        Content         = require("extensions/default/brackets-browser-livedev/nohost/src/content");
+        Content         = require("filesystem/impls/filer/lib/content");
 
     var fs              = Filer.fs(),
         Path            = Filer.Path,

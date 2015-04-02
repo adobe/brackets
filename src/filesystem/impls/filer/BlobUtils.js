@@ -4,7 +4,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Handlers = require("filesystem/impls/lib/handlers");
+    var Handlers = require("filesystem/impls/filer/lib/handlers");
 
     // BlobUtils provides an opportunistic cache for BLOB Object URLs
     // which can be looked-up synchronously.

@@ -29,9 +29,9 @@ define(function (require, exports, module) {
     "use strict";
     
     var FileSystemEntry = require("filesystem/FileSystemEntry"),
-        Content         = require("extensions/default/brackets-browser-livedev/nohost/src/content"),
+        Content         = require("filesystem/impls/filer/lib/content"),
         Path            = require("filesystem/impls/filer/BracketsFiler").Path,
-        defaultHTML     = require("text!filesystem/impls/lib/default.html");
+        defaultHTML     = require("text!filesystem/impls/filer/lib/default.html");
     
     
     /*
