@@ -187,9 +187,6 @@ define(function (require, exports, module) {
 
         menu.addMenuDivider();
         menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
-        
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.HELP_HEALTH_DATA_STATISTICS);
 
         var hasAboutItem = (brackets.platform !== "mac" || !brackets.nativeMenus);
         

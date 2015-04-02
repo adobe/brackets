@@ -22,20 +22,21 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, Mustache, $ */
+/*global define, Mustache, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var AppInit                      = require("utils/AppInit"),
-        PreferencesManager           = require("preferences/PreferencesManager"),
-        Strings                      = require("strings"),
-        Dialogs                      = require("widgets/Dialogs"),
-        HealthDataNotificationDialog = require("text!htmlContent/healthdata-notification-dialog.html"),
-        HealthDataPreview            = require("healthData/HealthDataPreview"),
-        UrlParams                    = require("utils/UrlParams").UrlParams;
+    var AppInit                      = brackets.getModule("utils/AppInit"),
+        PreferencesManager           = brackets.getModule("preferences/PreferencesManager"),
+        Strings                      = brackets.getModule("strings"),
+        Dialogs                      = brackets.getModule("widgets/Dialogs"),
+        UrlParams                    = brackets.getModule("utils/UrlParams").UrlParams,
+        HealthDataPreview            = require("HealthDataPreview"),
+        HealthDataManager            = require("HealthDataManager"),
+        HealthDataNotificationDialog = require("text!htmlContent/healthdata-notification-dialog.html");
     
-    PreferencesManager.definePreference("healthDataNotification", "number", 0);
+    PreferencesManager.definePreference("healthDataNotificationShown", "boolean", false);
     
     var prefs = PreferencesManager.getExtensionPrefs("healthData");
     
@@ -48,28 +49,29 @@ define(function (require, exports, module) {
         var hdPref   = prefs.get("healthDataTracking"),
             template = Mustache.render(HealthDataNotificationDialog, {"Strings": Strings, "hdPref": hdPref}),
             $template = $(template),
-            newHDPref = hdPref;
-
-        $template.on("change", "[data-target]:checkbox", function () {
-            newHDPref = $(this).is(":checked");
-        });
+            newHDPref = hdPref,
+            result = new $.Deferred();
 
         Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
-            PreferencesManager.setViewState("healthDataNotification", (new Date()).getTime());
+            PreferencesManager.setViewState("healthDataNotificationShown", true);
      
             if (id === "save") {
+                newHDPref = $template.find("[data-target]:checkbox").is(":checked");
                 if (hdPref !== newHDPref) {
                     prefs.set("healthDataTracking", newHDPref);
                 }
             }
+            
+            result.resolve();
         });
+        return result.promise();
     }
 
     function handleHealthDataStatistics() {
         var hdPref = prefs.get("healthDataTracking");
         
         if (hdPref) {
-            HealthDataPreview.previewHealthDataFile();
+            HealthDataPreview.previewHealthData();
         } else {
             showDialogHealthDataNotification();
         }
@@ -79,10 +81,13 @@ define(function (require, exports, module) {
         params.parse();
         // check for showing the HealthData Notification to the user. It will be shown one time. Does not check in testing environment
         if (!params.get("skipHealthDataNotification")) {
-            var isShown = PreferencesManager.getViewState("healthDataNotification");
+            var isShown = PreferencesManager.getViewState("healthDataNotificationShown");
 
             if (!isShown) {
-                showDialogHealthDataNotification();
+                showDialogHealthDataNotification()
+                    .done(function () {
+                        HealthDataManager.checkHealthDataSend();
+                    });
             }
         }
     });

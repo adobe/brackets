@@ -27,40 +27,40 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var AppInit = require("utils/AppInit"),
-        PreferencesManager = require("preferences/PreferencesManager"),
-        HealthDataUtils = require("healthData/HealthDataUtils"),
-        uuid = require("thirdparty/uuid"),
-        UrlParams = require("utils/UrlParams").UrlParams;
+    var AppInit             = brackets.getModule("utils/AppInit"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        UrlParams           = brackets.getModule("utils/UrlParams").UrlParams,
+        HealthDataUtils     = require("HealthDataUtils"),
+        uuid                = require("thirdparty/uuid");
 
     var prefs = PreferencesManager.getExtensionPrefs("healthData");
 
     prefs.definePreference("healthDataTracking", "boolean", true);
 
-    var ONE_DAY = 24 * 60 * 60 * 1000,
+    var ONE_DAY = 20 * 1000,
         timeoutVar;
 
     var params = new UrlParams();
     params.parse();
 
     /**
-     * Get the health data which will be send to the server. Initially it is only one time data.
+     * Get the health data which will be sent to the server. Initially it is only one time data.
      */
     function getHealthData() {
         var result = new $.Deferred(),
             oneTimeHealthData = {};
 
-        var guid = PreferencesManager.getViewState("GUID");
+        var userUuid = PreferencesManager.getViewState("UUID");
 
-        if (!guid) {
-            guid = uuid.v4();
-            PreferencesManager.setViewState("GUID", guid);
+        if (!userUuid) {
+            userUuid = uuid.v4();
+            PreferencesManager.setViewState("UUID", userUuid);
         }
 
-        oneTimeHealthData.guid = guid;
+        oneTimeHealthData.guid = userUuid;
         oneTimeHealthData.snapshotTime = (new Date()).getTime();
         oneTimeHealthData.os = brackets.platform;
-        oneTimeHealthData.osVersion = HealthDataUtils.getOSVersion();
+        oneTimeHealthData.userAgent = navigator.userAgent;
         oneTimeHealthData.osLanguage = brackets.app.language;
         oneTimeHealthData.bracketsLanguage = brackets.getLocale();
         oneTimeHealthData.bracketsVersion = brackets.metadata.version;
@@ -82,18 +82,14 @@ define(function (require, exports, module) {
     function sendHealthDataToServer() {
         var result = new $.Deferred();
         
-        getHealthData().done(function (jsonData) {
-            var url;
-            if (params.get("testEnvironment")) {
-                url = brackets.config.healthDataTestServerURL;
-            } else {
-                url = brackets.config.healthDataServerURL;
-            }
+        getHealthData().done(function (healthData) {
+            var url = brackets.config.healthDataServerURL,
+                data = JSON.stringify(healthData);
 
             $.ajax({
                 url: url,
                 type: "POST",
-                data: jsonData,
+                data: data,
                 dataType: "text",
                 contentType: "text/plain"
             })
@@ -103,9 +99,6 @@ define(function (require, exports, module) {
                 .fail(function (jqXHR, status, errorThrown) {
                     console.error("Error in sending health data. Response : " + jqXHR.responseText + ". Status : " + status + ". Error : " + errorThrown);
                     result.reject();
-                })
-                .always(function () {
-                    PreferencesManager.setViewState("lastTimeSendHealthData", (new Date()).getTime());
                 });
         })
             .fail(function () {
@@ -117,25 +110,22 @@ define(function (require, exports, module) {
 
     /*
      * Check if health data is to be send to the server. If user has enable the tracking, health data will be send for every 24 hours.
-     * If 24 hours or more than that has been passed, then send health data to the server
+     * If 24 hours or more than that has been passed, then send health data to the server.
+     * We are sending the data as soon as user has launched the brackets. It will only send when the notification dialog for opt-out/in is closed.
      */
-    function _checkHealthDataExport() {
-        var result = new $.Deferred();
-        var isHDTracking = prefs.get("healthDataTracking");
+    function checkHealthDataSend() {
+        var result = new $.Deferred(),
+            isHDTracking = prefs.get("healthDataTracking"),
+            notificationDialogShown = PreferencesManager.getViewState("healthDataNotificationShown");
+        
         window.clearTimeout(timeoutVar);
 
-        if (isHDTracking) {
+        if (isHDTracking && notificationDialogShown) {
 
-            var lastTimeSend = PreferencesManager.getViewState("lastTimeSendHealthData"),
+            var lastTimeSent = PreferencesManager.getViewState("lastTimeSentData"),
                 currentTime = (new Date()).getTime();
 
-            if (!lastTimeSend) {
-                var randomTime = Math.floor(Math.random() * ONE_DAY);
-                lastTimeSend = currentTime + randomTime;
-                PreferencesManager.setViewState("lastTimeSendHealthData", lastTimeSend);
-            }
-
-            if (currentTime >= lastTimeSend + ONE_DAY) {
+            if (!lastTimeSent || (currentTime >= lastTimeSent + ONE_DAY)) {
                 sendHealthDataToServer()
                     .done(function () {
                         result.resolve();
@@ -144,11 +134,12 @@ define(function (require, exports, module) {
                         result.reject();
                     })
                     .always(function () {
-                        timeoutVar = setTimeout(_checkHealthDataExport, ONE_DAY);
+                        PreferencesManager.setViewState("lastTimeSentData", (new Date()).getTime());
+                        timeoutVar = setTimeout(checkHealthDataSend, ONE_DAY);
                     });
 
             } else {
-                timeoutVar = setTimeout(_checkHealthDataExport, lastTimeSend + ONE_DAY - currentTime);
+                timeoutVar = setTimeout(checkHealthDataSend, lastTimeSent + ONE_DAY - currentTime);
             }
         } else {
             result.reject();
@@ -158,11 +149,11 @@ define(function (require, exports, module) {
     }
 
     prefs.on("change", "healthDataTracking", function () {
-        _checkHealthDataExport();
+        checkHealthDataSend();
     });
 
     window.addEventListener("online", function () {
-        _checkHealthDataExport();
+        checkHealthDataSend();
     });
 
     window.addEventListener("offline", function () {
@@ -170,11 +161,9 @@ define(function (require, exports, module) {
     });
 
     AppInit.appReady(function () {
-        _checkHealthDataExport();
+        checkHealthDataSend();
     });
 
     exports.getHealthData = getHealthData;
-
-    // For internal use in unit test
-    exports._checkHealthDataExport = _checkHealthDataExport;
+    exports.checkHealthDataSend = checkHealthDataSend;
 });

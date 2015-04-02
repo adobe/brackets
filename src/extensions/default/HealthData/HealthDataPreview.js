@@ -22,27 +22,32 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, Mustache, $ */
+/*global define, Mustache, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var HealthDataPreviewDialog = require("text!htmlContent/healthdata-preview-dialog.html"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        Strings                 = require("strings"),
-        Dialogs                 = require("widgets/Dialogs"),
-        HealthDataManager       = require("healthData/HealthDataManager");
+    var PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
+        Strings                 = brackets.getModule("strings"),
+        Dialogs                 = brackets.getModule("widgets/Dialogs"),
+        _                       = brackets.getModule("thirdparty/lodash"),
+        ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
+        HealthDataPreviewDialog = require("text!htmlContent/healthdata-preview-dialog.html"),
+        HealthDataManager       = require("HealthDataManager");
 
     var prefs = PreferencesManager.getExtensionPrefs("healthData");
+    
+    ExtensionUtils.loadStyleSheet(module, "styles.css");
     
     /** 
      * Show dialog for previewing the data send to server for Health Data
      */
-    function previewHealthDataFile() {
+    function previewHealthData() {
         var result = new $.Deferred();
         
         HealthDataManager.getHealthData().done(function (healthDataObject) {
             var content = JSON.stringify(healthDataObject, null, 4);
+            content = _.escape(content);
             content = content.replace(/ /g, "&nbsp;");
             content = content.replace(/(?:\r\n|\r|\n)/g, "<br />");
 
@@ -51,13 +56,10 @@ define(function (require, exports, module) {
                 template = Mustache.render(HealthDataPreviewDialog, {Strings: Strings, content: content, hdPref: hdPref}),
                 $template = $(template);
 
-            $template.on("change", "[data-target]:checkbox", function () {
-                newHDPref = $(this).is(":checked");
-            });
-
             Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
      
                 if (id === "save") {
+                    newHDPref = $template.find("[data-target]:checkbox").is(":checked");
                     if (hdPref !== newHDPref) {
                         prefs.set("healthDataTracking", newHDPref);
                     }
@@ -70,6 +72,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    exports.previewHealthDataFile = previewHealthDataFile;
+    exports.previewHealthData = previewHealthData;
                                      
 });

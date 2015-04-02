@@ -280,6 +280,12 @@ define(function (require, exports, module) {
             if (!extensions[id]) {
                 extensions[id] = {};
             }
+            extensions[id].installInfo = {
+                metadata: metadata,
+                path: path,
+                locationType: locationType,
+                status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
+            };
             
             if (locationType === LOCATION_USER) {
                 if (!userExtensions[id]) {
@@ -292,12 +298,7 @@ define(function (require, exports, module) {
                     status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
                 };
             }
-            extensions[id].installInfo = {
-                metadata: metadata,
-                path: path,
-                locationType: locationType,
-                status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
-            };
+
             synchronizeEntry(id);
             loadTheme(id);
             exports.trigger("statusChange", id);

@@ -207,9 +207,6 @@ define(function (require, exports, module) {
             ScrollTrackMarkers      : require("search/ScrollTrackMarkers"),
             UpdateNotification      : require("utils/UpdateNotification"),
             WorkingSetView          : WorkingSetView,
-            HealthDataNotification  : require("healthData/HealthDataNotification"),
-            HealthDataPreview       : require("healthData/HealthDataPreview"),
-            HealthDataManager       : require("healthData/HealthDataManager"),
             doneLoading             : false
         };
 

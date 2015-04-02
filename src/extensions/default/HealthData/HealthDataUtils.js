@@ -22,46 +22,13 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var ExtensionManager = require("extensibility/ExtensionManager");
-    
-    /**
-     * Get the OS Version
-     * @return {String} version of OS 
-     */
-    function getOSVersion() {
-        var winOSStrings = {
-            "5.0" : "Windows 2000",
-            "5.1" : "Windows XP",
-            "5.2" : "Windows XP | Windows Server 2003 | Windows Home Server",
-            "6.0" : "Windows Vista | Windows Server 2008",
-            "6.1" : "Windows 7 | Widnows Server 2008 | Widnows Home Server 2011",
-            "6.2" : "Windows 8 | Windows Server 2012",
-            "6.3" : "Windows 8.1 | Windows Server 2012 R2",
-            "10.0" : "Windows 10"
-        };
-        
-        var windowRegex = /Windows NT (\d+\.\d+)/i,
-            macRegex    = /Macintosh;\s([\w\W]+?)(\)|;)[\w\W]+/i,
-            linuxRegex  = /X11;\s([\w\W]+?)(\)|;)[\w\W]+/i;
-        
-        var userAgent = navigator.userAgent;
-        var osVersion = userAgent;
-        
-        if (/Windows/.test(userAgent)) {
-            osVersion = winOSStrings[windowRegex.exec(userAgent)[1]] || osVersion;
-        } else if (/Mac/.test(userAgent)) {
-            osVersion = macRegex.exec(userAgent)[1] || osVersion;
-        } else if (/X11/.test(userAgent)) {
-            osVersion = linuxRegex.exec(userAgent) || osVersion;
-        }
-        
-        return osVersion;
-    }
+    var ExtensionManager = brackets.getModule("extensibility/ExtensionManager"),
+        _                = brackets.getModule("thirdparty/lodash");
     
     /**
      * @private
@@ -72,13 +39,11 @@ define(function (require, exports, module) {
      */
     function getUserExtensionsInRegistry(registryObject, userExtensions) {
         var userInstalledExtensions = [];
-        Object.keys(userExtensions).forEach(function (extensionId) {
-            
-            var extension = userExtensions[extensionId],
-                registryExtension = registryObject[extensionId];
-            
+        
+        _.forEach(userExtensions, function (extension, extensionId) {
+            var registryExtension = registryObject[extensionId];
             if (extension && extension.installInfo && registryExtension) {
-                userInstalledExtensions.push({"name" : extension.installInfo.metadata.name, "version" : extension.installInfo.metadata.version});
+                userInstalledExtensions.push({"name" : extensionId, "version" : extension.installInfo.metadata.version});
             }
         });
         
@@ -95,18 +60,17 @@ define(function (require, exports, module) {
         
         if (Object.keys(registryExtensions).length === 0) {
             ExtensionManager.downloadRegistry().done(function () {
-                return result.resolve(getUserExtensionsInRegistry(ExtensionManager.registryObject, userExtensions));
+                result.resolve(getUserExtensionsInRegistry(ExtensionManager.registryObject, userExtensions));
             })
                 .fail(function () {
-                    return result.resolve([]);
+                    result.resolve([]);
                 });
         } else {
-            return result.resolve(getUserExtensionsInRegistry(registryExtensions, userExtensions));
+            result.resolve(getUserExtensionsInRegistry(registryExtensions, userExtensions));
         }
         
         return result.promise();
     }
     
-    exports.getOSVersion             = getOSVersion;
     exports.getInstalledExtensions   = getInstalledExtensions;
 });
