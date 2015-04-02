@@ -126,6 +126,8 @@ define(function (require, exports, module) {
                 currentTime = (new Date()).getTime();
 
             if (!lastTimeSent || (currentTime >= lastTimeSent + ONE_DAY)) {
+                //Setting the time here to avoid any chance of sending data before ONE_DAY. Whether the request to server gets completed or failed we will be sending the data after ONE_DAY only.
+                PreferencesManager.setViewState("lastTimeSentData", (new Date()).getTime());
                 sendHealthDataToServer()
                     .done(function () {
                         result.resolve();
@@ -134,7 +136,6 @@ define(function (require, exports, module) {
                         result.reject();
                     })
                     .always(function () {
-                        PreferencesManager.setViewState("lastTimeSentData", (new Date()).getTime());
                         timeoutVar = setTimeout(checkHealthDataSend, ONE_DAY);
                     });
 
