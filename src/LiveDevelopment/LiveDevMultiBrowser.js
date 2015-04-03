@@ -557,9 +557,13 @@ define(function (require, exports, module) {
                     .on("ConnectionClose.livedev", function (event, msg) {
                         // close session when the last connection was closed
                         if (_protocol.getConnectionIds().length === 0) {
-                            if (exports.status <= STATUS_ACTIVE) {
-                                _close(false, "detached_target_closed");
-                            }
+                            setTimeout(function () {
+                                if (_protocol.getConnectionIds().length === 0) {
+                                    if (exports.status <= STATUS_ACTIVE) {
+                                        _close(false, "detached_target_closed");
+                                    }
+                                }
+                            }, 5000);
                         }
                     })
                     // extract stylesheets and create related LiveCSSDocument instances
