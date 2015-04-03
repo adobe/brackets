@@ -641,13 +641,14 @@ define(function (require, exports, module) {
      */
     function shouldReload(oldNode, newNode) {
         // if either new or old node is root element of the DOM
-        if (!oldNode.parent || !newNode.parent) {
+        switch (oldNode.tag) {
+        case "html":
+        case "script":
             return true;
         }
-        if (oldNode.tag && oldNode.tag === "script") {
-            return true;
-        }
-        if (newNode.tag && newNode.tag === "script") {
+        switch (newNode.tag) {
+        case "html":
+        case "script":
             return true;
         }
         return false;
