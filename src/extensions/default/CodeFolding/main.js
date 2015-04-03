@@ -48,7 +48,7 @@ define(function (require, exports, module) {
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         Menus					= brackets.getModule("command/Menus"),
-        _prefs                  = require("./Prefs"),
+        _prefs                  = require("Prefs"),
         COLLAPSE_ALL            = "codefolding.collapse.all",
         COLLAPSE                = "codefolding.collapse",
         EXPAND                  = "codefolding.expand",
@@ -262,7 +262,7 @@ define(function (require, exports, module) {
         Initialise the extension
     */
     function init() {
-        if (_prefs.getSetting("enabled")) {
+        if (!CodeMirror.fold.combine && _prefs.getSetting("enabled")) {
             foldCode.init();
             foldGutter.init();
             //register a global fold helper based on indentation folds
@@ -278,14 +278,17 @@ define(function (require, exports, module) {
             CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
             CodeMirror.registerHelper("fold", "tornado", CodeMirror.helpers.fold.brace);
 
-            $(EditorManager).on("activeEditorChange", onActiveEditorChanged);
-            $(DocumentManager).on("documentRefreshed", function (event, doc) {
+            EditorManager.on("activeEditorChange", onActiveEditorChanged);
+            DocumentManager.on("documentRefreshed", function (event, doc) {
                 if (_prefs.getSetting("enabled")) {
                     restoreLineFolds(doc._masterEditor);
                 }
             });
 
-            $(ProjectManager).on("beforeProjectClose beforeAppClose", saveBeforeClose);
+            ProjectManager.on("beforeProjectClose beforeAppClose", saveBeforeClose);
+            ProjectManager.on("projectOpen projectReferesh", function () {
+                init();
+            });
 
             CommandManager.register(Strings.COLLAPSE_ALL, COLLAPSE_ALL, collapseAll);
             CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);

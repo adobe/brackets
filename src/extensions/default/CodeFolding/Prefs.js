@@ -97,18 +97,6 @@ define(function (require, exports, module) {
     }
 
     /**
-        Gets all the values for code folding settings.
-        @returns {object} all settings saved in the preferences.
-    */
-    function getAllSettings() {
-        var res = {};
-        prefs.getKeys().forEach(function (key) {
-            res[key] = getSetting(key);
-        });
-        return res;
-    }
-
-    /**
         Clears all the saved line folds for all documents.
     */
     function clearAllFolds() {
@@ -120,8 +108,6 @@ define(function (require, exports, module) {
     module.exports.set = set;
 
     module.exports.getSetting = getSetting;
-
-    module.exports.getAllSettings = getAllSettings;
 
     module.exports.clearAllFolds = clearAllFolds;
 
