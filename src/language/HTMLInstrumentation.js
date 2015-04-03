@@ -23,6 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jshint unused: false */
 /*global define, $ */
 /*unittests: HTML Instrumentation*/
 
@@ -180,7 +181,7 @@ define(function (require, exports, module) {
         });
     }
     // Workaround for JSHint to not complain about the unused function
-    void(_dumpMarks);
+    //void(_dumpMarks);
 
     /**
      * Get the instrumented tagID at the specified position. Returns -1 if
@@ -546,6 +547,15 @@ define(function (require, exports, module) {
         var result = updater.update();
         if (!result) {
             return { errors: updater.errors };
+        }
+        
+        // see if it makes sense to edit DOM or reload the page
+        if (HTMLDOMDiff.shouldReload(result.oldSubtree, result.newSubtree)) {
+            return {
+                dom: result.newDOM,
+                reload: true,
+                _wasIncremental: updater.isIncremental
+            };
         }
         
         var edits = HTMLDOMDiff.domdiff(result.oldSubtree, result.newSubtree);

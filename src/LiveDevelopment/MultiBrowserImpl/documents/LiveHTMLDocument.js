@@ -206,16 +206,26 @@ define(function (require, exports, module) {
 
         var self                = this,
             result              = HTMLInstrumentation.getUnappliedEditList(this.editor, change),
-            applyEditsPromise;
+            applyEditsPromise,
+            reloadPromise;
         
-        if (result.edits) {
-            applyEditsPromise = this.protocol.evaluate("_LD.applyDOMEdits(" + JSON.stringify(result.edits) + ")");
-    
-            applyEditsPromise.always(function () {
+        if (result.reload) {
+            reloadPromise = this.protocol.reload();
+            reloadPromise.always(function () {
                 if (!isNestedTimer) {
-                    PerfUtils.addMeasurement(perfTimerName);
+                    PerfUtils.finalizeMeasurement(perfTimerName);
                 }
             });
+        } else {
+            if (result.edits) {
+                applyEditsPromise = this.protocol.evaluate("_LD.applyDOMEdits(" + JSON.stringify(result.edits) + ")");
+
+                applyEditsPromise.always(function () {
+                    if (!isNestedTimer) {
+                        PerfUtils.addMeasurement(perfTimerName);
+                    }
+                });
+            }
         }
 
         this.errors = result.errors || [];

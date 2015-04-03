@@ -528,6 +528,16 @@ define(function (require, exports, module) {
             return { errors: updater.errors };
         }
         
+        // see if it makes sense to edit DOM or reload the page
+        if (HTMLDOMDiff.shouldReload(result.oldSubtree, result.newSubtree)) {
+            return {
+                dom: result.newDOM,
+                reload: true,
+                _wasIncremental: updater.isIncremental
+            };
+        }
+        
+
         var edits = HTMLDOMDiff.domdiff(result.oldSubtree, result.newSubtree);
         
         // We're done with the nodeMap that was added to the subtree by the updater.
@@ -586,7 +596,10 @@ define(function (require, exports, module) {
             // updated); the marks in the editor are more accurate.
             // TODO: should we consider ripping through the dom and fixing up other offsets?
             result.dom.fullBuild = false;
-            return { edits: result.edits };
+            return {
+                reload: result.reload,
+                edits: result.edits
+            };
         } else {
             if (cachedValue) {
                 cachedValue.invalid = true;
