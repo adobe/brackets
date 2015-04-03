@@ -291,7 +291,7 @@
             background.style.height = "100%";
             background.style.position = "absolute";
             background.style.top = 0;
-            background.style.left = 0;            
+            background.style.left = 0;
 
             status.textContent = "Live Development Session has Ended";
             status.style.width = "100%";
