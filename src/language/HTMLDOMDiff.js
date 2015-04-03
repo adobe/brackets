@@ -627,7 +627,33 @@ define(function (require, exports, module) {
         
         return edits;
     }
+
+    /**  
+     * @private
+     *
+     * Given old and new subtrees, detect conditions under which editing of
+     * the remote DOM will not result in a consistent state.
+     * 
+     * Such conditions currently are:
+     *      1. Entire document replacement. Pasting entire HTML cannot be
+     *         resonably DOM-edited.
+     *      2. If the edit has been made in a <script>.
+     */
+    function shouldReload(oldNode, newNode) {
+        // if either new or old node is root element of the DOM
+        if (!oldNode.parent || !newNode.parent) {
+            return true;
+        }
+        if (oldNode.tag && oldNode.tag === "script") {
+            return true;
+        }
+        if (newNode.tag && newNode.tag === "script") {
+            return true;
+        }
+        return false;
+    }
     
     // Public API
-    exports.domdiff = domdiff;
+    exports.domdiff         = domdiff;
+    exports.shouldReload    = shouldReload;
 });
