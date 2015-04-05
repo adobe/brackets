@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, describe, runs, beforeEach, it, afterEach, expect, waitsForDone, waitsForFail, xit */
+/*global define, brackets, $, describe, runs, beforeEach, it, afterEach, expect, waitsForDone, waitsForFail */
 /*unittests: HealthData*/
 
 define(function (require, exports, module) {
@@ -69,10 +69,10 @@ define(function (require, exports, module) {
                 PreferencesManager.setViewState("healthDataNotificationShown", true);
                 prefs.set("healthDataTracking", true);
                 var promise = HealthDataManager.checkHealthDataSend();
-                waitsForDone(promise, "Send Data to Server", 8000);
+                waitsForDone(promise, "Send Data to Server", 4000);
             });
 
-            xit("should not send data to server", function () {
+            it("should not send data to server", function () {
                 PreferencesManager.setViewState("lastTimeSendHealthData", (new Date()).getTime() - ONE_DAY);
                 prefs.set("healthDataTracking", false);
                 var promise = HealthDataManager.checkHealthDataSend();
@@ -92,7 +92,7 @@ define(function (require, exports, module) {
                 HealthDataNotification = null;
             });
             
-            xit("should show notification dialog", function () {
+            it("should show notification dialog", function () {
                 HealthDataNotification.showDialogHealthDataNotification();
                 expect($(testWindow.document).find(".health-data-notification.instance").length).toBe(1);
             });
@@ -109,7 +109,7 @@ define(function (require, exports, module) {
                 HealthDataPreview = null;
             });
             
-            xit("should show file preview dialog", function () {
+            it("should show file preview dialog", function () {
 
                 runs(function () {
                     var promise = HealthDataPreview.previewHealthData();
