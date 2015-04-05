@@ -41,11 +41,13 @@ define(function (require, exports, module) {
         Strings                = brackets.getModule("strings"),
         PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
         LocalizationUtils      = brackets.getModule("utils/LocalizationUtils"),
+        DefaultDialogs         = brackets.getModule("widgets/DefaultDialogs"),
+        FileSystemImpl         = brackets.getModule("fileSystemImpl"),
+        FileSystemError        = brackets.getModule("filesystem/FileSystemError"),
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
-        LanguageDialogTemplate = require("text!htmlContent/language-dialog.html"),
-        DefaultDialogs         = brackets.getModule("widgets/DefaultDialogs");
+        LanguageDialogTemplate = require("text!htmlContent/language-dialog.html");
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
@@ -106,10 +108,10 @@ define(function (require, exports, module) {
     function handleNewBracketsWindow() {
         window.open(window.location.href);
     }
-    
+
     function handleScriptMessages(err) {
         if (err) {
-            var errMsg = Strings.CREATING_LAUNCH_SCRIPT_TITLE + err;
+            var errMsg = Strings.ERROR_CREATING_LAUNCH_SCRIPT + err;
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.CREATING_LAUNCH_SCRIPT_TITLE,
@@ -131,16 +133,16 @@ define(function (require, exports, module) {
         var mode     = 493;
 
         // check if the file already exisits.
-        appshell.fs.stat(path, function (err) {
+        FileSystemImpl.stat(path, function (err, stats) {
             if (!err) {
                 // Already installed.
                 handleScriptMessages();
 
-            } else if (err === appshell.fs.ERR_NOT_FOUND) {
-                appshell.fs.writeFile(path, data, encoding, function (err) {
+            } else if (err === FileSystemError.NOT_FOUND) {
+                FileSystemImpl.writeFile(path, data, encoding, function (err) {
                     if (!err) {
                         // now go ahead with making the file executable.
-                        appshell.fs.chmod(path, mode, handleScriptMessages);
+                        FileSystemImpl.chmod(path, mode, handleScriptMessages);
                     } else {
                         // An error occured. Signal the error to the user.
                         handleScriptMessages(err);

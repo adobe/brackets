@@ -583,8 +583,8 @@ define({
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
-    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Yikes! An erorr occured while creating {APP_NAME} launcher script at /usr/local/bin. Reason code: ",
-    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Launch Script succesfully installed! You can now launch {APP_NAME} from terminal.",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Yikes! An erorr occured while creating {APP_NAME} launcher script at /usr/local/bin. Make sure you are logged in as Adminstrator and that you have write access to /usr/local/bin. Reason code: ",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Launch script succesfully installed! You can now launch {APP_NAME} from terminal.",
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "Install Launch Script",
 
     "LANGUAGE_TITLE"                            : "Switch Language",
