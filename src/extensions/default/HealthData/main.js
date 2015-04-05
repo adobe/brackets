@@ -51,14 +51,14 @@ define(function (require, exports, module) {
         menu.addMenuDivider(Menus.AFTER, Commands.HELP_SHOW_EXT_FOLDER);
     }
     
-    function _initTest() {
+    function initTest() {
         brackets.test.HealthDataPreview      = require("HealthDataPreview");
         brackets.test.HealthDataManager      = require("HealthDataManager");
         brackets.test.HealthDataNotification = HealthDataNotification;
     }
     
     AppInit.appReady(function () {
-        _initTest();
+        initTest();
     });
     
     addCommand();
