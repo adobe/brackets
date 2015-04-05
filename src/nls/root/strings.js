@@ -574,6 +574,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
     "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "Install Launch Script",
     "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
     "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
     "CMD_SHOW_PERF_DATA"                        : "Show Performance Data",
@@ -582,6 +583,9 @@ define({
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Yikes! An erorr occured while creating {APP_NAME} launcher script at /usr/local/bin. Reason code: ",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Launch Script succesfully installed! You can now launch {APP_NAME} from terminal.",
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "Install Launch Script",
 
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window, Mustache */
+/*global define, $, brackets, window, Mustache, appshell */
 
 define(function (require, exports, module) {
     "use strict";
@@ -44,7 +44,8 @@ define(function (require, exports, module) {
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
-        LanguageDialogTemplate = require("text!htmlContent/language-dialog.html");
+        LanguageDialogTemplate = require("text!htmlContent/language-dialog.html"),
+        DefaultDialogs         = brackets.getModule("widgets/DefaultDialogs");
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
@@ -64,6 +65,7 @@ define(function (require, exports, module) {
         DEBUG_SHOW_PERF_DATA            = "debug.showPerfData",
         DEBUG_RELOAD_WITHOUT_USER_EXTS  = "debug.reloadWithoutUserExts",
         DEBUG_NEW_BRACKETS_WINDOW       = "debug.newBracketsWindow",
+        DEBUG_LAUNCH_SCRIPT_MAC         = "debug.createAppLaunchScript",
         DEBUG_SWITCH_LANGUAGE           = "debug.switchLanguage",
         DEBUG_ENABLE_NODE_DEBUGGER      = "debug.enableNodeDebugger",
         DEBUG_LOG_NODE_STATE            = "debug.logNodeState",
@@ -105,6 +107,52 @@ define(function (require, exports, module) {
         window.open(window.location.href);
     }
     
+    function handleScriptMessages(err) {
+        if (err) {
+            var errMsg = Strings.CREATING_LAUNCH_SCRIPT_TITLE + err;
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_ERROR,
+                Strings.CREATING_LAUNCH_SCRIPT_TITLE,
+                errMsg
+            );
+        } else {
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_INFO,
+                Strings.CREATING_LAUNCH_SCRIPT_TITLE,
+                Strings.LAUNCH_SCRIPT_CREATE_SUCCESS
+            );
+        }
+    }
+
+    function handleInstallLauchScriptMac() {
+        var path     = "/usr/local/bin/Brackets";
+        var data     = "#!/bin/sh \n open -a Brackets \"$@\"";
+        var encoding = "utf8";
+        var mode     = 493;
+
+        // check if the file already exisits.
+        appshell.fs.stat(path, function (err) {
+            if (!err) {
+                // Already installed.
+                handleScriptMessages();
+
+            } else if (err === appshell.fs.ERR_NOT_FOUND) {
+                appshell.fs.writeFile(path, data, encoding, function (err) {
+                    if (!err) {
+                        // now go ahead with making the file executable.
+                        appshell.fs.chmod(path, mode, handleScriptMessages);
+                    } else {
+                        // An error occured. Signal the error to the user.
+                        handleScriptMessages(err);
+                    }
+                });
+            } else {
+                // And unknwon error. Show the error message to the user.
+                handleScriptMessages(err);
+            }
+        });
+    }
+
     function handleShowPerfData() {
         var templateVars = {
             delimitedPerfData: PerfUtils.getDelimitedPerfData(),
@@ -264,6 +312,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RELOAD_WITHOUT_USER_EXTS,   DEBUG_RELOAD_WITHOUT_USER_EXTS, handleReloadWithoutUserExts);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,        DEBUG_NEW_BRACKETS_WINDOW,      handleNewBracketsWindow);
     
+    if (brackets.platform === "mac") {
+        CommandManager.register(Strings.CMD_LAUNCH_SCRIPT_MAC,     DEBUG_LAUNCH_SCRIPT_MAC,       handleInstallLauchScriptMac);
+    }
+
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
     CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,       DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
         .setEnabled(false);
@@ -297,6 +349,9 @@ define(function (require, exports, module) {
     menu.addMenuItem(DEBUG_REFRESH_WINDOW, KeyboardPrefs.refreshWindow);
     menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS, KeyboardPrefs.reloadWithoutUserExts);
     menu.addMenuItem(DEBUG_NEW_BRACKETS_WINDOW);
+    if (brackets.platform === "mac") {
+        menu.addMenuItem(DEBUG_LAUNCH_SCRIPT_MAC);
+    }
     menu.addMenuDivider();
     menu.addMenuItem(DEBUG_SWITCH_LANGUAGE);
     menu.addMenuDivider();
