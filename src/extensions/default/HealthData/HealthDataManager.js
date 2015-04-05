@@ -57,7 +57,7 @@ define(function (require, exports, module) {
             PreferencesManager.setViewState("UUID", userUuid);
         }
 
-        oneTimeHealthData.guid = userUuid;
+        oneTimeHealthData.uuid = userUuid;
         oneTimeHealthData.snapshotTime = (new Date()).getTime();
         oneTimeHealthData.os = brackets.platform;
         oneTimeHealthData.userAgent = navigator.userAgent;
@@ -83,6 +83,7 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         getHealthData().done(function (healthData) {
+            
             var url = brackets.config.healthDataServerURL,
                 data = JSON.stringify(healthData);
 
@@ -119,9 +120,7 @@ define(function (require, exports, module) {
             notificationDialogShown = PreferencesManager.getViewState("healthDataNotificationShown");
         
         window.clearTimeout(timeoutVar);
-
         if (isHDTracking && notificationDialogShown) {
-
             var lastTimeSent = PreferencesManager.getViewState("lastTimeSentData"),
                 currentTime = (new Date()).getTime();
 

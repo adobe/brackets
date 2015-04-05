@@ -27,10 +27,11 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
+    var _                       = brackets.getModule("thirdparty/lodash"),
+        PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         Strings                 = brackets.getModule("strings"),
         Dialogs                 = brackets.getModule("widgets/Dialogs"),
-        _                       = brackets.getModule("thirdparty/lodash"),
+        
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         HealthDataPreviewDialog = require("text!htmlContent/healthdata-preview-dialog.html"),
         HealthDataManager       = require("HealthDataManager");

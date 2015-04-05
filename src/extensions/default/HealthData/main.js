@@ -27,10 +27,12 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Menus                   = brackets.getModule("command/Menus"),
+    var AppInit                 = brackets.getModule("utils/AppInit"),
+        Menus                   = brackets.getModule("command/Menus"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         Strings                 = brackets.getModule("strings"),
         Commands                = brackets.getModule("command/Commands"),
+        
         HealthDataNotification  = require("HealthDataNotification");
     
     var menu            = Menus.getMenu(Menus.AppMenuBar.HELP_MENU),
@@ -48,6 +50,16 @@ define(function (require, exports, module) {
         menu.addMenuItem(healthDataCmdId, "", Menus.AFTER, Commands.HELP_SHOW_EXT_FOLDER);
         menu.addMenuDivider(Menus.AFTER, Commands.HELP_SHOW_EXT_FOLDER);
     }
+    
+    function _initTest() {
+        brackets.test.HealthDataPreview      = require("HealthDataPreview");
+        brackets.test.HealthDataManager      = require("HealthDataManager");
+        brackets.test.HealthDataNotification = HealthDataNotification;
+    }
+    
+    AppInit.appReady(function () {
+        _initTest();
+    });
     
     addCommand();
 
