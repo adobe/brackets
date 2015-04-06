@@ -415,6 +415,7 @@ define({
 	"CMD_RELEASE_NOTES": "リリースノート",
 	"CMD_GET_INVOLVED": "コミュニティに参加",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",
+	"CMD_HEALTH_DATA_STATISTICS": "!能=[8033837] HealthData Statistics_=!",
 	"CMD_HOMEPAGE": "{APP_TITLE} ホームページ",
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
@@ -622,5 +623,12 @@ define({
 	"CMD_TOGGLE_RECENT_PROJECTS": "最近使用したプロジェクト",
 
     // extensions/default/WebPlatformDocs
-	"DOCS_MORE_LINK": "詳細"
+	"DOCS_MORE_LINK": "詳細",
+    
+    //Health Data
+	"HEALTH_DATA_NOTIFICATION": "!能=[8033839] HealthData Preferences_=!",
+	"HEALTH_DATA_DO_TRACK": "!能=[8033838] Yes, I would like to share information on how I use the Brackets._=!",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "!能=[8033840] In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use the Brackets._=!",
+	"HEALTH_DATA_PREVIEW": "!能=[8033841] Health Data Preview File_=!",
+	"HEALTH_DATA_PREVIEW_MESSAGE": "!能=[8033842] No Data to Show_=!"
 });
