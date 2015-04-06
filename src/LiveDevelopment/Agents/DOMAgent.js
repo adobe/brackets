@@ -40,6 +40,8 @@ define(function DOMAgent(require, exports, module) {
 
     var Inspector       = require("LiveDevelopment/Inspector/Inspector"),
         EventDispatcher = require("utils/EventDispatcher"),
+        EditorManager   = require("editor/EditorManager"),
+        HTMLInstrumentation = require("language/HTMLInstrumentation"),
         EditAgent       = require("LiveDevelopment/Agents/EditAgent"),
         DOMNode         = require("LiveDevelopment/Agents/DOMNode"),
         DOMHelpers      = require("LiveDevelopment/Agents/DOMHelpers");
@@ -210,8 +212,14 @@ define(function DOMAgent(require, exports, module) {
     }
 
     function _onAttributeModified(event, res) {
-        if (res && res.name === 'data-switch-to-brackets-id' ) {
-            console.log("Node" + res.value);
+        // TODO: This assumes that the current open document is indeed the document that is
+        // being inspected. This would be true in many/most cases  but can not be assumed.
+        // Letting this remain for now, but needs to be fixed
+		var editor = EditorManager.getActiveEditor(),
+            position;
+        if (res && res.name === 'data-switch-to-brackets-id') {
+            position = HTMLInstrumentation.getPositionFromTagid(editor, parseInt(res.value, 10));
+            editor.setCursorPos(position.line, position.ch);
         }
     }
 
