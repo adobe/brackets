@@ -99,6 +99,25 @@ define(function (require, exports, module) {
      *         status: the current status, one of the status constants above
      */
     var extensions = {};
+    
+    /**
+     * @private
+     * @type {Object.<string, {metadata: Object, path: string, status: string}>}
+     * The set of all extensions (registry and locally installed) present in user location.
+     * The fields of each record are:
+     *     registryInfo: object containing the info for this id from the main registry (containing metadata, owner,
+     *         and versions).
+     *     installInfo: object containing the info for a locally-installed extension:
+     *         metadata: the package metadata loaded from the local package.json, or null if it's a legacy extension.
+     *         path: the local path to the extension folder on disk
+     *         status: the current status, one of the status constants above
+     */
+    var userExtensions = {};
+    
+    /**
+     * Registry object container  
+     */
+    var registryObject = {};
 
     /**
      * Requested changes to the installed extensions.
@@ -210,6 +229,7 @@ define(function (require, exports, module) {
             cache: false
         })
             .done(function (data) {
+                exports.registryObject = data;
                 Object.keys(data).forEach(function (id) {
                     if (!extensions[id]) {
                         extensions[id] = {};
@@ -266,6 +286,19 @@ define(function (require, exports, module) {
                 locationType: locationType,
                 status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
             };
+            
+            if (locationType === LOCATION_USER) {
+                if (!userExtensions[id]) {
+                    userExtensions[id] = {};
+                }
+                
+                userExtensions[id].installInfo = {
+                    metadata: metadata,
+                    path: path,
+                    status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
+                };
+            }
+
             synchronizeEntry(id);
             loadTheme(id);
             exports.trigger("statusChange", id);
@@ -385,6 +418,9 @@ define(function (require, exports, module) {
             Package.remove(extensions[id].installInfo.path)
                 .done(function () {
                     extensions[id].installInfo = null;
+                    if (userExtensions[id] && userExtensions[id].installInfo) {
+                        userExtensions[id].installInfo = null;
+                    }
                     result.resolve();
                     exports.trigger("statusChange", id);
                 })
@@ -774,6 +810,7 @@ define(function (require, exports, module) {
     exports.remove                  = remove;
     exports.update                  = update;
     exports.extensions              = extensions;
+    exports.userExtensions          = userExtensions;
     exports.cleanupUpdates          = cleanupUpdates;
     exports.markForRemoval          = markForRemoval;
     exports.isMarkedForRemoval      = isMarkedForRemoval;
@@ -789,6 +826,7 @@ define(function (require, exports, module) {
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
     exports.ENABLED       = ENABLED;
     exports.START_FAILED  = START_FAILED;
+    exports.registryObject          = registryObject;
 
     exports.LOCATION_DEFAULT  = LOCATION_DEFAULT;
     exports.LOCATION_DEV      = LOCATION_DEV;
