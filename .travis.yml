@@ -16,6 +16,7 @@ deploy:
   local-dir: dist
   upload-dir: bramble/dist
   skip_cleanup: true
+  detect_encoding: true
   on:
     repo: humphd/brackets
     branch: bramble

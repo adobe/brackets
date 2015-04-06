@@ -385,14 +385,6 @@ module.exports = function (grunt) {
                 branch: GIT_BRANCH
             }
         },
-        gitcheckout: {
-            smart: {
-                options: {
-                    branch: 'gh-pages',
-                    overwrite: false
-                }
-            },
-        },
         gitfetch: {
             smart: {
                 options: {}
@@ -445,6 +437,17 @@ module.exports = function (grunt) {
                     branch: 'gh-pages',
                     force: true
                 },
+            }
+        },
+        compress: {
+            dist: {
+                options: {
+                    mode: "gzip"
+                },
+                expand: true,
+                cwd: 'dist/',
+                src: ['**/*'],
+                dest: 'dist/'
             }
         }
     });
@@ -532,6 +535,9 @@ module.exports = function (grunt) {
 
     // task: build dist/ for browser
     grunt.registerTask('build-browser', ['build', 'uglify']);
+
+    // task: build dist/ for browser, pre-compressed with gzip
+    grunt.registerTask('build-browser-compressed', ['build-browser', 'compress']);
 
     // Default task.
     grunt.registerTask('default', ['test']);
