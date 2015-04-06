@@ -209,6 +209,14 @@ define(function DOMAgent(require, exports, module) {
         // res = {}
     }
 
+    function _onAttributeModified(event, res) {
+        if (res && res.name === 'data-switch-to-brackets-id' ) {
+            console.log("Node" + res.value);
+        }
+    }
+
+
+
     // WebInspector Event: DOM.setChildNodes
     function _onSetChildNodes(event, res) {
         // res = {parentId, nodes}
@@ -310,6 +318,7 @@ define(function DOMAgent(require, exports, module) {
         Inspector.DOM
             .on("documentUpdated.DOMAgent", _onDocumentUpdated)
             .on("setChildNodes.DOMAgent", _onSetChildNodes)
+            .on("attributeModified.DOMAgent", _onAttributeModified)
             .on("childNodeCountUpdated.DOMAgent", _onChildNodeCountUpdated)
             .on("childNodeInserted.DOMAgent", _onChildNodeInserted)
             .on("childNodeRemoved.DOMAgent", _onChildNodeRemoved);

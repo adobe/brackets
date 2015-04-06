@@ -827,6 +827,25 @@ function RemoteFunctions(experimental) {
         window.document.addEventListener("keydown", onKeyDown);
     }
 
+    function onDocumentClick(event) {
+        var element = event.target,
+            currentDataId,
+            newDataId;
+        if (element && element.hasAttribute('data-brackets-id')) {
+            currentDataId = element.getAttribute('data-switch-to-brackets-id');
+            newDataId = element.getAttribute('data-brackets-id');
+
+            // Change something even if the same element is clicked again
+            if (newDataId === currentDataId) {
+                newDataId = newDataId + '.0';
+            }
+
+            element.setAttribute('data-switch-to-brackets-id', newDataId);
+        }
+    }
+
+    window.document.addEventListener("click", onDocumentClick);
+
     return {
         "DOMEditHandler"        : DOMEditHandler,
         "keepAlive"             : keepAlive,

@@ -147,6 +147,7 @@ define(function LiveDevelopment(require, exports, module) {
         "remote"    : true,
         "network"   : true,
         "css"       : true,
+        "dom"       : true,
         "highlight" : true
     };
 
