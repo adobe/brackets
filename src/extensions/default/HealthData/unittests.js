@@ -67,7 +67,6 @@ define(function (require, exports, module) {
             it("should send data to server", function () {
                 PreferencesManager.setViewState("lastTimeSendHealthData", (new Date()).getTime() - ONE_DAY);
                 PreferencesManager.setViewState("healthDataNotificationShown", true);
-                prefs.set("healthDataTracking", true);
                 var promise = HealthDataManager.checkHealthDataSend();
                 waitsForDone(promise, "Send Data to Server", 4000);
             });
