@@ -110,9 +110,10 @@ define(function (require, exports, module) {
     }
 
     /*
-     * Check if health data is to be send to the server. If user has enable the tracking, health data will be send for every 24 hours.
-     * If 24 hours or more than that has been passed, then send health data to the server.
-     * We are sending the data as soon as user has launched the brackets. It will only send when the notification dialog for opt-out/in is closed.
+     * Check if the health data is to be sent to the server. If the user has enabled tracking, health data will be sent once every 24 hours.
+     * Send health data to the server if the period is more than 24 hours.
+     * We are sending the data as soon as the user launches brackets. The data will be sent to the server only after the notification dialog 
+     * for opt-out/in is closed.
      */
     function checkHealthDataSend() {
         var result = new $.Deferred(),
@@ -125,7 +126,7 @@ define(function (require, exports, module) {
                 currentTime = (new Date()).getTime();
 
             if (!lastTimeSent || (currentTime >= lastTimeSent + ONE_DAY)) {
-                //Setting the time here to avoid any chance of sending data before ONE_DAY. Whether the request to server gets completed or failed we will be sending the data after ONE_DAY only.
+                //Setting the time here to avoid any chance of sending data before ONE_DAY. Whether the request to server gets completed or failed we will be sending the data only after ONE_DAY.
                 PreferencesManager.setViewState("lastTimeSentData", (new Date()).getTime());
                 sendHealthDataToServer()
                     .done(function () {
