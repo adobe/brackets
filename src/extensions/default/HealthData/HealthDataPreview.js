@@ -41,7 +41,7 @@ define(function (require, exports, module) {
     ExtensionUtils.loadStyleSheet(module, "styles.css");
     
     /** 
-     * Show dialog for previewing the data send to server for Health Data
+     * Show the dialog for previewing the Health data, to be sent to the server.
      */
     function previewHealthData() {
         var result = new $.Deferred();
