@@ -11,14 +11,22 @@ define(function (require, exports, module) {
     var CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
         prefs               = require("Prefs");
 
+    /**
+      * Performs the folding and unfolding of code regions.
+      * @param {CodeMirror} cm the CodeMirror instance
+      * @param {number| Object} pos
+      */
     function doFold(cm, pos, options, force) {
         options = options || {};
         force = force || "fold";
         if (typeof pos === "number") {
             pos = CodeMirror.Pos(pos, 0);
         }
-        var finder = options.rangeFinder || CodeMirror.fold.auto;
-        var minSize = options.minFoldSize || prefs.getSetting("minFoldSize");
+        var finder = options.rangeFinder || CodeMirror.fold.auto,
+            minSize = options.minFoldSize || prefs.getSetting("minFoldSize"),
+            range,
+            widget,
+            textRange;
 
         function getRange(allowFolded) {
             var range = options.range || finder(cm, pos);
@@ -59,7 +67,7 @@ define(function (require, exports, module) {
             return widget;
         }
 
-        var range = getRange(true);
+        range = getRange(true);
         if (options.scanUp) {
             while (!range && pos.line > cm.firstLine()) {
                 pos = CodeMirror.Pos(pos.line - 1, 0);
@@ -71,16 +79,18 @@ define(function (require, exports, module) {
             return;
         }
 
-        var myWidget = makeWidget();
-        var myRange = cm.markText(range.from, range.to, {
-            replacedWith: myWidget,
+        widget = makeWidget();
+        textRange = cm.markText(range.from, range.to, {
+            replacedWith: widget,
             clearOnEnter: true,
             __isFold: true
         });
-        CodeMirror.on(myWidget, "mousedown", function () {
-            myRange.clear();
+
+        CodeMirror.on(widget, "mousedown", function () {
+            textRange.clear();
         });
-        myRange.on("clear", function (from, to) {
+
+        textRange.on("clear", function (from, to) {
             delete cm._lineFolds[from.line];
             CodeMirror.signal(cm, "unfold", cm, from, to);
         });
@@ -91,6 +101,7 @@ define(function (require, exports, module) {
         } else {
             delete cm._lineFolds[pos.line];
         }
+
         CodeMirror.signal(cm, force, cm, range.from, range.to);
         return range;
     }
@@ -107,32 +118,19 @@ define(function (require, exports, module) {
             return doFold(this, pos, options, "unfold");
         });
 
-        CodeMirror.registerHelper("fold", "combine", function () {
-            var funcs = Array.prototype.slice.call(arguments, 0);
-            return function (cm, start) {
-                var i;
-                for (i = 0; i < funcs.length; ++i) {
-                    var found = funcs[i] && funcs[i](cm, start);
-                    if (found) {
-                        return found;
-                    }
-                }
-            };
-        });
-
         CodeMirror.defineExtension("isFolded", function (line) {
             return this._lineFolds[line];
         });
+
         /**
-          Checks the validity of the ranges passed in the parameter and returns the foldranges
-          that are still valid in the current document
-          @param {object} folds the dictionary of lines in the current document that should be folded
-          @returns {object} valid folds found in those passed in parameter
-        */
+          * Checks the validity of the ranges passed in the parameter and returns the foldranges
+          * that are still valid in the current document
+          * @param {object} folds the dictionary of lines in the current document that should be folded
+          * @returns {object} valid folds found in those passed in parameter
+          */
         CodeMirror.defineExtension("getValidFolds", function (folds) {
-            var keys, rf = CodeMirror.fold.auto, cm = this, result = {};
+            var keys, rf = CodeMirror.fold.auto, cm = this, result = {}, range, cachedRange;
             if (folds && (keys = Object.keys(folds)).length) {
-                var range, cachedRange;
                 keys.forEach(function (lineNumber) {
                     lineNumber = +lineNumber;
                     if (lineNumber >= cm.firstLine() && lineNumber <= cm.lastLine()) {
@@ -149,16 +147,28 @@ define(function (require, exports, module) {
             return result;
         });
 
-        CodeMirror.commands.toggleFold = function (cm) {
-            cm.foldCode(cm.getCursor());
-        };
-        CodeMirror.commands.fold = function (cm, options, force) {
+        /**
+          * Utility function to fold the region at the current cursor position in  a document
+          * @param {CodeMirror} cm the CodeMirror instance
+          * @param {?options} options extra options to pass to the fold function
+          */
+        CodeMirror.commands.fold = function (cm, options) {
             cm.foldCode(cm.getCursor(), options, "fold");
         };
-        CodeMirror.commands.unfold = function (cm, options, force) {
+
+        /**
+          * Utility function to unfold the region at the current cursor position in  a document
+          * @param {CodeMirror} cm the CodeMirror instance
+          * @param {?options} options extra options to pass to the fold function
+          */
+        CodeMirror.commands.unfold = function (cm, options) {
             cm.foldCode(cm.getCursor(), options, "unfold");
         };
 
+        /**
+          * Utility function to fold all foldable regions in a document
+          * @param {CodeMirror} cm the CodeMirror instance
+          */
         CodeMirror.commands.foldAll = function (cm) {
             cm.operation(function () {
                 var i, e;
@@ -168,6 +178,12 @@ define(function (require, exports, module) {
             });
         };
 
+        /**
+          * Utility function to unfold all folded regions in a document
+          * @param {CodeMirror} cm the CodeMirror instance
+          * @param {?number} from the line number for the beginning of the region to unfold
+          * @param {?number} to the line number for the end of the region to unfold
+          */
         CodeMirror.commands.unfoldAll = function (cm, from, to) {
             from = from || cm.firstLine();
             to = to || cm.lastLine();
@@ -178,10 +194,14 @@ define(function (require, exports, module) {
                 }
             });
         };
+
         /**
-            Folds the specified range. The descendants of any fold regions within the range are also folded up to
-            a level set globally in the codeFolding preferences
-        */
+          * Folds the specified range. The descendants of any fold regions within the range are also folded up to
+          * a level set globally in the `maxFoldLevel' preferences
+          * @param {CodeMirror} cm the CodeMirror instance
+          * @param {?number} start the line number for the beginning of the region to fold
+          * @param {?number} end the line number for the end of the region to fold
+          */
         CodeMirror.commands.foldToLevel = function (cm, start, end) {
             var rf = CodeMirror.fold.auto, level = prefs.getSetting("maxFoldLevel");
             function foldLevel(n, from, to) {
@@ -207,6 +227,28 @@ define(function (require, exports, module) {
             });
         };
 
+        /**
+          * Helper to combine an array of fold range finders into one
+          */
+        CodeMirror.registerHelper("fold", "combine", function () {
+            var funcs = Array.prototype.slice.call(arguments, 0);
+            return function (cm, start) {
+                var i;
+                for (i = 0; i < funcs.length; ++i) {
+                    var found = funcs[i] && funcs[i](cm, start);
+                    if (found) {
+                        return found;
+                    }
+                }
+            };
+        });
+
+        /**
+          * Creates a helper which returns the appropriate fold function based on the mode of the current position in
+          * a document.
+          * @param {CodeMirror} cm the CodeMirror instance
+          * @param {number} start the current position in the document
+          */
         CodeMirror.registerHelper("fold", "auto", function (cm, start) {
             var helpers = cm.getHelpers(start, "fold"), i, cur;
             //ensure mode helper is loaded if there is one

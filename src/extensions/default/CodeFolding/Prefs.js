@@ -32,11 +32,11 @@ define(function (require, exports, module) {
     prefs.definePreference("folds", "object", {});
 
     /**
-        Simplifies the fold ranges into an array of pairs of numbers.
-        @param {!{number: {from: {ch, line}, to: {ch, line}} folds the raw fold ranges indexed by line numbers
-        @returns {number: Array<Array<number>>} an object whose keys are line numbers and the values are array
-        of two 2-element arrays. First array contains [from.line, from.ch] and the second contains [to.line, to.ch]
-    */
+      * Simplifies the fold ranges into an array of pairs of numbers.
+      * @param {!Object} folds the raw fold ranges indexed by line numbers
+      * @return {Object} an object whose keys are line numbers and the values are array
+      * of two 2-element arrays. First array contains [from.line, from.ch] and the second contains [to.line, to.ch]
+      */
     function simplify(folds) {
         if (!folds) {
             return;
@@ -50,11 +50,11 @@ define(function (require, exports, module) {
     }
 
     /**
-        Inflates the fold ranges stored as simplified numeric arrays. The inflation converts the data into
-        objects whose keys are line numbers and whose values are objects in the format {from: {line, ch}, to: {line, ch}}.
-        @param {number: Array<Array<number>>}  folds the simplified fold ranges
-        @returns {number: {from: {line, ch}, to: {line, ch}}}
-    */
+      * Inflates the fold ranges stored as simplified numeric arrays. The inflation converts the data into
+      * objects whose keys are line numbers and whose values are objects in the format {from: {line, ch}, to: {line, ch}}.
+      * @param {Object}  folds the simplified fold ranges
+      * @return {Object} the converted fold ranges
+      */
     function inflate(folds) {
         if (!folds) {
             return;
@@ -70,42 +70,44 @@ define(function (require, exports, module) {
     }
 
     /**
-        Gets the line folds saved for the specified path.
-        @param {string} path the document path
-        @returns {number: {from: {line, ch}, to: {line, ch}}} the line folds for the document at the specified path
-    */
-    function get(path) {
+      * Gets the line folds saved for the specified path.
+      * @param {string} path the document path
+      * @return {Object} the line folds for the document at the specified path
+      */
+    function getFolds(path) {
         store = (prefs.get(foldsKey) || {});
         return inflate(store[path]);
     }
 
     /**
-        Saves the line folds specified
-    */
-    function set(path, folds) {
+      * Saves the line folds for the specified path
+      * @param {!string} path the path to the document
+      * @param {Object} folds the fold ranges to save for the current document
+      */
+    function setFolds(path, folds) {
         store[path] = simplify(folds);
         prefs.set(foldsKey, store);
     }
 
     /**
-        Get the code folding setting with the specified key from the store
-        @param {!string} key The key for the setting to retrieve
-        @returns {string} the setting with the specified key
-    */
+      * Get the code folding setting with the specified key from the store
+      * @param {!string} key The key for the setting to retrieve
+      * @return {string} the setting with the specified key
+      */
     function getSetting(key) {
         return prefs.get(key);
     }
 
     /**
-        Clears all the saved line folds for all documents.
-    */
+      * Clears all the saved line folds for all documents.
+      */
     function clearAllFolds() {
         prefs.set(foldsKey, {});
     }
 
-    module.exports.get = get;
+    module.exports.getFolds = getFolds;
 
-    module.exports.set = set;
+    module.exports.setFolds = setFolds;
 
     module.exports.getSetting = getSetting;
 

@@ -8,8 +8,9 @@
 
 define(function (require, exports, module) {
     "use strict";
-    var CodeMirror = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror");
-    var cols = CodeMirror.countColumn, pos = CodeMirror.Pos;
+    var CodeMirror  = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+        cols        = CodeMirror.countColumn,
+        pos         = CodeMirror.Pos;
 
     function lastNonEmptyLineNumber(cm) {
         var lc = cm.lastLine(), line = cm.getLine(lc);

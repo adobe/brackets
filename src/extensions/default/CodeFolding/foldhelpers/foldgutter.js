@@ -24,10 +24,10 @@ define(function (require, exports, module) {
     }
 
     /**
-        Utility for creating fold markers in fold gutter
-        @param {string} spec the className for the marker
-        @returns {HTMLElement}
-    */
+      * Utility for creating fold markers in fold gutter
+      * @param {string} spec the className for the marker
+      * @return {HTMLElement} a htmlelement representing the fold marker
+      */
     function marker(spec) {
         var elt = document.createElement("div");
         elt.className = spec;
@@ -35,32 +35,38 @@ define(function (require, exports, module) {
     }
 
     /**
-     Updates the gutter markers for the specified range
-     @param {!CodeMirror} cm the CodeMirror instance for the active editor
-     @param {!number} from the starting line for the update
-     @param {!number} to the ending line for the update
-    */
+      * Updates the gutter markers for the specified range
+      * @param {!CodeMirror} cm the CodeMirror instance for the active editor
+      * @param {!number} from the starting line for the update
+      * @param {!number} to the ending line for the update
+      */
     function updateFoldInfo(cm, from, to) {
         var minFoldSize = prefs.getSetting("minFoldSize") || 2;
         var opts = cm.state.foldGutter.options;
         var fade = prefs.getSetting("fadeFoldButtons");
         var gutter = $(cm.getGutterElement());
         var i = from;
-        var isFold = function (m) {
+
+        function isFold(m) {
             return m.__isFold;
-        }, clear = function (m) {return m.clear(); };
+        }
+
+        function clear(m) {
+            return m.clear();
+        }
 
         /**
-            helper function to check if the given line is in a folded region in the editor.
-            @param {Number} line the
-            @return {from: {ch: Number, line: Number}, to: {ch: Number, line: Number}} the range that hides the specified line or undefine if the line is not hidden
-        */
+          * @private
+          * helper function to check if the given line is in a folded region in the editor.
+          * @param {number} line the
+          * @return {Object} the range that hides the specified line or undefine if the line is not hidden
+          */
         function _isCurrentlyFolded(line) {
-            var keys = Object.keys(cm._lineFolds), i = 0, r;
+            var keys = Object.keys(cm._lineFolds), i = 0, range;
             while (i < keys.length) {
-                r = cm._lineFolds[keys[i]];
-                if (r.from.line < line && r.to.line >= line) {
-                    return r;
+                range = cm._lineFolds[keys[i]];
+                if (range.from.line < line && range.to.line >= line) {
+                    return range;
                 }
                 i++;
             }
@@ -111,10 +117,16 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+      * Updates the fold infor in the viewport for the specifiec range
+      * @param {CodeMirror} cm the instance of the CodeMirror object
+      * @param {?number} from the starting line number for the update
+      * @param {?number} to the end line number for the update
+      */
     function updateInViewport(cm, from, to) {
         var vp = cm.getViewport(), state = cm.state.foldGutter;
-        from = !isNaN(from) ? from : vp.from;
-        to = !isNaN(to) ? to : vp.to;
+        from = isNaN(from) ? vp.from : from;
+        to = isNaN(to) ? vp.to : to;
 
         if (!state) { return; }
         cm.operation(function () {
@@ -125,9 +137,9 @@ define(function (require, exports, module) {
     }
 
     /**
-        Clears the code folding gutter
-        @param {!CodeMirror} cm the CodeMirror instance for the active  editor
-    */
+      * Clears the code folding gutter
+      * @param {!CodeMirror} cm the CodeMirror instance for the active  editor
+      */
     function clearGutter(cm) {
         var opts = cm.state.foldGutter.options;
         cm.clearGutter(opts.gutter);
@@ -141,11 +153,11 @@ define(function (require, exports, module) {
     }
 
     /**
-        Updates the line folds cache usually when the document changes.
-        @param {!CodeMirror} cm the CodeMirror instance for the active editor
-        @param {!number} from the line number designating the start position of the change
-        @param {!number} linesDiff a number to show how many lines where removed or added to the document
-    */
+      * Updates the line folds cache usually when the document changes.
+      * @param {!CodeMirror} cm the CodeMirror instance for the active editor
+      * @param {!number} from the line number designating the start position of the change
+      * @param {!number} linesDiff a number to show how many lines where removed or added to the document
+      */
     function updateFoldsCache(cm, from, linesDiff) {
         var range;
         var minFoldSize = prefs.getSetting("minFoldSize") || 2;
@@ -182,14 +194,12 @@ define(function (require, exports, module) {
     }
 
     /**
-        Triggered when the content of the document changes. When the entire content of the document
-        is changed - e.g., changes made from a different editor, the same lineFolds are kept only if
-        they are still valid in the context of the new document content.
-
-        @param {!CodeMirror} cm the CodeMirror instance for the active editor
-        @param {!{origin:string, from: {ch:number, line:number}, to: {ch: number, line: number},
-            removed: string[], text: string[]}} changeObj detailed information about the change that occurred in the document
-    */
+      * Triggered when the content of the document changes. When the entire content of the document
+      * is changed - e.g., changes made from a different editor, the same lineFolds are kept only if
+      * they are still valid in the context of the new document content.
+      * @param {!CodeMirror} cm the CodeMirror instance for the active editor
+      * @param {!Object} changeObj detailed information about the change that occurred in the document
+      */
     function onChange(cm, changeObj) {
         if (changeObj.origin === "setValue") {//text content has changed outside of brackets
             var folds = cm.getValidFolds(cm._lineFolds);
@@ -215,9 +225,9 @@ define(function (require, exports, module) {
     }
 
     /**
-        Triggered on viewport changes e.g., user scrolls or resizes the viewport.
-        @param {!CodeMirror} cm the CodeMirror instance for the active editor
-    */
+      * Triggered on viewport changes e.g., user scrolls or resizes the viewport.
+      * @param {!CodeMirror} cm the CodeMirror instance for the active editor
+      */
     function onViewportChange(cm) {
         var state = cm.state.foldGutter;
         window.clearTimeout(state.changeUpdate);
@@ -245,11 +255,11 @@ define(function (require, exports, module) {
     }
 
     /**
-        Triggered when a code segment is folded.
-        @param {!CodeMirror} cm the CodeMirror instance for the active editor
-        @param {!{line:number, ch:number}} from  the ch and line position that designates the start of the region
-        @param {!{line:number, ch:number}} to the ch and line position that designates the end of the region
-    */
+      * Triggered when a code segment is folded.
+      * @param {!CodeMirror} cm the CodeMirror instance for the active editor
+      * @param {!Object} from  the ch and line position that designates the start of the region
+      * @param {!Object} to the ch and line position that designates the end of the region
+      */
     function onFold(cm, from, to) {
         var state = cm.state.foldGutter, line = from.line;
         if (line >= state.from && line < state.to) {
@@ -258,10 +268,10 @@ define(function (require, exports, module) {
     }
 
     /**
-        Triggered when a folded code segment is unfolded.
-         @param {!CodeMirror} cm the CodeMirror instance for the active editor
-         @param {!{line:number, ch:number}} from  the ch and line position that designates the start of the region
-         @param {!{line:number, ch:number}} to the ch and line position that designates the end of the region
+      * Triggered when a folded code segment is unfolded.
+      * @param {!CodeMirror} cm the CodeMirror instance for the active editor
+      * @param {!{line:number, ch:number}} from  the ch and line position that designates the start of the region
+      * @param {!{line:number, ch:number}} to the ch and line position that designates the end of the region
       */
     function onUnFold(cm, from, to) {
         var state = cm.state.foldGutter, line = from.line;
@@ -272,9 +282,9 @@ define(function (require, exports, module) {
     }
 
     /**
-        Initialises the fold gutter and registers event handlers for changes to document, viewport
-        and user interactions.
-    */
+      * Initialises the fold gutter and registers event handlers for changes to document, viewport
+      * and user interactions.
+      */
     function init() {
         CodeMirror.defineOption("foldGutter", false, function (cm, val, old) {
             if (old && old !== CodeMirror.Init) {

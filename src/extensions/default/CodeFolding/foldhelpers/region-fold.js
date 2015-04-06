@@ -5,10 +5,10 @@
 /*global define, brackets*/
 define(function (require, exports, module) {
     "use strict";
-    var CodeMirror = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
-        startRegion = /\W+region/i,
-        endRegion = /\W+endregion/i,
-        space = /\s/;
+    var CodeMirror      = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+        startRegion     = /\W+region/i,
+        endRegion       = /\W+endregion/i,
+        space           = /\s/;
 
     function regionFold(cm, start) {
         var line = start.line, i, j;
