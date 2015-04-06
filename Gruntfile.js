@@ -473,38 +473,6 @@ module.exports = function (grunt) {
             'gitadd:modules',
             'gitcommit:module',
             'smartPush:' + GIT_BRANCH + ":false",
-
-            // Update gh-pages with new dist
-            'smartCheckout:gh-pages:true',
-            'build-browser',
-            'gitadd:publish',
-            'gitcommit:publish',
-            'smartPush:gh-pages:true',
-
-            // Checkout back to the correct branch
-            'smartCheckout:' + GIT_BRANCH
-        ]);
-    });
-
-    // Bramble-task: publish
-    //  Builds and pushes the dist version for use in thimble.
-    grunt.registerTask('publish', 'Update submodules and the gh-pages branch with the latest built version of bramble.', function(patchLevel) {
-        var date = new Date(Date.now()).toString();
-        grunt.config("gitcommit.module.options.message", "Submodule update on " + date);
-
-        grunt.task.run([
-            // Confirm we're ready to start
-            'checkBranch',
-
-            // Update gh-pages with new dist
-            'smartCheckout:gh-pages:true',
-            'build-browser',
-            'gitadd:publish',
-            'gitcommit:publish',
-            'smartPush:gh-pages:true',
-
-            // Checkout back to the correct branch
-            'smartCheckout:' + GIT_BRANCH
         ]);
     });
 
