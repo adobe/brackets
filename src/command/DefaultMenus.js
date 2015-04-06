@@ -186,7 +186,6 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
 
-
         var hasAboutItem = (brackets.platform !== "mac" || !brackets.nativeMenus);
         
         // Add final divider only if we have a homepage URL or twitter URL or about item

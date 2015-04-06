@@ -415,6 +415,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
+    "CMD_HEALTH_DATA_STATISTICS"          : "HealthData Statistics",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
@@ -581,7 +582,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
-    "CMD_OPEN_BRACKETS_SOURCE"                  : "Open Brackets Source",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
 
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",
@@ -610,7 +611,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To reenable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a Brackets bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To reenable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -624,7 +625,7 @@ define({
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Read more",
 
-    //extensions/default/CodeFolding
+    // extensions/default/CodeFolding
     "ENABLE_CODE_FOLDING"           : "Enable code folding",
     "COLLAPSE_ALL"                  : "Collapse All",
     "EXPAND_ALL"                    : "Expand All",
@@ -641,5 +642,12 @@ define({
     "FADE_FOLD_BUTTONS"             : "Fade fold buttons",
     "FADE_FOLD_BUTTONS_HELP"        : "Hides the fold buttons unless the mouse is over the gutter",
     "MAX_FOLD_LEVEL"                : "Maximum number of nested folds",
-    "MAX_FOLD_LEVEL_HELP"           : "Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files."
+    "MAX_FOLD_LEVEL_HELP"           : "Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files.",
+
+    //Health Data
+    "HEALTH_DATA_NOTIFICATION"                  : "HealthData Preferences",
+    "HEALTH_DATA_DO_TRACK"                      : "Yes, I would like to share information on how I use the Brackets.",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use the Brackets.",
+    "HEALTH_DATA_PREVIEW"                       : "Health Data Preview File",
+    "HEALTH_DATA_PREVIEW_MESSAGE"               : "No Data to Show"
 });

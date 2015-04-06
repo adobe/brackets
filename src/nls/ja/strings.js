@@ -581,7 +581,7 @@ define({
 	"CMD_LOG_NODE_STATE": "Node の状態をコンソールに記録",
 	"CMD_RESTART_NODE": "Node を再起動",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
-	"CMD_OPEN_BRACKETS_SOURCE": "オープン Brackets ソース",
+	"CMD_OPEN_BRACKETS_SOURCE": "{APP_NAME} ソースを開く",
 
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",
@@ -610,7 +610,7 @@ define({
 	"CMD_SHOW_PARAMETER_HINT": "パラメーターヒントを表示",
 	"NO_ARGUMENTS": "<パラメーターがありません>",
 	"DETECTED_EXCLUSION_TITLE": "JavaScript ファイルの推論問題",
-	"DETECTED_EXCLUSION_INFO": "Brackets で <span class='dialog-filename'>{0}</span> の処理中に問題が発生しました。<br><br>このファイルはコードヒント、定義にジャンプ、またはクイック編集では処理されません。このファイルを再度有効にするには、プロジェクトで <code>.brackets.json</code> を開いて <code>jscodehints.detectedExclusions</code> を編集してください。<br><br>これは、Brackets のバグである可能性があります。このファイルのコピーをご提供いただける場合は、ここで名付けたファイルへのリンクを記載して<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>バグを登録</a>してください。",
+	"DETECTED_EXCLUSION_INFO": "{APP_NAME} で <span class='dialog-filename'>{0}</span> の処理中に問題が発生しました。<br><br>このファイルはコードヒント、定義にジャンプ、またはクイック編集では処理されません。このファイルを再度有効にするには、プロジェクトで <code>.brackets.json</code> を開いて <code>jscodehints.detectedExclusions</code> を編集してください。<br><br>これは、{APP_NAME} のバグである可能性があります。このファイルのコピーをご提供いただける場合は、ここで名付けたファイルへのリンクを記載して<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>バグを登録</a>してください。",
 
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
