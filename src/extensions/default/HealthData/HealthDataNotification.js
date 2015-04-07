@@ -58,6 +58,9 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * Show dialog for preference change to opt-in for Health Data Capturing
+     */
     function showDialogHealthDataPreference() {
         var hdPref   = prefs.get("healthDataTracking"),
             template = Mustache.render(HealthDataPreferenceDialog, {"Strings": Strings, "hdPref": hdPref}),
