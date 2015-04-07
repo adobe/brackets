@@ -1,0 +1,19 @@
+{
+    "title": "Code Folding",
+    "name": "code-folding",
+    "version": "0.3.3",
+    "author": "Patrick Oladimeji <patrick@dustygem.co.uk>",
+    "description": "Brackets extension that provides simple code folding for files edited in brackets. Supports brace folding, tag folding, indent folding and multi-line comment folding",
+    "homepage": "https://github.com/thehogfather/brackets-code-folding",
+    "keywords": ["code folding", "code collapsing"],
+    "categories": ["formatting", "general", "editing", "visual"],
+    "i18n": ["en", "de", "it", "es", "gl", "fr", "ru", "jp", "fi", "nl", "pt-br"],
+    "engines": {
+        "brackets": ">=0.38.0"
+    },
+    "contributors": [
+        {"name": "Patrick Oladimeji", "email": "thehogfather@dustygem.co.uk", "url": "https://github.com/thehogfather"},
+        {"name": "Daniel Glazman", "email": "daniel@glazman.org"}
+    ],
+    "license": "MIT"
+}

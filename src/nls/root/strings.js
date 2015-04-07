@@ -629,5 +629,31 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Read more"
+    "DOCS_MORE_LINK"                            : "Read more",
+
+    // extensions/default/CodeFolding
+    "ENABLE_CODE_FOLDING"           : "Enable code folding",
+    "COLLAPSE_ALL"                  : "Collapse All",
+    "EXPAND_ALL"                    : "Expand All",
+    "COLLAPSE_CURRENT"              : "Collapse Current",
+    "EXPAND_CURRENT"                : "Expand Current",
+    "COLLAPSE_CUSTOM_REGIONS"       : "Collapse Custom Regions",
+    "MIN_FOLD_SIZE"                 : "Minimum fold size",
+    "MIN_FOLD_SIZE_HELP"            : "Minimum number of lines to allow in a fold range",
+    "ENABLE_REGION_FOLDING"         : "Enable custom region folding",
+    "SAVE_FOLD_STATES"              : "Save fold states",
+    "SAVE_FOLD_STATES_HELP"         : "Save fold states to disk when editor is closed and restore the folds when reopened",
+    "ALWAYS_USE_INDENT_FOLD"        : "Always use indent fold",
+    "ALWAYS_USE_INDENT_FOLD_HELP"   : "Always use level of indentation as a folding guideline",
+    "FADE_FOLD_BUTTONS"             : "Fade fold buttons",
+    "FADE_FOLD_BUTTONS_HELP"        : "Hides the fold buttons unless the mouse is over the gutter",
+    "MAX_FOLD_LEVEL"                : "Maximum number of nested folds",
+    "MAX_FOLD_LEVEL_HELP"           : "Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files.",
+
+    //Health Data
+    "HEALTH_DATA_NOTIFICATION"                  : "HealthData Preferences",
+    "HEALTH_DATA_DO_TRACK"                      : "Yes, I would like to share information on how I use the Brackets.",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use the Brackets.",
+    "HEALTH_DATA_PREVIEW"                       : "Health Data Preview File",
+    "HEALTH_DATA_PREVIEW_MESSAGE"               : "No Data to Show"
 });
