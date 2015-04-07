@@ -521,6 +521,9 @@ define(function (require, exports, module) {
             }
         }, 0);
         
+        _curDialog = null;
+
+        $("input#quickOpenSearch").removeData("smart-autocomplete");
         $(".smart_autocomplete_container").remove();
 
         $(window.document).off("mousedown", this._handleDocumentMouseDown);
