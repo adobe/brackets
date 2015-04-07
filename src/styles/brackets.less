@@ -1768,7 +1768,11 @@ textarea.exclusions-editor {
     /* smart auto complete doesn't correctly position the container
      * so these specific padding and margin values are necessary*/
     padding: 0px;
-    margin: 9px 0 0;
+    margin-top: 9px;
+    
+    /* smart auto complete doesn't provide any scroll bars
+     * so an overflow is necessary*/
+    overflow-y: auto;
 
     .dark & {
         background-color: @dark-bc-panel-bg;

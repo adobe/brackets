@@ -91,6 +91,11 @@ define(function (require, exports, module) {
      * @type {Dialog}
      */
     var _curDialog;
+    
+    /**
+     * The width of the window.
+     */
+    var _windowWidth;
 
     /**
      * Defines API for new QuickOpen plug-ins
@@ -168,6 +173,7 @@ define(function (require, exports, module) {
         
         // Bind event handlers
         this._handleItemSelect         = this._handleItemSelect.bind(this);
+        this._handleItemFocus          = this._handleItemFocus.bind(this);
         this._handleItemFocus          = this._handleItemFocus.bind(this);
         this._handleKeyUp              = this._handleKeyUp.bind(this);
         this._handleResultsReady       = this._handleResultsReady.bind(this);
@@ -454,6 +460,10 @@ define(function (require, exports, module) {
         ViewUtils.toggleClass(this.$searchField, "no-results", hasNoResults);
     };
     
+    function _smartAutocompleteContainerMaxHeight() {
+        return parseInt($(".main-view").css("height"), 10) - parseInt($("#status-bar").css("height"), 10) - 10;
+    }
+    
     /**
      * Called synchronously after all other processing is done (_handleFilter(), updating cached "last result" and
      * re-rendering DOM list items). NOT called if the last filter action had 0 results.
@@ -463,6 +473,12 @@ define(function (require, exports, module) {
         if ($(".smart_autocomplete_highlight").length === 0) {
             this._handleItemFocus(null, $(".smart_autocomplete_container > li:first-child").get(0));
         }
+        
+        // Set the smart_autocomplete_container's max-height for scroll bars
+        // and margin-left to keep it aligned with the QuickOpen input area
+        $(".smart_autocomplete_container").css({"max-height": _smartAutocompleteContainerMaxHeight(), "margin-left": "0px"});
+        // Set the initial window width every time QuickOpen is opened. Used to calculate the change in width of the window
+        _windowWidth = window.document.width;
     };
 
     /**
@@ -952,6 +968,14 @@ define(function (require, exports, module) {
     // Listen for a change of project to invalidate our file list
     ProjectManager.on("projectOpen", function () {
         fileList = null;
+    });
+    
+    // Listen for the resizing of window to resize and move the smart_autocomplete_container accordingly
+    $(window).resize(function () {
+        $(".smart_autocomplete_container").css({"max-height": _smartAutocompleteContainerMaxHeight()});
+        // move the smart_autocomplete_container according to change in the width of the window
+        var _widthChange = window.document.width - _windowWidth;
+        $(".smart_autocomplete_container").css({"margin-left": _widthChange});
     });
 
     // TODO: allow QuickOpenJS to register it's own commands and key bindings
