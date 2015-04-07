@@ -415,6 +415,7 @@ define({
 	"CMD_RELEASE_NOTES": "リリースノート",
 	"CMD_GET_INVOLVED": "コミュニティに参加",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",
+	"CMD_HEALTH_DATA_STATISTICS": "!能=[8033837] HealthData Statistics_=!",
 	"CMD_HOMEPAGE": "{APP_TITLE} ホームページ",
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
@@ -588,6 +589,12 @@ define({
 	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
 	"LANGUAGE_CANCEL": "キャンセル",
 	"LANGUAGE_SYSTEM_DEFAULT": "システムのデフォルト",
+
+    // extensions/default/HealthData
+	"HEALTH_DATA_NOTIFICATION": "!能=[8033839] Health Data Preferences_=!",
+	"HEALTH_DATA_DO_TRACK": "!能=[8033838] Yes, I would like to share information on how I use Brackets._=!",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "!能=[8033840] In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use Brackets._=!",
+	"HEALTH_DATA_PREVIEW": "!能=[8033841] Health Data Preview_=!",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "時間",
