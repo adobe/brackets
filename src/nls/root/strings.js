@@ -132,9 +132,9 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirm Delete",
     "CONFIRM_FOLDER_DELETE"             : "Are you sure you want to delete the folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Deleted",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk.<br /><br />Do you want to save the file and overwrite those changes?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
 
     // Generic dialog/button labels
     "DONE"                              : "Done",
