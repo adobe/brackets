@@ -590,6 +590,12 @@ define({
 	"LANGUAGE_CANCEL": "Annuler",
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
 
+    // extensions/default/HealthData
+	"HEALTH_DATA_NOTIFICATION": "[8033839] !é=Health Data Preferences=!",
+	"HEALTH_DATA_DO_TRACK": "[8033838] !é=Yes, I would like to share information on how I use Brackets.=!",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "[8033840] !é=In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use Brackets.=!",
+	"HEALTH_DATA_PREVIEW": "[8033841] !é=Health Data Preview=!",
+
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "Progression",
@@ -623,12 +629,5 @@ define({
 	"CMD_TOGGLE_RECENT_PROJECTS": "Projets récents",
 
     // extensions/default/WebPlatformDocs
-	"DOCS_MORE_LINK": "En savoir plus",
-    
-    //Health Data
-	"HEALTH_DATA_NOTIFICATION": "[8033839] !é=HealthData Preferences=!",
-	"HEALTH_DATA_DO_TRACK": "[8033838] !é=Yes, I would like to share information on how I use the Brackets.=!",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "[8033840] !é=In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use the Brackets.=!",
-	"HEALTH_DATA_PREVIEW": "[8033841] !é=Health Data Preview File=!",
-	"HEALTH_DATA_PREVIEW_MESSAGE": "[8033842] !é=No Data to Show=!"
+	"DOCS_MORE_LINK": "En savoir plus"
 });

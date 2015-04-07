@@ -590,6 +590,12 @@ define({
 	"LANGUAGE_CANCEL": "キャンセル",
 	"LANGUAGE_SYSTEM_DEFAULT": "システムのデフォルト",
 
+    // extensions/default/HealthData
+	"HEALTH_DATA_NOTIFICATION": "!能=[8033839] Health Data Preferences_=!",
+	"HEALTH_DATA_DO_TRACK": "!能=[8033838] Yes, I would like to share information on how I use Brackets._=!",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "!能=[8033840] In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use Brackets._=!",
+	"HEALTH_DATA_PREVIEW": "!能=[8033841] Health Data Preview_=!",
+
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "時間",
 	"INLINE_TIMING_EDITOR_PROGRESSION": "進行",
@@ -623,12 +629,5 @@ define({
 	"CMD_TOGGLE_RECENT_PROJECTS": "最近使用したプロジェクト",
 
     // extensions/default/WebPlatformDocs
-	"DOCS_MORE_LINK": "詳細",
-    
-    //Health Data
-	"HEALTH_DATA_NOTIFICATION": "!能=[8033839] HealthData Preferences_=!",
-	"HEALTH_DATA_DO_TRACK": "!能=[8033838] Yes, I would like to share information on how I use the Brackets._=!",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "!能=[8033840] In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use the Brackets._=!",
-	"HEALTH_DATA_PREVIEW": "!能=[8033841] Health Data Preview File_=!",
-	"HEALTH_DATA_PREVIEW_MESSAGE": "!能=[8033842] No Data to Show_=!"
+	"DOCS_MORE_LINK": "詳細"
 });
