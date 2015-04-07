@@ -53,6 +53,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_SAVE_AS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW);
+        menu.addMenuItem(Commands.TOGGLE_LIVE_PREVIEW_MB_MODE);
         menu.addMenuItem(Commands.FILE_PROJECT_SETTINGS);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_EXTENSION_MANAGER);
@@ -109,11 +110,9 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.CMD_SKIP_CURRENT_MATCH);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.CMD_FIND_IN_FILES);
-        menu.addMenuItem(Commands.CMD_FIND_IN_SELECTED);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.CMD_REPLACE);
         menu.addMenuItem(Commands.CMD_REPLACE_IN_FILES);
-        menu.addMenuItem(Commands.CMD_REPLACE_IN_SELECTED);
         
         /*
          * View menu
@@ -186,7 +185,6 @@ define(function (require, exports, module) {
 
         menu.addMenuDivider();
         menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
-
 
         var hasAboutItem = (brackets.platform !== "mac" || !brackets.nativeMenus);
         

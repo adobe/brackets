@@ -34,6 +34,7 @@ define({
     "GENERIC_ERROR"                     : "(chyba {0})",
     "NOT_FOUND_ERR"                     : "Soubor nenalezen.",
     "NOT_READABLE_ERR"                  : "Soubor nelze číst.",
+    "EXCEEDS_MAX_FILE_SIZE"             : "Soubor větší než {0} MB nemůže být otevřen v aplikaci {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "Cílová složka nemůže být změněna.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Oprávnění neumožní provádět změny.",
     "CONTENTS_MODIFIED_ERR"             : "Soubor byl změněn mimo aplikaci {APP_NAME}.",
@@ -73,19 +74,30 @@ define({
     "ERROR_CREATING_FILE"               : "Došlo k chybě při vytváření souboru <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_MIXED_DRAGDROP"              : "Nelze otevřít složku ve chvíli, kdy se otevírají jiné soubory.",
 
+    // Řetězce chyb nastavení klávesových zkratek
+    "ERROR_KEYMAP_TITLE"                : "Chyba při čtení uživatelských klávesových zkratek",
+    "ERROR_KEYMAP_CORRUPT"              : "Soubor s nastavením klávesových zkratek není platný soubor typu JSON. Soubor bude otevřen, abyste mohli opravit formát.",
+    "ERROR_LOADING_KEYMAP"              : "Váš soubor s klávesovými zkratkami není platný UTF-8 soubor a nemůže být otevřen",
+    "ERROR_RESTRICTED_COMMANDS"         : "Nemůžete změnit klávesové zkratky následujícím příkazům: {0}",
+    "ERROR_RESTRICTED_SHORTCUTS"        : "Nemůžete změnit tyto klávesové zkratky: {0}",
+    "ERROR_MULTIPLE_SHORTCUTS"          : "Vytváříte více klávesových zkratek pro tyto příkazy: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Tyto příkazy mají stejnou klávesovou zkratku: {0}",
+    "ERROR_INVALID_SHORTCUTS"           : "Tyto klávesové zkratky jsou neplatné: {0}",
+    "ERROR_NONEXISTENT_COMMANDS"        : "Vytváříte klávesovou zkratku pro neexistující příkaz: {0}",
+
     // Řetězce chyb nastavení aplikace
     "ERROR_PREFS_CORRUPT_TITLE"         : "Chyba při čtení nastavení",
     "ERROR_PREFS_CORRUPT"               : "Soubor s nastavením není platný soubor typu JSON. Soubor bude otevřen, abyste mohli opravit formát. Pro uložení změn budete muset restartovat aplikaci {APP_NAME}.",
 
     // Řetězce chyb aplikace
     "ERROR_IN_BROWSER_TITLE"            : "Ouha! {APP_NAME} ještě neběží v prohlížeči.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} je vytvořen v HTML, ale nyní pracuje jako desktopová aplikace, takže ji můžete použít pro úpravu lokálních souborů. Prosím, použijte shell aplikace v <b>github.com/adobe/brackets-shell</b> repo pro spuštění {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} je vytvořen v HTML, ale nyní pracuje jako desktopová aplikace, takže ji můžete použít pro úpravu lokálních souborů. Prosím, použijte shell aplikace v repozitáři <b>github.com/adobe/brackets-shell</b> pro spuštění {APP_NAME}.",
 
     // Řetězce chyb indexování souboru
     "ERROR_MAX_FILES_TITLE"             : "Chyba při indexování souborů",
     "ERROR_MAX_FILES"                   : "Maximální počet souborů byl indexován. Funkce pro vyhledávání v indexovaných souborech nemusí fungovat správně.",
 
-    // Řetezce chyb - živý náhled
+    // Řetězce chyb živého náhledu
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Chyba při spouštění prohlížeče",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome prohlížeč nebyl nalezen. Je nainstalován?",
     "ERROR_LAUNCHING_BROWSER"           : "Došlo k chybě při spouštění prohlížeče. (chyba {0})",
@@ -95,11 +107,11 @@ define({
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Aby se mohl živý náhled připojit, je třeba restartovat Chrome s povolenou možností vzdálené ladění. <br /><br /> Chcete restartovat Chrome a povolit vzdálené ladění?",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Nelze načíst stránku s živým náhledem",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Otevřete HTML soubor pro zobrazení v živém náhledu.",
-    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Pro spuštění živého náhledu se server-side souborem, musíte specifikovat URL pro tento projekt.",
+    "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Pro spuštění živého náhledu se vzdáleným souborem, musíte specifikovat URL pro tento projekt.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Chyba při spouštění HTTP serveru pro soubory živého náhledu. Prosím, zkuste to znovu.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Vítejte v živém náhledu!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Živý náhled připojí {APP_NAME} k vašemu prohlížeči. Spustí náhled HTML souboru, který se aktualizuje pokaždé, kdy editujete svůj kód.<br /><br />V této verzi {APP_NAME}, živý náhled funguje pouze v <strong>Google Chrome</strong> a aktualizuje změny v <strong>CSS souborech</strong>. Změny v HTML nebo JavaScript souborech jsou automaticky načteny, když soubor uložíte.<br /><br />(Tato zpráva se zobrazí pouze jednou.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pro více informací navštivte <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pro více informací navštivte <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Živý náhled",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Živý náhled: Připojování\u2026",
@@ -124,7 +136,7 @@ define({
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> byl změněn, ale neuložené změny se nachází také v {APP_NAME}.<br /><br /> Kterou verzi chcete zachovat?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán z disku, ale změny nebyly uloženy v {APP_NAME}.<br /><br />Chcete uložit změny?",
 
-    // Obecné označení - dialogy, tlačítka
+    // Obecná označení dialogů/tlačítek
     "DONE"                              : "Hotovo",
     "OK"                                : "OK",
     "CANCEL"                            : "Zrušit",
@@ -136,7 +148,7 @@ define({
     "BUTTON_YES"                        : "Ano",
     "BUTTON_NO"                         : "Ne",
 
-    // Find, Replace, Find in Files
+    // Najít, Nahradit, Nahradit v souborech
     "FIND_MATCH_INDEX"                  : "{0} z {1}",
     "FIND_NO_RESULTS"                   : "Žádné výsledky",
     "FIND_QUERY_PLACEHOLDER"            : "Najít\u2026",
@@ -162,11 +174,11 @@ define({
     "NO_UPDATE_TITLE"                   : "Vše je aktuální!",
     "NO_UPDATE_MESSAGE"                 : "Verze {APP_NAME} je aktuální.",
 
-    // Find and Replace
+    // Najít a nahradit
     "FIND_REPLACE_TITLE_LABEL"          : "Nahradit",
     "FIND_REPLACE_TITLE_WITH"           : "s",
     "FIND_TITLE_LABEL"                  : "Nalezeno",
-    "FIND_TITLE_SUMMARY"                : " &mdash; {0} {1} {2} in {3}",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} v/ve {3}",
 
     // Najít v souborech
     "FIND_NUM_FILES"                    : "{0} {1}",
@@ -180,7 +192,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "více než ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik pro rozbalení/zbalení všeho",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik pro rozbalení/sbalení všeho",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Nahradit chyby",
     "REPLACE_IN_FILES_ERRORS"           : "Následující soubory nebyly změněny, protože se změnily po hledání nebo do nich nelze zapisovat.",
 
@@ -245,14 +257,14 @@ define({
     "KEYBOARD_SPACE"  : "Space",
 
     /**
-     * Řetezce příkazového řádku
+     * Řetězce příkazového řádku
      */
+    "STATUSBAR_CURSOR_POSITION"             : "Řádek {0}, Sloupec {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Vybrán {0} sloupec",
     "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Vybrány {0} sloupce",
     "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Vybrán {0} řádek",
     "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Vybrány {0} řádky",
     "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} Vybráno",
-    "STATUSBAR_CURSOR_POSITION"             : "Řádek {0}, Sloupec {1}",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Přepnout odsazení na mezery",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Přepnout odsazení na tabulátory",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Změnit počet mezer použitých pro odsazení",
@@ -282,7 +294,6 @@ define({
     "LINTER_TIMED_OUT"                      : "{0} - vypršel časový limit po uplynutí {1} ms",
     "LINTER_FAILED"                         : "{0} byl(a) ukončen(a) s chybou: {1}",
 
-
     /**
      * Příkazy
      */
@@ -306,6 +317,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Uložit vše",
     "CMD_FILE_SAVE_AS"                    : "Uložit jako\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Živý náhled",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Experimentální živý náhled",
     "CMD_RELOAD_LIVE_PREVIEW"             : "Vynutit obnovení živého náhledu",
     "CMD_PROJECT_SETTINGS"                : "Nastavení projektu\u2026",
     "CMD_FILE_RENAME"                     : "Přejmenovat",
@@ -317,7 +329,7 @@ define({
     // Použito v souborovém menu Windows
     "CMD_EXIT"                            : "Konec",
 
-    // Příkazy menu Edit
+    // Příkazy menu Úpravy
     "EDIT_MENU"                           : "Úpravy",
     "CMD_UNDO"                            : "Zpět",
     "CMD_REDO"                            : "Znovu",
@@ -371,7 +383,7 @@ define({
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýraznit aktivní řádek",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomit řádky",
     "CMD_LIVE_HIGHLIGHT"                  : "Živé zvýraznění",
-    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint soubory při uložení",
+    "CMD_VIEW_TOGGLE_INSPECTION"          : "Lintovat soubory při uložení",
     "CMD_WORKINGSET_SORT_BY_ADDED"        : "Řadit podle data přidání",
     "CMD_WORKINGSET_SORT_BY_NAME"         : "Řadit podle jména",
     "CMD_WORKINGSET_SORT_BY_TYPE"         : "Řadit podle typu",
@@ -396,23 +408,24 @@ define({
     "CMD_SHOW_IN_FINDER"                  : "Zobrazit ve vyhledávači",
     "CMD_SHOW_IN_OS"                      : "Zobrazit v OS",
 
-
-    // Příkazy menu nápověda
+    // Příkazy menu Nápověda
     "HELP_MENU"                           : "Nápověda",
     "CMD_CHECK_FOR_UPDATE"                : "Zkontrolovat aktualizace",
     "CMD_HOW_TO_USE_BRACKETS"             : "Jak používat {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} Podpora",
     "CMD_SUGGEST"                         : "Navrhněte funkci",
-    "CMD_GET_INVOLVED"                    : "Zapojte se",
     "CMD_RELEASE_NOTES"                   : "Poznámky k verzi",
+    "CMD_GET_INVOLVED"                    : "Zapojte se",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} domovská stránka",
     "CMD_TWITTER"                         : "{TWITTER_NAME} - Twitter",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Otevřít soubor s preferencemi",
+    "CMD_OPEN_KEYMAP"                     : "Otevřít uživatelské klávesové zkratky",
 
     // Řetězce pro main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentální verze",
+    "RELEASE_BUILD"                        : "verze",
     "DEVELOPMENT_BUILD"                    : "vývojová verze",
     "RELOAD_FROM_DISK"                     : "Načíst z disku",
     "KEEP_CHANGES_IN_EDITOR"               : "Ponechat změny v editoru",
@@ -448,7 +461,7 @@ define({
     "FONT_FAMILY"                          : "Rodina písma",
     "THEMES_SETTINGS"                      : "Nastavení motivů",
 
-    // CSS Quick Edit
+    // CSS Rychlá úprava
     "BUTTON_NEW_RULE"                      : "Nové pravidlo",
 
     // Řetězce pro správce doplňků
@@ -456,7 +469,7 @@ define({
     "UPDATE"                               : "Aktualizovat",
     "REMOVE"                               : "Odstranit",
     "OVERWRITE"                            : "Přepsat",
-    "CANT_REMOVE_DEV"                      : "Doplněk v \"dev\" složce musí být smazán manuálně.",
+    "CANT_REMOVE_DEV"                      : "Doplněk ve složce \"dev\" musí být smazán manuálně.",
     "CANT_UPDATE"                          : "Aktualizace není kompatibilní s touto verzí {APP_NAME}.",
     "CANT_UPDATE_DEV"                      : "Doplňky ve složce \"dev\" nemohou být aktualizovány automaticky.",
     "INSTALL_EXTENSION_TITLE"              : "Instalovat doplněk",
@@ -543,10 +556,11 @@ define({
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizace",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Žádné dostupné shody.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "Všechny shody jsou sbalené. Pro prohlédnutí shod rozbalte soubory zobrazené vpravo.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Neexistují žádná CSS pravidla odpovídající vašemu výběru.<br> Pro vytvoření pravidla klikněte na \"Nové pravidlo\".",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Neexistují žádné soubory s kaskádovými styly ve vašem projektu.<br>Vytvořte nový soubor pro přidání CSS pravidel.",
 
-    // Custom Viewers
+    // Prohlížeče obrázků
     "IMAGE_VIEWER_LARGEST_ICON"            : "největší",
 
     /**
@@ -556,26 +570,26 @@ define({
     "UNIT_PIXELS"                          : "pixely",
 
     // extensions/default/DebugCommands
-    "DEBUG_MENU"                          : "Nástroje",
-    "ERRORS"                              : "Chyby",
-    "CMD_SHOW_DEV_TOOLS"                  : "Zobrazit nástroje pro vývojáře",
-    "CMD_REFRESH_WINDOW"                  : "Restartovat {APP_NAME}",
-    "CMD_RELOAD_WITHOUT_USER_EXTS"        : "Restartovat bez doplňků",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Nové okno {APP_NAME}",
-    "CMD_SWITCH_LANGUAGE"                 : "Změnit jazyk",
-    "CMD_RUN_UNIT_TESTS"                  : "Spustit testy",
-    "CMD_SHOW_PERF_DATA"                  : "Zobrazit údaje o výkonnosti",
-    "CMD_ENABLE_NODE_DEBUGGER"            : "Povolit Node Debugger",
-    "CMD_LOG_NODE_STATE"                  : "Uložit stav Node do konzole",
-    "CMD_RESTART_NODE"                    : "Restartovat Node",
-    "CMD_SHOW_ERRORS_IN_STATUS_BAR"       : "Zobrazit chyby ve stavovém řádku",
-    "CMD_OPEN_BRACKETS_SOURCE"            : "Otevřít zdroj Brackets",
+    "DEBUG_MENU"                                : "Nástroje",
+    "ERRORS"                                    : "Chyby",
+    "CMD_SHOW_DEV_TOOLS"                        : "Zobrazit nástroje pro vývojáře",
+    "CMD_REFRESH_WINDOW"                        : "Restartovat {APP_NAME}",
+    "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Restartovat bez doplňků",
+    "CMD_NEW_BRACKETS_WINDOW"                   : "Nové okno {APP_NAME}",
+    "CMD_SWITCH_LANGUAGE"                       : "Změnit jazyk",
+    "CMD_RUN_UNIT_TESTS"                        : "Spustit testy",
+    "CMD_SHOW_PERF_DATA"                        : "Zobrazit údaje o výkonnosti",
+    "CMD_ENABLE_NODE_DEBUGGER"                  : "Povolit Node Debugger",
+    "CMD_LOG_NODE_STATE"                        : "Uložit stav Node do konzole",
+    "CMD_RESTART_NODE"                          : "Restartovat Node",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Zobrazit chyby ve stavovém řádku",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Otevřít zdroj Brackets",
 
-    "LANGUAGE_TITLE"                      : "Změnit jazyk",
-    "LANGUAGE_MESSAGE"                    : "Prosím, vyberte jazyk ze seznamu:",
-    "LANGUAGE_SUBMIT"                     : "Restartovat {APP_NAME}",
-    "LANGUAGE_CANCEL"                     : "Zrušit",
-    "LANGUAGE_SYSTEM_DEFAULT"             : "Výchozí",
+    "LANGUAGE_TITLE"                            : "Změnit jazyk",
+    "LANGUAGE_MESSAGE"                          : "Prosím, vyberte jazyk ze seznamu:",
+    "LANGUAGE_SUBMIT"                           : "Restartovat {APP_NAME}",
+    "LANGUAGE_CANCEL"                           : "Zrušit",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "Výchozí",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Doba",
@@ -613,4 +627,4 @@ define({
     "DOCS_MORE_LINK"                            : "Více"
 });
 
-/* Last translated for da9a2e1e5405d6ee5ec46dfa31003b1915d0766a */
+/* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */

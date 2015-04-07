@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var BaseServer           = brackets.getModule("LiveDevelopment/Servers/BaseServer").BaseServer,
-        FileUtils            = brackets.getModule("file/FileUtils"),
+        LiveDevelopmentUtils = brackets.getModule("LiveDevelopment/LiveDevelopmentUtils"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager");
 
     
@@ -87,7 +87,7 @@ define(function (require, exports, module) {
         }
 
         // FUTURE: do a MIME Type lookup on file extension
-        return FileUtils.isStaticHtmlFileExt(localPath);
+        return LiveDevelopmentUtils.isStaticHtmlFileExt(localPath);
     };
 
     /**

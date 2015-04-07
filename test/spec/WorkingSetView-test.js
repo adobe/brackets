@@ -269,7 +269,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.FILE_RENAME);
             });
 
-            waits(ProjectManager._RENDER_DEBOUNCE_TIME);
+            waits(ProjectManager._RENDER_DEBOUNCE_TIME + 50);
 
             runs(function () {
                 expect($("#project-files-container ul input").val()).toBe(fileName);

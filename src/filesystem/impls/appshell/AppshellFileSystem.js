@@ -531,15 +531,17 @@ define(function (require, exports, module) {
         }
         appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
             if (err || isNetworkDrive) {
-                callback(FileSystemError.UNKNOWN);
+                if (isNetworkDrive) {
+                    callback(FileSystemError.NETWORK_DRIVE_NOT_SUPPORTED);
+                } else {
+                    callback(FileSystemError.UNKNOWN);
+                }
                 return;
             }
-            
             _nodeDomain.exec("watchPath", path)
                 .then(callback, callback);
         });
     }
-    
     /**
      * Stop providing change notifications for the file or directory at the
      * given path, calling back asynchronously with a possibly null FileSystemError

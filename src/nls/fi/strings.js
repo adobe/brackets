@@ -260,10 +260,10 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"             : "Rivi {0}, sarake {1}",
-    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Valittu {0} merkki",
-    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 Valittu {0} merkkiä",
-    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 Valittu {0} rivi",
-    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 Valittu {0} riviä",
+    "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 valittu {0} merkki",
+    "STATUSBAR_SELECTION_CH_PLURAL"         : " \u2014 valittu {0} merkkiä",
+    "STATUSBAR_SELECTION_LINE_SINGULAR"     : " \u2014 valittu {0} rivi",
+    "STATUSBAR_SELECTION_LINE_PLURAL"       : " \u2014 valittu {0} riviä",
     "STATUSBAR_SELECTION_MULTIPLE"          : " \u2014 {0} valintaa",
     "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Muuta sisennys välilyönneiksi napsauttamalla",
     "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Muuta sisennys sarkainmerkeiksi napsauttamalla",
@@ -283,7 +283,7 @@ define({
     "STATUSBAR_SET_DEFAULT_LANG"            : "Aseta oletukseksi .{0}-tiedostoille",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0}-ongelmat",
+    "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} ongelmaa",
     "SINGLE_ERROR"                          : "1 {0}-ongelma",
     "MULTIPLE_ERRORS"                       : "{1} {0}-ongelmaa",
     "NO_ERRORS"                             : "{0}-ongelmia ei löytynyt – hyvää työtä!",
@@ -317,6 +317,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Tallenna kaikki",
     "CMD_FILE_SAVE_AS"                    : "Tallenna nimellä\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Esikatselu",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Ota kokeellinen esikatselu käyttöön",
     "CMD_RELOAD_LIVE_PREVIEW"             : "Pakota esikatselun päivitys",
     "CMD_PROJECT_SETTINGS"                : "Projektin asetukset\u2026",
     "CMD_FILE_RENAME"                     : "Nimeä uudelleen",
@@ -445,7 +446,7 @@ define({
     "GET_IT_NOW"                           : "Hae nyt!",
     "PROJECT_SETTINGS_TITLE"               : "Projektin asetukset kohteelle: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Esikatselun perus-URL",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "Käytä paikal. palvelinta antamalla url, kuten http://localhost:8000/",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "Käytä paikall. palvelinta antamalla url, kuten http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Esikatselu ei tue {0}-protokollaa. Käytä joko http: tai https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei voi sisältää hakuparametreja, kuten ”{0}”.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei voi sisältää ristikkomerkkejä, kuten ”{0}”.",
@@ -623,7 +624,25 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Viimeisimmät projektit",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Lue lisää"
+    "DOCS_MORE_LINK"                            : "Lue lisää",
+
+    //extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Pienennä kaikki",
+    "EXPAND_ALL"                    : "Laajenna kaikki",
+    "COLLAPSE_CURRENT"              : "Pienennä nykyinen",
+    "EXPAND_CURRENT"                : "Laajenna nykyinen",
+    "COLLAPSE_CUSTOM_REGIONS"       : "Pienennä mukautetut alueet",
+    "MIN_FOLD_SIZE"                 : "Pienin laskostuksen koko",
+    "MIN_FOLD_SIZE_HELP"            : "Pienin sallittu laskostettavan alueen rivimäärä",
+    "ENABLE_REGION_FOLDING"         : "Ota mukautetun alueen laskostus käyttöön",
+    "SAVE_FOLD_STATES"              : "Tallenna laskosten tilat",
+    "SAVE_FOLD_STATES_HELP"         : "Tallenna laskosten tilat levylle, kun editori suljetaan ja palauta ne, kun editori avataan uudelleen",
+    "ALWAYS_USE_INDENT_FOLD"        : "Käytä aina sisennyslaskostusta",
+    "ALWAYS_USE_INDENT_FOLD_HELP"   : "Käytä aina sisennyksen tasoa laskostuksen ohjenuorana",
+    "FADE_FOLD_BUTTONS"             : "Häivytä laskostuspainikkeet",
+    "FADE_FOLD_BUTTONS_HELP"        : "Piilottaa laskostuspainikkeet, ellei osoitin ole sivumarginaalin päällä",
+    "MAX_FOLD_LEVEL"                : "Suurin sallittu sisäkkäisten laskosten määrä",
+    "MAX_FOLD_LEVEL_HELP"           : "Käytetään rajoittamaan sisäkkäisten laskosten määrää etsittäessä ja pienennettäessä, kun käytetään Näytä -> Pienennä kaikki \u2011komentoa tai kun Alt-näppäintä pidetään alhaalla pienennettäessä. Pitäisi parantaa suurten tiedostojen suorituskykyä."
 });
 
-/* Last translated for c292e896761bc7d451a9e3b95bedd20d6b355d77 */
+/* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */

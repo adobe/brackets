@@ -94,8 +94,9 @@ define(function (require, exports, module) {
         SPACE_UNITS         = "spaceUnits",
         STYLE_ACTIVE_LINE   = "styleActiveLine",
         TAB_SIZE            = "tabSize",
-        WORD_WRAP           = "wordWrap",
-        USE_TAB_CHAR        = "useTabChar";
+        UPPERCASE_COLORS    = "uppercaseColors",
+        USE_TAB_CHAR        = "useTabChar",
+        WORD_WRAP           = "wordWrap";
     
     var cmOptions         = {};
     
@@ -127,7 +128,7 @@ define(function (require, exports, module) {
     
     PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", false);
     PreferencesManager.definePreference(CLOSE_TAGS,         "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
-    PreferencesManager.definePreference(DRAG_DROP,          "boolean", true);
+    PreferencesManager.definePreference(DRAG_DROP,          "boolean", false);
     PreferencesManager.definePreference(HIGHLIGHT_MATCHES,  "boolean", false);
     PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false);
     PreferencesManager.definePreference(SHOW_CURSOR_SELECT, "boolean", false);
@@ -141,6 +142,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(TAB_SIZE,           "number", DEFAULT_TAB_SIZE, {
         validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE)
     });
+    PreferencesManager.definePreference(UPPERCASE_COLORS,   "boolean", false);
     PreferencesManager.definePreference(USE_TAB_CHAR,       "boolean", false);
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true);
     
@@ -1328,25 +1330,11 @@ define(function (require, exports, module) {
     /**
      * Selects word that the given pos lies within or adjacent to. If pos isn't touching a word
      * (e.g. within a token like "//"), moves the cursor to pos without selecting a range.
-     * Adapted from selectWordAt() in CodeMirror v2.
      * @param {!{line:number, ch:number}}
      */
     Editor.prototype.selectWordAt = function (pos) {
-        var line = this.document.getLine(pos.line),
-            start = pos.ch,
-            end = pos.ch;
-        
-        function isWordChar(ch) {
-            return (/\w/).test(ch) || ch.toUpperCase() !== ch.toLowerCase();
-        }
-        
-        while (start > 0 && isWordChar(line.charAt(start - 1))) {
-            --start;
-        }
-        while (end < line.length && isWordChar(line.charAt(end))) {
-            ++end;
-        }
-        this.setSelection({line: pos.line, ch: start}, {line: pos.line, ch: end});
+        var word = this._codeMirror.findWordAt(pos);
+        this.setSelection(word.anchor, word.head);
     };
     
     /**
