@@ -415,6 +415,7 @@ define({
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_GET_INVOLVED": "Participer",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
+	"CMD_HEALTH_DATA_STATISTICS": "[8033837] !é=HealthData Statistics=!",
 	"CMD_HOMEPAGE": "Page d’accueil de {APP_TITLE}",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
@@ -588,6 +589,12 @@ define({
 	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
+
+    // extensions/default/HealthData
+	"HEALTH_DATA_NOTIFICATION": "[8033839] !é=Health Data Preferences=!",
+	"HEALTH_DATA_DO_TRACK": "[8033838] !é=Yes, I would like to share information on how I use Brackets.=!",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "[8033840] !é=In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use Brackets.=!",
+	"HEALTH_DATA_PREVIEW": "[8033841] !é=Health Data Preview=!",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
