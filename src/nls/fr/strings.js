@@ -415,7 +415,7 @@ define({
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_GET_INVOLVED": "Participer",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
-	"CMD_HEALTH_DATA_STATISTICS": "[8033837] !é=HealthData Statistics=!",
+	"CMD_HEALTH_DATA_STATISTICS": "[8033837] !é=Health Data Report=!",
 	"CMD_HOMEPAGE": "Page d’accueil de {APP_TITLE}",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
@@ -593,7 +593,7 @@ define({
     // extensions/default/HealthData
 	"HEALTH_DATA_NOTIFICATION": "[8033839] !é=Health Data Preferences=!",
 	"HEALTH_DATA_DO_TRACK": "[8033838] !é=Yes, I would like to share information on how I use Brackets.=!",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "[8033840] !é=In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use Brackets.=!",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "[8033840] !é=In order to improve Brackets we are implementing a new Health Report that sends <strong>anonymous</strong> data to Adobe about how you use Brackets. This report will help the core team and extension developers prioritize features, find bugs, and spot usability and discoverability issues.<br><br>You can see the data being sent as well as change your preference at any time by going to <strong>Help->Health Data Report</strong>. Learn more about the Brackets Health Report and track status <a href='https://github.com/adobe/brackets/wiki/Health-Data'>on our wiki page</a>.=!",
 	"HEALTH_DATA_PREVIEW": "[8033841] !é=Health Data Preview=!",
 
     // extensions/default/InlineTimingFunctionEditor
@@ -629,5 +629,24 @@ define({
 	"CMD_TOGGLE_RECENT_PROJECTS": "Projets récents",
 
     // extensions/default/WebPlatformDocs
-	"DOCS_MORE_LINK": "En savoir plus"
+	"DOCS_MORE_LINK": "En savoir plus",
+
+    // extensions/default/CodeFolding
+	"ENABLE_CODE_FOLDING": "[8034383] !é=Enable code folding=!",
+	"COLLAPSE_ALL": "Réduire tout",
+	"EXPAND_ALL": "Développer tout",
+	"COLLAPSE_CURRENT": "[8034381] !é=Collapse Current=!",
+	"EXPAND_CURRENT": "[8034386] !é=Expand Current=!",
+	"COLLAPSE_CUSTOM_REGIONS": "[8034382] !é=Collapse Custom Regions=!",
+	"MIN_FOLD_SIZE": "[8034391] !é=Minimum fold size=!",
+	"MIN_FOLD_SIZE_HELP": "[8034392] !é=Minimum number of lines to allow in a fold range=!",
+	"ENABLE_REGION_FOLDING": "[8034384] !é=Enable custom region folding=!",
+	"SAVE_FOLD_STATES": "[8034393] !é=Save fold states=!",
+	"SAVE_FOLD_STATES_HELP": "[8034394] !é=Save fold states to disk when editor is closed and restore the folds when reopened=!",
+	"ALWAYS_USE_INDENT_FOLD": "[8034378] !é=Always use indent fold=!",
+	"ALWAYS_USE_INDENT_FOLD_HELP": "[8034379] !é=Always use level of indentation as a folding guideline=!",
+	"FADE_FOLD_BUTTONS": "[8034387] !é=Fade fold buttons=!",
+	"FADE_FOLD_BUTTONS_HELP": "[8034388] !é=Hides the fold buttons unless the mouse is over the gutter=!",
+	"MAX_FOLD_LEVEL": "[8034389] !é=Maximum number of nested folds=!",
+	"MAX_FOLD_LEVEL_HELP": "[8034390] !é=Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files.=!"
 });
