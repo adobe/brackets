@@ -467,7 +467,7 @@ define(function (require, exports, module) {
                 var aArgs = _.flatten([{
                     href: "#",
                     className: fileClasses
-                }, this.getIcons(), name, extension], true);
+                }, this.getIcons(), name, extension]);
                 nameDisplay = DOM.a.apply(DOM.a, aArgs);
             }
 
@@ -699,7 +699,7 @@ define(function (require, exports, module) {
             var aArgs = _.flatten([{
                 href: "#",
                 className: directoryClasses
-            }, this.getIcons()], true);
+            }, this.getIcons()]);
             if (!entry.get("rename")) {
                 aArgs.push(this.props.name);
             }
