@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window, Mustache */
+/*global define, $, brackets, window, Mustache, appshell */
 
 define(function (require, exports, module) {
     "use strict";
@@ -42,8 +42,6 @@ define(function (require, exports, module) {
         PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
         LocalizationUtils      = brackets.getModule("utils/LocalizationUtils"),
         DefaultDialogs         = brackets.getModule("widgets/DefaultDialogs"),
-        FileSystemImpl         = brackets.getModule("fileSystemImpl"),
-        FileSystemError        = brackets.getModule("filesystem/FileSystemError"),
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
@@ -108,50 +106,58 @@ define(function (require, exports, module) {
     function handleNewBracketsWindow() {
         window.open(window.location.href);
     }
-
-    function handleScriptMessages(err) {
-        if (err) {
-            var errMsg = Strings.ERROR_CREATING_LAUNCH_SCRIPT + err;
-            Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_ERROR,
-                Strings.CREATING_LAUNCH_SCRIPT_TITLE,
-                errMsg
-            );
-        } else {
+    
+    function _mapCLToolsErrorCodeToString(errorCode) {
+        
+        var errorString;
+        switch (errorCode) {
+        case appshell.app.ERR_CL_TOOLS_RMFAILED:
+            errorString = Strings.ERROR_CLTOOLS_RMFAILED;
+            break;
+        case appshell.app.ERR_CL_TOOLS_MKDIRFAILED:
+            errorString = Strings.ERROR_CLTOOLS_MKDIRFAILED;
+            break;
+        case appshell.app.ERR_CL_TOOLS_SYMLINKFAILED:
+            errorString = Strings.ERROR_CLTOOLS_LNFAILED;
+            break;
+        case appshell.app.ERR_CL_TOOLS_SERVFAILED:
+            errorString = Strings.ERROR_CLTOOLS_SERVFAILED;
+            break;
+        default:
+            errorString = "UnknownError";
+            break;
+        }
+        
+        return errorString;
+    }
+    
+    function handleScriptMessages(errorCode) {
+        
+        if (errorCode === appshell.app.ERR_CL_TOOLS_CANCELLED) {
+            // The user has cancelled the authentication dialog.
+            return;
+        } else if (errorCode === appshell.app.NO_ERROR) {
+            // flag success message here.
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_INFO,
                 Strings.CREATING_LAUNCH_SCRIPT_TITLE,
                 Strings.LAUNCH_SCRIPT_CREATE_SUCCESS
             );
+
+        } else {
+            var errorString = _mapCLToolsErrorCodeToString(errorCode);
+            var errMsg = Strings.ERROR_CREATING_LAUNCH_SCRIPT + errorString;
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_ERROR,
+                Strings.CREATING_LAUNCH_SCRIPT_TITLE,
+                errMsg
+            );
         }
     }
 
     function handleInstallLauchScriptMac() {
-        var path     = "/usr/local/bin/Brackets";
-        var data     = "#!/bin/sh \n open -a Brackets \"$@\"";
-        var encoding = "utf8";
-        var mode     = 493;
-
-        // check if the file already exisits.
-        FileSystemImpl.stat(path, function (err, stats) {
-            if (!err) {
-                // Already installed.
-                handleScriptMessages();
-
-            } else if (err === FileSystemError.NOT_FOUND) {
-                FileSystemImpl.writeFile(path, data, encoding, function (err) {
-                    if (!err) {
-                        // now go ahead with making the file executable.
-                        FileSystemImpl.chmod(path, mode, handleScriptMessages);
-                    } else {
-                        // An error occured. Signal the error to the user.
-                        handleScriptMessages(err);
-                    }
-                });
-            } else {
-                // And unknwon error. Show the error message to the user.
-                handleScriptMessages(err);
-            }
+        appshell.app.installCommandLine(function (serviceCode) {
+            handleScriptMessages(serviceCode);
         });
     }
 

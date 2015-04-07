@@ -583,9 +583,14 @@ define({
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
-    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Yikes! An erorr occured while creating {APP_NAME} launcher script at /usr/local/bin. Make sure you are logged in as Adminstrator and that you have write access to /usr/local/bin. Reason code: ",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "An erorr occured while creating {APP_NAME} launcher script at /usr/local/bin. Please refer to https://github.com/adobe/brackets/wiki/Command-Line-Arguments for troubleshooting. Reason: ",
+    "ERROR_CLTOOLS_RMFAILED"                    : "Failed to remove existing {APP_NAME} symlink at /usr/local/bin.",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "Failed to create /usr/local/bin directory structure",
+    "ERROR_CLTOOLS_LNFAILED"                    : "Failed to create {APP_NAME} symlink at /usr/local/bin",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "Failed to create authorization",
+    
     "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Launch script succesfully installed! You can now launch {APP_NAME} from terminal.",
-    "CREATING_LAUNCH_SCRIPT_TITLE"              : "Install Launch Script",
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "Add Brackets Command Line",
 
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",
