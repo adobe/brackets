@@ -415,7 +415,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
-    "CMD_HEALTH_DATA_STATISTICS"          : "HealthData Statistics",
+    "CMD_HEALTH_DATA_STATISTICS"          : "Health Data Report",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
@@ -593,7 +593,7 @@ define({
     // extensions/default/HealthData
     "HEALTH_DATA_NOTIFICATION"                  : "Health Data Preferences",
     "HEALTH_DATA_DO_TRACK"                      : "Yes, I would like to share information on how I use Brackets.",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use Brackets.",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve Brackets we are implementing a new Health Report that sends <strong>anonymous</strong> data to Adobe about how you use Brackets. This report will help the core team and extension developers prioritize features, find bugs, and spot usability and discoverability issues.<br><br>You can see the data being sent as well as change your preference at any time by going to <strong>Help->Health Data Report</strong>. Learn more about the Brackets Health Report and track status <a href='https://github.com/adobe/brackets/wiki/Health-Data'>on our wiki page</a>.",
     "HEALTH_DATA_PREVIEW"                       : "Health Data Preview",
 
     // extensions/default/InlineTimingFunctionEditor
@@ -648,12 +648,5 @@ define({
     "FADE_FOLD_BUTTONS"             : "Fade fold buttons",
     "FADE_FOLD_BUTTONS_HELP"        : "Hides the fold buttons unless the mouse is over the gutter",
     "MAX_FOLD_LEVEL"                : "Maximum number of nested folds",
-    "MAX_FOLD_LEVEL_HELP"           : "Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files.",
-
-    //Health Data
-    "HEALTH_DATA_NOTIFICATION"                  : "HealthData Preferences",
-    "HEALTH_DATA_DO_TRACK"                      : "Yes, I would like to share information on how I use the Brackets.",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use the Brackets.",
-    "HEALTH_DATA_PREVIEW"                       : "Health Data Preview File",
-    "HEALTH_DATA_PREVIEW_MESSAGE"               : "No Data to Show"
+    "MAX_FOLD_LEVEL_HELP"           : "Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files."
 });
