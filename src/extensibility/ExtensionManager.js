@@ -103,10 +103,8 @@ define(function (require, exports, module) {
     /**
      * @private
      * @type {Object.<string, {metadata: Object, path: string, status: string}>}
-     * The set of all extensions (registry and locally installed) present in user location.
+     * The set of all extensions (in registry and locally installed) present in user location.
      * The fields of each record are:
-     *     registryInfo: object containing the info for this id from the main registry (containing metadata, owner,
-     *         and versions).
      *     installInfo: object containing the info for a locally-installed extension:
      *         metadata: the package metadata loaded from the local package.json, or null if it's a legacy extension.
      *         path: the local path to the extension folder on disk
@@ -824,9 +822,11 @@ define(function (require, exports, module) {
     exports.updateExtensions        = updateExtensions;
     exports.getAvailableUpdates     = getAvailableUpdates;
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
+
+    exports.registryObject          = registryObject;
+
     exports.ENABLED       = ENABLED;
     exports.START_FAILED  = START_FAILED;
-    exports.registryObject          = registryObject;
 
     exports.LOCATION_DEFAULT  = LOCATION_DEFAULT;
     exports.LOCATION_DEV      = LOCATION_DEV;

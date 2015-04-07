@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Check for each user installed extensions if present in registry.
+     * For each user installed extension, check if it's present in the registry.
      * @param {Object} object that contains information about extensions fetched from registry
      * @param {Object} all user installed extensions
      * return {Array} userInstalledExtensions

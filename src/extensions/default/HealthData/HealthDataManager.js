@@ -44,7 +44,7 @@ define(function (require, exports, module) {
     params.parse();
 
     /**
-     * Get the health data which will be sent to the server. Initially it is only one time data.
+     * Get the Health Data which will be sent to the server. Initially it is only one time data.
      */
     function getHealthData() {
         var result = new $.Deferred(),
@@ -98,7 +98,7 @@ define(function (require, exports, module) {
                     result.resolve();
                 })
                 .fail(function (jqXHR, status, errorThrown) {
-                    console.error("Error in sending health data. Response : " + jqXHR.responseText + ". Status : " + status + ". Error : " + errorThrown);
+                    console.error("Error in sending Health Data. Response : " + jqXHR.responseText + ". Status : " + status + ". Error : " + errorThrown);
                     result.reject();
                 });
         })
@@ -110,8 +110,8 @@ define(function (require, exports, module) {
     }
 
     /*
-     * Check if the health data is to be sent to the server. If the user has enabled tracking, health data will be sent once every 24 hours.
-     * Send health data to the server if the period is more than 24 hours.
+     * Check if the Health Data is to be sent to the server. If the user has enabled tracking, Health Data will be sent once every 24 hours.
+     * Send Health Data to the server if the period is more than 24 hours.
      * We are sending the data as soon as the user launches brackets. The data will be sent to the server only after the notification dialog 
      * for opt-out/in is closed.
      */
@@ -126,7 +126,7 @@ define(function (require, exports, module) {
                 currentTime = (new Date()).getTime();
 
             if (!lastTimeSent || (currentTime >= lastTimeSent + ONE_DAY)) {
-                //Setting the time here to avoid any chance of sending data before ONE_DAY. Whether the request to server gets completed or failed we will be sending the data only after ONE_DAY.
+                // Setting the time here to avoid any chance of sending data before ONE_DAY. Whether or not the request to the server is successful, we will be sending the data only after ONE_DAY has passed.
                 PreferencesManager.setViewState("lastTimeSentData", (new Date()).getTime());
                 sendHealthDataToServer()
                     .done(function () {

@@ -38,12 +38,12 @@ define(function (require, exports, module) {
     var menu            = Menus.getMenu(Menus.AppMenuBar.HELP_MENU),
         healthDataCmdId = "healthData.healthDataStatistics";
     
-    //handles the command execution for healthData menu item
+    // Handles the command execution for Health Data menu item
     function handleHealthDataStatistics() {
         HealthDataNotification.handleHealthDataStatistics();
     }
     
-    // Register the command and add the menu item for the HealthData Statistics
+    // Register the command and add the menu item for the Health Data Statistics
     function addCommand() {
         CommandManager.register(Strings.CMD_HEALTH_DATA_STATISTICS, healthDataCmdId, handleHealthDataStatistics);
     
