@@ -1,0 +1,28 @@
+<div class="changelog-dialog template modal">
+    <div class="modal-header">
+        <h1 class="dialog-title">{{{title}}}</h1>
+    </div>
+    <div class="modal-body">
+        <div class="dialog-message">
+            {{#changelog}}
+            <h4>
+                Version {{version}} - {{date}}
+                {{#currentlyInstalled}}
+                    - {{Strings.EXTENSION_INSTALLED}}
+                {{/currentlyInstalled}}
+            </h4>
+            <ul>
+                {{#lines}}
+                    <li class="{{className}}">{{{escapedContent}}}</li>
+                {{/lines}}
+            </ul>
+            {{/changelog}}
+            {{^changelog}}
+                {{Strings.NO_CHANGELOG_LOADED}}
+            {{/changelog}}
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="dialog-button btn primary" data-button-id="ok">{{Strings.OK}}</button>
+    </div>
+</div>
