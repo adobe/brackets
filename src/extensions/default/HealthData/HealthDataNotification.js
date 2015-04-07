@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         UrlParams                    = brackets.getModule("utils/UrlParams").UrlParams,
         HealthDataPreview            = require("HealthDataPreview"),
         HealthDataManager            = require("HealthDataManager"),
-        HealthDataNotificationDialog = require("text!htmlContent/healthdata-notification-dialog.html");
+        HealthDataNotificationDialog = require("text!htmlContent/healthdata-notification-dialog.html"),
+        HealthDataPreferenceDialog   = require("text!htmlContent/healthdata-preference-dialog.html");
     
     PreferencesManager.definePreference("healthDataNotificationShown", "boolean", false);
     
@@ -46,8 +47,20 @@ define(function (require, exports, module) {
      * Show dialog for first time to the user regarding data capturing by Brackets
      */
     function showDialogHealthDataNotification() {
+        var template = Mustache.render(HealthDataNotificationDialog, {"Strings": Strings}),
+            $template = $(template),
+            result = new $.Deferred();
+
+        Dialogs.showModalDialogUsingTemplate($template).done(function () {
+            PreferencesManager.setViewState("healthDataNotificationShown", true);
+            result.resolve();
+        });
+        return result.promise();
+    }
+    
+    function showDialogHealthDataPreference() {
         var hdPref   = prefs.get("healthDataTracking"),
-            template = Mustache.render(HealthDataNotificationDialog, {"Strings": Strings, "hdPref": hdPref}),
+            template = Mustache.render(HealthDataPreferenceDialog, {"Strings": Strings, "hdPref": hdPref}),
             $template = $(template),
             newHDPref = hdPref,
             result = new $.Deferred();
@@ -73,7 +86,7 @@ define(function (require, exports, module) {
         if (hdPref) {
             HealthDataPreview.previewHealthData();
         } else {
-            showDialogHealthDataNotification();
+            showDialogHealthDataPreference();
         }
     }
     
@@ -92,6 +105,6 @@ define(function (require, exports, module) {
         }
     });
     
-    exports.showDialogHealthDataNotification = showDialogHealthDataNotification;
+    exports.showDialogHealthDataPreference   = showDialogHealthDataPreference;
     exports.handleHealthDataStatistics       = handleHealthDataStatistics;
 });

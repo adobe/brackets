@@ -92,8 +92,8 @@ define(function (require, exports, module) {
             });
             
             it("should show notification dialog", function () {
-                HealthDataNotification.showDialogHealthDataNotification();
-                expect($(testWindow.document).find(".health-data-notification.instance").length).toBe(1);
+                HealthDataNotification.showDialogHealthDataPreference();
+                expect($(testWindow.document).find(".health-data-preference.instance").length).toBe(1);
             });
         });
 
