@@ -415,7 +415,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
-    "CMD_HEALTH_DATA_STATISTICS"          : "HealthData Statistics",
+    "CMD_HEALTH_DATA_STATISTICS"          : "Health Data Report",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
@@ -591,9 +591,10 @@ define({
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
 
     // extensions/default/HealthData
-    "HEALTH_DATA_NOTIFICATION"                  : "Health Data Preferences",
+    "HEALTH_DATA_NOTIFICATION"                  : "Health Data Notification",
+    "HEALTH_DATA_PREFERENCE"                    : "Health Data Preferences",
     "HEALTH_DATA_DO_TRACK"                      : "Yes, I would like to share information on how I use Brackets.",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use Brackets.",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve Brackets we are implementing a new Health Report that sends <strong>anonymous</strong> data to Adobe about how you use Brackets. This report will help the core team and extension developers prioritize features, find bugs, and spot usability and discoverability issues.<br><br>You can see the data being sent as well as change your preference at any time by going to <strong>Help->Health Data Report</strong>. Learn more about the Brackets Health Report and track status <a href='https://github.com/adobe/brackets/wiki/Health-Data'>on our wiki page</a>.",
     "HEALTH_DATA_PREVIEW"                       : "Health Data Preview",
 
     // extensions/default/InlineTimingFunctionEditor
