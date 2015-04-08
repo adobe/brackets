@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         beforeEach(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
-            }, {"params" : {"skipHealthDataNotification": true}});
+            });
 
         });
 
