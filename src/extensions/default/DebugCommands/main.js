@@ -123,8 +123,11 @@ define(function (require, exports, module) {
         case appshell.app.ERR_CL_TOOLS_SERVFAILED:
             errorString = Strings.ERROR_CLTOOLS_SERVFAILED;
             break;
+        case appshell.app.ERR_CL_TOOLS_NOTSUPPORTED:
+            errorString = Strings.ERROR_CLTOOLS_NOTSUPPORTED;
+            break;
         default:
-            errorString = "UnknownError";
+            errorString = "Unknown Error.";
             break;
         }
         
