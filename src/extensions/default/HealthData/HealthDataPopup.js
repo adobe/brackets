@@ -66,7 +66,7 @@ define(function (require, exports, module) {
 
         $firstLaunchPopup.appendTo("body").hide()
                          .css("top", popupTop)
-                         .find("button").click(function () {
+                         .find(".healthdata-popup-close-button").click(function () {
                 closeCallout();
                 MainViewManager.focusActivePane();
                 result.resolve();

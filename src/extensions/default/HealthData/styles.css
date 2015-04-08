@@ -11,23 +11,27 @@
     z-index: 100;
 
     font-family: "SourceSansPro";
-    color: white;
+    color: #DDD;
     line-height: 1.5;
 
     /* animated properties */
     opacity: 1.0;
     -webkit-transform: scale(0);
     transform: scale(0);
-
-    body.dark & {
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.24);
-    }
-
-    strong {
-        color: #fff;
-    }
 }
+
 #psdl-firstlaunch-popup {
     max-width: 250px;
-    right: 39px; /* top is set programmatically */
+    right: 39px;
+}
+
+.healthdata-popup-close-button {
+    font-size: 20px;
+    text-align: right;
+}
+
+.healthdata-dialog-title {
+    font-size: 18px;
+    margin-top: -22px;
+    color: #CCC;
 }
