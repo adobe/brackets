@@ -4,14 +4,14 @@
  * @date 11/29/13 10:56:52 AM
  */
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, CodeMirror*/
+/*global define, brackets */
 define(function (require, exports, module) {
     "use strict";
 
     brackets.getModule(["thirdparty/CodeMirror2/addon/fold/brace-fold"]);
     var CodeMirror = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror");
 
-    module.exports = function (cm, start) {
+    function latexFold(cm, start) {
         var line = start.line, lineText = cm.getLine(line);
         var startRegex = /^([\\](?:section|subsection|subsubsection|begin)\*?\s*\{)([\w\s\d\(\)\,\.\?]+)\}/;
         ///fixme the matches for subsection and subsubections are wrong
@@ -25,7 +25,7 @@ define(function (require, exports, module) {
                 }
                 return {line: i + 1, ch: 0};
             }
-            
+
             var regex, pos;
             if (match.indexOf("\\begin") === 0) { //look for \end{context}
                 regex = new RegExp("\\end\\s*\\{" + context + "\\}");
@@ -44,14 +44,16 @@ define(function (require, exports, module) {
             }
             return pos;
         }
-        
+
         var matches = startRegex.exec(lineText);
-        
+
         if (!matches) { return CodeMirror.fold.brace(cm, start); }
         //find the close tag depending on the match
         var end = findClose(matches[1], matches[2]);
         if (!end) { return null; }
         return {from: CodeMirror.Pos(line, matches.index + matches[0].length),
             to: CodeMirror.Pos(end.line, end.ch)};
-    };
+    }
+
+    module.exports = latexFold;
 });

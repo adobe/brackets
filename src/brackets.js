@@ -43,7 +43,6 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-modal");
     require("widgets/bootstrap-twipsy-mod");
     require("thirdparty/path-utils/path-utils.min");
-    require("thirdparty/smart-auto-complete-local/jquery.smart_autocomplete");
 
     // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
     require("thirdparty/CodeMirror2/addon/fold/xml-fold");
@@ -152,6 +151,7 @@ define(function (require, exports, module) {
     // read URL params
     params.parse();
     
+
     /**
      * Setup test object
      */
@@ -325,7 +325,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         // Check for updates
         if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
             AppInit.appReady(function () {

@@ -32,20 +32,19 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var _                            = require("thirdparty/lodash"),
-        AnimationUtils               = require("utils/AnimationUtils"),
-        AppInit                      = require("utils/AppInit"),
-        DropdownButton               = require("widgets/DropdownButton").DropdownButton,
-        EditorManager                = require("editor/EditorManager"),
-        MainViewManager     = require("view/MainViewManager"),
-        Editor                       = require("editor/Editor").Editor,
-        FileUtils                    = require("file/FileUtils"),
-        KeyEvent                     = require("utils/KeyEvent"),
-        LanguageManager              = require("language/LanguageManager"),
-        PreferencesManager           = require("preferences/PreferencesManager"),
-        StatusBar                    = require("widgets/StatusBar"),
-        Strings                      = require("strings"),
-        StringUtils                  = require("utils/StringUtils");
+    var _                    = require("thirdparty/lodash"),
+        AnimationUtils       = require("utils/AnimationUtils"),
+        AppInit              = require("utils/AppInit"),
+        DropdownButton       = require("widgets/DropdownButton").DropdownButton,
+        EditorManager        = require("editor/EditorManager"),
+        MainViewManager      = require("view/MainViewManager"),
+        Editor               = require("editor/Editor").Editor,
+        KeyEvent             = require("utils/KeyEvent"),
+        LanguageManager      = require("language/LanguageManager"),
+        PreferencesManager   = require("preferences/PreferencesManager"),
+        StatusBar            = require("widgets/StatusBar"),
+        Strings              = require("strings"),
+        StringUtils          = require("utils/StringUtils");
     
     /* StatusBar indicators */
     var languageSelect, // this is a DropdownButton instance
@@ -329,7 +328,7 @@ define(function (require, exports, module) {
                 defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath, true);
             
             if (item === LANGUAGE_SET_AS_DEFAULT) {
-                var label = _.escape(StringUtils.format(Strings.STATUSBAR_SET_DEFAULT_LANG, FileUtils.getSmartFileExtension(document.file.fullPath)));
+                var label = _.escape(StringUtils.format(Strings.STATUSBAR_SET_DEFAULT_LANG, LanguageManager.getCompoundFileExtension(document.file.fullPath)));
                 return { html: label, enabled: document.getLanguage() !== defaultLang };
             }
             
@@ -385,7 +384,7 @@ define(function (require, exports, module) {
             if (lang === LANGUAGE_SET_AS_DEFAULT) {
                 // Set file's current language in preferences as a file extension override (only enabled if not default already)
                 var fileExtensionMap = PreferencesManager.get("language.fileExtensions");
-                fileExtensionMap[FileUtils.getSmartFileExtension(fullPath)] = document.getLanguage().getId();
+                fileExtensionMap[LanguageManager.getCompoundFileExtension(fullPath)] = document.getLanguage().getId();
                 PreferencesManager.set("language.fileExtensions", fileExtensionMap);
                 
             } else {

@@ -22,18 +22,12 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, setTimeout */
+/*global define, $ */
 /*unittests: QuickOpen*/
 
 /*
- * Displays an auto suggest pop-up list of files to allow the user to quickly navigate to a file and lines
- * within a file.
- * Uses FileIndexManger to supply the file list.
- * 
- * TODO (issue 333) - currently jquery smart auto complete is used for the pop-up list. While it mostly works
- * it has several issues, so it should be replace with an alternative. Issues:
- * - the pop-up position logic has flaws that require CSS workarounds
- * - the pop-up properties cannot be modified once the object is constructed
+ * Displays a search bar where the user can quickly navigate to a different file by searching file names in
+ * the project, and/or jump to a line number. Providers can plug in to offer additional search modes.
  */
 
 
@@ -50,10 +44,9 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         ProjectManager      = require("project/ProjectManager"),
         LanguageManager     = require("language/LanguageManager"),
-        KeyEvent            = require("utils/KeyEvent"),
         ModalBar            = require("widgets/ModalBar").ModalBar,
-        StringMatch         = require("utils/StringMatch"),
-        ViewUtils           = require("utils/ViewUtils");
+        QuickSearchField    = require("search/QuickSearchField").QuickSearchField,
+        StringMatch         = require("utils/StringMatch");
     
     
     /**
@@ -74,21 +67,15 @@ define(function (require, exports, module) {
      */
     var currentPlugin = null;
 
-    /**
-     * List of files
-     * @type {Array.<FileInfo>}
-     */
+    /** @type {Array.<File>} */
     var fileList;
     
-    /**
-     * File list promise
-     * @type {$.Promise}
-     */
+    /** @type {$.Promise} */
     var fileListPromise;
 
     /**
-     * The currently open quick open dialog.
-     * @type {Dialog}
+     * The currently open (or last open) QuickNavigateDialog
+     * @type {?QuickNavigateDialog}
      */
     var _curDialog;
 
@@ -112,12 +99,12 @@ define(function (require, exports, module) {
      * Creates and registers a new QuickOpenPlugin
      *
      * @param { name: string, 
-     *          languageIds: Array.<string>,
+     *          languageIds: !Array.<string>,
      *          done: ?function(),
-     *          search: function(string, !StringMatch.StringMatcher):Array.<SearchResult|string>,
+     *          search: function(string, !StringMatch.StringMatcher):(!Array.<SearchResult|string>|$.Promise),
      *          match: function(string):boolean,
-     *          itemFocus: ?function(?SearchResult|string),
-     *          itemSelect: function(?SearchResult|string),
+     *          itemFocus: ?function(?SearchResult|string, string, boolean),
+     *          itemSelect: function(?SearchResult|string, string),
      *          resultsFormatter: ?function(SearchResult|string, string):string,
      *          matcherOptions: ?Object,
      *          label: ?string
@@ -128,13 +115,15 @@ define(function (require, exports, module) {
      * name - plug-in name, **must be unique**
      * languageIds - language Ids array. Example: ["javascript", "css", "html"]. To allow any language, pass []. Required.
      * done - called when quick open is complete. Plug-in should clear its internal state. Optional.
-     * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns an array of strings that match the query. Required.
+     * search - takes a query string and a StringMatcher (the use of which is optional but can speed up your searches) and returns
+     *      an array of strings or result objects that match the query; or a Promise that resolves to such an array. Required.
      * match - takes a query string and returns true if this plug-in wants to provide
      *      results for this query. Required.
-     * itemFocus - performs an action when a result has been highlighted (via arrow keys, mouseover, etc.).
-     *      The highlighted search result item (as returned by search()) is passed as an argument. Optional.
+     * itemFocus - performs an action when a result has been highlighted (via arrow keys, or by becoming top of the list).
+     *      Passed the highlighted search result item (as returned by search()), the current query string, and a flag that is true
+     *      if the item was highlighted explicitly (arrow keys), not implicitly (at top of list after last search()). Optional.
      * itemSelect - performs an action when a result is chosen.
-     *      The selected search result item (as returned by search()) is passed as an argument. Required.
+     *      Passed the highlighted search result item (as returned by search()), and the current query string. Required.
      * resultsFormatter - takes a query string and an item string and returns 
      *      a <LI> item to insert into the displayed search results. Optional.
      * matcherOptions - options to pass along to the StringMatcher (see StringMatch.StringMatcher
@@ -166,16 +155,12 @@ define(function (require, exports, module) {
     function QuickNavigateDialog() {
         this.$searchField = undefined; // defined when showDialog() is called
         
-        // Bind event handlers
-        this._handleItemSelect         = this._handleItemSelect.bind(this);
-        this._handleItemFocus          = this._handleItemFocus.bind(this);
-        this._handleKeyUp              = this._handleKeyUp.bind(this);
-        this._handleResultsReady       = this._handleResultsReady.bind(this);
-        this._handleShowResults        = this._handleShowResults.bind(this);
-        this._handleBlur               = this._handleBlur.bind(this);
-        this._handleDocumentMouseDown  = this._handleDocumentMouseDown.bind(this);
+        // ModalBar event handlers & callbacks
+        this._handleCloseBar           = this._handleCloseBar.bind(this);
         
-        // Bind callbacks from smart-autocomplete
+        // QuickSearchField callbacks
+        this._handleItemSelect         = this._handleItemSelect.bind(this);
+        this._handleItemHighlight      = this._handleItemHighlight.bind(this);
         this._filterCallback           = this._filterCallback.bind(this);
         this._resultsFormatterCallback = this._resultsFormatterCallback.bind(this);
         
@@ -187,8 +172,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * True if the dialog is currently open. Note that this is set to false immediately
-     * when the dialog starts closing; it doesn't wait for the ModalBar animation to finish.
+     * True if the search bar is currently open. Note that this is set to false immediately
+     * when the bar starts closing; it doesn't wait for the ModalBar animation to finish.
      * @type {boolean}
      */
     QuickNavigateDialog.prototype.isOpen = false;
@@ -224,7 +209,6 @@ define(function (require, exports, module) {
     /**
      * @private
      * Remembers the current document that was displayed when showDialog() was called.
-     * TODO: in the future, if focusing an item can switch documents, need to restore this on Escape.
      * @type {?string} full path
      */
     QuickNavigateDialog.prototype._origDocPath = null;
@@ -277,37 +261,13 @@ define(function (require, exports, module) {
             
             return null;
         }
-            
+    
         return {
             query:  regInfo[0],
-            local:  query.indexOf(":") === 0,
+            local:  query[0] === ":",
             line:   regInfo[1] - 1 || 0,
             ch:     regInfo[3] - 1 || 0
         };
-    }
-    
-    /** Returns the last return value of _filterCallback(), which Smart Autocomplete helpfully caches */
-    function getLastFilterResult() {
-        var cachedResult = $("input#quickOpenSearch").data("smart-autocomplete").rawResults;
-        return cachedResult || [];
-    }
-    
-    /**
-     * Converts from list item DOM node to search provider list object
-     * @param {jQueryObject} domItem
-     * @return {SearchResult|string} value returned from search()
-     */
-    function domItemToSearchResult(domItem) {
-        if (!domItem) {
-            return null;
-        }
-        
-        // Smart Autocomplete uses this assumption internally: index of DOM node in results list container
-        // exactly matches index of search result in list returned by _filterCallback()
-        var index = $(domItem).index();
-        
-        var lastFilterResult = getLastFilterResult();
-        return lastFilterResult[index];
     }
     
     /**
@@ -315,36 +275,28 @@ define(function (require, exports, module) {
      * and closes the dialog.
      *
      * Note, if selectedItem is null quick search should inspect $searchField for text
-     * that may have not matched anything in in the list, but may have information
+     * that may have not matched anything in the list, but may have information
      * for carrying out an action (e.g. go to line).
      */
-    QuickNavigateDialog.prototype._handleItemSelect = function (e, selectedDOMItem) {
+    QuickNavigateDialog.prototype._handleItemSelect = function (selectedItem, query) {
 
-        // This is a work-around to select first item when a selection event occurs
-        // (usually from pressing the enter key) and no item is selected in the list.
-        // This is a work-around since  Smart auto complete doesn't select the first item
-        if (!selectedDOMItem) {
-            selectedDOMItem = $(".smart_autocomplete_container > li:first-child").get(0);
-        }
+        var doClose = true,
+            self = this;
         
-        var selectedItem = domItemToSearchResult(selectedDOMItem),
-            doClose      = true,
-            self         = this,
-            query        = this.$searchField.val(),
-            cursorPos    = extractCursorPos(query);
-
         // Delegate to current plugin
         if (currentPlugin) {
-            currentPlugin.itemSelect(selectedItem);
+            currentPlugin.itemSelect(selectedItem, query);
         } else {
+            // Extract line/col number, if any
+            var cursorPos = extractCursorPos(query);
+
             // Navigate to file and line number
             var fullPath = selectedItem && selectedItem.fullPath;
             if (fullPath) {
-                // This case is tricky. We want to switch editors, so we need to deal with
-                // resizing/rescrolling the current editor first. But we don't actually want
-                // to start the animation of the ModalBar until afterward (otherwise it glitches
-                // because it gets starved of cycles during the creation of the new editor). 
-                // So we call `prepareClose()` first, and finish the close later.
+                // We need to fix up the current editor's scroll pos before switching to the next one. But if
+                // we run the full close() now, ModalBar's animate-out won't be smooth (gets starved of cycles
+                // during creation of the new editor). So we call prepareClose() to do *only* the scroll pos
+                // fixup, and let the full close() be triggered later when the new editor takes focus.
                 doClose = false;
                 this.modalBar.prepareClose();
                 CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath})
@@ -355,6 +307,8 @@ define(function (require, exports, module) {
                         }
                     })
                     .always(function () {
+                        // Ensure we finish closing even if file failed to open, or file was already current (in
+                        // either case, we may not get a blur to trigger ModalBar to auto-close)
                         self.close();
                     });
             } else if (cursorPos) {
@@ -363,7 +317,7 @@ define(function (require, exports, module) {
         }
 
         if (doClose) {
-            this.close(null, null, true);
+            this.close();
             MainViewManager.focusActivePane();
         }
     };
@@ -372,121 +326,32 @@ define(function (require, exports, module) {
      * Opens the file specified by selected item if there is no current plug-in, otherwise defers handling
      * to the currentPlugin
      */
-    QuickNavigateDialog.prototype._handleItemFocus = function (e, selectedDOMItem) {
-        var selectedItem = domItemToSearchResult(selectedDOMItem);
-        
+    QuickNavigateDialog.prototype._handleItemHighlight = function (selectedItem, query, explicit) {
         if (currentPlugin && currentPlugin.itemFocus) {
-            currentPlugin.itemFocus(selectedItem);
-        }
-        // TODO: Disable opening files on focus for now since this causes focus related bugs between 
-        // the editor and the search field. 
-        // Also, see related code in _handleItemFocus
-        /*
-        else {
-            var fullPath = selectedItem.fullPath;
-            if (fullPath) {
-                CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath, focusEditor: false});
-            }
-        }
-        */
-        
-    };
-
-    /**
-     * Called before Smart Autocomplete processes the key, but after the DOM textfield ($searchField) updates its value.
-     * After this, Smart Autocomplete doesn't call _handleFilter() & re-render the list until a setTimeout(0) later.
-     */
-    QuickNavigateDialog.prototype._handleKeyUp = function (e) {
-        // Cancel the search on Esc key, and finish the search on Enter key
-        if (e.keyCode === KeyEvent.DOM_VK_RETURN || e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-            // Smart Autocomplete also handles Enter; but it does so without a timeout, which causes #1855.
-            // Since our listener was added first (see showDialog()), we can steal the Enter event and block
-            // Smart Autocomplete from buggily acting on it.
-            e.stopImmediatePropagation();
-            e.preventDefault();
-            
-            // Process on a timeout since letter keys are handled that way and we don't want to get ahead
-            // of processing letters that were typed before the Enter key. The ideal order of events is:
-            //   letter keydown/keyup, letter key processed async, enter keydown/keyup, enter key processed async
-            // However, we might get 'enter keyup' before 'letter key processed async'. The letter key's
-            // timeout will always run before ours since it was registered first.
-            var self = this;
-            setTimeout(function () {
-                if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                    // Restore original selection / scroll pos
-                    self.close(self._origScrollPos, self._origSelections, true);
-                } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
-                    self._handleItemSelect(null, $(".smart_autocomplete_highlight").get(0));  // calls close() too
-                }
-            }, 0);
-            
+            currentPlugin.itemFocus(selectedItem, query, explicit);
         }
     };
 
     /**
-     * Checks if the given query string is a line number query that is either empty (the number hasn't been typed yet)
-     * or is a valid line number within the visible range of the current full editor.
-     * @param {string} query The query to check.
-     * @return {boolean} true if the given query is a valid line number query.
-     */
-    QuickNavigateDialog.prototype._isValidLineNumberQuery = function (query) {
-        // Empty query returns NaN from extractLineNumber, but we want to treat it as valid for UI purposes.
-        if (query === ":") {
-            return true;
-        }
-        
-        var cursorPos = extractCursorPos(query),
-            editor    = EditorManager.getCurrentFullEditor();
-        
-        // We could just use 0 and lineCount() here, but in future we might want this logic to work for inline editors as well.
-        return (cursorPos && editor && cursorPos.line >= editor.getFirstVisibleLine() && cursorPos.line <= editor.getLastVisibleLine());
-    };
-    
-    /**
-     * Called synchronously after _handleFilter(), but before the cached "last result" is updated and before the DOM
-     * list items are re-rendered. Both happen synchronously just after we return. Called even when results is empty.
-     */
-    QuickNavigateDialog.prototype._handleResultsReady = function (e, results) {
-        // Give visual clue when there are no results (unless we're in "Go To Line" mode, where there
-        // are never results, or we're in file search mode and waiting for the index to get rebuilt)
-        var hasNoResults = (results.length === 0 && (fileList || currentPlugin) && !this._isValidLineNumberQuery(this.$searchField.val()));
-        
-        ViewUtils.toggleClass(this.$searchField, "no-results", hasNoResults);
-    };
-    
-    /**
-     * Called synchronously after all other processing is done (_handleFilter(), updating cached "last result" and
-     * re-rendering DOM list items). NOT called if the last filter action had 0 results.
-     */
-    QuickNavigateDialog.prototype._handleShowResults = function (e, results) {
-        // Scroll to top result (unless some other item has been highlighted by user)
-        if ($(".smart_autocomplete_highlight").length === 0) {
-            this._handleItemFocus(null, $(".smart_autocomplete_container > li:first-child").get(0));
-        }
-    };
-
-    /**
-     * Closes the search dialog and notifies all quick open plugins that
-     * searching is done.
-     * @param {{x: number, y: number}=} scrollPos If specified, scroll to the given
-     *     position when closing the ModalBar.
-     * @param Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>
-     *     selections If specified, restore the given selections when closing the ModalBar.
-     * @param {boolean=} keepScrollPos Adjust scroll pos to keep current position when modal bar closes.
-     *      Useful for Go to Line case where doc is scrolled, but don't know actual scroll pos to set so let modal bar figure it out.
+     * Closes the search bar; if search bar is already closing, returns the Promise that is tracking the
+     * existing close activity.
      * @return {$.Promise} Resolved when the search bar is entirely closed.
      */
-    QuickNavigateDialog.prototype.close = function (scrollPos, selections, keepScrollPos) {
+    QuickNavigateDialog.prototype.close = function () {
         if (!this.isOpen) {
-            return this._closeDeferred.promise();
+            return this.closePromise;
         }
+        
+        this.modalBar.close();  // triggers _handleCloseBar(), setting closePromise
+
+        return this.closePromise;
+    };
+    
+    QuickNavigateDialog.prototype._handleCloseBar = function (event, reason, modalBarClosePromise) {
+        console.assert(!this.closePromise);
+        this.closePromise = modalBarClosePromise;
         this.isOpen = false;
         
-        // We can't just return the ModalBar's `close()` promise because we need to do it on a
-        // setTimeout, so we create our own Deferred and cache it so we can return it if multiple
-        // callers happen to call `close()`.
-        this._closeDeferred = new $.Deferred();
-
         var i;
         for (i = 0; i < plugins.length; i++) {
             var plugin = plugins[i];
@@ -494,72 +359,28 @@ define(function (require, exports, module) {
                 plugin.done();
             }
         }
-
-        // Make sure Smart Autocomplete knows its popup is getting closed (in cases where there's no
-        // editor to give focus to below, it won't notice otherwise).
-        this.$searchField.trigger("lostFocus");
         
-        // Closing the dialog is a little tricky (see #1384): some Smart Autocomplete code may run later (e.g.
-        // (because it's a later handler of the event that just triggered close()), and that code expects to
-        // find metadata that it stuffed onto the DOM node earlier. But $.remove() strips that metadata.
-        // So we wait until after this call chain is complete before actually closing the dialog.
-        var self = this;
-        setTimeout(function () {
-            self.modalBar.close(!!keepScrollPos).done(function () {
-                self._closeDeferred.resolve();
-            });
-
-            // Note that we deliberately reset the scroll position synchronously on return from
-            // `ModalBar.close()` (before the animation completes).
-            // See description of `restoreScrollPos` in `ModalBar.close()`.
+        // Close popup & ensure we ignore any still-pending result promises
+        this.searchField.destroy();
+        
+        // Restore original selection / scroll pos if closed via Escape
+        if (reason === ModalBar.CLOSE_ESCAPE) {
+            // We can reset the scroll position synchronously on ModalBar's "close" event (before close animation
+            // completes) since ModalBar has already resized the editor and done its own scroll adjustment before
+            // this event fired - so anything we set here will override the pos that was (re)set by ModalBar.
             var editor = EditorManager.getCurrentFullEditor();
-            if (selections) {
-                editor.setSelections(selections);
+            if (this._origSelections) {
+                editor.setSelections(this._origSelections);
             }
-            if (scrollPos) {
-                editor.setScrollPos(scrollPos.x, scrollPos.y);
+            if (this._origScrollPos) {
+                editor.setScrollPos(this._origScrollPos.x, this._origScrollPos.y);
             }
-        }, 0);
-        
-        $(".smart_autocomplete_container").remove();
-
-        $(window.document).off("mousedown", this._handleDocumentMouseDown);
-        
-        return this._closeDeferred.promise();
+        }
     };
     
-    /**
-     * Returns true if the query string doesn't match the query text field. This can happen when _handleFilter()
-     * runs slow (either synchronously or async as in searchFileList()). Several key events queue up before filtering
-     * is done, and each sets a timeout. After all the key events are handled, we wind up with a queue of timeouts
-     * waiting to run, once per key event. All but the last one reflect a stale value of the text field.
-     * @param {string} query
-     * @return {boolean}
-     */
-    function queryIsStale(query) {
-        var currentQuery = $("input#quickOpenSearch").val();
-        return currentQuery !== query;
-    }
-
-    function searchFileList(query, matcher) {
-        // The file index may still be loading asynchronously - if so, can't return a result yet
-        if (!fileList) {
-            // Smart Autocomplete allows us to return a Promise instead...
-            var asyncResult = new $.Deferred();
-            fileListPromise.done(function () {
-                // ...but it's not very robust. If a previous Promise is obsoleted by the query string changing, it
-                // keeps listening to it anyway. So the last Promise to resolve "wins" the UI update even if it's for
-                // a stale query. Guard from that by checking that filter text hasn't changed while we were waiting:
-                if (!queryIsStale(query)) {
-                    // We're still the current query. Synchronously re-run the search call and resolve with its results
-                    asyncResult.resolve(searchFileList(query, matcher));
-                } else {
-                    asyncResult.reject();
-                }
-            });
-            return asyncResult.promise();
-        }
-        
+    
+    function _doSearchFileList(query, matcher) {
+        // Strip off line/col number suffix so it doesn't interfere with filename search
         var cursorPos = extractCursorPos(query);
         if (cursorPos && !cursorPos.local && cursorPos.query !== "") {
             query = query.replace(cursorPos.query, "");
@@ -589,27 +410,51 @@ define(function (require, exports, module) {
 
         return filteredList;
     }
+    
+    function searchFileList(query, matcher) {
+        // The file index may still be loading asynchronously - if so, can't return a result yet
+        if (!fileList) {
+            var asyncResult = new $.Deferred();
+            fileListPromise.done(function () {
+                // Synchronously re-run the search call and resolve with its results
+                asyncResult.resolve(_doSearchFileList(query, matcher));
+            });
+            return asyncResult.promise();
+            
+        } else {
+            return _doSearchFileList(query, matcher);
+        }
+    }
 
     /**
      * Handles changes to the current query in the search field.
      * @param {string} query The new query.
-     * @return {Array} The filtered list of results.
+     * @return {$.Promise|Array.<*>|{error:?string}} The filtered list of results, an error object, or a Promise that
+     *                                               yields one of those
      */
     QuickNavigateDialog.prototype._filterCallback = function (query) {
-        // If previous filter calls ran slow, we may have accumulated several query change events in the meantime.
-        // Only respond to the one that's current. Note that this only works because we're called on a timeout after
-        // the key event; checking DURING the key event itself would never yield a future value for the input field.
-        if (queryIsStale(query)) {
-            return getLastFilterResult();
-        }
+        // Re-evaluate which plugin is active each time query string changes
+        currentPlugin = null;
         
         // "Go to line" mode is special-cased
         var cursorPos = extractCursorPos(query);
         if (cursorPos && cursorPos.local) {
-            var from = {line: cursorPos.line, ch: cursorPos.ch},
-                to   = {line: cursorPos.line};
-            
-            EditorManager.getCurrentFullEditor().setSelection(from, to, true);
+            // Bare Go to Line (no filename search) - can validate & jump to it now, without waiting for Enter/commit
+            var editor = EditorManager.getCurrentFullEditor();
+
+            // Validate (could just use 0 and lineCount() here, but in future might want this to work for inline editors too)
+            if (cursorPos && editor && cursorPos.line >= editor.getFirstVisibleLine() && cursorPos.line <= editor.getLastVisibleLine()) {
+                var from = {line: cursorPos.line, ch: cursorPos.ch},
+                    to   = {line: cursorPos.line};
+                EditorManager.getCurrentFullEditor().setSelection(from, to, true);
+
+                return { error: null };  // no error even though no results listed
+            } else {
+                return [];  // red error highlight: line number out of range, or no editor open
+            }
+        }
+        if (query === ":") {  // treat blank ":" query as valid, but no-op
+            return { error: null };
         }
         
         // Try to invoke a search plugin
@@ -622,7 +467,7 @@ define(function (require, exports, module) {
         for (i = 0; i < plugins.length; i++) {
             var plugin = plugins[i];
             var languageIdMatch = plugin.languageIds.length === 0 || plugin.languageIds.indexOf(languageId) !== -1;
-            if (languageIdMatch && plugin.match && plugin.match(query)) {
+            if (languageIdMatch && plugin.match(query)) {
                 currentPlugin = plugin;
                 
                 // Look up the StringMatcher for this plugin.
@@ -640,7 +485,6 @@ define(function (require, exports, module) {
         this._updateDialogLabel(null, query);
         
         // No matching plugin: use default file search mode
-        currentPlugin = null;
         return searchFileList(query, this._filenameMatcher);
     };
 
@@ -720,9 +564,7 @@ define(function (require, exports, module) {
      * @param {Object} item The item to be displayed.
      * @return {string} The HTML to be displayed.
      */
-    QuickNavigateDialog.prototype._resultsFormatterCallback = function (item) {
-        var query = this.$searchField.val();
-        
+    QuickNavigateDialog.prototype._resultsFormatterCallback = function (item, query) {
         var formatter;
 
         if (currentPlugin) {
@@ -747,13 +589,10 @@ define(function (require, exports, module) {
         initialString = initialString || "";
         initialString = prefix + initialString;
         
-        var $field = this.$searchField;
-        $field.val(initialString).focus();
-        $field.get(0).setSelectionRange(prefix.length, initialString.length);
+        this.searchField.setText(initialString);
         
-        // Kick smart-autocomplete to update (it only listens for keyboard events)
-        // (due to #1855, this will only pop up results list; it won't auto-"focus" the first result)
-        $field.trigger("keyIn", [initialString]);
+        // Select just the text after the prefix
+        this.$searchField[0].setSelectionRange(prefix.length, initialString.length);
     };
     
     /**
@@ -785,42 +624,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Close the dialog when the user clicks outside of it. Smart-autocomplete listens for this and automatically closes its popup,
-     * but we want to close the whole search "dialog." (And we can't just piggyback on the popup closing event, since there are cases
-     * where the popup closes that we want the dialog to remain open (e.g. deleting search term via backspace).
-     * @param {!Event} e
-     */
-    QuickNavigateDialog.prototype._handleDocumentMouseDown = function (e) {
-        if (this.modalBar.getRoot().find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
-            // User clicked in page, so ignore original scroll pos/selection to use new scroll pos/selection.
-            this.close(null, null, true);
-        } else {
-            // Allow clicks in the search field to propagate. Clicks in the menu should be 
-            // blocked to prevent focus from leaving the search field.
-            if ($("input#quickOpenSearch").get(0) !== e.target) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }
-    };
-    
-    /**
-     * Close the dialog when it loses focus.
-     */
-    QuickNavigateDialog.prototype._handleBlur = function (e) {
-        var origScrollPos, origSelections,
-            curDoc = DocumentManager.getCurrentDocument();
-
-        // If doc hasn't changed, restore scroll pos/selections
-        if (curDoc && this._origDocPath === curDoc.file.fullPath) {
-            origScrollPos  = this._origScrollPos;
-            origSelections = this._origSelections;
-        }
-        
-        this.close(origScrollPos, origSelections, true);
-    };
-
-    /**
      * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
      */
     QuickNavigateDialog.prototype.showDialog = function (prefix, initialString) {
@@ -828,9 +631,6 @@ define(function (require, exports, module) {
             return;
         }
         this.isOpen = true;
-
-        // Global listener to hide search bar & popup
-        $(window.document).on("mousedown", this._handleDocumentMouseDown);
 
         // Record current document & cursor pos so we can restore it if search is canceled
         // We record scroll pos *before* modal bar is opened since we're going to restore it *after* it's closed
@@ -844,40 +644,22 @@ define(function (require, exports, module) {
             this._origScrollPos = null;
         }
 
-        // Show the search bar ("dialog")
-        var dialogHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='" + Strings.CMD_QUICK_OPEN + "\u2026' style='width: 30em'><span class='find-dialog-label'></span></div>";
-        this.modalBar = new ModalBar(dialogHTML, false);
+        // Show the search bar
+        var searchBarHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='" + Strings.CMD_QUICK_OPEN + "\u2026' style='width: 30em'><span class='find-dialog-label'></span></div>";
+        this.modalBar = new ModalBar(searchBarHTML, true);
+        
+        this.modalBar.on("close", this._handleCloseBar);
+        
         this.$searchField = $("input#quickOpenSearch");
-
-        // The various listeners registered below fire in this order:
-        //   keydown, (async gap), keyup, (async gap), filter, resultsReady, showResults/noResults
-        // The later events *always* come after the keydown & keyup (they're triggered on a timeout from keyup). But
-        // because of the async gaps, a keydown for the *next* key typed might come *before* they run:
-        //   keydown, (async gap), keyup, (async gap), keydown #2, (async gap), filter, resultsReady, showResults/noResults
-        // The staleness check in _filterCallback() and the forced async wait in _handleKeyUp() are due to this.
         
-        this.$searchField.bind({
-            resultsReady: this._handleResultsReady,
-            showResults: this._handleShowResults,
-            itemSelect: this._handleItemSelect,
-            itemFocus: this._handleItemFocus,
-            keyup: this._handleKeyUp,   // it's important we register this BEFORE calling smartAutoComplete(); see handler for details
-            blur: this._handleBlur   // can't use lostFocus since smart autocomplete fires it immediately in response to the shortcut's keyup
-        });
-        
-        this.$searchField.smartAutoComplete({
-            source: [],
+        this.searchField = new QuickSearchField(this.$searchField, {
             maxResults: 20,
-            minCharLimit: 0,
-            autocompleteFocused: true,
-            forceSelect: false,
-            typeAhead: false,   // won't work right now because smart auto complete 
-                                // using internal raw results instead of filtered results for matching
-            filter: this._filterCallback,
-            resultFormatter: this._resultsFormatterCallback
+            verticalAdjust: this.modalBar.getRoot().outerHeight(),
+            resultProvider: this._filterCallback,
+            formatter: this._resultsFormatterCallback,
+            onCommit: this._handleItemSelect,
+            onHighlight: this._handleItemHighlight
         });
-
-        this.setSearchFieldValue(prefix, initialString);
 
         // Return files that are non-binary, or binary files that have a custom viewer
         function _filter(file) {
@@ -885,15 +667,19 @@ define(function (require, exports, module) {
                 MainViewFactory.findSuitableFactoryForPath(file.fullPath);
         }
         
-        // Start fetching the file list, which will be needed the first time the user enters
-        // an un-prefixed query. If file index caches are out of date, this list might take
-        // some time to asynchronously build. See searchFileList() for how this is handled.
+        // Start prefetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
+        // caches are out of date, this list might take some time to asynchronously build, forcing searchFileList() to wait. In the
+        // meantime we show our old, stale fileList (unless the user has switched projects and we cleared it).
         fileListPromise = ProjectManager.getAllFiles(_filter, true)
             .done(function (files) {
                 fileList = files;
                 fileListPromise = null;
                 this._filenameMatcher.reset();
             }.bind(this));
+        
+        // Prepopulated query
+        this.$searchField.focus();
+        this.setSearchFieldValue(prefix, initialString);
     };
 
     function getCurrentEditorSelectedText() {
@@ -941,8 +727,6 @@ define(function (require, exports, module) {
         }
     }
 
-
-    // TODO: should provide a way for QuickOpenJSSymbol to create this function as a plug-in
     function doDefinitionSearch() {
         if (DocumentManager.getCurrentDocument()) {
             beginSearch("@", getCurrentEditorSelectedText());
@@ -954,7 +738,6 @@ define(function (require, exports, module) {
         fileList = null;
     });
 
-    // TODO: allow QuickOpenJS to register it's own commands and key bindings
     CommandManager.register(Strings.CMD_QUICK_OPEN,         Commands.NAVIGATE_QUICK_OPEN,       doFileSearch);
     CommandManager.register(Strings.CMD_GOTO_DEFINITION,    Commands.NAVIGATE_GOTO_DEFINITION,  doDefinitionSearch);
     CommandManager.register(Strings.CMD_GOTO_LINE,          Commands.NAVIGATE_GOTO_LINE,        doGotoLine);

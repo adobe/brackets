@@ -415,6 +415,7 @@ define({
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_GET_INVOLVED": "Participer",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
+	"CMD_HEALTH_DATA_STATISTICS": "[8033837] !é=HealthData Statistics=!",
 	"CMD_HOMEPAGE": "Page d’accueil de {APP_TITLE}",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
@@ -581,13 +582,19 @@ define({
 	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
-	"CMD_OPEN_BRACKETS_SOURCE": "Ouvrir la source Brackets",
+	"CMD_OPEN_BRACKETS_SOURCE": "Ouvrir la source de {APP_NAME}",
 
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",
 	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
+
+    // extensions/default/HealthData
+	"HEALTH_DATA_NOTIFICATION": "[8033839] !é=Health Data Preferences=!",
+	"HEALTH_DATA_DO_TRACK": "[8033838] !é=Yes, I would like to share information on how I use Brackets.=!",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "[8033840] !é=In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use Brackets.=!",
+	"HEALTH_DATA_PREVIEW": "[8033841] !é=Health Data Preview=!",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
@@ -610,7 +617,7 @@ define({
 	"CMD_SHOW_PARAMETER_HINT": "Afficher l’indicateur de paramètre",
 	"NO_ARGUMENTS": "<aucun paramètre>",
 	"DETECTED_EXCLUSION_TITLE": "Problème d’inférence de fichier Javascript",
-	"DETECTED_EXCLUSION_INFO": "Brackets a rencontré des problèmes lors du traitement du fichier <span class='dialog-filename'>{0}</span>.<br><br>La fonction d’accès aux définitions, les indicateurs de code et la fonction Edition rapide de ce fichier ne seront plus traités. Pour réactiver ce fichier, ouvrez <code>.brackets.json</code> dans votre projet et éditez la section <code>jscodehints.detectedExclusions</code>.<br><br>Il s’agit vraisemblablement d’un bug au niveau de l’application Brackets. Si vous pouvez nous transmettre une copie de ce fichier, merci de <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>consigner un bug</a> en fournissant un lien vers le fichier en question.",
+	"DETECTED_EXCLUSION_INFO": "{APP_NAME} a rencontré des problèmes lors du traitement du fichier <span class='dialog-filename'>{0}</span>.<br><br>La fonction d’accès aux définitions, les indicateurs de code et la fonction Edition rapide de ce fichier ne seront plus traités. Pour réactiver ce fichier, ouvrez <code>.brackets.json</code> dans votre projet et éditez la section <code>jscodehints.detectedExclusions</code>.<br><br>Il s’agit vraisemblablement d’un bug au niveau de l’application {APP_NAME}. Si vous pouvez nous transmettre une copie de ce fichier, merci de <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>consigner un bug</a> en fournissant un lien vers le fichier en question.",
 
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",

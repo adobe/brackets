@@ -132,9 +132,9 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirm Delete",
     "CONFIRM_FOLDER_DELETE"             : "Are you sure you want to delete the folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Deleted",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk.<br /><br />Do you want to save the file and overwrite those changes?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
 
     // Generic dialog/button labels
     "DONE"                              : "Done",
@@ -415,6 +415,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
+    "CMD_HEALTH_DATA_STATISTICS"          : "Health Data Report",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
@@ -581,13 +582,19 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
-    "CMD_OPEN_BRACKETS_SOURCE"                  : "Open Brackets Source",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
 
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",
     "LANGUAGE_SUBMIT"                           : "Reload {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Cancel",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
+
+    // extensions/default/HealthData
+    "HEALTH_DATA_NOTIFICATION"                  : "Health Data Preferences",
+    "HEALTH_DATA_DO_TRACK"                      : "Yes, I would like to share information on how I use Brackets.",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve Brackets we are implementing a new Health Report that sends <strong>anonymous</strong> data to Adobe about how you use Brackets. This report will help the core team and extension developers prioritize features, find bugs, and spot usability and discoverability issues.<br><br>You can see the data being sent as well as change your preference at any time by going to <strong>Help->Health Data Report</strong>. Learn more about the Brackets Health Report and track status <a href='https://github.com/adobe/brackets/wiki/Health-Data'>on our wiki page</a>.",
+    "HEALTH_DATA_PREVIEW"                       : "Health Data Preview",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Time",
@@ -610,7 +617,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To reenable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a Brackets bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To reenable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -622,5 +629,24 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Read more"
+    "DOCS_MORE_LINK"                            : "Read more",
+
+    // extensions/default/CodeFolding
+    "ENABLE_CODE_FOLDING"           : "Enable code folding",
+    "COLLAPSE_ALL"                  : "Collapse All",
+    "EXPAND_ALL"                    : "Expand All",
+    "COLLAPSE_CURRENT"              : "Collapse Current",
+    "EXPAND_CURRENT"                : "Expand Current",
+    "COLLAPSE_CUSTOM_REGIONS"       : "Collapse Custom Regions",
+    "MIN_FOLD_SIZE"                 : "Minimum fold size",
+    "MIN_FOLD_SIZE_HELP"            : "Minimum number of lines to allow in a fold range",
+    "ENABLE_REGION_FOLDING"         : "Enable custom region folding",
+    "SAVE_FOLD_STATES"              : "Save fold states",
+    "SAVE_FOLD_STATES_HELP"         : "Save fold states to disk when editor is closed and restore the folds when reopened",
+    "ALWAYS_USE_INDENT_FOLD"        : "Always use indent fold",
+    "ALWAYS_USE_INDENT_FOLD_HELP"   : "Always use level of indentation as a folding guideline",
+    "FADE_FOLD_BUTTONS"             : "Fade fold buttons",
+    "FADE_FOLD_BUTTONS_HELP"        : "Hides the fold buttons unless the mouse is over the gutter",
+    "MAX_FOLD_LEVEL"                : "Maximum number of nested folds",
+    "MAX_FOLD_LEVEL_HELP"           : "Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files."
 });
