@@ -24,6 +24,7 @@ define(function (require, exports, module) {
         if (typeof pos === "number") {
             pos = CodeMirror.Pos(pos, 0);
         }
+
         var finder = options.rangeFinder || CodeMirror.fold.auto,
             minSize = options.minFoldSize || prefs.getSetting("minFoldSize"),
             range,
@@ -121,7 +122,7 @@ define(function (require, exports, module) {
         });
 
         CodeMirror.defineExtension("isFolded", function (line) {
-            return this._lineFolds[line];
+            return this._lineFolds && this._lineFolds[line];
         });
 
         /**

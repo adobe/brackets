@@ -45,7 +45,11 @@ define(function (require, exports, module) {
         EXPAND                  = "codefolding.expand",
         EXPAND_ALL              = "codefolding.expand.all",
         gutterName              = "CodeMirror-foldgutter",
-        COLLAPSE_CUSTOM_REGIONS = "codefolding.collapse.customregions";
+        codeFoldingMenuDivider  = "codefolding.divider",
+        collapseKey             = "Ctrl-Alt-[",
+        expandKey               = "Ctrl-Alt-]",
+        collapseAllKey          = "Alt-1",
+        expandAllKey            = "Shift-Alt-1";
 
     ExtensionUtils.loadStyleSheet(module, "main.less");
 
@@ -210,8 +214,12 @@ define(function (require, exports, module) {
         _lineFolds = _lineFolds || {};
         cm._lineFolds = _lineFolds;
         var gutters = cm.getOption("gutters").slice(0);
+
         var lnIndex = gutters.indexOf("CodeMirror-linenumbers");
-        gutters.splice(lnIndex + 1, 0, gutterName);
+        //reuse any existing fold gutter
+        if (gutters.indexOf(gutterName) < 0) {
+            gutters.splice(lnIndex + 1, 0, gutterName);
+        }
         cm.setOption("gutters",  gutters);
         cm.setOption("foldGutter", {onGutterClick: onGutterClick});
 
@@ -244,6 +252,11 @@ define(function (require, exports, module) {
             if (previous) {
                 saveLineFolds(previous);
             }
+        } else {
+            if (current && current._codeMirror) {
+                CodeMirror.commands.unfoldAll(current._codeMirror);
+                foldGutter.remove(current._codeMirror);
+            }
         }
     }
 
@@ -255,10 +268,118 @@ define(function (require, exports, module) {
     }
 
     /**
+      * Utility function to check if the code folding menu options exist in the menu
+      */
+    function menuExists(id) {
+        var viewMenu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
+        return Menus.getMenuItem(viewMenu._getMenuItemId(id));
+    }
+
+    /**
+      * Create the codefolding menu items and register key bindings if they dont already exist
+      */
+    function createMenuItems() {
+        //register commands
+        if (!CommandManager.get(COLLAPSE_ALL)) {
+            CommandManager.register(Strings.COLLAPSE_ALL, COLLAPSE_ALL, collapseAll);
+        }
+
+        if (!CommandManager.get(EXPAND_ALL)) {
+            CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);
+        }
+
+        if (!CommandManager.get(COLLAPSE)) {
+            CommandManager.register(Strings.COLLAPSE_CURRENT, COLLAPSE, collapseCurrent);
+        }
+
+        if (!CommandManager.get(EXPAND)) {
+            CommandManager.register(Strings.EXPAND_CURRENT, EXPAND, expandCurrent);
+        }
+
+        //create menus
+        if (!menuExists(codeFoldingMenuDivider)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider(Menus.LAST, codeFoldingMenuDivider);
+        }
+
+        if (!menuExists(COLLAPSE_ALL)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_ALL);
+        }
+
+        if (!menuExists(EXPAND_ALL)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND_ALL);
+        }
+
+        if (!menuExists(COLLAPSE)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE);
+        }
+
+        if (!menuExists(EXPAND)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
+        }
+        //register keybindings
+        if (KeyBindingManager.getKeyBindings(COLLAPSE_ALL).length === 0) {
+            KeyBindingManager.addBinding(COLLAPSE_ALL, collapseAllKey);
+        }
+        if (KeyBindingManager.getKeyBindings(EXPAND_ALL).length === 0) {
+            KeyBindingManager.addBinding(EXPAND_ALL, expandAllKey);
+        }
+        if (KeyBindingManager.getKeyBindings(COLLAPSE).length === 0) {
+            KeyBindingManager.addBinding(COLLAPSE, collapseKey);
+        }
+        if (KeyBindingManager.getKeyBindings(EXPAND).length === 0) {
+            KeyBindingManager.addBinding(EXPAND, expandKey);
+        }
+    }
+
+    /**
+      * Remove the codefolding menu items and removeany key bindings attributed to them
+      */
+    function removeMenuItems() {
+        //remove keybindings
+        if (KeyBindingManager.getKeyBindings(COLLAPSE).length > 0) {
+            KeyBindingManager.removeBinding(collapseKey);
+        }
+
+        if (KeyBindingManager.getKeyBindings(EXPAND).length > 0) {
+            KeyBindingManager.removeBinding(expandKey);
+        }
+
+        if (KeyBindingManager.getKeyBindings(COLLAPSE_ALL).length > 0) {
+            KeyBindingManager.removeBinding(collapseAllKey);
+        }
+
+        if (KeyBindingManager.getKeyBindings(EXPAND_ALL).length > 0) {
+            KeyBindingManager.removeBinding(expandAllKey);
+        }
+
+        //remove menus
+        if (menuExists(codeFoldingMenuDivider)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuDivider(codeFoldingMenuDivider);
+        }
+
+        if (menuExists(COLLAPSE)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(COLLAPSE);
+        }
+
+        if (menuExists(EXPAND)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(EXPAND);
+        }
+
+        if (menuExists(COLLAPSE_ALL)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(COLLAPSE_ALL);
+        }
+
+        if (menuExists(EXPAND_ALL)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(EXPAND_ALL);
+        }
+    }
+
+    /**
         Initialise the extension
     */
     function init() {
         if (!prefs.getSetting("enabled")) {
+            removeMenuItems();
             return;
         }
         foldCode.init();
@@ -287,27 +408,12 @@ define(function (require, exports, module) {
             init();
         });
 
-        CommandManager.register(Strings.COLLAPSE_ALL, COLLAPSE_ALL, collapseAll);
-        CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);
-
-        CommandManager.register(Strings.COLLAPSE_CURRENT, COLLAPSE, collapseCurrent);
-        CommandManager.register(Strings.EXPAND_CURRENT, EXPAND, expandCurrent);
-
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider();
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_ALL);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND_ALL);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_CUSTOM_REGIONS);
-
-        KeyBindingManager.addBinding(COLLAPSE, "Ctrl-Alt-[");
-        KeyBindingManager.addBinding(EXPAND, "Ctrl-Alt-]");
-        KeyBindingManager.addBinding(COLLAPSE_ALL, "Alt-1");
-        KeyBindingManager.addBinding(EXPAND_ALL, "Shift-Alt-1");
+        createMenuItems();
 
         var editor = EditorManager.getCurrentFullEditor();
         if (editor) {
             var cm = editor._codeMirror;
+            createGutter(editor);
             if (prefs.getSetting("fadeFoldButtons")) {
                 foldGutter.clearGutter(cm);
             } else {
@@ -316,5 +422,28 @@ define(function (require, exports, module) {
         }
     }
 
-    AppInit.appReady(init);
+    /**
+      * Register change listener for the preferences file.
+      */
+    function watchPrefsForChanges() {
+        prefs.prefBase.on("change", function (e, data) {
+            if (data.ids.indexOf("enabled") > -1) {
+                if (prefs.getSetting("enabled")) {
+                    init();
+                } else {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    if (editor && editor._codeMirror && CodeMirror.commands.unfoldAll) {
+                        CodeMirror.commands.unfoldAll(editor._codeMirror);
+                        foldGutter.remove(editor._codeMirror);
+                    }
+                    removeMenuItems();
+                }
+            }
+        });
+    }
+
+    AppInit.appReady(function () {
+        init();
+        watchPrefsForChanges();
+    });
 });

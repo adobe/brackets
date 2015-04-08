@@ -20,7 +20,7 @@ define(function (require, exports, module) {
                            {name: strings.MIN_FOLD_SIZE, description: strings.MIN_FOLD_SIZE_HELP});
     prefs.definePreference("saveFoldStates", "boolean", true,
                            {name: strings.SAVE_FOLD_STATES, description: strings.SAVE_FOLD_STATES_HELP});
-    prefs.definePreference("alwaysUseIndentFold", "boolean", true,
+    prefs.definePreference("alwaysUseIndentFold", "boolean", false,
                            {name: strings.ALWAYS_USE_INDENT_FOLD, description: strings.ALWAYS_USE_INDENT_FOLD_HELP});
     prefs.definePreference("enableRegionFolding", "boolean", false,
                            {name: strings.ENABLE_REGION_FOLDING, description: strings.ENABLE_REGION_FOLDING});
@@ -112,5 +112,7 @@ define(function (require, exports, module) {
     module.exports.getSetting = getSetting;
 
     module.exports.clearAllFolds = clearAllFolds;
+
+    module.exports.prefBase = prefs;
 
 });

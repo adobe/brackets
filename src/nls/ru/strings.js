@@ -572,7 +572,6 @@ define({
     "EXPAND_ALL"                    : "Развернуть все",
     "COLLAPSE_CURRENT"              : "Свернуть текущий",
     "EXPAND_CURRENT"                : "Развернуть текущий",
-    "COLLAPSE_CUSTOM_REGIONS"       : "Свернуть текущий region",
     "MIN_FOLD_SIZE"                 : "Минимальный размер сворачивания",
     "MIN_FOLD_SIZE_HELP"            : "Минимальное число строк для сворачивания",
     "ENABLE_REGION_FOLDING"         : "Включить сворачивание для region`ов",

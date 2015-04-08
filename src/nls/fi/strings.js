@@ -631,7 +631,6 @@ define({
     "EXPAND_ALL"                    : "Laajenna kaikki",
     "COLLAPSE_CURRENT"              : "Pienennä nykyinen",
     "EXPAND_CURRENT"                : "Laajenna nykyinen",
-    "COLLAPSE_CUSTOM_REGIONS"       : "Pienennä mukautetut alueet",
     "MIN_FOLD_SIZE"                 : "Pienin laskostuksen koko",
     "MIN_FOLD_SIZE_HELP"            : "Pienin sallittu laskostettavan alueen rivimäärä",
     "ENABLE_REGION_FOLDING"         : "Ota mukautetun alueen laskostus käyttöön",

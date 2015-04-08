@@ -632,7 +632,6 @@ define({
     "EXPAND_ALL"                    : "Expandir Tudo",
     "COLLAPSE_CURRENT"              : "Dobrar Posição Atual",
     "EXPAND_CURRENT"                : "Expandir Posição Atual",
-    "COLLAPSE_CUSTOM_REGIONS"       : "Dobrar Regiões Personalizadas",
     "MIN_FOLD_SIZE"                 : "Tamanha Mínimo",
     "MIN_FOLD_SIZE_HELP"            : "Número Mínimo de linhas necessário para o dobramento",
     "ENABLE_REGION_FOLDING"         : "Regiões Personalizadas de Dobramento",

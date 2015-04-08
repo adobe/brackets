@@ -462,7 +462,6 @@ define({
     "EXPAND_ALL"                    : "Alles uitklappen",
     "COLLAPSE_CURRENT"              : "Huidige inklappen",
     "EXPAND_CURRENT"                : "Huidige uitklappen",
-    "COLLAPSE_CUSTOM_REGIONS"       : "Aangepaste regio's inklappen",
     "MIN_FOLD_SIZE"                 : "Minimale vouwgrootte",
     "MIN_FOLD_SIZE_HELP"            : "Minimaal aantal regels om toe te staan in een vouwreeks",
     "ENABLE_REGION_FOLDING"         : "Aangepaste regio's inschakelen",

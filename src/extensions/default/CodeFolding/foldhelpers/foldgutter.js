@@ -312,7 +312,15 @@ define(function (require, exports, module) {
         });
     }
 
+    function remove(cm) {
+        var gutters = cm.getOption("gutters").slice(0);
+        var index = gutters.indexOf("CodeMirror-foldgutter");
+        gutters.splice(index, 1);
+        cm.setOption("gutters",  gutters);
+        CodeMirror.defineOption("foldGutter", false, null);
+    }
 
+    exports.remove = remove;
     exports.init = init;
     exports.clearGutter = clearGutter;
     exports.updateInViewport = updateInViewport;
