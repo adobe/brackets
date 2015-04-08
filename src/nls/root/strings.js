@@ -592,6 +592,7 @@ define({
 
     // extensions/default/HealthData
     "HEALTH_DATA_NOTIFICATION"                  : "Health Data Preferences",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "Brackets Health Report",
     "HEALTH_DATA_DO_TRACK"                      : "Yes, I would like to share information on how I use Brackets.",
     "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve Brackets we are implementing a new Health Report that sends <strong>anonymous</strong> data to Adobe about how you use Brackets. This report will help the core team and extension developers prioritize features, find bugs, and spot usability and discoverability issues.<br><br>You can see the data being sent as well as change your preference at any time by going to <strong>Help->Health Data Report</strong>. Learn more about the Brackets Health Report and track status <a href='https://github.com/adobe/brackets/wiki/Health-Data'>on our wiki page</a>.",
     "HEALTH_DATA_PREVIEW"                       : "Health Data Preview",
