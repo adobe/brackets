@@ -1,3 +1,33 @@
 .health-data-preview .preview-content{
     -webkit-user-select: text;
 }
+.e4b-firstlaunch-popup {
+    border-radius: 3px;
+    background: #005f8f;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.24);
+
+    position: absolute;
+    padding: 9px 12px 9px 12px;
+    z-index: 100;
+
+    font-family: "SourceSansPro";
+    color: white;
+    line-height: 1.5;
+
+    /* animated properties */
+    opacity: 1.0;
+    -webkit-transform: scale(0);
+    transform: scale(0);
+
+    body.dark & {
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.24);
+    }
+
+    strong {
+        color: #fff;
+    }
+}
+#psdl-firstlaunch-popup {
+    max-width: 250px;
+    right: 39px; /* top is set programmatically */
+}

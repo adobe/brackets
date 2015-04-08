@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         Dialogs                      = brackets.getModule("widgets/Dialogs"),
         UrlParams                    = brackets.getModule("utils/UrlParams").UrlParams,
         HealthDataPreview            = require("HealthDataPreview"),
+        HealthDataPopup              = require("HealthDataPopup"),
         HealthDataManager            = require("HealthDataManager"),
         HealthDataNotificationDialog = require("text!htmlContent/healthdata-notification-dialog.html");
     
@@ -84,7 +85,7 @@ define(function (require, exports, module) {
             var isShown = PreferencesManager.getViewState("healthDataNotificationShown");
 
             if (!isShown) {
-                showDialogHealthDataNotification()
+                HealthDataPopup.showFirstLaunchTooltip()
                     .done(function () {
                         HealthDataManager.checkHealthDataSend();
                     });
