@@ -11,8 +11,7 @@ define(function (require, exports, module) {
     var PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         prefs                   = PreferencesManager.getExtensionPrefs("code-folding"),
         strings                 = brackets.getModule("strings"),
-        store                   = {},
-        foldsKey                = "folds";
+        foldsKey                = "code-folding.folds";
 
     //default preference values
     prefs.definePreference("enabled", "boolean", true,
@@ -23,7 +22,7 @@ define(function (require, exports, module) {
                            {name: strings.SAVE_FOLD_STATES, description: strings.SAVE_FOLD_STATES_HELP});
     prefs.definePreference("alwaysUseIndentFold", "boolean", true,
                            {name: strings.ALWAYS_USE_INDENT_FOLD, description: strings.ALWAYS_USE_INDENT_FOLD_HELP});
-    prefs.definePreference("enableRegionFolding", "boolean", true,
+    prefs.definePreference("enableRegionFolding", "boolean", false,
                            {name: strings.ENABLE_REGION_FOLDING, description: strings.ENABLE_REGION_FOLDING});
     prefs.definePreference("fadeFoldButtons", "boolean", false,
                            {name: strings.FADE_FOLD_BUTTONS, description: strings.FADE_FOLD_BUTTONS_HELP});
@@ -75,8 +74,8 @@ define(function (require, exports, module) {
       * @return {Object} the line folds for the document at the specified path
       */
     function getFolds(path) {
-        store = (prefs.get(foldsKey) || {});
-        return inflate(store[path]);
+        var folds = (PreferencesManager.getViewState(foldsKey) || {});
+        return inflate(folds[path]);
     }
 
     /**
@@ -85,8 +84,9 @@ define(function (require, exports, module) {
       * @param {Object} folds the fold ranges to save for the current document
       */
     function setFolds(path, folds) {
-        store[path] = simplify(folds);
-        prefs.set(foldsKey, store);
+        var allFolds = PreferencesManager.getViewState(foldsKey);
+        allFolds[path] = simplify(folds);
+        PreferencesManager.setViewState(foldsKey, allFolds);
     }
 
     /**
@@ -102,7 +102,7 @@ define(function (require, exports, module) {
       * Clears all the saved line folds for all documents.
       */
     function clearAllFolds() {
-        prefs.set(foldsKey, {});
+        PreferencesManager.setViewState(foldsKey, {});
     }
 
     module.exports.getFolds = getFolds;

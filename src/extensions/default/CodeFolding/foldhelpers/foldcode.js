@@ -1,3 +1,5 @@
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: http://codemirror.net/LICENSE
 /**
  * Based on http://codemirror.net/addon/fold/foldcode.js
  * @author Patrick Oladimeji

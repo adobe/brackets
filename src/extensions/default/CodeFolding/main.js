@@ -26,16 +26,7 @@
  * @date 10/24/13 9:35:26 AM
  */
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, require, $, brackets*/
-
-require.config({
-    paths: {
-        "text" : "lib/text",
-        "i18n" : "lib/i18n"
-    },
-    locale: brackets.getLocale()
-});
-
+/*global define, $, brackets*/
 define(function (require, exports, module) {
     "use strict";
     var CodeMirror              = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
@@ -69,7 +60,6 @@ define(function (require, exports, module) {
     var foldGutter              = require("foldhelpers/foldgutter"),
         foldCode                = require("foldhelpers/foldcode"),
         indentFold              = require("foldhelpers/indentFold"),
-        latexFold               = require("foldhelpers/latex-fold"),
         regionFold              = require("foldhelpers/region-fold");
 
     /**
@@ -139,25 +129,6 @@ define(function (require, exports, module) {
                 }
             } else {
                 cm.foldCode(line);
-            }
-        }
-    }
-
-    /**
-      * Collapses all custom regions defined in the current editor
-      */
-    function collapseCustomRegions() {
-        var editor = EditorManager.getFocusedEditor();
-        if (!editor) {
-            return;
-        }
-        var cm = editor._codeMirror, i = cm.firstLine();
-        while (i < cm.lastLine()) {
-            var range = cm.foldCode(i, {rangeFinder: regionFold});
-            if (range) {
-                i = range.to.line;
-            } else {
-                i++;
             }
         }
     }
@@ -287,7 +258,7 @@ define(function (require, exports, module) {
         Initialise the extension
     */
     function init() {
-        if (CodeMirror.fold.combine || !prefs.getSetting("enabled")) {
+        if (!prefs.getSetting("enabled")) {
             return;
         }
         foldCode.init();
@@ -301,7 +272,6 @@ define(function (require, exports, module) {
             return prefs.getSetting("enableRegionFolding");
         }, regionFold);
 
-        CodeMirror.registerHelper("fold", "stex", latexFold);
         CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
         CodeMirror.registerHelper("fold", "tornado", CodeMirror.helpers.fold.brace);
 
@@ -319,8 +289,6 @@ define(function (require, exports, module) {
 
         CommandManager.register(Strings.COLLAPSE_ALL, COLLAPSE_ALL, collapseAll);
         CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);
-
-        CommandManager.register(Strings.COLLAPSE_CUSTOM_REGIONS, COLLAPSE_CUSTOM_REGIONS, collapseCustomRegions);
 
         CommandManager.register(Strings.COLLAPSE_CURRENT, COLLAPSE, collapseCurrent);
         CommandManager.register(Strings.EXPAND_CURRENT, EXPAND, expandCurrent);
