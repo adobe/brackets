@@ -123,7 +123,7 @@ define(function (require, exports, module) {
         window.clearTimeout(timeoutVar);
         if (isHDTracking && notificationDialogShown) {
             var lastTimeSent = PreferencesManager.getViewState("lastTimeSentHealthData"),
-                currentTime = (new Date()).getTime();
+                currentTime = Date.now();
 
             if (!lastTimeSent || (currentTime >= lastTimeSent + ONE_DAY)) {
                 // Setting the time here to avoid any chance of sending data before ONE_DAY. Whether or not the request to the server is successful, we will be sending the data only after ONE_DAY has passed.
