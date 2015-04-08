@@ -65,14 +65,14 @@ define(function (require, exports, module) {
             });
 
             it("should send data to server", function () {
-                PreferencesManager.setViewState("lastTimeSendHealthData", (new Date()).getTime() - ONE_DAY);
+                PreferencesManager.setViewState("lastTimeSentHealthData", (new Date()).getTime() - ONE_DAY);
                 PreferencesManager.setViewState("healthDataNotificationShown", true);
                 var promise = HealthDataManager.checkHealthDataSend();
                 waitsForDone(promise, "Send Data to Server", 4000);
             });
 
             it("should not send data to server", function () {
-                PreferencesManager.setViewState("lastTimeSendHealthData", (new Date()).getTime() - ONE_DAY);
+                PreferencesManager.setViewState("lastTimeSentHealthData", (new Date()).getTime() - ONE_DAY);
                 prefs.set("healthDataTracking", false);
                 var promise = HealthDataManager.checkHealthDataSend();
                 waitsForFail(promise, "Send Data to Server", 4000);
