@@ -99,11 +99,6 @@ define(function (require, exports, module) {
      *         status: the current status, one of the status constants above
      */
     var extensions = {};
-    
-    /**
-     * Check if we have updated registry object  
-     */
-    var isRegistryObjectUpdated = false;
 
     /**
      * Requested changes to the installed extensions.
@@ -794,7 +789,7 @@ define(function (require, exports, module) {
     exports.updateExtensions        = updateExtensions;
     exports.getAvailableUpdates     = getAvailableUpdates;
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
-    exports.isRegistryObjectUpdated = isRegistryObjectUpdated;
+    exports.isRegistryObjectUpdated = false;
     
     exports.ENABLED       = ENABLED;
     exports.START_FAILED  = START_FAILED;
