@@ -58,14 +58,14 @@ define(function (require, exports, module) {
         }
 
         oneTimeHealthData.uuid = userUuid;
-        oneTimeHealthData.snapshotTime = (new Date()).getTime();
+        oneTimeHealthData.snapshotTime = Date.now();
         oneTimeHealthData.os = brackets.platform;
         oneTimeHealthData.userAgent = navigator.userAgent;
         oneTimeHealthData.osLanguage = brackets.app.language;
         oneTimeHealthData.bracketsLanguage = brackets.getLocale();
         oneTimeHealthData.bracketsVersion = brackets.metadata.version;
 
-        HealthDataUtils.getInstalledExtensions()
+        HealthDataUtils.getUserInstalledExtensions()
             .done(function (userInstalledExtensions) {
                 oneTimeHealthData.installedExtensions = userInstalledExtensions;
             })
@@ -122,12 +122,12 @@ define(function (require, exports, module) {
         
         window.clearTimeout(timeoutVar);
         if (isHDTracking && notificationDialogShown) {
-            var lastTimeSent = PreferencesManager.getViewState("lastTimeSentData"),
-                currentTime = (new Date()).getTime();
+            var lastTimeSent = PreferencesManager.getViewState("lastTimeSentHealthData"),
+                currentTime = Date.now();
 
             if (!lastTimeSent || (currentTime >= lastTimeSent + ONE_DAY)) {
                 // Setting the time here to avoid any chance of sending data before ONE_DAY. Whether or not the request to the server is successful, we will be sending the data only after ONE_DAY has passed.
-                PreferencesManager.setViewState("lastTimeSentData", (new Date()).getTime());
+                PreferencesManager.setViewState("lastTimeSentHealthData", Date.now());
                 sendHealthDataToServer()
                     .done(function () {
                         result.resolve();
