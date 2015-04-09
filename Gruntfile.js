@@ -33,6 +33,8 @@ var GIT_REMOTE = env.get("BRAMBLE_MAIN_REMOTE") || "upstream";
 module.exports = function (grunt) {
     'use strict';
 
+    var autoprefixer = require('autoprefixer-core');
+
     // load dependencies
     require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty', 'grunt-npm', 'grunt-git', 'grunt-update-submodules']});
     grunt.loadTasks('tasks');
@@ -165,6 +167,24 @@ module.exports = function (grunt) {
                     compress: true
                 }
             }
+        },
+        postcss: {
+            options: {
+                processors: [
+                    autoprefixer({
+                        browsers: [
+                            "Explorer >= 10",
+                            "Firefox >= 26",
+                            "Chrome >= 31",
+                            "Safari >= 7",
+                            "Opera >= 19",
+                            "iOS >= 3.2",
+                            "Android >= 4.4"
+                        ]
+                    }).postcss
+                ]
+            },
+            dist: { src: 'src/styles/brackets.min.css' }
         },
         requirejs: {
             dist: {
@@ -428,6 +448,9 @@ module.exports = function (grunt) {
             }
         }
     });
+    
+    // Load postcss
+    grunt.loadNpmTasks('grunt-postcss');
 
     // Bramble-task: smartCheckout
     //   Checks out to the branch provided as a target.
@@ -493,6 +516,7 @@ module.exports = function (grunt) {
         'jasmine',
         'clean',
         'less',
+        'postcss',
         'targethtml',
         'useminPrepare',
         'htmlmin',
