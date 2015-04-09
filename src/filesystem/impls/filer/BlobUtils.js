@@ -1,10 +1,8 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, URL */
+/*global define, URL, Blob */
 
 define(function (require, exports, module) {
     "use strict";
-
-    var Handlers = require("filesystem/impls/filer/lib/handlers");
 
     // BlobUtils provides an opportunistic cache for BLOB Object URLs
     // which can be looked-up synchronously.
@@ -18,10 +16,8 @@ define(function (require, exports, module) {
     var blobURLs = {};
 
     // Generate a BLOB URL for the given filename and cache it
-    function cache(filename, content) {
+    function _cache(filename, url) {
         filename = Path.normalize(filename);
-
-        var url = Handlers.handleFile(filename, content);
 
         // If there's an existing entry for this, remove it.
         remove(filename);
@@ -83,9 +79,19 @@ define(function (require, exports, module) {
         return filename;
     }
 
-    exports.cache = cache;
+    // Create a Blob URL Object, and manage its lifetime by caching.
+    // Subsequent calls to create a URL for this path will auto-revoke an existing URL.  
+    function createURL(path, data, type) {
+        var blob = new Blob([data], {type: type});
+        var url = URL.createObjectURL(blob);
+        // NOTE: cache() will clean up existing URLs for this path.
+        _cache(path, url);
+        return url;
+    }
+
     exports.remove = remove;
     exports.rename = rename;
     exports.getUrl = getUrl;
     exports.getFilename = getFilename;
+    exports.createURL = createURL;
 });

@@ -7,6 +7,7 @@ define(function (require, exports, module) {
     var HTMLRewriter = require("filesystem/impls/filer/lib/HTMLRewriter");
     var CSSRewriter = require("filesystem/impls/filer/lib/CSSRewriter");
     var Path  = require("filesystem/impls/filer/BracketsFiler").Path;
+    var BlobUtils = require("filesystem/impls/filer/BlobUtils");
 
     /**
      * Send the raw file, making it somewhat more readable
@@ -23,7 +24,7 @@ define(function (require, exports, module) {
             data = CSSRewriter.rewrite(path, data.toString());
         }
 
-        return Content.toURL(data, mimeType);
+        return BlobUtils.createURL(path, data, mimeType);
     }
 
     exports.handleFile = handleFile;

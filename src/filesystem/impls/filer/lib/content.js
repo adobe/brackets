@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, Blob, URL */
+/*global define */
 define(function (require, exports, module) {
     "use strict";
 
@@ -107,11 +107,6 @@ define(function (require, exports, module) {
             }
 
             return !(/\:?\/\//.test(url) || /\s*data\:/.test(url));
-        },
-
-        toURL: function(data, type) {
-            var blob = new Blob([data], {type: type});
-            return URL.createObjectURL(blob);
         }
     };
 });
