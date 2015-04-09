@@ -575,6 +575,7 @@ define({
 	"CMD_REFRESH_WINDOW": "拡張機能付きでリロード",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "拡張機能なしでリロード",
 	"CMD_NEW_BRACKETS_WINDOW": "新しい {APP_NAME} ウィンドウ",
+	"CMD_LAUNCH_SCRIPT_MAC": "!能=[8035458] Add Brackets Command Line_=!",
 	"CMD_SWITCH_LANGUAGE": "言語を切り替える",
 	"CMD_RUN_UNIT_TESTS": "テストを実行",
 	"CMD_SHOW_PERF_DATA": "パフォーマンスデータを表示",
@@ -583,6 +584,15 @@ define({
 	"CMD_RESTART_NODE": "Node を再起動",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
 	"CMD_OPEN_BRACKETS_SOURCE": "{APP_NAME} ソースを開く",
+	"ERROR_CREATING_LAUNCH_SCRIPT": "!能=[8035465] An erorr occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br/><br/>Reason: _=!",
+	"ERROR_CLTOOLS_RMFAILED": "!能=[8035463] Failed to remove existing {APP_NAME} symlink at <code>/usr/local/bin.</code>_=!",
+	"ERROR_CLTOOLS_MKDIRFAILED": "!能=[8035461] Failed to create <code>/usr/local/bin</code> directory structure._=!",
+	"ERROR_CLTOOLS_LNFAILED": "!能=[8035460] Failed to create {APP_NAME} symlink at <code>/usr/local/bin</code>._=!",
+	"ERROR_CLTOOLS_SERVFAILED": "!能=[8035464] Failed to create authorization object._=!",
+	"ERROR_CLTOOLS_NOTSUPPORTED": "!能=[8035462] {APP_NAME} command line tool installation is not supported on this OS._=!",
+
+	"LAUNCH_SCRIPT_CREATE_SUCCESS": "!能=[8035467] Command line tool succesfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>. <br/><br/>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation._=!",
+	"CREATING_LAUNCH_SCRIPT_TITLE": "!能=[8035459] Add Brackets Command Line_=!",
 
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",
@@ -592,6 +602,7 @@ define({
 
     // extensions/default/HealthData
 	"HEALTH_DATA_NOTIFICATION": "!能=[8033839] Health Data Preferences_=!",
+	"HEALTH_FIRST_POPUP_TITLE": "!能=[8035466] Brackets Health Report_=!",
 	"HEALTH_DATA_DO_TRACK": "!能=[8033838] Yes, I would like to share information on how I use Brackets._=!",
 	"HEALTH_DATA_NOTIFICATION_MESSAGE": "!能=[8033840] In order to improve Brackets we are implementing a new Health Report that sends <strong>anonymous</strong> data to Adobe about how you use Brackets. This report will help the core team and extension developers prioritize features, find bugs, and spot usability and discoverability issues.<br><br>You can see the data being sent as well as change your preference at any time by going to <strong>Help->Health Data Report</strong>. Learn more about the Brackets Health Report and track status <a href='https://github.com/adobe/brackets/wiki/Health-Data'>on our wiki page</a>._=!",
 	"HEALTH_DATA_PREVIEW": "!能=[8033841] Health Data Preview_=!",
