@@ -575,6 +575,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
     "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "Add Brackets Command Line",
     "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
     "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
     "CMD_SHOW_PERF_DATA"                        : "Show Performance Data",
@@ -583,6 +584,15 @@ define({
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "An erorr occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br/><br/>Reason: ",
+    "ERROR_CLTOOLS_RMFAILED"                    : "Failed to remove existing {APP_NAME} symlink at <code>/usr/local/bin.</code>",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "Failed to create <code>/usr/local/bin</code> directory structure.",
+    "ERROR_CLTOOLS_LNFAILED"                    : "Failed to create {APP_NAME} symlink at <code>/usr/local/bin</code>.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "Failed to create authorization object.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "{APP_NAME} command line tool installation is not supported on this OS.",
+
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Command line tool succesfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>. <br/><br/>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation.",
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "Add Brackets Command Line",
 
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",
@@ -592,6 +602,7 @@ define({
 
     // extensions/default/HealthData
     "HEALTH_DATA_NOTIFICATION"                  : "Health Data Preferences",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "Brackets Health Report",
     "HEALTH_DATA_DO_TRACK"                      : "Yes, I would like to share information on how I use Brackets.",
     "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve Brackets we are implementing a new Health Report that sends <strong>anonymous</strong> data to Adobe about how you use Brackets. This report will help the core team and extension developers prioritize features, find bugs, and spot usability and discoverability issues.<br><br>You can see the data being sent as well as change your preference at any time by going to <strong>Help->Health Data Report</strong>. Learn more about the Brackets Health Report and track status <a href='https://github.com/adobe/brackets/wiki/Health-Data'>on our wiki page</a>.",
     "HEALTH_DATA_PREVIEW"                       : "Health Data Preview",
