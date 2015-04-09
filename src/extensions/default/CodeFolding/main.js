@@ -63,9 +63,7 @@ define(function (require, exports, module) {
     //e.g. collapsing all children when 'alt' key is pressed
     var foldGutter              = require("foldhelpers/foldgutter"),
         foldCode                = require("foldhelpers/foldcode"),
-        indentFold              = require("foldhelpers/indentFold"),
-        regionFold              = require("foldhelpers/region-fold");
-
+        indentFold              = require("foldhelpers/indentFold");
     /**
       * Restores the linefolds in the editor using values fetched from the preference store
       * Checks the document to ensure that changes have not been made (e.g., in a different editor)
@@ -74,10 +72,10 @@ define(function (require, exports, module) {
       */
     function restoreLineFolds(editor) {
         var saveFolds = prefs.getSetting("saveFoldStates");
-        if (!editor || !saveFolds) { return; }
-
+        if (!editor || !saveFolds) {
+            return;
+        }
         var cm = editor._codeMirror;
-        if (!cm) {return; }
         var path = editor.document.file.fullPath;
         var folds = cm._lineFolds || prefs.getFolds(path);
         cm._lineFolds = cm.getValidFolds(folds);
@@ -93,7 +91,9 @@ define(function (require, exports, module) {
       */
     function saveLineFolds(editor) {
         var saveFolds = prefs.getSetting("saveFoldStates");
-        if (!editor || !saveFolds) { return; }
+        if (!editor || !saveFolds) {
+            return;
+        }
         var folds = editor._codeMirror._lineFolds || {};
         var path = editor.document.file.fullPath;
         if (Object.keys(folds).length) {
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
       */
     function collapseAll() {
         var editor = EditorManager.getFocusedEditor();
-        if (editor && editor._codeMirror) {
+        if (editor) {
             var cm = editor._codeMirror;
             CodeMirror.commands.foldToLevel(cm);
         }
@@ -195,7 +195,7 @@ define(function (require, exports, module) {
       */
     function expandAll() {
         var editor = EditorManager.getFocusedEditor();
-        if (editor && editor._codeMirror) {
+        if (editor) {
             var cm = editor._codeMirror;
             CodeMirror.commands.unfoldAll(cm);
         }
@@ -206,10 +206,10 @@ define(function (require, exports, module) {
       * @param {Editor} editor the editor on which to initialise the fold gutter
       */
     function createGutter(editor) {
-        var cm = editor._codeMirror;
-        if (!cm) {
+        if (!editor) {
             return;
         }
+        var cm = editor._codeMirror;
         var path = editor.document.file.fullPath, _lineFolds = prefs.getFolds(path);
         _lineFolds = _lineFolds || {};
         cm._lineFolds = _lineFolds;
@@ -238,6 +238,18 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Remove the fold gutter for a given CodeMirror instance.
+     * @param {CodeMirror} cm the CodeMirror instance whose gutter should be removed
+     */
+    function removeGutter(cm) {
+        var gutters = cm.getOption("gutters").slice(0);
+        var index = gutters.indexOf(gutterName);
+        gutters.splice(index, 1);
+        cm.setOption("gutters",  gutters);
+        CodeMirror.defineOption("foldGutter", false, null);
+    }
+
+    /**
       * Event handler to initialise fold-gutter and restores/saves line folds in editors whenever the active editor changes
       * @param {object} event the event object
       * @param {Editor} current the current editor
@@ -255,7 +267,7 @@ define(function (require, exports, module) {
         } else {
             if (current && current._codeMirror) {
                 CodeMirror.commands.unfoldAll(current._codeMirror);
-                foldGutter.remove(current._codeMirror);
+                removeGutter(current._codeMirror);
             }
         }
     }
@@ -389,10 +401,6 @@ define(function (require, exports, module) {
             return prefs.getSetting("alwaysUseIndentFold");
         }, indentFold);
 
-        CodeMirror.registerGlobalHelper("fold", "region", function (mode, cm) {
-            return prefs.getSetting("enableRegionFolding");
-        }, regionFold);
-
         CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
         CodeMirror.registerHelper("fold", "tornado", CodeMirror.helpers.fold.brace);
 
@@ -434,7 +442,7 @@ define(function (require, exports, module) {
                     var editor = EditorManager.getCurrentFullEditor();
                     if (editor && editor._codeMirror && CodeMirror.commands.unfoldAll) {
                         CodeMirror.commands.unfoldAll(editor._codeMirror);
-                        foldGutter.remove(editor._codeMirror);
+                        removeGutter(editor._codeMirror);
                     }
                     removeMenuItems();
                 }

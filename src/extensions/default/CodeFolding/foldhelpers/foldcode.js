@@ -26,14 +26,13 @@ define(function (require, exports, module) {
         }
 
         var finder = options.rangeFinder || CodeMirror.fold.auto,
-            minSize = options.minFoldSize || prefs.getSetting("minFoldSize"),
             range,
             widget,
             textRange;
 
         function getRange(allowFolded) {
             var range = options.range || finder(cm, pos);
-            if (!range || range.to.line - range.from.line < minSize) {
+            if (!range || range.to.line - range.from.line < prefs.getSetting("minFoldSize")) {
                 return null;
             }
             var marks = cm.findMarksAt(range.from),
@@ -77,7 +76,7 @@ define(function (require, exports, module) {
                 range = getRange(false);
             }
         }
-        if (!range || range.cleared || force === "unfold" || range.to.line - range.from.line < minSize) {
+        if (!range || range.cleared || force === "unfold" || range.to.line - range.from.line < prefs.getSetting("minFoldSize")) {
             if (range) { range.cleared = false; }
             return;
         }
@@ -206,7 +205,7 @@ define(function (require, exports, module) {
           * @param {?number} end the line number for the end of the region to fold
           */
         CodeMirror.commands.foldToLevel = function (cm, start, end) {
-            var rf = CodeMirror.fold.auto, level = prefs.getSetting("maxFoldLevel");
+            var rf = CodeMirror.fold.auto;
             function foldLevel(n, from, to) {
                 if (n > 0) {
                     var i = from, range;
@@ -226,7 +225,7 @@ define(function (require, exports, module) {
             cm.operation(function () {
                 start = start === undefined ? cm.firstLine() : start;
                 end = end || cm.lastLine();
-                foldLevel(level, start, end);
+                foldLevel(prefs.getSetting("maxFoldLevel"), start, end);
             });
         };
 
