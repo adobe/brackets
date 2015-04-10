@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     // Brackets modules
     var ColorUtils          = brackets.getModule("utils/ColorUtils"),
         CommandManager      = brackets.getModule("command/CommandManager"),
+        Commands            = brackets.getModule("command/Commands"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
@@ -774,8 +775,9 @@ define(function (require, exports, module) {
     ExtensionUtils.loadStyleSheet(module, "QuickView.less");
     
     // Register command
+    // Insert menu at specific pos since this may load before OR after code folding extension
     CommandManager.register(Strings.CMD_ENABLE_QUICK_VIEW, CMD_ENABLE_QUICK_VIEW, toggleEnableQuickView);
-    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_QUICK_VIEW);
+    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_QUICK_VIEW, null, Menus.AFTER, Commands.VIEW_TOGGLE_INSPECTION);
     
     // Convert old preferences
     PreferencesManager.convertPreferences(module, {

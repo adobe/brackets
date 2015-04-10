@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         AppInit                 = brackets.getModule("utils/AppInit"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
+        Editor                  = brackets.getModule("editor/Editor").Editor,
         EditorManager           = brackets.getModule("editor/EditorManager"),
         ProjectManager          = brackets.getModule("project/ProjectManager"),
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
@@ -65,6 +66,11 @@ define(function (require, exports, module) {
     var foldGutter              = require("foldhelpers/foldgutter"),
         foldCode                = require("foldhelpers/foldcode"),
         indentFold              = require("foldhelpers/indentFold");
+    
+    
+    /** Set to true when init() has run; set back to false after deinit() has run */
+    var _isInitialized = false;
+    
     /**
       * Restores the linefolds in the editor using values fetched from the preference store
       * Checks the document to ensure that changes have not been made (e.g., in a different editor)
@@ -212,9 +218,9 @@ define(function (require, exports, module) {
         cm._lineFolds = _lineFolds;
         var gutters = cm.getOption("gutters").slice(0);
 
-        var lnIndex = gutters.indexOf("CodeMirror-linenumbers");
-        //reuse any existing fold gutter
+        // Reuse any existing fold gutter
         if (gutters.indexOf(GUTTER_NAME) < 0) {
+            var lnIndex = gutters.indexOf("CodeMirror-linenumbers");
             $(editor.getRootElement()).addClass("folding-enabled");
             gutters.splice(lnIndex + 1, 0, GUTTER_NAME);
             cm.setOption("gutters",  gutters);
@@ -254,27 +260,28 @@ define(function (require, exports, module) {
         cm.refresh();  // force recomputing gutter width - .folding-enabled class affected linenumbers gutter
         CodeMirror.defineOption("foldGutter", false, null);
     }
+    
+    /** Add gutter and restore saved expand/collapse state */
+    function enableFoldingInEditor(editor) {
+        if (editor._codeMirror.getOption("gutters").indexOf(GUTTER_NAME) === -1) {
+            createGutter(editor);
+            restoreLineFolds(editor);
+        }
+    }
 
     /**
-      * Event handler to initialise fold-gutter and restores/saves line folds in editors whenever the active editor changes
+      * When a brand new editor is seen, initialise fold-gutter and restore line folds in it. Save line folds in
+      * departing editor in case it's getting closed.
       * @param {object} event the event object
       * @param {Editor} current the current editor
       * @param {Editor} previous the previous editor
       */
     function onActiveEditorChanged(event, current, previous) {
-        if (prefs.getSetting("enabled")) {
-            if (current && current._codeMirror.getOption("gutters").indexOf(GUTTER_NAME) === -1) {
-                createGutter(current);
-                restoreLineFolds(current);
-            }
-            if (previous) {
-                saveLineFolds(previous);
-            }
-        } else {
-            if (current && current._codeMirror) {
-                CodeMirror.commands.unfoldAll(current._codeMirror);
-                removeGutter(current);
-            }
+        if (current) {
+            enableFoldingInEditor(current);
+        }
+        if (previous) {
+            saveLineFolds(previous);
         }
     }
 
@@ -282,124 +289,45 @@ define(function (require, exports, module) {
       * Saves the line folds in the current full editor before it is closed.
       */
     function saveBeforeClose() {
-        saveLineFolds(EditorManager.getCurrentFullEditor());
+        // We've already saved all other open editors when they go active->inactive
+        saveLineFolds(EditorManager.getActiveEditor());
     }
 
     /**
-      * Utility function to check if the code folding menu options exist in the menu
-      */
-    function menuExists(id) {
-        var viewMenu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-        return Menus.getMenuItem(viewMenu._getMenuItemId(id));
-    }
-
-    /**
-      * Create the codefolding menu items and register key bindings if they dont already exist
-      */
-    function createMenuItems() {
-        //register commands
-        if (!CommandManager.get(COLLAPSE_ALL)) {
-            CommandManager.register(Strings.COLLAPSE_ALL, COLLAPSE_ALL, collapseAll);
-        }
-
-        if (!CommandManager.get(EXPAND_ALL)) {
-            CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);
-        }
-
-        if (!CommandManager.get(COLLAPSE)) {
-            CommandManager.register(Strings.COLLAPSE_CURRENT, COLLAPSE, collapseCurrent);
-        }
-
-        if (!CommandManager.get(EXPAND)) {
-            CommandManager.register(Strings.EXPAND_CURRENT, EXPAND, expandCurrent);
-        }
-
-        //create menus
-        if (!menuExists(codeFoldingMenuDivider)) {
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider(Menus.LAST, codeFoldingMenuDivider);
-        }
-
-        if (!menuExists(COLLAPSE_ALL)) {
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_ALL);
-        }
-
-        if (!menuExists(EXPAND_ALL)) {
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND_ALL);
-        }
-
-        if (!menuExists(COLLAPSE)) {
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE);
-        }
-
-        if (!menuExists(EXPAND)) {
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
-        }
-        //register keybindings
-        if (KeyBindingManager.getKeyBindings(COLLAPSE_ALL).length === 0) {
-            KeyBindingManager.addBinding(COLLAPSE_ALL, collapseAllKey);
-        }
-        if (KeyBindingManager.getKeyBindings(EXPAND_ALL).length === 0) {
-            KeyBindingManager.addBinding(EXPAND_ALL, expandAllKey);
-        }
-        if (KeyBindingManager.getKeyBindings(COLLAPSE).length === 0) {
-            KeyBindingManager.addBinding(COLLAPSE, collapseKey);
-        }
-        if (KeyBindingManager.getKeyBindings(EXPAND).length === 0) {
-            KeyBindingManager.addBinding(EXPAND, expandKey);
-        }
-    }
-
-    /**
-      * Remove the codefolding menu items and removeany key bindings attributed to them
-      */
-    function removeMenuItems() {
-        //remove keybindings
-        if (KeyBindingManager.getKeyBindings(COLLAPSE).length > 0) {
-            KeyBindingManager.removeBinding(collapseKey);
-        }
-
-        if (KeyBindingManager.getKeyBindings(EXPAND).length > 0) {
-            KeyBindingManager.removeBinding(expandKey);
-        }
-
-        if (KeyBindingManager.getKeyBindings(COLLAPSE_ALL).length > 0) {
-            KeyBindingManager.removeBinding(collapseAllKey);
-        }
-
-        if (KeyBindingManager.getKeyBindings(EXPAND_ALL).length > 0) {
-            KeyBindingManager.removeBinding(expandAllKey);
-        }
+     * Remove code-folding functionality
+     */
+    function deinit() {
+        _isInitialized = false;
+        
+        KeyBindingManager.removeBinding(collapseKey);
+        KeyBindingManager.removeBinding(expandKey);
+        KeyBindingManager.removeBinding(collapseAllKey);
+        KeyBindingManager.removeBinding(expandAllKey);
 
         //remove menus
-        if (menuExists(codeFoldingMenuDivider)) {
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuDivider(codeFoldingMenuDivider);
-        }
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuDivider(codeFoldingMenuDivider.id);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(COLLAPSE);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(EXPAND);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(COLLAPSE_ALL);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(EXPAND_ALL);
+        
+        EditorManager.off(".CodeFolding");
+        DocumentManager.off(".CodeFolding");
+        ProjectManager.off(".CodeFolding");
 
-        if (menuExists(COLLAPSE)) {
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(COLLAPSE);
-        }
-
-        if (menuExists(EXPAND)) {
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(EXPAND);
-        }
-
-        if (menuExists(COLLAPSE_ALL)) {
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(COLLAPSE_ALL);
-        }
-
-        if (menuExists(EXPAND_ALL)) {
-            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(EXPAND_ALL);
-        }
+        // Remove gutter & revert collapsed sections in all currently open editors
+        Editor.forEveryEditor(function (editor) {
+            CodeMirror.commands.unfoldAll(editor._codeMirror);
+            removeGutter(editor);
+        });
     }
-
+    
     /**
-     * Initialise the extension
+     * Enable code-folding functionality
      */
     function init() {
-        if (!prefs.getSetting("enabled")) {
-            removeMenuItems();
-            return;
-        }
+        _isInitialized = true;
+        
         foldCode.init();
         foldGutter.init();
         
@@ -413,54 +341,59 @@ define(function (require, exports, module) {
         CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
         CodeMirror.registerHelper("fold", "tornado", CodeMirror.helpers.fold.brace);
 
-        EditorManager.on("activeEditorChange", onActiveEditorChanged);
-        DocumentManager.on("documentRefreshed", function (event, doc) {
-            if (prefs.getSetting("enabled")) {
-                restoreLineFolds(doc._masterEditor);
-            }
+        EditorManager.on("activeEditorChange.CodeFolding", onActiveEditorChanged);
+        DocumentManager.on("documentRefreshed.CodeFolding", function (event, doc) {
+            restoreLineFolds(doc._masterEditor);
         });
 
-        ProjectManager.on("beforeProjectClose beforeAppClose", saveBeforeClose);
-        ProjectManager.on("projectOpen projectReferesh", function () {
-            init();
+        ProjectManager.on("beforeProjectClose.CodeFolding beforeAppClose.CodeFolding", saveBeforeClose);
+
+        //create menus
+        codeFoldingMenuDivider = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider();
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_ALL);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND_ALL);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
+        
+        //register keybindings
+        KeyBindingManager.addBinding(COLLAPSE_ALL, collapseAllKey);
+        KeyBindingManager.addBinding(EXPAND_ALL, expandAllKey);
+        KeyBindingManager.addBinding(COLLAPSE, collapseKey);
+        KeyBindingManager.addBinding(EXPAND, expandKey);
+
+        // Add gutters & restore saved expand/collapse state in all currently open editors
+        Editor.forEveryEditor(function (editor) {
+            enableFoldingInEditor(editor);
         });
-
-        createMenuItems();
-
-        var editor = EditorManager.getCurrentFullEditor();
-        if (editor) {
-            var cm = editor._codeMirror;
-            createGutter(editor);
-            if (prefs.getSetting("hideUntilMouseover")) {
-                foldGutter.clearGutter(cm);
-            } else {
-                foldGutter.updateInViewport(cm);
-            }
-        }
     }
-
+    
     /**
       * Register change listener for the preferences file.
       */
     function watchPrefsForChanges() {
         prefs.prefsObject.on("change", function (e, data) {
             if (data.ids.indexOf("enabled") > -1) {
-                if (prefs.getSetting("enabled")) {
+                // Check if enabled state mismatches whether code-folding is actually initialized (can't assume
+                // since preference change events can occur when the value hasn't really changed)
+                var isEnabled = prefs.getSetting("enabled");
+                if (isEnabled && !_isInitialized) {
                     init();
-                } else {
-                    var editor = EditorManager.getCurrentFullEditor();
-                    if (editor && editor._codeMirror && CodeMirror.commands.unfoldAll) {
-                        CodeMirror.commands.unfoldAll(editor._codeMirror);
-                        removeGutter(editor);
-                    }
-                    removeMenuItems();
+                } else if (!isEnabled && _isInitialized) {
+                    deinit();
                 }
             }
         });
     }
 
-    AppInit.appReady(function () {
-        init();
+    AppInit.htmlReady(function () {
+        CommandManager.register(Strings.COLLAPSE_ALL, COLLAPSE_ALL, collapseAll);
+        CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);
+        CommandManager.register(Strings.COLLAPSE_CURRENT, COLLAPSE, collapseCurrent);
+        CommandManager.register(Strings.EXPAND_CURRENT, EXPAND, expandCurrent);
+        
+        if (prefs.getSetting("enabled")) {
+            init();
+        }
         watchPrefsForChanges();
     });
 });

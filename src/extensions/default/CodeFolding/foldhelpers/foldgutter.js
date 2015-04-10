@@ -43,7 +43,7 @@ define(function (require, exports, module) {
         var minFoldSize = prefs.getSetting("minFoldSize") || 2;
         var opts = cm.state.foldGutter.options;
         var fade = prefs.getSetting("hideUntilMouseover");
-        var gutter = $(cm.getGutterElement());
+        var $gutter = $(cm.getGutterElement());
         var i = from;
 
         function isFold(m) {
@@ -95,7 +95,7 @@ define(function (require, exports, module) {
                 i = sr.to.line + 1;
             } else {
                 range = cm._lineFolds[i] || (func && func(cm, pos));
-                if (!fade || (fade && gutter.is(":hover"))) {
+                if (!fade || (fade && $gutter.is(":hover"))) {
                     if (cm.isFolded(i)) {
                         // expand fold if invalid
                         if (range) {
