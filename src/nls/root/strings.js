@@ -592,7 +592,7 @@ define({
     "ERROR_CLTOOLS_SERVFAILED"                  : "Failed to create authorization object.",
     "ERROR_CLTOOLS_NOTSUPPORTED"                : "{APP_NAME} command line tool installation is not supported on this OS.",
 
-    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Command line tool succesfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>.<br><br>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Command line tool successfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>.<br><br>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation.",
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "Add {APP_NAME} Command Line",
 
     "LANGUAGE_TITLE"                            : "Switch Language",
