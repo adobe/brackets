@@ -105,13 +105,13 @@ define({
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview Error",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connecting to Browser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?<br /><br />",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br><br>Would you like to relaunch Chrome and enable remote debugging?<br><br>",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Unable to load Live Preview page.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file or make sure there is an index.html file in your project in order to launch live preview.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "To launch live preview with a server-side file, you need to specify a Base URL for this project.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error starting up the HTTP server for live preview files. Please try again.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS or HTML files</strong>. Changes to JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br><br>In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS or HTML files</strong>. Changes to JavaScript files are automatically reloaded when you save.<br><br>(You'll only see this message once.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
@@ -133,9 +133,9 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirm Delete",
     "CONFIRM_FOLDER_DELETE"             : "Are you sure you want to delete the folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Deleted",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br><br>Do you want to save the file and overwrite those changes?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br><br>Which version do you want to keep?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br><br>Do you want to keep your changes?",
 
     // Generic dialog/button labels
     "DONE"                              : "Done",
@@ -164,7 +164,7 @@ define({
     "BUTTON_CASESENSITIVE_HINT"         : "Match Case",
     "BUTTON_REGEXP_HINT"                : "Regular Expression",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Replace Without Undo",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "Because more than {0} files need to be changed, {APP_NAME} will modify unopened files on disk.<br />You won't be able to undo replacements in those files.",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Because more than {0} files need to be changed, {APP_NAME} will modify unopened files on disk.<br>You won't be able to undo replacements in those files.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Replace Without Undo",
 
     "OPEN_FILE"                         : "Open File",
@@ -248,7 +248,7 @@ define({
     "GEAR_MENU_TOOLTIP"         : "Configure Working Set",
 
     "SPLITVIEW_INFO_TITLE"              : "Already Open",
-    "SPLITVIEW_MULTIPANE_WARNING"       : "The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br><br>(You'll only see this message once.)",
 
     /**
      * Keyboard modifier names
@@ -416,7 +416,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
-    "CMD_HEALTH_DATA_STATISTICS"          : "Health Data Report",
+    "CMD_HEALTH_DATA_STATISTICS"          : "Health Report",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
@@ -521,7 +521,7 @@ define({
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "Version {0} of this extension requires a newer version of {APP_NAME}. But you can install the earlier version {1}.",
     "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "Version {0} of this extension only works with older versions of {APP_NAME}. But you can install the earlier version {1}.",
     "EXTENSION_NO_DESCRIPTION"             : "No description",
-    "EXTENSION_MORE_INFO"                  : "More info...",
+    "EXTENSION_MORE_INFO"                  : "More info\u2026",
     "EXTENSION_ERROR"                      : "Extension error",
     "EXTENSION_KEYWORDS"                   : "Keywords",
     "EXTENSION_TRANSLATED_USER_LANG"       : "Translated into {0} languages, including yours",
@@ -557,7 +557,7 @@ define({
 
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br>Click \"New Rule\" to create one.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "There are no stylesheets in your project.<br>Create one to add CSS rules.",
 
     // Custom Viewers
@@ -576,7 +576,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
     "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
-    "CMD_LAUNCH_SCRIPT_MAC"                     : "Add Brackets Command Line",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "Add {APP_NAME} Command Line",
     "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
     "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
     "CMD_SHOW_PERF_DATA"                        : "Show Performance Data",
@@ -585,15 +585,15 @@ define({
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
-    "ERROR_CREATING_LAUNCH_SCRIPT"              : "An erorr occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br/><br/>Reason: ",
-    "ERROR_CLTOOLS_RMFAILED"                    : "Failed to remove existing {APP_NAME} symlink at <code>/usr/local/bin.</code>",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "An error occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br><br>Reason: ",
+    "ERROR_CLTOOLS_RMFAILED"                    : "Failed to remove existing {APP_NAME} symlink at <code>/usr/local/bin</code>.",
     "ERROR_CLTOOLS_MKDIRFAILED"                 : "Failed to create <code>/usr/local/bin</code> directory structure.",
     "ERROR_CLTOOLS_LNFAILED"                    : "Failed to create {APP_NAME} symlink at <code>/usr/local/bin</code>.",
     "ERROR_CLTOOLS_SERVFAILED"                  : "Failed to create authorization object.",
     "ERROR_CLTOOLS_NOTSUPPORTED"                : "{APP_NAME} command line tool installation is not supported on this OS.",
 
-    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Command line tool succesfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>. <br/><br/>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation.",
-    "CREATING_LAUNCH_SCRIPT_TITLE"              : "Add Brackets Command Line",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Command line tool succesfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>.<br><br>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation.",
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "Add {APP_NAME} Command Line",
 
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",
@@ -602,11 +602,11 @@ define({
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
 
     // extensions/default/HealthData
-    "HEALTH_DATA_NOTIFICATION"                  : "Health Data Preferences",
-    "HEALTH_FIRST_POPUP_TITLE"                  : "Brackets Health Report",
-    "HEALTH_DATA_DO_TRACK"                      : "Yes, I would like to share information on how I use Brackets.",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve Brackets we are implementing a new Health Report that sends <strong>anonymous</strong> data to Adobe about how you use Brackets. This report will help the core team and extension developers prioritize features, find bugs, and spot usability and discoverability issues.<br><br>You can see the data being sent as well as change your preference at any time by going to <strong>Help->Health Data Report</strong>. Learn more about the Brackets Health Report and track status <a href='https://github.com/adobe/brackets/wiki/Health-Data'>on our wiki page</a>.",
-    "HEALTH_DATA_PREVIEW"                       : "Health Data Preview",
+    "HEALTH_DATA_NOTIFICATION"                  : "Health Report Preferences",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME} Health Report",
+    "HEALTH_DATA_DO_TRACK"                      : "Yes, I would like to share information on how I use {APP_NAME}.",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve {APP_NAME} we are implementing a new Health Report that sends <strong>anonymous</strong> data to Adobe about how you use {APP_NAME}. This report will help the core team and extension developers prioritize features, find bugs, and spot usability and discoverability issues.<br><br>You can see the data being sent as well as change your preference at any time by going to <strong>Help -> Health Data Report</strong>. Learn more about the {APP_NAME} Health Report and track status <a href='https://github.com/adobe/brackets/wiki/Health-Data'>on our wiki page</a>.",
+    "HEALTH_DATA_PREVIEW"                       : "Health Report Preview",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Time",
