@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window, Mustache */
+/*global define, $, brackets, window, Mustache, appshell */
 
 define(function (require, exports, module) {
     "use strict";
@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         Strings                = brackets.getModule("strings"),
         PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
         LocalizationUtils      = brackets.getModule("utils/LocalizationUtils"),
+        DefaultDialogs         = brackets.getModule("widgets/DefaultDialogs"),
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
@@ -64,6 +65,7 @@ define(function (require, exports, module) {
         DEBUG_SHOW_PERF_DATA            = "debug.showPerfData",
         DEBUG_RELOAD_WITHOUT_USER_EXTS  = "debug.reloadWithoutUserExts",
         DEBUG_NEW_BRACKETS_WINDOW       = "debug.newBracketsWindow",
+        DEBUG_LAUNCH_SCRIPT_MAC         = "debug.createAppLaunchScript",
         DEBUG_SWITCH_LANGUAGE           = "debug.switchLanguage",
         DEBUG_ENABLE_NODE_DEBUGGER      = "debug.enableNodeDebugger",
         DEBUG_LOG_NODE_STATE            = "debug.logNodeState",
@@ -105,6 +107,63 @@ define(function (require, exports, module) {
         window.open(window.location.href);
     }
     
+    function _mapCLToolsErrorCodeToString(errorCode) {
+        
+        var errorString;
+        switch (errorCode) {
+        case appshell.app.ERR_CL_TOOLS_RMFAILED:
+            errorString = Strings.ERROR_CLTOOLS_RMFAILED;
+            break;
+        case appshell.app.ERR_CL_TOOLS_MKDIRFAILED:
+            errorString = Strings.ERROR_CLTOOLS_MKDIRFAILED;
+            break;
+        case appshell.app.ERR_CL_TOOLS_SYMLINKFAILED:
+            errorString = Strings.ERROR_CLTOOLS_LNFAILED;
+            break;
+        case appshell.app.ERR_CL_TOOLS_SERVFAILED:
+            errorString = Strings.ERROR_CLTOOLS_SERVFAILED;
+            break;
+        case appshell.app.ERR_CL_TOOLS_NOTSUPPORTED:
+            errorString = Strings.ERROR_CLTOOLS_NOTSUPPORTED;
+            break;
+        default:
+            errorString = "Unknown Error.";
+            break;
+        }
+        
+        return errorString;
+    }
+    
+    function handleScriptMessages(errorCode) {
+        
+        if (errorCode === appshell.app.ERR_CL_TOOLS_CANCELLED) {
+            // The user has cancelled the authentication dialog.
+            return;
+        } else if (errorCode === appshell.app.NO_ERROR) {
+            // flag success message here.
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_INFO,
+                Strings.CREATING_LAUNCH_SCRIPT_TITLE,
+                Strings.LAUNCH_SCRIPT_CREATE_SUCCESS
+            );
+
+        } else {
+            var errorString = _mapCLToolsErrorCodeToString(errorCode);
+            var errMsg = Strings.ERROR_CREATING_LAUNCH_SCRIPT + errorString;
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_ERROR,
+                Strings.CREATING_LAUNCH_SCRIPT_TITLE,
+                errMsg
+            );
+        }
+    }
+
+    function handleInstallLauchScriptMac() {
+        appshell.app.installCommandLine(function (serviceCode) {
+            handleScriptMessages(serviceCode);
+        });
+    }
+
     function handleShowPerfData() {
         var templateVars = {
             delimitedPerfData: PerfUtils.getDelimitedPerfData(),
@@ -264,6 +323,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_RELOAD_WITHOUT_USER_EXTS,   DEBUG_RELOAD_WITHOUT_USER_EXTS, handleReloadWithoutUserExts);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,        DEBUG_NEW_BRACKETS_WINDOW,      handleNewBracketsWindow);
     
+    if (brackets.platform === "mac") {
+        CommandManager.register(Strings.CMD_LAUNCH_SCRIPT_MAC,     DEBUG_LAUNCH_SCRIPT_MAC,       handleInstallLauchScriptMac);
+    }
+
     // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
     CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,       DEBUG_RUN_UNIT_TESTS,         _runUnitTests)
         .setEnabled(false);
@@ -297,6 +360,9 @@ define(function (require, exports, module) {
     menu.addMenuItem(DEBUG_REFRESH_WINDOW, KeyboardPrefs.refreshWindow);
     menu.addMenuItem(DEBUG_RELOAD_WITHOUT_USER_EXTS, KeyboardPrefs.reloadWithoutUserExts);
     menu.addMenuItem(DEBUG_NEW_BRACKETS_WINDOW);
+    if (brackets.platform === "mac") {
+        menu.addMenuItem(DEBUG_LAUNCH_SCRIPT_MAC);
+    }
     menu.addMenuDivider();
     menu.addMenuItem(DEBUG_SWITCH_LANGUAGE);
     menu.addMenuDivider();
