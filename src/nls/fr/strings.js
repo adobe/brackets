@@ -88,6 +88,7 @@ define({
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "Erreur lors de la lecture des préférences",
 	"ERROR_PREFS_CORRUPT": "Votre fichier de préférences n’est pas un fichier JSON valide, il va donc être ouvert afin que vous puissiez corriger le format. Vous devrez ensuite redémarrer {APP_NAME} pour que les modifications prennent effet.",
+	"ERROR_PROJ_PREFS_CORRUPT": "[8036824] !é=Your project preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to reload the project for the changes to take effect.=!",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
@@ -643,21 +644,8 @@ define({
 	"DOCS_MORE_LINK": "En savoir plus",
 
     // extensions/default/CodeFolding
-	"ENABLE_CODE_FOLDING": "[8034383] !é=Enable code folding=!",
 	"COLLAPSE_ALL": "Réduire tout",
 	"EXPAND_ALL": "Développer tout",
 	"COLLAPSE_CURRENT": "[8034381] !é=Collapse Current=!",
-	"EXPAND_CURRENT": "[8034386] !é=Expand Current=!",
-	"COLLAPSE_CUSTOM_REGIONS": "[8034382] !é=Collapse Custom Regions=!",
-	"MIN_FOLD_SIZE": "[8034391] !é=Minimum fold size=!",
-	"MIN_FOLD_SIZE_HELP": "[8034392] !é=Minimum number of lines to allow in a fold range=!",
-	"ENABLE_REGION_FOLDING": "[8034384] !é=Enable custom region folding=!",
-	"SAVE_FOLD_STATES": "[8034393] !é=Save fold states=!",
-	"SAVE_FOLD_STATES_HELP": "[8034394] !é=Save fold states to disk when editor is closed and restore the folds when reopened=!",
-	"ALWAYS_USE_INDENT_FOLD": "[8034378] !é=Always use indent fold=!",
-	"ALWAYS_USE_INDENT_FOLD_HELP": "[8034379] !é=Always use level of indentation as a folding guideline=!",
-	"FADE_FOLD_BUTTONS": "[8034387] !é=Fade fold buttons=!",
-	"FADE_FOLD_BUTTONS_HELP": "[8034388] !é=Hides the fold buttons unless the mouse is over the gutter=!",
-	"MAX_FOLD_LEVEL": "[8034389] !é=Maximum number of nested folds=!",
-	"MAX_FOLD_LEVEL_HELP": "[8034390] !é=Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files.=!"
+	"EXPAND_CURRENT": "[8034386] !é=Expand Current=!"
 });

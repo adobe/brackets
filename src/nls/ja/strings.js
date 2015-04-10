@@ -88,6 +88,7 @@ define({
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",
 	"ERROR_PREFS_CORRUPT": "環境設定ファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。変更を反映するには、{APP_NAME} を再起動する必要があります。",
+	"ERROR_PROJ_PREFS_CORRUPT": "!能=[8036824] Your project preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to reload the project for the changes to take effect._=!",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",
@@ -643,21 +644,8 @@ define({
 	"DOCS_MORE_LINK": "詳細",
 
     // extensions/default/CodeFolding
-	"ENABLE_CODE_FOLDING": "!能=[8034383] Enable code folding_=!",
 	"COLLAPSE_ALL": "すべてを閉じる",
 	"EXPAND_ALL": "すべて展開",
 	"COLLAPSE_CURRENT": "!能=[8034381] Collapse Current_=!",
-	"EXPAND_CURRENT": "!能=[8034386] Expand Current_=!",
-	"COLLAPSE_CUSTOM_REGIONS": "!能=[8034382] Collapse Custom Regions_=!",
-	"MIN_FOLD_SIZE": "!能=[8034391] Minimum fold size_=!",
-	"MIN_FOLD_SIZE_HELP": "!能=[8034392] Minimum number of lines to allow in a fold range_=!",
-	"ENABLE_REGION_FOLDING": "!能=[8034384] Enable custom region folding_=!",
-	"SAVE_FOLD_STATES": "!能=[8034393] Save fold states_=!",
-	"SAVE_FOLD_STATES_HELP": "!能=[8034394] Save fold states to disk when editor is closed and restore the folds when reopened_=!",
-	"ALWAYS_USE_INDENT_FOLD": "!能=[8034378] Always use indent fold_=!",
-	"ALWAYS_USE_INDENT_FOLD_HELP": "!能=[8034379] Always use level of indentation as a folding guideline_=!",
-	"FADE_FOLD_BUTTONS": "!能=[8034387] Fade fold buttons_=!",
-	"FADE_FOLD_BUTTONS_HELP": "!能=[8034388] Hides the fold buttons unless the mouse is over the gutter_=!",
-	"MAX_FOLD_LEVEL": "!能=[8034389] Maximum number of nested folds_=!",
-	"MAX_FOLD_LEVEL_HELP": "!能=[8034390] Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files._=!"
+	"EXPAND_CURRENT": "!能=[8034386] Expand Current_=!"
 });
