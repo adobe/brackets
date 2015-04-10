@@ -1,10 +1,7 @@
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
-/**
- * Based on http://codemirror.net/addon/fold/foldgutter.js
- * @author Patrick Oladimeji
- * @date 10/24/13 10:14:01 AM
- */
+// Based on http://codemirror.net/addon/fold/foldgutter.js
+// Modified by Patrick Oladimeji for Brackets
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, brackets, document, window, $*/
 define(function (require, exports, module) {
@@ -45,7 +42,7 @@ define(function (require, exports, module) {
     function updateFoldInfo(cm, from, to) {
         var minFoldSize = prefs.getSetting("minFoldSize") || 2;
         var opts = cm.state.foldGutter.options;
-        var fade = prefs.getSetting("fadeFoldButtons");
+        var fade = prefs.getSetting("hideUntilMouseover");
         var gutter = $(cm.getGutterElement());
         var i = from;
 
@@ -77,7 +74,7 @@ define(function (require, exports, module) {
         /**
             This case is needed when unfolding a region that does not cause the viewport to change.
             For instance in a file with about 15 lines, if some code regions are folded and unfolded, the
-            viewport change event isnt fired by codeMirror. The setTimeout is a workaround to trigger the
+            viewport change event isn't fired by CodeMirror. The setTimeout is a workaround to trigger the
             gutter update after the viewport has been drawn.
         */
         if (i === to) {
@@ -88,19 +85,19 @@ define(function (require, exports, module) {
         }
 
         while (i < to) {
-            var sr = _isCurrentlyFolded(i),//surrounding range for the current line if one exists
+            var sr = _isCurrentlyFolded(i), // surrounding range for the current line if one exists
                 range;
             var mark = marker("CodeMirror-foldgutter-blank");
             var pos = CodeMirror.Pos(i),
                 func = opts.rangeFinder || CodeMirror.fold.auto;
-            //dont look inside collapsed ranges
+            // don't look inside collapsed ranges
             if (sr) {
                 i = sr.to.line + 1;
             } else {
                 range = cm._lineFolds[i] || (func && func(cm, pos));
                 if (!fade || (fade && gutter.is(":hover"))) {
                     if (cm.isFolded(i)) {
-                        //expand fold if invalid
+                        // expand fold if invalid
                         if (range) {
                             mark = marker(opts.indicatorFolded);
                         } else {
@@ -120,7 +117,7 @@ define(function (require, exports, module) {
     }
 
     /**
-      * Updates the fold infor in the viewport for the specifiec range
+      * Updates the fold information in the viewport for the specified range
       * @param {CodeMirror} cm the instance of the CodeMirror object
       * @param {?number} from the starting line number for the update
       * @param {?number} to the end line number for the update

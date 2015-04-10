@@ -1,17 +1,28 @@
-@font-size: 1.2em;
-@color: #aaa;
+@font-size: 1.1em;
+@color-triangle: #ccc;
+@color-triangle-mouseover: #aaa;
+@color-triangle-collapsed: #999;
+@color-marker-bg: #ddd;
+@color-marker-border: #c3c3c3;
+@color-marker-text: #777;
 
 .CodeMirror-foldgutter {
 	&-open:after {
     	content: "\25bc";
 		font-size: @font-size;
-		color: @color;
+		color: @color-triangle;
 	}
 	&-folded:after {
     	content: "\25b6";
 		font-size: @font-size;
-		color: @color;
+		color: @color-triangle-collapsed;
 	}
+}
+
+.CodeMirror.over-gutter, .CodeMirror-activeline {
+    .CodeMirror-foldgutter-open:after {
+        color: @color-triangle-mouseover;
+    }
 }
 
 .CodeMirror-foldgutter,
@@ -19,6 +30,7 @@
 .CodeMirror-foldgutter-folded,
 .CodeMirror-foldgutter-blank {
     width: @font-size;
+    padding-top: 2px;
     cursor: default;
     line-height: 100%;
 }
@@ -27,6 +39,13 @@
     height: 100% !important;
 }
 
+.CodeMirror.folding-enabled .CodeMirror-linenumber {
+    // Normally linenumber gutter has large right-padding to separate it from the code's text. But the
+    // folding gutter provides that same separation, so we need much less padding when it's displayed.
+    padding-right: 5px;
+}
+
+
 .CodeMirror-foldmarker {
     padding-right: 5px;
     padding-left: 5px;
@@ -34,12 +53,12 @@
     margin-left: 3px;
     border-radius: 3px;
     cursor: pointer;
-	border: 1px solid lighten(@color, 10%);
-	color: darken(@color, 20%);
-	background-color: lighten(@color, 20%);
+	border: 1px solid @color-marker-border;
+	color: @color-marker-text;
+	background-color: @color-marker-bg;
     
     &:after {
-        content: "\2194";   
+        content: "\27f7";
     }
 }
 

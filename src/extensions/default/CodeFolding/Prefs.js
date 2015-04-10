@@ -19,8 +19,8 @@ define(function (require, exports, module) {
         SAVE_FOLD_STATES_HELP       = "Save fold states to disk when editor is closed and restore the folds when reopened",
         ALWAYS_USE_INDENT_FOLD      = "Always use indent fold",
         ALWAYS_USE_INDENT_FOLD_HELP = "Fall back to using level of indentation as a folding guideline if no range finder is found for the current mode.",
-        FADE_FOLD_BUTTONS           = "Fade fold buttons",
-        FADE_FOLD_BUTTONS_HELP      = "Hides the fold buttons unless the mouse is over the gutter",
+        HIDE_FOLD_BUTTONS           = "Hide fold triangles",
+        HIDE_FOLD_BUTTONS_HELP      = "Hide fold triangles unless the mouse is over the gutter",
         MAX_FOLD_LEVEL              = "Max fold level",
         MAX_FOLD_LEVEL_HELP         = "Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files.";
 
@@ -33,8 +33,8 @@ define(function (require, exports, module) {
                            {name: SAVE_FOLD_STATES, description: SAVE_FOLD_STATES_HELP});
     prefs.definePreference("alwaysUseIndentFold", "boolean", false,
                            {name: ALWAYS_USE_INDENT_FOLD, description: ALWAYS_USE_INDENT_FOLD_HELP});
-    prefs.definePreference("fadeFoldButtons", "boolean", false,
-                           {name: FADE_FOLD_BUTTONS, description: FADE_FOLD_BUTTONS_HELP});
+    prefs.definePreference("hideUntilMouseover", "boolean", false,
+                           {name: HIDE_FOLD_BUTTONS, description: HIDE_FOLD_BUTTONS_HELP});
     prefs.definePreference("maxFoldLevel", "number", 2,
                            {name: MAX_FOLD_LEVEL, description: MAX_FOLD_LEVEL_HELP});
     prefs.definePreference("folds", "object", {});
@@ -115,13 +115,8 @@ define(function (require, exports, module) {
     }
 
     module.exports.getFolds = getFolds;
-
     module.exports.setFolds = setFolds;
-
     module.exports.getSetting = getSetting;
-
     module.exports.clearAllFolds = clearAllFolds;
-
-    module.exports.prefBase = prefs;
-
+    module.exports.prefsObject = prefs;
 });
