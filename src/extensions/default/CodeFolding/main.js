@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         ProjectManager          = brackets.getModule("project/ProjectManager"),
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
-        Menus					= brackets.getModule("command/Menus"),
+        Menus                   = brackets.getModule("command/Menus"),
         prefs                   = require("Prefs"),
         COLLAPSE_ALL            = "codefolding.collapse.all",
         COLLAPSE                = "codefolding.collapse",
@@ -55,14 +55,14 @@ define(function (require, exports, module) {
 
     ExtensionUtils.loadStyleSheet(module, "main.less");
     
-    //load code mirror addons
+    // Load CodeMirror addons
     brackets.getModule(["thirdparty/CodeMirror2/addon/fold/brace-fold"]);
     brackets.getModule(["thirdparty/CodeMirror2/addon/fold/comment-fold"]);
     brackets.getModule(["thirdparty/CodeMirror2/addon/fold/markdown-fold"]);
 
-    //still using slightly modified versions of the foldcode.js and foldgutter.js since we
-    //need to modify the gutter click handler to take care of some collapse and expand features
-    //e.g. collapsing all children when 'alt' key is pressed
+    // Still using slightly modified versions of the foldcode.js and foldgutter.js since we
+    // need to modify the gutter click handler to take care of some collapse and expand features
+    // e.g. collapsing all children when 'alt' key is pressed
     var foldGutter              = require("foldhelpers/foldgutter"),
         foldCode                = require("foldhelpers/foldcode"),
         indentFold              = require("foldhelpers/indentFold");

@@ -7,16 +7,16 @@
 @color-marker-text: #777;
 
 .CodeMirror-foldgutter {
-	&-open:after {
-    	content: "\25bc";
-		font-size: @font-size;
-		color: @color-triangle;
-	}
-	&-folded:after {
-    	content: "\25b6";
-		font-size: @font-size;
-		color: @color-triangle-collapsed;
-	}
+    &-open:after {
+        content: "\25bc";
+        font-size: @font-size;
+        color: @color-triangle;
+    }
+    &-folded:after {
+        content: "\25b6";
+        font-size: @font-size;
+        color: @color-triangle-collapsed;
+    }
 }
 
 .CodeMirror.over-gutter, .CodeMirror-activeline {
@@ -53,21 +53,11 @@
     margin-left: 3px;
     border-radius: 3px;
     cursor: pointer;
-	border: 1px solid @color-marker-border;
-	color: @color-marker-text;
-	background-color: @color-marker-bg;
+    border: 1px solid @color-marker-border;
+    color: @color-marker-text;
+    background-color: @color-marker-bg;
     
     &:after {
         content: "\27f7";
     }
-}
-
-#code-folding-settings-dialog {
-	label {
-		width: 40%;
-		padding-right: 10px;
-	}
-	input[type=number] {
-		width: 40px;	
-	}
 }
