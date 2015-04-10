@@ -328,7 +328,7 @@ define({
     "CMD_FILE_REFRESH"                    : "Ricarica il percorso file",
     "CMD_QUIT"                            : "Abbandona",
     // Used in native File menu on Windows
-    "CMD_EXIT"key                            : "Esci",
+    "CMD_EXIT"                          : "Esci",
 
     // Edit menu commands
     "EDIT_MENU"                         : "Modifica",
