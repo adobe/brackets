@@ -1,3 +1,5 @@
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: http://codemirror.net/LICENSE
 /**
  * Based on http://codemirror.net/addon/fold/foldgutter.js
  * @author Patrick Oladimeji
@@ -220,7 +222,7 @@ define(function (require, exports, module) {
             window.clearTimeout(state.changeUpdate);
             state.changeUpdate = window.setTimeout(function () {
                 updateInViewport(cm);
-            }, prefs.getSetting("foldOnChangeTimeSpan") || 600);
+            }, 600);
         }
     }
 
@@ -251,7 +253,7 @@ define(function (require, exports, module) {
                     }
                 });
             }
-        }, prefs.getSetting("updateViewportTimeSpan") || 400);
+        }, 400);
     }
 
     /**
@@ -309,7 +311,6 @@ define(function (require, exports, module) {
             }
         });
     }
-
 
     exports.init = init;
     exports.clearGutter = clearGutter;
