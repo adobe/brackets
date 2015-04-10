@@ -75,8 +75,8 @@ define({
     "ERROR_MIXED_DRAGDROP"              : "Impossibile aprire una cartella contemporaneamente all'apertura di altri file.",
 
     // User key map error strings
-    "ERROR_KEYMAP_TITLE"                : "Errore nella lettura della mappa dei Key Map",
-    "ERROR_KEYMAP_CORRUPT"              : "Il tuo file non è in formato JSON valido.  Il file sarà riaperto per poter correggere il formato.",
+    "ERROR_KEYMAP_TITLE"                : "Errore nella lettura del Key Map",
+    "ERROR_KEYMAP_CORRUPT"              : "Il tuo file non è in formato JSON valido. Il file sarà riaperto per poter correggere il formato.",
     "ERROR_LOADING_KEYMAP"              : "La tua Key Map non è un file UTF-8 valido e non può essere caricato",
     "ERROR_RESTRICTED_COMMANDS"         : "Non puoi riassegnare queste scorciatoie: {0}",
     "ERROR_RESTRICTED_SHORTCUTS"        : "Non puoi riassegnare delle scorciatoie a questi comandi: {0}",
