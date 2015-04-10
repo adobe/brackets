@@ -585,14 +585,14 @@ define({
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
-    "ERROR_CREATING_LAUNCH_SCRIPT"              : "An erorr occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br/><br/>Reason: ",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "An error occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br/><br/>Reason: ",
     "ERROR_CLTOOLS_RMFAILED"                    : "Failed to remove existing {APP_NAME} symlink at <code>/usr/local/bin.</code>",
     "ERROR_CLTOOLS_MKDIRFAILED"                 : "Failed to create <code>/usr/local/bin</code> directory structure.",
     "ERROR_CLTOOLS_LNFAILED"                    : "Failed to create {APP_NAME} symlink at <code>/usr/local/bin</code>.",
     "ERROR_CLTOOLS_SERVFAILED"                  : "Failed to create authorization object.",
     "ERROR_CLTOOLS_NOTSUPPORTED"                : "{APP_NAME} command line tool installation is not supported on this OS.",
 
-    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Command line tool succesfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>. <br/><br/>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Command line tool successfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>. <br/><br/>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation.",
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "Add Brackets Command Line",
 
     "LANGUAGE_TITLE"                            : "Switch Language",
