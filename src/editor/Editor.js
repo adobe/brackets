@@ -313,7 +313,7 @@ define(function (require, exports, module) {
             coverGutterNextToScrollbar  : true,
             cursorScrollMargin          : 3,
             dragDrop                    : currentOptions[DRAG_DROP],
-            electricChars               : false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
+            electricChars               : true,
             extraKeys                   : codeMirrorKeyMap,
             highlightSelectionMatches   : currentOptions[HIGHLIGHT_MATCHES],
             indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
@@ -422,53 +422,48 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Checks if the user just typed a closing brace/bracket/paren, and considers automatically
-     * back-indenting it if so.
-     */
-    Editor.prototype._checkElectricChars = function (event) {
-        var instance = this._codeMirror,
-            keyStr = String.fromCharCode(event.which || event.keyCode);
-
-        if (/[\]\{\}\)]/.test(keyStr)) {
-            // If all text before the cursor is whitespace, auto-indent it
-            var cursor = this.getCursorPos();
-            var lineStr = instance.getLine(cursor.line);
-            var nonWS = lineStr.search(/\S/);
-
-            if (nonWS === -1 || nonWS >= cursor.ch) {
-                if (nonWS === -1) {
-                    // if the line is all whitespace, move the cursor to the end of the line
-                    // before indenting so that embedded whitespace such as indents are not
-                    // orphaned to the right of the electric char being inserted
-                    this.setCursorPos(cursor.line, this.document.getLine(cursor.line).length);
-                }
-                // Need to do the auto-indent on a timeout to ensure
-                // the keypress is handled before auto-indenting.
-                // This is the same timeout value used by the
-                // electricChars feature in CodeMirror.
-                window.setTimeout(function () {
-                    instance.indentLine(cursor.line);
-                }, 75);
-            }
-        }
-    };
-    
-    /**
-     * @private
      * Handle any cursor movement in editor, including selecting and unselecting text.
      * @param {!Event} event
      */
     Editor.prototype._handleCursorActivity = function (event) {
         this._updateStyleActiveLine();
     };
-    
+
+    /**
+     * @private
+     * Removes any whitespace after one of ]{}) to prevent trailing whitespace when auto-indenting
+     */
+    Editor.prototype._handleWhitespaceForElectricChars = function () {
+        var self        = this,
+            instance    = this._codeMirror,
+            selections,
+            lineStr;
+
+        selections = this.getSelections().map(function (sel) {
+            lineStr = instance.getLine(sel.end.line);
+
+            if (lineStr && !/\S/.test(lineStr)) {
+                // if the line is all whitespace, move the cursor to the end of the line
+                // before indenting so that embedded whitespace such as indents are not
+                // orphaned to the right of the electric char being inserted
+                sel.end.ch = self.document.getLine(sel.end.line).length;
+            }
+            return sel;
+        });
+        this.setSelections(selections);
+    };
+
     /**
      * @private
      * Handle CodeMirror key events.
      * @param {!Event} event
      */
     Editor.prototype._handleKeypressEvents = function (event) {
-        this._checkElectricChars(event);
+        var keyStr = String.fromCharCode(event.which || event.keyCode);
+
+        if (/[\]\{\}\)]/.test(keyStr)) {
+            this._handleWhitespaceForElectricChars();
+        }
     };
 
     /**
