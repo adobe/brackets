@@ -461,16 +461,6 @@ define({
     "COLLAPSE_ALL"                  : "Alles inklappen",
     "EXPAND_ALL"                    : "Alles uitklappen",
     "COLLAPSE_CURRENT"              : "Huidige inklappen",
-    "EXPAND_CURRENT"                : "Huidige uitklappen",
-    "COLLAPSE_CUSTOM_REGIONS"       : "Aangepaste regio's inklappen",
-    "MIN_FOLD_SIZE"                 : "Minimale vouwgrootte",
-    "MIN_FOLD_SIZE_HELP"            : "Minimaal aantal regels om toe te staan in een vouwreeks",
-    "ENABLE_REGION_FOLDING"         : "Aangepaste regio's inschakelen",
-    "SAVE_FOLD_STATES"              : "Vouwstatus bewaren",
-    "SAVE_FOLD_STATES_HELP"         : "Vouwstatus bewaren op schijf als editor gesloten wordt en herstellen wanneer opnieuw geopend",
-    "ALWAYS_USE_INDENT_FOLD"        : "Altijd vouwindentatie gebruiken",
-    "ALWAYS_USE_INDENT_FOLD_HELP"   : "Altijd het indentatieniveau als vouwrichtlijn gebruiken",
-    "FADE_FOLD_BUTTONS"             : "Vouwknoppen vervagen",
-    "FADE_FOLD_BUTTONS_HELP"        : "Verberg de vouwknoppen, behalve als de muis over de goot hangt"
+    "EXPAND_CURRENT"                : "Huidige uitklappen"
 });
 /* Last translated for 752856d58d2e9dde14e1af6be615bb7080727b7a */
