@@ -33,8 +33,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _           = require("thirdparty/lodash"),
-        CodeMirror  = require("thirdparty/CodeMirror2/lib/codemirror");
+    var _ = require("thirdparty/lodash");
     
     var cache;
     
@@ -211,14 +210,10 @@ define(function (require, exports, module) {
      * @return {mode:{Object}, name:string}
      */
     function getModeAt(cm, pos) {
-        var outerMode = cm.getMode(),
-            modeData = CodeMirror.innerMode(outerMode, cm.getTokenAt(pos, true).state),
-            name;
+        var modeData    = cm.getModeAt(pos),
+            name        = modeData.name === "xml" ? modeData.configuration : modeData.name;
 
-        name = (modeData.mode.name === "xml") ?
-                modeData.mode.configuration : modeData.mode.name;
-
-        return {mode: modeData.mode, name: name};
+        return {mode: modeData, name: name};
     }
 
     exports.movePrevToken           = movePrevToken;
