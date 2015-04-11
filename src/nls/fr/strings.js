@@ -585,14 +585,14 @@ define({
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
 	"CMD_OPEN_BRACKETS_SOURCE": "Ouvrir la source de {APP_NAME}",
-	"ERROR_CREATING_LAUNCH_SCRIPT": "[8035465] !é=An erorr occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br/><br/>Reason: =!",
+	"ERROR_CREATING_LAUNCH_SCRIPT": "[8035465] !é=An error occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br/><br/>Reason: =!",
 	"ERROR_CLTOOLS_RMFAILED": "[8035463] !é=Failed to remove existing {APP_NAME} symlink at <code>/usr/local/bin.</code>=!",
 	"ERROR_CLTOOLS_MKDIRFAILED": "[8035461] !é=Failed to create <code>/usr/local/bin</code> directory structure.=!",
 	"ERROR_CLTOOLS_LNFAILED": "[8035460] !é=Failed to create {APP_NAME} symlink at <code>/usr/local/bin</code>.=!",
 	"ERROR_CLTOOLS_SERVFAILED": "[8035464] !é=Failed to create authorization object.=!",
 	"ERROR_CLTOOLS_NOTSUPPORTED": "[8035462] !é={APP_NAME} command line tool installation is not supported on this OS.=!",
 
-	"LAUNCH_SCRIPT_CREATE_SUCCESS": "[8035467] !é=Command line tool succesfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>. <br/><br/>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation.=!",
+	"LAUNCH_SCRIPT_CREATE_SUCCESS": "[8035467] !é=Command line tool successfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>. <br/><br/>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation.=!",
 	"CREATING_LAUNCH_SCRIPT_TITLE": "[8035459] !é=Add Brackets Command Line=!",
 
 	"LANGUAGE_TITLE": "Changer de langue",
