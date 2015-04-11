@@ -585,14 +585,14 @@ define({
 	"CMD_RESTART_NODE": "Node を再起動",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
 	"CMD_OPEN_BRACKETS_SOURCE": "{APP_NAME} ソースを開く",
-	"ERROR_CREATING_LAUNCH_SCRIPT": "!能=[8035465] An erorr occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br/><br/>Reason: _=!",
+	"ERROR_CREATING_LAUNCH_SCRIPT": "!能=[8035465] An error occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br/><br/>Reason: _=!",
 	"ERROR_CLTOOLS_RMFAILED": "!能=[8035463] Failed to remove existing {APP_NAME} symlink at <code>/usr/local/bin.</code>_=!",
 	"ERROR_CLTOOLS_MKDIRFAILED": "!能=[8035461] Failed to create <code>/usr/local/bin</code> directory structure._=!",
 	"ERROR_CLTOOLS_LNFAILED": "!能=[8035460] Failed to create {APP_NAME} symlink at <code>/usr/local/bin</code>._=!",
 	"ERROR_CLTOOLS_SERVFAILED": "!能=[8035464] Failed to create authorization object._=!",
 	"ERROR_CLTOOLS_NOTSUPPORTED": "!能=[8035462] {APP_NAME} command line tool installation is not supported on this OS._=!",
 
-	"LAUNCH_SCRIPT_CREATE_SUCCESS": "!能=[8035467] Command line tool succesfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>. <br/><br/>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation._=!",
+	"LAUNCH_SCRIPT_CREATE_SUCCESS": "!能=[8035467] Command line tool successfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>. <br/><br/>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation._=!",
 	"CREATING_LAUNCH_SCRIPT_TITLE": "!能=[8035459] Add Brackets Command Line_=!",
 
 	"LANGUAGE_TITLE": "言語を切り替える",
