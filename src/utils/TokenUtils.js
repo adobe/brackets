@@ -71,13 +71,13 @@ define(function (require, exports, module) {
     }
     
     /*
-     * Like cm.getTokenAt, but with caching
+     * Like cm.getTokenAt, but with caching. Way more performant for long lines.
      * @param {!CodeMirror} cm
      * @param {!{ch:number, line:number}} pos
      * @param {boolean} precise If given, results in more current results. Suppresses caching.
      * @return {Object} Token for position
      */
-    function _getToken(cm, pos, precise) {
+    function getTokenAt(cm, pos, precise) {
         if (precise) {
             _clearCache(); // reset cache
             return cm.getTokenAt(pos, precise);
@@ -125,7 +125,7 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.start;
         }
-        ctx.token = _getToken(ctx.editor, ctx.pos, precise);
+        ctx.token = getTokenAt(ctx.editor, ctx.pos, precise);
         return true;
     }
     
@@ -160,7 +160,7 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.end + 1;
         }
-        ctx.token = _getToken(ctx.editor, ctx.pos, precise);
+        ctx.token = getTokenAt(ctx.editor, ctx.pos, precise);
         return true;
     }
     
@@ -208,19 +208,25 @@ define(function (require, exports, module) {
      * Returns the mode object and mode name string at a given position
      * @param {!CodeMirror} cm CodeMirror instance
      * @param {!{line:number, ch:number}} pos Position to query for mode
+     * @param {boolean} precise If given, results in more current results. Suppresses caching.
      * @return {mode:{Object}, name:string}
      */
-    function getModeAt(cm, pos) {
-        var outerMode = cm.getMode(),
-            modeData = CodeMirror.innerMode(outerMode, cm.getTokenAt(pos, true).state),
+    function getModeAt(cm, pos, precise) {
+        precise = precise || true;
+        var modeData = cm.getMode(),
             name;
 
-        name = (modeData.mode.name === "xml") ?
-                modeData.mode.configuration : modeData.mode.name;
+        if (modeData.innerMode) {
+            modeData = CodeMirror.innerMode(modeData, getTokenAt(cm, pos, precise).state).mode;
+        }
 
-        return {mode: modeData.mode, name: name};
+        name = (modeData.name === "xml") ?
+                modeData.configuration : modeData.name;
+
+        return {mode: modeData, name: name};
     }
 
+    exports.getTokenAt              = getTokenAt;
     exports.movePrevToken           = movePrevToken;
     exports.moveNextToken           = moveNextToken;
     exports.isAtStart               = isAtStart;
