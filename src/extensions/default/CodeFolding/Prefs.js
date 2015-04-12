@@ -93,7 +93,7 @@ define(function (require, exports, module) {
       * @param {Object} folds the fold ranges to save for the current document
       */
     function setFolds(path, folds) {
-        var allFolds = PreferencesManager.getViewState(foldsKey);
+        var allFolds = (PreferencesManager.getViewState(foldsKey) || {});
         allFolds[path] = simplify(folds);
         PreferencesManager.setViewState(foldsKey, allFolds);
     }
