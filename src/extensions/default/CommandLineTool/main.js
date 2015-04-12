@@ -32,7 +32,8 @@ define(function (require, exports, module) {
         CommandManager          = brackets.getModule("command/CommandManager"),
         Strings                 = brackets.getModule("strings"),
         Dialogs                 = brackets.getModule("widgets/Dialogs"),
-        DefaultDialogs          = brackets.getModule("widgets/DefaultDialogs");
+        DefaultDialogs          = brackets.getModule("widgets/DefaultDialogs"),
+        StringUtils             = brackets.getModule("utils/StringUtils");
     
     var menu                    = Menus.getMenu(Menus.AppMenuBar.FILE_MENU),
         DEBUG_LAUNCH_SCRIPT_MAC = "debug.createAppLaunchScript";
@@ -57,7 +58,7 @@ define(function (require, exports, module) {
             errorString = Strings.ERROR_CLTOOLS_NOTSUPPORTED;
             break;
         default:
-            errorString = "Unknown Error.";
+            errorString = StringUtils.format(Strings.GENERIC_ERROR, errorCode);
             break;
         }
         
@@ -79,7 +80,7 @@ define(function (require, exports, module) {
 
         } else {
             var errorString = _mapCLToolsErrorCodeToString(errorCode);
-            var errMsg = Strings.ERROR_CREATING_LAUNCH_SCRIPT + errorString;
+            var errMsg = StringUtils.format(Strings.ERROR_CREATING_LAUNCH_SCRIPT, errorString);
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.CREATING_LAUNCH_SCRIPT_TITLE,
