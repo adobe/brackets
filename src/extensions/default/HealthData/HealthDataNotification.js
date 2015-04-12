@@ -80,7 +80,7 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
         params.parse();
         // Check whether the notification dialog should be shown. It will be shown one time. Does not check in testing environment.
-        if (!params.get("skipHealthDataNotification")) {
+        if (!params.get("testEnvironment")) {
             var isShown = PreferencesManager.getViewState("healthDataNotificationShown");
 
             if (!isShown) {

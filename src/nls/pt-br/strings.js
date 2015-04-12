@@ -631,16 +631,6 @@ define({
     "COLLAPSE_ALL"                  : "Dobrar Tudo",
     "EXPAND_ALL"                    : "Expandir Tudo",
     "COLLAPSE_CURRENT"              : "Dobrar Posição Atual",
-    "EXPAND_CURRENT"                : "Expandir Posição Atual",
-    "COLLAPSE_CUSTOM_REGIONS"       : "Dobrar Regiões Personalizadas",
-    "MIN_FOLD_SIZE"                 : "Tamanha Mínimo",
-    "MIN_FOLD_SIZE_HELP"            : "Número Mínimo de linhas necessário para o dobramento",
-    "ENABLE_REGION_FOLDING"         : "Regiões Personalizadas de Dobramento",
-    "SAVE_FOLD_STATES"              : "Salvar Dobramentos",
-    "SAVE_FOLD_STATES_HELP"         : "Salva o estado atual das dobras quando o editor é fechado e as restaura quando aberto",
-    "ALWAYS_USE_INDENT_FOLD"        : "Sempre Usar Dobramento por Indentação",
-    "ALWAYS_USE_INDENT_FOLD_HELP"   : "Usa a Indentação como guia para o Dobramento",
-    "FADE_FOLD_BUTTONS"             : "Ocultar os botões de Dobramento",
-    "FADE_FOLD_BUTTONS_HELP"        : "Oculta os botões quando o cursor não está sobre eles"
+    "EXPAND_CURRENT"                : "Expandir Posição Atual"
 });
 /* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */

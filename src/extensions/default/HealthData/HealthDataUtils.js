@@ -29,48 +29,43 @@ define(function (require, exports, module) {
     
     var ExtensionManager = brackets.getModule("extensibility/ExtensionManager"),
         _                = brackets.getModule("thirdparty/lodash");
-    
+   
+
     /**
      * @private
-     * For each user installed extension, check if it's present in the registry.
-     * @param {Object} object that contains information about extensions fetched from registry
-     * @param {Object} all user installed extensions
+     * Check for the extensions whether it is user installed and present in the registry.
+     * @param {Object} extensions synchronized with registry object
      * return {Array} userInstalledExtensions
-     */
-    function getUserExtensionsInRegistry(registryObject, userExtensions) {
+    */
+    function getUserExtensionsPresentInRegistry(extensions) {
         var userInstalledExtensions = [];
-        
-        _.forEach(userExtensions, function (extension, extensionId) {
-            var registryExtension = registryObject[extensionId];
-            if (extension && extension.installInfo && registryExtension) {
+        _.forEach(extensions, function (extension, extensionId) {
+            if (extension && extension.installInfo && extension.installInfo.locationType === "user" && extension.registryInfo) {
                 userInstalledExtensions.push({"name" : extensionId, "version" : extension.installInfo.metadata.version});
             }
         });
         
         return userInstalledExtensions;
     }
-   
     /**
      * Utility function to get the user installed extension which are present in the registry
      */
-    function getInstalledExtensions() {
+    function getUserInstalledExtensions() {
         var result = new $.Deferred();
-        var registryExtensions = ExtensionManager.registryObject,
-            userExtensions = ExtensionManager.userExtensions;
-        
-        if (Object.keys(registryExtensions).length === 0) {
+
+        if (!ExtensionManager.isRegistryObjectUpdated) {
             ExtensionManager.downloadRegistry().done(function () {
-                result.resolve(getUserExtensionsInRegistry(ExtensionManager.registryObject, userExtensions));
+                result.resolve(getUserExtensionsPresentInRegistry(ExtensionManager.extensions));
             })
                 .fail(function () {
                     result.resolve([]);
                 });
         } else {
-            result.resolve(getUserExtensionsInRegistry(registryExtensions, userExtensions));
+            result.resolve(getUserExtensionsPresentInRegistry(ExtensionManager.extensions));
         }
         
         return result.promise();
     }
     
-    exports.getInstalledExtensions   = getInstalledExtensions;
+    exports.getUserInstalledExtensions   = getUserInstalledExtensions;
 });

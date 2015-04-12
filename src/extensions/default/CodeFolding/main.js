@@ -26,16 +26,7 @@
  * @date 10/24/13 9:35:26 AM
  */
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, require, $, brackets*/
-
-require.config({
-    paths: {
-        "text" : "lib/text",
-        "i18n" : "lib/i18n"
-    },
-    locale: brackets.getLocale()
-});
-
+/*global define, $, brackets*/
 define(function (require, exports, module) {
     "use strict";
     var CodeMirror              = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
@@ -54,7 +45,11 @@ define(function (require, exports, module) {
         EXPAND                  = "codefolding.expand",
         EXPAND_ALL              = "codefolding.expand.all",
         gutterName              = "CodeMirror-foldgutter",
-        COLLAPSE_CUSTOM_REGIONS = "codefolding.collapse.customregions";
+        codeFoldingMenuDivider  = "codefolding.divider",
+        collapseKey             = "Ctrl-Alt-[",
+        expandKey               = "Ctrl-Alt-]",
+        collapseAllKey          = "Alt-1",
+        expandAllKey            = "Shift-Alt-1";
 
     ExtensionUtils.loadStyleSheet(module, "main.less");
 
@@ -68,10 +63,7 @@ define(function (require, exports, module) {
     //e.g. collapsing all children when 'alt' key is pressed
     var foldGutter              = require("foldhelpers/foldgutter"),
         foldCode                = require("foldhelpers/foldcode"),
-        indentFold              = require("foldhelpers/indentFold"),
-        latexFold               = require("foldhelpers/latex-fold"),
-        regionFold              = require("foldhelpers/region-fold");
-
+        indentFold              = require("foldhelpers/indentFold");
     /**
       * Restores the linefolds in the editor using values fetched from the preference store
       * Checks the document to ensure that changes have not been made (e.g., in a different editor)
@@ -80,10 +72,10 @@ define(function (require, exports, module) {
       */
     function restoreLineFolds(editor) {
         var saveFolds = prefs.getSetting("saveFoldStates");
-        if (!editor || !saveFolds) { return; }
-
+        if (!editor || !saveFolds) {
+            return;
+        }
         var cm = editor._codeMirror;
-        if (!cm) {return; }
         var path = editor.document.file.fullPath;
         var folds = cm._lineFolds || prefs.getFolds(path);
         cm._lineFolds = cm.getValidFolds(folds);
@@ -99,7 +91,9 @@ define(function (require, exports, module) {
       */
     function saveLineFolds(editor) {
         var saveFolds = prefs.getSetting("saveFoldStates");
-        if (!editor || !saveFolds) { return; }
+        if (!editor || !saveFolds) {
+            return;
+        }
         var folds = editor._codeMirror._lineFolds || {};
         var path = editor.document.file.fullPath;
         if (Object.keys(folds).length) {
@@ -139,25 +133,6 @@ define(function (require, exports, module) {
                 }
             } else {
                 cm.foldCode(line);
-            }
-        }
-    }
-
-    /**
-      * Collapses all custom regions defined in the current editor
-      */
-    function collapseCustomRegions() {
-        var editor = EditorManager.getFocusedEditor();
-        if (!editor) {
-            return;
-        }
-        var cm = editor._codeMirror, i = cm.firstLine();
-        while (i < cm.lastLine()) {
-            var range = cm.foldCode(i, {rangeFinder: regionFold});
-            if (range) {
-                i = range.to.line;
-            } else {
-                i++;
             }
         }
     }
@@ -209,7 +184,7 @@ define(function (require, exports, module) {
       */
     function collapseAll() {
         var editor = EditorManager.getFocusedEditor();
-        if (editor && editor._codeMirror) {
+        if (editor) {
             var cm = editor._codeMirror;
             CodeMirror.commands.foldToLevel(cm);
         }
@@ -220,7 +195,7 @@ define(function (require, exports, module) {
       */
     function expandAll() {
         var editor = EditorManager.getFocusedEditor();
-        if (editor && editor._codeMirror) {
+        if (editor) {
             var cm = editor._codeMirror;
             CodeMirror.commands.unfoldAll(cm);
         }
@@ -231,16 +206,20 @@ define(function (require, exports, module) {
       * @param {Editor} editor the editor on which to initialise the fold gutter
       */
     function createGutter(editor) {
-        var cm = editor._codeMirror;
-        if (!cm) {
+        if (!editor) {
             return;
         }
+        var cm = editor._codeMirror;
         var path = editor.document.file.fullPath, _lineFolds = prefs.getFolds(path);
         _lineFolds = _lineFolds || {};
         cm._lineFolds = _lineFolds;
         var gutters = cm.getOption("gutters").slice(0);
+
         var lnIndex = gutters.indexOf("CodeMirror-linenumbers");
-        gutters.splice(lnIndex + 1, 0, gutterName);
+        //reuse any existing fold gutter
+        if (gutters.indexOf(gutterName) < 0) {
+            gutters.splice(lnIndex + 1, 0, gutterName);
+        }
         cm.setOption("gutters",  gutters);
         cm.setOption("foldGutter", {onGutterClick: onGutterClick});
 
@@ -259,6 +238,18 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Remove the fold gutter for a given CodeMirror instance.
+     * @param {CodeMirror} cm the CodeMirror instance whose gutter should be removed
+     */
+    function removeGutter(cm) {
+        var gutters = cm.getOption("gutters").slice(0);
+        var index = gutters.indexOf(gutterName);
+        gutters.splice(index, 1);
+        cm.setOption("gutters",  gutters);
+        CodeMirror.defineOption("foldGutter", false, null);
+    }
+
+    /**
       * Event handler to initialise fold-gutter and restores/saves line folds in editors whenever the active editor changes
       * @param {object} event the event object
       * @param {Editor} current the current editor
@@ -273,6 +264,11 @@ define(function (require, exports, module) {
             if (previous) {
                 saveLineFolds(previous);
             }
+        } else {
+            if (current && current._codeMirror) {
+                CodeMirror.commands.unfoldAll(current._codeMirror);
+                removeGutter(current._codeMirror);
+            }
         }
     }
 
@@ -284,10 +280,118 @@ define(function (require, exports, module) {
     }
 
     /**
+      * Utility function to check if the code folding menu options exist in the menu
+      */
+    function menuExists(id) {
+        var viewMenu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
+        return Menus.getMenuItem(viewMenu._getMenuItemId(id));
+    }
+
+    /**
+      * Create the codefolding menu items and register key bindings if they dont already exist
+      */
+    function createMenuItems() {
+        //register commands
+        if (!CommandManager.get(COLLAPSE_ALL)) {
+            CommandManager.register(Strings.COLLAPSE_ALL, COLLAPSE_ALL, collapseAll);
+        }
+
+        if (!CommandManager.get(EXPAND_ALL)) {
+            CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);
+        }
+
+        if (!CommandManager.get(COLLAPSE)) {
+            CommandManager.register(Strings.COLLAPSE_CURRENT, COLLAPSE, collapseCurrent);
+        }
+
+        if (!CommandManager.get(EXPAND)) {
+            CommandManager.register(Strings.EXPAND_CURRENT, EXPAND, expandCurrent);
+        }
+
+        //create menus
+        if (!menuExists(codeFoldingMenuDivider)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider(Menus.LAST, codeFoldingMenuDivider);
+        }
+
+        if (!menuExists(COLLAPSE_ALL)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_ALL);
+        }
+
+        if (!menuExists(EXPAND_ALL)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND_ALL);
+        }
+
+        if (!menuExists(COLLAPSE)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE);
+        }
+
+        if (!menuExists(EXPAND)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
+        }
+        //register keybindings
+        if (KeyBindingManager.getKeyBindings(COLLAPSE_ALL).length === 0) {
+            KeyBindingManager.addBinding(COLLAPSE_ALL, collapseAllKey);
+        }
+        if (KeyBindingManager.getKeyBindings(EXPAND_ALL).length === 0) {
+            KeyBindingManager.addBinding(EXPAND_ALL, expandAllKey);
+        }
+        if (KeyBindingManager.getKeyBindings(COLLAPSE).length === 0) {
+            KeyBindingManager.addBinding(COLLAPSE, collapseKey);
+        }
+        if (KeyBindingManager.getKeyBindings(EXPAND).length === 0) {
+            KeyBindingManager.addBinding(EXPAND, expandKey);
+        }
+    }
+
+    /**
+      * Remove the codefolding menu items and removeany key bindings attributed to them
+      */
+    function removeMenuItems() {
+        //remove keybindings
+        if (KeyBindingManager.getKeyBindings(COLLAPSE).length > 0) {
+            KeyBindingManager.removeBinding(collapseKey);
+        }
+
+        if (KeyBindingManager.getKeyBindings(EXPAND).length > 0) {
+            KeyBindingManager.removeBinding(expandKey);
+        }
+
+        if (KeyBindingManager.getKeyBindings(COLLAPSE_ALL).length > 0) {
+            KeyBindingManager.removeBinding(collapseAllKey);
+        }
+
+        if (KeyBindingManager.getKeyBindings(EXPAND_ALL).length > 0) {
+            KeyBindingManager.removeBinding(expandAllKey);
+        }
+
+        //remove menus
+        if (menuExists(codeFoldingMenuDivider)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuDivider(codeFoldingMenuDivider);
+        }
+
+        if (menuExists(COLLAPSE)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(COLLAPSE);
+        }
+
+        if (menuExists(EXPAND)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(EXPAND);
+        }
+
+        if (menuExists(COLLAPSE_ALL)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(COLLAPSE_ALL);
+        }
+
+        if (menuExists(EXPAND_ALL)) {
+            Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(EXPAND_ALL);
+        }
+    }
+
+    /**
         Initialise the extension
     */
     function init() {
-        if (CodeMirror.fold.combine || !prefs.getSetting("enabled")) {
+        if (!prefs.getSetting("enabled")) {
+            removeMenuItems();
             return;
         }
         foldCode.init();
@@ -297,11 +401,6 @@ define(function (require, exports, module) {
             return prefs.getSetting("alwaysUseIndentFold");
         }, indentFold);
 
-        CodeMirror.registerGlobalHelper("fold", "region", function (mode, cm) {
-            return prefs.getSetting("enableRegionFolding");
-        }, regionFold);
-
-        CodeMirror.registerHelper("fold", "stex", latexFold);
         CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
         CodeMirror.registerHelper("fold", "tornado", CodeMirror.helpers.fold.brace);
 
@@ -317,29 +416,12 @@ define(function (require, exports, module) {
             init();
         });
 
-        CommandManager.register(Strings.COLLAPSE_ALL, COLLAPSE_ALL, collapseAll);
-        CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);
-
-        CommandManager.register(Strings.COLLAPSE_CUSTOM_REGIONS, COLLAPSE_CUSTOM_REGIONS, collapseCustomRegions);
-
-        CommandManager.register(Strings.COLLAPSE_CURRENT, COLLAPSE, collapseCurrent);
-        CommandManager.register(Strings.EXPAND_CURRENT, EXPAND, expandCurrent);
-
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider();
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_ALL);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND_ALL);
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_CUSTOM_REGIONS);
-
-        KeyBindingManager.addBinding(COLLAPSE, "Ctrl-Alt-[");
-        KeyBindingManager.addBinding(EXPAND, "Ctrl-Alt-]");
-        KeyBindingManager.addBinding(COLLAPSE_ALL, "Alt-1");
-        KeyBindingManager.addBinding(EXPAND_ALL, "Shift-Alt-1");
+        createMenuItems();
 
         var editor = EditorManager.getCurrentFullEditor();
         if (editor) {
             var cm = editor._codeMirror;
+            createGutter(editor);
             if (prefs.getSetting("fadeFoldButtons")) {
                 foldGutter.clearGutter(cm);
             } else {
@@ -348,5 +430,28 @@ define(function (require, exports, module) {
         }
     }
 
-    AppInit.appReady(init);
+    /**
+      * Register change listener for the preferences file.
+      */
+    function watchPrefsForChanges() {
+        prefs.prefBase.on("change", function (e, data) {
+            if (data.ids.indexOf("enabled") > -1) {
+                if (prefs.getSetting("enabled")) {
+                    init();
+                } else {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    if (editor && editor._codeMirror && CodeMirror.commands.unfoldAll) {
+                        CodeMirror.commands.unfoldAll(editor._codeMirror);
+                        removeGutter(editor._codeMirror);
+                    }
+                    removeMenuItems();
+                }
+            }
+        });
+    }
+
+    AppInit.appReady(function () {
+        init();
+        watchPrefsForChanges();
+    });
 });
