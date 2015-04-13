@@ -41,17 +41,6 @@
     opacity: 0.0;
 }
 
-.healthdata-firstlaunch-container .btn.primary {
-    .dark &, & {
-        background: #00334d;
-        border: 1px solid #00334d !important;
-        margin: 7px 7px 4px 0;
-        box-shadow: none;
-        padding: 3px 8px;
-        font-size: 13px;
-    }
-}
-
 .healthdata-popup-close-button {
     font-size: 16px;
     font-weight: 900;

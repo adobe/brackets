@@ -34,8 +34,6 @@ define(function (require, exports, module) {
         Strings                     = brackets.getModule("strings"),
         HealthDataNotificationHtml  = require("text!htmlContent/healthdata-popup.html");
 
-    var $toolbarIcon = null;
-
     function closeCallout() {
         var $callout = $("#healthdata-firstlaunch-popup");
 
@@ -78,7 +76,6 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-
 
     exports.showFirstLaunchTooltip          = showFirstLaunchTooltip;
 });
