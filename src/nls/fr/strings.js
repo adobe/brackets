@@ -88,6 +88,7 @@ define({
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "Erreur lors de la lecture des préférences",
 	"ERROR_PREFS_CORRUPT": "Votre fichier de préférences n’est pas un fichier JSON valide, il va donc être ouvert afin que vous puissiez corriger le format. Vous devrez ensuite redémarrer {APP_NAME} pour que les modifications prennent effet.",
+	"ERROR_PROJ_PREFS_CORRUPT": "[8036824] !é=Your project preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to reload the project for the changes to take effect.=!",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
@@ -132,9 +133,9 @@ define({
 	"CONFIRM_FOLDER_DELETE_TITLE": "Confirmer la suppression",
 	"CONFIRM_FOLDER_DELETE": "Voulez-vous vraiment supprimer le dossier <span class='dialog-filename'>{0}</span> ?",
 	"FILE_DELETED_TITLE": "Fichier supprimé",
-	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",
-	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
-	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
+	"EXT_MODIFIED_WARNING": "[7397011] !é=<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?=!",
+	"EXT_MODIFIED_MESSAGE": "[6307147] !é=<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?=!",
+	"EXT_DELETED_MESSAGE": "[6307146] !é=<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?=!",
 
     // Generic dialog/button labels
 	"DONE": "Terminé",
@@ -415,7 +416,7 @@ define({
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_GET_INVOLVED": "Participer",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
-	"CMD_HEALTH_DATA_STATISTICS": "[8033837] !é=HealthData Statistics=!",
+	"CMD_HEALTH_DATA_STATISTICS": "[8033837] !é=Health Data Report=!",
 	"CMD_HOMEPAGE": "Page d’accueil de {APP_TITLE}",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
@@ -575,6 +576,7 @@ define({
 	"CMD_REFRESH_WINDOW": "Recharger avec les extensions",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions",
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
+	"CMD_LAUNCH_SCRIPT_MAC": "[8035458] !é=Add Brackets Command Line=!",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
 	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
 	"CMD_SHOW_PERF_DATA": "Afficher les données de performances",
@@ -583,6 +585,15 @@ define({
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
 	"CMD_OPEN_BRACKETS_SOURCE": "Ouvrir la source de {APP_NAME}",
+	"ERROR_CREATING_LAUNCH_SCRIPT": "[8035465] !é=An error occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br/><br/>Reason: =!",
+	"ERROR_CLTOOLS_RMFAILED": "[8035463] !é=Failed to remove existing {APP_NAME} symlink at <code>/usr/local/bin.</code>=!",
+	"ERROR_CLTOOLS_MKDIRFAILED": "[8035461] !é=Failed to create <code>/usr/local/bin</code> directory structure.=!",
+	"ERROR_CLTOOLS_LNFAILED": "[8035460] !é=Failed to create {APP_NAME} symlink at <code>/usr/local/bin</code>.=!",
+	"ERROR_CLTOOLS_SERVFAILED": "[8035464] !é=Failed to create authorization object.=!",
+	"ERROR_CLTOOLS_NOTSUPPORTED": "[8035462] !é={APP_NAME} command line tool installation is not supported on this OS.=!",
+
+	"LAUNCH_SCRIPT_CREATE_SUCCESS": "[8035467] !é=Command line tool successfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>. <br/><br/>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation.=!",
+	"CREATING_LAUNCH_SCRIPT_TITLE": "[8035459] !é=Add Brackets Command Line=!",
 
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",
@@ -592,8 +603,9 @@ define({
 
     // extensions/default/HealthData
 	"HEALTH_DATA_NOTIFICATION": "[8033839] !é=Health Data Preferences=!",
+	"HEALTH_FIRST_POPUP_TITLE": "[8035466] !é=Brackets Health Report=!",
 	"HEALTH_DATA_DO_TRACK": "[8033838] !é=Yes, I would like to share information on how I use Brackets.=!",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "[8033840] !é=In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use Brackets.=!",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "[8033840] !é=In order to improve Brackets we are implementing a new Health Report that sends <strong>anonymous</strong> data to Adobe about how you use Brackets. This report will help the core team and extension developers prioritize features, find bugs, and spot usability and discoverability issues.<br><br>You can see the data being sent as well as change your preference at any time by going to <strong>Help->Health Data Report</strong>. Learn more about the Brackets Health Report and track status <a href='https://github.com/adobe/brackets/wiki/Health-Data'>on our wiki page</a>.=!",
 	"HEALTH_DATA_PREVIEW": "[8033841] !é=Health Data Preview=!",
 
     // extensions/default/InlineTimingFunctionEditor
@@ -629,5 +641,11 @@ define({
 	"CMD_TOGGLE_RECENT_PROJECTS": "Projets récents",
 
     // extensions/default/WebPlatformDocs
-	"DOCS_MORE_LINK": "En savoir plus"
+	"DOCS_MORE_LINK": "En savoir plus",
+
+    // extensions/default/CodeFolding
+	"COLLAPSE_ALL": "Réduire tout",
+	"EXPAND_ALL": "Développer tout",
+	"COLLAPSE_CURRENT": "[8034381] !é=Collapse Current=!",
+	"EXPAND_CURRENT": "[8034386] !é=Expand Current=!"
 });

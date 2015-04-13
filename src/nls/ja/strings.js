@@ -88,6 +88,7 @@ define({
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",
 	"ERROR_PREFS_CORRUPT": "環境設定ファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。変更を反映するには、{APP_NAME} を再起動する必要があります。",
+	"ERROR_PROJ_PREFS_CORRUPT": "!能=[8036824] Your project preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to reload the project for the changes to take effect._=!",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",
@@ -132,9 +133,9 @@ define({
 	"CONFIRM_FOLDER_DELETE_TITLE": "削除の確認",
 	"CONFIRM_FOLDER_DELETE": "<span class='dialog-filename'>{0}</span> フォルダーを削除してもよろしいですか？",
 	"FILE_DELETED_TITLE": "ファイルは削除されました",
-	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> はディスク上で変更されています。<br /><br />ファイルを保存し、これらの変更を上書きしますか。",
-	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
-	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
+	"EXT_MODIFIED_WARNING": "!能=[7397011] <span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?_=!",
+	"EXT_MODIFIED_MESSAGE": "!能=[6307147] <span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?_=!",
+	"EXT_DELETED_MESSAGE": "!能=[6307146] <span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?_=!",
 
     // Generic dialog/button labels
 	"DONE": "完了",
@@ -415,7 +416,7 @@ define({
 	"CMD_RELEASE_NOTES": "リリースノート",
 	"CMD_GET_INVOLVED": "コミュニティに参加",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",
-	"CMD_HEALTH_DATA_STATISTICS": "!能=[8033837] HealthData Statistics_=!",
+	"CMD_HEALTH_DATA_STATISTICS": "!能=[8033837] Health Data Report_=!",
 	"CMD_HOMEPAGE": "{APP_TITLE} ホームページ",
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
@@ -575,6 +576,7 @@ define({
 	"CMD_REFRESH_WINDOW": "拡張機能付きでリロード",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "拡張機能なしでリロード",
 	"CMD_NEW_BRACKETS_WINDOW": "新しい {APP_NAME} ウィンドウ",
+	"CMD_LAUNCH_SCRIPT_MAC": "!能=[8035458] Add Brackets Command Line_=!",
 	"CMD_SWITCH_LANGUAGE": "言語を切り替える",
 	"CMD_RUN_UNIT_TESTS": "テストを実行",
 	"CMD_SHOW_PERF_DATA": "パフォーマンスデータを表示",
@@ -583,6 +585,15 @@ define({
 	"CMD_RESTART_NODE": "Node を再起動",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
 	"CMD_OPEN_BRACKETS_SOURCE": "{APP_NAME} ソースを開く",
+	"ERROR_CREATING_LAUNCH_SCRIPT": "!能=[8035465] An error occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br/><br/>Reason: _=!",
+	"ERROR_CLTOOLS_RMFAILED": "!能=[8035463] Failed to remove existing {APP_NAME} symlink at <code>/usr/local/bin.</code>_=!",
+	"ERROR_CLTOOLS_MKDIRFAILED": "!能=[8035461] Failed to create <code>/usr/local/bin</code> directory structure._=!",
+	"ERROR_CLTOOLS_LNFAILED": "!能=[8035460] Failed to create {APP_NAME} symlink at <code>/usr/local/bin</code>._=!",
+	"ERROR_CLTOOLS_SERVFAILED": "!能=[8035464] Failed to create authorization object._=!",
+	"ERROR_CLTOOLS_NOTSUPPORTED": "!能=[8035462] {APP_NAME} command line tool installation is not supported on this OS._=!",
+
+	"LAUNCH_SCRIPT_CREATE_SUCCESS": "!能=[8035467] Command line tool successfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>. <br/><br/>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation._=!",
+	"CREATING_LAUNCH_SCRIPT_TITLE": "!能=[8035459] Add Brackets Command Line_=!",
 
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",
@@ -592,8 +603,9 @@ define({
 
     // extensions/default/HealthData
 	"HEALTH_DATA_NOTIFICATION": "!能=[8033839] Health Data Preferences_=!",
+	"HEALTH_FIRST_POPUP_TITLE": "!能=[8035466] Brackets Health Report_=!",
 	"HEALTH_DATA_DO_TRACK": "!能=[8033838] Yes, I would like to share information on how I use Brackets._=!",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "!能=[8033840] In order to improve Brackets, we periodically send <strong>anonymous</strong> data about how you use Brackets._=!",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "!能=[8033840] In order to improve Brackets we are implementing a new Health Report that sends <strong>anonymous</strong> data to Adobe about how you use Brackets. This report will help the core team and extension developers prioritize features, find bugs, and spot usability and discoverability issues.<br><br>You can see the data being sent as well as change your preference at any time by going to <strong>Help->Health Data Report</strong>. Learn more about the Brackets Health Report and track status <a href='https://github.com/adobe/brackets/wiki/Health-Data'>on our wiki page</a>._=!",
 	"HEALTH_DATA_PREVIEW": "!能=[8033841] Health Data Preview_=!",
 
     // extensions/default/InlineTimingFunctionEditor
@@ -629,5 +641,11 @@ define({
 	"CMD_TOGGLE_RECENT_PROJECTS": "最近使用したプロジェクト",
 
     // extensions/default/WebPlatformDocs
-	"DOCS_MORE_LINK": "詳細"
+	"DOCS_MORE_LINK": "詳細",
+
+    // extensions/default/CodeFolding
+	"COLLAPSE_ALL": "すべてを閉じる",
+	"EXPAND_ALL": "すべて展開",
+	"COLLAPSE_CURRENT": "!能=[8034381] Collapse Current_=!",
+	"EXPAND_CURRENT": "!能=[8034386] Expand Current_=!"
 });
