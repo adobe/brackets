@@ -148,10 +148,12 @@ define(function (require, exports, module) {
      * @param {boolean} createIfNew True if the file should be created if it doesn't exist.
      *                              If this is not true, an exception will be thrown if the
      *                              file does not exist.
+     * @param {boolean} isStateJson True if the specified preferences file is state.json 
      */
-    function FileStorage(path, createIfNew) {
+    function FileStorage(path, createIfNew, isStateJson) {
         this.path = path;
         this.createIfNew = createIfNew;
+        this.isStateJson = isStateJson;
         this._lineEndings = FileUtils.getPlatformLineEndings();
     }
     
@@ -167,6 +169,7 @@ define(function (require, exports, module) {
             var result = new $.Deferred();
             var path = this.path;
             var createIfNew = this.createIfNew;
+            var isStateJson = this.isStateJson;
             var self = this;
             
             if (path) {
@@ -175,10 +178,12 @@ define(function (require, exports, module) {
                     if (err) {
                         if (createIfNew) {
                             // Unreadable file is also unwritable -- delete so get recreated
-                            if (err === FileSystemError.NOT_READABLE || err === FileSystemError.UNSUPPORTED_ENCODING) {
+                            if (isStateJson && (err === FileSystemError.NOT_READABLE || err === FileSystemError.UNSUPPORTED_ENCODING)) {
                                 appshell.fs.moveToTrash(path, function (err) {
                                     if (err) {
-                                        console.log("Cannot move unreadable preferences file to trash: " + path);
+                                        console.log("Cannot move unreadable preferences file " + path + " to trash!!");
+                                    } else {
+                                        console.log("Note: Old Preferences file " + path + " has been moved to trash and recreated. You may refer to the deleted file in trash in case you want to recreate it from the former one!!");
                                     }
                                 }.bind(this));
                             }
@@ -198,7 +203,7 @@ define(function (require, exports, module) {
                         try {
                             result.resolve(JSON.parse(text));
                         } catch (e) {
-                            if (createIfNew) {
+                            if (isStateJson && createIfNew) {
                                 // JSON parsing error -- start from scratch
                                 console.log("Invalid JSON settings at " + path + "(" + e.toString() + ") -- contents reset");
                                 result.resolve({});
