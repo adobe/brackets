@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window, Mustache, appshell */
+/*global define, $, brackets, window, Mustache*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -64,7 +64,6 @@ define(function (require, exports, module) {
         DEBUG_SHOW_PERF_DATA            = "debug.showPerfData",
         DEBUG_RELOAD_WITHOUT_USER_EXTS  = "debug.reloadWithoutUserExts",
         DEBUG_NEW_BRACKETS_WINDOW       = "debug.newBracketsWindow",
-        DEBUG_LAUNCH_SCRIPT_MAC         = "debug.createAppLaunchScript",
         DEBUG_SWITCH_LANGUAGE           = "debug.switchLanguage",
         DEBUG_ENABLE_NODE_DEBUGGER      = "debug.enableNodeDebugger",
         DEBUG_LOG_NODE_STATE            = "debug.logNodeState",

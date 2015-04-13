@@ -27,8 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var AppInit                 = brackets.getModule("utils/AppInit"),
-        Menus                   = brackets.getModule("command/Menus"),
+    var Menus                   = brackets.getModule("command/Menus"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         Strings                 = brackets.getModule("strings"),
         Dialogs                 = brackets.getModule("widgets/Dialogs"),
