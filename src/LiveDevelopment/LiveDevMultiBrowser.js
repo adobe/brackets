@@ -236,12 +236,15 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Returns the URL that we would serve the given path at.
+     * Bramble Note: function returns path unchanged as
+     * stylesheets and scripts are stored based on path
+     * not based on URLs like regular Brackets does.
+     * See isRelated function in LiveHTMLDocument.js
      * @param {string} path
      * @return {string}
      */
     function _resolveUrl(path) {
-        return _server && _server.pathToUrl(path);
+        return path;
     }
 
     /**
@@ -723,6 +726,10 @@ define(function (require, exports, module) {
     /**
      * For files that don't support as-you-type live editing, but are loaded by live HTML documents
      * (e.g. JS files), we want to reload the full document when they're saved.
+     * Bramble note: CSS files do support as-you-type live editing, however, once they are saved,
+     * the live preview stops working because the CSS file has been cached and the Blob URL has changed.
+     * Reloading allows the new CSS Blob URL to be injected into the preview document and allow
+     * the live preview to continue.
      * @param {$.Event} event
      * @param {Document} doc
      */
@@ -731,19 +738,12 @@ define(function (require, exports, module) {
             return;
         }
         
-        var absolutePath            = doc.file.fullPath,
-            liveDocument            = absolutePath && _server.get(absolutePath),
-            liveEditingEnabled      = liveDocument && liveDocument.isLiveEditingEnabled  && liveDocument.isLiveEditingEnabled();
-        
-        // Skip reload if the saved document has live editing enabled
-        if (liveEditingEnabled) {
-            return;
-        }
-        
-        // reload the page if the given document is a JS file related 
+        var absolutePath            = doc.file.fullPath;
+
+        // reload the page if the given document is a JS or CSS file related 
         // to the current live document.
         if (_liveDocument.isRelated(absolutePath)) {
-            if (doc.getLanguage().getId() === "javascript") {
+            if (doc.getLanguage().getId() === "javascript" || doc.getLanguage().getId() === "css") {
                 _setStatus(STATUS_RELOADING);
                 _protocol.reload();
             }
