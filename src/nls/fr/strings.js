@@ -133,9 +133,9 @@ define({
 	"CONFIRM_FOLDER_DELETE_TITLE": "Confirmer la suppression",
 	"CONFIRM_FOLDER_DELETE": "Voulez-vous vraiment supprimer le dossier <span class='dialog-filename'>{0}</span> ?",
 	"FILE_DELETED_TITLE": "Fichier supprimé",
-	"EXT_MODIFIED_WARNING": "[7397011] !é=<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?=!",
-	"EXT_MODIFIED_MESSAGE": "[6307147] !é=<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?=!",
-	"EXT_DELETED_MESSAGE": "[6307146] !é=<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?=!",
+	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque, dans une application autre que {APP_NAME}.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",
+	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque dans une autre application que {APP_NAME} mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
+	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé du disque dans une autre application que {APP_NAME} mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
 
     // Generic dialog/button labels
 	"DONE": "Terminé",
@@ -416,7 +416,7 @@ define({
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_GET_INVOLVED": "Participer",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
-	"CMD_HEALTH_DATA_STATISTICS": "[8033837] !é=Health Data Report=!",
+	"CMD_HEALTH_DATA_STATISTICS": "Rapport des données sur l’état de santé",
 	"CMD_HOMEPAGE": "Page d’accueil de {APP_TITLE}",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
@@ -576,7 +576,7 @@ define({
 	"CMD_REFRESH_WINDOW": "Recharger avec les extensions",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions",
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
-	"CMD_LAUNCH_SCRIPT_MAC": "[8035458] !é=Add Brackets Command Line=!",
+	"CMD_LAUNCH_SCRIPT_MAC": "Ajouter une ligne de commande Brackets",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
 	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
 	"CMD_SHOW_PERF_DATA": "Afficher les données de performances",
@@ -586,14 +586,14 @@ define({
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
 	"CMD_OPEN_BRACKETS_SOURCE": "Ouvrir la source de {APP_NAME}",
 	"ERROR_CREATING_LAUNCH_SCRIPT": "[8035465] !é=An error occured while creating {APP_NAME} command line tool at <code>/usr/local/bin</code>. Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> wiki for troubleshooting.<br/><br/>Reason: =!",
-	"ERROR_CLTOOLS_RMFAILED": "[8035463] !é=Failed to remove existing {APP_NAME} symlink at <code>/usr/local/bin.</code>=!",
-	"ERROR_CLTOOLS_MKDIRFAILED": "[8035461] !é=Failed to create <code>/usr/local/bin</code> directory structure.=!",
-	"ERROR_CLTOOLS_LNFAILED": "[8035460] !é=Failed to create {APP_NAME} symlink at <code>/usr/local/bin</code>.=!",
-	"ERROR_CLTOOLS_SERVFAILED": "[8035464] !é=Failed to create authorization object.=!",
-	"ERROR_CLTOOLS_NOTSUPPORTED": "[8035462] !é={APP_NAME} command line tool installation is not supported on this OS.=!",
+	"ERROR_CLTOOLS_RMFAILED": "Echec de la suppression du lien symbolique {APP_NAME} existant dans <code>/usr/local/bin.</code>",
+	"ERROR_CLTOOLS_MKDIRFAILED": "Echec de la création de la structure de répertoire <code>/usr/local/bin</code>.",
+	"ERROR_CLTOOLS_LNFAILED": "Echec de la création du lien symbolique {APP_NAME} dans <code>/usr/local/bin</code>.",
+	"ERROR_CLTOOLS_SERVFAILED": "Echec de la création de l’objet d’autorisation",
+	"ERROR_CLTOOLS_NOTSUPPORTED": "L’installation de l’outil de ligne de commande {APP_NAME} n’est pas prise en charge par ce système d’exploitation.",
 
 	"LAUNCH_SCRIPT_CREATE_SUCCESS": "[8035467] !é=Command line tool successfully installed! Now you can easily launch {APP_NAME} from command line using <code>{APP_NAME} myFile.txt</code> or <code>{APP_NAME} myFolder</code>. <br/><br/>Please refer to <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> wiki for more infomation.=!",
-	"CREATING_LAUNCH_SCRIPT_TITLE": "[8035459] !é=Add Brackets Command Line=!",
+	"CREATING_LAUNCH_SCRIPT_TITLE": "Ajouter une ligne de commande Brackets",
 
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",
@@ -602,11 +602,11 @@ define({
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
 
     // extensions/default/HealthData
-	"HEALTH_DATA_NOTIFICATION": "[8033839] !é=Health Data Preferences=!",
-	"HEALTH_FIRST_POPUP_TITLE": "[8035466] !é=Brackets Health Report=!",
-	"HEALTH_DATA_DO_TRACK": "[8033838] !é=Yes, I would like to share information on how I use Brackets.=!",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "[8033840] !é=In order to improve Brackets we are implementing a new Health Report that sends <strong>anonymous</strong> data to Adobe about how you use Brackets. This report will help the core team and extension developers prioritize features, find bugs, and spot usability and discoverability issues.<br><br>You can see the data being sent as well as change your preference at any time by going to <strong>Help->Health Data Report</strong>. Learn more about the Brackets Health Report and track status <a href='https://github.com/adobe/brackets/wiki/Health-Data'>on our wiki page</a>.=!",
-	"HEALTH_DATA_PREVIEW": "[8033841] !é=Health Data Preview=!",
+	"HEALTH_DATA_NOTIFICATION": "Préférences des données sur l’état de santé",
+	"HEALTH_FIRST_POPUP_TITLE": "Rapport sur l’état de santé de Brackets",
+	"HEALTH_DATA_DO_TRACK": "Oui, je souhaite partager des informations sur mon utilisation de Brackets.",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "En vue d’améliorer Brackets, nous mettons en place un nouveau Rapport sur l’état de santé, qui envoie des données <strong>anonymes</strong> à Adobe sur la façon dont vous utilisez Brackets. Ce rapport permettra à l’équipe principale ainsi qu’aux développeurs d’extensions de hiérarchiser les futures fonctionnalités, de détecter les bogues éventuels et d’identifier les problèmes d’utilisation et d’accessibilité.<br><br>Vous pouvez accéder aux données envoyées et modifier vos préférences à tout moment, en cliquant sur <strong>Aide->Rapport des données sur l’état de santé</strong>. Apprenez-en plus sur le rapport sur l’état de santé de Brackets et l’état du suivi <a href='https://github.com/adobe/brackets/wiki/Health-Data'>sur notre page wiki</a>.",
+	"HEALTH_DATA_PREVIEW": "Aperçu des données sur l’état de santé",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
@@ -646,6 +646,6 @@ define({
     // extensions/default/CodeFolding
 	"COLLAPSE_ALL": "Réduire tout",
 	"EXPAND_ALL": "Développer tout",
-	"COLLAPSE_CURRENT": "[8034381] !é=Collapse Current=!",
-	"EXPAND_CURRENT": "[8034386] !é=Expand Current=!"
+	"COLLAPSE_CURRENT": "Réduire l’élément actif",
+	"EXPAND_CURRENT": "Développer l’élément actif"
 });
