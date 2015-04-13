@@ -164,7 +164,7 @@ define(function (require, exports, module) {
             return +d;
         });
         if (linesDiff === 0) {
-            if (foldedLines.indexOf(from) > -1) {
+            if (foldedLines.indexOf(from) >= 0) {
                 var opts = cm.state.foldGutter.options || {};
                 var rf = opts.rangeFinder || CodeMirror.fold.auto;
                 range = rf(cm, CodeMirror.Pos(from));
@@ -181,11 +181,11 @@ define(function (require, exports, module) {
                 range = cm._lineFolds[line];
                 if (line < from || linesDiff === 0) {
                     newFolds[line] = range;
-                } else {
+                } else if (!(range.from.line + linesDiff  <= from && linesDiff < 0)) {
+                    // Do not add folds in deleted region to the new folds list
                     range.from.line = range.from.line + linesDiff;
                     range.to.line = range.to.line + linesDiff;
                     newFolds[line + linesDiff] = range;
-
                 }
             });
             cm._lineFolds = newFolds;
@@ -211,7 +211,7 @@ define(function (require, exports, module) {
             var lineChanges = changeObj.text.length - changeObj.removed.length;
             //update the lineFolds cache
             updateFoldsCache(cm, changeObj.from.line, lineChanges);
-            if (lineChanges !== 0) {
+            if (lineChanges !== 0 && changeObj.from.line + lineChanges >= 0) {
                 updateFoldInfo(cm, changeObj.from.line + lineChanges, changeObj.from.line + lineChanges + 1);
             }
             state.from = changeObj.from.line;
