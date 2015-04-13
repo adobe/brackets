@@ -54,8 +54,6 @@ define(function (require, exports, module) {
             result = new $.Deferred();
 
         Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
-            PreferencesManager.setViewState("healthDataNotificationShown", true);
-     
             if (id === "save") {
                 newHDPref = $template.find("[data-target]:checkbox").is(":checked");
                 if (hdPref !== newHDPref) {
@@ -84,10 +82,12 @@ define(function (require, exports, module) {
         if (!params.get("testEnvironment")) {
             var isShown = PreferencesManager.getViewState("healthDataNotificationShown");
 
-//            if (!isShown) {
-            if (1) {
+            if (!isShown) {
                 HealthDataPopup.showFirstLaunchTooltip()
                     .done(function () {
+                        PreferencesManager.setViewState("healthDataNotificationShown", true);
+                        // Temporarily sending data on closing of popup.
+                        // This will probably change.
                         HealthDataManager.checkHealthDataSend();
                     });
             }

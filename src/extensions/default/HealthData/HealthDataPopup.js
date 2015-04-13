@@ -34,13 +34,10 @@ define(function (require, exports, module) {
         Strings                     = brackets.getModule("strings"),
         HealthDataNotificationHtml  = require("text!htmlContent/healthdata-popup.html");
 
-
-
-
     var $toolbarIcon = null;
 
     function closeCallout() {
-        var $callout = $("#psdl-firstlaunch-popup");
+        var $callout = $("#healthdata-firstlaunch-popup");
 
         if (!$callout.hasClass("animateOpen")) {
             return;
@@ -76,7 +73,7 @@ define(function (require, exports, module) {
         // Animate in
         // Must wait a cycle for the "display: none" to drop out before CSS transitions will work
         setTimeout(function () {
-            $("#psdl-firstlaunch-popup").addClass("animateOpen");
+            $("#healthdata-firstlaunch-popup").addClass("animateOpen");
         }, 0);
 
         return result.promise();
