@@ -211,8 +211,8 @@ define(function (require, exports, module) {
             var lineChanges = changeObj.text.length - changeObj.removed.length;
             //update the lineFolds cache
             updateFoldsCache(cm, changeObj.from.line, lineChanges);
-            if (lineChanges !== 0 && changeObj.from.line + lineChanges >= 0) {
-                updateFoldInfo(cm, changeObj.from.line + lineChanges, changeObj.from.line + lineChanges + 1);
+            if (lineChanges !== 0) {
+                updateFoldInfo(cm, Math.max(0, changeObj.from.line + lineChanges), Math.max(0, changeObj.from.line + lineChanges) + 1);
             }
             state.from = changeObj.from.line;
             state.to = 0;
