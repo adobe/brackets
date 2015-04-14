@@ -151,6 +151,30 @@ define(function (require, exports, module) {
         });
     }
 
+    function syncDocToFoldsCache(cm, from, lineDiff) {
+        var minFoldSize = prefs.getSetting("minFoldSize") || 2;
+        var opts = cm.state.foldGutter.options || {};
+        var rf = opts.rangeFinder || CodeMirror.fold.auto;
+        var i, pos, folds, fold, range;
+        if (lineDiff <= 0) {
+            return;
+        }
+        for (i = from; i <= from + lineDiff; i = i + 1) {
+            pos = CodeMirror.Pos(i);
+            folds = cm.doc.findMarksAt(pos);
+            fold = folds.length ? fold = folds[0] : undefined;
+            if (fold && fold.collapsed) {
+                range = rf(cm, CodeMirror.Pos(from));
+                if (range && range.to.line - range.from.line >= minFoldSize) {
+                    cm._lineFolds[from] = range;
+                } else {
+                    delete cm._lineFolds[from];
+                }
+                i = i + range.to.line - range.from.line;
+            }
+        }
+    }
+
     /**
       * Updates the line folds cache usually when the document changes.
       * @param {!CodeMirror} cm the CodeMirror instance for the active editor
@@ -179,7 +203,8 @@ define(function (require, exports, module) {
             var newFolds = {};
             foldedLines.forEach(function (line) {
                 range = cm._lineFolds[line];
-                if (line < from || linesDiff === 0) {
+                if (line < from || linesDiff === 0 ||
+                    (range.from.line >= from && range.to.line <= from + linesDiff && linesDiff > 0)) {
                     newFolds[line] = range;
                 } else if (!(range.from.line + linesDiff  <= from && linesDiff < 0)) {
                     // Do not add folds in deleted region to the new folds list
@@ -209,6 +234,9 @@ define(function (require, exports, module) {
         } else {
             var state = cm.state.foldGutter;
             var lineChanges = changeObj.text.length - changeObj.removed.length;
+            if (changeObj.origin === "undo" && lineChanges > 0) {
+                syncDocToFoldsCache(cm, changeObj.from.line, lineChanges);
+            }
             //update the lineFolds cache
             updateFoldsCache(cm, changeObj.from.line, lineChanges);
             if (lineChanges !== 0) {
