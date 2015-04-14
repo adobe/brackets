@@ -33,6 +33,13 @@
         "fileNames": [".jshintrc", ".bowerrc"]
     },
 
+     "svg": {
+        "name": "SVG",
+        "mode": ["xml", "image/svg+xml"],
+        "fileExtensions": ["svg"],
+        "blockComment": ["<!--", "-->"]
+    },
+
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
