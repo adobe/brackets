@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, appshell*/
+/*global define, brackets, appshell, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -61,30 +61,43 @@ define(function (require, exports, module) {
         return errorString;
     }
     
+    /** Ensures all links in the dialog box message have a tooltip showing the URL */
+    function addTooltipsToLinks(dialog) {
+        var $message = dialog.getElement().find(".dialog-message");
+        $message.find("a").each(function (index, elem) {
+            var $elem = $(elem);
+            var url = $elem.attr("href");
+            $elem.attr("title", url);
+        });
+    }
+    
     function handleInstallCommandResult(errorCode) {
+        var dialog;
         
         if (errorCode === appshell.app.ERR_CL_TOOLS_CANCELLED) {
             // The user has cancelled the authentication dialog.
             return;
         } else if (errorCode === appshell.app.NO_ERROR) {
             // flag success message here.
-            Dialogs.showModalDialog(
+            dialog = Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_INFO,
                 Strings.CREATING_LAUNCH_SCRIPT_TITLE,
                 Strings.LAUNCH_SCRIPT_CREATE_SUCCESS
             );
+            addTooltipsToLinks(dialog);
 
         } else {
             var errorString = _mapCLToolsErrorCodeToString(errorCode);
             var errMsg = StringUtils.format(Strings.ERROR_CREATING_LAUNCH_SCRIPT, errorString);
-            Dialogs.showModalDialog(
+            dialog = Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.CREATING_LAUNCH_SCRIPT_TITLE,
                 errMsg
             );
+            addTooltipsToLinks(dialog);
         }
     }
-
+    
     function handleInstallCommand() {
         appshell.app.installCommandLine(function (serviceCode) {
             handleInstallCommandResult(serviceCode);
