@@ -175,10 +175,10 @@ define(function (require, exports, module) {
                 range = rf(cm, CodeMirror.Pos(i));
                 if (range && range.to.line - range.from.line >= minFoldSize) {
                     cm._lineFolds[i] = range;
+                    i = i + range.to.line - range.from.line;
                 } else {
                     delete cm._lineFolds[i];
                 }
-                i = i + range.to.line - range.from.line;
             }
         }
     }
