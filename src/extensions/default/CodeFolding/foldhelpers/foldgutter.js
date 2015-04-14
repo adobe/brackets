@@ -151,24 +151,32 @@ define(function (require, exports, module) {
         });
     }
 
-    function syncDocToFoldsCache(cm, from, lineDiff) {
+    /**
+     * Synchronises the code folding states in the CM doc to cm._lineFolds cache.
+     * When an undo operation is done, if folded code fragments are restored, then
+     * we need to update cm._lineFolds with the fragments
+     * @param {Object}   cm       cm the CodeMirror instance for the active  editor
+     * @param {Object}   from     starting position in the doc to sync the fold states from
+     * @param {[[Type]]} lineAdded a number to show how many lines where added to the document
+     */
+    function syncDocToFoldsCache(cm, from, lineAdded) {
         var minFoldSize = prefs.getSetting("minFoldSize") || 2;
         var opts = cm.state.foldGutter.options || {};
         var rf = opts.rangeFinder || CodeMirror.fold.auto;
         var i, pos, folds, fold, range;
-        if (lineDiff <= 0) {
+        if (lineAdded <= 0) {
             return;
         }
-        for (i = from; i <= from + lineDiff; i = i + 1) {
+        for (i = from; i <= from + lineAdded; i = i + 1) {
             pos = CodeMirror.Pos(i);
             folds = cm.doc.findMarksAt(pos);
             fold = folds.length ? fold = folds[0] : undefined;
             if (fold && fold.collapsed) {
-                range = rf(cm, CodeMirror.Pos(from));
+                range = rf(cm, CodeMirror.Pos(i));
                 if (range && range.to.line - range.from.line >= minFoldSize) {
-                    cm._lineFolds[from] = range;
+                    cm._lineFolds[i] = range;
                 } else {
-                    delete cm._lineFolds[from];
+                    delete cm._lineFolds[i];
                 }
                 i = i + range.to.line - range.from.line;
             }
@@ -204,7 +212,7 @@ define(function (require, exports, module) {
             foldedLines.forEach(function (line) {
                 range = cm._lineFolds[line];
                 if (line < from || linesDiff === 0 ||
-                    (range.from.line >= from && range.to.line <= from + linesDiff && linesDiff > 0)) {
+                        (range.from.line >= from && range.to.line <= from + linesDiff && linesDiff > 0)) {
                     newFolds[line] = range;
                 } else if (!(range.from.line + linesDiff  <= from && linesDiff < 0)) {
                     // Do not add folds in deleted region to the new folds list
