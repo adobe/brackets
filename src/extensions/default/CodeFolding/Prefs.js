@@ -37,7 +37,7 @@ define(function (require, exports, module) {
                            {name: HIDE_FOLD_BUTTONS, description: HIDE_FOLD_BUTTONS_HELP});
     prefs.definePreference("maxFoldLevel", "number", 2,
                            {name: MAX_FOLD_LEVEL, description: MAX_FOLD_LEVEL_HELP});
-    prefs.definePreference("folds", "object", {});
+    PreferencesManager.stateManager.definePreference(foldsKey, "object", {});
 
     /**
       * Simplifies the fold ranges into an array of pairs of numbers.
@@ -83,7 +83,7 @@ define(function (require, exports, module) {
       * @return {Object} the line folds for the document at the specified path
       */
     function getFolds(path) {
-        var folds = (PreferencesManager.getViewState(foldsKey) || {});
+        var folds = PreferencesManager.getViewState(foldsKey);
         return inflate(folds[path]);
     }
 
