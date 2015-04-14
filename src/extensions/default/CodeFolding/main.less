@@ -47,8 +47,8 @@
 
 
 .CodeMirror-foldmarker {
-    padding-right: 5px;
-    padding-left: 5px;
+    padding-right: 3px;
+    padding-left: 3px;
     margin-right: 3px;
     margin-left: 3px;
     border-radius: 3px;
@@ -58,6 +58,9 @@
     background-color: @color-marker-bg;
     
     &:after {
-        content: "\27f7";
+        content: "...";
+        font-size: 0.9em;
+        vertical-align: top;
+        line-height: 1.0em;
     }
 }
