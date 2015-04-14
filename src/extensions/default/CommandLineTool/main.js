@@ -34,9 +34,6 @@ define(function (require, exports, module) {
         DefaultDialogs          = brackets.getModule("widgets/DefaultDialogs"),
         StringUtils             = brackets.getModule("utils/StringUtils");
     
-    var menu                    = Menus.getMenu(Menus.AppMenuBar.FILE_MENU),
-        DEBUG_LAUNCH_SCRIPT_MAC = "debug.createAppLaunchScript";
-    
     function _mapCLToolsErrorCodeToString(errorCode) {
         
         var errorString;
@@ -64,7 +61,7 @@ define(function (require, exports, module) {
         return errorString;
     }
     
-    function handleScriptMessages(errorCode) {
+    function handleInstallCommandResult(errorCode) {
         
         if (errorCode === appshell.app.ERR_CL_TOOLS_CANCELLED) {
             // The user has cancelled the authentication dialog.
@@ -88,17 +85,21 @@ define(function (require, exports, module) {
         }
     }
 
-    function handleInstallLauchScriptMac() {
+    function handleInstallCommand() {
         appshell.app.installCommandLine(function (serviceCode) {
-            handleScriptMessages(serviceCode);
+            handleInstallCommandResult(serviceCode);
         });
     }
     
     // Register the command and add the menu to file menu.
     function addCommand() {
-        CommandManager.register(Strings.CMD_LAUNCH_SCRIPT_MAC, DEBUG_LAUNCH_SCRIPT_MAC, handleInstallLauchScriptMac);
+        
+        var menu                    = Menus.getMenu(Menus.AppMenuBar.FILE_MENU),
+            INSTALL_COMMAND_SCRIPT  = "file.installCommandScript";
+        
+        CommandManager.register(Strings.CMD_LAUNCH_SCRIPT_MAC, INSTALL_COMMAND_SCRIPT, handleInstallCommand);
         menu.addMenuDivider();
-        menu.addMenuItem(DEBUG_LAUNCH_SCRIPT_MAC);
+        menu.addMenuItem(INSTALL_COMMAND_SCRIPT);
     }
     
     // Append this menu only for Mac.
