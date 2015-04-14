@@ -416,7 +416,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Julkaisutiedot",
     "CMD_GET_INVOLVED"                    : "Lähde mukaan",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Näytä laajennuskansio",
-    "CMD_HEALTH_DATA_STATISTICS"          : "Terveystietoraportti",
+    "CMD_HEALTH_DATA_STATISTICS"          : "Terveydentilaraportti",
     "CMD_HOMEPAGE"                        : "{APP_TITLE}in kotisivut",
     "CMD_TWITTER"                         : "{TWITTER_NAME} Twitterissä",
     "CMD_ABOUT"                           : "Tietoja {APP_TITLE}ista",
@@ -602,11 +602,11 @@ define({
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Järjestelmän oletus",
 
     // extensions/default/HealthData
-    "HEALTH_DATA_NOTIFICATION"                  : "Terveystietojen asetukset",
-    "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME}-terveysraportti",
+    "HEALTH_DATA_NOTIFICATION"                  : "Terveydentilaraportin asetukset",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME}in terveydentilaraportti",
     "HEALTH_DATA_DO_TRACK"                      : "Kyllä, haluan jakaa tietoja siitä, kuinka käytän {APP_NAME}ia.",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Jotta voit parantaa {APP_NAME}ia, otamme käyttöön uuden terveysraportin, joka lähettää Adobelle <strong>nimettömiä</strong> tietoja siitä, kuinka käytät tuotetta. Tämä raportti auttaa ydintiimiä ja laajennusten kehittäjiä asettamaan ominaisuudet tärkeysjärjestykseen, löytämään bugeja ja huomaamaan käytettävyys- ja löydettävyysongelmia.<br><br>Voit nähdä lähetettävät tiedot ja muuttaa asetustasi milloin tahansa valitsemalla <strong>Ohje -> Terveystietoraportti</strong>. Lue lisää {APP_NAME}in terveysraportista ja seuraa tilannetta <a href='https://github.com/adobe/brackets/wiki/Health-Data'>wikisivullamme</a>.",
-    "HEALTH_DATA_PREVIEW"                       : "Terveystietojen esikatselu",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Jotta voit parantaa {APP_NAME}ia, otamme käyttöön uuden terveydentilaraportin, joka lähettää Adobelle <strong>nimettömiä</strong> tietoja siitä, kuinka käytät tuotetta. Tämä raportti auttaa ydintiimiä ja laajennusten kehittäjiä asettamaan ominaisuudet tärkeysjärjestykseen, löytämään bugeja ja huomaamaan käytettävyys- ja löydettävyysongelmia.<br><br>Voit nähdä lähetettävät tiedot ja muuttaa asetustasi milloin tahansa valitsemalla <strong>Ohje -> Terveydentilaraportti</strong>. Lue lisää {APP_NAME}in terveysraportista ja seuraa tilannetta <a href='https://github.com/adobe/brackets/wiki/Health-Data'>wikisivullamme</a>.",
+    "HEALTH_DATA_PREVIEW"                       : "Terveydentilaraportin esikatselu",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Aika",
