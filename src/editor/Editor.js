@@ -2405,6 +2405,14 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Runs callback for every Editor instance that currently exists
+     * @param {!function(!Editor)} callback
+     */
+    Editor.forEveryEditor = function (callback) {
+        _instances.forEach(callback);
+    };
+    
+    /**
      * @private
      * Toggles the left padding of all code editors.  Used to provide more
      * space between the code text and the left edge of the editor when
