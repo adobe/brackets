@@ -570,6 +570,8 @@ define(function (require, exports, module) {
         // Start at the root of the current tree.
         queue.push(newNode);
         
+        var rootElemChanged = false, deltaID;
+        
         do {
             newElement = queue.pop();
             oldElement = oldNodeMap[newElement.tagID];
