@@ -152,6 +152,38 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Synchronises the code folding states in the CM doc to cm._lineFolds cache.
+     * When an undo operation is done, if folded code fragments are restored, then
+     * we need to update cm._lineFolds with the fragments
+     * @param {Object}   cm       cm the CodeMirror instance for the active  editor
+     * @param {Object}   from     starting position in the doc to sync the fold states from
+     * @param {[[Type]]} lineAdded a number to show how many lines where added to the document
+     */
+    function syncDocToFoldsCache(cm, from, lineAdded) {
+        var minFoldSize = prefs.getSetting("minFoldSize") || 2;
+        var opts = cm.state.foldGutter.options || {};
+        var rf = opts.rangeFinder || CodeMirror.fold.auto;
+        var i, pos, folds, fold, range;
+        if (lineAdded <= 0) {
+            return;
+        }
+        for (i = from; i <= from + lineAdded; i = i + 1) {
+            pos = CodeMirror.Pos(i);
+            folds = cm.doc.findMarksAt(pos);
+            fold = folds.length ? fold = folds[0] : undefined;
+            if (fold && fold.collapsed) {
+                range = rf(cm, CodeMirror.Pos(i));
+                if (range && range.to.line - range.from.line >= minFoldSize) {
+                    cm._lineFolds[i] = range;
+                    i = i + range.to.line - range.from.line;
+                } else {
+                    delete cm._lineFolds[i];
+                }
+            }
+        }
+    }
+
+    /**
       * Updates the line folds cache usually when the document changes.
       * @param {!CodeMirror} cm the CodeMirror instance for the active editor
       * @param {!number} from the line number designating the start position of the change
@@ -164,7 +196,7 @@ define(function (require, exports, module) {
             return +d;
         });
         if (linesDiff === 0) {
-            if (foldedLines.indexOf(from) > -1) {
+            if (foldedLines.indexOf(from) >= 0) {
                 var opts = cm.state.foldGutter.options || {};
                 var rf = opts.rangeFinder || CodeMirror.fold.auto;
                 range = rf(cm, CodeMirror.Pos(from));
@@ -179,13 +211,14 @@ define(function (require, exports, module) {
             var newFolds = {};
             foldedLines.forEach(function (line) {
                 range = cm._lineFolds[line];
-                if (line < from || linesDiff === 0) {
+                if (line < from || linesDiff === 0 ||
+                        (range.from.line >= from && range.to.line <= from + linesDiff && linesDiff > 0)) {
                     newFolds[line] = range;
-                } else {
+                } else if (!(range.from.line + linesDiff  <= from && linesDiff < 0)) {
+                    // Do not add folds in deleted region to the new folds list
                     range.from.line = range.from.line + linesDiff;
                     range.to.line = range.to.line + linesDiff;
                     newFolds[line + linesDiff] = range;
-
                 }
             });
             cm._lineFolds = newFolds;
@@ -209,10 +242,13 @@ define(function (require, exports, module) {
         } else {
             var state = cm.state.foldGutter;
             var lineChanges = changeObj.text.length - changeObj.removed.length;
+            if (changeObj.origin === "undo" && lineChanges > 0) {
+                syncDocToFoldsCache(cm, changeObj.from.line, lineChanges);
+            }
             //update the lineFolds cache
             updateFoldsCache(cm, changeObj.from.line, lineChanges);
             if (lineChanges !== 0) {
-                updateFoldInfo(cm, changeObj.from.line + lineChanges, changeObj.from.line + lineChanges + 1);
+                updateFoldInfo(cm, Math.max(0, changeObj.from.line + lineChanges), Math.max(0, changeObj.from.line + lineChanges) + 1);
             }
             state.from = changeObj.from.line;
             state.to = 0;
