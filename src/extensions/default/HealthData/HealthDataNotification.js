@@ -31,7 +31,6 @@ define(function (require, exports, module) {
         PreferencesManager           = brackets.getModule("preferences/PreferencesManager"),
         UrlParams                    = brackets.getModule("utils/UrlParams").UrlParams,
         HealthDataPreview            = require("HealthDataPreview"),
-        HealthDataManager            = require("HealthDataManager"),
         HealthDataPopup              = require("HealthDataPopup");
     
     // Parse URL params
@@ -51,9 +50,6 @@ define(function (require, exports, module) {
                 HealthDataPopup.showFirstLaunchTooltip()
                     .done(function () {
                         PreferencesManager.setViewState("healthDataNotificationShown", true);
-                        // Temporarily sending data on closing of popup.
-                        // This will probably change.
-                        HealthDataManager.checkHealthDataSend();
                     });
             }
         }
