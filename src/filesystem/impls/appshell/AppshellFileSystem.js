@@ -489,19 +489,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Set the permissions for a file or directory at the given path, with the
-     * specified mode in numeric format (ie 0777)
-     * @param {string} path
-     * @param {number} mode
-     * @param {function(string)=} callback
-     */
-    function chmod(path, mode, callback) {
-        appshell.fs.chmod(path, mode, function (err) {
-            callback(_mapError(err));
-        });
-    }
-    
-    /**
      * Initialize file watching for this filesystem, using the supplied
      * changeCallback to provide change notifications. The first parameter of
      * changeCallback specifies the changed path (either a file or a directory);
@@ -593,7 +580,6 @@ define(function (require, exports, module) {
     exports.writeFile       = writeFile;
     exports.unlink          = unlink;
     exports.moveToTrash     = moveToTrash;
-    exports.chmod           = chmod;
     exports.initWatchers    = initWatchers;
     exports.watchPath       = watchPath;
     exports.unwatchPath     = unwatchPath;
