@@ -31,8 +31,8 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var MainViewManager             = brackets.getModule("view/MainViewManager"),
+        Dialogs                     = brackets.getModule("widgets/Dialogs"),
         Strings                     = brackets.getModule("strings"),
-        HealthDataUtils             = require("HealthDataUtils"),
         HealthDataNotificationHtml  = require("text!htmlContent/healthdata-popup.html");
 
     function closeCallout() {
@@ -60,7 +60,7 @@ define(function (require, exports, module) {
             result = new $.Deferred(),
             $firstLaunchPopup = $(Mustache.render(HealthDataNotificationHtml, {"Strings": Strings}));
         
-        HealthDataUtils.addTooltipsToLinks($firstLaunchPopup);
+        Dialogs.addLinkTooltips($firstLaunchPopup);
         
         $firstLaunchPopup.appendTo("body").hide()
                          .css("top", popupTop)

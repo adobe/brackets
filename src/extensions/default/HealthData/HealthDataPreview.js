@@ -34,7 +34,6 @@ define(function (require, exports, module) {
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         
         HealthDataPreviewDialog = require("text!htmlContent/healthdata-preview-dialog.html"),
-        HealthDataUtils         = require("HealthDataUtils"),
         HealthDataManager       = require("HealthDataManager");
 
     var prefs = PreferencesManager.getExtensionPrefs("healthData");
@@ -58,7 +57,7 @@ define(function (require, exports, module) {
                 template = Mustache.render(HealthDataPreviewDialog, {Strings: Strings, content: content, hdPref: hdPref}),
                 $template = $(template);
             
-            HealthDataUtils.addTooltipsToLinks($template);
+            Dialogs.addLinkTooltips($template);
             
             Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
      

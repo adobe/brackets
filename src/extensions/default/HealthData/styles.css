@@ -13,6 +13,10 @@
     margin-bottom: 0;
 }
 
+.health-data-preview input[type="checkbox"] {
+    vertical-align: bottom;
+}
+
 .health-data-preview .preview-content {
     -webkit-user-select: text;
     cursor: text;
