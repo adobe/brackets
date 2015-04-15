@@ -31,6 +31,15 @@ define(function (require, exports, module) {
         _                = brackets.getModule("thirdparty/lodash");
    
 
+    // TODO: duplicates code from CommandLineTool/main.js
+    function addTooltipsToLinks($elem) {
+        $elem.find("a").each(function (index, elem) {
+            var $elem = $(elem);
+            var url = $elem.attr("href");
+            $elem.attr("title", url);
+        });
+    }
+
     /**
      * @private
      * Check for the extensions whether it is user installed and present in the registry.
@@ -68,4 +77,5 @@ define(function (require, exports, module) {
     }
     
     exports.getUserInstalledExtensions   = getUserInstalledExtensions;
+    exports.addTooltipsToLinks           = addTooltipsToLinks;
 });

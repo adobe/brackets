@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var MainViewManager             = brackets.getModule("view/MainViewManager"),
         Strings                     = brackets.getModule("strings"),
+        HealthDataUtils             = require("HealthDataUtils"),
         HealthDataNotificationHtml  = require("text!htmlContent/healthdata-popup.html");
 
     function closeCallout() {
@@ -54,11 +55,13 @@ define(function (require, exports, module) {
     }
 
     function showFirstLaunchTooltip() {
-        var NOTCH_TIP_OFFSET = 0,
-            popupTop = $("#main-toolbar > .buttons > a:first").offset().top - NOTCH_TIP_OFFSET,
+        var TOP_MARGIN = 7,
+            popupTop = $("#editor-holder").offset().top + TOP_MARGIN,
             result = new $.Deferred(),
             $firstLaunchPopup = $(Mustache.render(HealthDataNotificationHtml, {"Strings": Strings}));
-
+        
+        HealthDataUtils.addTooltipsToLinks($firstLaunchPopup);
+        
         $firstLaunchPopup.appendTo("body").hide()
                          .css("top", popupTop)
                          .find(".healthdata-popup-close-button").click(function () {

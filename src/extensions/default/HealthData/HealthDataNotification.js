@@ -22,67 +22,32 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, Mustache, brackets, $ */
+/*global define, brackets */
 
 define(function (require, exports, module) {
     "use strict";
     
     var AppInit                      = brackets.getModule("utils/AppInit"),
         PreferencesManager           = brackets.getModule("preferences/PreferencesManager"),
-        Strings                      = brackets.getModule("strings"),
-        Dialogs                      = brackets.getModule("widgets/Dialogs"),
         UrlParams                    = brackets.getModule("utils/UrlParams").UrlParams,
         HealthDataPreview            = require("HealthDataPreview"),
-        HealthDataPopup              = require("HealthDataPopup"),
         HealthDataManager            = require("HealthDataManager"),
-        HealthDataNotificationDialog = require("text!htmlContent/healthdata-notification-dialog.html");
-    
-    PreferencesManager.definePreference("healthDataNotificationShown", "boolean", false);
-    
-    var prefs = PreferencesManager.getExtensionPrefs("healthData");
+        HealthDataPopup              = require("HealthDataPopup");
     
     // Parse URL params
     var params = new UrlParams();
-    /**
-     * Show dialog for first time to the user regarding data capturing by Brackets
-     */
-    function showDialogHealthDataNotification() {
-        var hdPref   = prefs.get("healthDataTracking"),
-            template = Mustache.render(HealthDataNotificationDialog, {"Strings": Strings, "hdPref": hdPref}),
-            $template = $(template),
-            newHDPref = hdPref,
-            result = new $.Deferred();
-
-        Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
-            if (id === "save") {
-                newHDPref = $template.find("[data-target]:checkbox").is(":checked");
-                if (hdPref !== newHDPref) {
-                    prefs.set("healthDataTracking", newHDPref);
-                }
-            }
-            
-            result.resolve();
-        });
-        return result.promise();
-    }
 
     function handleHealthDataStatistics() {
-        var hdPref = prefs.get("healthDataTracking");
-        
-        if (hdPref) {
-            HealthDataPreview.previewHealthData();
-        } else {
-            showDialogHealthDataNotification();
-        }
+        HealthDataPreview.previewHealthData();
     }
     
     AppInit.appReady(function () {
         params.parse();
         // Check whether the notification dialog should be shown. It will be shown one time. Does not check in testing environment.
         if (!params.get("testEnvironment")) {
-            var isShown = PreferencesManager.getViewState("healthDataNotificationShown");
+            var alreadyShown = PreferencesManager.getViewState("healthDataNotificationShown");
 
-            if (!isShown) {
+            if (!alreadyShown) {
                 HealthDataPopup.showFirstLaunchTooltip()
                     .done(function () {
                         PreferencesManager.setViewState("healthDataNotificationShown", true);
@@ -94,6 +59,6 @@ define(function (require, exports, module) {
         }
     });
     
-    exports.showDialogHealthDataNotification = showDialogHealthDataNotification;
+    
     exports.handleHealthDataStatistics       = handleHealthDataStatistics;
 });

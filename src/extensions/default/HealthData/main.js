@@ -33,7 +33,9 @@ define(function (require, exports, module) {
         Strings                 = brackets.getModule("strings"),
         Commands                = brackets.getModule("command/Commands"),
         
-        HealthDataNotification  = require("HealthDataNotification");
+        HealthDataNotification  = require("HealthDataNotification"),  // self-initializes to show first-launch notification
+        HealthDataManager       = require("HealthDataManager"),  // self-initializes timer to send data
+        HealthDataPopup         = require("HealthDataPopup");
     
     var menu            = Menus.getMenu(Menus.AppMenuBar.HELP_MENU),
         healthDataCmdId = "healthData.healthDataStatistics";
@@ -53,8 +55,9 @@ define(function (require, exports, module) {
     
     function initTest() {
         brackets.test.HealthDataPreview      = require("HealthDataPreview");
-        brackets.test.HealthDataManager      = require("HealthDataManager");
+        brackets.test.HealthDataManager      = HealthDataManager;
         brackets.test.HealthDataNotification = HealthDataNotification;
+        brackets.test.HealthDataPopup        = HealthDataPopup;
     }
     
     AppInit.appReady(function () {

@@ -80,20 +80,21 @@ define(function (require, exports, module) {
 
         });
         
-        describe("Notification is displayed", function () {
-            var HealthDataNotification;
+        describe("Notification popup", function () {
+            var HealthDataPopup;
             
             beforeEach(function () {
-                HealthDataNotification = testWindow.brackets.test.HealthDataNotification;
+                HealthDataPopup = testWindow.brackets.test.HealthDataPopup;
             });
             
             afterEach(function () {
-                HealthDataNotification = null;
+                HealthDataPopup = null;
             });
             
-            it("should show notification dialog", function () {
-                HealthDataNotification.showDialogHealthDataNotification();
-                expect($(testWindow.document).find(".health-data-notification.instance").length).toBe(1);
+            it("should show notification popup", function () {
+                // TODO: write a test that verifies this actually shows *on a clean launch*, not just when API called...
+                HealthDataPopup.showFirstLaunchTooltip();
+                expect($(testWindow.document).find("#healthdata-firstlaunch-popup").length).toBe(1);
             });
         });
 

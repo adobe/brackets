@@ -1,6 +1,26 @@
-.health-data-preview .preview-content{
-    -webkit-user-select: text;
+/* Dialog in the Help menu */
+
+.health-data-preview .modal-body {
+    max-height: none;
 }
+
+.health-data-preview .preview-content-container {
+    max-height: 300px;
+    overflow: auto;
+    background-color: #f0f0f0;
+    border-radius: 3px;
+    padding: 8px;
+    margin-bottom: 0;
+}
+
+.health-data-preview .preview-content {
+    -webkit-user-select: text;
+    cursor: text;
+}
+
+
+/* Notification popup seen on first launch */
+
 .healthdata-firstlaunch-container {
     border-radius: 3px;
     background: #005f8f;
@@ -11,13 +31,12 @@
     z-index: 100;
 
     font-family: "SourceSansPro";
-    color: #EEE;
+    color: #eee;
     line-height: 1.5;
 
     /* animated properties */
-    opacity: 1.0;
-    -webkit-transform: scale(0);
-    transform: scale(0);
+    opacity: 0;
+    transform: translateY(-50px);
 }
 
 #healthdata-firstlaunch-popup {
@@ -26,36 +45,42 @@
 }
 
 .healthdata-firstlaunch-container.animateOpen {
-    -webkit-transition: -webkit-transform 125ms;
-    transition: transform 125ms;
-    -webkit-transform: scale(1);
-    transform: scale(1);
+    opacity: 1;
+    transition: transform 500ms, opacity 500ms;
+    transition-delay: 2s;
+    transform: translateY(0);
 }
 
 .healthdata-firstlaunch-container.animateClose {
-    /* Make the animation use the GPU--especially important for retina. */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-transition: opacity 125ms ease-in, -webkit-transform 125ms;
-    transition: opacity 125ms ease-in, transform 125ms;
-    opacity: 0.0;
+    transition: transform 500ms, opacity 500ms;
+}
+
+#healthdata-firstlaunch-popup p {
+    margin-bottom: 5px;
 }
 
 .healthdata-popup-close-button {
     font-size: 16px;
     font-weight: 900;
-    margin-top: -10px;
+    position: absolute;
+    top: 0;
+    right: 8px;
+    cursor: pointer;
+}
+.healthdata-popup-close-button:hover {
     color: white;
-    text-align: right;
 }
 
 .healthdata-dialog-title {
     font-size: 16px;
     font-weight: bold;
-    margin-top: -22px;
-    color: #DDD;
+    color: #ddd;
 }
 
 .healthdata-dialog-message strong {
     color: white;
+}
+
+.healthdata-dialog-message a {
+    color: #00ccff;
 }
