@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     function getUserExtensionsPresentInRegistry(extensions) {
         var userInstalledExtensions = [];
         _.forEach(extensions, function (extension, extensionId) {
-            if (extension && extension.installInfo && extension.installInfo.locationType === "user" && extension.registryInfo) {
+            if (extension && extension.installInfo && extension.installInfo.locationType === ExtensionManager.LOCATION_USER && extension.registryInfo) {
                 userInstalledExtensions.push({"name" : extensionId, "version" : extension.installInfo.metadata.version});
             }
         });
@@ -62,7 +62,7 @@ define(function (require, exports, module) {
     function getUserInstalledExtensions() {
         var result = new $.Deferred();
 
-        if (!ExtensionManager.isRegistryObjectUpdated) {
+        if (!ExtensionManager.hasDownloadedRegistry) {
             ExtensionManager.downloadRegistry().done(function () {
                 result.resolve(getUserExtensionsPresentInRegistry(ExtensionManager.extensions));
             })
