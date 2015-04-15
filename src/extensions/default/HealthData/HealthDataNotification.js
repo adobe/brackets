@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         Dialogs                      = brackets.getModule("widgets/Dialogs"),
         UrlParams                    = brackets.getModule("utils/UrlParams").UrlParams,
         HealthDataPreview            = require("HealthDataPreview"),
+        HealthDataPopup              = require("HealthDataPopup"),
         HealthDataManager            = require("HealthDataManager"),
         HealthDataNotificationDialog = require("text!htmlContent/healthdata-notification-dialog.html");
     
@@ -53,8 +54,6 @@ define(function (require, exports, module) {
             result = new $.Deferred();
 
         Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
-            PreferencesManager.setViewState("healthDataNotificationShown", true);
-     
             if (id === "save") {
                 newHDPref = $template.find("[data-target]:checkbox").is(":checked");
                 if (hdPref !== newHDPref) {
@@ -84,8 +83,11 @@ define(function (require, exports, module) {
             var isShown = PreferencesManager.getViewState("healthDataNotificationShown");
 
             if (!isShown) {
-                showDialogHealthDataNotification()
+                HealthDataPopup.showFirstLaunchTooltip()
                     .done(function () {
+                        PreferencesManager.setViewState("healthDataNotificationShown", true);
+                        // Temporarily sending data on closing of popup.
+                        // This will probably change.
                         HealthDataManager.checkHealthDataSend();
                     });
             }

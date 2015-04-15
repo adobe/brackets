@@ -1,3 +1,61 @@
 .health-data-preview .preview-content{
     -webkit-user-select: text;
 }
+.healthdata-firstlaunch-container {
+    border-radius: 3px;
+    background: #005f8f;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.24);
+
+    position: absolute;
+    padding: 9px 12px 9px 12px;
+    z-index: 100;
+
+    font-family: "SourceSansPro";
+    color: #EEE;
+    line-height: 1.5;
+
+    /* animated properties */
+    opacity: 1.0;
+    -webkit-transform: scale(0);
+    transform: scale(0);
+}
+
+#healthdata-firstlaunch-popup {
+    max-width: 250px;
+    right: 39px;
+}
+
+.healthdata-firstlaunch-container.animateOpen {
+    -webkit-transition: -webkit-transform 125ms;
+    transition: transform 125ms;
+    -webkit-transform: scale(1);
+    transform: scale(1);
+}
+
+.healthdata-firstlaunch-container.animateClose {
+    /* Make the animation use the GPU--especially important for retina. */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-transition: opacity 125ms ease-in, -webkit-transform 125ms;
+    transition: opacity 125ms ease-in, transform 125ms;
+    opacity: 0.0;
+}
+
+.healthdata-popup-close-button {
+    font-size: 16px;
+    font-weight: 900;
+    margin-top: -10px;
+    color: white;
+    text-align: right;
+}
+
+.healthdata-dialog-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: -22px;
+    color: #DDD;
+}
+
+.healthdata-dialog-message strong {
+    color: white;
+}
