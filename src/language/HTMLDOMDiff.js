@@ -604,7 +604,7 @@ define(function (require, exports, module) {
                 // because it isn't the child of any other node. The browser-side code doesn't
                 // care about parentage/positioning in this case, and will handle just setting the 
                 // ID on the existing implied HTML tag in the browser without actually creating it.
-                if (!newElement.parent) {
+                if (!newElement.parent ) {
                     edits.push({
                         type: "elementInsert",
                         tag: newElement.tag,
