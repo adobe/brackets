@@ -145,14 +145,14 @@ define(function (require, exports, module) {
      * 
      * @constructor
      * @param {string} path Path to the preferences file
-     * @param {boolean} createIfNew True if the file should be created if it doesn't exist.
+     * @param {boolean} createIfMissing True if the file should be created if it doesn't exist.
      *                              If this is not true, an exception will be thrown if the
      *                              file does not exist.
      * @param {boolean} isStateJson True if the specified preferences file is state.json 
      */
-    function FileStorage(path, createIfNew, isStateJson) {
+    function FileStorage(path, createIfMissing, isStateJson) {
         this.path = path;
-        this.createIfNew = createIfNew;
+        this.createIfMissing = createIfMissing;
         this.isStateJson = isStateJson;
         this._lineEndings = FileUtils.getPlatformLineEndings();
     }
@@ -168,7 +168,7 @@ define(function (require, exports, module) {
         load: function () {
             var result = new $.Deferred();
             var path = this.path;
-            var createIfNew = this.createIfNew;
+            var createIfMissing = this.createIfMissing;
             var isStateJson = this.isStateJson;
             var self = this;
             
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
                 var prefFile = FileSystem.getFileForPath(path);
                 prefFile.read({}, function (err, text) {
                     if (err) {
-                        if (createIfNew) {
+                        if (createIfMissing) {
                             // Unreadable file is also unwritable -- delete so get recreated
                             if (isStateJson && (err === FileSystemError.NOT_READABLE || err === FileSystemError.UNSUPPORTED_ENCODING)) {
                                 appshell.fs.moveToTrash(path, function (err) {
@@ -203,7 +203,7 @@ define(function (require, exports, module) {
                         try {
                             result.resolve(JSON.parse(text));
                         } catch (e) {
-                            if (isStateJson && createIfNew) {
+                            if (isStateJson && createIfMissing) {
                                 // JSON parsing error -- start from scratch
                                 console.log("Invalid JSON settings at " + path + "(" + e.toString() + ") -- contents reset");
                                 result.resolve({});
