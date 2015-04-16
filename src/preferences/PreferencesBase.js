@@ -21,7 +21,7 @@
  * 
  */
 
-/*global define, $, console */
+/*global define, $, console, appshell */
 /*unittests: Preferences Base */
 
 /**
@@ -58,12 +58,13 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils   = require("file/FileUtils"),
-        FileSystem  = require("filesystem/FileSystem"),
+    var FileUtils       = require("file/FileUtils"),
+        FileSystem      = require("filesystem/FileSystem"),
+        FileSystemError = require("filesystem/FileSystemError"),
         EventDispatcher = require("utils/EventDispatcher"),
-        _           = require("thirdparty/lodash"),
-        Async       = require("utils/Async"),
-        globmatch   = require("thirdparty/globmatch");
+        _               = require("thirdparty/lodash"),
+        Async           = require("utils/Async"),
+        globmatch       = require("thirdparty/globmatch");
     
     // CONSTANTS
     var PREFERENCE_CHANGE = "change",
@@ -144,13 +145,15 @@ define(function (require, exports, module) {
      * 
      * @constructor
      * @param {string} path Path to the preferences file
-     * @param {boolean} createIfNew True if the file should be created if it doesn't exist.
+     * @param {boolean} createIfMissing True if the file should be created if it doesn't exist.
      *                              If this is not true, an exception will be thrown if the
      *                              file does not exist.
+     * @param {boolean} isStateJson True if the specified preferences file is state.json 
      */
-    function FileStorage(path, createIfNew) {
+    function FileStorage(path, createIfMissing, isStateJson) {
         this.path = path;
-        this.createIfNew = createIfNew;
+        this.createIfMissing = createIfMissing;
+        this.isStateJson = isStateJson;
         this._lineEndings = FileUtils.getPlatformLineEndings();
     }
     
@@ -165,14 +168,25 @@ define(function (require, exports, module) {
         load: function () {
             var result = new $.Deferred();
             var path = this.path;
-            var createIfNew = this.createIfNew;
+            var createIfMissing = this.createIfMissing;
+            var isStateJson = this.isStateJson;
             var self = this;
             
             if (path) {
                 var prefFile = FileSystem.getFileForPath(path);
                 prefFile.read({}, function (err, text) {
                     if (err) {
-                        if (createIfNew) {
+                        if (createIfMissing) {
+                            // Unreadable file is also unwritable -- delete so get recreated
+                            if (isStateJson && (err === FileSystemError.NOT_READABLE || err === FileSystemError.UNSUPPORTED_ENCODING)) {
+                                appshell.fs.moveToTrash(path, function (err) {
+                                    if (err) {
+                                        console.log("Cannot move unreadable preferences file " + path + " to trash!!");
+                                    } else {
+                                        console.log("Note: Old Preferences file " + path + " has been moved to trash and recreated. You may refer to the deleted file in trash in case you want to recreate it from the former one!!");
+                                    }
+                                }.bind(this));
+                            }
                             result.resolve({});
                         } else {
                             result.reject(new Error("Unable to load prefs at " + path + " " + err));
@@ -189,7 +203,13 @@ define(function (require, exports, module) {
                         try {
                             result.resolve(JSON.parse(text));
                         } catch (e) {
-                            result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
+                            if (isStateJson && createIfMissing) {
+                                // JSON parsing error -- start from scratch
+                                console.log("Invalid JSON settings at " + path + "(" + e.toString() + ") -- contents reset");
+                                result.resolve({});
+                            } else {
+                                result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
+                            }
                         }
                     }
                 });
