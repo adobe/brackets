@@ -789,7 +789,8 @@ define(function (require, exports, module) {
     exports.updateExtensions        = updateExtensions;
     exports.getAvailableUpdates     = getAvailableUpdates;
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
-    exports.hasDownloadedRegistry = false;
+    
+    exports.hasDownloadedRegistry   = false;
     
     exports.ENABLED       = ENABLED;
     exports.START_FAILED  = START_FAILED;

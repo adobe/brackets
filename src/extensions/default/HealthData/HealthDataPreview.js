@@ -53,7 +53,6 @@ define(function (require, exports, module) {
             content = content.replace(/(?:\r\n|\r|\n)/g, "<br />");
 
             var hdPref   = prefs.get("healthDataTracking"),
-                newHDPref = hdPref,
                 template = Mustache.render(HealthDataPreviewDialog, {Strings: Strings, content: content, hdPref: hdPref}),
                 $template = $(template);
             
@@ -62,7 +61,7 @@ define(function (require, exports, module) {
             Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
      
                 if (id === "save") {
-                    newHDPref = $template.find("[data-target]:checkbox").is(":checked");
+                    var newHDPref = $template.find("[data-target]:checkbox").is(":checked");
                     if (hdPref !== newHDPref) {
                         prefs.set("healthDataTracking", newHDPref);
                     }

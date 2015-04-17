@@ -427,7 +427,7 @@ define(function (require, exports, module) {
         $element.find("a").each(function (index, elem) {
             var $elem = $(elem);
             var url = $elem.attr("href");
-            if (url && url !== "#") {
+            if (url && url !== "#" && !$elem.attr("title")) {
                 $elem.attr("title", url);
             }
         });
