@@ -398,6 +398,8 @@ define(function (require, exports, module) {
                     // Core extensions we want to support in the browser
                     "CSSCodeHints",
                     "HTMLCodeHints",
+                    "JavaScriptCodeHints",
+                    "SVGCodeHints",
                     "HtmlEntityCodeHints",
                     "InlineColorEditor",
                     "JavaScriptQuickEdit",
