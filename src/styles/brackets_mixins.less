@@ -58,12 +58,15 @@
     flex-direction: column;
 }
 .box-flex(@ratio) {
+    -webkit-flex-grow: @ratio;
     flex-grow: @ratio;
 }
 .box-pack(@pack) {
+    -webkit-justify-content: @pack;
     justify-content: @pack;
 }
 .box-align(@align) {
+    -webkit-align-items:@align;
     align-items: @align;
 }
 
