@@ -47,8 +47,10 @@ define(function (require, exports, module) {
             testWindow = null;
         });
 
+        
         describe("Data Send to Server", function () {
             var ONE_DAY = 24 * 60 * 60 * 1000,
+                FIRST_LAUNCH_SEND_DELAY = 30 * 60 * 1000,
                 prefs,
                 HealthDataManager;
             
@@ -56,6 +58,16 @@ define(function (require, exports, module) {
                 PreferencesManager = testWindow.brackets.test.PreferencesManager;
                 prefs = PreferencesManager.getExtensionPrefs("healthData");
                 HealthDataManager = testWindow.brackets.test.HealthDataManager;
+                
+                this.addMatchers({
+                    // Oddly, Jasmine has expect().toBeGreaterThan() built in, but not greater-or-equal
+                    toBeGreaterOrEqualTo: function (expected) {
+                        this.message = function () {
+                            return "Expected " + this.actual + " to be >= " + expected;
+                        };
+                        return this.actual >= expected;
+                    }
+                });
             });
             
             afterEach(function () {
@@ -63,16 +75,27 @@ define(function (require, exports, module) {
                 prefs = null;
                 PreferencesManager = null;
             });
-
-            it("should send data to server", function () {
-                PreferencesManager.setViewState("lastTimeSentHealthData", Date.now() - ONE_DAY);
+            
+            it("should send data to server when opted in", function () {
+                var baseTime = Date.now();
+                PreferencesManager.setViewState("nextHealthDataSendTime", baseTime);
                 PreferencesManager.setViewState("healthDataNotificationShown", true);
                 var promise = HealthDataManager.checkHealthDataSend();
                 waitsForDone(promise, "Send Data to Server", 4000);
+                expect(PreferencesManager.getViewState("nextHealthDataSendTime")).toBeGreaterOrEqualTo(baseTime + ONE_DAY);
             });
 
-            it("should not send data to server", function () {
-                PreferencesManager.setViewState("lastTimeSentHealthData", Date.now() - ONE_DAY);
+            it("should not send data right away on first launch", function () {
+                var baseTime = Date.now();
+                PreferencesManager.setViewState("nextHealthDataSendTime", null);
+                PreferencesManager.setViewState("healthDataNotificationShown", true);
+                var promise = HealthDataManager.checkHealthDataSend();
+                waitsForFail(promise, "Send Data to Server", 4000);
+                expect(PreferencesManager.getViewState("nextHealthDataSendTime")).toBeGreaterOrEqualTo(baseTime + FIRST_LAUNCH_SEND_DELAY);
+            });
+
+            it("should not send data to server when opted out", function () {
+                PreferencesManager.setViewState("nextHealthDataSendTime", Date.now());
                 prefs.set("healthDataTracking", false);
                 var promise = HealthDataManager.checkHealthDataSend();
                 waitsForFail(promise, "Send Data to Server", 4000);
@@ -80,20 +103,21 @@ define(function (require, exports, module) {
 
         });
         
-        describe("Notification is displayed", function () {
-            var HealthDataNotification;
+        describe("Notification popup", function () {
+            var HealthDataPopup;
             
             beforeEach(function () {
-                HealthDataNotification = testWindow.brackets.test.HealthDataNotification;
+                HealthDataPopup = testWindow.brackets.test.HealthDataPopup;
             });
             
             afterEach(function () {
-                HealthDataNotification = null;
+                HealthDataPopup = null;
             });
             
-            it("should show notification dialog", function () {
-                HealthDataNotification.showDialogHealthDataNotification();
-                expect($(testWindow.document).find(".health-data-notification.instance").length).toBe(1);
+            it("should show notification popup", function () {
+                // TODO: write a test that verifies this actually shows *on a clean launch*, not just when API called...
+                HealthDataPopup.showFirstLaunchTooltip();
+                expect($(testWindow.document).find("#healthdata-firstlaunch-popup").length).toBe(1);
             });
         });
 

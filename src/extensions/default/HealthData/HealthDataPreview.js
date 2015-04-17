@@ -31,8 +31,8 @@ define(function (require, exports, module) {
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         Strings                 = brackets.getModule("strings"),
         Dialogs                 = brackets.getModule("widgets/Dialogs"),
-        
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
+        
         HealthDataPreviewDialog = require("text!htmlContent/healthdata-preview-dialog.html"),
         HealthDataManager       = require("HealthDataManager");
 
@@ -53,14 +53,15 @@ define(function (require, exports, module) {
             content = content.replace(/(?:\r\n|\r|\n)/g, "<br />");
 
             var hdPref   = prefs.get("healthDataTracking"),
-                newHDPref = hdPref,
                 template = Mustache.render(HealthDataPreviewDialog, {Strings: Strings, content: content, hdPref: hdPref}),
                 $template = $(template);
-
+            
+            Dialogs.addLinkTooltips($template);
+            
             Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
      
                 if (id === "save") {
-                    newHDPref = $template.find("[data-target]:checkbox").is(":checked");
+                    var newHDPref = $template.find("[data-target]:checkbox").is(":checked");
                     if (hdPref !== newHDPref) {
                         prefs.set("healthDataTracking", newHDPref);
                     }

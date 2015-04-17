@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, appshell, $ */
+/*global define, brackets, appshell */
 
 define(function (require, exports, module) {
     "use strict";
@@ -61,16 +61,6 @@ define(function (require, exports, module) {
         return errorString;
     }
     
-    /** Ensures all links in the dialog box message have a tooltip showing the URL */
-    function addTooltipsToLinks(dialog) {
-        var $message = dialog.getElement().find(".dialog-message");
-        $message.find("a").each(function (index, elem) {
-            var $elem = $(elem);
-            var url = $elem.attr("href");
-            $elem.attr("title", url);
-        });
-    }
-    
     function handleInstallCommandResult(errorCode) {
         var dialog;
         
@@ -84,7 +74,7 @@ define(function (require, exports, module) {
                 Strings.CREATING_LAUNCH_SCRIPT_TITLE,
                 Strings.LAUNCH_SCRIPT_CREATE_SUCCESS
             );
-            addTooltipsToLinks(dialog);
+            Dialogs.addLinkTooltips(dialog);
 
         } else {
             var errorString = _mapCLToolsErrorCodeToString(errorCode);
@@ -94,7 +84,7 @@ define(function (require, exports, module) {
                 Strings.CREATING_LAUNCH_SCRIPT_TITLE,
                 errMsg
             );
-            addTooltipsToLinks(dialog);
+            Dialogs.addLinkTooltips(dialog);
         }
     }
     

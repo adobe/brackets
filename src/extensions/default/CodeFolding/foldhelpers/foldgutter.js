@@ -34,6 +34,15 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Checks whether or not a marker is a code-folding marker
+     * @param   {Object}   m a CodeMirror TextMarker object
+     * @returns {boolean} true if the marker is a codefolding range marker or false otherwise
+     */
+    function isFold(m) {
+        return m.__isFold;
+    }
+
+    /**
       * Updates the gutter markers for the specified range
       * @param {!CodeMirror} cm the CodeMirror instance for the active editor
       * @param {!number} from the starting line for the update
@@ -45,10 +54,6 @@ define(function (require, exports, module) {
         var fade = prefs.getSetting("hideUntilMouseover");
         var $gutter = $(cm.getGutterElement());
         var i = from;
-
-        function isFold(m) {
-            return m.__isFold;
-        }
 
         function clear(m) {
             return m.clear();
@@ -167,27 +172,40 @@ define(function (require, exports, module) {
         if (lineAdded <= 0) {
             return;
         }
+
         for (i = from; i <= from + lineAdded; i = i + 1) {
             pos = CodeMirror.Pos(i);
-            folds = cm.doc.findMarksAt(pos);
+            folds = cm.doc.findMarksAt(pos).filter(isFold);
             fold = folds.length ? fold = folds[0] : undefined;
-            if (fold && fold.collapsed) {
+            if (fold) {
                 range = rf(cm, CodeMirror.Pos(i));
                 if (range && range.to.line - range.from.line >= minFoldSize) {
                     cm._lineFolds[i] = range;
-                    i = i + range.to.line - range.from.line;
+                    i = range.to.line;
                 } else {
                     delete cm._lineFolds[i];
                 }
             }
         }
+
     }
 
     /**
       * Updates the line folds cache usually when the document changes.
-      * @param {!CodeMirror} cm the CodeMirror instance for the active editor
-      * @param {!number} from the line number designating the start position of the change
-      * @param {!number} linesDiff a number to show how many lines where removed or added to the document
+      * The following cases are accounted for:
+      * 1.  When the change does not add a new line to the document we check if the line being modified
+      *     is folded. If that is the case, changes to this line might affect the range stored in the cache
+      *     so we update the range.
+      * 2.  If lines have been added, we need to update the records for all lines in the folds cache
+      *     which are greater than the line position at which we are adding the new line(s). When existing
+      *     folds exist above the addition we keep the original position in the cache.
+      * 3.  If lines are being removed, we need to update the records for all lines in the folds cache which are
+      *     greater than the line position at which we are removing the new lines, while making sure to
+      *     not include any folded lines in the cache that are part of the removed chunk.
+      * @param {!CodeMirror} cm        the CodeMirror instance for the active editor
+      * @param {!number}     from      the line number designating the start position of the change
+      * @param {!number}     linesDiff a number to show how many lines where removed or added to the document.
+      *                                This value is negative for deletions and positive for additions.
       */
     function updateFoldsCache(cm, from, linesDiff) {
         var range;
@@ -195,12 +213,12 @@ define(function (require, exports, module) {
         var foldedLines = Object.keys(cm._lineFolds).map(function (d) {
             return +d;
         });
+        var opts = cm.state.foldGutter.options || {};
+        var rf = opts.rangeFinder || CodeMirror.fold.auto;
+
         if (linesDiff === 0) {
             if (foldedLines.indexOf(from) >= 0) {
-                var opts = cm.state.foldGutter.options || {};
-                var rf = opts.rangeFinder || CodeMirror.fold.auto;
                 range = rf(cm, CodeMirror.Pos(from));
-
                 if (range && range.to.line - range.from.line >= minFoldSize) {
                     cm._lineFolds[from] = range;
                 } else {
@@ -211,14 +229,21 @@ define(function (require, exports, module) {
             var newFolds = {};
             foldedLines.forEach(function (line) {
                 range = cm._lineFolds[line];
-                if (line < from || linesDiff === 0 ||
-                        (range.from.line >= from && range.to.line <= from + linesDiff && linesDiff > 0)) {
-                    newFolds[line] = range;
-                } else if (!(range.from.line + linesDiff  <= from && linesDiff < 0)) {
-                    // Do not add folds in deleted region to the new folds list
-                    range.from.line = range.from.line + linesDiff;
-                    range.to.line = range.to.line + linesDiff;
-                    newFolds[line + linesDiff] = range;
+                // for removed lines we want to check lines that lie outside the deleted range
+                if (linesDiff < 0) {
+                    if (line < from) {
+                        newFolds[line] = range;
+                    } else if (line >= from + Math.abs(linesDiff)) {
+                        range = rf(cm, CodeMirror.Pos(line + linesDiff));
+                        newFolds[line + linesDiff] = range;
+                    }
+                } else {
+                    if (line < from) {
+                        newFolds[line] = range;
+                    } else {
+                        range = rf(cm, CodeMirror.Pos(line + linesDiff));
+                        newFolds[line + linesDiff] = range;
+                    }
                 }
             });
             cm._lineFolds = newFolds;
@@ -242,11 +267,14 @@ define(function (require, exports, module) {
         } else {
             var state = cm.state.foldGutter;
             var lineChanges = changeObj.text.length - changeObj.removed.length;
+            // for undo actions that add new line(s) to the document first update the folds cache as normal
+            // and then update the folds cache with any line folds that exist in the new lines
             if (changeObj.origin === "undo" && lineChanges > 0) {
+                updateFoldsCache(cm, changeObj.from.line, lineChanges);
                 syncDocToFoldsCache(cm, changeObj.from.line, lineChanges);
+            } else {
+                updateFoldsCache(cm, changeObj.from.line, lineChanges);
             }
-            //update the lineFolds cache
-            updateFoldsCache(cm, changeObj.from.line, lineChanges);
             if (lineChanges !== 0) {
                 updateFoldInfo(cm, Math.max(0, changeObj.from.line + lineChanges), Math.max(0, changeObj.from.line + lineChanges) + 1);
             }

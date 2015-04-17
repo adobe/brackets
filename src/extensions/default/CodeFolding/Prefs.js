@@ -8,9 +8,11 @@
 /*global define, brackets*/
 define(function (require, exports, module) {
     "use strict";
-    var PreferencesManager          = brackets.getModule("preferences/PreferencesManager"),
+    
+    var ProjectManager              = brackets.getModule("project/ProjectManager"),
+        PreferencesManager          = brackets.getModule("preferences/PreferencesManager"),
         prefs                       = PreferencesManager.getExtensionPrefs("code-folding"),
-        foldsKey                    = "code-folding.folds",
+        FOLDS_PREF_KEY              = "code-folding.folds",
         // preference key strings are here for now since they are not used in any UI
         ENABLE_CODE_FOLDING         = "Enable code folding",
         MIN_FOLD_SIZE               = "Minimum fold size",
@@ -37,7 +39,8 @@ define(function (require, exports, module) {
                            {name: HIDE_FOLD_BUTTONS, description: HIDE_FOLD_BUTTONS_HELP});
     prefs.definePreference("maxFoldLevel", "number", 2,
                            {name: MAX_FOLD_LEVEL, description: MAX_FOLD_LEVEL_HELP});
-    PreferencesManager.stateManager.definePreference(foldsKey, "object", {});
+    
+    PreferencesManager.stateManager.definePreference(FOLDS_PREF_KEY, "object", {});
 
     /**
       * Simplifies the fold ranges into an array of pairs of numbers.
@@ -76,6 +79,17 @@ define(function (require, exports, module) {
 
         return ranges;
     }
+    
+    /**
+     * Returns a 'context' object for getting/setting project-specific view state preferences.
+     * Similar to code in MultiRangeInlineEditor._getPrefsContext()...
+     */
+    function getViewStateContext() {
+        var projectRoot = ProjectManager.getProjectRoot();  // note: null during unit tests!
+        return { location : { scope: "user",
+                              layer: "project",
+                              layerID: projectRoot && projectRoot.fullPath } };
+    }
 
     /**
       * Gets the line folds saved for the specified path.
@@ -83,7 +97,8 @@ define(function (require, exports, module) {
       * @return {Object} the line folds for the document at the specified path
       */
     function getFolds(path) {
-        var folds = PreferencesManager.getViewState(foldsKey);
+        var context = getViewStateContext();
+        var folds = PreferencesManager.getViewState(FOLDS_PREF_KEY, context);
         return inflate(folds[path]);
     }
 
@@ -93,9 +108,10 @@ define(function (require, exports, module) {
       * @param {Object} folds the fold ranges to save for the current document
       */
     function setFolds(path, folds) {
-        var allFolds = PreferencesManager.getViewState(foldsKey);
+        var context = getViewStateContext();
+        var allFolds = PreferencesManager.getViewState(FOLDS_PREF_KEY, context);
         allFolds[path] = simplify(folds);
-        PreferencesManager.setViewState(foldsKey, allFolds);
+        PreferencesManager.setViewState(FOLDS_PREF_KEY, allFolds, context);
     }
 
     /**
@@ -111,7 +127,7 @@ define(function (require, exports, module) {
       * Clears all the saved line folds for all documents.
       */
     function clearAllFolds() {
-        PreferencesManager.setViewState(foldsKey, {});
+        PreferencesManager.setViewState(FOLDS_PREF_KEY, {});
     }
 
     module.exports.getFolds = getFolds;

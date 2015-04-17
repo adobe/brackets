@@ -210,7 +210,7 @@ define(function (require, exports, module) {
             cache: false
         })
             .done(function (data) {
-                exports.isRegistryObjectUpdated = true;
+                exports.hasDownloadedRegistry = true;
                 Object.keys(data).forEach(function (id) {
                     if (!extensions[id]) {
                         extensions[id] = {};
@@ -789,7 +789,8 @@ define(function (require, exports, module) {
     exports.updateExtensions        = updateExtensions;
     exports.getAvailableUpdates     = getAvailableUpdates;
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
-    exports.isRegistryObjectUpdated = false;
+    
+    exports.hasDownloadedRegistry   = false;
     
     exports.ENABLED       = ENABLED;
     exports.START_FAILED  = START_FAILED;
