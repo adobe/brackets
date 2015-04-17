@@ -533,9 +533,9 @@ define({
     "EXTENSION_MORE_INFO_LINK"             : "Lisää",
     "BROWSE_EXTENSIONS"                    : "Selaa laajennuksia",
     "EXTENSION_MANAGER_REMOVE"             : "Poista laajennus",
-    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Yhden tai useamman laajennuksen poistaminen epäonnistui: {0}. {APP_NAME} latautuu silti uudelleen.",
+    "EXTENSION_MANAGER_REMOVE_ERROR"       : "Ei voitu poistaa yhtä tai useampaa laajennusta: {0}. {APP_NAME} latautuu silti uudelleen.",
     "EXTENSION_MANAGER_UPDATE"             : "Päivitä laajennus",
-    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Yhden tai useamman laajennuksen päivittäminen epäonnistui: {0}. {APP_NAME} latautuu silti uudelleen.",
+    "EXTENSION_MANAGER_UPDATE_ERROR"       : "Ei voitu päivittää yhtä tai useampaa laajennusta: {0}. {APP_NAME} latautuu silti uudelleen.",
     "MARKED_FOR_REMOVAL"                   : "Merkitty poistettavaksi",
     "UNDO_REMOVE"                          : "Kumoa",
     "MARKED_FOR_UPDATE"                    : "Merkitty päivitettäväksi",
@@ -576,7 +576,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "Lataa uudelleen laajennuksineen",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Lataa uudelleen laajennuksitta",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Uusi {APP_NAME}-ikkuna",
-    "CMD_LAUNCH_SCRIPT_MAC"                     : "Lisää {APP_NAME}-komentorivi",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "Asenna komentorivin oikotie",
     "CMD_SWITCH_LANGUAGE"                       : "Vaihda kieltä",
     "CMD_RUN_UNIT_TESTS"                        : "Suorita testejä",
     "CMD_SHOW_PERF_DATA"                        : "Näytä suorituskykytiedot",
@@ -585,15 +585,15 @@ define({
     "CMD_RESTART_NODE"                          : "Käynnistä Node uudelleen",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Näytä virheet tilapalkissa",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Avaa {APP_NAME}in lähdekoodi",
-    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Tapahtui virhe luotaessa {APP_NAME}-komentorivityökalua kohteeseen <code>/usr/local/bin</code>. Katso <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>command line</a> \u2011wiki vianmääritykseen.<br/><br/>Syy: ",
-    "ERROR_CLTOOLS_RMFAILED"                    : "Olemassa olevan symbolisen {APP_NAME}-linkin poistaminen kohteesta <code>/usr/local/bin</code> epäonnistui.",
-    "ERROR_CLTOOLS_MKDIRFAILED"                 : "Hakemistorakenteen <code>/usr/local/bin</code> luominen epäonnistui.",
-    "ERROR_CLTOOLS_LNFAILED"                    : "Symbolisen {APP_NAME}-linkin luominen kohteeseen <code>/usr/local/bin</code> epäonnistui.",
-    "ERROR_CLTOOLS_SERVFAILED"                  : "Valtuutusobjektin luominen epäonnistui.",
-    "ERROR_CLTOOLS_NOTSUPPORTED"                : "{APP_NAME}-komentorivityökalun asennus ei ole tuettua tässä käyttöjärjestelmässä.",
 
-    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Komentorivityökalu on asennettu onnistuneesti! Nyt voit helposti käynnistää {APP_NAME}in komentoriviltä käyttämällä komentoa <code>{APP_NAME} myFile.txt</code> tai <code>{APP_NAME} myFolder</code>. <br/><br/>Katso <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>command line</a> \u2011wiki saadaksesi lisätietoja.",
-    "CREATING_LAUNCH_SCRIPT_TITLE"              : "Lisää {APP_NAME}-komentorivi",
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME}-komentorivin oikotie",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Tapahtui virhe asennettaessa komentorivin oikotietä. Kokeile <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>näitä vianmääritysohjeita</a>.<br/><br/>Syy: {0}",
+    "ERROR_CLTOOLS_RMFAILED"                    : "Olemassa olevaa symbolista linkkiä <code>/usr/local/bin/brackets</code> ei voitu poistaa.",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "Hakemistoa <code>/usr/local/bin</code> ei voitu luoda.",
+    "ERROR_CLTOOLS_LNFAILED"                    : "Symbolista linkkiä <code>/usr/local/bin/brackets</code> ei voitu luoda.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "Sisäinen virhe.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "Komentorivin oikotie ei ole tuettu tässä käyttöjärjestelmässä.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Onnistui! Voit nyt helposti käynnistää {APP_NAME}in komentoriviltä: avaa tiedosto komennolla <code>brackets tiedosto.txt</code> tai vaihda projektia komennolla <code>brackets kansio</code>. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Lue lisää</a> {APP_NAME}in käyttämisestä komentoriviltä.",
 
     "LANGUAGE_TITLE"                            : "Vaihda kieltä",
     "LANGUAGE_MESSAGE"                          : "Kieli:",
@@ -604,9 +604,10 @@ define({
     // extensions/default/HealthData
     "HEALTH_DATA_NOTIFICATION"                  : "Terveydentilaraportin asetukset",
     "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME}in terveydentilaraportti",
-    "HEALTH_DATA_DO_TRACK"                      : "Kyllä, haluan jakaa tietoja siitä, kuinka käytän {APP_NAME}ia.",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Jotta voit parantaa {APP_NAME}ia, otamme käyttöön uuden terveydentilaraportin, joka lähettää Adobelle <strong>nimettömiä</strong> tietoja siitä, kuinka käytät tuotetta. Tämä raportti auttaa ydintiimiä ja laajennusten kehittäjiä asettamaan ominaisuudet tärkeysjärjestykseen, löytämään bugeja ja huomaamaan käytettävyys- ja löydettävyysongelmia.<br><br>Voit nähdä lähetettävät tiedot ja muuttaa asetustasi milloin tahansa valitsemalla <strong>Ohje -> Terveydentilaraportti</strong>. Lue lisää {APP_NAME}in terveysraportista ja seuraa tilannetta <a href='https://github.com/adobe/brackets/wiki/Health-Data'>wikisivullamme</a>.",
-    "HEALTH_DATA_PREVIEW"                       : "Terveydentilaraportin esikatselu",
+    "HEALTH_DATA_DO_TRACK"                      : "Jaa nimettömiä tietoja {APP_NAME}in käytöstäni",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Jotta voit parantaa {APP_NAME}ia, lähetämme säännöllisesti Adobelle rajattuja, <strong>nimettömiä</strong> tilastotietoja siitä, kuinka käytät tuotetta. Nämä tiedot auttavat priorisoimaan ominaisuuksia, löytämään bugeja ja huomaamaan käytettävyysongelmia.<br><br>Voit nähdä tietosi tai valita, ettei tietoja jaeta, valitsemalla <strong>Ohje > Terveydentilaraportti</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lue lisää {APP_NAME}in terveydentilaraportista</a>",
+    "HEALTH_DATA_PREVIEW"                       : "{APP_NAME}in terveydentilaraportti",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Jotta voit parantaa {APP_NAME}ia, lähetämme säännöllisesti Adobelle rajattuja, <strong>nimettömiä</strong> tilastotietoja siitä, kuinka käytät tuotetta. Nämä tiedot auttavat priorisoimaan ominaisuuksia, löytämään bugeja ja huomaamaan käytettävyysongelmia. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lue lisää {APP_NAME}in terveydentilaraportista</a> ja siitä, kuinka se hyödyttää {APP_NAME}-yhteisöä yksityisyyttäsi suojellen.</p><p>Alla on esikatselu tiedoista, jotka lähetetään seuraavassa terveydentilaraportissasi <em>jos</em> se on otettu käyttöön.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Aika",
@@ -650,4 +651,4 @@ define({
     "EXPAND_CURRENT"                : "Laajenna nykyinen"
 });
 
-/* Last translated for d45ddf653220df11106dffb7c78152ef7c339513 */
+/* Last translated for 379267107e172bb14c6675bc1bb207756de0175d */
