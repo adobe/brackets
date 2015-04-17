@@ -37,7 +37,9 @@ define(function (require, exports, module) {
 
     prefs.definePreference("healthDataTracking", "boolean", true);
 
-    var ONE_DAY = 24 * 60 * 60 * 1000,
+    var ONE_MINUTE = 60 * 1000,
+        ONE_DAY = 24 * 60 * ONE_MINUTE,
+        FIRST_LAUNCH_SEND_DELAY = 30 * ONE_MINUTE,
         timeoutVar;
 
     var params = new UrlParams();
@@ -117,17 +119,26 @@ define(function (require, exports, module) {
      */
     function checkHealthDataSend() {
         var result = new $.Deferred(),
-            isHDTracking = prefs.get("healthDataTracking"),
-            notificationDialogShown = PreferencesManager.getViewState("healthDataNotificationShown");
+            isHDTracking = prefs.get("healthDataTracking");
         
         window.clearTimeout(timeoutVar);
-        if (isHDTracking && notificationDialogShown) {
-            var lastTimeSent = PreferencesManager.getViewState("lastTimeSentHealthData"),
+        if (isHDTracking) {
+            var nextTimeToSend = PreferencesManager.getViewState("nextHealthDataSendTime"),
                 currentTime = Date.now();
+            
+            // Never send data before FIRST_LAUNCH_SEND_DELAY has ellapsed on a fresh install. This gives the user time to read the notification
+            // popup, learn more, and opt out if desired
+            if (!nextTimeToSend) {
+                nextTimeToSend = currentTime + FIRST_LAUNCH_SEND_DELAY;
+                PreferencesManager.setViewState("nextHealthDataSendTime", nextTimeToSend);
+                // don't return yet though - still want to set the timeout below
+            }
 
-            if (!lastTimeSent || (currentTime >= lastTimeSent + ONE_DAY)) {
-                // Setting the time here to avoid any chance of sending data before ONE_DAY. Whether or not the request to the server is successful, we will be sending the data only after ONE_DAY has passed.
-                PreferencesManager.setViewState("lastTimeSentHealthData", Date.now());
+            if (currentTime >= nextTimeToSend) {
+                // Bump up nextHealthDataSendTime now to avoid any chance of sending data again before 24 hours, e.g. if the server request fails
+                // or the code below crashes
+                PreferencesManager.setViewState("nextHealthDataSendTime", currentTime + ONE_DAY);
+                
                 sendHealthDataToServer()
                     .done(function () {
                         result.resolve();
@@ -140,7 +151,8 @@ define(function (require, exports, module) {
                     });
 
             } else {
-                timeoutVar = setTimeout(checkHealthDataSend, lastTimeSent + ONE_DAY - currentTime);
+                timeoutVar = setTimeout(checkHealthDataSend, nextTimeToSend - currentTime);
+                result.reject();
             }
         } else {
             result.reject();
