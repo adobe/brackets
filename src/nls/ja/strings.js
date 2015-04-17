@@ -416,7 +416,7 @@ define({
 	"CMD_RELEASE_NOTES": "リリースノート",
 	"CMD_GET_INVOLVED": "コミュニティに参加",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",
-	"CMD_HEALTH_DATA_STATISTICS": "正常性データレポート",
+	"CMD_HEALTH_DATA_STATISTICS": "!能=[8033837] Health Report_=!",
 	"CMD_HOMEPAGE": "{APP_TITLE} ホームページ",
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
@@ -566,7 +566,6 @@ define({
     /**
      * Unit names
      */
-
 	"UNIT_PIXELS": "ピクセル",
 
     // extensions/default/DebugCommands
@@ -602,11 +601,12 @@ define({
 	"LANGUAGE_SYSTEM_DEFAULT": "システムのデフォルト",
 
     // extensions/default/HealthData
-	"HEALTH_DATA_NOTIFICATION": "正常性データの環境設定",
+	"HEALTH_DATA_NOTIFICATION": "!能=[8033839] Health Report Preferences_=!",
 	"HEALTH_FIRST_POPUP_TITLE": "Brackets の正常性レポート",
-	"HEALTH_DATA_DO_TRACK": "はい、Brackets の使用方法に関する情報を共有します。",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "Brackets 品質向上のため、アドビでは、お客様の Brackets の使用方法に関する<strong>匿名の</strong>データをアドビに送信する新しい正常性レポートを実装しています。このレポートは、コアチームや拡張機能の開発者が機能を優先順位付けし、バグを発見し、操作性および検出可能性の問題を検出する際に役立ちます。<br><br><strong>Help->正常性データレポート</strong>にアクセスすると、送信されるデータを確認できるほか、いつでも環境設定を変更できます。Brackets 正常性レポートの詳細について、またステータスを追跡するには、<a href='https://github.com/adobe/brackets/wiki/Health-Data'>アドビの Wiki ページ</a>をご覧ください。",
-	"HEALTH_DATA_PREVIEW": "正常性データのプレビュー",
+	"HEALTH_DATA_DO_TRACK": "!能=[8033838] Share anonymous information on how I use Brackets_=!",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "!能=[8033840] In order to improve Brackets, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use Brackets. This information helps prioritize features, find bugs, and spot usability issues.<br><br>You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about Brackets Health Report</a>_=!",
+	"HEALTH_DATA_PREVIEW": "Brackets の正常性レポート",
+	"HEALTH_DATA_PREVIEW_INTRO": "!能=[8073104] <p>In order to improve Brackets, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use Brackets. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about Brackets Health Report</a> and how it benefits the Brackets community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>_=!",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "時間",

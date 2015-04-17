@@ -416,7 +416,7 @@ define({
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_GET_INVOLVED": "Participer",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
-	"CMD_HEALTH_DATA_STATISTICS": "Rapport des données sur l’état de santé",
+	"CMD_HEALTH_DATA_STATISTICS": "[8033837] !é=Health Report=!",
 	"CMD_HOMEPAGE": "Page d’accueil de {APP_TITLE}",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
@@ -566,7 +566,6 @@ define({
     /**
      * Unit names
      */
-
 	"UNIT_PIXELS": "pixels",
 
     // extensions/default/DebugCommands
@@ -602,11 +601,12 @@ define({
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
 
     // extensions/default/HealthData
-	"HEALTH_DATA_NOTIFICATION": "Préférences des données sur l’état de santé",
+	"HEALTH_DATA_NOTIFICATION": "[8033839] !é=Health Report Preferences=!",
 	"HEALTH_FIRST_POPUP_TITLE": "Rapport sur l’état de santé de Brackets",
-	"HEALTH_DATA_DO_TRACK": "Oui, je souhaite partager des informations sur mon utilisation de Brackets.",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "En vue d’améliorer Brackets, nous mettons en place un nouveau Rapport sur l’état de santé, qui envoie des données <strong>anonymes</strong> à Adobe sur la façon dont vous utilisez Brackets. Ce rapport permettra à l’équipe principale ainsi qu’aux développeurs d’extensions de hiérarchiser les futures fonctionnalités, de détecter les bogues éventuels et d’identifier les problèmes d’utilisation et d’accessibilité.<br><br>Vous pouvez accéder aux données envoyées et modifier vos préférences à tout moment, en cliquant sur <strong>Aide->Rapport des données sur l’état de santé</strong>. Apprenez-en plus sur le rapport sur l’état de santé de Brackets et l’état du suivi <a href='https://github.com/adobe/brackets/wiki/Health-Data'>sur notre page wiki</a>.",
-	"HEALTH_DATA_PREVIEW": "Aperçu des données sur l’état de santé",
+	"HEALTH_DATA_DO_TRACK": "[8033838] !é=Share anonymous information on how I use Brackets=!",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "[8033840] !é=In order to improve Brackets, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use Brackets. This information helps prioritize features, find bugs, and spot usability issues.<br><br>You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about Brackets Health Report</a>=!",
+	"HEALTH_DATA_PREVIEW": "Rapport sur l’état de santé de Brackets",
+	"HEALTH_DATA_PREVIEW_INTRO": "[8073104] !é=<p>In order to improve Brackets, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use Brackets. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about Brackets Health Report</a> and how it benefits the Brackets community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>=!",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
