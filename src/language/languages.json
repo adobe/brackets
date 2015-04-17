@@ -71,13 +71,5 @@
             "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip"
         ],
         "isBinary": true
-    },
-
-    "haskell": {
-        "name": "Haskell",
-        "mode": "haskell",
-        "fileExtensions": ["hs"],
-        "blockComment": ["{-", "-}"],
-        "lineComment": ["--"]
     }
 }
