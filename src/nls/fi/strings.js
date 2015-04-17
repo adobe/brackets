@@ -604,9 +604,10 @@ define({
     // extensions/default/HealthData
     "HEALTH_DATA_NOTIFICATION"                  : "Terveydentilaraportin asetukset",
     "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME}in terveydentilaraportti",
-    "HEALTH_DATA_DO_TRACK"                      : "Kyllä, haluan jakaa tietoja siitä, kuinka käytän {APP_NAME}ia.",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Jotta voit parantaa {APP_NAME}ia, otamme käyttöön uuden terveydentilaraportin, joka lähettää Adobelle <strong>nimettömiä</strong> tietoja siitä, kuinka käytät tuotetta. Tämä raportti auttaa ydintiimiä ja laajennusten kehittäjiä asettamaan ominaisuudet tärkeysjärjestykseen, löytämään bugeja ja huomaamaan käytettävyys- ja löydettävyysongelmia.<br><br>Voit nähdä lähetettävät tiedot ja muuttaa asetustasi milloin tahansa valitsemalla <strong>Ohje -> Terveydentilaraportti</strong>. Lue lisää {APP_NAME}in terveysraportista ja seuraa tilannetta <a href='https://github.com/adobe/brackets/wiki/Health-Data'>wikisivullamme</a>.",
-    "HEALTH_DATA_PREVIEW"                       : "Terveydentilaraportin esikatselu",
+    "HEALTH_DATA_DO_TRACK"                      : "Jaa nimettömiä tietoja {APP_NAME}in käytöstäni",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Jotta voit parantaa {APP_NAME}ia, lähetämme säännöllisesti Adobelle rajattuja, <strong>nimettömiä</strong> tilastotietoja siitä, kuinka käytät tuotetta. Nämä tiedot auttavat priorisoimaan ominaisuuksia, löytämään bugeja ja huomaamaan käytettävyysongelmia.<br><br>Voit nähdä tietosi tai valita, ettei tietoja jaeta, valitsemalla <strong>Ohje > Terveydentilaraportti</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lue lisää {APP_NAME}in terveydentilaraportista</a>",
+    "HEALTH_DATA_PREVIEW"                       : "{APP_NAME}in terveydentilaraportti",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Jotta voit parantaa {APP_NAME}ia, lähetämme säännöllisesti Adobelle rajattuja, <strong>nimettömiä</strong> tilastotietoja siitä, kuinka käytät tuotetta. Nämä tiedot auttavat priorisoimaan ominaisuuksia, löytämään bugeja ja huomaamaan käytettävyysongelmia. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lue lisää {APP_NAME}in terveydentilaraportista</a> ja siitä, kuinka se hyödyttää {APP_NAME}-yhteisöä yksityisyyttäsi suojellen.</p><p>Alla on esikatselu tiedoista, jotka lähetetään seuraavassa terveydentilaraportissasi <em>jos</em> se on otettu käyttöön.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Aika",
@@ -650,4 +651,4 @@ define({
     "EXPAND_CURRENT"                : "Laajenna nykyinen"
 });
 
-/* Last translated for ddf43fad73a76c5c26d13915071a35926fc027f2 */
+/* Last translated for 379267107e172bb14c6675bc1bb207756de0175d */
