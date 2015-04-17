@@ -454,6 +454,8 @@ define(function (require, exports, module) {
             now = new Date(),
             file = new InMemoryFile(fullPath, FileSystem);
         
+        FileSystem.addEntryForPathIfRequired(file, fullPath);
+
         return new DocumentModule.Document(file, now, "");
     }
     
