@@ -36,7 +36,7 @@
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "ascx", "asp", "master", "cshtml", "vbhtml"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "aspx", "ascx", "asp", "master", "cshtml", "vbhtml"],
         "blockComment": ["<!--", "-->"]
     },
     
@@ -277,5 +277,12 @@
             "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip"
         ],
         "isBinary": true
+    },
+    
+    "jsp": {
+    	"name": "JSP",
+    	"mode": "htmlembedded",
+    	"fileExtensions": ["jsp"],
+    	"blockComment": ["<!--", "-->"]
     }
 }
