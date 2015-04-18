@@ -30,7 +30,7 @@ define({
      * Chyby
      */
 
-    // Obecné chyby souboru
+    // Řetězce obecných chyb souboru
     "GENERIC_ERROR"                     : "(chyba {0})",
     "NOT_FOUND_ERR"                     : "Soubor nenalezen.",
     "NOT_READABLE_ERR"                  : "Soubor nelze číst.",
@@ -88,6 +88,7 @@ define({
     // Řetězce chyb nastavení aplikace
     "ERROR_PREFS_CORRUPT_TITLE"         : "Chyba při čtení nastavení",
     "ERROR_PREFS_CORRUPT"               : "Soubor s nastavením není platný soubor typu JSON. Soubor bude otevřen, abyste mohli opravit formát. Pro uložení změn budete muset restartovat aplikaci {APP_NAME}.",
+    "ERROR_PROJ_PREFS_CORRUPT"          : "Soubor s preferencemi vašeho projektu neodpovídá vylidnímu JSON formátu. Tento soubor bude otevřen, abyste mohl formát opravit. K provedení změn bude nutné znovu načíst projekt.",
 
     // Řetězce chyb aplikace
     "ERROR_IN_BROWSER_TITLE"            : "Ouha! {APP_NAME} ještě neběží v prohlížeči.",
@@ -132,9 +133,9 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Potvrdit smazání",
     "CONFIRM_FOLDER_DELETE"             : "Opravdu chcete smazat složku <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Soubor smazán",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> byl změněn.<br /><br />Chcete uložit soubor a přepsat tyto změny?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> byl změněn, ale neuložené změny se nachází také v {APP_NAME}.<br /><br /> Kterou verzi chcete zachovat?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán z disku, ale změny nebyly uloženy v {APP_NAME}.<br /><br />Chcete uložit změny?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> byl změněn mimo {APP_NAME}.<br /><br />Chcete uložit soubor a přepsat tyto změny?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> byl změněn mimo {APP_NAME}, ale existují také neuložené změny v {APP_NAME}.<br /><br />Kterou verzi chcete zachovat?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> byl smazán mimo {APP_NAME}, ale existují neuložené změny v {APP_NAME}.<br /><br />Chcete vaše změny zachovat?",
 
     // Obecná označení dialogů/tlačítek
     "DONE"                              : "Hotovo",
@@ -148,7 +149,7 @@ define({
     "BUTTON_YES"                        : "Ano",
     "BUTTON_NO"                         : "Ne",
 
-    // Najít, Nahradit, Nahradit v souborech
+    // Najít, Nahradit, Najít v souborech
     "FIND_MATCH_INDEX"                  : "{0} z {1}",
     "FIND_NO_RESULTS"                   : "Žádné výsledky",
     "FIND_QUERY_PLACEHOLDER"            : "Najít\u2026",
@@ -232,7 +233,7 @@ define({
     "UNTITLED"          : "Nový",
     "WORKING_FILES"     : "Pracovní soubory",
 
-      /**
+    /**
      * Správce rozložení
      */
     "TOP"               : "Nahoře",
@@ -250,14 +251,14 @@ define({
     "SPLITVIEW_MULTIPANE_WARNING"       : "Soubor je již otevřen v jiném okně. {APP_NAME} bude brzy podporovat otevírání stejného souboru ve více oknech. Do té doby bude soubor zobrazen v již otevřeném okně.<br /><br />(Tuto zprávu uvidíte pouze jednou.)",
 
     /**
-     * Jména kláves
+     * Názvy kláves
      */
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
 
     /**
-     * Řetězce příkazového řádku
+     * Řetězce stavového řádku
      */
     "STATUSBAR_CURSOR_POSITION"             : "Řádek {0}, Sloupec {1}",
     "STATUSBAR_SELECTION_CH_SINGULAR"       : " \u2014 Vybrán {0} sloupec",
@@ -295,7 +296,7 @@ define({
     "LINTER_FAILED"                         : "{0} byl(a) ukončen(a) s chybou: {1}",
 
     /**
-     * Příkazy
+     * Názvy příkazů
      */
 
     // Příkazy menu Soubor
@@ -363,11 +364,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Přidat další shodu do výběru",
     "CMD_SKIP_CURRENT_MATCH"              : "Přeskočit a přidat další shodu do výběru",
     "CMD_FIND_IN_FILES"                   : "Najít v souborech",
-    "CMD_FIND_IN_SELECTED"                : "Najít ve vybraném souboru/složce",
     "CMD_FIND_IN_SUBTREE"                 : "Najít v\u2026",
     "CMD_REPLACE"                         : "Nahradit",
     "CMD_REPLACE_IN_FILES"                : "Nahradit v souborech",
-    "CMD_REPLACE_IN_SELECTED"             : "Nahradit ve vybraném souboru/složce",
     "CMD_REPLACE_IN_SUBTREE"              : "Nahradit v\u2026",
 
     // Příkazy menu Zobrazit
@@ -417,6 +416,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Poznámky k verzi",
     "CMD_GET_INVOLVED"                    : "Zapojte se",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobrazit složku s doplňky",
+    "CMD_HEALTH_DATA_STATISTICS"          : "Hlášení o zdraví",
     "CMD_HOMEPAGE"                        : "Domovská stránka {APP_TITLE}",
     "CMD_TWITTER"                         : "{TWITTER_NAME} na Twitteru",
     "CMD_ABOUT"                           : "O aplikaci {APP_TITLE}",
@@ -564,9 +564,8 @@ define({
     "IMAGE_VIEWER_LARGEST_ICON"            : "největší",
 
     /**
-     * Jména jednotek
+     * Názvy jednotek
      */
-
     "UNIT_PIXELS"                          : "pixely",
 
     // extensions/default/DebugCommands
@@ -576,6 +575,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "Restartovat {APP_NAME}",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Restartovat bez doplňků",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Nové okno {APP_NAME}",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "Nainstalovat zástupce do příkazové řádky",
     "CMD_SWITCH_LANGUAGE"                       : "Změnit jazyk",
     "CMD_RUN_UNIT_TESTS"                        : "Spustit testy",
     "CMD_SHOW_PERF_DATA"                        : "Zobrazit údaje o výkonnosti",
@@ -584,12 +584,29 @@ define({
     "CMD_RESTART_NODE"                          : "Restartovat Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Zobrazit chyby ve stavovém řádku",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Otevřít zdroj {APP_NAME}",
+    
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "Zástupce {APP_NAME} v příkazové řádce",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Při instalaci zástupce do příkazové řádky se vyskytla chyba. Prosím vyzkoušejte řešení <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>na této stránce</a>.<br/><br/>Důvod: {0}",
+    "ERROR_CLTOOLS_RMFAILED"                    : "Nelze odstranit existující symbolický odkaz na <code>/usr/local/bin/brackets</code>.",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "Nelze vytvořit složku <code>/usr/local/bin</code>.",
+    "ERROR_CLTOOLS_LNFAILED"                    : "Nelze vytvořit symbolický odkaz na <code>/usr/local/bin/brackets</code>.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "Vnitřní chyba.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "V tomto operačním systému nelze vytvořit zástupce do příkazové řádky.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Hotovo! Nyní můžete jednoduše spustit {APP_NAME} z příkazové řádky: příkazem <code>brackets myFile.txt</code> otevřete soubor a příkazem <code>brackets myFolder</code> změníte projekt. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Na této stránce zjistíte více</a> o používání {APP_NAME} z příkazové řádky.",
 
     "LANGUAGE_TITLE"                            : "Změnit jazyk",
     "LANGUAGE_MESSAGE"                          : "Prosím, vyberte jazyk ze seznamu:",
     "LANGUAGE_SUBMIT"                           : "Restartovat {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Zrušit",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Výchozí",
+
+    // extensions/default/HealthData
+    "HEALTH_DATA_NOTIFICATION"                  : "Nastavení Hlášení o zdraví",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "Hlášení o zdraví {APP_NAME}",
+    "HEALTH_DATA_DO_TRACK"                      : "Sdílejte anonymní informace o používání {APP_NAME}",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Kvůli vylepšování {APP_NAME} odesíláme společnosti Adobe pravidelně omezené <strong>anonymní</strong> statistiky o používání {APP_NAME}. Tyto informace pomáhají upřednostnit některé funkce, předcházet chybám a všimnout si nedostatků v použitelnosti.<br><br>Vaše data si můžete prohlédnout nebo zakázat jejich sdílení výběrem <strong>Nápověda > Hlášení o zdraví</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Zjistěte více ke hlášení o zdraví {APP_NAME}</a>",
+    "HEALTH_DATA_PREVIEW"                       : "Hlášení o zdraví {APP_NAME}",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Kvůli vylepšování {APP_NAME} odesíláme společnosti Adobe pravidelně omezené <strong>anonymní</strong> statistiky o používání {APP_NAME}. Tyto informace pomáhají upřednostnit některé funkce, předcházet chybám a všimnout si nedostatků v použitelnosti. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Zjistěte více ke hlášení o zdraví {APP_NAME}</a> a jak je pro komunitu {APP_NAME} prospěšné, zatímco je chráněno vaše soukromí.</p><p>Níže je náhled dat, která budou odeslána v příštím hlášení o zdraví, <em>pokud</em> je odesílání povoleno.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Doba",
@@ -624,7 +641,13 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedávné projekty",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Více"
+    "DOCS_MORE_LINK"                            : "Více",
+
+    // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Skrýt vše",
+    "EXPAND_ALL"                    : "Zobrazit vše",
+    "COLLAPSE_CURRENT"              : "Skrýt aktuální",
+    "EXPAND_CURRENT"                : "Zobrazit aktuální"
 });
 
-/* Last translated for eef9c68a1fdff372b9ea6352cacb5e2506e55be9 */
+/* Last translated for 50cbe1b8848786c6be27d4788e4b6a367244abc2 */
