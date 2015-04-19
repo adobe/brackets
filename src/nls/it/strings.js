@@ -295,7 +295,6 @@ define({
     "LINTER_TIMED_OUT"                      : "{0} è scaduto dopo aver atteso per {1} ms",
     "LINTER_FAILED"                         : "{0} terminato con errore: {1}",
     
-    
     /**
      * Command Name Constants
      */
@@ -306,7 +305,7 @@ define({
     "CMD_FILE_NEW"                        : "Nuovo File",
     "CMD_FILE_NEW_FOLDER"                 : "Nuova cartella",
     "CMD_FILE_OPEN"                       : "Apri\u2026",
-    "CMD_ADD_TO_WORKINGSET_AND_OPEN"      : "Aggiungi uno spazio di lavoro e apri",
+    "CMD_ADD_TO_WORKING_SET"              : "Apri uno spazio di lavoro",
     "CMD_OPEN_DROPPED_FILES"              : "Apri un file abbandonato",
     "CMD_OPEN_FOLDER"                     : "Apri cartella\u2026",
     "CMD_FILE_CLOSE"                      : "Chiudi",
@@ -319,6 +318,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Salva tutto",
     "CMD_FILE_SAVE_AS"                    : "Salva come\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Anteprima Live",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Abilita Anteprima Live sperimentale",
     "CMD_RELOAD_LIVE_PREVIEW"             : "Forza ricarica Anteprima Live",
     "CMD_PROJECT_SETTINGS"                : "Impostazioni del progetto\u2026",
     "CMD_FILE_RENAME"                     : "Rinomina",
@@ -566,7 +566,6 @@ define({
     /**
      * Unit names
      */
-
     "UNIT_PIXELS"                          : "pixel",
 
     // extensions/default/DebugCommands
@@ -605,8 +604,9 @@ define({
     "HEALTH_DATA_NOTIFICATION"                  : "Preferenze Health Data",
     "HEALTH_FIRST_POPUP_TITLE"                  : "Brackets Health Report",
     "HEALTH_DATA_DO_TRACK"                      : "Sì, mi piacerebbe condividere informazioni su come uso Brackets.",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Al fine di migliorare Brackets stiamo implementando un nuovo Health Report che invia <strong>anonimo</strong> dati a Adobe su come usi Brackets. Questo rapporto aiuterà il gruppo di sviluppo e gli sviluppatori di estensioni sulle caratteristiche prioritarie, bug, problemi di usabilità e reperibilità.<br><br>È possibile visualizzare i dati inviati così come cambiare la vostra preferenza in qualsiasi momento visitando <strong>Help->Health Data Report</strong>. Ulteriori informazioni su Brackets Health Report e sullo stato <a href='https://github.com/adobe/brackets/wiki/Health-Data'>nella pagina wiki</a>.",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Al fine di migliorare Brackets stiamo implementando un nuovo Health Report che invia dati <strong>anonimi</strong> a Adobe su come usi Brackets. Questo rapporto aiuterà il gruppo di sviluppo e gli sviluppatori di estensioni sulle caratteristiche prioritarie, bug, problemi di usabilità e reperibilità.<br><br>È possibile visualizzare i dati inviati così come cambiare la vostra preferenza in qualsiasi momento visitando <strong>Aiuto->Health Data Report</strong>. Ulteriori informazioni su Brackets Health Report e sullo stato <a href='https://github.com/adobe/brackets/wiki/Health-Data'>nella pagina wiki</a>.",
     "HEALTH_DATA_PREVIEW"                       : "Anteprima Health Data",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Per migliorare Brackets, periodicamente inviamo limitate, statistiche <strong>anonime</strong> a Adobe su come usi Brackets. Queste informazioni aiuteranno a concentrarsi sulle caratteristiche, trovare problemi, e problemi di usabilità. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Ulteriori informazioni su Brackets Health Report</a> e come si avvantaggia la comunità di Brackets mentre proteggere la tua privacy.</p><p>Ecco un'anteprima dei dati che saranno inviati nel prossimo Health Report <em>se</em> è abilitato.</p>",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tempo",
@@ -628,7 +628,7 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Passa alla definizione",
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostra suggerimenti sul parametro",
     "NO_ARGUMENTS"                              : "<nessun parametro>",
-    "DETECTED_EXCLUSION_TITLE"                  : "Problema Conseguente File JavaScript",
+    "DETECTED_EXCLUSION_TITLE"                  : "Problema conseguente file JavaScript",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets ha dei problemi nel elaborare il processo <span class='dialog-filename'>{0}</span>.<br><br> Questo file non sarà più elaborato per i Suggerimenti sul codice, Vai a definizione o Modifica rapida. Per riattivare questo file , aprire <code>.brackets.json</code> nel progetto e modificare <code>jscodehints.detectedExclusions</code>.<br><br>Questo è probabilmente un bug di Brackets. Se è possibile fornire una copia di questo file, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>un bug</a> con un collegamento al file denominato qui.",
     
     // extensions/default/JSLint
