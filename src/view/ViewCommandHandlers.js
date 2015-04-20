@@ -310,7 +310,7 @@ define(function (require, exports, module) {
 
     /** Zooming by mouse wheel */
     window.addEventListener("wheel", function(e) {
-        // Detect Ctrl key on Linux and Windows, or Cmd key on Mac
+        // Detect Ctrl key, or Cmd key on Mac
         if (e.ctrlKey || e.metaKey) {
             if (e.deltaY < 0) {
                 _handleIncreaseFontSize();
