@@ -7,6 +7,8 @@ before_script:
 branches:
   only:
   - bramble
+notifications:
+  irc: "irc.mozilla.org#makedrive"
 deploy:
   provider: s3
   access_key_id: AKIAJZZYAKJA33TQEHLA
