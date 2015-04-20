@@ -602,11 +602,11 @@ define({
 
     // extensions/default/HealthData
 	"HEALTH_DATA_NOTIFICATION": "!能=[8033839] Health Report Preferences_=!",
-	"HEALTH_FIRST_POPUP_TITLE": "Brackets の正常性レポート",
-	"HEALTH_DATA_DO_TRACK": "!能=[8033838] Share anonymous information on how I use Brackets_=!",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "!能=[8033840] In order to improve Brackets, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use Brackets. This information helps prioritize features, find bugs, and spot usability issues.<br><br>You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about Brackets Health Report</a>_=!",
-	"HEALTH_DATA_PREVIEW": "Brackets の正常性レポート",
-	"HEALTH_DATA_PREVIEW_INTRO": "!能=[8073104] <p>In order to improve Brackets, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use Brackets. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about Brackets Health Report</a> and how it benefits the Brackets community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>_=!",
+	"HEALTH_FIRST_POPUP_TITLE": "!能=[8035466] {APP_NAME} Health Report_=!",
+	"HEALTH_DATA_DO_TRACK": "!能=[8033838] Share anonymous information on how I use {APP_NAME}_=!",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "!能=[8033840] In order to improve {APP_NAME}, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues.<br><br>You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about {APP_NAME} Health Report</a>_=!",
+	"HEALTH_DATA_PREVIEW": "!能=[8033841] {APP_NAME} Health Report_=!",
+	"HEALTH_DATA_PREVIEW_INTRO": "!能=[8073104] <p>In order to improve {APP_NAME}, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about {APP_NAME} Health Report</a> and how it benefits the {APP_NAME} community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>_=!",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "時間",
