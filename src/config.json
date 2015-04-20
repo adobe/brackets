@@ -23,8 +23,8 @@
         "healthDataServerURL" : "http://healthdev.brackets.io/healthDataLog"
     },
     "name": "Brackets",
-    "version": "1.4.0-0",
-    "apiVersion": "1.4.0",
+    "version": "1.3.0-0",
+    "apiVersion": "1.3.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"
