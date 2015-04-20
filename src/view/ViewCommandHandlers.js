@@ -308,6 +308,18 @@ define(function (require, exports, module) {
         setFontSize(DEFAULT_FONT_SIZE + "px");
     }
 
+    /** Zooming by mouse wheel */
+    window.addEventListener("wheel", function(e) {
+        // Detect Ctrl key on Linux and Windows, or Cmd key on Mac
+        if (e.ctrlKey || e.metaKey) {
+            if (e.deltaY < 0) {
+                _handleIncreaseFontSize();
+            } else {
+                _handleDecreaseFontSize();
+            }
+        }
+    });
+
     /**
      * @private
      * Updates the user interface appropriately based on whether or not a document is
