@@ -37,7 +37,7 @@ var config = {};
         MessageIds = messageIds;
         HintUtils2 = hintUtils2;
         var ternRequire = require.config({baseUrl: "./thirdparty"});
-        ternRequire(["tern/lib/tern", "tern/lib/infer", "tern/plugin/requirejs", "tern/plugin/doc_comment", "tern/plugin/angular"], function (tern, infer, requirejs, docComment) {
+        ternRequire(["tern/lib/tern", "tern/lib/infer"], function (tern, infer) {
             Tern = tern;
             Infer = infer;
 
@@ -119,7 +119,7 @@ var config = {};
                     defs: env,
                     async: true,
                     getFile: getFile,
-                    plugins: {requirejs: {}, doc_comment: true, angular: true}
+                    plugins: {doc_comment: null}
                 };
                 ternServer = new Tern.Server(ternOptions);
                 
