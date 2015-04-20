@@ -178,20 +178,20 @@ define({
     // Find and Replace
     "FIND_REPLACE_TITLE_LABEL"          : "Korvaa",
     "FIND_REPLACE_TITLE_WITH"           : "merkkijonolla",
-    "FIND_TITLE_LABEL"                  : "löytyi",
-    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} kohteessa {3}",
+    "FIND_TITLE_LABEL"                  : "Löytyi",
+    "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} {3}",
 
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",
-    "FIND_IN_FILES_SCOPED"              : "kohteessa <span class='dialog-filename'>{0}</span>",
+    "FIND_IN_FILES_SCOPED"              : "kohteesta <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "projektissa",
     "FIND_IN_FILES_ZERO_FILES"          : "Suodatin ohittaa kaikki tiedostot {0}",
-    "FIND_IN_FILES_FILE"                : "tiedosto",
-    "FIND_IN_FILES_FILES"               : "tiedostoa",
+    "FIND_IN_FILES_FILE"                : "tiedostossa",
+    "FIND_IN_FILES_FILES"               : "tiedostossa",
     "FIND_IN_FILES_MATCH"               : "vastine",
     "FIND_IN_FILES_MATCHES"             : "vastinetta",
     "FIND_IN_FILES_MORE_THAN"           : "Yli ",
-    "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
+    "FIND_IN_FILES_PAGING"              : "{0}&ndash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Laajenna tai pienennä kaikki painamalla Ctrl/Cmd",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Korvausvirheet",
