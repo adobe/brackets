@@ -56,7 +56,6 @@ define(function (require, exports, module) {
     
     var ternEnvironment     = [],
         pendingTernRequests = {},
-        builtinFiles        = ["ecma5.json", "browser.json", "jquery.json"],
         builtinLibraryNames = [],
         isDocumentDirty     = false,
         _hintCount          = 0,
@@ -85,24 +84,19 @@ define(function (require, exports, module) {
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
-        var path = ExtensionUtils.getModulePath(module, "thirdparty/tern/defs/"),
-            files = builtinFiles,
-            library;
+        function loadDef(defJSON) {
+            var library = JSON.parse(defJSON);
+            builtinLibraryNames.push(library["!name"]);
+            ternEnvironment.push(library);
+        }
 
-        files.forEach(function (i) {
-            FileSystem.resolve(path + i, function (err, file) {
-                if (!err) {
-                    FileUtils.readAsText(file).done(function (text) {
-                        library = JSON.parse(text);
-                        builtinLibraryNames.push(library["!name"]);
-                        ternEnvironment.push(library);
-                    }).fail(function (error) {
-                        console.log("failed to read tern config file " + i);
-                    });
-                } else {
-                    console.log("failed to read tern config file " + i);
-                }
-            });
+        require([
+            "text!thirdparty/tern/defs/ecma5.json",
+            "text!thirdparty/tern/defs/browser.json"
+        ],
+        function(ecma5, browser) {
+            loadDef(ecma5);
+            loadDef(browser);
         });
     }
 

@@ -449,11 +449,39 @@ module.exports = function (grunt) {
                 src: ['**/*'],
                 dest: 'dist/'
             }
+        },
+
+        // Reduce the size of Tern.js def files by stripping !doc and !url fields,
+        // Which seem to be unused in Brackets. Turn something like this:
+        //
+        // "assign": {
+        //   "!type": "fn(url: string)",
+        //   "!url": "https://developer.mozilla.org/en/docs/DOM/window.location",
+        //   "!doc": "Load the document at the provided URL."
+        // }
+        //
+        // into this:
+        //
+        // "assign": {
+        //   "!type": "fn(url: string)"
+        // }
+        replace: {
+            ternDefs: {
+                src: ['src/extensions/default/JavaScriptCodeHints/thirdparty/tern/defs/*.json'],
+                dest: 'dist/extensions/default/JavaScriptCodeHints/thirdparty/tern/defs/',
+                replacements: [{
+                    from: /,?\n\s*"!url":[^\n]+\n(\s*"!doc":[^\n]+\n)?/g,
+                    to: ''
+                }]
+            }
         }
     });
     
     // Load postcss
     grunt.loadNpmTasks('grunt-postcss');
+
+    // Load text-replace
+    grunt.loadNpmTasks('grunt-text-replace');
 
     // Bramble-task: smartCheckout
     //   Checks out to the branch provided as a target.
@@ -534,7 +562,7 @@ module.exports = function (grunt) {
     ]);
 
     // task: build dist/ for browser
-    grunt.registerTask('build-browser', ['build', 'uglify']);
+    grunt.registerTask('build-browser', ['build', 'replace:ternDefs', 'uglify']);
 
     // task: build dist/ for browser, pre-compressed with gzip
     grunt.registerTask('build-browser-compressed', ['build-browser', 'compress']);

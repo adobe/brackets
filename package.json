@@ -36,6 +36,7 @@
         "grunt-shell": "^1.1.2",
         "grunt-targethtml": "0.2.6",
         "grunt-template-jasmine-requirejs": "0.1.0",
+        "grunt-text-replace": "^0.4.0",
         "grunt-update-submodules": "^0.4.1",
         "grunt-usemin": "0.1.11",
         "habitat": "^3.1.2",
