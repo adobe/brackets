@@ -602,11 +602,11 @@ define({
 
     // extensions/default/HealthData
     "HEALTH_DATA_NOTIFICATION"                  : "Statusbericht-Einstellungen",
-    "HEALTH_FIRST_POPUP_TITLE"                  : "Brackets-Statusbericht",
-    "HEALTH_DATA_DO_TRACK"                      : "Anonyme Informationen über meine Brackets-Nutzung teilen",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Um Brackets zu verbessern, werden in regelmäßigen Zeitabständen <strong>anonyme</strong> Statistiken über Ihre Brackets-Nutzung an Adobe gesendet. Diese Informationen helfen dabei, Funktionen zu priorisieren sowie Bugs und Bedienungsprobleme aufzuspüren.<br><br>Sie können die Daten, die gesendet werden, jederzeit einsehen und das Teilen von Daten abstellen, indem Sie <strong>Hilfe > Statusbericht</strong> aufrufen.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Mehr über den Brackets-Statusbericht erfahren</a>",
-    "HEALTH_DATA_PREVIEW"                       : "Brackets-Statusbericht",
-    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Um Brackets zu verbessern, werden in regelmäßigen Zeitabständen beschränkte, <strong>anonyme</strong> Statistiken über Ihre Brackets-Nutzung an Adobe gesendet. Diese Informationen helfen dabei, Funktionen zu priorisieren sowie Bugs und Bedienungsprobleme aufzuspüren. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Erfahre mehr über den Brackets-Statusbericht</a> und darüber, wie dieser der Brackets-Community hilft, während er gleichzeitig Privatsphäre gewährt.</p><p>Unten sehen Sie die Daten, die mit dem nächsten Statusbericht gesendet werden, <em>wenn</em> dieser aktiviert ist.</p>",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME}-Statusbericht",
+    "HEALTH_DATA_DO_TRACK"                      : "Anonyme Informationen über meine {APP_NAME}-Nutzung teilen",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Um {APP_NAME} zu verbessern, werden in regelmäßigen Zeitabständen <strong>anonyme</strong> Statistiken über Ihre {APP_NAME}-Nutzung an Adobe gesendet. Diese Informationen helfen dabei, Funktionen zu priorisieren sowie Bugs und Bedienungsprobleme aufzuspüren.<br><br>Sie können die Daten, die gesendet werden, jederzeit einsehen und das Teilen von Daten abstellen, indem Sie <strong>Hilfe > Statusbericht</strong> aufrufen.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Mehr über den {APP_NAME}-Statusbericht erfahren</a>",
+    "HEALTH_DATA_PREVIEW"                       : "{APP_NAME}-Statusbericht",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Um {APP_NAME} zu verbessern, werden in regelmäßigen Zeitabständen beschränkte, <strong>anonyme</strong> Statistiken über Ihre {APP_NAME}-Nutzung an Adobe gesendet. Diese Informationen helfen dabei, Funktionen zu priorisieren sowie Bugs und Bedienungsprobleme aufzuspüren. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Erfahre mehr über den {APP_NAME}-Statusbericht</a> und darüber, wie dieser der {APP_NAME}-Community hilft, während er gleichzeitig Privatsphäre gewährt.</p><p>Unten sehen Sie die Daten, die mit dem nächsten Statusbericht gesendet werden, <em>wenn</em> dieser aktiviert ist.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Zeit",
@@ -650,4 +650,4 @@ define({
     "EXPAND_CURRENT"                : "Aktuelle ausklappen"
 });
 
-/* Last translated for 379267107e172bb14c6675bc1bb207756de0175d */
+/* Last translated for 50cbe1b8848786c6be27d4788e4b6a367244abc2 */
