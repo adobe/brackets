@@ -51,6 +51,9 @@
 
 
 .CodeMirror-foldmarker {
+    // Re-enabling the pointer events for the fold marker. As pointer events are disabled for "CodeMirror-lines"
+    // to fix issue #2780.
+    pointer-events: auto;
     padding-right: 3px;
     padding-left: 3px;
     margin-right: 3px;
