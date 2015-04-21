@@ -84,8 +84,9 @@ define(function (require, exports, module) {
             __isFold: true
         });
 
-        CodeMirror.on(widget, "mousedown", function () {
+        CodeMirror.on(widget, "mousedown", function (e) {
             textRange.clear();
+            e.preventDefault();
         });
 
         textRange.on("clear", function (from, to) {
