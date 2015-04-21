@@ -308,10 +308,10 @@ define(function (require, exports, module) {
         setFontSize(DEFAULT_FONT_SIZE + "px");
     }
 
-    /** Zooming by mouse wheel */
+    /** Increase or decrease font size with the mouse wheel */
     window.addEventListener("wheel", function(e) {
-        // Detect Ctrl key, or Cmd key on Mac
-        if (e.ctrlKey || e.metaKey) {
+        // Detect the Ctrl key on Linux and Windows, or the Alt key on Mac
+        if ((brackets.platform !== "mac" && e.ctrlKey) || (brackets.platform === "mac" && e.altKey)) {
             if (e.deltaY < 0) {
                 _handleIncreaseFontSize();
             } else {
