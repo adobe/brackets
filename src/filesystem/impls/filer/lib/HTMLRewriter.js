@@ -49,26 +49,6 @@ define(function (require, exports, module) {
         Array.prototype.forEach.call(elements, rewritePath);
     };
 
-    HTMLRewriter.prototype.links = function() {
-        var dir = this.dir;
-        var elements = this.doc.querySelectorAll('link');
-
-        function rewritePath(element) {
-            var path = element.getAttribute('href');
-            if(!Content.isRelativeURL(path)) {
-                return;
-            }
-
-            element.href = BlobUtils.getUrl(Path.resolve(dir, path));
-        }
-
-        if(!elements) {
-            return;
-        }
-
-        Array.prototype.forEach.call(elements, rewritePath);
-    };
-
     HTMLRewriter.prototype.styles = function() {
         var path = this.path;
         var elements = this.doc.querySelectorAll('style');
@@ -137,9 +117,10 @@ define(function (require, exports, module) {
     function rewrite(path, html) {
         var rewriter = new HTMLRewriter(path, html);
 
-        rewriter.links();
         rewriter.styles();
         rewriter.styleAttributes();
+        rewriter.elements('link', 'href');
+        rewriter.elements('a', 'href');
         rewriter.elements('iframe', 'src');
         rewriter.elements('img', 'src');
         rewriter.elements('script', 'src');

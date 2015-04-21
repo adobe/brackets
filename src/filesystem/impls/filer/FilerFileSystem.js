@@ -9,7 +9,6 @@ define(function (require, exports, module) {
         Filer           = require("filesystem/impls/filer/BracketsFiler"),
         Dialog          = require("thirdparty/filer-dialogs/filer-dialogs"),
         BlobUtils       = require("filesystem/impls/filer/BlobUtils"),
-        Content         = require("filesystem/impls/filer/lib/content"),
         Handlers        = require("filesystem/impls/filer/lib/handlers");
 
     var fs              = Filer.fs(),
@@ -229,11 +228,8 @@ define(function (require, exports, module) {
                     return;
                 }
 
-                // Add a BLOB cache record for this filename
-                // only if it's not an HTML file
-                if(!Content.isHTML(Path.extname(path))) {
-                    Handlers.handleFile(path, data);
-                }
+                // Cache a Blob URL for the file
+                Handlers.handleFile(path, data);
 
                 stat(path, function (err, stat) {
                     callback(_mapError(err), stat, created);
