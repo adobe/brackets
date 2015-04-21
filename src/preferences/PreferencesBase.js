@@ -21,7 +21,7 @@
  * 
  */
 
-/*global define, $, console */
+/*global define, $, console, appshell */
 /*unittests: Preferences Base */
 
 /**
@@ -58,12 +58,13 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils   = require("file/FileUtils"),
-        FileSystem  = require("filesystem/FileSystem"),
+    var FileUtils       = require("file/FileUtils"),
+        FileSystem      = require("filesystem/FileSystem"),
+        FileSystemError = require("filesystem/FileSystemError"),
         EventDispatcher = require("utils/EventDispatcher"),
-        _           = require("thirdparty/lodash"),
-        Async       = require("utils/Async"),
-        globmatch   = require("thirdparty/globmatch");
+        _               = require("thirdparty/lodash"),
+        Async           = require("utils/Async"),
+        globmatch       = require("thirdparty/globmatch");
     
     // CONSTANTS
     var PREFERENCE_CHANGE = "change",
@@ -143,14 +144,18 @@ define(function (require, exports, module) {
      * Loads/saves preferences from a JSON file on disk.
      * 
      * @constructor
-     * @param {string} path Path to the preferences file
-     * @param {boolean} createIfNew True if the file should be created if it doesn't exist.
+     * @param {string}  path        Path to the preferences file
+     * @param {boolean} createIfMissing True if the file should be created if it doesn't exist. 
      *                              If this is not true, an exception will be thrown if the
      *                              file does not exist.
+     * @param {boolean} recreateIfInvalid True if the file needs to be recreated if it is invalid.
+     *                              Invalid- Either unreadable or unparseable.
+     *                              The invalid copy will be sent to trash in case the user wants to refer to it.
      */
-    function FileStorage(path, createIfNew) {
+    function FileStorage(path, createIfMissing, recreateIfInvalid) {
         this.path = path;
-        this.createIfNew = createIfNew;
+        this.createIfMissing = createIfMissing;
+        this.recreateIfInvalid = recreateIfInvalid;
         this._lineEndings = FileUtils.getPlatformLineEndings();
     }
     
@@ -165,17 +170,28 @@ define(function (require, exports, module) {
         load: function () {
             var result = new $.Deferred();
             var path = this.path;
-            var createIfNew = this.createIfNew;
+            var createIfMissing = this.createIfMissing;
+            var recreateIfInvalid = this.recreateIfInvalid;
             var self = this;
             
             if (path) {
                 var prefFile = FileSystem.getFileForPath(path);
                 prefFile.read({}, function (err, text) {
                     if (err) {
-                        if (createIfNew) {
+                        if (createIfMissing) {
+                            // Unreadable file is also unwritable -- delete so get recreated
+                            if (recreateIfInvalid && (err === FileSystemError.NOT_READABLE || err === FileSystemError.UNSUPPORTED_ENCODING)) {
+                                appshell.fs.moveToTrash(path, function (err) {
+                                    if (err) {
+                                        console.log("Cannot move unreadable preferences file " + path + " to trash!!");
+                                    } else {
+                                        console.log("Brackets has recreated the unreadable preferences file " + path + ". You may refer to the deleted file in trash in case you need it!!");
+                                    }
+                                }.bind(this));
+                            }
                             result.resolve({});
                         } else {
-                            result.reject(new Error("Unable to load prefs at " + path + " " + err));
+                            result.reject(new Error("Unable to load preferences at " + path + " " + err));
                         }
                         return;
                     }
@@ -189,7 +205,19 @@ define(function (require, exports, module) {
                         try {
                             result.resolve(JSON.parse(text));
                         } catch (e) {
-                            result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
+                            if (recreateIfInvalid) {
+                                // JSON parsing error -- recreate the preferences file
+                                appshell.fs.moveToTrash(path, function (err) {
+                                    if (err) {
+                                        console.log("Cannot move unparseable preferences file " + path + " to trash!!");
+                                    } else {
+                                        console.log("Brackets has recreated the Invalid JSON preferences file " + path + ". You may refer to the deleted file in trash in case you need it!!");
+                                    }
+                                }.bind(this));
+                                result.resolve({});
+                            } else {
+                                result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
+                            }
                         }
                     }
                 });

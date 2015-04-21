@@ -49,7 +49,6 @@ define({
     "FILENAME"                          : "Dateiname",
     "DIRECTORY_NAME"                    : "Ordnername",
 
-
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Fehler beim Laden des Projekts",
     "OPEN_DIALOG_ERROR"                 : "Fehler beim Erstellen des Datei-Öffnen-Dialogs. (Fehler {0})",
@@ -89,6 +88,7 @@ define({
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Fehler beim Lesen der Einstellungen",
     "ERROR_PREFS_CORRUPT"               : "Ihre Einstellungsdatei enthält kein gültiges JSON. Die Datei wird geöffnet, damit Sie das Format korrigieren können. Sie müssen {APP_NAME} neu starten, damit die Änderungen wirksam werden.",
+    "ERROR_PROJ_PREFS_CORRUPT"          : "Ihre projektspezifische Einstellungsdatei enthält kein gültiges JSON. Die Datei wird geöffnet, damit Sie das Format korrigieren können. Sie müssen das Projekt neu öffnen, damit die Änderungen wirksam werden.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} kann derzeit leider noch nicht im Browser ausgeführt werden.",
@@ -98,7 +98,7 @@ define({
     "ERROR_MAX_FILES_TITLE"             : "Fehler beim Indizieren der Dateien",
     "ERROR_MAX_FILES"                   : "Dieses Projekt besteht aus über 30.000 Dateien. Funktionen, die mit mehreren Dateien interagieren, wurden eventuell deaktiviert oder verhalten sich so, als ob das Projekt keine Dateien hätte. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Lies mehr über das Arbeiten mit großen Projekten</a>.",
 
-    // Live Development error strings
+    // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Fehler beim Starten des Browsers",
     "ERROR_CANT_FIND_CHROME"            : "Der Browser Google Chrome konnte nicht gefunden werden. Bitte stellen Sie sicher, dass er installiert ist.",
     "ERROR_LAUNCHING_BROWSER"           : "Beim Starten des Browsers ist ein Fehler aufgetreten. (Fehler {0})",
@@ -133,9 +133,9 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Löschen bestätigen",
     "CONFIRM_FOLDER_DELETE"             : "Sind Sie sich sicher, dass Sie den Ordner <span class='dialog-filename'>{0}</span> löschen wollen?",
     "FILE_DELETED_TITLE"                : "Datei gelöscht",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert.<br /><br />Wollen Sie die Datei speichern und die externen Änderungen ersetzen?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Welche Version wollen Sie weiterverwenden?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Wollen Sie die Änderungen beibehalten?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> wurde außerhalb von {APP_NAME} geändert.<br /><br />Wollen Sie die Datei speichern und die externen Änderungen ersetzen?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde außerhalb von {APP_NAME} geändert und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Welche Version wollen Sie weiterverwenden?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde außerhalb von {APP_NAME} gelöscht und hat ungespeicherte Änderungen in {APP_NAME}.<br /><br />Wollen Sie die Änderungen beibehalten?",
 
     // Generic dialog/button labels
     "DONE"                              : "Fertig",
@@ -295,7 +295,6 @@ define({
     "LINTER_TIMED_OUT"                      : "{0} hat die Zeitbegrenzung von {1} ms überschritten",
     "LINTER_FAILED"                         : "{0} hat mit einer Fehlermeldung abgebrochen: {1}",
 
-
     /**
      * Command Name Constants
      */
@@ -365,11 +364,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Nächsten Treffer zur Auswahl hinzufügen",
     "CMD_SKIP_CURRENT_MATCH"              : "Überspringen und nächsten Treffer hinzufügen",
     "CMD_FIND_IN_FILES"                   : "Im Projekt suchen",
-    "CMD_FIND_IN_SELECTED"                : "Suchen in ausgewählter Datei/Ordner",
     "CMD_FIND_IN_SUBTREE"                 : "Suchen in\u2026",
     "CMD_REPLACE"                         : "Ersetzen",
     "CMD_REPLACE_IN_FILES"                : "Im Projekt ersetzen",
-    "CMD_REPLACE_IN_SELECTED"             : "Ersetzen in ausgewählter Datei/Ordner",
     "CMD_REPLACE_IN_SUBTREE"              : "Ersetzen in\u2026",
 
     // View menu commands
@@ -419,6 +416,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Versionshinweise",
     "CMD_GET_INVOLVED"                    : "Mach mit",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Erweiterungen-Ordner anzeigen",
+    "CMD_HEALTH_DATA_STATISTICS"          : "Statusbericht",
     "CMD_HOMEPAGE"                        : "{APP_NAME}-Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} auf Twitter",
     "CMD_ABOUT"                           : "Über {APP_TITLE}",
@@ -568,7 +566,6 @@ define({
     /**
      * Unit names
      */
-
     "UNIT_PIXELS"                          : "Pixel",
 
     // extensions/default/DebugCommands
@@ -578,6 +575,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "Mit Erweiterungen neu laden",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Ohne Erweiterungen neu laden",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Neues {APP_NAME}-Fenster",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "Kommandozeilenverknüpfung einrichten",
     "CMD_SWITCH_LANGUAGE"                       : "Sprache wechseln",
     "CMD_RUN_UNIT_TESTS"                        : "Tests durchführen",
     "CMD_SHOW_PERF_DATA"                        : "Performance-Analyse",
@@ -585,13 +583,30 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Node-Status in Konsole anzeigen",
     "CMD_RESTART_NODE"                          : "Node neu starten",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Zeige Fehler in der Statusleiste",
-    "CMD_OPEN_BRACKETS_SOURCE"                  : "Brackets-Quellcode anzeigen",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "{APP_NAME}-Quellcode anzeigen",
+
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME}-Befehlszeilenverknüpfung",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Beim Einrichten der Befehlszeilenverknüpfung ist ein Fehler aufgetreten. Bitte probieren Sie <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>diese Schritte zur Fehlerbehebung</a>.<br/><br/>Fehler: {0}",
+    "ERROR_CLTOOLS_RMFAILED"                    : "Die aktuelle symbolische Verknüpfung <code>/usr/local/bin/brackets</code> konnte nicht entfernt werden.",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "Das Verzeichnis <code>/usr/local/bin</code> konnte nicht erstellt werden.",
+    "ERROR_CLTOOLS_LNFAILED"                    : "Die symbolische Verknüpfung <code>/usr/local/bin/brackets</code> konnte nicht erstellt werden.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "Interner Fehler.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "Eine Befehlszeilenverknüpfung wird unter diesem Betriebssystem nicht unterstützt.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Einrichtung erfolgreich! Sie können {APP_NAME} nun ganz einfach von der Befehlszeile aus starten: <code<brackets myFile.txt</code>, um eine Datei zu öffnen oder <code>brackets myFolder</code>, um das geöffnete Projekt zu ändern.<br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Erfahre mehr</a> über das Nutzen von {APP_NAME} über die Befehlszeile.",
 
     "LANGUAGE_TITLE"                            : "Sprache wechseln",
     "LANGUAGE_MESSAGE"                          : "Sprache:",
     "LANGUAGE_SUBMIT"                           : "{APP_NAME} neu starten",
     "LANGUAGE_CANCEL"                           : "Abbrechen",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemstandard",
+
+    // extensions/default/HealthData
+    "HEALTH_DATA_NOTIFICATION"                  : "Statusbericht-Einstellungen",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME}-Statusbericht",
+    "HEALTH_DATA_DO_TRACK"                      : "Anonyme Informationen über meine {APP_NAME}-Nutzung teilen",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Um {APP_NAME} zu verbessern, werden in regelmäßigen Zeitabständen <strong>anonyme</strong> Statistiken über Ihre {APP_NAME}-Nutzung an Adobe gesendet. Diese Informationen helfen dabei, Funktionen zu priorisieren sowie Bugs und Bedienungsprobleme aufzuspüren.<br><br>Sie können die Daten, die gesendet werden, jederzeit einsehen und das Teilen von Daten abstellen, indem Sie <strong>Hilfe > Statusbericht</strong> aufrufen.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Mehr über den {APP_NAME}-Statusbericht erfahren</a>",
+    "HEALTH_DATA_PREVIEW"                       : "{APP_NAME}-Statusbericht",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Um {APP_NAME} zu verbessern, werden in regelmäßigen Zeitabständen beschränkte, <strong>anonyme</strong> Statistiken über Ihre {APP_NAME}-Nutzung an Adobe gesendet. Diese Informationen helfen dabei, Funktionen zu priorisieren sowie Bugs und Bedienungsprobleme aufzuspüren. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Erfahre mehr über den {APP_NAME}-Statusbericht</a> und darüber, wie dieser der {APP_NAME}-Community hilft, während er gleichzeitig Privatsphäre gewährt.</p><p>Unten sehen Sie die Daten, die mit dem nächsten Statusbericht gesendet werden, <em>wenn</em> dieser aktiviert ist.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Zeit",
@@ -614,7 +629,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Parameter-Hinweis anzeigen",
     "NO_ARGUMENTS"                              : "<keine Parameter>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problem mit einer JavaScript-Datei",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets hat Probleme damit, <span class='dialog-filename'>{0}</span> zu verarbeiten.<br><br>Code-Vervollständigung, Springen zur Definition und Schnelles Bearbeiten werden für die Datei nicht mehr bereitgestellt. Öffnen Sie <code>.brackets.json</code> in diesem Projekt und entfernen Sie den Dateipfad von <code>jscodehints.detectedExclusions</code>, um diese Datei wieder einzuschließen.<br><br>Das ist wahrscheinlich ein Bug in Brackets. <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>Melden Sie den Fehler</a> bitte, falls Sie eine Kopie dieser Datei bereitstellen können. Verlinken Sie in diesem Fall die oben genannte Datei.",
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} hat Probleme damit, <span class='dialog-filename'>{0}</span> zu verarbeiten.<br><br>Code-Vervollständigung, Springen zur Definition und Schnelles Bearbeiten werden für die Datei nicht mehr bereitgestellt. Öffnen Sie <code>.brackets.json</code> in diesem Projekt und entfernen Sie den Dateipfad von <code>jscodehints.detectedExclusions</code>, um diese Datei wieder einzuschließen.<br><br>Das ist wahrscheinlich ein Bug in {APP_NAME}. <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>Melden Sie den Fehler</a> bitte, falls Sie eine Kopie dieser Datei bereitstellen können. Verlinken Sie in diesem Fall die oben genannte Datei.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -626,7 +641,13 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Zuletzt verwendete Projekte",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Weiterlesen"
+    "DOCS_MORE_LINK"                            : "Weiterlesen",
+
+    // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Alle einklappen",
+    "EXPAND_ALL"                    : "Alle ausklappen",
+    "COLLAPSE_CURRENT"              : "Aktuelle einklappen",
+    "EXPAND_CURRENT"                : "Aktuelle ausklappen"
 });
 
-/* Last translated for c292e896761bc7d451a9e3b95bedd20d6b355d77 */
+/* Last translated for 50cbe1b8848786c6be27d4788e4b6a367244abc2 */

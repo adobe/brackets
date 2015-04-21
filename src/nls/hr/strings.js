@@ -348,6 +348,7 @@ define({
     "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortiraj po imenu",
     "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortiraj po tipu",
     "CMD_SORT_WORKINGSET_AUTO"            : "Automatsko sortiranje",
+    "CMD_THEMES"                          : "Teme\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigacija",
@@ -464,6 +465,8 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Manager extenzija",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Pristupanje registru extenzije nije moguće. Pokušajte kasnije.",
+    "INSTALL_EXTENSION_DRAG"               : "Dovuci .zip ovdje ili",
+    "INSTALL_EXTENSION_DROP"               : "Ispusti .zip da instaliraš",
     "INSTALL_FROM_URL"                     : "Instaliraj sa linka URL\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
@@ -530,6 +533,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Zapiši u konzolu stanje Node-a",
     "CMD_RESTART_NODE"                          : "Ponovo pokreni Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Prikaži greške u statusnoj traci",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Otvori Brackets Izvor",
     
     "LANGUAGE_TITLE"                            : "Promjeni Jezik",
     "LANGUAGE_MESSAGE"                          : "Jezik:",

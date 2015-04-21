@@ -210,6 +210,7 @@ define(function (require, exports, module) {
             cache: false
         })
             .done(function (data) {
+                exports.hasDownloadedRegistry = true;
                 Object.keys(data).forEach(function (id) {
                     if (!extensions[id]) {
                         extensions[id] = {};
@@ -266,6 +267,7 @@ define(function (require, exports, module) {
                 locationType: locationType,
                 status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
             };
+
             synchronizeEntry(id);
             loadTheme(id);
             exports.trigger("statusChange", id);
@@ -787,6 +789,9 @@ define(function (require, exports, module) {
     exports.updateExtensions        = updateExtensions;
     exports.getAvailableUpdates     = getAvailableUpdates;
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
+    
+    exports.hasDownloadedRegistry   = false;
+    
     exports.ENABLED       = ENABLED;
     exports.START_FAILED  = START_FAILED;
 
@@ -794,7 +799,7 @@ define(function (require, exports, module) {
     exports.LOCATION_DEV      = LOCATION_DEV;
     exports.LOCATION_USER     = LOCATION_USER;
     exports.LOCATION_UNKNOWN  = LOCATION_UNKNOWN;
-
+    
     // For unit testing only
     exports._getAutoInstallFiles    = _getAutoInstallFiles;
     exports._reset                  = _reset;
