@@ -37,3 +37,6 @@
 [submodule "src/extensions/default/brackets-browser-livedev"]
 	path = src/extensions/default/brackets-browser-livedev
 	url = https://github.com/humphd/brackets-browser-livedev.git
+[submodule "src/extensions/default/brackets-paste-and-indent"]
+	path = src/extensions/default/brackets-paste-and-indent
+	url = https://github.com/ahuth/brackets-paste-and-indent.git

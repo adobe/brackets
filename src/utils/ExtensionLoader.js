@@ -411,7 +411,8 @@ define(function (require, exports, module) {
 
                     // Custom extensions we want loaded by default
                     "HTMLHinter",
-                    "brackets-browser-livedev"
+                    "brackets-browser-livedev",
+                    "brackets-paste-and-indent"
                 ];
 
             return Async.doInParallel(defaultExtensions, function (item) {
