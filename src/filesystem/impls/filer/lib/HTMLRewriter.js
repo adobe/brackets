@@ -7,6 +7,7 @@ define(function (require, exports, module) {
     var CSSRewriter = require("filesystem/impls/filer/lib/CSSRewriter");
     var BlobUtils = require("filesystem/impls/filer/BlobUtils");
     var Path = require("filesystem/impls/filer/BracketsFiler").Path;
+    var jsEnabled = true;
 
     /**
      * Rewrite all external resources (links, scripts, img sources, ...) to
@@ -103,6 +104,35 @@ define(function (require, exports, module) {
         Array.prototype.forEach.call(elements, rewritePath);
     };
 
+    HTMLRewriter.prototype.parseScripts = function() {
+         var elements = this.doc.querySelectorAll('script');
+        var dir = this.dir;
+
+        function rewritePath(element) {
+            // Skip any links for protocols (we only want relative paths)
+            var path = element.getAttribute('src');
+            if(!Content.isRelativeURL(path)) {
+                if(element.getAttribute('data-brackets-id') && !jsEnabled) {
+                    element.type = "text/-scripts-disabled";
+                }
+                else if (element.getAttribute('data-brackets-id') && jsEnabled) {
+                    if(element.getAttribute('type') === "text/x-scripts-disabled") {
+                        element.removeAttribute("type");
+                    }
+                }
+
+                return;
+            }
+        }
+
+        if(!elements) {
+            return;
+        }
+
+        Array.prototype.forEach.call(elements, rewritePath);
+
+    };
+
     function rewrite(path, html) {
         var rewriter = new HTMLRewriter(path, html);
 
@@ -116,9 +146,17 @@ define(function (require, exports, module) {
         rewriter.elements('video', 'src');
         rewriter.elements('audio', 'src');
 
+        rewriter.parseScripts('script','src');
+
         // Return the processed HTML
         return rewriter.doc.documentElement.outerHTML;
     }
 
     exports.rewrite = rewrite;
+    exports.enableScripts = function() {
+      jsEnabled = true;
+    };
+    exports.disableScripts = function() {
+      jsEnabled = false;
+    };
 });
