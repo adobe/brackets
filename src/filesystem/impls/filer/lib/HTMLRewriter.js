@@ -7,6 +7,11 @@ define(function (require, exports, module) {
     var CSSRewriter = require("filesystem/impls/filer/lib/CSSRewriter");
     var BlobUtils = require("filesystem/impls/filer/BlobUtils");
     var Path = require("filesystem/impls/filer/BracketsFiler").Path;
+
+    /**
+     * This variable controls whether or not we want scripts to be run in the preview window or not
+     * We do this by altering the mime type from text/javascript to text/x-scripts-disabled below.
+     */
     var jsEnabled = true;
 
     /**
@@ -104,24 +109,17 @@ define(function (require, exports, module) {
         Array.prototype.forEach.call(elements, rewritePath);
     };
 
-    HTMLRewriter.prototype.parseScripts = function() {
-         var elements = this.doc.querySelectorAll('script');
-        var dir = this.dir;
+    HTMLRewriter.prototype.scripts = function() {
+        var elements = this.doc.querySelectorAll('script');
 
-        function rewritePath(element) {
+        function maybeDisable(element) {
             // Skip any links for protocols (we only want relative paths)
-            var path = element.getAttribute('src');
-            if(!Content.isRelativeURL(path)) {
-                if(element.getAttribute('data-brackets-id') && !jsEnabled) {
-                    element.type = "text/-scripts-disabled";
+            if(element.getAttribute('data-brackets-id') && !jsEnabled) {
+                element.setAttribute('type', 'text/x-scripts-disabled');
+            } else if (element.getAttribute('data-brackets-id') && jsEnabled) {
+                if(element.getAttribute('type') === 'text/x-scripts-disabled') {
+                    element.removeAttribute('type');
                 }
-                else if (element.getAttribute('data-brackets-id') && jsEnabled) {
-                    if(element.getAttribute('type') === "text/x-scripts-disabled") {
-                        element.removeAttribute("type");
-                    }
-                }
-
-                return;
             }
         }
 
@@ -129,7 +127,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        Array.prototype.forEach.call(elements, rewritePath);
+        Array.prototype.forEach.call(elements, maybeDisable);
 
     };
 
@@ -145,8 +143,7 @@ define(function (require, exports, module) {
         rewriter.elements('source', 'src');
         rewriter.elements('video', 'src');
         rewriter.elements('audio', 'src');
-
-        rewriter.parseScripts('script','src');
+        rewriter.scripts();
 
         // Return the processed HTML
         return rewriter.doc.documentElement.outerHTML;
