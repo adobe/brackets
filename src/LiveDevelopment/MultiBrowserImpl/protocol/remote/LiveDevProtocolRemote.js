@@ -202,7 +202,21 @@
                     text = sheet.ownerNode.textContent;
                 } else if (sheet.href === msg.params.url && !sheet.disabled) {
                     var j,
+                        rules;
+
+                    // Deal with Firefox's SecurityError when accessing sheets
+                    // from other domains, and Chrome returning `undefined`.
+                    try {
                         rules = document.styleSheets[i].cssRules;
+                    } catch(e) {
+                        if(e.name !== "SecurityError") {
+                            throw e;
+                        }
+                    }
+                    if(!rules) {
+                        return;
+                    }
+
                     for (j = 0; j < rules.length; j++) {
                         text += rules[j].cssText + '\n';
                     }
