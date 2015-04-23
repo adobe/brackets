@@ -1,12 +1,12 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, DOMParser */
 define(function (require, exports, module) {
-    "use strict";
+    'use strict';
 
-    var Content = require("filesystem/impls/filer/lib/content");
-    var CSSRewriter = require("filesystem/impls/filer/lib/CSSRewriter");
-    var BlobUtils = require("filesystem/impls/filer/BlobUtils");
-    var Path = require("filesystem/impls/filer/BracketsFiler").Path;
+    var Content = require('filesystem/impls/filer/lib/content');
+    var CSSRewriter = require('filesystem/impls/filer/lib/CSSRewriter');
+    var BlobUtils = require('filesystem/impls/filer/BlobUtils');
+    var Path = require('filesystem/impls/filer/BracketsFiler').Path;
 
     /**
      * This variable controls whether or not we want scripts to be run in the preview window or not
@@ -115,15 +115,15 @@ define(function (require, exports, module) {
         function maybeDisable(element) {
             // Skip any scripts we've injected for live dev.
             if(!element.getAttribute('data-brackets-id')) {
-              return;
+                return;
             }
 
             if(jsEnabled) {
-              if(element.getAttribute('type') === 'text/x-scripts-disabled') {
-                element.removeAttribute('type');
-              }
+                if(element.getAttribute('type') === 'text/x-scripts-disabled') {
+                    element.removeAttribute('type');
+                }
             } else {
-              element.setAttribute('type', 'text/x-scripts-disabled');
+                element.setAttribute('type', 'text/x-scripts-disabled');
             }
         }
 
@@ -154,9 +154,9 @@ define(function (require, exports, module) {
 
     exports.rewrite = rewrite;
     exports.enableScripts = function() {
-      jsEnabled = true;
+        jsEnabled = true;
     };
     exports.disableScripts = function() {
-      jsEnabled = false;
+        jsEnabled = false;
     };
 });
