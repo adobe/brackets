@@ -113,13 +113,17 @@ define(function (require, exports, module) {
         var elements = this.doc.querySelectorAll('script');
 
         function maybeDisable(element) {
-            // Skip any links for protocols (we only want relative paths)
-            if(element.getAttribute('data-brackets-id') && !jsEnabled) {
-                element.setAttribute('type', 'text/x-scripts-disabled');
-            } else if (element.getAttribute('data-brackets-id') && jsEnabled) {
-                if(element.getAttribute('type') === 'text/x-scripts-disabled') {
-                    element.removeAttribute('type');
-                }
+            // Skip any scripts we've injected for live dev.
+            if(!element.getAttribute('data-brackets-id')) {
+              return;
+            }
+
+            if(jsEnabled) {
+              if(element.getAttribute('type') === 'text/x-scripts-disabled') {
+                element.removeAttribute('type');
+              }
+            } else {
+              element.setAttribute('type', 'text/x-scripts-disabled');
             }
         }
 
@@ -128,7 +132,6 @@ define(function (require, exports, module) {
         }
 
         Array.prototype.forEach.call(elements, maybeDisable);
-
     };
 
     function rewrite(path, html) {
