@@ -734,11 +734,13 @@ a:focus {
 /* Dialog-related styles */
 
 .modal-wrapper {
-    width: 100%;
+    width: 100% !important;
+    max-width: 75%;
     height: 100%;
     position: absolute;
     top: 0;
     left: 0;
+    padding-left: 0;
     overflow: auto;
     display: table;
 }
