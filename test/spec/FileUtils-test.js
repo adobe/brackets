@@ -177,46 +177,6 @@ define(function (require, exports, module) {
             });
         });
 
-        describe("getSmartFileExtension", function () {
-
-            it("should get the extension of a normalized win file path", function () {
-                expect(FileUtils.getSmartFileExtension("C:/foo/bar/baz.txt")).toBe("txt");
-            });
-
-            it("should get the extension of a posix file path", function () {
-                expect(FileUtils.getSmartFileExtension("/foo/bar/baz.txt")).toBe("txt");
-            });
-
-            it("should return empty extension for a normalized win directory path", function () {
-                expect(FileUtils.getSmartFileExtension("C:/foo/bar/")).toBe("");
-            });
-
-            it("should return empty extension for a posix directory path", function () {
-                expect(FileUtils.getSmartFileExtension("bar")).toBe("");
-            });
-
-            it("should return the extension of a filename containing .", function () {
-                expect(FileUtils.getSmartFileExtension("C:/foo/bar/.baz/jaz.txt")).toBe("txt");
-                expect(FileUtils.getSmartFileExtension("foo/bar/baz/.jaz.txt")).toBe("txt");
-                expect(FileUtils.getSmartFileExtension("foo.bar.baz..jaz.txt")).toBe("txt");
-            });
-
-            it("should return no extension for files with only . as a first character", function () {
-                expect(FileUtils.getSmartFileExtension("C:/foo/bar/.baz/.jaz")).toBe("");
-            });
-
-            it("should return the extension containing . for known types", function () {
-                expect(FileUtils.getSmartFileExtension("C:/foo/bar/.baz/jaz.scss.erb")).toBe("scss.erb");
-                expect(FileUtils.getSmartFileExtension("foo/bar/baz/.jaz.js.erb")).toBe("js.erb");
-            });
-
-            it("should return the extension combined from other known extensions", function () {
-                expect(FileUtils.getSmartFileExtension("foo.bar.php.js")).toBe("php.js");
-                expect(FileUtils.getSmartFileExtension("foo.bar.php.html.js")).toBe("php.html.js");
-                expect(FileUtils.getSmartFileExtension("foo.bar.php.scss.erb")).toBe("php.scss.erb");
-            });
-        });
-
         describe("encodeFilePath", function () {
 
             it("should encode symbols in path", function () {

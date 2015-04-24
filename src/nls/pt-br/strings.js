@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
@@ -48,7 +48,7 @@ define({
     "FILENAMES_LEDE"                    : "Nomes de arquivos",
     "FILENAME"                          : "Nome de arquivo",
     "DIRECTORY_NAME"                    : "Nome de diretório",
-    
+
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Erro ao carregar o projeto",
@@ -199,7 +199,7 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Erro ao receber informações de atualização",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Houve um problema ao obter informações sobre a última atualização do servidor. Por favor, certifique-se de estar conectado à Internet e tente novamente.",
-    
+
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Adicionar filtro\u2026",
     "CLEAR_FILE_FILTER"                 : "Limpar filtro de arquivos",
@@ -225,7 +225,7 @@ define({
 
     // Quick Docs
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Quick Docs não disponível para a posição atual do cursor",
-    
+
     /**
      * ProjectManager
      */
@@ -294,8 +294,8 @@ define({
     "NOTHING_TO_LINT"                       : "Nada para analisar",
     "LINTER_TIMED_OUT"                      : "{0} expirou após esperar durante {1} ms",
     "LINTER_FAILED"                         : "{0} terminou com o erro: {1}",
-    
-    
+
+
     /**
      * Command Name Constants
      */
@@ -319,6 +319,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Salvar todos",
     "CMD_FILE_SAVE_AS"                    : "Salvar como\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Habilitar Live Preview experimental",
     "CMD_RELOAD_LIVE_PREVIEW"             : "Forçar recarregamento do Live Preview",
     "CMD_PROJECT_SETTINGS"                : "Configurações do projeto\u2026",
     "CMD_FILE_RENAME"                     : "Renomear",
@@ -453,17 +454,17 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Caracteres especiais como '{0}' devem ser codificados para URL encoding.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Erro desconhecido ao parsear URL base",
     "EMPTY_VIEW_HEADER"                    : "<em>Abra um arquivo enquanto este painel possui o foco</em>",
-    
+
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema atual",
     "USE_THEME_SCROLLBARS"                 : "Usar barra de rolagens do tema",
     "FONT_SIZE"                            : "Tamanho da fonte",
     "FONT_FAMILY"                          : "Família da fonte",
     "THEMES_SETTINGS"                      : "Configurações de temas",
-    
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nova regra",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Instalar",
     "UPDATE"                               : "Atualizar",
@@ -554,7 +555,7 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponíveis",
     "EXTENSIONS_THEMES_TITLE"              : "Temas",
     "EXTENSIONS_UPDATES_TITLE"             : "Atualizações",
-    
+
     "INLINE_EDITOR_NO_MATCHES"             : "Nenhum resultado.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "Todas as correspondências foram ocultadas. Expanda os arquivos listados na direita para ver os resultados.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Nenhuma regra CSS corresponde à sua seleção.<br> Clique em \"Nova regra\" para criar uma.",
@@ -584,13 +585,13 @@ define({
     "CMD_RESTART_NODE"                          : "Reiniciar Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostrar erros na barra de status",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Abrir local do Brackets",
-    
+
     "LANGUAGE_TITLE"                            : "Alterar idioma",
     "LANGUAGE_MESSAGE"                          : "Idioma:",
     "LANGUAGE_SUBMIT"                           : "Reiniciar {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Cancelar",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Padrão do sistema",
-    
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tempo",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progresso",
@@ -606,24 +607,30 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Formato HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (usada {1} vez)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (usada {1} vezes)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Pular para definição",
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostrar dicas de parâmetro",
     "NO_ARGUMENTS"                              : "<nenhum parâmetro>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problema de inferência de arquivo JavaScript",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets enfrentou um problema ao processar: <span class='dialog-filename'>{0}</span>.<br><br>Este arquivo não será mais processado para dicas de código, definições ou edição rápida. Para reverter, abra <code>.brackets.json</code> em seu projeto e edite <code>jscodehints.detectedExclusions</code>.<br><br>Este provavelmente é um bug do Brackets. Se você pode fornecer uma cópia deste arquivo, por favor <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>registre um bug</a> com um link para o arquivo mencionado aqui.",
-    
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Quick View ao passar o mouse",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Projetos Recentes",
-    
+
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Leia mais"
+    "DOCS_MORE_LINK"                            : "Leia mais",
+
+    //extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Dobrar Tudo",
+    "EXPAND_ALL"                    : "Expandir Tudo",
+    "COLLAPSE_CURRENT"              : "Dobrar Posição Atual",
+    "EXPAND_CURRENT"                : "Expandir Posição Atual"
 });
 /* Last translated for 0b949dd02b87866d54f38631715a4353a8f927e5 */

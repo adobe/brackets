@@ -102,6 +102,10 @@ define(function (require, exports, module) {
      * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
      */
     function formatHints(hints, query) {
+        var hasColorSwatch = hints.some(function (token) {
+            return token.color;
+        });
+
         StringMatch.basicMatchSort(hints);
         return hints.map(function (token) {
             var $hintObj = $("<span>").addClass("brackets-svg-hints");
@@ -121,7 +125,9 @@ define(function (require, exports, module) {
                 $hintObj.text(token.value);
             }
 
-            $hintObj.data("token", token);
+            if (hasColorSwatch) {
+                $hintObj = ColorUtils.formatColorHint($hintObj, token.color);
+            }
 
             return $hintObj;
         });
@@ -210,7 +216,9 @@ define(function (require, exports, module) {
                     isMultiple = attributeData[tagInfo.attrName].multiple;
 
                     if (attributeData[tagInfo.attrName].type === "color") {
-                        options = ColorUtils.COLOR_NAMES;
+                        options = ColorUtils.COLOR_NAMES.map(function (color) {
+                            return { text: color, color: color };
+                        });
                         options = options.concat(["currentColor", "transparent"]);
                     }
                 }
@@ -223,8 +231,12 @@ define(function (require, exports, module) {
                 query = XMLUtils.getValueQuery(tagInfo);
                 hints = $.map(options, function (option) {
                     if (tagInfo.exclusionList.indexOf(option) === -1) {
-                        var match = StringMatch.stringMatch(option, query, stringMatcherOptions);
+                        var match = StringMatch.stringMatch(option.text || option, query, stringMatcherOptions);
                         if (match) {
+                            if (option.color) {
+                                match.color = option.color;
+                            }
+
                             return match;
                         }
                     }

@@ -93,3 +93,13 @@ div.layout > div {
     flow-from: content;
     flow-from: element;
 }
+
+/* colors */
+.colorful {
+    color: ;
+    background-color: ;
+    border-left-color: deep;
+    border-color: rent;
+    height: ;
+    color: transparent;
+}

@@ -114,6 +114,49 @@ define(function (require, exports, module) {
             return codeHintList;
         }
         
+        // TODO: There seems to be an issue with CodeHintManager._removeHintProvider because of which the tests 
+        // added for "Hint Provider Registration" are interfering with this test case 
+        // (mock provider added for new language shows up for RegExp, even though no code hint should show up)
+        // I am unable to reproduce this in a real scenario though/
+        // This is the reason this test case is being added before the registration test cases.
+        // We need to either figure out whats going wrong with register or change the RegExp code hint fix to bail
+        // before HintUtils (Something like the fix for no code hints for multiple selection)
+        describe("RegExp codehint tests", function () {
+            it("should not show codehints for regular expression in a script block in html", function () {
+                var editor,
+                    pos = {line: 8, ch: 30};
+
+                // Place cursor inside a sample regular expression
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", pos);
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    invokeCodeHints();
+                    expectNoHints();
+                    editor = null;
+                });
+            });
+            
+            it("should not show codehints for regular expression in a Javascript file", function () {
+                var editor,
+                    pos = {line: 2, ch: 30};
+
+                // Place cursor inside a sample regular expression
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("testRegexp.js", pos);
+
+                runs(function () {
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+                    invokeCodeHints();
+                    expectNoHints();
+                    editor = null;
+                });
+            });
+        });
+        
         describe("Hint Provider Registration", function () {
             beforeEach(function () {
                 initCodeHintTest("test1.html", {line: 0, ch: 0});

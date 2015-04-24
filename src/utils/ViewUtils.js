@@ -28,8 +28,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _         = require("thirdparty/lodash"),
-        FileUtils = require("file/FileUtils");
+    var _               = require("thirdparty/lodash"),
+        LanguageManager = require("language/LanguageManager");
     
     var SCROLL_SHADOW_HEIGHT = 5;
     
@@ -402,7 +402,7 @@ define(function (require, exports, module) {
      */
     function getFileEntryDisplay(entry) {
         var name = entry.name,
-            ext = FileUtils.getSmartFileExtension(name),
+            ext = LanguageManager.getCompoundFileExtension(name),
             i = name.lastIndexOf("." + ext);
         
         if (i > 0) {

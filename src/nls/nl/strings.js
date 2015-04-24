@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
@@ -76,7 +76,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Probleem bij het starten in de browser",
     "ERROR_CANT_FIND_CHROME"            : "De Google Chrome browser kon niet gevonden worden. Zorg ervoor dat deze geïnstalleerd is.",
     "ERROR_LAUNCHING_BROWSER"           : "Er is een fout opgetreden bij het starten van de browser. (error {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Probleem met Live Voorbeeld",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Bezig met verbinden met de browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Om met Live Voorbeeld te verbinden, moet Chrome opnieuw gestart worden met debugging op afstand ingeschakeld.<br /><br />Wil je Chrome herstarten en debugging op afstand inschakelen?",
@@ -87,7 +87,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welkom bij Live Voorbeeld!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Voorbeeld verbindt {APP_NAME} met je browser. Het toont een voorbeeld van je HTML bestand in de browser, vervolgens updatet het voorbeeld onmiddelijk bij het wijzigen van je code.<br /><br />In deze vroege versie van {APP_NAME}, werkt Live Voorbeeld enkel met <strong>Google Chrome</strong> en updatet live bij het wijzigen van <strong>CSS of HTML bestanden</strong>. Wijzigingen aan JavaScript bestanden worden automatisch herladen wanneer je bewaart.<br /><br />(Je zal dit bericht slechts eenmaal zien.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Voor meer informatie zie, see <a href='{0}' title='{0}'>Oplossen van Live Ontwikkeling verbindingsproblemen</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Voorbeeld",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Voorbeeld: Bezig met verbinden\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Voorbeeld: Initialiseren\u2026",
@@ -99,7 +99,7 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Live Voorbeeld is geannuleerd omdat de pagina gesloten werd in de browser",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Live Voorbeeld is geannuleerd omdat de browser navigeerde naar een pagina die geen deel uit maakt van het huidige project",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Live Voorbeeld is geannuleerd om een onbekende reden ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Opslaan van wijzigingen",
     "SAVE_CLOSE_MESSAGE"                : "Wil je de wijzigingen opslaan die je maakte in het document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wil je je wijzigingen van de volgende bestanden opslaan?",
@@ -109,7 +109,7 @@ define({
     "FILE_DELETED_TITLE"                : "Bestand Verwijderd",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> is gewijzigd op de schijf, maar heeft ook onbewaarde wijzigingen in {APP_NAME}.<br /><br />Welke versie wil je behouden?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> is verwijderd op de schijf, maar heeft onbewaarde wijzigingen in {APP_NAME}.<br /><br />Wil je je wijzigingen behouden?",
-    
+
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Gebruik de /re/ syntax voor een regexp zoekopdracht",
     "FIND_RESULT_COUNT"                 : "{0} resultaten",
@@ -121,7 +121,7 @@ define({
     "BUTTON_REPLACE_ALL"                : "Alle\u2026",
     "BUTTON_STOP"                       : "Stop",
     "BUTTON_REPLACE"                    : "Vervang",
-            
+
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Volgende overeenkomst",
@@ -167,7 +167,7 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
-    
+
     /**
      * StatusBar strings
      */
@@ -193,8 +193,8 @@ define({
     "LINT_DISABLED"                         : "Linting is uitgeschakeld",
     "NO_LINT_AVAILABLE"                     : "Er is geen linter beschikbaar voor {0}",
     "NOTHING_TO_LINT"                       : "Niets om te linten",
-    
-    
+
+
     /**
      * Command Name Constants
      */
@@ -250,7 +250,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Open regel beneden",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Automatisch accolades sluiten",
     "CMD_SHOW_CODE_HINTS"                 : "Toon code hints",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "Beeld",
     "CMD_HIDE_SIDEBAR"                    : "Verberg zijbalk",
@@ -284,7 +284,7 @@ define({
     "CMD_PREV_DOC"                        : "Vorig document",
     "CMD_SHOW_IN_TREE"                    : "Toon in bestandsboom",
     "CMD_SHOW_IN_OS"                      : "Toon in besturingssysteem",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Help",
     "CMD_CHECK_FOR_UPDATE"                : "Controleer op updates",
@@ -328,7 +328,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "De start URL kan geen hashes bevatten zoals \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Speciale karakters zoals '{0}' moeten %-geëncodeerd zijn.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Onbekende fout bij het parsen van de begin URL",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Installeren",
     "UPDATE"                               : "Update",
@@ -405,14 +405,14 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "Geïnstalleerd",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Beschikbaar",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
-    
+
     /**
      * Unit names
      */
 
     "UNIT_PIXELS"                          : "pixels",
-    
-    
+
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Tools weergeven voor ontwikkelaars",
@@ -424,13 +424,13 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Schakel Node Debugger in",
     "CMD_LOG_NODE_STATE"                        : "Log Node Status naar Console",
     "CMD_RESTART_NODE"                          : "Herstart Node",
-    
+
     "LANGUAGE_TITLE"                            : "Wijzig taal",
     "LANGUAGE_MESSAGE"                          : "Taal:",
     "LANGUAGE_SUBMIT"                           : "{APP_NAME} opnieuw laden",
     "LANGUAGE_CANCEL"                           : "Annuleren",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systeem voorkeuren",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Huidige kleur",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Originele kleur",
@@ -439,22 +439,28 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa formaat",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1} keer gebruikt)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1} keer gebruikt)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Ga naar definitie",
     "CMD_SHOW_PARAMETER_HINT"                   : "Toon parameter Hint",
     "NO_ARGUMENTS"                              : "<geen parameters>",
-    
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Snel bekijken bij muis over",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Recente projecten",
-    
+
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Lees meer"
+    "DOCS_MORE_LINK"                            : "Lees meer",
+
+    //extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Alles inklappen",
+    "EXPAND_ALL"                    : "Alles uitklappen",
+    "COLLAPSE_CURRENT"              : "Huidige inklappen",
+    "EXPAND_CURRENT"                : "Huidige uitklappen"
 });
 /* Last translated for 752856d58d2e9dde14e1af6be615bb7080727b7a */

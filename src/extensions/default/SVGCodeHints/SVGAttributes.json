@@ -17,6 +17,9 @@
     "animateMotion/fill": {
         "attribOptions": ["freeze", "remove"]
     },
+    "animateMotion/rotate": {
+        "attribOptions": ["auto", "auto-reverse"]
+    },
     "animateTransform/fill": {
         "attribOptions": ["freeze", "remove"]
     },
@@ -164,6 +167,10 @@
     "glyph-orientation-vertical": {
         "attribOptions": ["auto", "inherit"]
     },
+    "gradientTransform": {
+        "attribOptions": ["matrix()", "rotate()", "scale()", "skewX()", "skewY()", "translate()"],
+        "multiple": true
+    },
     "gradientUnits": {
         "attribOptions": ["objectBoundingBox", "userSpaceOnUse"]
     },
@@ -276,9 +283,6 @@
     },
     "restart": {
         "attribOptions": ["always", "never", "whenNotActive"]
-    },
-    "rotate": {
-        "attribOptions": ["auto", "auto-reverse"]
     },
     "script/type": {
         "attribOptions": ["application/ecmascript", "application/javascript", "application/x-ecmascript", "application/x-javascript", "text/ecmascript", "text/javascript", "text/jscript", "text/livescript", "text/tcl", "text/x-ecmascript", "text/x-javascript"]

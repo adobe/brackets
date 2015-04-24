@@ -71,7 +71,9 @@ define(function (require, exports, module) {
     var STATUS_RELOADING     = exports.STATUS_RELOADING      =  5;
     var STATUS_RESTARTING    = exports.STATUS_RESTARTING     =  6;
 
-    var Dialogs              = require("widgets/Dialogs"),
+    var CommandManager       = require("command/CommandManager"),
+        Commands             = require("command/Commands"),
+        Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
         EditorManager        = require("editor/EditorManager"),
@@ -82,10 +84,11 @@ define(function (require, exports, module) {
         ProjectManager       = require("project/ProjectManager"),
         Strings              = require("strings"),
         _                    = require("thirdparty/lodash"),
+        LiveDevelopmentUtils = require("LiveDevelopment/LiveDevelopmentUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         NodeSocketTransport  = require("LiveDevelopment/MultiBrowserImpl/transports/NodeSocketTransport"),
         LiveDevProtocol      = require("LiveDevelopment/MultiBrowserImpl/protocol/LiveDevProtocol"),
-        Launcher             = require("LiveDevelopment/MultiBrowserImpl/launchers/Launcher");
+        DefaultLauncher      = require("LiveDevelopment/MultiBrowserImpl/launchers/Launcher");
     
     // Documents
     var LiveCSSDocument      = require("LiveDevelopment/MultiBrowserImpl/documents/LiveCSSDocument"),
@@ -111,6 +114,12 @@ define(function (require, exports, module) {
      * Protocol handler that provides the actual live development API on top of the current transport.
      */
     var _protocol = LiveDevProtocol;
+
+    /**
+     * @private
+     * Current browser launcher for preview.
+     */
+    var _launcher;
     
     /**
      * @private
@@ -118,17 +127,6 @@ define(function (require, exports, module) {
      * @type {BaseServer}
      */
     var _server;
-    
-    /**
-     * @private
-     * Returns true if we think the given extension is for an HTML file.
-     * @param {string} ext The extension to check.
-     * @return {boolean} true if this is an HTML extension
-     */
-    function _isHtmlFileExt(ext) {
-        return (FileUtils.isStaticHtmlFileExt(ext) ||
-                (ProjectManager.getBaseUrl() && FileUtils.isServerHtmlFileExt(ext)));
-    }
 
     /** 
      * @private
@@ -141,7 +139,7 @@ define(function (require, exports, module) {
             return LiveCSSDocument;
         }
 
-        if (_isHtmlFileExt(doc.file.fullPath)) {
+        if (LiveDevelopmentUtils.isHtmlFileExt(doc.file.fullPath)) {
             return LiveHTMLDocument;
         }
 
@@ -366,7 +364,7 @@ define(function (require, exports, module) {
         // Is the currently opened document already a file we can use for Live Development?
         if (doc) {
             refPath = doc.file.fullPath;
-            if (FileUtils.isStaticHtmlFileExt(refPath) || FileUtils.isServerHtmlFileExt(refPath)) {
+            if (LiveDevelopmentUtils.isStaticHtmlFileExt(refPath) || LiveDevelopmentUtils.isServerHtmlFileExt(refPath)) {
                 return new $.Deferred().resolve(doc);
             }
         }
@@ -398,11 +396,11 @@ define(function (require, exports, module) {
                 if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
                     if (FileUtils.getFilenameWithoutExtension(fileInfo.name) === "index") {
                         if (hasOwnServerForLiveDevelopment) {
-                            if ((FileUtils.isServerHtmlFileExt(fileInfo.name)) ||
-                                    (FileUtils.isStaticHtmlFileExt(fileInfo.name))) {
+                            if ((LiveDevelopmentUtils.isServerHtmlFileExt(fileInfo.name)) ||
+                                    (LiveDevelopmentUtils.isStaticHtmlFileExt(fileInfo.name))) {
                                 return true;
                             }
-                        } else if (FileUtils.isStaticHtmlFileExt(fileInfo.name)) {
+                        } else if (LiveDevelopmentUtils.isStaticHtmlFileExt(fileInfo.name)) {
                             return true;
                         }
                     } else {
@@ -523,7 +521,7 @@ define(function (require, exports, module) {
         // open default browser
         // TODO: fail?
         // 
-        Launcher.launch(url);
+        _launcher.launch(url);
     }
     
     /**
@@ -627,7 +625,7 @@ define(function (require, exports, module) {
 
         // Optionally prompt for a base URL if no server was found but the
         // file is a known server file extension
-        showBaseUrlPrompt = !_server && FileUtils.isServerHtmlFileExt(doc.file.fullPath);
+        showBaseUrlPrompt = !_server && LiveDevelopmentUtils.isServerHtmlFileExt(doc.file.fullPath);
 
         if (showBaseUrlPrompt) {
             // Prompt for a base URL
@@ -698,14 +696,14 @@ define(function (require, exports, module) {
                 otherDocumentsInWorkingFiles;
 
             if (doc && !doc._masterEditor) {
-                otherDocumentsInWorkingFiles = DocumentManager.getWorkingSet().length;
-                DocumentManager.addToWorkingSet(doc.file);
+                otherDocumentsInWorkingFiles = MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES);
+                MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
 
                 if (!otherDocumentsInWorkingFiles) {
-                    DocumentManager.setCurrentDocument(doc);
+                    CommandManager.execute(Commands.CMD_OPEN, { fullPath: doc.file.fullPath });
                 }
             }
-
+            
             // wait for server (StaticServer, Base URL or file:)
             prepareServerPromise
                 .done(function () {
@@ -798,6 +796,23 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Sets the current browser launcher mechanism to be used by live development
+     * (e.g., default browser, iframe-based browser, etc.)
+     * The launcher must provide the following method:
+     *
+     * - launch(url): Launch the given URL in the appropriate browser.
+     *
+     * @param {{launch: function(string)}} launcher
+     */
+    function setLauncher(launcher) {
+        if (!(launcher && launcher.launch)) {
+            console.log("Invalid launcher object: ", launcher, new Error("LiveDevMultiBrowser.setLauncher()"));
+            return;
+        }
+        _launcher = launcher;
+    }
+
+    /**
      * Initialize the LiveDevelopment module.
      */
     function init() {
@@ -812,6 +827,9 @@ define(function (require, exports, module) {
         // Default transport for live connection messages - can be changed
         setTransport(NodeSocketTransport);
         
+        // Default launcher for preview browser - can be changed
+        setLauncher(DefaultLauncher);
+
         // Initialize exports.status
         _setStatus(STATUS_INACTIVE);
     }
@@ -916,4 +934,5 @@ define(function (require, exports, module) {
     exports.getServerBaseUrl    = getServerBaseUrl;
     exports.getCurrentProjectServerConfig = getCurrentProjectServerConfig;
     exports.setTransport        = setTransport;
+    exports.setLauncher         = setLauncher;
 });

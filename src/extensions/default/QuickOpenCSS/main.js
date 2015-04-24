@@ -84,20 +84,18 @@ define(function (require, exports, module) {
      * @param {boolean} returns true if this plugin wants to provide results for this query
      */
     function match(query) {
-        // TODO: match any location of @ when QuickOpen._handleItemFocus() is modified to
-        // dynamic open files
-        //if (query.indexOf("@") !== -1) {
-        if (query.indexOf("@") === 0) {
-            return true;
-        }
+        return (query[0] === "@");
     }
 
     /**
-     * Select the selected item in the current document
+     * Scroll to the selected item in the current document (unless no query string entered yet,
+     * in which case the topmost list item is irrelevant)
      * @param {?SearchResult} selectedItem
+     * @param {string} query
+     * @param {boolean} explicit False if this is only highlighted due to being at top of list after search()
      */
-    function itemFocus(selectedItem) {
-        if (!selectedItem) {
+    function itemFocus(selectedItem, query, explicit) {
+        if (!selectedItem || (query.length < 2 && !explicit)) {
             return;
         }
         var selectorInfo = selectedItem.selectorInfo;
@@ -107,8 +105,8 @@ define(function (require, exports, module) {
         EditorManager.getCurrentFullEditor().setSelection(from, to, true);
     }
 
-    function itemSelect(selectedItem) {
-        itemFocus(selectedItem);
+    function itemSelect(selectedItem, query) {
+        itemFocus(selectedItem, query, true);
     }
 
 
