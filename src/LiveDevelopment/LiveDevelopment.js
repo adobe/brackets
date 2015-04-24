@@ -190,7 +190,8 @@ define(function LiveDevelopment(require, exports, module) {
     var _server;
     
     /**
-     * Handlers of registered servers
+     * @private
+     * Handles of registered servers
      */
     var _regServers = [];
 

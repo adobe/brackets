@@ -89,7 +89,7 @@ define(function (require, exports, module) {
      *  particular url. Providers that register with a higher priority will
      *  have the opportunity to provide a given url before those with a
      *  lower priority. The higher the number, the higher the priority.
-     * @return {{create: function():BaseServer, priority: number}}
+     * @return {{object}}
      */
     function registerServer(provider, priority) {
         if (!provider.create) {
@@ -111,8 +111,7 @@ define(function (require, exports, module) {
     /**
      * Remove a server from the list of the registered providers.
      * 
-     * @param {{create: function():BaseServer}, priority: number}} provider 
-     * The provider to be removed.
+     * @param {{object}} provider The provider to be removed.
      */
     function removeServer(provider) {
         var i;
