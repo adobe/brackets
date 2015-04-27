@@ -651,4 +651,4 @@ define({
     "EXPAND_CURRENT"                : "Laajenna nykyinen"
 });
 
-/* Last translated for 379267107e172bb14c6675bc1bb207756de0175d */
+/* Last translated for 50cbe1b8848786c6be27d4788e4b6a367244abc2 */
