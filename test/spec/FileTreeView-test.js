@@ -239,7 +239,7 @@ define(function (require, exports, module) {
 
                 newProps = _.clone(props);
                 newProps.extensions = Immutable.Map({
-                    addClasses: Immutable.Vector()
+                    addClasses: Immutable.List()
                 });
                 expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
             });
@@ -340,7 +340,7 @@ define(function (require, exports, module) {
                 
                 newProps = _.clone(props);
                 newProps.extensions = Immutable.Map({
-                    addClasses: Immutable.Vector()
+                    addClasses: Immutable.List()
                 });
                 expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
                 
@@ -483,7 +483,7 @@ define(function (require, exports, module) {
 
                 newProps = _.clone(props);
                 newProps.extensions = Immutable.Map({
-                    addClasses: Immutable.Vector()
+                    addClasses: Immutable.List()
                 });
                 expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
 
@@ -546,7 +546,7 @@ define(function (require, exports, module) {
 
                 newProps = _.clone(props);
                 newProps.extensions = Immutable.Map({
-                    addClasses: Immutable.Vector()
+                    addClasses: Immutable.List()
                 });
                 expect(rendered.shouldComponentUpdate(newProps)).toBe(true);
 

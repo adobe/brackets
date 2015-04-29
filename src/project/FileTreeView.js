@@ -1040,7 +1040,7 @@ define(function (require, exports, module) {
         }
         var callbackList = _extensions.get(category);
         if (!callbackList) {
-            callbackList = Immutable.Vector();
+            callbackList = Immutable.List();
         }
         callbackList = callbackList.push(callback);
         _extensions = _extensions.set(category, callbackList);
