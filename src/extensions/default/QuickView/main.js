@@ -49,7 +49,8 @@ define(function (require, exports, module) {
         $previewContainer,                   // Preview container
         $previewContent,                     // Preview content holder
         lastMousePos,                        // Last mouse position
-        animationRequest;                    // Request for animation frame
+        animationRequest,                    // Request for animation frame
+        extensionlessImagePreview;           // Whether to try and preview extensionless URLs
     
     // Constants
     var CMD_ENABLE_QUICK_VIEW       = "view.enableQuickView",
@@ -61,6 +62,9 @@ define(function (require, exports, module) {
 
     prefs = PreferencesManager.getExtensionPrefs("quickview");
     prefs.definePreference("enabled", "boolean", true);
+    // Whether or not to try and show image previews for URLs missing extensions
+    // (e.g., https://avatars2.githubusercontent.com/u/476009?v=3&s=200)
+    prefs.definePreference("extensionlessImagePreview", "boolean", true);
 
     /**
      * There are three states for this var:
@@ -472,14 +476,17 @@ define(function (require, exports, module) {
 
         // Use this URL if this is an absolute URL and either points to a
         // filename with a known image extension, or lacks an extension (e.g.,
-        // a web service that returns an image).
-        if (hasProtocol && (isImage || !ext)) {
+        // a web service that returns an image). Honour the extensionlessImagePreview
+        // preference as well in the latter case.
+        if (hasProtocol && (isImage || (!ext && extensionlessImagePreview))) {
             imgPath = tokenString;
         }
         // Use this filename if this is a path with a known image extension.
         else if (!hasProtocol && isImage) {
             imgPath = "file:///" + FileUtils.getDirectoryPath(docPath) + tokenString;
-        } else {
+        }
+
+        if (!imgPath) {
             return null;
         }
 
@@ -536,7 +543,6 @@ define(function (require, exports, module) {
      * Lacks only hoverTimer (supplied by handleMouseMove()) and marker (supplied by showPreview()).
      */
     function queryPreviewProviders(editor, pos, token) {
-        
         var line = editor.document.getLine(pos.line);
         
         // FUTURE: Support plugin providers. For now we just hard-code...
@@ -733,6 +739,14 @@ define(function (require, exports, module) {
         CommandManager.get(CMD_ENABLE_QUICK_VIEW).setChecked(enabled);
     }
 
+    function setExtensionlessImagePreview(_extensionlessImagePreview) {
+        if(extensionlessImagePreview !== _extensionlessImagePreview) {
+            extensionlessImagePreview = _extensionlessImagePreview;
+            prefs.set("extensionlessImagePreview", enabled);
+            prefs.save();
+        }
+    }
+
     function setEnabled(_enabled, doNotSave) {
         if (enabled !== _enabled) {
             enabled = _enabled;
@@ -800,9 +814,14 @@ define(function (require, exports, module) {
 
     // Setup initial UI state
     setEnabled(prefs.get("enabled"), true);
+    setExtensionlessImagePreview(prefs.get("extensionlessImagePreview"));
     
     prefs.on("change", "enabled", function () {
         setEnabled(prefs.get("enabled"), true);
+    });
+
+    prefs.on("change", "extensionlessImagePreview", function () {
+        setExtensionlessImagePreview(prefs.get("extensionlessImagePreview"));
     });
     
     // For unit testing
