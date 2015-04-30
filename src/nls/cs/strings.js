@@ -629,7 +629,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Zobrazit nápovědu parametru",
     "NO_ARGUMENTS"                              : "<žádné parametry>",
     "DETECTED_EXCLUSION_TITLE"                  : "Inferenční problém JavaScript souboru",
-    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} narazil na problémy při zpracování <span class='dialog-filename'>{0}</span>.<br><br>Tento soubor nebude nadále používat nápovědy, funkci Přejít na definici a funkci Rychlá úprava. Pro opětovné zapnutí těchto funkcí, otevřete <code>.brackets.json</code> ve vašem projektu a upravte <code>jscodehints.detectedExclusions</code>.<br><br>Pravděpodobně je to chyba {APP_NAME}. Pokud můžete poskytnout kopii tohoto souboru, prosíme <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>nahlašte tuto chybu</a> s odkazem na daný soubor.",
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} narazil na problémy při zpracování <span class='dialog-filename'>{0}</span>.<br><br>Tento soubor nebude nadále používat nápovědy, funkci Přejít na definici a funkci Rychlá úprava. Pro opětovné zapnutí těchto funkcí, otevřete <code>.brackets.json</code> ve vašem projektu a upravte <code>jscodehints.detectedExclusions</code>.<br><br>Pravděpodobně je to chyba {APP_NAME}. Pokud můžete poskytnout kopii tohoto souboru, prosíme <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>nahlaste tuto chybu</a> s odkazem na daný soubor.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
