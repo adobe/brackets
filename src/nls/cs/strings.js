@@ -88,7 +88,7 @@ define({
     // Řetězce chyb nastavení aplikace
     "ERROR_PREFS_CORRUPT_TITLE"         : "Chyba při čtení nastavení",
     "ERROR_PREFS_CORRUPT"               : "Soubor s nastavením není platný soubor typu JSON. Soubor bude otevřen, abyste mohli opravit formát. Pro uložení změn budete muset restartovat aplikaci {APP_NAME}.",
-    "ERROR_PROJ_PREFS_CORRUPT"          : "Soubor s preferencemi vašeho projektu neodpovídá vylidnímu JSON formátu. Tento soubor bude otevřen, abyste mohl formát opravit. K provedení změn bude nutné znovu načíst projekt.",
+    "ERROR_PROJ_PREFS_CORRUPT"          : "Soubor s preferencemi vašeho projektu neodpovídá validnímu JSON formátu. Tento soubor bude otevřen, abyste mohl formát opravit. K provedení změn bude nutné znovu načíst projekt.",
 
     // Řetězce chyb aplikace
     "ERROR_IN_BROWSER_TITLE"            : "Ouha! {APP_NAME} ještě neběží v prohlížeči.",
