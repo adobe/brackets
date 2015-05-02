@@ -931,6 +931,7 @@ define(function (require, exports, module) {
         
         // This *will* fire a change event, but we clear the undo immediately afterward
         this._codeMirror.setValue(text);
+        this._codeMirror.refresh();
         
         // Make sure we can't undo back to the empty state before setValue(), and mark
         // the document clean.
