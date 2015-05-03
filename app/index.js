@@ -4,6 +4,7 @@
 
 "use strict";
 
+var _ = require("lodash");
 var app = require("app"); // Module to control application life
 var BrowserWindow = require("browser-window"); // Module to create native browser window
 var path = require("path"); // Node path module
@@ -31,8 +32,16 @@ app.on("ready", function () {
         height: 600
     });
 
+    // build a query for brackets' window
+    var queryParams = {
+        hasNativeMenus: true
+    };
+    var query = "?" + _.map(queryParams, function (value, key) {
+        return key + "=" + encodeURIComponent(value);
+    }).join("&");
+
     // compose path to brackets' index file
-    var indexPath = "file://" + path.resolve(__dirname, "..", "src", "index.html");
+    var indexPath = "file://" + path.resolve(__dirname, "..", "src", "index.html") + query;
 
     // load the index.html of the app
     win.loadUrl(indexPath);
