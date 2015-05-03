@@ -12,7 +12,12 @@
         "branch": "",
         "SHA": ""
     },
+    "dependencies": {
+        "lodash": "3.8.0",
+        "trash": "1.4.1"
+    },
     "devDependencies": {
+        "electron-prebuilt": "0.25.1-1",
         "grunt": "0.4.1",
         "jasmine-node": "1.11.0",
         "grunt-jasmine-node": "0.1.0",
@@ -40,9 +45,13 @@
         "xmldoc": "^0.1.2",
         "grunt-cleanempty": "1.0.3"
     },
+    "bin": {
+        "brackets": "./app/index.js"
+    },
     "scripts": {
         "postinstall": "grunt install",
-        "test": "grunt cla-check-pull test"
+        "test": "grunt cla-check-pull test",
+        "start": "electron ./app/index.js"
     },
     "licenses": [
         {

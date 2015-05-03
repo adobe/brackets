@@ -27,6 +27,20 @@
     <meta charset="utf-8">
     <title></title>
 
+    <script type="text/javascript">
+        // move node variables injected by electron
+        window.node = {
+            path: require('path')
+        };
+        ['module', 'require', 'WebSocket'].forEach(function (name) {
+            window.node[name] = window[name];
+            delete window[name];
+        });
+        // inject brackets shell object
+        window.appshell = window.brackets = node.require('../app/appshell/index');
+        window.WebSocket = node.require('../app/MockWebSocket');
+    </script>
+
     <!-- CSS/LESS -->
 
     <!-- NOTE: All scripts must be external for Chrome App support: http://developer.chrome.com/apps/app_csp.html -->
@@ -63,6 +77,9 @@
     <!-- All other scripts are loaded through require. -->
     <!-- build:js main.js -->
     <script src="thirdparty/requirejs/require.js" data-main="main"></script>
+    <script type="text/javascript">
+        require.nodeRequire = node.require;
+    </script>
     <!-- endbuild -->
 
     <!-- Verify that all dependencies are loaded. -->
