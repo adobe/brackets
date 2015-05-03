@@ -66,7 +66,9 @@ function addMenuItem(parentId, title, id, key, displayStr, position, relativeId,
         throw new Error("position not implemented in addMenuItem: " + position);
     }
 
-    var newObj = {
+    var isSeparator = title === "---",
+        newObj = {
+        type: isSeparator ? "separator" : "normal",
         id: id,
         label: title,
         click: function () {
