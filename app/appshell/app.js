@@ -121,11 +121,14 @@ function fixPath(str) {
 }
 
 function getApplicationSupportDirectory() {
+    // TODO: once stable, rename folderName to Brackets
     var folderName = "Brackets-electron-dev";
     if (process.platform === "win32") {
         return fixPath(path.resolve(process.env.APPDATA, folderName));
     } else if (process.platform === "linux") {
         return path.resolve("/home/", process.env.USER, ".config", folderName);
+    } else if (process.platform === "darwin") {
+        return path.resolve("/Users/", process.env.USER, "Library", "Application Support", folderName);
     } else {
         throw new Error("getApplicationSupportDirectory() not implemented for platform " + process.platform);
     }
