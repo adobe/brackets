@@ -3,7 +3,10 @@
 "use strict";
 
 var fs = require("fs-extra");
+var remote = require("remote");
 var trash = require("trash");
+
+var dialog = remote.require("dialog");
 
 function chmod(path, mode, callback) {
     fs.chmod(path, mode, callback);
@@ -46,12 +49,38 @@ function rename(oldPath, newPath, callback) {
     fs.rename(oldPath, newPath, callback);
 }
 
+function fixPath(str) {
+    return str.replace(/\\/g, "/");
+}
+
 function showOpenDialog(allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
-    callback(new Error("showOpenDialog is not implemented"));
+    var properties = [];
+    if (chooseDirectory) {
+        properties.push("openDirectory");
+    } else {
+        properties.push("openFile");
+    }
+    if (allowMultipleSelection) {
+        properties.push("multiSelections");
+    }
+    
+    return dialog.showOpenDialog({
+        title: title,
+        defaultPath: initialPath,
+        filters: fileTypes,
+        properties: properties
+    }, function (paths) {
+        callback(null, paths.map(fixPath));
+    });
 }
 
 function showSaveDialog(title, initialPath, proposedNewFilename, callback) {
-    callback(new Error("showSaveDialog is not implemented"));
+    return dialog.showSaveDialog({
+        title: title,
+        defaultPath: initialPath
+    }, function (path) {
+        callback(null, fixPath(path));
+    });
 }
 
 function stat(path, callback) {
