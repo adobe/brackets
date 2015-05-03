@@ -22,14 +22,14 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global __dirname, require, define, window, brackets, navigator */
+/*global electron, require, define, window, brackets, navigator */
 
 /**
  * The bootstrapping module for brackets. This module sets up the require
  * configuration and loads the brackets module.
  */
 require.config({
-    baseUrl: __dirname,
+    baseUrl: electron.node.__dirname,
     paths: {
         "text"              : "thirdparty/text/text",
         "i18n"              : "thirdparty/i18n/i18n",
