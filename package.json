@@ -13,6 +13,7 @@
         "SHA": ""
     },
     "dependencies": {
+        "fs-extra": "0.18.2",
         "lodash": "3.8.0",
         "trash": "1.4.1"
     },

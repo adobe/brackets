@@ -6,6 +6,7 @@ var _ = require("lodash");
 var path = require("path");
 var remote = require("remote");
 
+var BrowserWindow = remote.require("browser-window");
 var Menu = remote.require("menu");
 var menuTemplate = [];
 
@@ -30,38 +31,46 @@ function findMenuItemById(id, where) {
     return result;
 }
 
+function _addBeforeOrAfter(obj, target, position, relativeId) {
+    var idx = _.findIndex(target, {id: relativeId});
+    if (idx === -1) {
+        throw new Error("can't find item with id: " + relativeId);
+    }
+    if (position === "after") {
+        idx++;
+    }
+    target.splice(idx, 0, obj);
+}
+
 function addMenu(title, id, position, relativeId, callback) {
-    if (position) {
+    if (position && ["before", "after"].indexOf(position) === -1) {
         throw new Error("position not implemented in addMenu");
     }
-    if (relativeId) {
-        throw new Error("relativeId not implemented in addMenu");
-    }
 
-    menuTemplate.push({
+    var newObj = {
         id: id,
         label: title
-    });
+    };
+
+    if (position === "before" || position === "after") {
+        _addBeforeOrAfter(newObj, menuTemplate, position, relativeId);
+    } else {
+        menuTemplate.push(newObj);
+    }
 
     refreshMenu(callback.bind(null, 0));
 }
 
 function addMenuItem(parentId, title, id, key, displayStr, position, relativeId, callback) {
-    if (position) {
-        throw new Error("position not implemented in addMenuItem");
-    }
-    if (relativeId) {
-        throw new Error("relativeId not implemented in addMenuItem");
+    if (position && ["before", "after"].indexOf(position) === -1) {
+        throw new Error("position not implemented in addMenuItem: " + position);
     }
 
     var newObj = {
         id: id,
         label: title,
         click: function () {
-            if (key) {
-                throw new Error("key not implemented in addMenuItem");
-            }
-            throw new Error("click not implemented in addMenuItem");
+            window.brackets.shellAPI.executeCommand(id, true);
         }
     };
 
@@ -82,7 +91,12 @@ function addMenuItem(parentId, title, id, key, displayStr, position, relativeId,
     if (!parentObj.submenu) {
         parentObj.submenu = [];
     }
-    parentObj.submenu.push(newObj);
+
+    if (position === "before" || position === "after") {
+        _addBeforeOrAfter(newObj, parentObj.submenu, position, relativeId);
+    } else {
+        parentObj.submenu.push(newObj);
+    }
 
     refreshMenu(callback.bind(null, 0));
 }
@@ -116,11 +130,18 @@ function getNodeState(callback) {
     callback(null, -1);
 }
 
+function showDeveloperTools() {
+    var windows = BrowserWindow.getAllWindows();
+    var win = windows[0];
+    win.openDevTools({detach: true});
+}
+
 module.exports = {
     addMenu: addMenu,
     addMenuItem: addMenuItem,
     getApplicationSupportDirectory: getApplicationSupportDirectory,
     getNodeState: getNodeState,
     setMenuItemState: setMenuItemState,
-    setMenuTitle: setMenuTitle
+    setMenuTitle: setMenuTitle,
+    showDeveloperTools: showDeveloperTools
 };

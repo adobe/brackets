@@ -213,6 +213,9 @@ define(function (require, exports, module) {
         }, function errback(err) {
             // Extension failed to load during the initial require() call
             var additionalInfo = String(err);
+            if (err.stack) {
+                additionalInfo = err.stack;
+            }
             if (err.requireType === "scripterror" && err.originalError) {
                 // This type has a misleading error message - replace it with something clearer (URL of require() call that got a 404 result)
                 additionalInfo = "Module does not exist: " + err.originalError.target.src;
