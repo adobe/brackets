@@ -5,6 +5,7 @@
 var _ = require("lodash");
 var path = require("path");
 var remote = require("remote");
+var utils = require("../utils");
 
 var BrowserWindow = remote.require("browser-window");
 var Menu = remote.require("menu");
@@ -116,15 +117,11 @@ function setMenuTitle(commandid, title, callback) {
     refreshMenu(callback);
 }
 
-function fixPath(str) {
-    return str.replace(/\\/g, "/");
-}
-
 function getApplicationSupportDirectory() {
     // TODO: once stable, rename folderName to Brackets
     var folderName = "Brackets-electron-dev";
     if (process.platform === "win32") {
-        return fixPath(path.resolve(process.env.APPDATA, folderName));
+        return utils.convertWindowsPathToUnixPath(path.resolve(process.env.APPDATA, folderName));
     } else if (process.platform === "linux") {
         return path.resolve("/home/", process.env.USER, ".config", folderName);
     } else if (process.platform === "darwin") {

@@ -5,6 +5,7 @@
 var fs = require("fs-extra");
 var remote = require("remote");
 var trash = require("trash");
+var utils = require("../utils");
 
 var dialog = remote.require("dialog");
 
@@ -49,10 +50,6 @@ function rename(oldPath, newPath, callback) {
     fs.rename(oldPath, newPath, callback);
 }
 
-function fixPath(str) {
-    return str.replace(/\\/g, "/");
-}
-
 function showOpenDialog(allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
     var properties = [];
     if (chooseDirectory) {
@@ -70,7 +67,7 @@ function showOpenDialog(allowMultipleSelection, chooseDirectory, title, initialP
         filters: fileTypes,
         properties: properties
     }, function (paths) {
-        callback(null, paths.map(fixPath));
+        callback(null, paths.map(utils.convertWindowsPathToUnixPath));
     });
 }
 
@@ -79,7 +76,7 @@ function showSaveDialog(title, initialPath, proposedNewFilename, callback) {
         title: title,
         defaultPath: initialPath
     }, function (path) {
-        callback(null, fixPath(path));
+        callback(null, utils.convertWindowsPathToUnixPath(path));
     });
 }
 
