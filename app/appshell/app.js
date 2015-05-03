@@ -121,6 +121,8 @@ function fixPath(str) {
 function getApplicationSupportDirectory() {
     if (process.platform === "win32") {
         return fixPath(path.resolve(process.env.APPDATA, "Brackets"));
+    } else if (process.platform === "linux") {
+        return path.resolve("/home/", process.env.USER, ".config/Brackets");
     } else {
         throw new Error("getApplicationSupportDirectory() not implemented for platform " + process.platform);
     }
