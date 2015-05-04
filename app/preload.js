@@ -3,8 +3,10 @@
 
     // expose electron renderer process modules, uncomment those required
     window.electron = {
-        node: {}
-        // ipc: require("ipc"),
+        node: {
+            process: window.process
+        },
+        ipc: require("ipc")
         // remote: require("remote"),
         // webFrame: require("web-frame"),
         // clipboard: require("clipboard"),
@@ -12,6 +14,11 @@
         // nativeImage: require("native-image"),
         // screen: require("screen"),
         // shell: require("shell")
+    };
+
+    // notify shell about resizes
+    window.onresize = function () {
+        window.electron.ipc.send("resize");
     };
 
     // move injected node variables, do not move "process" as that'd break node.require

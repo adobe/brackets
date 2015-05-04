@@ -7,11 +7,18 @@
 var _ = require("lodash");
 var app = require("app"); // Module to control application life
 var BrowserWindow = require("browser-window"); // Module to create native browser window
+var ipc = require("ipc");
 var path = require("path"); // Node path module
 
 // Report crashes to electron server
 // TODO: doesn't work
 // require("crash-reporter").start();
+
+var APP_NAME = "Brackets-Electron";
+// TODO: load these from somewhere
+var sizeX = 800;
+var sizeY = 600;
+var maximized = false;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the javascript object is GCed.
@@ -26,13 +33,20 @@ app.on("window-all-closed", function () {
 // initialization and ready for creating browser windows.
 app.on("ready", function () {
 
+    var winOptions = {
+        preload: require.resolve("./preload"),
+        title: APP_NAME,
+        icon: path.resolve(__dirname, "res", "appicon.png")
+    };
+
+    // TODO: load these variables from previous state
+    // winOptions.x = ?;
+    // winOptions.y = ?;
+    winOptions.width = sizeX;
+    winOptions.height = sizeY;
+
     // create the browser window
-    win = new BrowserWindow({
-        width: 800,
-        height: 600,
-        // "node-integration": false,
-        preload: require.resolve("./preload")
-    });
+    win = new BrowserWindow(winOptions);
 
     // build a query for brackets' window
     var queryParams = {
@@ -54,6 +68,29 @@ app.on("ready", function () {
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
         win = null;
+    });
+
+    /* TODO: doesn't work for some reason
+    win.on("page-title-updated", function (event) {
+        win.setTitle(win.getTitle().replace(/Brackets/, APP_NAME));
+        event.preventDefault();
+    });
+    */
+
+    // this is used to remember the size from the last time
+    win.on("maximize", function () {
+        maximized = true;
+        // TODO: save somewhere
+    });
+    win.on("unmaximize", function () {
+        maximized = false;
+        // TODO: save somewhere
+    });
+    ipc.on("resize", function () {
+        var size = win.getSize();
+        sizeX = size[0];
+        sizeY = size[1];
+        // TODO: save somewhere
     });
 
 });
