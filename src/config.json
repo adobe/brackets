@@ -23,6 +23,7 @@
         "healthDataServerURL": "https://health.brackets.io/healthDataLog"
     },
     "name": "Brackets",
+    "productName": "Brackets-Electron-dev",
     "version": "1.3.0-0",
     "apiVersion": "1.3.0",
     "homepage": "http://brackets.io",
