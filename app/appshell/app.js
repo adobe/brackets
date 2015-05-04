@@ -11,6 +11,8 @@ var Menu = remote.require("menu");
 
 var menuTemplate = [];
 
+var REMOTE_DEBUGGING_PORT = 9234; // this is hardcoded in brackets-shell
+
 var app = module.exports = {
     ERR_CL_TOOLS_CANCELLED: 12,
     ERR_CL_TOOLS_MKDIRFAILED: 14,
@@ -200,8 +202,7 @@ app.getPendingFilesToOpen = function (callback) {
 };
 
 app.getRemoteDebuggingPort = function () {
-    // TODO: implement
-    throw new Error("app.getRemoteDebuggingPort not implemented");
+    return REMOTE_DEBUGGING_PORT;
 };
 
 app.getUserDocumentsDirectory = function () {
