@@ -3,10 +3,10 @@
 "use strict";
 
 var fs = require("fs-extra");
-var remote = require("remote");
 var trash = require("trash");
 var utils = require("../utils");
 
+var remote = require("remote");
 var dialog = remote.require("dialog");
 
 function chmod(path, mode, callback) {

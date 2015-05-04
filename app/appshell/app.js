@@ -4,11 +4,11 @@
 
 var _ = require("lodash");
 var path = require("path");
-var remote = require("remote");
 var utils = require("../utils");
 
-var BrowserWindow = remote.require("browser-window");
+var remote = require("remote");
 var Menu = remote.require("menu");
+
 var menuTemplate = [];
 
 var app = module.exports = {
@@ -61,7 +61,7 @@ function _addBeforeOrAfter(obj, target, position, relativeId) {
 }
 
 function _fixBracketsKeyboardShortcut(shortcut) {
-    if (typeof shortcut !== "string" || shortcut === "") {
+    if (typeof shortcut !== "string" || shortcut.trim() === "") {
         return null;
     }
 
@@ -274,9 +274,7 @@ app.setZoomLevel = function (zoomLevel, callback) {
 };
 
 app.showDeveloperTools = function () {
-    // TODO: this is not reliable -> we can get `win` from `remote` module
-    var windows = BrowserWindow.getAllWindows();
-    var win = windows[0];
+    var win = remote.getCurrentWindow();
     win.openDevTools({detach: true});
 };
 

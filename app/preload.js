@@ -28,7 +28,6 @@
     });
 
     // inject appshell implementation into the browser window
-    // TODO: use remote.require instead of node.require when issue fixed - https://github.com/atom/electron/issues/1559
     try { // TODO: remove try-catch when issue fixed - https://github.com/atom/electron/issues/1566
         window.appshell = window.brackets = window.electron.node.require("../app/appshell/index");
     } catch (e) {
