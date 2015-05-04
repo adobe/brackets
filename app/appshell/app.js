@@ -60,6 +60,21 @@ function _addBeforeOrAfter(obj, target, position, relativeId) {
     target.splice(idx, 0, obj);
 }
 
+function _fixBracketsKeyboardShortcut(shortcut) {
+    if (typeof shortcut !== "string" || shortcut === "") {
+        return null;
+    }
+
+    shortcut = shortcut.replace(/-/g, "+");
+
+    if (!shortcut.match(/^[\x00-\x7F]+$/)) {
+        console.error("Non ASCII keyboard shortcut used: " + shortcut);
+        shortcut = null;
+    }
+
+    return shortcut;
+}
+
 app.abortQuit = function () {
     // TODO: implement
     throw new Error("app.abortQuit not implemented");
@@ -81,10 +96,12 @@ app.addMenu = function (title, id, position, relativeId, callback) {
         menuTemplate.push(newObj);
     }
 
-    _refreshMenu(callback.bind(null, 0));
+    _refreshMenu(callback.bind(null, app.NO_ERROR));
 };
 
 app.addMenuItem = function (parentId, title, id, key, displayStr, position, relativeId, callback) {
+    key = _fixBracketsKeyboardShortcut(key);
+
     if (position && ["before", "after"].indexOf(position) === -1) {
         throw new Error("position not implemented in addMenuItem: " + position);
     }
@@ -100,16 +117,7 @@ app.addMenuItem = function (parentId, title, id, key, displayStr, position, rela
     };
 
     if (key) {
-        key = key.replace(/-/g, "+");
-
-        if (!key.match(/^[\x00-\x7F]+$/)) {
-            console.error("Non ASCII key " + key + " for " + title);
-            key = null;
-        }
-
-        if (key) {
-            newObj.accelerator = key;
-        }
+        newObj.accelerator = key;
     }
 
     var parentObj = _findMenuItemById(parentId);
@@ -123,7 +131,7 @@ app.addMenuItem = function (parentId, title, id, key, displayStr, position, rela
         parentObj.submenu.push(newObj);
     }
 
-    _refreshMenu(callback.bind(null, 0));
+    _refreshMenu(callback.bind(null, app.NO_ERROR));
 };
 
 app.closeLiveBrowser = function (callback) {
@@ -232,8 +240,14 @@ app.removeMenuItem = function (commandId, callback) {
 };
 
 app.setMenuItemShortcut = function (commandId, shortcut, displayStr, callback) {
-    // TODO: implement
-    callback(new Error("app.setMenuItemShortcut not implemented" + commandId + shortcut));
+    shortcut = _fixBracketsKeyboardShortcut(shortcut);
+    var obj = _findMenuItemById(commandId);
+    if (shortcut) {
+        obj.accelerator = shortcut;
+    } else {
+        delete obj.accelerator;
+    }
+    _refreshMenu(callback.bind(null, app.NO_ERROR));
 };
 
 app.setMenuItemState = function (commandId, enabled, checked, callback) {
