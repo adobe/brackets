@@ -1,0 +1,809 @@
+[
+    {
+        "domain": "base",
+        "version": {
+            "major": 0,
+            "minor": 1
+        },
+        "commands": [
+            {
+                "name": "enableDebugger",
+                "description": "Attempt to enable the debugger",
+                "parameters": [],
+                "returns": []
+            },
+            {
+                "name": "restartNode",
+                "description": "Attempt to restart the Node server",
+                "parameters": [],
+                "returns": []
+            },
+            {
+                "name": "loadDomainModulesFromPaths",
+                "description": "Attempt to load command modules from the given paths. The paths should be absolute.",
+                "parameters": [
+                    {
+                        "name": "paths",
+                        "type": "array<string>"
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "success",
+                        "type": "boolean"
+                    }
+                ]
+            }
+        ],
+        "events": [
+            {
+                "name": "log",
+                "parameters": [
+                    {
+                        "name": "level",
+                        "type": "string"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "Date"
+                    },
+                    {
+                        "name": "message",
+                        "type": "string"
+                    }
+                ]
+            },
+            {
+                "name": "newDomains",
+                "parameters": []
+            }
+        ]
+    },
+    {
+        "domain": "fileWatcher",
+        "version": {
+            "major": 0,
+            "minor": 1
+        },
+        "commands": [
+            {
+                "name": "watchPath",
+                "description": "Start watching a file or directory",
+                "parameters": [
+                    {
+                        "name": "path",
+                        "type": "string",
+                        "description": "absolute filesystem path of the file or directory to watch"
+                    }
+                ]
+            },
+            {
+                "name": "unwatchPath",
+                "description": "Stop watching a single file or a directory and it's descendants",
+                "parameters": [
+                    {
+                        "name": "path",
+                        "type": "string",
+                        "description": "absolute filesystem path of the file or directory to unwatch"
+                    }
+                ]
+            },
+            {
+                "name": "unwatchAll",
+                "description": "Stop watching all files and directories"
+            }
+        ],
+        "events": [
+            {
+                "name": "change",
+                "parameters": [
+                    {
+                        "name": "path",
+                        "type": "string"
+                    },
+                    {
+                        "name": "event",
+                        "type": "string"
+                    },
+                    {
+                        "name": "filename",
+                        "type": "string"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "domain": "nodeSocketTransport",
+        "version": {
+            "major": 0,
+            "minor": 1
+        },
+        "commands": [
+            {
+                "name": "start",
+                "description": "Creates the WS server",
+                "parameters": []
+            },
+            {
+                "name": "send",
+                "description": "Sends a message to a given client or list of clients",
+                "parameters": [
+                    {
+                        "name": "idOrArray",
+                        "type": "number|Array.<number>",
+                        "description": "id or array of ids to send the message to"
+                    },
+                    {
+                        "name": "message",
+                        "type": "string",
+                        "description": "JSON message to send"
+                    }
+                ],
+                "returns": []
+            },
+            {
+                "name": "close",
+                "description": "Closes the connection to a given client",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "type": "number",
+                        "description": "id of connection to close"
+                    }
+                ],
+                "returns": []
+            }
+        ],
+        "events": [
+            {
+                "name": "connect",
+                "parameters": [
+                    {
+                        "name": "clientID",
+                        "type": "number",
+                        "description": "ID of live preview page connecting to live development"
+                    },
+                    {
+                        "name": "url",
+                        "type": "string",
+                        "description": "URL of page that live preview is connecting from"
+                    }
+                ]
+            },
+            {
+                "name": "message",
+                "parameters": [
+                    {
+                        "name": "clientID",
+                        "type": "number",
+                        "description": "ID of live preview page sending message"
+                    },
+                    {
+                        "name": "msg",
+                        "type": "string",
+                        "description": "JSON message from client page"
+                    }
+                ]
+            },
+            {
+                "name": "close",
+                "parameters": [
+                    {
+                        "name": "clientID",
+                        "type": "number",
+                        "description": "ID of live preview page being closed"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "domain": "launcher",
+        "version": {
+            "major": 0,
+            "minor": 1
+        },
+        "commands": [
+            {
+                "name": "launch",
+                "description": "Launches a given HTML file in the browser for live development",
+                "parameters": [
+                    {
+                        "name": "url",
+                        "type": "string",
+                        "description": "file:// url to the HTML file"
+                    },
+                    {
+                        "name": "browser",
+                        "type": "string",
+                        "description": "browser name"
+                    }
+                ],
+                "returns": []
+            }
+        ],
+        "events": []
+    },
+    {
+        "domain": "staticServer",
+        "version": {
+            "major": 0,
+            "minor": 1
+        },
+        "commands": [
+            {
+                "name": "_setRequestFilterTimeout",
+                "description": "Unit tests only. Set timeout value for filtered requests.",
+                "parameters": [
+                    {
+                        "name": "timeout",
+                        "type": "number",
+                        "description": "Duration to wait before passing a filtered request to the static file server."
+                    }
+                ],
+                "returns": []
+            },
+            {
+                "name": "getServer",
+                "description": "Starts or returns an existing server for the given path.",
+                "parameters": [
+                    {
+                        "name": "path",
+                        "type": "string",
+                        "description": "Absolute filesystem path for root of server."
+                    },
+                    {
+                        "name": "port",
+                        "type": "number",
+                        "description": "Port number to use for HTTP server.  Pass zero to assign a random port."
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "address",
+                        "type": "{address: string, family: string, port: number}",
+                        "description": "hostname (stored in 'address' parameter), port, and socket type (stored in 'family' parameter) for the server. Currently, 'family' will always be 'IPv4'."
+                    }
+                ]
+            },
+            {
+                "name": "closeServer",
+                "description": "Closes the server for the given path.",
+                "parameters": [
+                    {
+                        "name": "path",
+                        "type": "string",
+                        "description": "absolute filesystem path for root of server"
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "result",
+                        "type": "boolean",
+                        "description": "indicates whether a server was found for the specific path then closed"
+                    }
+                ]
+            },
+            {
+                "name": "setRequestFilterPaths",
+                "description": "Defines a set of paths from a server's root path to watch and fire 'requestFilter' events for.",
+                "parameters": [
+                    {
+                        "name": "root",
+                        "type": "string",
+                        "description": "absolute filesystem path for root of server"
+                    },
+                    {
+                        "name": "paths",
+                        "type": "Array",
+                        "description": "path to notify"
+                    }
+                ],
+                "returns": []
+            },
+            {
+                "name": "writeFilteredResponse",
+                "description": "Overrides the server response from static middleware with the provided response data. This should be called only in response to a filtered request.",
+                "parameters": [
+                    {
+                        "name": "root",
+                        "type": "string",
+                        "description": "absolute filesystem path for root of server"
+                    },
+                    {
+                        "name": "path",
+                        "type": "string",
+                        "description": "path to rewrite"
+                    },
+                    {
+                        "name": "resData",
+                        "type": "{body: string, headers: Array}",
+                        "description": "TODO"
+                    }
+                ],
+                "returns": []
+            }
+        ],
+        "events": [
+            {
+                "name": "requestFilter",
+                "parameters": [
+                    {
+                        "name": "location",
+                        "type": "{hostname: string, pathname: string, port: number, root: string: id: number}",
+                        "description": "request path"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "domain": "zaggino.brackets-coffeelint",
+        "version": {
+            "major": 0,
+            "minor": 1
+        },
+        "commands": [
+            {
+                "name": "lintFile",
+                "description": "lint given file with eslint",
+                "parameters": [
+                    {
+                        "name": "fullPath",
+                        "type": "string"
+                    },
+                    {
+                        "name": "projectRoot",
+                        "type": "string"
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "report",
+                        "type": "object"
+                    }
+                ]
+            }
+        ],
+        "events": []
+    },
+    {
+        "domain": "zaggino.brackets-eslint",
+        "version": {
+            "major": 0,
+            "minor": 1
+        },
+        "commands": [
+            {
+                "name": "lintFile",
+                "description": "lint given file with eslint",
+                "parameters": [
+                    {
+                        "name": "fullPath",
+                        "type": "string"
+                    },
+                    {
+                        "name": "projectRoot",
+                        "type": "string"
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "report",
+                        "type": "object"
+                    }
+                ]
+            }
+        ],
+        "events": []
+    },
+    {
+        "domain": "brackets-npm-registry-domain",
+        "version": {
+            "major": 0,
+            "minor": 1
+        },
+        "commands": [
+            {
+                "name": "buildRegistry",
+                "description": "get a list of extensions from npm",
+                "parameters": [
+                    {
+                        "name": "extensions",
+                        "type": "array"
+                    }
+                ]
+            },
+            {
+                "name": "installExtension",
+                "description": "installs an extension into a given path",
+                "parameters": [
+                    {
+                        "name": "targetPath",
+                        "type": "string"
+                    },
+                    {
+                        "name": "extensionName",
+                        "type": "string"
+                    },
+                    {
+                        "name": "installLog",
+                        "type": "string"
+                    }
+                ]
+            },
+            {
+                "name": "removeExtension",
+                "description": "removes an extension from a given path",
+                "parameters": [
+                    {
+                        "name": "targetPath",
+                        "type": "string"
+                    },
+                    {
+                        "name": "extensionName",
+                        "type": "string"
+                    },
+                    {
+                        "name": "installLog",
+                        "type": "string"
+                    }
+                ]
+            }
+        ],
+        "events": []
+    },
+    {
+        "domain": "extensionManager",
+        "version": {
+            "major": 0,
+            "minor": 1
+        },
+        "commands": [
+            {
+                "name": "validate",
+                "description": "Verifies that the contents of the given ZIP file are a valid Brackets extension package",
+                "parameters": [
+                    {
+                        "name": "path",
+                        "type": "string",
+                        "description": "absolute filesystem path of the extension package"
+                    },
+                    {
+                        "name": "options",
+                        "type": "{requirePackageJSON: ?boolean}",
+                        "description": "options to control the behavior of the validator"
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "errors",
+                        "type": "string|Array.<string>",
+                        "description": "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
+                    },
+                    {
+                        "name": "metadata",
+                        "type": "{name: string, version: string}",
+                        "description": "all package.json metadata (null if there's no package.json)"
+                    }
+                ]
+            },
+            {
+                "name": "install",
+                "description": "Installs the given Brackets extension if it is valid (runs validation command automatically)",
+                "parameters": [
+                    {
+                        "name": "path",
+                        "type": "string",
+                        "description": "absolute filesystem path of the extension package"
+                    },
+                    {
+                        "name": "destinationDirectory",
+                        "type": "string",
+                        "description": "absolute filesystem path where this extension should be installed"
+                    },
+                    {
+                        "name": "options",
+                        "type": "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, systemExtensionDirectory: !string}",
+                        "description": "installation options: disabledDirectory should be set so that extensions can be installed disabled."
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "errors",
+                        "type": "string|Array.<string>",
+                        "description": "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
+                    },
+                    {
+                        "name": "metadata",
+                        "type": "{name: string, version: string}",
+                        "description": "all package.json metadata (null if there's no package.json)"
+                    },
+                    {
+                        "name": "disabledReason",
+                        "type": "string",
+                        "description": "reason this extension was installed disabled (one of Errors.*), none if it was enabled"
+                    },
+                    {
+                        "name": "installationStatus",
+                        "type": "string",
+                        "description": "Current status of the installation (an extension can be valid but not installed because it's an update"
+                    },
+                    {
+                        "name": "installedTo",
+                        "type": "string",
+                        "description": "absolute path where the extension was installed to"
+                    },
+                    {
+                        "name": "commonPrefix",
+                        "type": "string",
+                        "description": "top level directory in the package zip which contains all of the files"
+                    }
+                ]
+            },
+            {
+                "name": "update",
+                "description": "Updates the given Brackets extension (for which install was generally previously attemped). Brackets must be quit after this.",
+                "parameters": [
+                    {
+                        "name": "path",
+                        "type": "string",
+                        "description": "absolute filesystem path of the extension package"
+                    },
+                    {
+                        "name": "destinationDirectory",
+                        "type": "string",
+                        "description": "absolute filesystem path where this extension should be installed"
+                    },
+                    {
+                        "name": "options",
+                        "type": "{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, systemExtensionDirectory: !string}",
+                        "description": "installation options: disabledDirectory should be set so that extensions can be installed disabled."
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "errors",
+                        "type": "string|Array.<string>",
+                        "description": "download error, if any; first string is error code (one of Errors.*); subsequent strings are additional info"
+                    },
+                    {
+                        "name": "metadata",
+                        "type": "{name: string, version: string}",
+                        "description": "all package.json metadata (null if there's no package.json)"
+                    },
+                    {
+                        "name": "disabledReason",
+                        "type": "string",
+                        "description": "reason this extension was installed disabled (one of Errors.*), none if it was enabled"
+                    },
+                    {
+                        "name": "installationStatus",
+                        "type": "string",
+                        "description": "Current status of the installation (an extension can be valid but not installed because it's an update"
+                    },
+                    {
+                        "name": "installedTo",
+                        "type": "string",
+                        "description": "absolute path where the extension was installed to"
+                    },
+                    {
+                        "name": "commonPrefix",
+                        "type": "string",
+                        "description": "top level directory in the package zip which contains all of the files"
+                    }
+                ]
+            },
+            {
+                "name": "remove",
+                "description": "Removes the Brackets extension at the given path.",
+                "parameters": [
+                    {
+                        "name": "path",
+                        "type": "string",
+                        "description": "absolute filesystem path of the installed extension folder"
+                    }
+                ],
+                "returns": {}
+            },
+            {
+                "name": "downloadFile",
+                "description": "Downloads the file at the given URL, saving it to a temp location. Callback receives path to the downloaded file.",
+                "parameters": [
+                    {
+                        "name": "downloadId",
+                        "type": "string",
+                        "description": "Unique identifier for this download 'session'"
+                    },
+                    {
+                        "name": "url",
+                        "type": "string",
+                        "description": "URL to download from"
+                    },
+                    {
+                        "name": "proxy",
+                        "type": "string",
+                        "description": "optional proxy URL"
+                    }
+                ],
+                "returns": {
+                    "type": "string",
+                    "description": "Local path to the downloaded file"
+                }
+            },
+            {
+                "name": "abortDownload",
+                "description": "Aborts any pending download with the given id. Ignored if no download pending (may be already complete).",
+                "parameters": [
+                    {
+                        "name": "downloadId",
+                        "type": "string",
+                        "description": "Unique identifier for this download 'session', previously pased to downloadFile"
+                    }
+                ],
+                "returns": {
+                    "type": "boolean",
+                    "description": "True if the download was pending and able to be canceled; false otherwise"
+                }
+            }
+        ],
+        "events": []
+    },
+    {
+        "domain": "brackets-git",
+        "version": {
+            "major": 0,
+            "minor": 1
+        },
+        "commands": [
+            {
+                "name": "execute",
+                "description": "Runs a command in a shell and buffers the output.",
+                "parameters": [
+                    {
+                        "name": "directory",
+                        "type": "string"
+                    },
+                    {
+                        "name": "command",
+                        "type": "string"
+                    },
+                    {
+                        "name": "args",
+                        "type": "array"
+                    },
+                    {
+                        "name": "opts",
+                        "type": "object"
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "stdout",
+                        "type": "string"
+                    }
+                ]
+            },
+            {
+                "name": "spawn",
+                "description": "Launches a new process with the given command.",
+                "parameters": [
+                    {
+                        "name": "directory",
+                        "type": "string"
+                    },
+                    {
+                        "name": "command",
+                        "type": "string"
+                    },
+                    {
+                        "name": "args",
+                        "type": "array"
+                    },
+                    {
+                        "name": "opts",
+                        "type": "object"
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "stdout",
+                        "type": "string"
+                    }
+                ]
+            },
+            {
+                "name": "kill",
+                "description": "Launches a new process with the given command.",
+                "parameters": [
+                    {
+                        "name": "commandId",
+                        "type": "number"
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "stdout",
+                        "type": "string"
+                    }
+                ]
+            },
+            {
+                "name": "which",
+                "description": "Looks for a given file using which.",
+                "parameters": [
+                    {
+                        "name": "directory",
+                        "type": "string"
+                    },
+                    {
+                        "name": "filePath",
+                        "type": "string"
+                    },
+                    {
+                        "name": "args",
+                        "type": "array"
+                    },
+                    {
+                        "name": "opts",
+                        "type": "object"
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "path",
+                        "type": "string"
+                    }
+                ]
+            },
+            {
+                "name": "pathExists",
+                "description": "Looks if given path exists on the file system",
+                "parameters": [
+                    {
+                        "name": "directory",
+                        "type": "string"
+                    },
+                    {
+                        "name": "path",
+                        "type": "string"
+                    },
+                    {
+                        "name": "args",
+                        "type": "array"
+                    },
+                    {
+                        "name": "opts",
+                        "type": "object"
+                    }
+                ],
+                "returns": [
+                    {
+                        "name": "exists",
+                        "type": "boolean"
+                    }
+                ]
+            }
+        ],
+        "events": [
+            {
+                "name": "progress",
+                "parameters": [
+                    {
+                        "name": "commandId",
+                        "type": "number"
+                    },
+                    {
+                        "name": "time",
+                        "type": "number"
+                    },
+                    {
+                        "name": "message",
+                        "type": "string"
+                    }
+                ]
+            }
+        ]
+    }
+]

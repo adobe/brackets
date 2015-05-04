@@ -20,6 +20,7 @@ function initHttp(port) {
     port = port || DEFAULT_PORT;
     return new Promise(function (resolve, reject) {
         var server = http.createServer(function(request, response) {
+            // TODO: handle /api calls
             log("received http request for " + request.url);
             response.writeHead(404);
             response.end();
