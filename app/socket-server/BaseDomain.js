@@ -26,8 +26,7 @@
 (function () {
     "use strict";
 
-    var Launcher = require("./Launcher"),
-        Logger   = require("./Logger");
+    var Logger   = require("./Logger");
 
     /**
      * @private
@@ -54,7 +53,7 @@
      * Implementation of base.restartNode command.
      */
     function cmdRestartNode() {
-        Launcher.exit();
+
     }
 
     /**

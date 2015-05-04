@@ -5,6 +5,9 @@
 var http = require("http");
 var Promise = require("bluebird");
 var WebSocketServer = require("ws").Server;
+var ConnectionManager = require("./ConnectionManager");
+var DomainManager = require("./DomainManager");
+var portscanner = require("portscanner");
 
 var DEFAULT_PORT = 8123;
 var httpServer = null;
@@ -16,14 +19,25 @@ function log(what) {
     console.log(time, "[socket-server]", what);
 }
 
-function initHttp(port) {
-    port = port || DEFAULT_PORT;
+function initPort() {
+    return new Promise(function (resolve, reject) {
+        portscanner.findAPortNotInUse(DEFAULT_PORT, DEFAULT_PORT + 1000, "127.0.0.1", function(err, port) {
+            if (err) {
+                return reject(err);
+            }
+            httpPort = port;
+            resolve();
+        });
+    });
+}
+
+function initHttp() {
     return new Promise(function (resolve, reject) {
         var server = http.createServer(function(req, res) {
             if (req.method === "GET" && req.url.indexOf("/api") === 0) {
                 res.setHeader("Content-Type", "application/json");
-                // TODO: res.end(JSON.stringify(DomainManager.getDomainDescriptions(), null, 4));
-                // TODO: return;
+                res.end(JSON.stringify(DomainManager.getDomainDescriptions(), null, 4));
+                return;
             }
             log("received unhandled http request for " + req.url);
             res.writeHead(404, {
@@ -32,14 +46,10 @@ function initHttp(port) {
             res.end("Brackets-Shell Server");
         });
         server.on("error", function (err) {
-            log("failed to start on port " + port + " (" + err + ")");
-            server.close();
-            initHttp(port + 1).then(resolve);
+            log(err.name + ": " + err.message);
         });
-        server.listen(port, function() {
-            log("listening on port " + port);
+        server.listen(httpPort, function() {
             httpServer = server;
-            httpPort = port;
             resolve();
         });
     });
@@ -52,16 +62,19 @@ function initWebsockets() {
     wsServer.on("error", function (err) {
         log("wsServer error: " + err);
     });
-    // TODO: wsServer.on("connection", ConnectionManager.createConnection);
+    wsServer.on("connection", ConnectionManager.createConnection);
 }
 
 exports.start = function (callback) {
-    initHttp()
+    initPort()
+        .then(function () {
+            return initHttp();
+        })
         .then(function () {
             return initWebsockets();
         })
         .then(function () {
-            // TODO: return DomainManager.loadDomainModulesFromPaths(["./BaseDomain"]);
+            return DomainManager.loadDomainModulesFromPaths(["./BaseDomain"]);
         })
         .then(function () {
             return httpPort;
@@ -84,7 +97,7 @@ exports.stop = function (callback) {
         log("httpServer not running but stop has been called!");
     }
 
-    // TODO: ConnectionManager.closeAllConnections();
+    ConnectionManager.closeAllConnections();
 
     process.nextTick(callback);
 };

@@ -27,6 +27,9 @@
         delete window[name];
     });
 
+    // this is to fix requirejs text plugin
+    window.process.versions["node-webkit"] = true;
+
     // inject appshell implementation into the browser window
     try { // TODO: remove try-catch when issue fixed - https://github.com/atom/electron/issues/1566
         window.appshell = window.brackets = window.electron.node.require("../app/appshell");
