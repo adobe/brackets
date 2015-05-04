@@ -5,21 +5,55 @@
 "use strict";
 
 var _ = require("lodash");
+var fs = require("fs");
 var path = require("path");
 var app = require("app"); // Electron module to control application life
 var BrowserWindow = require("browser-window"); // Electron to create native browser window
 var ipc = require("ipc"); // Electron ipc module
 var SocketServer = require("./socket-server"); // Implementation of Brackets' shell server
+var utils = require("./utils");
 
 // Report crashes to electron server
 // TODO: doesn't work
 // require("crash-reporter").start();
 
 var APP_NAME = "Brackets-Electron";
+var SHELL_CONFIG = path.resolve(utils.convertWindowsPathToUnixPath(app.getPath("userData")), "shell-config.json");
 // TODO: load these from somewhere
-var sizeX = 800;
-var sizeY = 600;
-var maximized = false;
+var windowPosition = {
+    posX: undefined,
+    posY: undefined,
+    width: 800,
+    height: 600,
+    maximized: false
+};
+
+var shellConfigRaw = fs.readFileSync(SHELL_CONFIG);
+var shellConfig = JSON.parse(shellConfigRaw) || {};
+shellConfig.position = shellConfig.position || {};
+
+windowPosition = _.defaults(shellConfig.position, windowPosition);
+
+function _saveWindowPosition(sync) {
+    var writeFile = sync ? fs.writeFileSync : fs.writeFile;
+    
+    var size = win.getSize(),
+        pos = win.getPosition(),
+        windowPosition = {
+            posX: pos[0],
+            posY: pos[1],
+            width: size[0],
+            height: size[1],
+            maximized: win.isMaximized()
+        };
+    
+    shellConfig.position = windowPosition;
+    var shellConfigRaw = JSON.stringify(shellConfig, null, "    ");
+    writeFile(SHELL_CONFIG, shellConfigRaw);
+}
+
+var saveWindowPositionSync = _.partial(_saveWindowPosition, true);
+var saveWindowPosition = _.debounce(_saveWindowPosition, 200);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the javascript object is GCed.
@@ -49,10 +83,10 @@ app.on("ready", function () {
     };
 
     // TODO: load these variables from previous state
-    // winOptions.x = ?;
-    // winOptions.y = ?;
-    winOptions.width = sizeX;
-    winOptions.height = sizeY;
+    winOptions.x = windowPosition.posX;
+    winOptions.y = windowPosition.posY;
+    winOptions.width = windowPosition.width;
+    winOptions.height = windowPosition.height;
 
     // create the browser window
     win = new BrowserWindow(winOptions);
@@ -72,6 +106,14 @@ app.on("ready", function () {
 
     // load the index.html of the app
     win.loadUrl(indexPath);
+    if (windowPosition.maximized) {
+        win.maximize();
+    }
+    
+    // emitted before the window is closed
+    win.on("close", function () {
+        saveWindowPositionSync();
+    });
 
     // emitted when the window is closed
     win.on("closed", function () {
@@ -90,18 +132,13 @@ app.on("ready", function () {
 
     // this is used to remember the size from the last time
     win.on("maximize", function () {
-        maximized = true;
-        // TODO: save somewhere
+        saveWindowPosition(windowPosition);
     });
     win.on("unmaximize", function () {
-        maximized = false;
-        // TODO: save somewhere
+        saveWindowPosition(windowPosition);
     });
     ipc.on("resize", function () {
-        var size = win.getSize();
-        sizeX = size[0];
-        sizeY = size[1];
-        // TODO: save somewhere
+        saveWindowPosition(windowPosition);
     });
 
 });
