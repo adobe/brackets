@@ -1,29 +1,36 @@
 (function () {
     "use strict";
 
-    var require = window.require;
-    // expose electron renderer process modules
+    // expose electron renderer process modules, uncomment those required
     window.electron = {
-        node: {
-            process: window.process
-        },
-        ipc: require("ipc"),
-        remote: require("remote"),
-        webFrame: require("web-frame"),
-        clipboard: require("clipboard"),
-        crashReporter: require("crash-reporter"),
-        nativeImage: require("native-image"),
-        screen: require("screen"),
-        shell: require("shell")
+        node: {}
+        // ipc: require("ipc"),
+        // remote: require("remote"),
+        // webFrame: require("web-frame"),
+        // clipboard: require("clipboard"),
+        // crashReporter: require("crash-reporter"),
+        // nativeImage: require("native-image"),
+        // screen: require("screen"),
+        // shell: require("shell")
     };
-    // hide injected node modules
-    ["require", "module", "__filename", "__dirname", "WebSocket"].forEach(function (name) {
+
+    // move injected node variables, do not move "process" as that'd break node.require
+    ["require", "module", "__filename", "__dirname"].forEach(function (name) {
         window.electron.node[name] = window[name];
         delete window[name];
     });
-    // inject brackets shell object
-    // TODO: not sure which require to use (remote or node)
-    require = window.electron.node.require;
-    window.appshell = window.brackets = require("../app/appshell/index");
-    window.WebSocket = require("../app/MockWebSocket");
+
+    // inject appshell implementation into the browser window
+    // TODO: use remote.require instead of node.require when issue fixed - https://github.com/atom/electron/issues/1559
+    try { // TODO: remove try-catch when issue fixed - https://github.com/atom/electron/issues/1566
+        window.appshell = window.brackets = window.electron.node.require("../app/appshell/index");
+    } catch (e) {
+        console.log(e.stack);
+        throw e;
+    }
+
+    // hide WebSocket from Brackets as Electron integrates with node differently
+    window.electron.WebSocket = window.WebSocket;
+    window.WebSocket = window.electron.node.require("../app/MockWebSocket");
+
 }());
