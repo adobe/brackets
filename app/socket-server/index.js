@@ -4,7 +4,7 @@
 
 var http = require("http");
 var Promise = require("bluebird");
-var WebSocketServer = require("websocket").server;
+var WebSocketServer = require("ws").Server;
 
 var DEFAULT_PORT = 8123;
 var httpServer = null;
@@ -19,14 +19,20 @@ function log(what) {
 function initHttp(port) {
     port = port || DEFAULT_PORT;
     return new Promise(function (resolve, reject) {
-        var server = http.createServer(function(request, response) {
-            // TODO: handle /api calls
-            log("received http request for " + request.url);
-            response.writeHead(404);
-            response.end();
+        var server = http.createServer(function(req, res) {
+            if (req.method === "GET" && req.url.indexOf("/api") === 0) {
+                res.setHeader("Content-Type", "application/json");
+                // TODO: res.end(JSON.stringify(DomainManager.getDomainDescriptions(), null, 4));
+                // TODO: return;
+            }
+            log("received unhandled http request for " + req.url);
+            res.writeHead(404, {
+                "Content-Type": "text/plain"
+            });
+            res.end("Brackets-Shell Server");
         });
         server.on("error", function (err) {
-            log("failed to start on port " + port);
+            log("failed to start on port " + port + " (" + err + ")");
             server.close();
             initHttp(port + 1).then(resolve);
         });
@@ -39,43 +45,14 @@ function initHttp(port) {
     });
 }
 
-function originIsAllowed(origin) {
-    // put logic here to detect whether the specified origin is allowed
-    return origin.indexOf("file://") === 0;
-}
-
-function handleWsRequest(request) {
-    // Make sure we only accept requests from an allowed origin
-    if (!originIsAllowed(request.origin)) {
-        log("connection from origin " + request.origin + " rejected");
-        return request.reject();
-    }
-
-    var connection = request.accept(null, request.origin);
-    log("connection accepted");
-
-    connection.on("message", function (message) {
-        if (message.type === "utf8") {
-            log("received message: " + message.utf8Data);
-            connection.sendUTF(message.utf8Data);
-        }
-        else if (message.type === "binary") {
-            log("received binary message of " + message.binaryData.length + " bytes");
-            connection.sendBytes(message.binaryData);
-        }
-    });
-
-    connection.on("close", function(reasonCode, description) {
-        log("peer " + connection.remoteAddress + " disconnected");
-    });
-}
-
 function initWebsockets() {
     wsServer = new WebSocketServer({
-        httpServer: httpServer,
-        autoAcceptConnections: false
+        server: httpServer
     });
-    wsServer.on("request", handleWsRequest);
+    wsServer.on("error", function (err) {
+        log("wsServer error: " + err);
+    });
+    // TODO: wsServer.on("connection", ConnectionManager.createConnection);
 }
 
 exports.start = function (callback) {
@@ -84,7 +61,30 @@ exports.start = function (callback) {
             return initWebsockets();
         })
         .then(function () {
+            // TODO: return DomainManager.loadDomainModulesFromPaths(["./BaseDomain"]);
+        })
+        .then(function () {
             return httpPort;
         })
         .nodeify(callback);
+};
+
+exports.stop = function (callback) {
+    if (wsServer) {
+        wsServer.close();
+        wsServer = null;
+    } else {
+        log("wsServer not running but stop has been called!");
+    }
+
+    if (httpServer) {
+        httpServer.close();
+        httpServer = null;
+    } else {
+        log("httpServer not running but stop has been called!");
+    }
+
+    // TODO: ConnectionManager.closeAllConnections();
+
+    process.nextTick(callback);
 };

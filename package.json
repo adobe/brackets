@@ -17,7 +17,7 @@
         "fs-extra": "0.18.2",
         "lodash": "3.8.0",
         "trash": "1.4.1",
-        "websocket": "1.0.18"
+        "ws": "0.7.1"
     },
     "devDependencies": {
         "electron-prebuilt": "0.25.2",

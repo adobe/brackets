@@ -5,11 +5,11 @@
 "use strict";
 
 var _ = require("lodash");
-var app = require("app"); // Module to control application life
-var BrowserWindow = require("browser-window"); // Module to create native browser window
-var ipc = require("ipc");
-var path = require("path"); // Node path module
-var SocketServer = require("./socket-server"); // Implementation to replace shell server
+var path = require("path");
+var app = require("app"); // Electron module to control application life
+var BrowserWindow = require("browser-window"); // Electron to create native browser window
+var ipc = require("ipc"); // Electron ipc module
+var SocketServer = require("./socket-server"); // Implementation of Brackets' shell server
 
 // Report crashes to electron server
 // TODO: doesn't work
