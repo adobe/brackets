@@ -75,10 +75,11 @@
     "bin": {
         "brackets": "./app/index.js"
     },
+    "main": "./app/index.js",
     "scripts": {
         "postinstall": "grunt install",
         "test": "grunt cla-check-pull test",
-        "start": "electron ./app/index.js"
+        "start": "electron ."
     },
     "licenses": [
         {
