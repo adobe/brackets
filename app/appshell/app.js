@@ -11,21 +11,38 @@ var BrowserWindow = remote.require("browser-window");
 var Menu = remote.require("menu");
 var menuTemplate = [];
 
-var _refreshMenu = _.debounce(function () {
+var app = module.exports = {
+    ERR_CL_TOOLS_CANCELLED: 12,
+    ERR_CL_TOOLS_MKDIRFAILED: 14,
+    ERR_CL_TOOLS_NOTSUPPORTED: 17,
+    ERR_CL_TOOLS_RMFAILED: 13,
+    ERR_CL_TOOLS_SERVFAILED: 16,
+    ERR_CL_TOOLS_SYMLINKFAILED: 15,
+    ERR_NODE_FAILED: -3,
+    ERR_NODE_NOT_YET_STARTED: -1,
+    ERR_NODE_PORT_NOT_YET_SET: -2,
+    NO_ERROR: 0,
+    // TODO: this should be changeable
+    language: "en",
+    // underscore electron custom props
+    _startup: process.hrtime()
+};
+
+var __refreshMenu = _.debounce(function () {
     Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
 }, 100);
 
-function refreshMenu(callback) {
-    _refreshMenu();
+function _refreshMenu(callback) {
+    __refreshMenu();
     process.nextTick(callback);
 }
 
-function findMenuItemById(id, where) {
+function _findMenuItemById(id, where) {
     where = where || menuTemplate;
     var result = _.find(where, {id: id});
     if (!result) {
         var results = _.compact(where.map(function (menuItem) {
-            return menuItem.submenu ? findMenuItemById(id, menuItem.submenu) : null;
+            return menuItem.submenu ? _findMenuItemById(id, menuItem.submenu) : null;
         }));
         return results.length > 0 ? results[0] : null;
     }
@@ -43,7 +60,12 @@ function _addBeforeOrAfter(obj, target, position, relativeId) {
     target.splice(idx, 0, obj);
 }
 
-function addMenu(title, id, position, relativeId, callback) {
+app.abortQuit = function () {
+    // TODO: implement
+    throw new Error("app.abortQuit not implemented");
+};
+
+app.addMenu = function (title, id, position, relativeId, callback) {
     if (position && ["before", "after"].indexOf(position) === -1) {
         throw new Error("position not implemented in addMenu");
     }
@@ -59,10 +81,10 @@ function addMenu(title, id, position, relativeId, callback) {
         menuTemplate.push(newObj);
     }
 
-    refreshMenu(callback.bind(null, 0));
-}
+    _refreshMenu(callback.bind(null, 0));
+};
 
-function addMenuItem(parentId, title, id, key, displayStr, position, relativeId, callback) {
+app.addMenuItem = function (parentId, title, id, key, displayStr, position, relativeId, callback) {
     if (position && ["before", "after"].indexOf(position) === -1) {
         throw new Error("position not implemented in addMenuItem: " + position);
     }
@@ -90,7 +112,7 @@ function addMenuItem(parentId, title, id, key, displayStr, position, relativeId,
         }
     }
 
-    var parentObj = findMenuItemById(parentId);
+    var parentObj = _findMenuItemById(parentId);
     if (!parentObj.submenu) {
         parentObj.submenu = [];
     }
@@ -101,23 +123,20 @@ function addMenuItem(parentId, title, id, key, displayStr, position, relativeId,
         parentObj.submenu.push(newObj);
     }
 
-    refreshMenu(callback.bind(null, 0));
-}
+    _refreshMenu(callback.bind(null, 0));
+};
 
-function setMenuItemState(commandid, enabled, checked, callback) {
-    var obj = findMenuItemById(commandid);
-    obj.enabled = enabled;
-    obj.checked = checked;
-    refreshMenu(callback);
-}
+app.closeLiveBrowser = function (callback) {
+    // TODO: implement
+    callback(new Error("app.closeLiveBrowser not implemented"));
+};
 
-function setMenuTitle(commandid, title, callback) {
-    var obj = findMenuItemById(commandid);
-    obj.label = title;
-    refreshMenu(callback);
-}
+app.dragWindow = function () {
+    // TODO: implement
+    throw new Error("app.dragWindow not implemented");
+};
 
-function getApplicationSupportDirectory() {
+app.getApplicationSupportDirectory = function () {
     // TODO: once stable, rename folderName to Brackets
     var folderName = "Brackets-electron-dev";
     if (process.platform === "win32") {
@@ -129,24 +148,125 @@ function getApplicationSupportDirectory() {
     } else {
         throw new Error("getApplicationSupportDirectory() not implemented for platform " + process.platform);
     }
-}
+};
 
-function getNodeState(callback) {
-    callback(null, -1);
-}
+app.getDroppedFiles = function (callback) {
+    // TODO: implement
+    callback(new Error("app.getDroppedFiles not implemented"));
+};
 
-function showDeveloperTools() {
+// return the number of milliseconds that have elapsed since the application was launched
+app.getElapsedMilliseconds = function () {
+    var diff = process.hrtime(app._startup);
+    // diff = [ seconds, nanoseconds ]
+    return diff[0] * 1000 + diff[1] / 1000000;
+};
+
+app.getMenuItemState = function (commandId, callback) {
+    // TODO: implement
+    callback(new Error("app.getDroppedFiles not implemented: " + commandId));
+};
+
+app.getMenuPosition = function (commandId, callback) {
+    // TODO: implement
+    callback(new Error("app.getMenuPosition not implemented: " + commandId));
+};
+
+app.getMenuTitle = function (commandId, callback) {
+    // TODO: implement
+    callback(new Error("app.getMenuTitle not implemented: " + commandId));
+};
+
+app.getNodeState = function (callback) {
+    callback(null, app.NO_ERROR);
+};
+
+app.getPendingFilesToOpen = function (callback) {
+    // TODO: implement
+    callback(new Error("app.getPendingFilesToOpen not implemented"));
+};
+
+app.getRemoteDebuggingPort = function () {
+    // TODO: implement
+    throw new Error("app.getRemoteDebuggingPort not implemented");
+};
+
+app.getUserDocumentsDirectory = function () {
+    // TODO: implement
+    throw new Error("app.getUserDocumentsDirectory not implemented");
+};
+
+app.getZoomLevel = function (callback) {
+    // TODO: implement
+    callback(new Error("app.getZoomLevel not implemented"));
+};
+
+app.installCommandLine = function (callback) {
+    // TODO: implement
+    callback(new Error("app.installCommandLine not implemented"));
+};
+
+app.openLiveBrowser = function (url, enableRemoteDebugging, callback) {
+    // TODO: implement
+    callback(new Error("app.openLiveBrowser not implemented" + url));
+};
+
+app.openURLInDefaultBrowser = function (url, callback) {
+    // TODO: implement
+    callback(new Error("app.openURLInDefaultBrowser not implemented" + url));
+};
+
+app.quit = function () {
+    // TODO: implement
+    throw new Error("app.quit not implemented");
+};
+
+app.removeMenu = function (commandId, callback) {
+    // TODO: implement
+    callback(new Error("app.removeMenu not implemented" + commandId));
+};
+
+app.removeMenuItem = function (commandId, callback) {
+    // TODO: implement
+    callback(new Error("app.removeMenuItem not implemented" + commandId));
+};
+
+app.setMenuItemShortcut = function (commandId, shortcut, displayStr, callback) {
+    // TODO: implement
+    callback(new Error("app.setMenuItemShortcut not implemented" + commandId + shortcut));
+};
+
+app.setMenuItemState = function (commandId, enabled, checked, callback) {
+    var obj = _findMenuItemById(commandId);
+    obj.enabled = enabled;
+    obj.checked = checked;
+    _refreshMenu(callback);
+};
+
+app.setMenuTitle = function (commandId, title, callback) {
+    var obj = _findMenuItemById(commandId);
+    obj.label = title;
+    _refreshMenu(callback);
+};
+
+app.setZoomLevel = function (zoomLevel, callback) {
+    // TODO: implement
+    callback(new Error("app.setZoomLevel not implemented" + zoomLevel));
+};
+
+app.showDeveloperTools = function () {
+    // TODO: this is not reliable -> we can get `win` from `remote` module
     var windows = BrowserWindow.getAllWindows();
     var win = windows[0];
     win.openDevTools({detach: true});
-}
+};
 
-module.exports = {
-    addMenu: addMenu,
-    addMenuItem: addMenuItem,
-    getApplicationSupportDirectory: getApplicationSupportDirectory,
-    getNodeState: getNodeState,
-    setMenuItemState: setMenuItemState,
-    setMenuTitle: setMenuTitle,
-    showDeveloperTools: showDeveloperTools
+app.showExtensionsFolder = function (appURL, callback) {
+    // TODO: implement
+    callback(new Error("app.showExtensionsFolder not implemented" + appURL));
+};
+
+app.showOSFolder = function (path, callback) {
+    // TODO: implement
+    callback(new Error("app.showOSFolder not implemented" + path));
 };
