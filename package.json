@@ -1,5 +1,6 @@
 {
     "name": "Brackets",
+    "productName": "Brackets-Electron-dev",
     "version": "1.3.0-0",
     "apiVersion": "1.3.0",
     "homepage": "http://brackets.io",
@@ -51,10 +52,11 @@
     "bin": {
         "brackets": "./app/index.js"
     },
+    "main": "./app/index.js",
     "scripts": {
         "postinstall": "grunt install",
         "test": "grunt cla-check-pull test",
-        "start": "electron ./app/index.js"
+        "start": "electron ."
     },
     "licenses": [
         {
