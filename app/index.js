@@ -34,7 +34,9 @@ shellConfig.position = shellConfig.position || {};
 
 windowPosition = _.defaults(shellConfig.position, windowPosition);
 
-function _saveWindowPosition() {
+function _saveWindowPosition(sync) {
+    var writeFile = sync ? fs.writeFileSync : fs.writeFile;
+    
     var size = win.getSize(),
         pos = win.getPosition(),
         windowPosition = {
@@ -47,8 +49,11 @@ function _saveWindowPosition() {
     
     shellConfig.position = windowPosition;
     var shellConfigRaw = JSON.stringify(shellConfig, null, "    ");
-    fs.writeFileSync(SHELL_CONFIG, shellConfigRaw);
+    writeFile(SHELL_CONFIG, shellConfigRaw);
 }
+
+var saveWindowPositionSync = _.partial(_saveWindowPosition, true);
+var saveWindowPosition = _.debounce(_saveWindowPosition, 200);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the javascript object is GCed.
@@ -107,7 +112,7 @@ app.on("ready", function () {
     
     // emitted before the window is closed
     win.on("close", function () {
-        _saveWindowPosition();
+        saveWindowPositionSync();
     });
 
     // emitted when the window is closed
@@ -127,13 +132,13 @@ app.on("ready", function () {
 
     // this is used to remember the size from the last time
     win.on("maximize", function () {
-        _saveWindowPosition(windowPosition);
+        saveWindowPosition(windowPosition);
     });
     win.on("unmaximize", function () {
-        _saveWindowPosition(windowPosition);
+        saveWindowPosition(windowPosition);
     });
     ipc.on("resize", function () {
-        _saveWindowPosition(windowPosition);
+        saveWindowPosition(windowPosition);
     });
 
 });
