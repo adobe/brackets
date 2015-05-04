@@ -20,6 +20,7 @@ var utils = require("./utils");
 var APP_NAME = "Brackets-Electron";
 var SHELL_CONFIG = path.resolve(utils.convertWindowsPathToUnixPath(app.getPath("userData")), "shell-config.json");
 // TODO: load these from somewhere
+// TODO: remember posX and posY
 var windowPosition = {
     posX: undefined,
     posY: undefined,
