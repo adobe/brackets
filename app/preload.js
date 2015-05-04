@@ -35,8 +35,4 @@
         throw e;
     }
 
-    // hide WebSocket from Brackets as Electron integrates with node differently
-    window.electron.WebSocket = window.WebSocket;
-    window.WebSocket = window.electron.node.require("../app/MockWebSocket");
-
 }());
