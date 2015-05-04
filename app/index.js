@@ -29,7 +29,9 @@ app.on("ready", function () {
     // create the browser window
     win = new BrowserWindow({
         width: 800,
-        height: 600
+        height: 600,
+        // "node-integration": false,
+        preload: require.resolve("./preload")
     });
 
     // build a query for brackets' window
