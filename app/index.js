@@ -59,11 +59,13 @@ app.on("ready", function () {
 
     // build a query for brackets' window
     var queryParams = {
-        hasNativeMenus: true
-    };
-    var query = "?" + _.map(queryParams, function (value, key) {
-        return key + "=" + encodeURIComponent(value);
-    }).join("&");
+    },
+        query = "";
+    if (Object.keys(queryParams).length > 0) { // check if queryParams is empty
+        query = "?" + _.map(queryParams, function (value, key) {
+            return key + "=" + encodeURIComponent(value);
+        }).join("&");
+    }
 
     // compose path to brackets' index file
     var indexPath = "file://" + path.resolve(__dirname, "..", "src", "index.html") + query;
