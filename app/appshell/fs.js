@@ -61,6 +61,8 @@ function showOpenDialog(allowMultipleSelection, chooseDirectory, title, initialP
         properties.push("multiSelections");
     }
     
+    // TODO: I don't think defaultPath and filters work right now - we should test that
+    // Also, it doesn't return an error code on failure any more (and doesn't pass one to the callback as well)
     return dialog.showOpenDialog({
         title: title,
         defaultPath: initialPath,
@@ -72,6 +74,9 @@ function showOpenDialog(allowMultipleSelection, chooseDirectory, title, initialP
 }
 
 function showSaveDialog(title, initialPath, proposedNewFilename, callback) {
+    // TODO: Implement proposedNewFilename
+    // TODO: I don't think defaultPath works right now - we should test that
+    // Also, it doesn't return an error code on failure any more (and doesn't pass one to the callback as well)
     return dialog.showSaveDialog({
         title: title,
         defaultPath: initialPath
