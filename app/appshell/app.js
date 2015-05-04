@@ -11,6 +11,7 @@ var Menu = remote.require("menu");
 
 var menuTemplate = [];
 
+var SOCKET_PORT = 8123; // this is hardcoded in brackets-shell
 var REMOTE_DEBUGGING_PORT = 9234; // this is hardcoded in brackets-shell
 
 var app = module.exports = {
@@ -202,7 +203,7 @@ app.getMenuTitle = function (commandId, callback) {
 };
 
 app.getNodeState = function (callback) {
-    callback(null, app.NO_ERROR);
+    callback(null, SOCKET_PORT);
 };
 
 app.getPendingFilesToOpen = function (callback) {

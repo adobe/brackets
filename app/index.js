@@ -9,6 +9,7 @@ var app = require("app"); // Module to control application life
 var BrowserWindow = require("browser-window"); // Module to create native browser window
 var ipc = require("ipc");
 var path = require("path"); // Node path module
+var SocketServer = require("./socket-server"); // Implementation to replace shell server
 
 // Report crashes to electron server
 // TODO: doesn't work
@@ -27,6 +28,14 @@ var win = null;
 // Quit when all windows are closed.
 app.on("window-all-closed", function () {
     app.quit();
+});
+
+SocketServer.start(function (err, port) {
+    if (err) {
+        console.log("socket-server failed to start: " + err);
+    } else {
+        console.log("socket-server started on port " + port);
+    }
 });
 
 // This method will be called when Electron has done everything

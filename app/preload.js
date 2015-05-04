@@ -29,7 +29,7 @@
 
     // inject appshell implementation into the browser window
     try { // TODO: remove try-catch when issue fixed - https://github.com/atom/electron/issues/1566
-        window.appshell = window.brackets = window.electron.node.require("../app/appshell/index");
+        window.appshell = window.brackets = window.electron.node.require("../app/appshell");
     } catch (e) {
         console.log(e.stack);
         throw e;
