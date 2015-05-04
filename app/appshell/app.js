@@ -79,6 +79,7 @@ function _fixBracketsKeyboardShortcut(shortcut) {
     }
 
     shortcut = shortcut.replace(/-/g, "+");
+    shortcut = shortcut.replace(/\+$/g, "Plus");
     shortcut = shortcut.replace(/\u2190/g, "Left");
     shortcut = shortcut.replace(/\u2191/g, "Up");
     shortcut = shortcut.replace(/\u2192/g, "Right");
