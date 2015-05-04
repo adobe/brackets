@@ -270,6 +270,10 @@ app.setMenuItemState = function (commandId, enabled, checked, callback) {
     var obj = _findMenuItemById(commandId);
     obj.enabled = enabled;
     obj.checked = checked;
+    if (checked) {
+        // TODO: Change addMenuItem to set the type (checkbox, radio, ... submenu)
+        obj.type = "checkbox";
+    }
     _refreshMenu(callback);
 };
 
