@@ -66,6 +66,11 @@ function _fixBracketsKeyboardShortcut(shortcut) {
     }
 
     shortcut = shortcut.replace(/-/g, "+");
+    shortcut = shortcut.replace(/\u2190/g, "Left");
+    shortcut = shortcut.replace(/\u2191/g, "Up");
+    shortcut = shortcut.replace(/\u2192/g, "Right");
+    shortcut = shortcut.replace(/\u2193/g, "Down");
+    shortcut = shortcut.replace(/\u2212/g, "-");
 
     if (!shortcut.match(/^[\x00-\x7F]+$/)) {
         console.error("Non ASCII keyboard shortcut used: " + shortcut);
