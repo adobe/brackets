@@ -39,15 +39,24 @@ function _refreshMenu(callback) {
     process.nextTick(callback);
 }
 
-function _findMenuItemById(id, where) {
+function _findMenuItemById(id, where, opts) {
+    opts = opts || {};
     where = where || menuTemplate;
+
     var result = _.find(where, {id: id});
+
     if (!result) {
         var results = _.compact(where.map(function (menuItem) {
-            return menuItem.submenu ? _findMenuItemById(id, menuItem.submenu) : null;
+            return menuItem.submenu ? _findMenuItemById(id, menuItem.submenu, opts) : null;
         }));
-        return results.length > 0 ? results[0] : null;
+        result = results.length > 0 ? results[0] : null;
     }
+
+    if (opts.delete && result) {
+        var io = where.indexOf(result);
+        where.splice(io, 1);
+    }
+
     return result;
 }
 
@@ -198,7 +207,7 @@ app.getNodeState = function (callback) {
 
 app.getPendingFilesToOpen = function (callback) {
     // TODO: implement
-    callback(new Error("app.getPendingFilesToOpen not implemented"));
+    callback(new Error("app.getPendingFilesToOpen not implemented"), []);
 };
 
 app.getRemoteDebuggingPort = function () {
@@ -236,13 +245,13 @@ app.quit = function () {
 };
 
 app.removeMenu = function (commandId, callback) {
-    // TODO: implement
-    callback(new Error("app.removeMenu not implemented" + commandId));
+    _findMenuItemById(commandId, menuTemplate, {delete: true});
+    _refreshMenu(callback.bind(null, app.NO_ERROR));
 };
 
 app.removeMenuItem = function (commandId, callback) {
-    // TODO: implement
-    callback(new Error("app.removeMenuItem not implemented" + commandId));
+    _findMenuItemById(commandId, menuTemplate, {delete: true});
+    _refreshMenu(callback.bind(null, app.NO_ERROR));
 };
 
 app.setMenuItemShortcut = function (commandId, shortcut, displayStr, callback) {
