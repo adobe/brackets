@@ -18,7 +18,7 @@
         "trash": "1.4.1"
     },
     "devDependencies": {
-        "electron-prebuilt": "0.25.1-1",
+        "electron-prebuilt": "0.25.2",
         "grunt": "0.4.1",
         "jasmine-node": "1.11.0",
         "grunt-jasmine-node": "0.1.0",
