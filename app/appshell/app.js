@@ -7,6 +7,7 @@ var path = require("path");
 var utils = require("../utils");
 
 var remote = require("remote");
+var electronApp = remote.require("app");
 var Menu = remote.require("menu");
 
 var menuTemplate = [];
@@ -162,17 +163,8 @@ app.dragWindow = function () {
 };
 
 app.getApplicationSupportDirectory = function () {
-    // TODO: once stable, rename folderName to Brackets
-    var folderName = "Brackets-electron-dev";
-    if (process.platform === "win32") {
-        return utils.convertWindowsPathToUnixPath(path.resolve(process.env.APPDATA, folderName));
-    } else if (process.platform === "linux") {
-        return path.resolve("/home/", process.env.USER, ".config", folderName);
-    } else if (process.platform === "darwin") {
-        return path.resolve("/Users/", process.env.USER, "Library", "Application Support", folderName);
-    } else {
-        throw new Error("getApplicationSupportDirectory() not implemented for platform " + process.platform);
-    }
+    // TODO: once stable, change "productName" to Brackets in package.json
+    return utils.convertWindowsPathToUnixPath(electronApp.getPath("userData"));
 };
 
 app.getDroppedFiles = function (callback) {
