@@ -8,7 +8,6 @@ var app = require("app");
 var fs = require("fs-extra");
 var path = require("path");
 var utils = require("./utils");
-var process = require("process");
 var os = require("os");
 
 var CONFIG_PATH = path.resolve(utils.convertWindowsPathToUnixPath(app.getPath("userData")), "shell-config.json");
