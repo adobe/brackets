@@ -9,12 +9,12 @@
 
 var assert = require("assert");
 var BrowserWindow = require("browser-window");
-var path = require("path");
+var URL = require("url");
 var windows = {};
 
 function resolveUrl(url) {
     if (Array.isArray(url)) {
-        url = path.resolve.apply(path, url);
+        url = URL.resolve.apply(URL, url);
     }
     if (!url.match(/^[a-zA-Z]+:\/\//)) {
         url = "file://" + url;

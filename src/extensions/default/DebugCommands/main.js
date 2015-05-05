@@ -82,7 +82,7 @@ define(function (require, exports, module) {
     var TEST_WINDOW_ID = "brackets-test";
     function _runUnitTests(spec) {
         var queryString = spec ? "?spec=" + spec : "";
-        var url = [window.location.pathname, "../../test/SpecRunner.html" + queryString];
+        var url = [window.location.href, "../test/SpecRunner.html" + queryString];
         if (BracketsWindow.isOpen(TEST_WINDOW_ID)) {
             BracketsWindow.loadUrl(url, TEST_WINDOW_ID);
         } else {
