@@ -5,43 +5,26 @@
 "use strict";
 
 var _ = require("lodash");
-var fs = require("fs-extra");
 var path = require("path");
 var app = require("app"); // Electron module to control application life
 var BrowserWindow = require("browser-window"); // Electron to create native browser window
 var ipc = require("ipc"); // Electron ipc module
 var SocketServer = require("./socket-server"); // Implementation of Brackets' shell server
 var utils = require("./utils");
+var shellConfig = require("./shell-config");
 
 // Report crashes to electron server
 // TODO: doesn't work
 // require("crash-reporter").start();
 
 var APP_NAME = "Brackets-Electron";
-var SHELL_CONFIG = path.resolve(utils.convertWindowsPathToUnixPath(app.getPath("userData")), "shell-config.json");
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the javascript object is GCed.
 var win = null;
 
-// load the shell config, recreate empty if file doesn't exist
-var shellConfig;
-try {
-    shellConfig = fs.readJsonSync(SHELL_CONFIG);
-} catch (err) {
-    if (err.code === "ENOENT") {
-        shellConfig = fs.readJsonSync(path.resolve(__dirname, "default-shell-config.json"));
-        fs.writeJsonSync(SHELL_CONFIG, shellConfig);
-    } else if (err.name === "SyntaxError") {
-        throw new Error("File is not a valid json: " + SHELL_CONFIG);
-    } else {
-        throw err;
-    }
-}
-
 // fetch window position values from the window and save them to config file
 function _saveWindowPosition(sync) {
-    var writeJson = sync ? fs.writeJsonSync : fs.writeJson;
     var size = win.getSize();
     var pos = win.getPosition();
     shellConfig.window.posX = pos[0];
@@ -49,7 +32,11 @@ function _saveWindowPosition(sync) {
     shellConfig.window.width = size[0];
     shellConfig.window.height = size[1];
     shellConfig.window.maximized = win.isMaximized();
-    writeJson(SHELL_CONFIG, shellConfig);
+    if (sync) {
+        shellConfig.saveSync();
+    } else {
+        shellConfig.save();
+    }
 }
 var saveWindowPositionSync = _.partial(_saveWindowPosition, true);
 var saveWindowPosition = _.debounce(_saveWindowPosition, 100);
