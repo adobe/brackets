@@ -59,7 +59,7 @@
     
     // This must match the port declared in NodeSocketTransport.js.
     // TODO: randomize this?
-    var SOCKET_PORT = 8123;
+    var SOCKET_PORT = 8125;
 
     /**
      * @private
