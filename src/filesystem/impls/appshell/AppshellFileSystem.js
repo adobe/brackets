@@ -159,19 +159,20 @@ define(function (require, exports, module) {
                 return FileSystemError.ALREADY_EXISTS;
             case "ENOENT":
                 return FileSystemError.NOT_FOUND;
+            case "ENOSPC":
+                return FileSystemError.OUT_OF_SPACE;
+            case "EPERM":
+            case "EACCES":
+            case "EROFS":
+                return FileSystemError.PERM_DENIED;
         }
 
+        // TODO:
         switch (err) {
         case appshell.fs.ERR_INVALID_PARAMS:
             return FileSystemError.INVALID_PARAMS;
-        case appshell.fs.ERR_CANT_READ:
-            return FileSystemError.NOT_READABLE;
-        case appshell.fs.ERR_CANT_WRITE:
-            return FileSystemError.NOT_WRITABLE;
         case appshell.fs.ERR_UNSUPPORTED_ENCODING:
             return FileSystemError.UNSUPPORTED_ENCODING;
-        case appshell.fs.ERR_OUT_OF_SPACE:
-            return FileSystemError.OUT_OF_SPACE;
         }
 
         console.warn("got error from fs, but no FileSystemError mapping was found: " + err);

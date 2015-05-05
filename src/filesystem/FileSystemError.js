@@ -42,10 +42,11 @@ define(function (require, exports, module) {
         UNKNOWN                     : "Unknown",
         INVALID_PARAMS              : "InvalidParams",
         NOT_FOUND                   : "NotFound",
-        NOT_READABLE                : "NotReadable",
+        PERM_DENIED                 : "PermDenied",
+        NOT_READABLE                : "PermDenied", // this is here for compatibility, PERM_DENIED is preffered
+        NOT_WRITABLE                : "PermDenied", // this is here for compatibility, PERM_DENIED is preffered
         UNSUPPORTED_ENCODING        : "UnsupportedEncoding",
         NOT_SUPPORTED               : "NotSupported",
-        NOT_WRITABLE                : "NotWritable",
         OUT_OF_SPACE                : "OutOfSpace",
         TOO_MANY_ENTRIES            : "TooManyEntries",
         ALREADY_EXISTS              : "AlreadyExists",
