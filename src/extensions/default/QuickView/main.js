@@ -739,11 +739,13 @@ define(function (require, exports, module) {
         CommandManager.get(CMD_ENABLE_QUICK_VIEW).setChecked(enabled);
     }
 
-    function setExtensionlessImagePreview(_extensionlessImagePreview) {
+    function setExtensionlessImagePreview(_extensionlessImagePreview, doNotSave) {
         if(extensionlessImagePreview !== _extensionlessImagePreview) {
             extensionlessImagePreview = _extensionlessImagePreview;
-            prefs.set("extensionlessImagePreview", enabled);
-            prefs.save();
+            if (!doNotSave) {
+                prefs.set("extensionlessImagePreview", enabled);
+                prefs.save();
+            }
         }
     }
 
@@ -814,7 +816,7 @@ define(function (require, exports, module) {
 
     // Setup initial UI state
     setEnabled(prefs.get("enabled"), true);
-    setExtensionlessImagePreview(prefs.get("extensionlessImagePreview"));
+    setExtensionlessImagePreview(prefs.get("extensionlessImagePreview"), true);
     
     prefs.on("change", "enabled", function () {
         setEnabled(prefs.get("enabled"), true);
