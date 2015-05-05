@@ -228,10 +228,16 @@ define(function (require, exports, module) {
      * @param {function(?string, FileSystemStats=)} callback
      */
     function stat(path, callback) {
-        appshell.fs.stat(path, function (err, stats) {
+        appshell.fs.lstat(path, function (err, stats) {
             if (err) {
                 callback(_mapError(err));
             } else {
+                if (stats.isSymbolicLink()) {
+                    // TODO: Implement realPath. If "filename" is a symlink,
+                    // realPath should be the actual path to the linked object.
+                    return callback(new Error("realPath for symbolic link is not implemented in appshell.fs.stat"));
+                }
+
                 var options = {
                     isFile: stats.isFile(),
                     mtime: stats.mtime,
