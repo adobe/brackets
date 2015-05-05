@@ -6,8 +6,8 @@
         node: {
             process: window.process
         },
-        ipc: require("ipc")
-        // remote: require("remote"),
+        ipc: require("ipc"),
+        remote: require("remote")
         // webFrame: require("web-frame"),
         // clipboard: require("clipboard"),
         // crashReporter: require("crash-reporter"),
