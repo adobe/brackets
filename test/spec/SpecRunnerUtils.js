@@ -266,7 +266,7 @@ define(function (require, exports, module) {
                 if (err === FileSystemError.NOT_FOUND) {
                     entryPromise.resolve(entries);
                 } else {
-                    entryPromise.reject();
+                    entryPromise.reject(err);
                 }
             }
         });
@@ -282,8 +282,10 @@ define(function (require, exports, module) {
                         if (err === FileSystemError.NOT_FOUND) {
                             // Resolve the promise since the folder to reset doesn't exist
                             deferred.resolve();
+                        } else if (err) {
+                            deferred.reject(err);
                         } else {
-                            deferred.reject();
+                            deferred.reject(new Error("Expected NOT_FOUND error but got none."));
                         }
                     }
                 });
@@ -291,8 +293,8 @@ define(function (require, exports, module) {
                 return deferred.promise();
             }, true);
             promise.then(result.resolve, result.reject);
-        }).fail(function() {
-            result.reject();
+        }).fail(function(err) {
+            result.reject(err);
         });
         
         return result.promise();
@@ -308,8 +310,8 @@ define(function (require, exports, module) {
         runs(function () {
             _resetPermissionsOnSpecialTempFolders().done(function () {
                 deletePath(baseDir, true).then(deferred.resolve, deferred.reject);
-            }).fail(function () {
-                deferred.reject();
+            }).fail(function (err) {
+                deferred.reject(err);
             });
 
             deferred.fail(function (err) {
