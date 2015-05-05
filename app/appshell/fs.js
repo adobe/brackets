@@ -51,9 +51,11 @@ function _mapError(isWriting, callback, err, result) {
     callback(err, result);
 }
 
+/*
 function chmod(path, mode, callback) {
     fs.chmod(path, mode, _.partial(_mapError, true, callback));
 }
+*/
 
 /*
 function copyFile(src, dest, callback) {
@@ -160,7 +162,7 @@ function writeFile(path, data, encoding, callback) {
 }
 
 module.exports = _.assign({
-    chmod: chmod,
+    // chmod: chmod,
     // copyFile: copyFile,
     // isNetworkDrive: isNetworkDrive,
     // makedir: makedir,
