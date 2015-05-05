@@ -282,7 +282,7 @@ a:focus {
 
 // Dropdown Menu Animation
 .dropdown-menu {
-    .animation(dropdown, 90ms, cubic-bezier(0, .97, .2, .99), 0, 1);
+    .animation(dropdown, 90ms, cubic-bezier(0, .97, .2, .99));
     -webkit-transform-origin: 0 0;
     border: none;
     border-radius: @bc-border-radius;
@@ -755,7 +755,7 @@ a:focus {
     position: relative;
     top: 0;
     margin: auto;
-    .animation(modal, 240ms, cubic-bezier(0, 1.05, .35, 1), 0, 1);
+    .animation(modal, 240ms, cubic-bezier(0, 1.05, .35, 1));
 
     .dark & {
         background-color: @dark-bc-panel-bg;
@@ -857,7 +857,7 @@ a:focus {
 }
 
 .modal-backdrop {
-    .animation (backdrop, 200ms, linear, 0, 1);
+    .animation (backdrop, 200ms, linear);
     opacity: @bc-modal-backdrop-opacity;
 
     .dark & {
