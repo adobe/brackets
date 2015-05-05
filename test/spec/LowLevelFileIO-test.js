@@ -899,7 +899,7 @@ define(function (require, exports, module) {
                 
                 // make the copy
                 runs(function () {
-                    brackets.fs.copyFile(fileName, copyName, copyCB);
+                    brackets.fs.copy(fileName, copyName, copyCB);
                 });
                 
                 waitsFor(function () { return copyCB.wasCalled; }, "copyFile to finish", 1000);
