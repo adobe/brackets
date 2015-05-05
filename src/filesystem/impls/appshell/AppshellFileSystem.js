@@ -154,11 +154,16 @@ define(function (require, exports, module) {
             return null;
         }
         
+        switch (err.code) {
+            case "EEXIST":
+                return FileSystemError.ALREADY_EXISTS;
+            case "ENOENT":
+                return FileSystemError.NOT_FOUND;
+        }
+
         switch (err) {
         case appshell.fs.ERR_INVALID_PARAMS:
             return FileSystemError.INVALID_PARAMS;
-        case appshell.fs.ERR_NOT_FOUND:
-            return FileSystemError.NOT_FOUND;
         case appshell.fs.ERR_CANT_READ:
             return FileSystemError.NOT_READABLE;
         case appshell.fs.ERR_CANT_WRITE:
@@ -167,10 +172,13 @@ define(function (require, exports, module) {
             return FileSystemError.UNSUPPORTED_ENCODING;
         case appshell.fs.ERR_OUT_OF_SPACE:
             return FileSystemError.OUT_OF_SPACE;
-        case appshell.fs.ERR_FILE_EXISTS:
-            return FileSystemError.ALREADY_EXISTS;
         }
-        return FileSystemError.UNKNOWN;
+
+        console.warn("got error from fs, but no FileSystemError mapping was found: " + err);
+
+        // do not actually return FileSystemError.UNKNOWN
+        // it has no point hiding what the actual error is
+        return err;
     }
     
     /**
