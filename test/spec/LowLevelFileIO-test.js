@@ -638,10 +638,10 @@ define(function (require, exports, module) {
                     unlinkCB    = errSpy();
                 
                 runs(function () {
-                    brackets.fs.makedir(delDirName, parseInt("777", 0), cb);
+                    brackets.fs.mkdir(delDirName, parseInt("777", 0), cb);
                 });
                 
-                waitsFor(function () { return cb.wasCalled; }, "makeDir to finish");
+                waitsFor(function () { return cb.wasCalled; }, "mkdir to finish");
                 
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.NO_ERROR);
@@ -684,7 +684,7 @@ define(function (require, exports, module) {
             });
         }); // describe("unlink")
         
-        describe("makedir", function () {
+        describe("mkdir", function () {
             
             it("should make a new directory", function () {
                 var newDirName  = baseDir + "/brackets_unittests_new_dir",
@@ -693,10 +693,10 @@ define(function (require, exports, module) {
                     trashCB     = errSpy();
                 
                 runs(function () {
-                    brackets.fs.makedir(newDirName, parseInt("777", 0), cb);
+                    brackets.fs.mkdir(newDirName, parseInt("777", 0), cb);
                 });
                 
-                waitsFor(function () { return cb.wasCalled; }, "makedir to finish");
+                waitsFor(function () { return cb.wasCalled; }, "mkdir to finish");
                 
                 runs(function () {
                     expect(cb.error).toBe(brackets.fs.NO_ERROR);
@@ -1002,18 +1002,18 @@ define(function (require, exports, module) {
             
             it("should move a folder to the trash", function () {
                 var newDirName  = baseDir + "/brackets_unittests_dir_to_delete",
-                    makedirCB   = errSpy(),
+                    mkdirCB   = errSpy(),
                     trashCB     = errSpy();
                 
                 // Create a file
                 runs(function () {
-                    brackets.fs.makedir(newDirName, parseInt("777", 8), makedirCB);
+                    brackets.fs.mkdir(newDirName, parseInt("777", 8), mkdirCB);
                 });
                 
-                waitsFor(function () { return makedirCB.wasCalled; }, "makedir to finish");
+                waitsFor(function () { return mkdirCB.wasCalled; }, "mkdir to finish");
                 
                 runs(function () {
-                    expect(makedirCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(mkdirCB.error).toBe(brackets.fs.NO_ERROR);
                 });
                 
                 // Move it to the trash

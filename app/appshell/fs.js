@@ -64,6 +64,7 @@ function isNetworkDrive(path, callback) {
     callback(null, false);
 }
 
+/*
 function makedir(path, mode, callback) {
     fs.ensureDir(path, function (err) {
         if (!err && mode) {
@@ -73,10 +74,13 @@ function makedir(path, mode, callback) {
         }
     });
 }
+*/
 
+/*
 function moveToTrash(path, callback) {
     trash([path], _.partial(_mapError, true, callback));
 }
+*/
 
 function readdir(path, callback) {
     fs.readdir(path, _.partial(_mapError, false, callback));
@@ -155,8 +159,8 @@ module.exports = _.assign({
     chmod: chmod,
     copyFile: copyFile,
     isNetworkDrive: isNetworkDrive,
-    makedir: makedir,
-    moveToTrash: moveToTrash,
+    // makedir: makedir,
+    // moveToTrash: moveToTrash,
     readdir: readdir,
     readFile: readFile,
     rename: rename,

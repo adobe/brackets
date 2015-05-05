@@ -5,7 +5,6 @@
 var _ = require("lodash");
 var fs = require("fs-extra");
 var trash = require("trash");
-
 var fsAdditions = {
     moveToTrash: function (path, callback) {
         // trash expects an array of files which is inconsistent with fs-extra apis
@@ -15,5 +14,5 @@ var fsAdditions = {
 
 module.exports = {
     app: require("./app"),
-    fs: _.mixin({}, fs, fsAdditions)
+    fs: _.extend({}, fs, fsAdditions)
 };

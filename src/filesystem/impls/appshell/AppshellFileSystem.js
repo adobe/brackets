@@ -324,7 +324,7 @@ define(function (require, exports, module) {
             callback = mode;
             mode = parseInt("0755", 8);
         }
-        appshell.fs.makedir(path, mode, function (err) {
+        appshell.fs.mkdir(path, mode, function (err) {
             if (err) {
                 callback(_mapError(err));
             } else {
