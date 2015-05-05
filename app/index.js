@@ -5,7 +5,7 @@
 "use strict";
 
 var _ = require("lodash");
-var fs = require("fs");
+var fs = require("fs-extra");
 var path = require("path");
 var app = require("app"); // Electron module to control application life
 var BrowserWindow = require("browser-window"); // Electron to create native browser window
@@ -19,55 +19,50 @@ var utils = require("./utils");
 
 var APP_NAME = "Brackets-Electron";
 var SHELL_CONFIG = path.resolve(utils.convertWindowsPathToUnixPath(app.getPath("userData")), "shell-config.json");
-// TODO: load these from somewhere
-// TODO: remember posX and posY
-var windowPosition = {
-    posX: undefined,
-    posY: undefined,
-    width: 800,
-    height: 600,
-    maximized: false
-};
-
-var shellConfigRaw = fs.readFileSync(SHELL_CONFIG);
-var shellConfig = JSON.parse(shellConfigRaw) || {};
-shellConfig.position = shellConfig.position || {};
-
-windowPosition = _.defaults(shellConfig.position, windowPosition);
-
-function _saveWindowPosition(sync) {
-    var writeFile = sync ? fs.writeFileSync : fs.writeFile;
-    
-    var size = win.getSize(),
-        pos = win.getPosition(),
-        windowPosition = {
-            posX: pos[0],
-            posY: pos[1],
-            width: size[0],
-            height: size[1],
-            maximized: win.isMaximized()
-        };
-    
-    shellConfig.position = windowPosition;
-    var shellConfigRaw = JSON.stringify(shellConfig, null, "    ");
-    writeFile(SHELL_CONFIG, shellConfigRaw);
-}
-
-var saveWindowPositionSync = _.partial(_saveWindowPosition, true);
-var saveWindowPosition = _.debounce(_saveWindowPosition, 200);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the javascript object is GCed.
 var win = null;
+
+// load the shell config, recreate empty if file doesn't exist
+var shellConfig;
+try {
+    shellConfig = fs.readJsonSync(SHELL_CONFIG);
+} catch (err) {
+    if (err.code === "ENOENT") {
+        shellConfig = fs.readJsonSync(path.resolve(__dirname, "default-shell-config.json"));
+        fs.writeJsonSync(SHELL_CONFIG, shellConfig);
+    } else if (err.name === "SyntaxError") {
+        throw new Error("File is not a valid json: " + SHELL_CONFIG);
+    } else {
+        throw err;
+    }
+}
+
+// fetch window position values from the window and save them to config file
+function _saveWindowPosition(sync) {
+    var writeJson = sync ? fs.writeJsonSync : fs.writeJson;
+    var size = win.getSize();
+    var pos = win.getPosition();
+    shellConfig.window.posX = pos[0];
+    shellConfig.window.posY = pos[1];
+    shellConfig.window.width = size[0];
+    shellConfig.window.height = size[1];
+    shellConfig.window.maximized = win.isMaximized();
+    writeJson(SHELL_CONFIG, shellConfig);
+}
+var saveWindowPositionSync = _.partial(_saveWindowPosition, true);
+var saveWindowPosition = _.debounce(_saveWindowPosition, 100);
 
 // Quit when all windows are closed.
 app.on("window-all-closed", function () {
     app.quit();
 });
 
+// Start the socket server used by Brackets'
 SocketServer.start(function (err, port) {
     if (err) {
-        console.log("socket-server failed to start: " + err);
+        console.log("socket-server failed to start: " + utils.errToString(err));
     } else {
         console.log("socket-server started on port " + port);
     }
@@ -80,22 +75,19 @@ app.on("ready", function () {
     var winOptions = {
         preload: require.resolve("./preload"),
         title: APP_NAME,
-        icon: path.resolve(__dirname, "res", "appicon.png")
+        icon: path.resolve(__dirname, "res", "appicon.png"),
+        x: shellConfig.window.posX,
+        y: shellConfig.window.posY,
+        width: shellConfig.window.width,
+        height: shellConfig.window.height
     };
-
-    // TODO: load these variables from previous state
-    winOptions.x = windowPosition.posX;
-    winOptions.y = windowPosition.posY;
-    winOptions.width = windowPosition.width;
-    winOptions.height = windowPosition.height;
 
     // create the browser window
     win = new BrowserWindow(winOptions);
 
     // build a query for brackets' window
-    var queryParams = {
-    },
-        query = "";
+    var queryParams = {};
+    var query = "";
     if (Object.keys(queryParams).length > 0) { // check if queryParams is empty
         query = "?" + _.map(queryParams, function (value, key) {
             return key + "=" + encodeURIComponent(value);
@@ -107,7 +99,7 @@ app.on("ready", function () {
 
     // load the index.html of the app
     win.loadUrl(indexPath);
-    if (windowPosition.maximized) {
+    if (shellConfig.window.maximized) {
         win.maximize();
     }
     
@@ -133,13 +125,13 @@ app.on("ready", function () {
 
     // this is used to remember the size from the last time
     win.on("maximize", function () {
-        saveWindowPosition(windowPosition);
+        saveWindowPosition();
     });
     win.on("unmaximize", function () {
-        saveWindowPosition(windowPosition);
+        saveWindowPosition();
     });
     ipc.on("resize", function () {
-        saveWindowPosition(windowPosition);
+        saveWindowPosition();
     });
 
 });
