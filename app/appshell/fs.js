@@ -59,10 +59,12 @@ function copyFile(src, dest, callback) {
     fs.copy(src, dest, _.partial(_mapError, true, callback));
 }
 
+/*
 function isNetworkDrive(path, callback) {
     // TODO: implement
     callback(null, false);
 }
+*/
 
 /*
 function makedir(path, mode, callback) {
@@ -158,7 +160,7 @@ function writeFile(path, data, encoding, callback) {
 module.exports = _.assign({
     chmod: chmod,
     copyFile: copyFile,
-    isNetworkDrive: isNetworkDrive,
+    // isNetworkDrive: isNetworkDrive,
     // makedir: makedir,
     // moveToTrash: moveToTrash,
     readdir: readdir,
