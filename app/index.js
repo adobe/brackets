@@ -12,6 +12,7 @@ var ipc = require("ipc"); // Electron ipc module
 var SocketServer = require("./socket-server"); // Implementation of Brackets' shell server
 var utils = require("./utils");
 var shellConfig = require("./shell-config");
+var shellState = require("./shell-state");
 
 // Report crashes to electron server
 // TODO: doesn't work
@@ -27,11 +28,11 @@ var win = null;
 function _saveWindowPosition(sync) {
     var size = win.getSize();
     var pos = win.getPosition();
-    shellConfig.window.posX = pos[0];
-    shellConfig.window.posY = pos[1];
-    shellConfig.window.width = size[0];
-    shellConfig.window.height = size[1];
-    shellConfig.window.maximized = win.isMaximized();
+    shellConfig.set("window.posX", pos[0]);
+    shellConfig.set("window.posY", pos[1]);
+    shellConfig.set("window.width", size[0]);
+    shellConfig.set("window.height", size[1]);
+    shellConfig.set("window.maximized", win.isMaximized());
     if (sync) {
         shellConfig.saveSync();
     } else {
@@ -49,8 +50,11 @@ app.on("window-all-closed", function () {
 // Start the socket server used by Brackets'
 SocketServer.start(function (err, port) {
     if (err) {
+        shellState.set("socketServer.state", "ERR_NODE_FAILED");
         console.log("socket-server failed to start: " + utils.errToString(err));
     } else {
+        shellState.set("socketServer.state", "NO_ERROR");
+        shellState.set("socketServer.port", port);
         console.log("socket-server started on port " + port);
     }
 });
@@ -63,10 +67,10 @@ app.on("ready", function () {
         preload: require.resolve("./preload"),
         title: APP_NAME,
         icon: path.resolve(__dirname, "res", "appicon.png"),
-        x: shellConfig.window.posX,
-        y: shellConfig.window.posY,
-        width: shellConfig.window.width,
-        height: shellConfig.window.height
+        x: shellConfig.get("window.posX"),
+        y: shellConfig.get("window.posY"),
+        width: shellConfig.get("window.width"),
+        height: shellConfig.get("window.height")
     };
 
     // create the browser window
@@ -86,7 +90,7 @@ app.on("ready", function () {
 
     // load the index.html of the app
     win.loadUrl(indexPath);
-    if (shellConfig.window.maximized) {
+    if (shellConfig.get("window.maximized")) {
         win.maximize();
     }
     

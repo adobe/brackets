@@ -2,34 +2,40 @@
 
 "use strict";
 
+var _ = require("lodash");
+_.mixin(require("lodash-deep"));
 var app = require("app");
 var fs = require("fs-extra");
 var path = require("path");
 var utils = require("./utils");
 
-var SHELL_CONFIG = path.resolve(utils.convertWindowsPathToUnixPath(app.getPath("userData")), "shell-config.json");
-console.log(SHELL_CONFIG);
-var shellConfig;
+var CONFIG_PATH = path.resolve(utils.convertWindowsPathToUnixPath(app.getPath("userData")), "shell-config.json");
+var config;
 
 try {
-    shellConfig = fs.readJsonSync(SHELL_CONFIG);
+    config = fs.readJsonSync(CONFIG_PATH);
 } catch (err) {
     if (err.code === "ENOENT") {
-        shellConfig = fs.readJsonSync(path.resolve(__dirname, "default-shell-config.json"));
-        fs.writeJsonSync(SHELL_CONFIG, shellConfig);
+        config = fs.readJsonSync(path.resolve(__dirname, "default-shell-config.json"));
+        fs.writeJsonSync(CONFIG_PATH, config);
     } else if (err.name === "SyntaxError") {
-        throw new Error("File is not a valid json: " + SHELL_CONFIG);
+        throw new Error("File is not a valid json: " + CONFIG_PATH);
     } else {
         throw err;
     }
 }
 
-shellConfig.save = function () {
-    fs.writeJson(SHELL_CONFIG, shellConfig);
-};
+function save() {
+    fs.writeJson(CONFIG_PATH, config);
+}
 
-shellConfig.saveSync = function () {
-    fs.writeJsonSync(SHELL_CONFIG, shellConfig);
-};
+function saveSync() {
+    fs.writeJsonSync(CONFIG_PATH, config);
+}
 
-module.exports = shellConfig;
+module.exports = {
+    get: function (key) { return _.deepGet(config, key); },
+    set: function (key, value) { return _.deepSet(config, key, value); },
+    save: save,
+    saveSync: saveSync
+};

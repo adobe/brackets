@@ -3,17 +3,16 @@
 "use strict";
 
 var _ = require("lodash");
-var path = require("path");
 var utils = require("../utils");
 
 var remote = require("remote");
 var electronApp = remote.require("app");
 var Menu = remote.require("menu");
+var shellState = remote.require("./shell-state");
 
 var menuTemplate = [];
 
-var SOCKET_PORT = 8123; // this is hardcoded in brackets-shell
-var REMOTE_DEBUGGING_PORT = 9234; // this is hardcoded in brackets-shell
+var REMOTE_DEBUGGING_PORT = 9234; // TODO: this is hardcoded in brackets-shell
 
 var app = module.exports = {
     ERR_CL_TOOLS_CANCELLED: 12,
@@ -196,7 +195,9 @@ app.getMenuTitle = function (commandId, callback) {
 };
 
 app.getNodeState = function (callback) {
-    callback(null, SOCKET_PORT);
+    var errorCode = app[shellState.get("socketServer.state")];
+    var port = shellState.get("socketServer.port");
+    callback(errorCode, port);
 };
 
 app.getPendingFilesToOpen = function (callback) {
