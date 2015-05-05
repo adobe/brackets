@@ -485,7 +485,8 @@ define(function (require, exports, module) {
      * @param {function(string)=} callback
      */
     function unlink(path, callback) {
-        appshell.fs.unlink(path, function (err) {
+        // WARN: unlink is actually not supposed to work for directories
+        appshell.fs.delete(path, function (err) {
             callback(_mapError(err));
         });
     }
