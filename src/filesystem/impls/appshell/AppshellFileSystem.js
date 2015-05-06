@@ -29,8 +29,7 @@ define(function (require, exports, module) {
     
     var FileUtils           = require("file/FileUtils"),
         FileSystemStats     = require("filesystem/FileSystemStats"),
-        FileSystemError     = require("filesystem/FileSystemError"),
-        NodeDomain          = require("utils/NodeDomain");
+        FileSystemError     = require("filesystem/FileSystemError");
     
     /**
      * @const
@@ -58,23 +57,7 @@ define(function (require, exports, module) {
      * @type {!Object.<string, boolean>}
      */
     var _pendingChanges = {};
-    
-    var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
-        _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
-        _nodePath       = "node/FileWatcherDomain",
-        _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
-        _nodeDomain     = new NodeDomain("fileWatcher", _domainPath);
-    
-    var _isRunningOnWindowsXP = window.navigator.userAgent.indexOf("Windows NT 5.") >= 0;
-    
-    
-    // If the connection closes, notify the FileSystem that watchers have gone offline.
-    _nodeDomain.connection.on("close", function (event, promise) {
-        if (_offlineCallback) {
-            _offlineCallback();
-        }
-    });
-    
+
     /**
      * Enqueue a file change event for eventual reporting back to the FileSystem.
      * 
@@ -137,8 +120,59 @@ define(function (require, exports, module) {
         }
     }
 
-    // Setup the change handler. This only needs to happen once.
-    _nodeDomain.on("change", _fileWatcherChange);
+    var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath();
+    var _modulePath     = FileUtils.getNativeModuleDirectoryPath(module);
+    var childProcess = window.electron.node.require("child_process");
+    var workerPath = [_bracketsPath, _modulePath, "node/FileWatcherWorker.js"].join("/");
+    var worker = childProcess.fork(workerPath);
+    var workerCounter = 0;
+    var workerCallbacks = {};
+    var workerSend = function (msg, data, callback) {
+        if (callback) {
+            var id = workerCounter++;
+            workerCallbacks[id] = callback;
+            msg = msg + "!" + id;
+        }
+        worker.send({msg: msg, data: data});
+    };
+
+    // If the connection closes, notify the FileSystem that watchers have gone offline.
+    worker.on("disconnect", function () {
+	   if (_offlineCallback) { _offlineCallback(); }
+	});
+    // Setup the message handler. This only needs to happen once.
+    worker.on("message", function (obj) {
+        var callbackId;
+        var msg = obj.msg;
+        var data = obj.data;
+
+        if (msg.indexOf("!") !== -1) {
+            var spl = msg.split("!");
+            msg = spl[0];
+            callbackId = parseInt(spl[1], 10);
+        }
+
+        if (msg === "log") {
+            console.log(data);
+        } else if (msg === "callback") {
+            workerCallbacks[callbackId].apply(null, data);
+        } else if (msg === "change") {
+            _fileWatcherChange(data.evt, data.path, data.event, data.filename);
+        } else {
+            console.error("AppshellFileSystem got unsupported message: " + msg);
+        }
+	});
+
+    // TODO: remove
+    worker.on("error", function (result) {
+	  console.log("error " + result);
+	});
+    worker.on("exit", function (result) {
+	  console.log("exit " + result);
+	});
+    worker.on("close", function (result) {
+	  console.log("close " + result);
+	});
 
     /**
      * Convert appshell error codes to FileSystemError values.
@@ -517,10 +551,6 @@ define(function (require, exports, module) {
     function initWatchers(changeCallback, offlineCallback) {
         _changeCallback = changeCallback;
         _offlineCallback = offlineCallback;
-        
-        if (_isRunningOnWindowsXP && _offlineCallback) {
-            _offlineCallback();
-        }
     }
     
     /**
@@ -535,10 +565,6 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function watchPath(path, callback) {
-        if (_isRunningOnWindowsXP) {
-            callback(FileSystemError.NOT_SUPPORTED);
-            return;
-        }
         appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
             if (err || isNetworkDrive) {
                 if (isNetworkDrive) {
@@ -548,8 +574,7 @@ define(function (require, exports, module) {
                 }
                 return;
             }
-            _nodeDomain.exec("watchPath", path)
-                .then(callback, callback);
+            workerSend("watchPath", path, callback);
         });
     }
     /**
@@ -561,8 +586,7 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchPath(path, callback) {
-        _nodeDomain.exec("unwatchPath", path)
-            .then(callback, callback);
+        workerSend("unwatchPath", path, callback);
     }
     
     /**
@@ -573,8 +597,7 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchAll(callback) {
-        _nodeDomain.exec("unwatchAll")
-            .then(callback, callback);
+        workerSend("unwatchAll", null, callback);
     }
 
     
