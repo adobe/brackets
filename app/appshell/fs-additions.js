@@ -80,6 +80,20 @@ fsAdditions.readTextFile = function (filename, encoding, callback) {
     });
 };
 
+fsAdditions.rename = function (oldPath, newPath, callback) {
+    fs.stat(newPath, function (err, stats) {
+        if (err && err.code === "ENOENT") {
+            return fs.rename(oldPath, newPath, callback);
+        }
+        if (err) {
+            return callback(err);
+        }
+        err = new Error("EEXIST: file already exists: " + newPath);
+        err.code = "EEXIST";
+        callback(err);
+    });
+};
+
 fsAdditions.showOpenDialog = function (allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
     var properties = [];
     if (chooseDirectory) {

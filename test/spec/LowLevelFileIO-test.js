@@ -325,7 +325,7 @@ define(function (require, exports, module) {
             
                 runs(function () {
                     expect(cb.error.name).toBe("Error");
-                    expect(cb.error.message).toBe("ECHARSET: file is a binary file");
+                    expect(cb.error.message).toContain("ECHARSET: file is a binary file");
                     expect(cb.error.code).toBe("ECHARSET");
                 });
             });
