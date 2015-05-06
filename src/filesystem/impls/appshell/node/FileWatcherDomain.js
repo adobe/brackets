@@ -28,7 +28,6 @@
 
 var fspath = require("path"),
     fs = require("fs"),
-    os = require("os"),
     fsevents;
 
 /*
@@ -57,13 +56,12 @@ var fspath = require("path"),
  * changing a couple of definitions in the .gyp file used to build fsevents.
  */
 if (process.platform === "darwin") {
+    // TODO: build this automatically for electron
     fsevents = require("fsevents");
 } else if (process.platform === "win32") {
-    var version = os.release();
-    // XP will use node's built in file watcher module.
-    if (version && version.length > 0 && version[0] !== "5") {
-        fsevents = require("fsevents_win/fsevents_win");
-    }
+    // https://github.com/adobe/brackets/wiki/Working-with-fsevents_win.node
+    // TODO: build this automatically for electron
+    fsevents = require("fsevents_win/fsevents_win");
 }
 
 var _domainManager,
