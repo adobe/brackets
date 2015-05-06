@@ -276,7 +276,7 @@ define(function (require, exports, module) {
                 });
             });
         
-            it("should return an error if trying to use an unsppported encoding", function () {
+            it("should return an error if trying to use an unsuppported encoding", function () {
                 var cb = readFileSpy();
                 var error;
                 try {
@@ -284,8 +284,8 @@ define(function (require, exports, module) {
                 } catch (e) {
                     error = e;
                 }
-                expect(error.name).toBe("Error");
-                expect(error.message).toContain("Unknown encoding");
+                expect(error.name).toBe("TypeError");
+                expect(error.message).toContain("encoding is not supported");
             });
         
             it("should return an error if called with invalid parameters", function () {
@@ -297,7 +297,7 @@ define(function (require, exports, module) {
                     error = e;
                 }
                 expect(error.name).toBe("TypeError");
-                expect(error.message).toContain("path must be a string");
+                expect(error.message).toContain("must be a string");
             });
         
             it("should return an error if trying to read a directory", function () {
@@ -708,7 +708,7 @@ define(function (require, exports, module) {
                 
                 // Delete the directory
                 runs(function () {
-                    brackets.fs.moveToTrash(newDirName, trashCB);
+                    brackets.fs.delete(newDirName, trashCB);
                 });
                 
                 waitsFor(function () { return trashCB.wasCalled; }, "moveToTrash to finish");

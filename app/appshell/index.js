@@ -19,6 +19,9 @@ var fsAdditions = {
     isBinaryFileSync: function (filename) {
         return isbinaryfile(filename);
     },
+    isEncodingSupported: function (encoding) {
+        return ["ascii", "utf-8", "utf8"].indexOf(encoding.toLowerCase()) !== -1;
+    },
     isNetworkDrive: function (path, callback) {
         // TODO: implement
         process.nextTick(function () {
@@ -30,6 +33,15 @@ var fsAdditions = {
         trash(Array.isArray(path) ? path : [path], callback);
     },
     readTextFile: function (filename, encoding, callback) {
+        if (typeof encoding === "function") {
+            callback = encoding;
+            encoding = "utf-8";
+        }
+        if (typeof encoding !== "string") {
+            throw new TypeError("encoding must be a string");
+        } else if (!fsAdditions.isEncodingSupported(encoding)) {
+            throw new TypeError("encoding is not supported: " + encoding);
+        }
         isbinaryfile(filename, function(err, isBinary) {
             if (err) {
                 return callback(err);
@@ -45,7 +57,7 @@ var fsAdditions = {
                 }
                 if (buffer.length) {
                     var chardet = jschardet.detect(buffer);
-                    if (["ascii", "utf-8"].indexOf(chardet.encoding.toLowerCase()) === -1) {
+                    if (!fsAdditions.isEncodingSupported(chardet.encoding)) {
                         err = new Error("ECHARSET: unsupported encoding: " + chardet.encoding);
                         err.code = "ECHARSET";
                         return callback(err);
