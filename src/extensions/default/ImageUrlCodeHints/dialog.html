@@ -1,0 +1,17 @@
+<div class="template modal">
+    <div class="modal-header">
+        <h1 class="dialog-title" id="dialog-title">Take a Selfie</h1>
+    </div>
+    <div class="modal-body">
+        <div id="selfie-container" class="dialog-message">
+        <p id="selfie-allow-access">
+            Please allow us to use your camera by clicking the Allow button at the top.
+        </p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        {{#buttons}}
+        <button class="dialog-button btn {{className}}" data-button-id="{{id}}">{{{text}}}</button>
+        {{/buttons}}
+    </div>
+</div>
