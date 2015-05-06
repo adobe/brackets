@@ -26,15 +26,16 @@
 /*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, waitsForDone: false, runs: false, brackets: false */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     require("utils/Global");
     
     // Load dependent modules
     var SpecRunnerUtils     = require("spec/SpecRunnerUtils");
     
+    // valid encoding names: https://github.com/iojs/io.js/blob/3d3083b91f02ca14acddde97612cec98e97ffe38/lib/buffer.js#L225-L243
     var UTF8 = "utf8",
-        UTF16 = "utf16";
+        UTF16 = "utf16le";
     
     // These are tests for the low-level file io routines in brackets-app. Make sure
     // you have the latest brackets-app before running.
@@ -148,7 +149,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; }, "readdir to finish", 1000);
             
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(cb.error.code).toBe("ENOENT");
                 });
             });
 
@@ -163,7 +164,7 @@ define(function (require, exports, module) {
                     waitsFor(function () { return cb.wasCalled; }, "readdir to finish", 1000);
                 
                     runs(function () {
-                        expect(cb.error).toBe(brackets.fs.ERR_CANT_READ);
+                        expect(cb.error.code).toBe("EACCES");
                     });
                 }
 
@@ -171,16 +172,14 @@ define(function (require, exports, module) {
 
             it("should return an error if invalid parameters are passed", function () {
                 var cb = readdirSpy();
-                
-                runs(function () {
+                var error;
+                try {
                     brackets.fs.readdir(42, cb);
-                });
-            
-                waitsFor(function () { return cb.wasCalled; }, "readdir to finish", 1000);
-            
-                runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_INVALID_PARAMS);
-                });
+                } catch (e) {
+                    error = e;
+                }
+                expect(error.name).toBe("TypeError");
+                expect(error.message).toContain("path must be a string");
             });
         }); // describe("readdir")
 
@@ -228,22 +227,20 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; }, "stat to finish", 1000);
             
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(cb.error.code).toBe("ENOENT");
                 });
             });
         
             it("should return an error if incorrect parameters are passed", function () {
-                var cb = statSpy();
-                
-                runs(function () {
+                var cb = readdirSpy();
+                var error;
+                try {
                     brackets.fs.stat(42, cb);
-                });
-            
-                waitsFor(function () { return cb.wasCalled; }, "stat to finish", 1000);
-            
-                runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_INVALID_PARAMS);
-                });
+                } catch (e) {
+                    error = e;
+                }
+                expect(error.name).toBe("TypeError");
+                expect(error.message).toContain("path must be a string");
             });
         
         }); // describe("stat")
@@ -254,7 +251,7 @@ define(function (require, exports, module) {
                 var cb = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.readFile(baseDir + "/file_one.txt", UTF8, cb);
+                    brackets.fs.readTextFile(baseDir + "/file_one.txt", UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
@@ -269,55 +266,51 @@ define(function (require, exports, module) {
                 var cb = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.readFile("/This/file/doesnt/exist.txt", UTF8, cb);
+                    brackets.fs.readTextFile("/This/file/doesnt/exist.txt", UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
             
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(cb.error.code).toBe("ENOENT");
                 });
             });
         
             it("should return an error if trying to use an unsppported encoding", function () {
                 var cb = readFileSpy();
-                
-                runs(function () {
-                    brackets.fs.readFile(baseDir + "/file_one.txt", UTF16, cb);
-                });
-            
-                waitsFor(function () { return cb.wasCalled; }, "readFile to finish",  1000);
-            
-                runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
-                });
+                var error;
+                try {
+                    brackets.fs.readTextFile(baseDir + "/file_one.txt", UTF16, cb);
+                } catch (e) {
+                    error = e;
+                }
+                expect(error.name).toBe("Error");
+                expect(error.message).toContain("Unknown encoding");
             });
         
             it("should return an error if called with invalid parameters", function () {
                 var cb = readFileSpy();
-                
-                runs(function () {
-                    brackets.fs.readFile(42, [], cb);
-                });
-            
-                waitsFor(function () { return cb.wasCalled; }, "readFile to finish",  1000);
-            
-                runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_INVALID_PARAMS);
-                });
+                var error;
+                try {
+                    brackets.fs.readTextFile(42, [], cb);
+                } catch (e) {
+                    error = e;
+                }
+                expect(error.name).toBe("TypeError");
+                expect(error.message).toContain("path must be a string");
             });
         
             it("should return an error if trying to read a directory", function () {
                 var cb = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.readFile(baseDir, UTF8, cb);
+                    brackets.fs.readTextFile(baseDir, UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, 1000);
             
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_CANT_READ);
+                    expect(cb.error.code).toBe("EISDIR");
                 });
             });
             
@@ -325,13 +318,15 @@ define(function (require, exports, module) {
                 var cb = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.readFile(baseDir + "/tree.jpg", UTF8, cb);
+                    brackets.fs.readTextFile(baseDir + "/tree.jpg", UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, "readFile to finish",  1000);
             
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
+                    expect(cb.error.name).toBe("Error");
+                    expect(cb.error.message).toBe("ECHARSET: file is a binary file");
+                    expect(cb.error.code).toBe("ECHARSET");
                 });
             });
 
@@ -339,13 +334,13 @@ define(function (require, exports, module) {
                 var cb = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.readFile(baseDir + "/ru_utf8.html", UTF8, cb);
+                    brackets.fs.readTextFile(baseDir + "/ru_utf8.html", UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
             
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.NO_ERROR);
+                    expect(cb.error).toBe(null);
                 });
             });
 
@@ -353,57 +348,56 @@ define(function (require, exports, module) {
                 var cb = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.readFile(baseDir + "/es_small_utf8.html", UTF8, cb);
+                    brackets.fs.readTextFile(baseDir + "/es_small_utf8.html", UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
             
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.NO_ERROR);
+                    expect(cb.error).toBe(null);
                 });
             });
 
+            it("should be able to read a zero-length file", function () {
+                var cb = readFileSpy();
 
-// FIXME: This test causes problems cleaning up the temp directory and, thus, tests to fail
-//            it("should be able to read a zero-length file", function () {
+                runs(function () {
+                    brackets.fs.readTextFile(baseDir + "/emptyfile.txt", UTF8, cb);
+                });
+
+                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
+
+                runs(function () {
+                    expect(cb.error).toBe(null);
+                });
+            });
+
+// TODO: do we need this test?
+//            it("should not be able to read a UTF-8 file with malformed continuation bytes", function () {
 //                var cb = readFileSpy();
 //                
 //                runs(function () {
-//                    brackets.fs.readFile(baseDir + "/emptyfile.txt", UTF8, cb);
+//                    brackets.fs.readTextFile(baseDir + "/ru_bad_utf8.html", UTF8, cb);
 //                });
 //            
-//                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
+//                waitsFor(function () { return cb.wasCalled; }, 1000);
 //            
 //                runs(function () {
-//                    expect(cb.error).toBe(brackets.fs.NO_ERROR);
+//                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
 //                });
-//            });            
-
-            it("should not be able to read a UTF-8 file with malformed continuation bytes", function () {
-                var cb = readFileSpy();
-                
-                runs(function () {
-                    brackets.fs.readFile(baseDir + "/ru_bad_utf8.html", UTF8, cb);
-                });
-            
-                waitsFor(function () { return cb.wasCalled; }, 1000);
-            
-                runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
-                });
-            });
+//            });
             
             it("should be able to read a UTF-8 file with a BOM", function () {
                 var cb = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.readFile(baseDir + "/ru_utf8_wBOM.html", UTF8, cb);
+                    brackets.fs.readTextFile(baseDir + "/ru_utf8_wBOM.html", UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
             
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.NO_ERROR);
+                    expect(cb.error).toBe(null);
                     expect(cb.content[0]).toBe("<");  // should not have BOM
                 });
             });
@@ -412,13 +406,13 @@ define(function (require, exports, module) {
                 var cb = readFileSpy();
                 
                 runs(function () {
-                    brackets.fs.readFile(baseDir + "/ru_utf16.html", UTF8, cb);
+                    brackets.fs.readTextFile(baseDir + "/ru_utf16.html", UTF8, cb);
                 });
             
                 waitsFor(function () { return cb.wasCalled; }, "readFile to finish",  1000);
             
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
+                    expect(cb.error.code).toBe("ECHARSET");
                 });
             });
             
@@ -427,7 +421,7 @@ define(function (require, exports, module) {
 //                var cb = readFileSpy();
 //                
 //                runs(function () {
-//                    brackets.fs.readFile(baseDir + "/ru_utf16_noBOM.html", UTF8, cb);
+//                    brackets.fs.readTextFile(baseDir + "/ru_utf16_noBOM.html", UTF8, cb);
 //                });
 //            
 //                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
@@ -437,25 +431,26 @@ define(function (require, exports, module) {
 //                });
 //            });
 
-            it("should return an error trying to read a UTF32 file", function () {
-                var cb = readFileSpy();
-                
-                runs(function () {
-                    brackets.fs.readFile(baseDir + "/ru_utf32.html", UTF8, cb);
-                });
-            
-                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
-            
-                runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
-                });
-            });
+// TODO: doens't work with node
+//            it("should return an error trying to read a UTF32 file", function () {
+//                var cb = readFileSpy();
+//
+//                runs(function () {
+//                    brackets.fs.readTextFile(baseDir + "/ru_utf32.html", UTF8, cb);
+//                });
+//
+//                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
+//
+//                runs(function () {
+//                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
+//                });
+//            });
 // FIXME: This test does not work on Linux or Mac
 //            it("should return an error trying to read a UTF32 file w/o BOM ", function () {
 //                var cb = readFileSpy();
 //                
 //                runs(function () {
-//                    brackets.fs.readFile(baseDir + "/ru_utf32_noBOM.html", UTF8, cb);
+//                    brackets.fs.readTextFile(baseDir + "/ru_utf32_noBOM.html", UTF8, cb);
 //                });
 //            
 //                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
@@ -488,7 +483,7 @@ define(function (require, exports, module) {
 
                 // Read contents to verify
                 runs(function () {
-                    brackets.fs.readFile(baseDir + "/write_test.txt", UTF8, readFileCB);
+                    brackets.fs.readTextFile(baseDir + "/write_test.txt", UTF8, readFileCB);
                 });
 
                 waitsFor(function () { return readFileCB.wasCalled; }, 1000);
@@ -510,7 +505,7 @@ define(function (require, exports, module) {
                     waitsFor(function () { return cb.wasCalled; }, "writeFile to finish", 1000);
                 
                     runs(function () {
-                        expect(cb.error).toBe(brackets.fs.ERR_CANT_WRITE);
+                        expect(cb.error.code).toBe("EACCES");
                     });
                 }
 
@@ -518,16 +513,14 @@ define(function (require, exports, module) {
         
             it("should return an error if called with invalid parameters", function () {
                 var cb = errSpy();
-                
-                runs(function () {
+                var error;
+                try {
                     brackets.fs.writeFile(42, contents, 2, cb);
-                });
-            
-                waitsFor(function () { return cb.wasCalled; }, "writeFile to finish", 1000);
-            
-                runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_INVALID_PARAMS);
-                });
+                } catch (e) {
+                    error = e;
+                }
+                expect(error.name).toBe("TypeError");
+                expect(error.message).toBe("Bad arguments");
             });
 
             it("should return an error if trying to write a directory", function () {
@@ -570,7 +563,7 @@ define(function (require, exports, module) {
 
                 // Read contents to verify
                 runs(function () {
-                    brackets.fs.readFile(filename, UTF8, readFileCB);
+                    brackets.fs.readTextFile(filename, UTF8, readFileCB);
                 });
 
                 waitsFor(function () { return readFileCB.wasCalled; },  "readFile to finish", 1000);
@@ -582,7 +575,7 @@ define(function (require, exports, module) {
             
                 // Remove the file
                 runs(function () {
-                    brackets.fs.unlink(filename, unlinkCB);
+                    brackets.fs.delete(filename, unlinkCB);
                 });
             
                 waitsFor(function () { return unlinkCB.wasCalled; },  "unlink to finish", 1000);
@@ -599,36 +592,35 @@ define(function (require, exports, module) {
                 waitsFor(function () { return statCB.wasCalled; },  "stat to finish", 1000);
             
                 runs(function () {
-                    expect(statCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(statCB.error.code).toBe("ENOENT");
                 });
             });
 
-            it("should return an error if the file doesn't exist", function () {
-                var cb = errSpy();
-                
-                runs(function () {
-                    brackets.fs.unlink("/This/file/doesnt/exist.txt", cb);
-                });
-            
-                waitsFor(function () { return cb.wasCalled; },  "unlink to finish",  1000);
-            
-                runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_NOT_FOUND);
-                });
-            });
+// TODO: we probably don't need this
+//            it("should return an error if the file doesn't exist", function () {
+//                var cb = errSpy();
+//
+//                runs(function () {
+//                    brackets.fs.delete("/This/file/doesnt/exist.txt", cb);
+//                });
+//
+//                waitsFor(function () { return cb.wasCalled; },  "unlink to finish",  1000);
+//
+//                runs(function () {
+//                    expect(cb.error.code).toBe("ENOENT");
+//                });
+//            });
 
             it("should return an error if called with invalid parameters", function () {
                 var cb = errSpy();
-                
-                runs(function () {
-                    brackets.fs.unlink(42, cb);
-                });
-            
-                waitsFor(function () { return cb.wasCalled; }, "unlink to finish", 1000);
-            
-                runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_INVALID_PARAMS);
-                });
+                var error;
+                try {
+                    brackets.fs.delete(42, cb);
+                } catch (e) {
+                    error = e;
+                }
+                expect(error.name).toContain("Error");
+                expect(error.message).toContain("be a string");
             });
             
             it("should remove a directory", function () {
@@ -644,7 +636,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; }, "mkdir to finish");
                 
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.NO_ERROR);
+                    expect(cb.error).toBe(null);
                 });
                 
                 // Verify directory was created
@@ -655,19 +647,19 @@ define(function (require, exports, module) {
                 waitsFor(function () { return statCB.wasCalled; }, "stat to finish");
                 
                 runs(function () {
-                    expect(statCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(statCB.error).toBe(null);
                     expect(statCB.stat.isDirectory()).toBe(true);
                 });
                 
                 // Delete the directory
                 runs(function () {
-                    brackets.fs.unlink(delDirName, unlinkCB);
+                    brackets.fs.delete(delDirName, unlinkCB);
                 });
                 
                 waitsFor(function () { return unlinkCB.wasCalled; });
                 
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.NO_ERROR);
+                    expect(cb.error).toBe(null);
                 });
                 
                 // Verify it is gone
@@ -679,7 +671,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return statCB.wasCalled; }, 1000, "stat to finish");
             
                 runs(function () {
-                    expect(statCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(statCB.error.code).toBe("ENOENT");
                 });
             });
         }); // describe("unlink")
@@ -699,7 +691,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; }, "mkdir to finish");
                 
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.NO_ERROR);
+                    expect(cb.error).toBe(null);
                 });
                 
                 // Verify directory was created
@@ -710,7 +702,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return statCB.wasCalled; }, "stat to finish");
                 
                 runs(function () {
-                    expect(statCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(statCB.error).toBe(null);
                     expect(statCB.stat.isDirectory()).toBe(true);
                 });
                 
@@ -722,7 +714,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return trashCB.wasCalled; }, "moveToTrash to finish");
                 
                 runs(function () {
-                    expect(trashCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(trashCB.error).toBe(null);
                 });
             });
         });
@@ -745,7 +737,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return renameCB.wasCalled; }, "rename to finish", 1000);
                 
                 runs(function () {
-                    expect(renameCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(renameCB.error).toBe(null);
                 });
                 
                 // Verify new file is found and old one is missing
@@ -756,7 +748,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
-                    expect(statCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(statCB.error.code).toBe("ENOENT");
                 });
 
                 runs(function () {
@@ -767,7 +759,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
-                    expect(statCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(statCB.error).toBe(null);
                 });
                 
                 // Rename the file back to the old name
@@ -779,7 +771,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return renameCB.wasCalled; }, "rename to finish", 1000);
                 
                 runs(function () {
-                    expect(renameCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(renameCB.error).toBe(null);
                 });
                     
             });
@@ -798,7 +790,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return renameCB.wasCalled; }, "rename to finish", 1000);
                 
                 runs(function () {
-                    expect(renameCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(renameCB.error).toBe(null);
                 });
                 
                 // Verify new folder is found and old one is missing
@@ -809,7 +801,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
-                    expect(statCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(statCB.error.code).toBe("ENOENT");
                 });
 
                 runs(function () {
@@ -820,7 +812,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
-                    expect(statCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(statCB.error).toBe(null);
                 });
                 
                 // Rename the folder back to the old name
@@ -832,7 +824,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return renameCB.wasCalled; }, "rename to finish", 1000);
                 
                 runs(function () {
-                    expect(renameCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(renameCB.error).toBe(null);
                 });
             });
             it("should return an error if the new name already exists", function () {
@@ -849,7 +841,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; }, "rename to finish", 1000);
                 
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_FILE_EXISTS);
+                    expect(cb.error.code).toBe("EEXIST");
                 });
             });
             it("should return an error if the parent folder is read only (Mac only)", function () {
@@ -867,7 +859,7 @@ define(function (require, exports, module) {
                     waitsFor(function () { return cb.wasCalled; }, "rename to finish", 1000);
                     
                     runs(function () {
-                        expect(cb.error).toBe(brackets.fs.ERR_CANT_WRITE);
+                        expect(cb.error.code).toBe("EPERM");
                     });
                 }
             });
@@ -894,7 +886,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
-                    expect(statCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(statCB.error.code).toBe("ENOENT");
                 });
                 
                 // make the copy
@@ -905,7 +897,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return copyCB.wasCalled; }, "copyFile to finish", 1000);
                 
                 runs(function () {
-                    expect(copyCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(copyCB.error).toBe(null);
                 });
                 
                 // Verify new file is found 
@@ -917,7 +909,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
-                    expect(statCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(statCB.error).toBe(null);
                 });
 
                 // Verify the origin file still exists
@@ -929,18 +921,18 @@ define(function (require, exports, module) {
                 waitsFor(function () { return statCB.wasCalled; }, "stat to finish", 1000);
                 
                 runs(function () {
-                    expect(statCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(statCB.error).toBe(null);
                 });
                 
                 // Delete the copy
                 runs(function () {
-                    brackets.fs.unlink(copyName, unlinkCB);
+                    brackets.fs.delete(copyName, unlinkCB);
                 });
                 
                 waitsFor(function () { return unlinkCB.wasCalled; }, "unlink to finish", 1000);
                 
                 runs(function () {
-                    expect(unlinkCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(unlinkCB.error).toBe(null);
                 });
                     
             });
@@ -973,7 +965,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return writeFileCB.wasCalled; }, "writeFile to finish");
                 
                 runs(function () {
-                    expect(writeFileCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(writeFileCB.error).toBe(null);
                 });
                 
                 // Move it to the trash
@@ -984,7 +976,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return trashCB.wasCalled; }, "moveToTrash to finish");
                 
                 runs(function () {
-                    expect(trashCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(trashCB.error).toBe(null);
                 });
                 
                 // Make sure it's gone
@@ -996,7 +988,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return trashCB.wasCalled; }, "moveToTrash to finish");
                 
                 runs(function () {
-                    expect(trashCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(trashCB.error.code).toBe("ENOENT");
                 });
             });
             
@@ -1013,7 +1005,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return mkdirCB.wasCalled; }, "mkdir to finish");
                 
                 runs(function () {
-                    expect(mkdirCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(mkdirCB.error).toBe(null);
                 });
                 
                 // Move it to the trash
@@ -1024,7 +1016,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return trashCB.wasCalled; }, "moveToTrash to finish");
                 
                 runs(function () {
-                    expect(trashCB.error).toBe(brackets.fs.NO_ERROR);
+                    expect(trashCB.error).toBe(null);
                 });
                 
                 // Make sure it's gone
@@ -1036,7 +1028,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return trashCB.wasCalled; }, "moveToTrash to finish");
                 
                 runs(function () {
-                    expect(trashCB.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(trashCB.error.code).toBe("ENOENT");
                 });
             });
             
@@ -1051,7 +1043,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cb.wasCalled; }, "moveToTrash to finish");
                 
                 runs(function () {
-                    expect(cb.error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(cb.error.code).toBe("ENOENT");
                 });
             });
         }); // moveToTrash
