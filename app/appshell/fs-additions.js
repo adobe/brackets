@@ -58,7 +58,7 @@ fsAdditions.readTextFile = function (filename, encoding, callback) {
             return callback(err);
         }
         if (isBinary) {
-            err = new Error("ECHARSET: file is a binary file");
+            err = new Error("ECHARSET: file is a binary file: " + filename);
             err.code = "ECHARSET";
             return callback(err);
         }
@@ -69,7 +69,8 @@ fsAdditions.readTextFile = function (filename, encoding, callback) {
             if (buffer.length) {
                 var chardet = jschardet.detect(buffer);
                 if (!fsAdditions.isEncodingSupported(chardet.encoding)) {
-                    err = new Error("ECHARSET: unsupported encoding: " + chardet.encoding);
+                    err = new Error("ECHARSET: unsupported encoding " + chardet.encoding +
+                                    " in file: " + filename);
                     err.code = "ECHARSET";
                     return callback(err);
                 }
