@@ -415,11 +415,11 @@ define(function (require, exports, module) {
             var node = e.target, url;
             while (node) {
                 if (node.tagName === "A") {
+                    e.preventDefault();
                     url = node.getAttribute("href");
                     if (url && !url.match(/^#/)) {
                         NativeApp.openURLInDefaultBrowser(url);
                     }
-                    e.preventDefault();
                     break;
                 }
                 node = node.parentElement;
