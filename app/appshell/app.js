@@ -8,6 +8,7 @@ var utils = require("../utils");
 var remote = require("remote");
 var electronApp = remote.require("app");
 var Menu = remote.require("menu");
+var shell = remote.require("shell");
 var shellState = remote.require("./shell-state");
 
 var menuTemplate = [];
@@ -230,8 +231,8 @@ app.openLiveBrowser = function (url, enableRemoteDebugging, callback) {
 };
 
 app.openURLInDefaultBrowser = function (url, callback) {
-    // TODO: implement
-    callback(new Error("app.openURLInDefaultBrowser not implemented" + url));
+    shell.openExternal(url);
+    callback(app.NO_ERROR);
 };
 
 app.quit = function () {
