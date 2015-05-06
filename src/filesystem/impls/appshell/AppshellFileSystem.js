@@ -161,18 +161,13 @@ define(function (require, exports, module) {
                 return FileSystemError.NOT_FOUND;
             case "ENOSPC":
                 return FileSystemError.OUT_OF_SPACE;
+            case "ECHARSET":
+                return FileSystemError.UNSUPPORTED_ENCODING;
+            case "EISDIR":
             case "EPERM":
             case "EACCES":
             case "EROFS":
                 return FileSystemError.PERM_DENIED;
-        }
-
-        // TODO:
-        switch (err) {
-        case appshell.fs.ERR_INVALID_PARAMS:
-            return FileSystemError.INVALID_PARAMS;
-        case appshell.fs.ERR_UNSUPPORTED_ENCODING:
-            return FileSystemError.UNSUPPORTED_ENCODING;
         }
 
         console.warn("got error from fs, but no FileSystemError mapping was found: " + err);
@@ -387,7 +382,7 @@ define(function (require, exports, module) {
             if (stat.size > (FileUtils.MAX_FILE_SIZE)) {
                 callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
             } else {
-                appshell.fs.readFile(path, encoding, function (_err, _data) {
+                appshell.fs.readTextFile(path, encoding, function (_err, _data) {
                     if (_err) {
                         callback(_mapError(_err));
                     } else {
@@ -457,7 +452,7 @@ define(function (require, exports, module) {
                 console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
 
                 if (options.hasOwnProperty("expectedContents")) {
-                    appshell.fs.readFile(path, encoding, function (_err, _data) {
+                    appshell.fs.readTextFile(path, encoding, function (_err, _data) {
                         if (_err || _data !== options.expectedContents) {
                             callback(FileSystemError.CONTENTS_MODIFIED);
                             return;
