@@ -5,6 +5,8 @@
 var _ = require("lodash");
 var fs = require("fs-extra");
 var isbinaryfile = require("isbinaryfile");
+var jschardet = require("jschardet");
+var stripBom = require("strip-bom");
 var trash = require("trash");
 var utils = require("../utils");
 var remote = require("remote");
@@ -37,17 +39,40 @@ var fsAdditions = {
                 err.code = "ECHARSET";
                 return callback(err);
             }
-            fs.readFile(filename, encoding, callback);
+            fs.readFile(filename, function (err, buffer) {
+                if (err) {
+                    return callback(err);
+                }
+                if (buffer.length) {
+                    var chardet = jschardet.detect(buffer);
+                    if (["ascii", "utf-8"].indexOf(chardet.encoding.toLowerCase()) === -1) {
+                        err = new Error("ECHARSET: unsupported encoding: " + chardet.encoding);
+                        err.code = "ECHARSET";
+                        return callback(err);
+                    }
+                }
+                callback(null, stripBom(buffer.toString(encoding)));
+            });
         });
     },
     readTextFileSync: function (filename, encoding) {
+        var err;
         var isBinary = isbinaryfile(filename);
         if (isBinary) {
-            var err = new Error("ECHARSET: file is a binary file");
+            err = new Error("ECHARSET: file is a binary file");
             err.code = "ECHARSET";
             throw err;
         }
-        return fs.readFileSync(filename, encoding);
+        var buffer = fs.readFileSync(filename);
+        if (buffer.length) {
+            var chardet = jschardet.detect(buffer);
+            if (["ascii", "utf-8"].indexOf(chardet.encoding.toLowerCase()) === -1) {
+                err = new Error("ECHARSET: unsupported encoding: " + chardet.encoding);
+                err.code = "ECHARSET";
+                throw err;
+            }
+        }
+        return stripBom(buffer.toString(encoding));
     },
     showOpenDialog: function (allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
         var properties = [];
