@@ -156,6 +156,7 @@ define(function (require, exports, module) {
             console.log(data);
         } else if (msg === "callback") {
             workerCallbacks[callbackId].apply(null, data);
+            workerCallbacks[callbackId] = null;
         } else if (msg === "change") {
             _fileWatcherChange(data.evt, data.path, data.event, data.filename);
         } else {
