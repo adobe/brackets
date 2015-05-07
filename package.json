@@ -15,7 +15,6 @@
     },
     "dependencies": {
         "bluebird": "2.9.25",
-        "fsevents": "0.3.6",
         "fs-extra": "0.18.2",
         "isbinaryfile": "2.0.4",
         "jschardet": "1.1.1",
@@ -26,6 +25,10 @@
         "trash": "1.4.1",
         "watch": "0.16.0",
         "ws": "https://github.com/websockets/ws.git"
+    },
+    "optionalDependencies": {
+        "fsevents": "0.3.6",
+        "pathwatcher": "4.4.0"
     },
     "devDependencies": {
         "electron-prebuilt": "0.25.2",

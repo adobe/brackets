@@ -61,6 +61,16 @@ function unwatchPath(path, callback) {
     callback(null, true);
 }
 
+function splitFilename(filename) {
+    if (!filename) {
+        return [];
+    }
+    if (process.platform === "win32") {
+        filename = filename.replace(/\\/g, "/");
+    }
+    return [fspath.dirname(filename) + "/", fspath.basename(filename)];
+}
+
 /**
  * Watch a file or directory.
  * @param {string} path File or directory to watch.
@@ -76,9 +86,8 @@ function watchPath(path, callback) {
         if (fsevents) {
             watcher = fsevents(path);
             watcher.on("change", function (filename, info) {
-                var parent = filename && (fspath.dirname(filename) + "/"),
-                    name = filename && fspath.basename(filename),
-                    type;
+                var s = splitFilename(filename);
+                var type;
 
                 switch (info.event) {
                 case "modified":    // triggered by file content changes
@@ -89,7 +98,7 @@ function watchPath(path, callback) {
                     type = "renamed";
                 }
 
-                send("change", [type, parent, name]);
+                send("change", [type, s[0], s[1]]);
             });
             watcher.on("error", function (err) {
                 console.error("Error watching file " + path + ": " + (err && err.message));
@@ -110,19 +119,16 @@ function watchPath(path, callback) {
             // monitor.files['/home/mikeal/.zshrc'] // Stat object for my zshrc.
             // monitor.stop(); // Stop watching
             monitor.on("created", function (filename, stat) {
-                var parent = filename && (fspath.dirname(filename) + "/"),
-                    name = filename && fspath.basename(filename);
-                send("change", ["created", parent, name]);
+                var s = splitFilename(filename);
+                send("change", ["created", s[0], s[1]]);
             });
             monitor.on("changed", function (filename, curr, prev) {
-                var parent = filename && (fspath.dirname(filename) + "/"),
-                    name = filename && fspath.basename(filename);
-                send("change", ["changed", parent, name]);
+                var s = splitFilename(filename);
+                send("change", ["changed", s[0], s[1]]);
             });
             monitor.on("removed", function (filename, stat) {
-                var parent = filename && (fspath.dirname(filename) + "/"),
-                    name = filename && fspath.basename(filename);
-                send("change", ["removed", parent, name]);
+                var s = splitFilename(filename);
+                send("change", ["removed", s[0], s[1]]);
             });
             _watcherMap[path] = monitor;
             callback(null, true);
