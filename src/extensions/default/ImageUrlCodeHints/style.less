@@ -1,14 +1,34 @@
-#selfie-use, #selfie-canvas {
+#selfie-canvas, #selfie-use {
     display: none;
 }
 
+#selfie-video {
+  width: 320px;
+  height: 240px;
+  background-color: black !important;
+}
 
+#selfie-widget {
+  min-width: 580px;
+  overflow: hidden;
+}
+
+.emphasis {
+  font-weight: bold;
+}
+
+.modal-body {
+  max-height: 290px;
+  overflow-y: hidden;
+}
+
+/* Button to take photos with */
 #selfie-snap {
 	width: 10%;
-	height:0;
+	height: 0;
 	padding-bottom: 10%;
   border-radius: 50%;
-	border:5px solid #ea0000;
+	border: 5px solid #ea0000;
   overflow:hidden;
   margin: 0 auto;
     
@@ -33,30 +53,32 @@
     height: auto;
 }
 
-#selfie-liveView {
-  display:inline-block;
-  float:left;
-}
-
-#selfie-gallery {
-  display:inline-block;
-  float:left;
-  margin-left:10px;
-}
-
 #icon {
-	background-image: url("./glyphicons-12-camera.png");
-	background-repeat: no-repeat;
-	width:26px;
-	height:20px;
-	margin-left: 3px;
-	margin-top: 5px;
+  background-image: url("./glyphicons-12-camera.png");
+  background-repeat: no-repeat;
+  width: 26px;
+  height: 20px;
+  margin-left: 3px;
+  margin-top: 5px;
+}
+
+/* Container for the camera */
+#selfie-liveView {
+  display: inline-block;
+  float: left;
+}
+
+/* Right-hand polaroid view */ 
+#selfie-gallery {
+  display: inline-block;
+  float: left;
+  margin-left: 10px;
 }
 
 .polaroid {
   position: relative;
-  width: 220px;
-  display:inline-block;
+  display: inline-block;
+  width: 224px;
 }
  
 .polaroid img {
@@ -65,13 +87,22 @@
   -webkit-box-shadow: 3px 3px 3px #777;
      -moz-box-shadow: 3px 3px 3px #777;
           box-shadow: 3px 3px 3px #777;
+    width: 224px;
+    height: 168px;
+    display: inline-block;
+    background-image: url("./selfiePreview.png");
 }
- 
-.polaroid p {
+
+/* Shutter */
+
+#selfie-video-bg {
+  width: 320px;
+  height: 240px;
+  background: white;
   position: absolute;
-  text-align: center;
-  width: 100%;
-  bottom: 0px;
-  font: 400 18px/1 'Kaushan Script', cursive;
-  color: #888;
+  opacity: 0;
+}
+
+#selfie-video-bg.on {
+  opacity: 1;
 }

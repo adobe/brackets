@@ -317,8 +317,8 @@ define(function (require, exports, module) {
             return false;
         }
 
-        // We're only interested in the background property
-        if (this.info.name !== "background") {
+        // We're only interested in these properties
+        if (this.info.name !== "background" && this.info.name !== "background-image" && this.info.name !== "list-style-image") {
             return false;
         }
 

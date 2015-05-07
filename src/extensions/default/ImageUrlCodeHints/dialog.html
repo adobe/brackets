@@ -5,13 +5,14 @@
     <div class="modal-body">
         <div id="selfie-container" class="dialog-message">
         <p id="selfie-allow-access">
-            Please allow us to use your camera by clicking the Allow button at the top.
+            Thimble needs you to <span class="emphasis">Allow</span> permission to your camera (at the top of your browser).  <br />
+            Photos won't be shared unless you publish this project.
         </p>
         </div>
     </div>
     <div class="modal-footer">
         {{#buttons}}
-        <button class="dialog-button btn {{className}}" data-button-id="{{id}}">{{{text}}}</button>
+        <button class="dialog-button btn {{className}}" data-button-id="{{dataId}}" id="{{id}}">{{{text}}}</button>
         {{/buttons}}
     </div>
 </div>
