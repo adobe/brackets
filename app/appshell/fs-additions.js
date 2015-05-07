@@ -85,6 +85,15 @@ fsAdditions.readTextFile = function (filename, encoding, callback) {
     });
 };
 
+fsAdditions.remove = function (path, callback) {
+    fs.stat(path, function (err, stats) {
+        if (err) {
+            return callback(err);
+        }
+        fs.remove(path, callback);
+    });
+};
+
 fsAdditions.rename = function (oldPath, newPath, callback) {
     fs.stat(newPath, function (err, stats) {
         if (err && err.code === "ENOENT") {

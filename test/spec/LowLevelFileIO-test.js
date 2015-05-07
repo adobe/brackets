@@ -429,7 +429,7 @@ define(function (require, exports, module) {
                 });
             });
 
-// TODO: doens't work with node
+// FIXME: How to detect UTF32 ?
 //            it("should return an error trying to read a UTF32 file", function () {
 //                var cb = readFileSpy();
 //
@@ -594,20 +594,19 @@ define(function (require, exports, module) {
                 });
             });
 
-// TODO: we probably don't need this
-//            it("should return an error if the file doesn't exist", function () {
-//                var cb = errSpy();
-//
-//                runs(function () {
-//                    brackets.fs.remove("/This/file/doesnt/exist.txt", cb);
-//                });
-//
-//                waitsFor(function () { return cb.wasCalled; },  "unlink to finish",  1000);
-//
-//                runs(function () {
-//                    expect(cb.error.code).toBe("ENOENT");
-//                });
-//            });
+            it("should return an error if the file doesn't exist", function () {
+                var cb = errSpy();
+
+                runs(function () {
+                    brackets.fs.remove("/This/file/doesnt/exist.txt", cb);
+                });
+
+                waitsFor(function () { return cb.wasCalled; },  "unlink to finish",  1000);
+
+                runs(function () {
+                    expect(cb.error.code).toBe("ENOENT");
+                });
+            });
 
             it("should return an error if called with invalid parameters", function () {
                 var cb = errSpy();
