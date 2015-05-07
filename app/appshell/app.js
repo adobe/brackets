@@ -210,11 +210,6 @@ app.getRemoteDebuggingPort = function () {
     return REMOTE_DEBUGGING_PORT;
 };
 
-app.getUserDocumentsDirectory = function () {
-    var _path = path.resolve(electronApp.getPath("home"), "Documents");
-    return utils.convertWindowsPathToUnixPath(_path);
-};
-
 app.getZoomLevel = function (callback) {
     // TODO: implement
     callback(new Error("app.getZoomLevel not implemented"));

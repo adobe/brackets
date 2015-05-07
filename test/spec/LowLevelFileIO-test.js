@@ -941,11 +941,6 @@ define(function (require, exports, module) {
                     expect(brackets.app.getApplicationSupportDirectory().length).toNotBe(0);
                 });
             });
-            it("should have a user documents directory", function () {
-                runs(function () {
-                    expect(brackets.app.getUserDocumentsDirectory().length).toNotBe(0);
-                });
-            });
         });
         
         describe("moveToTrash", function () {
