@@ -3,6 +3,7 @@
 "use strict";
 
 var _ = require("lodash");
+var path = require("path");
 var utils = require("../utils");
 
 var remote = require("remote");
@@ -210,7 +211,8 @@ app.getRemoteDebuggingPort = function () {
 };
 
 app.getUserDocumentsDirectory = function () {
-    return utils.convertWindowsPathToUnixPath(electronApp.getPath("documents"));
+    var _path = path.resolve(electronApp.getPath("home"), "Documents");
+    return utils.convertWindowsPathToUnixPath(_path);
 };
 
 app.getZoomLevel = function (callback) {

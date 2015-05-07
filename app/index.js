@@ -63,9 +63,6 @@ SocketServer.start(function (err, port) {
 // initialization and ready for creating browser windows.
 app.on("ready", function () {
 
-    // TODO: platform specific?
-    app.setPath("documents", path.resolve(app.getPath("name"), "Documents"));
-
     var winOptions = {
         preload: require.resolve("./preload"),
         title: APP_NAME,

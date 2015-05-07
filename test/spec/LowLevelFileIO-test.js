@@ -415,20 +415,19 @@ define(function (require, exports, module) {
                 });
             });
             
-// FIXME: This test does not work on Linux or Mac
-//            it("should return an error trying to read a UTF16 file w/o BOM ", function () {
-//                var cb = readFileSpy();
-//                
-//                runs(function () {
-//                    brackets.fs.readTextFile(baseDir + "/ru_utf16_noBOM.html", UTF8, cb);
-//                });
-//            
-//                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
-//            
-//                runs(function () {
-//                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
-//                });
-//            });
+            it("should return an error trying to read a UTF16 file w/o BOM ", function () {
+                var cb = readFileSpy();
+
+                runs(function () {
+                    brackets.fs.readTextFile(baseDir + "/ru_utf16_noBOM.html", UTF8, cb);
+                });
+
+                waitsFor(function () { return cb.wasCalled; }, "readFile to finish", 1000);
+
+                runs(function () {
+                    expect(cb.error.code).toBe("ECHARSET");
+                });
+            });
 
 // TODO: doens't work with node
 //            it("should return an error trying to read a UTF32 file", function () {
