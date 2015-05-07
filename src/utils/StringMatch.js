@@ -84,8 +84,12 @@ define(function (require, exports, module) {
             } else if (c === "." || c === "-" || c === "_") {
                 // _, . and - are separators so they are
                 // special and so is the next character
-                specials.push(i++);
                 specials.push(i);
+                if (str[i + 1] !== "/") {
+                    // if the next key is a slash, handle it separately
+                    // see #10871
+                    specials.push(++i);
+                }
                 lastWasLowerCase = false;
             } else if (c.toUpperCase() === c) {
                 // this is the check for camelCase changeovers
