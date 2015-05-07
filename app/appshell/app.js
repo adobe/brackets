@@ -210,8 +210,7 @@ app.getRemoteDebuggingPort = function () {
 };
 
 app.getUserDocumentsDirectory = function () {
-    // TODO: implement
-    throw new Error("app.getUserDocumentsDirectory not implemented");
+    return utils.convertWindowsPathToUnixPath(electronApp.getPath("documents"));
 };
 
 app.getZoomLevel = function (callback) {

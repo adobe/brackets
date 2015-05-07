@@ -162,7 +162,7 @@ define(function (require, exports, module) {
         } else {
             console.error("AppshellFileSystem got unsupported message: " + msg);
         }
-	});
+    });
 
     /**
      * Convert appshell error codes to FileSystemError values.
@@ -503,7 +503,7 @@ define(function (require, exports, module) {
      */
     function unlink(path, callback) {
         // WARN: unlink is actually not supposed to work for directories
-        appshell.fs.delete(path, function (err) {
+        appshell.fs.remove(path, function (err) {
             callback(_mapError(err));
         });
     }

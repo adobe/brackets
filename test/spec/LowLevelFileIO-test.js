@@ -372,20 +372,19 @@ define(function (require, exports, module) {
                 });
             });
 
-// TODO: do we need this test?
-//            it("should not be able to read a UTF-8 file with malformed continuation bytes", function () {
-//                var cb = readFileSpy();
-//                
-//                runs(function () {
-//                    brackets.fs.readTextFile(baseDir + "/ru_bad_utf8.html", UTF8, cb);
-//                });
-//            
-//                waitsFor(function () { return cb.wasCalled; }, 1000);
-//            
-//                runs(function () {
-//                    expect(cb.error).toBe(brackets.fs.ERR_UNSUPPORTED_ENCODING);
-//                });
-//            });
+            it("should not be able to read a UTF-8 file with malformed continuation bytes", function () {
+                var cb = readFileSpy();
+
+                runs(function () {
+                    brackets.fs.readTextFile(baseDir + "/ru_bad_utf8.html", UTF8, cb);
+                });
+
+                waitsFor(function () { return cb.wasCalled; }, 1000);
+
+                runs(function () {
+                    expect(cb.error.code).toBe("ECHARSET");
+                });
+            });
             
             it("should be able to read a UTF-8 file with a BOM", function () {
                 var cb = readFileSpy();
@@ -575,7 +574,7 @@ define(function (require, exports, module) {
             
                 // Remove the file
                 runs(function () {
-                    brackets.fs.delete(filename, unlinkCB);
+                    brackets.fs.remove(filename, unlinkCB);
                 });
             
                 waitsFor(function () { return unlinkCB.wasCalled; },  "unlink to finish", 1000);
@@ -601,7 +600,7 @@ define(function (require, exports, module) {
 //                var cb = errSpy();
 //
 //                runs(function () {
-//                    brackets.fs.delete("/This/file/doesnt/exist.txt", cb);
+//                    brackets.fs.remove("/This/file/doesnt/exist.txt", cb);
 //                });
 //
 //                waitsFor(function () { return cb.wasCalled; },  "unlink to finish",  1000);
@@ -615,7 +614,7 @@ define(function (require, exports, module) {
                 var cb = errSpy();
                 var error;
                 try {
-                    brackets.fs.delete(42, cb);
+                    brackets.fs.remove(42, cb);
                 } catch (e) {
                     error = e;
                 }
@@ -653,7 +652,7 @@ define(function (require, exports, module) {
                 
                 // Delete the directory
                 runs(function () {
-                    brackets.fs.delete(delDirName, unlinkCB);
+                    brackets.fs.remove(delDirName, unlinkCB);
                 });
                 
                 waitsFor(function () { return unlinkCB.wasCalled; });
@@ -708,7 +707,7 @@ define(function (require, exports, module) {
                 
                 // Delete the directory
                 runs(function () {
-                    brackets.fs.delete(newDirName, trashCB);
+                    brackets.fs.remove(newDirName, trashCB);
                 });
                 
                 waitsFor(function () { return trashCB.wasCalled; }, "moveToTrash to finish");
@@ -926,7 +925,7 @@ define(function (require, exports, module) {
                 
                 // Delete the copy
                 runs(function () {
-                    brackets.fs.delete(copyName, unlinkCB);
+                    brackets.fs.remove(copyName, unlinkCB);
                 });
                 
                 waitsFor(function () { return unlinkCB.wasCalled; }, "unlink to finish", 1000);
