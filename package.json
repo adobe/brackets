@@ -16,14 +16,23 @@
     "dependencies": {
         "bluebird": "2.9.25",
         "fs-extra": "0.18.2",
+        "isbinaryfile": "2.0.4",
+        "jschardet": "1.1.1",
         "lodash": "3.8.0",
         "lodash-deep": "1.6.0",
         "portscanner": "1.0.0",
+        "strip-bom": "1.0.0",
         "trash": "1.4.1",
-        "ws": "0.7.1"
+        "watch": "0.16.0",
+        "ws": "https://github.com/websockets/ws.git"
+    },
+    "optionalDependencies": {
+        "fsevents": "0.3.6",
+        "pathwatcher": "4.4.0"
     },
     "devDependencies": {
         "electron-prebuilt": "0.25.2",
+        "electron-rebuild": "0.1.4",
         "grunt": "0.4.1",
         "jasmine-node": "1.11.0",
         "grunt-jasmine-node": "0.1.0",
@@ -56,6 +65,7 @@
     },
     "main": "./app/index.js",
     "scripts": {
+        "install": "./node_modules/.bin/electron-rebuild",
         "postinstall": "grunt install",
         "test": "grunt cla-check-pull test",
         "start": "electron ."

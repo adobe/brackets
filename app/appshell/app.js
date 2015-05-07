@@ -3,6 +3,7 @@
 "use strict";
 
 var _ = require("lodash");
+var path = require("path");
 var utils = require("../utils");
 
 var remote = require("remote");
@@ -208,11 +209,6 @@ app.getPendingFilesToOpen = function (callback) {
 
 app.getRemoteDebuggingPort = function () {
     return REMOTE_DEBUGGING_PORT;
-};
-
-app.getUserDocumentsDirectory = function () {
-    // TODO: implement
-    throw new Error("app.getUserDocumentsDirectory not implemented");
 };
 
 app.getZoomLevel = function (callback) {

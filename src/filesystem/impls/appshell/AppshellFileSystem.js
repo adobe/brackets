@@ -21,7 +21,6 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, appshell, window */
 
@@ -30,8 +29,7 @@ define(function (require, exports, module) {
     
     var FileUtils           = require("file/FileUtils"),
         FileSystemStats     = require("filesystem/FileSystemStats"),
-        FileSystemError     = require("filesystem/FileSystemError"),
-        NodeDomain          = require("utils/NodeDomain");
+        FileSystemError     = require("filesystem/FileSystemError");
     
     /**
      * @const
@@ -59,23 +57,7 @@ define(function (require, exports, module) {
      * @type {!Object.<string, boolean>}
      */
     var _pendingChanges = {};
-    
-    var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
-        _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
-        _nodePath       = "node/FileWatcherDomain",
-        _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
-        _nodeDomain     = new NodeDomain("fileWatcher", _domainPath);
-    
-    var _isRunningOnWindowsXP = window.navigator.userAgent.indexOf("Windows NT 5.") >= 0;
-    
-    
-    // If the connection closes, notify the FileSystem that watchers have gone offline.
-    _nodeDomain.connection.on("close", function (event, promise) {
-        if (_offlineCallback) {
-            _offlineCallback();
-        }
-    });
-    
+
     /**
      * Enqueue a file change event for eventual reporting back to the FileSystem.
      * 
@@ -116,30 +98,69 @@ define(function (require, exports, module) {
      * Event handler for the Node fileWatcher domain's change event.
      * 
      * @param {jQuery.Event} The underlying change event
-     * @param {string} path The path that is reported to have changed
      * @param {string} event The type of the event: either "change" or "rename"
+     * @param {string} path The path that is reported to have changed
      * @param {string=} filename The name of the file that changed.
      * @private
      */
-    function _fileWatcherChange(evt, path, event, filename) {
-        var change;
-
-        if (event === "change") {
-            // Only register change events if filename is passed
+    function _fileWatcherChange(event, path, filename) {
+        if (event === "changed") {
+            // only register change events if filename is passed
             if (filename) {
-                // an existing file was modified; stats are needed
-                change = path + filename;
-                _enqueueChange(change, true);
+                // an existing file was modified; submit change for the file itself
+                _enqueueChange(path + filename, true);
             }
-        } else if (event === "rename") {
-            // a new file was created; no stats are needed
-            change = path;
-            _enqueueChange(change, false);
+        } else if (event === "renamed" || event === "created" || event === "removed") {
+            // a new file was created; submit change for parent folder
+            _enqueueChange(path, false);
+        } else {
+            console.warn("_fileWatcherChange: unhandled event: " + event);
         }
     }
 
-    // Setup the change handler. This only needs to happen once.
-    _nodeDomain.on("change", _fileWatcherChange);
+    var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath();
+    var _modulePath     = FileUtils.getNativeModuleDirectoryPath(module);
+    var childProcess = window.electron.node.require("child_process");
+    var workerPath = [_bracketsPath, _modulePath, "node/FileWatcherWorker.js"].join("/");
+    var worker = childProcess.fork(workerPath);
+    var workerCounter = 0;
+    var workerCallbacks = {};
+    var workerSend = function (msg, data, callback) {
+        if (callback) {
+            var id = workerCounter++;
+            workerCallbacks[id] = callback;
+            msg = msg + "!" + id;
+        }
+        worker.send({msg: msg, data: data});
+    };
+
+    // If the connection closes, notify the FileSystem that watchers have gone offline.
+    worker.on("disconnect", function () {
+	   if (_offlineCallback) { _offlineCallback(); }
+	});
+    // Setup the message handler. This only needs to happen once.
+    worker.on("message", function (obj) {
+        var callbackId;
+        var msg = obj.msg;
+        var data = obj.data;
+
+        if (msg.indexOf("!") !== -1) {
+            var spl = msg.split("!");
+            msg = spl[0];
+            callbackId = parseInt(spl[1], 10);
+        }
+
+        if (msg === "log") {
+            console.log(data);
+        } else if (msg === "callback") {
+            workerCallbacks[callbackId].apply(null, data);
+            workerCallbacks[callbackId] = null;
+        } else if (msg === "change") {
+            _fileWatcherChange.apply(null, data);
+        } else {
+            console.error("AppshellFileSystem got unsupported message: " + msg);
+        }
+    });
 
     /**
      * Convert appshell error codes to FileSystemError values.
@@ -153,23 +174,27 @@ define(function (require, exports, module) {
             return null;
         }
         
-        switch (err) {
-        case appshell.fs.ERR_INVALID_PARAMS:
-            return FileSystemError.INVALID_PARAMS;
-        case appshell.fs.ERR_NOT_FOUND:
-            return FileSystemError.NOT_FOUND;
-        case appshell.fs.ERR_CANT_READ:
-            return FileSystemError.NOT_READABLE;
-        case appshell.fs.ERR_CANT_WRITE:
-            return FileSystemError.NOT_WRITABLE;
-        case appshell.fs.ERR_UNSUPPORTED_ENCODING:
-            return FileSystemError.UNSUPPORTED_ENCODING;
-        case appshell.fs.ERR_OUT_OF_SPACE:
-            return FileSystemError.OUT_OF_SPACE;
-        case appshell.fs.ERR_FILE_EXISTS:
-            return FileSystemError.ALREADY_EXISTS;
+        switch (err.code) {
+            case "EEXIST":
+                return FileSystemError.ALREADY_EXISTS;
+            case "ENOENT":
+                return FileSystemError.NOT_FOUND;
+            case "ENOSPC":
+                return FileSystemError.OUT_OF_SPACE;
+            case "ECHARSET":
+                return FileSystemError.UNSUPPORTED_ENCODING;
+            case "EISDIR":
+            case "EPERM":
+            case "EACCES":
+            case "EROFS":
+                return FileSystemError.PERM_DENIED;
         }
-        return FileSystemError.UNKNOWN;
+
+        console.warn("got error from fs, but no FileSystemError mapping was found: " + err);
+
+        // do not actually return FileSystemError.UNKNOWN
+        // it has no point hiding what the actual error is
+        return err;
     }
     
     /**
@@ -227,10 +252,16 @@ define(function (require, exports, module) {
      * @param {function(?string, FileSystemStats=)} callback
      */
     function stat(path, callback) {
-        appshell.fs.stat(path, function (err, stats) {
+        appshell.fs.lstat(path, function (err, stats) {
             if (err) {
                 callback(_mapError(err));
             } else {
+                if (stats.isSymbolicLink()) {
+                    // TODO: Implement realPath. If "filename" is a symlink,
+                    // realPath should be the actual path to the linked object.
+                    return callback(new Error("realPath for symbolic link is not implemented in appshell.fs.stat"));
+                }
+
                 var options = {
                     isFile: stats.isFile(),
                     mtime: stats.mtime,
@@ -323,7 +354,7 @@ define(function (require, exports, module) {
             callback = mode;
             mode = parseInt("0755", 8);
         }
-        appshell.fs.makedir(path, mode, function (err) {
+        appshell.fs.mkdir(path, mode, function (err) {
             if (err) {
                 callback(_mapError(err));
             } else {
@@ -371,7 +402,7 @@ define(function (require, exports, module) {
             if (stat.size > (FileUtils.MAX_FILE_SIZE)) {
                 callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
             } else {
-                appshell.fs.readFile(path, encoding, function (_err, _data) {
+                appshell.fs.readTextFile(path, encoding, function (_err, _data) {
                     if (_err) {
                         callback(_mapError(_err));
                     } else {
@@ -441,7 +472,7 @@ define(function (require, exports, module) {
                 console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
 
                 if (options.hasOwnProperty("expectedContents")) {
-                    appshell.fs.readFile(path, encoding, function (_err, _data) {
+                    appshell.fs.readTextFile(path, encoding, function (_err, _data) {
                         if (_err || _data !== options.expectedContents) {
                             callback(FileSystemError.CONTENTS_MODIFIED);
                             return;
@@ -469,7 +500,8 @@ define(function (require, exports, module) {
      * @param {function(string)=} callback
      */
     function unlink(path, callback) {
-        appshell.fs.unlink(path, function (err) {
+        // WARN: unlink is actually not supposed to work for directories
+        appshell.fs.remove(path, function (err) {
             callback(_mapError(err));
         });
     }
@@ -507,10 +539,6 @@ define(function (require, exports, module) {
     function initWatchers(changeCallback, offlineCallback) {
         _changeCallback = changeCallback;
         _offlineCallback = offlineCallback;
-        
-        if (_isRunningOnWindowsXP && _offlineCallback) {
-            _offlineCallback();
-        }
     }
     
     /**
@@ -525,10 +553,6 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function watchPath(path, callback) {
-        if (_isRunningOnWindowsXP) {
-            callback(FileSystemError.NOT_SUPPORTED);
-            return;
-        }
         appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
             if (err || isNetworkDrive) {
                 if (isNetworkDrive) {
@@ -538,8 +562,7 @@ define(function (require, exports, module) {
                 }
                 return;
             }
-            _nodeDomain.exec("watchPath", path)
-                .then(callback, callback);
+            workerSend("watchPath", path, callback);
         });
     }
     /**
@@ -551,8 +574,7 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchPath(path, callback) {
-        _nodeDomain.exec("unwatchPath", path)
-            .then(callback, callback);
+        workerSend("unwatchPath", path, callback);
     }
     
     /**
@@ -563,8 +585,7 @@ define(function (require, exports, module) {
      * @param {function(?string)=} callback
      */
     function unwatchAll(callback) {
-        _nodeDomain.exec("unwatchAll")
-            .then(callback, callback);
+        workerSend("unwatchAll", null, callback);
     }
 
     
@@ -591,7 +612,7 @@ define(function (require, exports, module) {
      *
      * @type {boolean}
      */
-    exports.recursiveWatch = (appshell.platform === "mac" || appshell.platform === "win");
+    exports.recursiveWatch = true;
     
     /**
      * Indicates whether or not the filesystem should expect and normalize UNC
