@@ -941,6 +941,11 @@ define(function (require, exports, module) {
                     expect(brackets.app.getApplicationSupportDirectory().length).toNotBe(0);
                 });
             });
+            it("should have a home directory", function () {
+                runs(function () {
+                    expect(brackets.app.getUserHomeDirectory().length).toNotBe(0);
+                });
+            });
         });
         
         describe("moveToTrash", function () {
