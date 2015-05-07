@@ -16,8 +16,7 @@ var watch = require("watch");
 var fsevents = null;
 
 if (process.platform === "darwin") {
-    // TODO: build this automatically for electron
-    // fsevents = require("fsevents");
+    fsevents = require("fsevents");
 } else if (process.platform === "win32") {
     // https://github.com/adobe/brackets/wiki/Working-with-fsevents_win.node
     // TODO: build this automatically for electron
@@ -90,12 +89,13 @@ function watchPath(path, callback) {
                     type = "renamed";
                 }
 
-                send("change", [parent, type, name]);
+                send("change", [type, parent, name]);
             });
             watcher.on("error", function (err) {
                 console.error("Error watching file " + path + ": " + (err && err.message));
                 unwatchPath(path);
             });
+            watcher.start();
             return callback(null, true);
         }
 
@@ -112,17 +112,17 @@ function watchPath(path, callback) {
             monitor.on("created", function (filename, stat) {
                 var parent = filename && (fspath.dirname(filename) + "/"),
                     name = filename && fspath.basename(filename);
-                send("change", [stat, parent, "created", name]);
+                send("change", ["created", parent, name]);
             });
             monitor.on("changed", function (filename, curr, prev) {
                 var parent = filename && (fspath.dirname(filename) + "/"),
                     name = filename && fspath.basename(filename);
-                send("change", [curr, parent, "changed", name]);
+                send("change", ["changed", parent, name]);
             });
             monitor.on("removed", function (filename, stat) {
                 var parent = filename && (fspath.dirname(filename) + "/"),
                     name = filename && fspath.basename(filename);
-                send("change", [stat, parent, "removed", name]);
+                send("change", ["removed", parent, name]);
             });
             _watcherMap[path] = monitor;
             callback(null, true);

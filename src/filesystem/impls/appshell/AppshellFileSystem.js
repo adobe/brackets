@@ -98,12 +98,12 @@ define(function (require, exports, module) {
      * Event handler for the Node fileWatcher domain's change event.
      * 
      * @param {jQuery.Event} The underlying change event
-     * @param {string} path The path that is reported to have changed
      * @param {string} event The type of the event: either "change" or "rename"
+     * @param {string} path The path that is reported to have changed
      * @param {string=} filename The name of the file that changed.
      * @private
      */
-    function _fileWatcherChange(evt, path, event, filename) {
+    function _fileWatcherChange(event, path, filename) {
         if (event === "changed") {
             // only register change events if filename is passed
             if (filename) {
