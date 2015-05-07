@@ -104,19 +104,17 @@ define(function (require, exports, module) {
      * @private
      */
     function _fileWatcherChange(evt, path, event, filename) {
-        var change;
-
-        if (event === "change") {
-            // Only register change events if filename is passed
+        if (event === "changed") {
+            // only register change events if filename is passed
             if (filename) {
-                // an existing file was modified; stats are needed
-                change = path + filename;
-                _enqueueChange(change, true);
+                // an existing file was modified; submit change for the file itself
+                _enqueueChange(path + filename, true);
             }
-        } else if (event === "rename") {
-            // a new file was created; no stats are needed
-            change = path;
-            _enqueueChange(change, false);
+        } else if (event === "renamed" || event === "created" || event === "removed") {
+            // a new file was created; submit change for parent folder
+            _enqueueChange(path, false);
+        } else {
+            console.warn("_fileWatcherChange: unhandled event: " + event);
         }
     }
 
@@ -158,7 +156,7 @@ define(function (require, exports, module) {
             workerCallbacks[callbackId].apply(null, data);
             workerCallbacks[callbackId] = null;
         } else if (msg === "change") {
-            _fileWatcherChange(data.evt, data.path, data.event, data.filename);
+            _fileWatcherChange.apply(null, data);
         } else {
             console.error("AppshellFileSystem got unsupported message: " + msg);
         }
@@ -614,7 +612,7 @@ define(function (require, exports, module) {
      *
      * @type {boolean}
      */
-    exports.recursiveWatch = (appshell.platform === "mac" || appshell.platform === "win");
+    exports.recursiveWatch = true;
     
     /**
      * Indicates whether or not the filesystem should expect and normalize UNC

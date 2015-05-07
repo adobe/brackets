@@ -11,10 +11,18 @@ function send(msg, data) {
     process.send({msg: msg, data: data});
 }
 
-var fs = require("fs");
-var fsevents = null; // TODO:
 var fspath = require("path");
-// var watch = require("watch");
+var watch = require("watch");
+var fsevents = null;
+
+if (process.platform === "darwin") {
+    // TODO: build this automatically for electron
+    // fsevents = require("fsevents");
+} else if (process.platform === "win32") {
+    // https://github.com/adobe/brackets/wiki/Working-with-fsevents_win.node
+    // TODO: build this automatically for electron
+    // fsevents = require("fsevents_win/fsevents_win");
+}
 
 var _watcherMap = {};
 
@@ -31,7 +39,7 @@ function _unwatchPath(path) {
             if (fsevents) {
                 watcher.stop();
             } else {
-                watcher.close();
+                watcher.stop();
             }
         } catch (err) {
             console.warn("Failed to unwatch file " + path + ": " + (err && err.message));
@@ -76,29 +84,50 @@ function watchPath(path, callback) {
                 switch (info.event) {
                 case "modified":    // triggered by file content changes
                 case "unknown":     // triggered by metatdata-only changes
-                    type = "change";
+                    type = "changed";
                     break;
                 default:
-                    type = "rename";
+                    type = "renamed";
                 }
 
                 send("change", [parent, type, name]);
             });
-        } else {
-            watcher = fs.watch(path, {persistent: false}, function (event, filename) {
-                // File/directory changes are emitted as "change" events on the fileWatcher domain.
-                send("change", [path, event, filename]);
+            watcher.on("error", function (err) {
+                console.error("Error watching file " + path + ": " + (err && err.message));
+                unwatchPath(path);
             });
+            return callback(null, true);
         }
 
-        _watcherMap[path] = watcher;
-
-        watcher.on("error", function (err) {
-            console.error("Error watching file " + path + ": " + (err && err.message));
-            unwatchPath(path);
+        // use watch module by default, it wraps fs.watch to make it consistent across platforms
+        // TODO: make use of supported options
+        // - ignoreDotFiles
+        // - filter
+        // - ignoreUnreadableDir
+        // - ignoreNotPermitted
+        // - ignoreDirectoryPattern
+        watch.createMonitor(path, function (monitor) {
+            // monitor.files['/home/mikeal/.zshrc'] // Stat object for my zshrc.
+            // monitor.stop(); // Stop watching
+            monitor.on("created", function (filename, stat) {
+                var parent = filename && (fspath.dirname(filename) + "/"),
+                    name = filename && fspath.basename(filename);
+                send("change", [stat, parent, "created", name]);
+            });
+            monitor.on("changed", function (filename, curr, prev) {
+                var parent = filename && (fspath.dirname(filename) + "/"),
+                    name = filename && fspath.basename(filename);
+                send("change", [curr, parent, "changed", name]);
+            });
+            monitor.on("removed", function (filename, stat) {
+                var parent = filename && (fspath.dirname(filename) + "/"),
+                    name = filename && fspath.basename(filename);
+                send("change", [stat, parent, "removed", name]);
+            });
+            _watcherMap[path] = monitor;
+            callback(null, true);
         });
 
-        callback(null, true);
     } catch (err) {
         callback(new Error("Failed to watch file " + path + ": " + (err && err.message)));
     }

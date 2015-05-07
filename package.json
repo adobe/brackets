@@ -15,6 +15,7 @@
     },
     "dependencies": {
         "bluebird": "2.9.25",
+        "fsevents": "0.3.6",
         "fs-extra": "0.18.2",
         "isbinaryfile": "2.0.4",
         "jschardet": "1.1.1",
@@ -23,6 +24,7 @@
         "portscanner": "1.0.0",
         "strip-bom": "1.0.0",
         "trash": "1.4.1",
+        "watch": "0.16.0",
         "ws": "0.7.1"
     },
     "devDependencies": {
