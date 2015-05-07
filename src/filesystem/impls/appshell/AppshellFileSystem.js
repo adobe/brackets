@@ -164,17 +164,6 @@ define(function (require, exports, module) {
         }
 	});
 
-    // TODO: remove
-    worker.on("error", function (result) {
-	  console.log("error " + result);
-	});
-    worker.on("exit", function (result) {
-	  console.log("exit " + result);
-	});
-    worker.on("close", function (result) {
-	  console.log("close " + result);
-	});
-
     /**
      * Convert appshell error codes to FileSystemError values.
      * 
