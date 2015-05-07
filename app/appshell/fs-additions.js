@@ -38,8 +38,13 @@ fsAdditions.isNetworkDrive = function (path, callback) {
 };
 
 fsAdditions.moveToTrash = function (path, callback) {
-    // trash expects an array of files which is inconsistent with fs-extra apis
-    trash(Array.isArray(path) ? path : [path], callback);
+    fs.stat(path, function (err) {
+        if (err) {
+            return callback(err);
+        }
+        // trash expects an array of files which is inconsistent with fs-extra apis
+        trash(Array.isArray(path) ? path : [path], callback);
+    });
 };
 
 fsAdditions.readTextFile = function (filename, encoding, callback) {

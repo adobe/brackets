@@ -859,7 +859,7 @@ define(function (require, exports, module) {
                     waitsFor(function () { return cb.wasCalled; }, "rename to finish", 1000);
                     
                     runs(function () {
-                        expect(cb.error.code).toBe("EPERM");
+                        expect(cb.error.code).toBe("EACCES");
                     });
                 }
             });
