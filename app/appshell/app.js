@@ -69,6 +69,10 @@ function _findMenuItemById(id, where, opts) {
         where.splice(io, 1);
     }
 
+    if (opts.parent && result) {
+        return where;
+    }
+
     return result;
 }
 
@@ -110,6 +114,12 @@ app.abortQuit = function () {
 };
 
 app.addMenu = function (title, id, position, relativeId, callback) {
+    assert(title && typeof title === "string", "title must be a string");
+    assert(id && typeof id === "string", "id must be a string");
+    assert(!position || position && typeof position === "string", "position must be a string");
+    assert(!relativeId || relativeId && typeof relativeId === "string", "relativeId must be a string");
+    assert(typeof callback === "function", "callback must be a function");
+
     if (position && ["before", "after"].indexOf(position) === -1) {
         throw new Error("position not implemented in addMenu: " + position);
     }
@@ -213,8 +223,12 @@ app.getMenuItemState = function (commandId, callback) {
 };
 
 app.getMenuPosition = function (commandId, callback) {
-    // TODO: implement
-    callback(new Error("app.getMenuPosition not implemented: " + commandId));
+    assert(commandId && typeof commandId === "string", "commandId must be a string");
+    process.nextTick(function () {
+        var parent = _findMenuItemById(commandId, null, {parent: true});
+        var index = _.indexOf(parent.submenu, {id: commandId});
+        callback(app.NO_ERROR, parent, index);
+    });
 };
 
 app.getMenuTitle = function (commandId, callback) {
@@ -225,7 +239,7 @@ app.getMenuTitle = function (commandId, callback) {
                 new AppError(app.ERR_NOTFOUND, "NOTFOUND: menu item doesn't exist: " + commandId)
             );
         }
-        callback(null, obj.label);
+        callback(app.NO_ERROR, obj.label);
     });
 };
 
