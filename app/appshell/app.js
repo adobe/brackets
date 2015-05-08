@@ -240,8 +240,7 @@ app.openURLInDefaultBrowser = function (url, callback) {
 };
 
 app.quit = function () {
-    // TODO: implement
-    throw new Error("app.quit not implemented");
+    electronApp.quit();
 };
 
 app.removeMenu = function (commandId, callback) {
