@@ -202,7 +202,21 @@
                     text = sheet.ownerNode.textContent;
                 } else if (sheet.href === msg.params.url && !sheet.disabled) {
                     var j,
+                        rules;
+
+                    // Deal with Firefox's SecurityError when accessing sheets
+                    // from other domains, and Chrome returning `undefined`.
+                    try {
                         rules = document.styleSheets[i].cssRules;
+                    } catch (e) {
+                        if (e.name !== "SecurityError") {
+                            throw e;
+                        }
+                    }
+                    if (!rules) {
+                        return;
+                    }
+
                     for (j = 0; j < rules.length; j++) {
                         text += rules[j].cssText + '\n';
                     }
@@ -291,7 +305,7 @@
             background.style.height = "100%";
             background.style.position = "absolute";
             background.style.top = 0;
-            background.style.left = 0;            
+            background.style.left = 0;
 
             status.textContent = "Live Development Session has Ended";
             status.style.width = "100%";

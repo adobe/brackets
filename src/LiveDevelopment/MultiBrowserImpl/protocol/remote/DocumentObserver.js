@@ -56,17 +56,29 @@
         var s, j;
         //traverse @import rules
         var traverseRules = function _traverseRules(sheet, base) {
-            var i;
-            if (sheet.href && sheet.cssRules) {
-                if (rel.stylesheets[sheet.href] === undefined) {
-                    rel.stylesheets[sheet.href] = [];
+            var i,
+                href = sheet.href,
+                cssRules;
+
+            // Deal with Firefox's SecurityError when accessing sheets
+            // from other domains. Chrome will safely return `undefined`.
+            try {
+                cssRules = sheet.cssRules;
+            } catch (e) {
+                if (e.name !== "SecurityError") {
+                    throw e;
                 }
-                rel.stylesheets[sheet.href].push(base);
-                
-                
-                for (i = 0; i < sheet.cssRules.length; i++) {
-                    if (sheet.cssRules[i].href) {
-                        traverseRules(sheet.cssRules[i].styleSheet, base);
+            }
+
+            if (href && cssRules) {
+                if (rel.stylesheets[href] === undefined) {
+                    rel.stylesheets[href] = [];
+                }
+                rel.stylesheets[href].push(base);
+
+                for (i = 0; i < cssRules.length; i++) {
+                    if (cssRules[i].href) {
+                        traverseRules(cssRules[i].styleSheet, base);
                     }
                 }
             }
