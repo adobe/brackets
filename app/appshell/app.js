@@ -3,6 +3,7 @@
 "use strict";
 
 var _ = require("lodash");
+var assert = require("assert");
 var utils = require("../utils");
 
 var remote = require("remote");
@@ -15,7 +16,16 @@ var menuTemplate = [];
 
 var REMOTE_DEBUGGING_PORT = 9234; // TODO: this is hardcoded in brackets-shell
 
+var AppError = function (code, msg) {
+    var err = new Error(msg);
+    err.name = "AppError";
+    err.code = code;
+    return err;
+};
+
 var app = module.exports = {
+    ERR_NOTFOUND: "NOTFOUND",
+    // TODO: cleanup unused below
     ERR_CL_TOOLS_CANCELLED: 12,
     ERR_CL_TOOLS_MKDIRFAILED: 14,
     ERR_CL_TOOLS_NOTSUPPORTED: 17,
@@ -101,7 +111,7 @@ app.abortQuit = function () {
 
 app.addMenu = function (title, id, position, relativeId, callback) {
     if (position && ["before", "after"].indexOf(position) === -1) {
-        throw new Error("position not implemented in addMenu");
+        throw new Error("position not implemented in addMenu: " + position);
     }
 
     var newObj = {
@@ -119,6 +129,15 @@ app.addMenu = function (title, id, position, relativeId, callback) {
 };
 
 app.addMenuItem = function (parentId, title, id, key, displayStr, position, relativeId, callback) {
+    assert(parentId && typeof parentId === "string", "parentId must be a string");
+    assert(title && typeof title === "string", "title must be a string");
+    assert(id && typeof id === "string", "id must be a string");
+    assert(key == null || key && typeof key === "string", "key must be a string");
+    assert(displayStr == null || displayStr && typeof displayStr === "string", "displayStr must be a string");
+    assert(position && typeof position === "string", "position must be a string");
+    assert(relativeId && typeof relativeId === "string", "relativeId must be a string");
+    assert(typeof callback === "function", "callback must be a function");
+
     key = _fixBracketsKeyboardShortcut(key);
 
     if (position && ["before", "after"].indexOf(position) === -1) {
@@ -140,6 +159,14 @@ app.addMenuItem = function (parentId, title, id, key, displayStr, position, rela
     }
 
     var parentObj = _findMenuItemById(parentId);
+    if (!parentObj) {
+        return process.nextTick(function () {
+            callback(
+                new AppError(app.ERR_NOTFOUND, "NOTFOUND: menu item doesn't exist: " + parentId)
+            );
+        });
+    }
+
     if (!parentObj.submenu) {
         parentObj.submenu = [];
     }
@@ -194,9 +221,9 @@ app.getMenuTitle = function (commandId, callback) {
     process.nextTick(function () {
         var obj = _findMenuItemById(commandId);
         if (!obj) {
-            var err = new Error("NOTFOUND: menu doesn't exist: " + commandId);
-            err.code = "NOTFOUND";
-            return callback(err);
+            return callback(
+                new AppError(app.ERR_NOTFOUND, "NOTFOUND: menu item doesn't exist: " + commandId)
+            );
         }
         callback(null, obj.label);
     });

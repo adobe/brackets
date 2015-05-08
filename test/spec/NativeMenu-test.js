@@ -84,7 +84,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; });
                 
                 runs(function () {
-                    expect(error.code).toBe("NOTFOUND");
+                    expect(error.code).toBe(brackets.app.ERR_NOTFOUND);
                 });
                 
                 // Add menu
