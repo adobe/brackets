@@ -26,7 +26,7 @@ define(function (require, exports) {
         // Thanks to Pomax for helping with this
         function aggregate(content) {
             var urls = [];
-            var urlRegex = new RegExp('url\\([\\\'\\"]\\?([^\\\'\\"\\)]+)[\\\'\\"]\\?\\)', 'g');
+            var urlRegex = new RegExp('url\\([\\\'\\"]?([^\\\'\\"\\)]+)[\\\'\\"]?\\)', 'g');
 
             function fetch(input) {
                 if(input.length === 0) {
