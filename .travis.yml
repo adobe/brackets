@@ -8,7 +8,7 @@ branches:
   only:
   - bramble
 notifications:
-  irc: "irc.mozilla.org#makedrive"
+  irc: "irc.mozilla.org#thimble"
 deploy:
   provider: s3
   access_key_id: AKIAJZZYAKJA33TQEHLA
