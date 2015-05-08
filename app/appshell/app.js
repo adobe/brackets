@@ -132,10 +132,10 @@ app.addMenuItem = function (parentId, title, id, key, displayStr, position, rela
     assert(parentId && typeof parentId === "string", "parentId must be a string");
     assert(title && typeof title === "string", "title must be a string");
     assert(id && typeof id === "string", "id must be a string");
-    assert(key == null || key && typeof key === "string", "key must be a string");
-    assert(displayStr == null || displayStr && typeof displayStr === "string", "displayStr must be a string");
-    assert(position && typeof position === "string", "position must be a string");
-    assert(relativeId && typeof relativeId === "string", "relativeId must be a string");
+    assert(!key || key && typeof key === "string", "key must be a string");
+    assert(!displayStr || displayStr && typeof displayStr === "string", "displayStr must be a string");
+    assert(!position || position && typeof position === "string", "position must be a string");
+    assert(!relativeId || relativeId && typeof relativeId === "string", "relativeId must be a string");
     assert(typeof callback === "function", "callback must be a function");
 
     key = _fixBracketsKeyboardShortcut(key);
