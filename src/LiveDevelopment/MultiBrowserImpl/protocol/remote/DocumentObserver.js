@@ -64,8 +64,8 @@
             // from other domains. Chrome will safely return `undefined`.
             try {
                 cssRules = sheet.cssRules;
-            } catch(e) {
-                if(e.name !== "SecurityError") {
+            } catch (e) {
+                if (e.name !== "SecurityError") {
                     throw e;
                 }
             }
@@ -75,8 +75,7 @@
                     rel.stylesheets[href] = [];
                 }
                 rel.stylesheets[href].push(base);
-                
-                
+
                 for (i = 0; i < cssRules.length; i++) {
                     if (cssRules[i].href) {
                         traverseRules(cssRules[i].styleSheet, base);

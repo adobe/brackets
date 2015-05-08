@@ -208,12 +208,12 @@
                     // from other domains, and Chrome returning `undefined`.
                     try {
                         rules = document.styleSheets[i].cssRules;
-                    } catch(e) {
-                        if(e.name !== "SecurityError") {
+                    } catch (e) {
+                        if (e.name !== "SecurityError") {
                             throw e;
                         }
                     }
-                    if(!rules) {
+                    if (!rules) {
                         return;
                     }
 
@@ -305,7 +305,7 @@
             background.style.height = "100%";
             background.style.position = "absolute";
             background.style.top = 0;
-            background.style.left = 0;            
+            background.style.left = 0;
 
             status.textContent = "Live Development Session has Ended";
             status.style.width = "100%";
