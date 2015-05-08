@@ -1,8 +1,6 @@
 (function () {
     "use strict";
 
-    var Constants = require("./constants");
-
     // expose electron renderer process modules, uncomment those required
     window.electron = {
         node: {
@@ -21,10 +19,6 @@
     // notify shell about resizes
     window.onresize = function () {
         window.electron.ipc.send("resize");
-    };
-
-    window.onbeforeunload = function () {
-        window.brackets.shellAPI.executeCommand(Constants.FILE_CLOSE_WINDOW, true);
     };
 
     // move injected node variables, do not move "process" as that'd break node.require
