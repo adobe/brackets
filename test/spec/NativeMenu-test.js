@@ -26,7 +26,7 @@
 /*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     require("utils/Global");
     
@@ -84,7 +84,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; });
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error.code).toBe("NOTFOUND");
                 });
                 
                 // Add menu
@@ -115,7 +115,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; });
                 
                 runs(function () {
-                    expect(error).toBe(0);
+                    expect(error).toBe(null);
                     expect(title).toBe(TEST_MENU_TITLE);
                 });
                     

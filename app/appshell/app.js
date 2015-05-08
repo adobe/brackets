@@ -191,8 +191,15 @@ app.getMenuPosition = function (commandId, callback) {
 };
 
 app.getMenuTitle = function (commandId, callback) {
-    // TODO: implement
-    callback(new Error("app.getMenuTitle not implemented: " + commandId));
+    process.nextTick(function () {
+        var obj = _findMenuItemById(commandId);
+        if (!obj) {
+            var err = new Error("NOTFOUND: menu doesn't exist: " + commandId);
+            err.code = "NOTFOUND";
+            return callback(err);
+        }
+        callback(null, obj.label);
+    });
 };
 
 app.getNodeState = function (callback) {
