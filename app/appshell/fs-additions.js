@@ -4,7 +4,6 @@
 
 var fs = require("fs-extra");
 var isbinaryfile = require("isbinaryfile");
-var jschardet = require("jschardet");
 var stripBom = require("strip-bom");
 var trash = require("trash");
 var utils = require("../utils");
@@ -67,20 +66,22 @@ fsAdditions.readTextFile = function (filename, encoding, callback) {
             err.code = "ECHARSET";
             return callback(err);
         }
-        fs.readFile(filename, function (err, buffer) {
+        fs.readFile(filename, encoding, function (err, content) {
             if (err) {
                 return callback(err);
             }
-            if (buffer.length) {
-                var chardet = jschardet.detect(buffer);
-                if (!fsAdditions.isEncodingSupported(chardet.encoding)) {
-                    err = new Error("ECHARSET: unsupported encoding " + chardet.encoding +
-                                    " in file: " + filename);
-                    err.code = "ECHARSET";
-                    return callback(err);
-                }
+
+            content = stripBom(content);
+
+            // \uFFFD is used to replace an incoming character
+            // whose value is unknown or unrepresentable
+            if (/\uFFFD/.test(content)) {
+                err = new Error("ECHARSET: unsupported encoding in file: " + filename);
+                err.code = "ECHARSET";
+                return callback(err);
             }
-            callback(null, stripBom(buffer.toString(encoding)));
+
+            callback(null, content);
         });
     });
 };

@@ -40,7 +40,6 @@
         "bluebird": "2.9.25",
         "fs-extra": "0.18.2",
         "isbinaryfile": "2.0.4",
-        "jschardet": "1.1.1",
         "lodash": "3.8.0",
         "lodash-deep": "1.6.0",
         "portscanner": "1.0.0",
