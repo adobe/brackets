@@ -648,7 +648,7 @@ define(function LiveDevelopment(require, exports, module) {
      *  - index.html
      *  - index.htm
      * 
-     * If the project is configured with a custom base url for live developmment, then
+     * If the project is configured with a custom base url for live development, then
      * the list of possible index files is extended to contain these index files too:
      *  - index.php
      *  - index.php3
