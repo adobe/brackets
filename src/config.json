@@ -53,7 +53,7 @@
         "pathwatcher": "4.4.0"
     },
     "devDependencies": {
-        "electron-prebuilt": "0.25.2",
+        "electron-prebuilt": "0.25.3",
         "electron-rebuild": "0.1.4",
         "grunt": "0.4.1",
         "jasmine-node": "1.11.0",
