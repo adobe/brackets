@@ -31,7 +31,33 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Async   = require("utils/Async");
+    var _     = require("thirdparty/lodash"),
+        Async = require("utils/Async");
+    
+    /**
+     * @private
+     * Detect the browser's supported transitionend event.
+     * @return {string} The supported transitionend event name.
+     */
+    function _detectTransitionEvent() {
+        var event, el = document.createElement("fakeelement");
+        
+        var transitions = {
+            "OTransition"     : "oTransitionEnd",
+            "MozTransition"   : "transitionend",
+            "WebkitTransition": "webkitTransitionEnd",
+            "transition"      : "transitionend",
+        };
+        
+        _.forEach(transitions, function (value, key) {
+            if (el.style[key] !== undefined) {
+                event = value;
+            }
+        });
+        return event;
+    }
+    
+    var _transitionEvent = _detectTransitionEvent();
     
     /**
      * Start an animation by adding the given class to the given target. When the
@@ -58,11 +84,11 @@ define(function (require, exports, module) {
         function cleanup() {
             $target
                 .removeClass(animClass)
-                .off("webkitTransitionEnd", finish);
+                .off(_transitionEvent, finish);
         }
         
         if ($target.is(":hidden")) {
-            // Don't do anything if the element is hidden because webkitTransitionEnd wouldn't fire
+            // Don't do anything if the element is hidden because transitionEnd wouldn't fire
             result.resolve();
         } else {
             // Note that we can't just use $.one() here because we only want to remove
@@ -70,7 +96,7 @@ define(function (require, exports, module) {
             // a child).
             $target
                 .addClass(animClass)
-                .on("webkitTransitionEnd", finish);
+                .on(_transitionEvent, finish);
         }
         
         // Use timeout in case transition end event is not sent
