@@ -352,7 +352,7 @@ define({
     "CMD_LINE_DOWN"                       : "Flytta rad nedåt",
     "CMD_OPEN_LINE_ABOVE"                 : "Öppna rad ovanför",
     "CMD_OPEN_LINE_BELOW"                 : "Öppna rad nedanför",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Stäng paranteser automatiskt",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Stäng parenteser automatiskt",
     "CMD_SHOW_CODE_HINTS"                 : "Visa kodförslag",
     
     // Search menu commands
@@ -628,4 +628,4 @@ define({
     "DOCS_MORE_LINK"                            : "Läs mer"
 });
 
-/* Last translated for 893c065b715c211526dcd010c0294e12a8683995 */
+/* Last translated for fd3ef2bf9041fc067c47d600df1372725f6f5f04 */
