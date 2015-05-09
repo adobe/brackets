@@ -318,12 +318,13 @@ define(function (require, exports, module) {
             highlightSelectionMatches   : currentOptions[HIGHLIGHT_MATCHES],
             indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
             indentWithTabs              : currentOptions[USE_TAB_CHAR],
+            inputStyle                  : "textarea", // the "contenteditable" mode used on mobiles could cause issues
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
             lineWrapping                : currentOptions[WORD_WRAP],
             matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
             matchTags                   : { bothTags: true },
-            showCursorWhenSelecting     : currentOptions[SHOW_CURSOR_SELECT],
             scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
+            showCursorWhenSelecting     : currentOptions[SHOW_CURSOR_SELECT],
             smartIndent                 : currentOptions[SMART_INDENT],
             styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
             tabSize                     : currentOptions[TAB_SIZE]
