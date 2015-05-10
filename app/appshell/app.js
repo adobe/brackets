@@ -385,11 +385,11 @@ app.showDeveloperTools = function () {
 };
 
 app.showExtensionsFolder = function (appURL, callback) {
-    // TODO: implement
-    callback(new Error("app.showExtensionsFolder not implemented" + appURL));
+    // TODO: it seems that both arguments aren't needed anymore
+    shell.showItemInFolder(app.getApplicationSupportDirectory() + "/extensions");
 };
 
 app.showOSFolder = function (path, callback) {
-    // TODO: implement
-    callback(new Error("app.showOSFolder not implemented" + path));
+    // TODO: get rid of callback? This call is not throwing any error.
+    shell.showItemInFolder(path);
 };
