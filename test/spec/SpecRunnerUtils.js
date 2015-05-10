@@ -248,34 +248,56 @@ define(function (require, exports, module) {
     }
     
     function _resetPermissionsOnSpecialTempFolders() {
-        var folders = [],
-            baseDir = getTempDirectory(),
-            promise;
-        
-        folders.push(baseDir + "/cant_read_here");
-        folders.push(baseDir + "/cant_write_here");
-        
-        promise = Async.doSequentially(folders, function (folder) {
-            var deferred = new $.Deferred();
-            
-            _getFileSystem().resolve(folder, function (err, entry) {
-                if (!err) {
-                    // Change permissions if the directory exists
-                    chmod(folder, "777").then(deferred.resolve, deferred.reject);
+        var entries = [],
+            result = new $.Deferred(),
+            promise,
+            entryPromise = new $.Deferred(),
+            tempDir;
+
+        function visitor(entry) {
+            entries.push(entry.fullPath);
+            return true;
+        }
+        tempDir = FileSystem.getDirectoryForPath(getTempDirectory());
+        tempDir.visit(visitor, function(err){
+            if (!err) {
+                entryPromise.resolve(entries);
+            } else {
+                if (err === FileSystemError.NOT_FOUND) {
+                    entryPromise.resolve(entries);
                 } else {
-                    if (err === FileSystemError.NOT_FOUND) {
-                        // Resolve the promise since the folder to reset doesn't exist
-                        deferred.resolve();
-                    } else {
-                        deferred.reject();
-                    }
+                    entryPromise.reject(err);
                 }
-            });
-            
-            return deferred.promise();
-        }, true);
+            }
+        });
+        entryPromise.done(function(entries){
+            promise = Async.doSequentially(entries, function (entry) {
+                var deferred = new $.Deferred();
+
+                FileSystem.resolve(entry, function (err, item) {
+                    if (!err) {
+                        // Change permissions if the directory exists
+                        chmod(entry, "777").then(deferred.resolve, deferred.reject);
+                    } else {
+                        if (err === FileSystemError.NOT_FOUND) {
+                            // Resolve the promise since the folder to reset doesn't exist
+                            deferred.resolve();
+                        } else if (err) {
+                            deferred.reject(err);
+                        } else {
+                            deferred.reject(new Error("Expected NOT_FOUND error but got none."));
+                        }
+                    }
+                });
+
+                return deferred.promise();
+            }, true);
+            promise.then(result.resolve, result.reject);
+        }).fail(function(err) {
+            result.reject(err);
+        });
         
-        return promise;
+        return result.promise();
     }
     
     /**
@@ -288,8 +310,8 @@ define(function (require, exports, module) {
         runs(function () {
             _resetPermissionsOnSpecialTempFolders().done(function () {
                 deletePath(baseDir, true).then(deferred.resolve, deferred.reject);
-            }).fail(function () {
-                deferred.reject();
+            }).fail(function (err) {
+                deferred.reject(err);
             });
 
             deferred.fail(function (err) {

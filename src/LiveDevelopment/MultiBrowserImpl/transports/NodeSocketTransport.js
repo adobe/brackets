@@ -47,7 +47,7 @@ define(function (require, exports, module) {
     
     // This must match the port declared in NodeSocketTransportDomain.js.
     // TODO: randomize this?
-    var SOCKET_PORT = 8123;
+    var SOCKET_PORT = 8125;
     
     /**
      * Returns the script that should be injected into the browser to handle the other end of the transport.

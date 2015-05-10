@@ -39,6 +39,10 @@ require.config({
     }
 });
 
+window.onbeforeunload = function () {
+    window.brackets.shellAPI.executeCommand("file.close_window", true);
+};
+
 if (window.location.search.indexOf("testEnvironment") > -1) {
     require.config({
         paths: {

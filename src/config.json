@@ -20,9 +20,10 @@
         "extension_url": "https://s3.amazonaws.com/extend.brackets/{0}/{0}-{1}.zip",
         "linting.enabled_by_default": true,
         "build_timestamp": "",
-        "healthDataServerURL" : "https://healthdev.brackets.io/healthDataLog"
+        "healthDataServerURL": "https://healthdev.brackets.io/healthDataLog"
     },
     "name": "Brackets",
+    "productName": "Brackets-Electron-dev",
     "version": "1.4.0-0",
     "apiVersion": "1.4.0",
     "homepage": "http://brackets.io",
@@ -35,12 +36,30 @@
         "branch": "",
         "SHA": ""
     },
+    "dependencies": {
+        "bluebird": "2.9.25",
+        "fs-extra": "0.18.2",
+        "isbinaryfile": "2.0.4",
+        "lodash": "3.8.0",
+        "lodash-deep": "1.6.0",
+        "portscanner": "1.0.0",
+        "strip-bom": "1.0.0",
+        "trash": "1.4.1",
+        "watch": "0.16.0",
+        "ws": "https://github.com/websockets/ws.git"
+    },
+    "optionalDependencies": {
+        "fsevents": "0.3.6",
+        "pathwatcher": "4.4.0"
+    },
     "devDependencies": {
+        "electron-prebuilt": "0.25.3",
+        "electron-rebuild": "0.1.4",
         "grunt": "0.4.1",
         "jasmine-node": "1.11.0",
         "grunt-jasmine-node": "0.1.0",
         "grunt-cli": "0.1.9",
-        "phantomjs": "1.9.13",
+        "phantomjs": "1.9.16",
         "grunt-lib-phantomjs": "0.3.0",
         "grunt-contrib-jshint": "0.6.0",
         "grunt-contrib-watch": "0.4.3",
@@ -63,9 +82,15 @@
         "xmldoc": "^0.1.2",
         "grunt-cleanempty": "1.0.3"
     },
+    "bin": {
+        "brackets": "./app/index.js"
+    },
+    "main": "./app/index.js",
     "scripts": {
+        "install": "./node_modules/.bin/electron-rebuild",
         "postinstall": "grunt install",
-        "test": "grunt cla-check-pull test"
+        "test": "grunt cla-check-pull test",
+        "start": "electron ."
     },
     "licenses": [
         {

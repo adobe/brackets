@@ -1583,7 +1583,7 @@ define(function (require, exports, module) {
         var projectRoot     = ProjectManager.getProjectRoot(),
             context         = { location : { scope: "user",
                                          layer: "project",
-                                         layerID: projectRoot.fullPath } },
+                                         layerID: projectRoot ? projectRoot.fullPath : null } },
             
             state = {
                 orientation: _orientation,

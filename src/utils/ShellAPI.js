@@ -42,7 +42,7 @@ define(function (require, exports, module) {
      * The native function BracketsShellAPI::DispatchBracketsJSCommand calls this function in order to enable
      * calling Brackets commands from the native shell.
      */
-    function executeCommand(eventName) {
+    function executeCommand(eventName, ignoreStackDepth) {
         // Temporary fix for #2616 - don't execute the command if a modal dialog is open.
         // This should really be fixed with proper menu enabling.
         if ($(".modal.instance").length || !appReady) {
@@ -62,7 +62,7 @@ define(function (require, exports, module) {
         
         // This function should *only* be called as a top-level function. If the current
         // stack depth is > 2, it is most likely because we are at a breakpoint. 
-        if (stackDepth < 3) {
+        if (ignoreStackDepth || stackDepth < 3) {
             promise = CommandManager.execute(eventName);
         } else {
             console.error("Skipping command " + eventName + " because it looks like you are " +

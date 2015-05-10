@@ -26,7 +26,7 @@
 /*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, brackets */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     require("utils/Global");
     
@@ -84,7 +84,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; });
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(brackets.app.ERR_NOT_FOUND);
                 });
                 
                 // Add menu
@@ -131,21 +131,14 @@ define(function (require, exports, module) {
             });
 		
             it("should return an error if invalid parameters are passed", function () {
-                var complete = false,
-                    error = 0;
-                
-                runs(function () {
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, 42, "", function (err) {
-                        complete = true;
-                        error = err;
-                    });
-                });
-                
-                waitsFor(function () { return complete; });
-                
-                runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_INVALID_PARAMS);
-                });
+                var error;
+                try {
+                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, 42, "", function () {});
+                } catch (e) {
+                    error = e;
+                }
+                expect(error.name).toBe("AssertionError");
+                expect(error.message).toContain("must be a string");
             });
         }); // describe("addMenu")
 
@@ -442,7 +435,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; });
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(brackets.app.ERR_NOT_FOUND);
                 });
 
                 // Verify menu is found
@@ -557,20 +550,14 @@ define(function (require, exports, module) {
             });
          
             it("should return an error if invalid parameters are passed", function () {
-                runs(function () {
-                    error = 0;
-                    complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", 42, "", "", function (err) {
-                        complete = true;
-                        error = err;
-                    });
-                });
-                
-                waitsFor(function () { return complete; });
-                
-                runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_INVALID_PARAMS);
-                });
+                var error;
+                try {
+                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", 42, "", "", function () {});
+                } catch (e) {
+                    error = e;
+                }
+                expect(error.name).toBe("AssertionError");
+                expect(error.message).toContain("must be a string");
             });
         }); // describe("addMenuItem")
          
@@ -902,7 +889,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; });
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(brackets.app.ERR_NOT_FOUND);
                 });
                 
                 // Verify item is found in the right position
@@ -1136,21 +1123,14 @@ define(function (require, exports, module) {
             });
 
             it("should return an error if invalid parameters are passed", function () {
-                complete = false;
-                error = 0;
-                
-                runs(function () {
-                    brackets.app.removeMenu(42, function (err) {
-                        complete = true;
-                        error = err;
-                    });
-                });
-                
-                waitsFor(function () { return complete; });
-                
-                runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_INVALID_PARAMS);
-                });
+                var error;
+                try {
+                    brackets.app.removeMenu(42, function () {});
+                } catch (e) {
+                    error = e;
+                }
+                expect(error.name).toBe("AssertionError");
+                expect(error.message).toContain("must be a string");
             });
 
             it("should return an error if the menu can't be found", function () {
@@ -1167,7 +1147,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; });
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(brackets.app.ERR_NOT_FOUND);
                 });
             });
         });
@@ -1251,25 +1231,18 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, "calling getMenuTitle");
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(brackets.app.ERR_NOT_FOUND);
                 });
             });
             it("should return an error if invalid parameters are passed", function () {
-                var complete = false,
-                    error = 0;
-                                                
-                runs(function () {
-                    brackets.app.removeMenuItem(42, function (err) {
-                        complete = true;
-                        error = err;
-                    });
-                });
-                
-                waitsFor(function () { return complete; }, "calling removeMenuItem");
-                
-                runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_INVALID_PARAMS);
-                });
+                var error;
+                try {
+                    brackets.app.removeMenuItem(42, function () {});
+                } catch (e) {
+                    error = e;
+                }
+                expect(error.name).toBe("AssertionError");
+                expect(error.message).toContain("must be a string");
             });
             it("should return an error if the menu item can't be found", function () {
                 var complete = false,
@@ -1285,7 +1258,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, "calling removeMenuItem");
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(brackets.app.ERR_NOT_FOUND);
                 });
             });
         });
@@ -1447,21 +1420,14 @@ define(function (require, exports, module) {
                 });
             });
             it("should return an error if invalid parameters are passed", function () {
-                var complete = false,
-                    error = 0;
-                
-                runs(function () {
-                    brackets.app.setMenuItemState(ITEM_ID, "hello", "world", function (err) {
-                        complete = true;
-                        error = err;
-                    });
-                });
-                
-                waitsFor(function () { return complete; });
-                
-                runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_INVALID_PARAMS);
-                });
+                var error;
+                try {
+                    brackets.app.setMenuItemState(ITEM_ID, "hello", "world", function () {});
+                } catch (e) {
+                    error = e;
+                }
+                expect(error.name).toBe("AssertionError");
+                expect(error.message).toContain("must be a boolean");
             });
         });
                 
@@ -1624,21 +1590,14 @@ define(function (require, exports, module) {
                 });
             });
             it("should return an error if invalid parameters are passed", function () {
-                var complete = false,
-                    error = 0;
-                
-                runs(function () {
-                    brackets.app.setMenuTitle(TEST_MENU_ITEM_ID, 42, function (err) {
-                        complete = true;
-                        error = err;
-                    });
-                });
-                
-                waitsFor(function () { return complete; });
-                
-                runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_INVALID_PARAMS);
-                });
+                var error;
+                try {
+                    brackets.app.setMenuTitle(TEST_MENU_ITEM_ID, 42, function () {});
+                } catch (e) {
+                    error = e;
+                }
+                expect(error.name).toBe("AssertionError");
+                expect(error.message).toContain("must be a string");
             });
         });
         
