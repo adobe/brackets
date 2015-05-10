@@ -2,14 +2,14 @@
 
 "use strict";
 
-process.on("uncaughtException", function (err) {
-    process.send({msg: "log", data: "uncaughtException in FileWatcherWorker: " + err.stack});
-    process.exit(1);
-});
-
 function send(msg, data) {
     process.send({msg: msg, data: data});
 }
+
+process.on("uncaughtException", function (err) {
+    send("log", "uncaughtException in FileWatcherWorker: " + err.stack);
+    process.exit(1);
+});
 
 var fspath = require("path");
 var watch = require("watch");
@@ -41,7 +41,7 @@ function _unwatchPath(path) {
                 watcher.stop();
             }
         } catch (err) {
-            console.warn("Failed to unwatch file " + path + ": " + (err && err.message));
+            send("log", "FileWatcherWorker failed to unwatch file " + path + ": " + err.stack);
         } finally {
             delete _watcherMap[path];
         }
@@ -101,7 +101,7 @@ function watchPath(path, callback) {
                 send("change", [type, s[0], s[1]]);
             });
             watcher.on("error", function (err) {
-                console.error("Error watching file " + path + ": " + (err && err.message));
+                send("log", "FileWatcherWorker error watching file " + path + ": " + err.stack);
                 unwatchPath(path);
             });
             watcher.start();
