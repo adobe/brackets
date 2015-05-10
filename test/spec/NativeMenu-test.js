@@ -84,7 +84,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; });
                 
                 runs(function () {
-                    expect(error.code).toBe(brackets.app.ERR_NOTFOUND);
+                    expect(error).toBe(brackets.app.ERR_NOT_FOUND);
                 });
                 
                 // Add menu
@@ -435,7 +435,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; });
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(brackets.app.NO_ERROR);
                 });
 
                 // Verify menu is found
@@ -889,7 +889,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; });
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(brackets.app.NO_ERROR);
                 });
                 
                 // Verify item is found in the right position
@@ -1147,7 +1147,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; });
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(brackets.app.ERR_NOT_FOUND);
                 });
             });
         });
@@ -1231,7 +1231,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, "calling getMenuTitle");
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(brackets.app.ERR_NOT_FOUND);
                 });
             });
             it("should return an error if invalid parameters are passed", function () {
@@ -1258,7 +1258,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return complete; }, "calling removeMenuItem");
                 
                 runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_NOT_FOUND);
+                    expect(error).toBe(brackets.app.ERR_NOT_FOUND);
                 });
             });
         });
@@ -1427,7 +1427,7 @@ define(function (require, exports, module) {
                     error = e;
                 }
                 expect(error.name).toBe("AssertionError");
-                expect(error.message).toContain("must be a string");
+                expect(error.message).toContain("must be a boolean");
             });
         });
                 
