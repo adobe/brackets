@@ -30,9 +30,13 @@
 .CodeMirror-foldgutter-folded,
 .CodeMirror-foldgutter-blank {
     width: @font-size;
-    padding-top: 2px;
     cursor: default;
     line-height: 100%;
+}
+
+.CodeMirror-foldgutter-open,
+.CodeMirror-foldgutter-folded {
+    padding-top: 2px;
 }
 
 .CodeMirror-gutter-elt {
@@ -47,6 +51,9 @@
 
 
 .CodeMirror-foldmarker {
+    // Re-enabling the pointer events for the fold marker. As pointer events are disabled for "CodeMirror-lines"
+    // to fix issue #2780.
+    pointer-events: auto;
     padding-right: 3px;
     padding-left: 3px;
     margin-right: 3px;
