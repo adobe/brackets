@@ -410,7 +410,7 @@ define(function (require, exports, module) {
                     "UrlCodeHints",
 
                     // Custom extensions we want loaded by default
-                    "HTMLHinter",
+                    // "HTMLHinter",
                     "brackets-browser-livedev",
                     "brackets-paste-and-indent"
                 ];
