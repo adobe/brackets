@@ -1111,6 +1111,17 @@ define(function (require, exports, module) {
                                                        {start: {line: 3, ch: 6}, end: {line: 3, ch: 14}, primary: false, reversed: true}]);
                 });
                 
+                it("should comment out multiple selections and preserve selections when an edit overlaps subsequent selection", function () {
+                    var lines = defaultContent.split("\n");
+                    lines[1] = "    /*function*/ /*bar()*/ {";
+                    var expectedText = lines.join("\n");
+                    
+                    myEditor.setSelections([{start: {line: 1, ch:  4}, end: {line: 1, ch: 12}, primary: true},
+                                            {start: {line: 1, ch: 13}, end: {line: 1, ch: 18}, reversed: true}]);
+                    testToggleBlock(expectedText, [{start: {line: 1, ch:  6}, end: {line: 1, ch: 14}, primary: true, reversed: false},
+                                                   {start: {line: 1, ch: 19}, end: {line: 1, ch: 24}, primary: false, reversed: true}]);
+                });
+                
                 it("should skip the case where a selection covers multiple block comments, but still track it and handle other selections", function () {
                     var lines = defaultContent.split("\n");
                     lines[4] = "    /*a*/ /*()*/ {";

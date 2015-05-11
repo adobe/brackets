@@ -472,7 +472,7 @@ define(function (require, exports, module) {
     
     /**
      * Adjusts a given position taking a given replaceRange-type edit into account. 
-     * If the position is within the original edit range (start and end inclusive),
+     * If the position is within the original edit range (start and end exclusive),
      * it gets pushed to the end of the content that replaced the range. Otherwise, 
      * if it's after the edit, it gets adjusted so it refers to the same character
      * it did before the edit.
@@ -487,10 +487,10 @@ define(function (require, exports, module) {
         // and Marijn would rather not expose it publicly.
         var change = { text: textLines, from: start, to: end };
 
-        if (CodeMirror.cmpPos(pos, start) < 0) {
+        if (CodeMirror.cmpPos(pos, start) <= 0) {
             return pos;
         }
-        if (CodeMirror.cmpPos(pos, end) <= 0) {
+        if (CodeMirror.cmpPos(pos, end) < 0) {
             return CodeMirror.changeEnd(change);
         }
 
@@ -500,6 +500,27 @@ define(function (require, exports, module) {
             ch += CodeMirror.changeEnd(change).ch - change.to.ch;
         }
         return {line: line, ch: ch};
+    };
+    
+    /**
+     * Adjusts a given selection for an edit.
+     * @param {!{start:{line:number, ch:number}, end:{line:number, ch:number}} sel Selection.
+     * @param {!Array.<string>} textLines The text of the change, split into an array of lines.
+     * @param {!{text: string, start:{line: number, ch: number}, end:?{line: number, ch: number}}} edit
+     * @param {number} selIndex Selection index
+     * @param {number} editIndex Edit index
+     */
+    Document.prototype.adjustSelectionForChange = function (sel, textLines, edit, selIndex, editIndex) {
+        var selStart;
+        if (sel.isBeforeEdit || selIndex !== editIndex) {
+            selStart = this.adjustPosForChange(sel.start, textLines, edit.start, edit.end);
+
+            // When end is on same line as start, only adjust when start was adjusted
+            if (sel.start.line !== sel.end.line || CodeMirror.cmpPos(sel.start, selStart) !== 0) {
+                sel.start = selStart;
+                sel.end = this.adjustPosForChange(sel.end, textLines, edit.start, edit.end);
+            }
+        }
     };
     
     /**
@@ -629,10 +650,7 @@ define(function (require, exports, module) {
                         _.each(result, function (selections, selIndex) {
                             if (selections) {
                                 oneOrEach(selections, function (sel) {
-                                    if (sel.isBeforeEdit || selIndex !== index) {
-                                        sel.start = self.adjustPosForChange(sel.start, textLines, edit.start, edit.end);
-                                        sel.end = self.adjustPosForChange(sel.end, textLines, edit.start, edit.end);
-                                    }
+                                    self.adjustSelectionForChange(sel, textLines, edit, selIndex, index);
                                 });
                             }
                         });
