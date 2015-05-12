@@ -385,7 +385,8 @@ define(function (require, exports, module) {
      */
     function init(paths) {
         var params = new UrlParams();
-        
+        params.parse();
+
         if (_init) {
             // Only init once. Return a resolved promise.
             return new $.Deferred().resolve().promise();
@@ -393,27 +394,54 @@ define(function (require, exports, module) {
         
         // Load *subset* of the usual builtin extensions list, and don't try to find any user/dev extensions
         if (brackets.inBrowser) {
-            var basePath = PathUtils.directory(window.location.href) + "extensions/default/",
-                defaultExtensions = [
-                    // Core extensions we want to support in the browser
-                    "CSSCodeHints",
-                    "HTMLCodeHints",
-                    "JavaScriptCodeHints",
-                    "SVGCodeHints",
-                    "HtmlEntityCodeHints",
-                    "InlineColorEditor",
-                    "JavaScriptQuickEdit",
-                    "QuickOpenCSS",
-                    "QuickOpenHTML",
-                    "QuickOpenJavaScript",
-                    "QuickView",
-                    "UrlCodeHints",
+            var basePath = PathUtils.directory(window.location.href) + "extensions/default/";
 
-                    // Custom extensions we want loaded by default
-                    // "HTMLHinter",
-                    "brackets-browser-livedev",
-                    "brackets-paste-and-indent"
-                ];
+            // We have a set of defaults we load if not instructed to do
+            // otherwise via query string params.
+            var defaultExtensions = [
+                "CSSCodeHints",
+                "HTMLCodeHints",
+                "JavaScriptCodeHints",
+                "SVGCodeHints",
+                "HtmlEntityCodeHints",
+                "InlineColorEditor",
+                "JavaScriptQuickEdit",
+                "QuickOpenCSS",
+                "QuickOpenHTML",
+                "QuickOpenJavaScript",
+                "QuickView",
+                "UrlCodeHints",
+
+                // Custom extensions we want loaded by default
+                // "HTMLHinter",
+                "brackets-browser-livedev",
+                "brackets-paste-and-indent"
+            ];
+
+            // Add any extra extensions we found on qs extraExtensions param
+            if (params.get("extraExtensions")) {
+                var extraExtensions = params.get("extraExtensions").split(/\s*\,\s*/);
+                extraExtensions.forEach(function (ext) {
+                    ext = ext.trimRight().trimLeft();
+                    if (defaultExtensions.indexOf(ext) === -1) {
+                        console.log('[Brackets] Loading additional extension `' + ext + '`');
+                        defaultExtensions.push(ext);
+                    }
+                });
+            }
+
+            // Disable any extensions we found on qs disabledExtensions param
+            if (params.get("disabledExtensions")) {
+                var disabledExtensions = params.get("disabledExtensions").split(/\s*\,\s*/);
+                disabledExtensions.forEach(function (ext) {
+                    ext = ext.trimRight().trimLeft();
+                    var idx = defaultExtensions.indexOf(ext);
+                    if (idx > -1) {
+                        console.log('[Brackets] Disabling default extension `' + ext + '`');
+                        defaultExtensions.splice(idx, 1);
+                    }
+                });
+            }
 
             return Async.doInParallel(defaultExtensions, function (item) {
                 var extConfig = {
@@ -425,8 +453,6 @@ define(function (require, exports, module) {
 
         
         if (!paths) {
-            params.parse();
-            
             if (params.get("reloadWithoutUserExts") === "true") {
                 paths = ["default"];
             } else {
