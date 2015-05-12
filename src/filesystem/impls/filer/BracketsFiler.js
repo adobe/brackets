@@ -3,7 +3,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Filer = require("thirdparty/filer/dist/filer");
+    // If you need to debug Filer for some reason, drop the .min below
+    var Filer = require("thirdparty/filer/dist/filer.min");
     var fs;
 
     Filer.fs = function() {
