@@ -418,11 +418,11 @@ define(function (require, exports, module) {
                 "brackets-paste-and-indent"
             ];
 
-            // Add any extra extensions we found on qs extraExtensions param
+            // Add any extra extensions we found on the query string's extraExtensions param
             if (params.get("extraExtensions")) {
-                var extraExtensions = params.get("extraExtensions").split(/\s*\,\s*/);
+                var extraExtensions = params.get("extraExtensions").split(",");
                 extraExtensions.forEach(function (ext) {
-                    ext = ext.trimRight().trimLeft();
+                    ext = ext.trim();
                     if (defaultExtensions.indexOf(ext) === -1) {
                         console.log('[Brackets] Loading additional extension `' + ext + '`');
                         defaultExtensions.push(ext);
@@ -430,11 +430,11 @@ define(function (require, exports, module) {
                 });
             }
 
-            // Disable any extensions we found on qs disabledExtensions param
+            // Disable any extensions we found on the query string's disabledExtensions param
             if (params.get("disabledExtensions")) {
-                var disabledExtensions = params.get("disabledExtensions").split(/\s*\,\s*/);
+                var disabledExtensions = params.get("disabledExtensions").split(",");
                 disabledExtensions.forEach(function (ext) {
-                    ext = ext.trimRight().trimLeft();
+                    ext = ext.trim();
                     var idx = defaultExtensions.indexOf(ext);
                     if (idx > -1) {
                         console.log('[Brackets] Disabling default extension `' + ext + '`');
