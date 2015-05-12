@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     /**
      * Convert Filer error codes to FileSystemError values.
      *
-     * @param {?number} err A Filer error code
+     * @param {?Object} err A Filer error code or Brackets error string
      * @return {?string} A FileSystemError string, or null if there was no error code.
      * @private
      **/
@@ -37,6 +37,13 @@ define(function (require, exports, module) {
             return null;
         }
 
+        // If we get a raw Brackets error string passed through,
+        // we don't need to map anything, and can just use it directly.
+        if (typeof err === "string") {
+            return err;
+        }
+
+        // Otherwise it's a Filer error, try and use err.code
         switch (err.code) {
         case 'EINVAL':
             return FileSystemError.INVALID_PARAMS;
@@ -55,6 +62,8 @@ define(function (require, exports, module) {
             return FileSystemError.NOT_READABLE;
         }
 
+        // We don't know what this is, log it. We likely need a new case above.
+        console.log('[Brackets Filesystem] Unknown I/O error', err);
         return FileSystemError.UNKNOWN;
     }
 
