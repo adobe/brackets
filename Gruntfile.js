@@ -75,6 +75,8 @@ module.exports = function (grunt) {
                         /* extensions and CodeMirror modes */
                         '!extensions/default/*/unittests.js',
                         'extensions/default/*/**/*.js',
+                        '!extensions/extra/*/unittests.js',
+                        'extensions/extra/*/**/*.js',
                         '!**/unittest-files/**',
                         '!extensions/default/JavaScriptCodeHints/thirdparty/*/test/**/*',
                         '!extensions/default/**/node_modules/**/*',
@@ -118,6 +120,7 @@ module.exports = function (grunt) {
                         cwd: 'src/',
                         src: [
                             'extensions/default/**/*',
+                            'extensions/extra/**/*',
                             '!extensibility/node/spec/**',
                             '!extensibility/node/node_modules/**/{test,tst}/**/*',
                             '!extensibility/node/node_modules/**/examples/**/*',
@@ -128,6 +131,12 @@ module.exports = function (grunt) {
                             '!extensions/default/{*/thirdparty,**/node_modules}/**/doc/**/*',
                             '!extensions/default/{*/thirdparty,**/node_modules}/**/examples/**/*',
                             '!extensions/default/*/thirdparty/**/*.htm{,l}',
+                            '!extensions/extra/*/unittest-files/**/*',
+                            '!extensions/extra/*/unittests.js',
+                            '!extensions/extra/{*/thirdparty,**/node_modules}/**/test/**/*',
+                            '!extensions/extra/{*/thirdparty,**/node_modules}/**/doc/**/*',
+                            '!extensions/extra/{*/thirdparty,**/node_modules}/**/examples/**/*',
+                            '!extensions/extra/*/thirdparty/**/*.htm{,l}',
                             'extensions/dev/*',
                             'extensions/samples/**/*',
                             'thirdparty/CodeMirror/addon/{,*/}*',
@@ -353,6 +362,7 @@ module.exports = function (grunt) {
                 '!src/extensions/default/HTMLHinter/slowparse/**',
                 '!src/extensions/default/HTMLHinter/tooltipsy.source.js',
                 '!src/extensions/default/brackets-browser-livedev/nohost/**',
+                '!src/extensions/extra/**',
                 //With Previous skip statement, this file was ignored, so we specify it directly for jshinting
                 'src/extensions/default/brackets-browser-livedev/nohost/src/NoHostServer.js'
             ],
@@ -363,6 +373,7 @@ module.exports = function (grunt) {
                 '!src/extensions/default/HTMLHinter/slowparse/**',
                 '!src/extensions/default/HTMLHinter/tooltipsy.source.js',
                 '!src/extensions/default/brackets-browser-livedev/nohost/**',
+                '!src/extensions/extra/**',
                 //With Previous skip statement, this file was ignored, so we specify it directly for jshinting
                 'src/extensions/default/brackets-browser-livedev/nohost/src/NoHostServer.js'
             ],
