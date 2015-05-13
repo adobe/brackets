@@ -45,7 +45,8 @@ define(function (require, exports, module) {
         FileUtils      = require("file/FileUtils"),
         Async          = require("utils/Async"),
         ExtensionUtils = require("utils/ExtensionUtils"),
-        UrlParams      = require("utils/UrlParams").UrlParams;
+        UrlParams      = require("utils/UrlParams").UrlParams,
+        BrambleExtensionLoader = require("utils/BrambleExtensionLoader");
 
     // default async initExtension timeout
     var INIT_EXTENSION_TIMEOUT = 10000;
@@ -394,63 +395,16 @@ define(function (require, exports, module) {
         
         // Load *subset* of the usual builtin extensions list, and don't try to find any user/dev extensions
         if (brackets.inBrowser) {
-            var basePath = PathUtils.directory(window.location.href) + "extensions/default/";
+            // Bramble: we have a more complex extension loading pattern based on URL params
+            var extensionList = BrambleExtensionLoader.getExtensionList(params);
 
-            // We have a set of defaults we load if not instructed to do
-            // otherwise via query string params.
-            var defaultExtensions = [
-                "CSSCodeHints",
-                "HTMLCodeHints",
-                "JavaScriptCodeHints",
-                "SVGCodeHints",
-                "HtmlEntityCodeHints",
-                "InlineColorEditor",
-                "JavaScriptQuickEdit",
-                "QuickOpenCSS",
-                "QuickOpenHTML",
-                "QuickOpenJavaScript",
-                "QuickView",
-                "UrlCodeHints",
-
-                // Custom extensions we want loaded by default
-                // "HTMLHinter",
-                "brackets-browser-livedev",
-                "brackets-paste-and-indent"
-            ];
-
-            // Add any extra extensions we found on the query string's extraExtensions param
-            if (params.get("extraExtensions")) {
-                var extraExtensions = params.get("extraExtensions").split(",");
-                extraExtensions.forEach(function (ext) {
-                    ext = ext.trim();
-                    if (defaultExtensions.indexOf(ext) === -1) {
-                        console.log('[Brackets] Loading additional extension `' + ext + '`');
-                        defaultExtensions.push(ext);
-                    }
-                });
-            }
-
-            // Disable any extensions we found on the query string's disabledExtensions param
-            if (params.get("disabledExtensions")) {
-                var disabledExtensions = params.get("disabledExtensions").split(",");
-                disabledExtensions.forEach(function (ext) {
-                    ext = ext.trim();
-                    var idx = defaultExtensions.indexOf(ext);
-                    if (idx > -1) {
-                        console.log('[Brackets] Disabling default extension `' + ext + '`');
-                        defaultExtensions.splice(idx, 1);
-                    }
-                });
-            }
-
-            return Async.doInParallel(defaultExtensions, function (item) {
+            return Async.doInParallel(extensionList, function (item) {
                 var extConfig = {
-                    baseUrl: basePath + item
+                    baseUrl: item.path
                 };
-                return loadExtension(item, extConfig, "main");
+                return loadExtension(item.name, extConfig, "main");
             });
         }
-
         
         if (!paths) {
             if (params.get("reloadWithoutUserExts") === "true") {

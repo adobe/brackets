@@ -51,6 +51,48 @@ Run one of the suggested local servers (or your own) from the root directory of 
 
 Assuming you have Bramble running on port `8080`. Now you can visit [http://localhost:8080/src](http://localhost:8080/src).
 
+# Optional Extension Loading
+
+Bramble supports enabling and disabling various extensions via the URL and query params.
+A standard set of default extensions are always turned on:
+
+* CSSCodeHints
+* HTMLCodeHints
+* JavaScriptCodeHints
+* InlineColorEditor
+* JavaScriptQuickEdit
+* QuickOpenCSS
+* QuickOpenHTML
+* QuickOpenJavaScript
+* QuickView
+* UrlCodeHints
+* HTMLHinter
+* brackets-paste-and-indent
+
+You could disable QuickView and CSSCodeHints by loading Bramble with `?disableExtensions=QuickView,CSSCodeHints`
+on the URL.
+
+In addition, you can enable other extra extensions:
+
+* SVGCodeHints
+* HtmlEntityCodeHints
+* LESSSupport
+* CloseOthers
+* InlineTimingFunctionEditor
+* WebPlatformDocs
+* CodeFolding
+* JSLint
+* QuickOpenCSS
+* RecentProjects
+* brackets-cdn-suggestions
+
+You could enable JSLint and LESSSupport by loading Bramble with `?enableExtensions=JSLint,LESSSupport`
+on the URL
+
+NOTE: you can combine `disableExtensions` and `enableExtensions` to mix loading/disabling extensions.
+You should check src/utils/BrambleExtensionLoader.js for the most up-to-date version of these
+extension lists.
+
 --------------
 
 ## After installation

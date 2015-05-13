@@ -40,3 +40,6 @@
 [submodule "src/extensions/default/brackets-paste-and-indent"]
 	path = src/extensions/default/brackets-paste-and-indent
 	url = https://github.com/ahuth/brackets-paste-and-indent.git
+[submodule "src/extensions/extra/brackets-cdn-suggestions"]
+	path = src/extensions/extra/brackets-cdn-suggestions
+	url = https://github.com/szdc/brackets-cdn-suggestions.git
