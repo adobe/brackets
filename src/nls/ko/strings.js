@@ -522,7 +522,7 @@ define({
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER": "이 확장 기능 버전 {0}에는 {APP_NAME}의 새 버전이 필요합니다. 그러나 이전 버전 {1}을 설치할 수 있습니다.",
     "EXTENSION_LATEST_INCOMPATIBLE_OLDER": "이 확장 기능 버전 {0} {APP_NAME}의 이전 버전에서만 작동합니다. 그러나 이전 버전 {1}을 설치할 수 있습니다.",
     "EXTENSION_NO_DESCRIPTION": "설명 없음",
-    "EXTENSION_MORE_INFO": "추가정보...",
+    "EXTENSION_MORE_INFO": "추가 정보...",
     "EXTENSION_ERROR": "확장 기능 에러",
     "EXTENSION_KEYWORDS": "키워드",
     "EXTENSION_TRANSLATED_USER_LANG"       : "{0}개 언어 지원. 한국어 포함",
@@ -531,12 +531,12 @@ define({
     "EXTENSION_INSTALLED": "설치 완료",
     "EXTENSION_UPDATE_INSTALLED": "이 확장 기능의 업데이트가 다운로드되었습니다. {APP_NAME}를 종료할 때 설치합니다.",
     "EXTENSION_SEARCH_PLACEHOLDER": "검색",
-    "EXTENSION_MORE_INFO_LINK": "상세정보",
+    "EXTENSION_MORE_INFO_LINK": "상세 정보",
     "BROWSE_EXTENSIONS": "확장 기능 찾기",
     "EXTENSION_MANAGER_REMOVE": "확장 기능 제거",
-    "EXTENSION_MANAGER_REMOVE_ERROR": "하나 이상의 확장 기능을 ({0})를 제거 할 수 없습니다. {APP_NAME}가 종료 중입니다.",
+    "EXTENSION_MANAGER_REMOVE_ERROR": "하나 이상의 확장 기능을 ({0}) 제거할 수 없습니다. {APP_NAME}가 종료 중입니다.",
     "EXTENSION_MANAGER_UPDATE": "확장 기능 업데이트",
-    "EXTENSION_MANAGER_UPDATE_ERROR": "하나 이상의 확장 기능을 ({0})를 업데이트 할 수 없습니다. {APP_NAME}가 종료 중입니다.",
+    "EXTENSION_MANAGER_UPDATE_ERROR": "하나 이상의 확장 기능을 ({0}) 업데이트 할 수 없습니다. {APP_NAME}가 종료 중입니다.",
     "MARKED_FOR_REMOVAL": "삭제 예정",
     "UNDO_REMOVE": "삭제 취소",
     "MARKED_FOR_UPDATE": "업데이트 예정",
@@ -547,12 +547,12 @@ define({
     "CHANGE_AND_RELOAD": "확장 기능을 변경하고 재시작",
     "UPDATE_AND_RELOAD": "확장 기능을 업데이트하고 재시작",
     "PROCESSING_EXTENSIONS"                : "확장 기능 변경사항 처리 중\u2026",
-    "EXTENSION_NOT_INSTALLED": "설치되지 않았기 때문에 확장 {0}을 삭제할 수 없습니다.",
-    "NO_EXTENSIONS": "설치되어있는 확장 기능이 아직 없습니다. <br>에서 「설치가능」탭을 클릭하여 설치하세요.",
+    "EXTENSION_NOT_INSTALLED": "설치되지 않았기 때문에 확장 기능 {0}을 삭제할 수 없습니다.",
+    "NO_EXTENSIONS": "설치되어있는 확장 기능이 아직 없습니다. <br>에서 「설치 가능」탭을 클릭하여 설치하세요.",
     "NO_EXTENSION_MATCHES": "검색 조건에 일치하는 확장 기능이 없습니다.",
-    "REGISTRY_SANITY_CHECK_WARNING": "알 수없는 소스에서 확장 기능을 설치할 때 주의하세요.",
+    "REGISTRY_SANITY_CHECK_WARNING": "알 수 없는 소스에서 확장 기능을 설치할 때 주의하세요.",
     "EXTENSIONS_INSTALLED_TITLE": "설치됨",
-    "EXTENSIONS_AVAILABLE_TITLE": "설치가능",
+    "EXTENSIONS_AVAILABLE_TITLE": "설치 가능",
     "EXTENSIONS_THEMES_TITLE"              : "테마",
     "EXTENSIONS_UPDATES_TITLE": "업데이트",
     
@@ -584,7 +584,7 @@ define({
     "CMD_LOG_NODE_STATE": "Node 상태를 콘솔에 기록",
     "CMD_RESTART_NODE": "Node를 다시 시작",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "에러를 상태표시줄에 표시",
-    "CMD_OPEN_BRACKETS_SOURCE"                  : "Brackets 소스 열기",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "{APP_NAME} 소스 열기",
     
     "LANGUAGE_TITLE": "언어 변경",
     "LANGUAGE_MESSAGE": "언어:",
@@ -625,7 +625,7 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS": "최근에 사용한 프로젝트",
     
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK": "상세정보"
+    "DOCS_MORE_LINK": "상세 정보"
 });
 
-/* Last translated for 46de60683124768aa7f074aa3168f99d23f6c016 */
+/* Last translated for 50cbe1b8848786c6be27d4788e4b6a367244abc2 */
