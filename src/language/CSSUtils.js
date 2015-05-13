@@ -864,7 +864,7 @@ define(function (require, exports, module) {
             var prevToken = "";
             while (token !== ";") {
                 // Skip tokens until the closing brace if we find an interpolated variable.
-                if (/#\{$/.test(token) || (token === "{" && /[#@]$/.test(prevToken))) {
+                if (/[#@]\{$/.test(token) || (token === "{" && /[#@]$/.test(prevToken))) {
                     _skipToClosingBracket("{");
                     if (token === "}") {
                         _nextToken();   // Skip the closing brace
@@ -911,9 +911,9 @@ define(function (require, exports, module) {
                     currentSelector += _skipToClosingBracket("{");
                     _nextToken();  // skip the closing brace
                 } else if (token === "}" &&
-                        (!currentSelector || /:\s*\S/.test(currentSelector) || !/#\{.+/.test(currentSelector))) {
+                        (!currentSelector || /:\s*\S/.test(currentSelector) || !/[#@]\{.+/.test(currentSelector))) {
                     // Either empty currentSelector or currentSelector is a CSS property
-                    // but not a selector that is in the form of #{$class}
+                    // but not a selector that is in the form of #{$class} or @{class}
                     return false;
                 }
                 // Clear currentSelector if we're in a property, but make sure we don't treat
