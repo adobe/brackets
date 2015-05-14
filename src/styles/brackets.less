@@ -438,7 +438,7 @@ a, img {
             color: @bc-text-alt;
             background-color: rgba(0, 0, 0, 0.8);
             font-size: 11px;
-            font-family: SourceCodePro;
+            font-family: @sourceFontFamily;
             line-height: 13px;
             border-radius: 3px;
             box-shadow: 0 1px 3px @bc-shadow;
@@ -640,7 +640,7 @@ a, img {
 
     .line-number {
         color: @bc-text-thin-quiet;
-        font-family: SourceCodePro;
+        font-family: @sourceFontFamily;
         font-size: 11px;
         padding: 4px 0 0 15px;
         text-align: right;
@@ -831,6 +831,7 @@ a, img {
         padding: 0 0 0 8px;
         min-height: 18px;
         vertical-align: baseline;
+        white-space: nowrap;
         
         &.selected a {
             color: @open-working-file-name-highlight;
@@ -1742,32 +1743,24 @@ textarea.exclusions-editor {
     }
 }
 
-.smart_autocomplete_container {
-    // the borders show up even if the container is empty, must set height to zero using JS.
+.quick-search-container {
+    border: 1px solid @bc-panel-border;
+    box-sizing: border-box;  // lets QuickSearchField size the width more nicely
     background-color: @bc-panel-bg;
     border-radius: 0 0 4px 4px;
     box-shadow: 0 5px 10px @bc-shadow;
     opacity: 0;
     
-    // Need this for border-radius because there are no borders
-    overflow: hidden;
-    
-    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99), 190ms, 1);
+    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99), 0, 1);
     -webkit-animation-fill-mode: forwards;
     animation-fill-mode: forwards;
     -webkit-transform-origin: 0 0;
     transform-origin: 0 0;
 
-    // so that border won't show when height is 0.
-    box-sizing: border-box;
-
-    // using this to fix the spacing that breaks item seperators and had to use !important to override inline css
-    width: 434px !important;
-
-    /* smart auto complete doesn't correctly position the container
-     * so these specific padding and margin values are necessary*/
-    padding: 0px;
+    padding: 0;
     margin: 9px 0 0;
+    
+    z-index: @z-index-brackets-context-menu-base;
 
     .dark & {
         background-color: @dark-bc-panel-bg;
@@ -1804,6 +1797,9 @@ textarea.exclusions-editor {
                 background-color: @dark-bc-panel-bg-alt;
             }
         }
+        &:last-child {
+            border-radius: 0 0 4px 4px;  // don't cover over quick-search-container's rounded corners
+        }
 
         &:hover {
             background-color: @bc-panel-bg-hover;
@@ -1813,7 +1809,7 @@ textarea.exclusions-editor {
             }
         }
 
-        &.smart_autocomplete_highlight {
+        &.highlight {
             background-color: @bc-bg-highlight;
             color: @bc-menu-text;
             

@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     // Brackets modules
     var ColorUtils          = brackets.getModule("utils/ColorUtils"),
         CommandManager      = brackets.getModule("command/CommandManager"),
+        Commands            = brackets.getModule("command/Commands"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
@@ -167,7 +168,7 @@ define(function (require, exports, module) {
         // nested 2 levels. Other gradients can only nest 1 level.
         var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
             colorRegEx    = new RegExp(ColorUtils.COLOR_REGEX),
-            mode          = TokenUtils.getModeAt(editor._codeMirror, pos),
+            mode          = TokenUtils.getModeAt(editor._codeMirror, pos, false),
             isStyleSheet  = (styleLanguages.indexOf(mode) !== -1);
 
         function areParensBalanced(str) {
@@ -199,9 +200,9 @@ define(function (require, exports, module) {
             return (nestLevel === 0);
         }
         
-        function execGradientMatch(line) {
+        function execGradientMatch(line, parensBalanced) {
             // Unbalanced parens cause infinite loop (see issue #4650)
-            var gradientMatch = (areParensBalanced(line) ? gradientRegEx.exec(line) : null),
+            var gradientMatch = (parensBalanced ? gradientRegEx.exec(line) : null),
                 prefix = "",
                 colorValue;
             
@@ -271,7 +272,7 @@ define(function (require, exports, module) {
                     break;
                 }
                 if (ignoreNamedColors === undefined) {
-                    var mode = TokenUtils.getModeAt(editor._codeMirror, pos).name;
+                    var mode = TokenUtils.getModeAt(editor._codeMirror, pos, false).name;
                     ignoreNamedColors = styleLanguages.indexOf(mode) === -1;
                 }
             } while (hyphenOnMatchBoundary(colorMatch, line) ||
@@ -369,7 +370,8 @@ define(function (require, exports, module) {
             return expression;
         }
 
-        var gradientMatch = execGradientMatch(line),
+        var parensBalanced = areParensBalanced(line),
+            gradientMatch = execGradientMatch(line, parensBalanced),
             match = gradientMatch.match || execColorMatch(editor, line, pos),
             cm = editor._codeMirror;
 
@@ -414,7 +416,7 @@ define(function (require, exports, module) {
 
             // Get next match
             if (gradientMatch.match) {
-                gradientMatch = execGradientMatch(line);
+                gradientMatch = execGradientMatch(line, parensBalanced);
             }
             match = gradientMatch.match || execColorMatch(editor, line, pos);
         }
@@ -453,7 +455,7 @@ define(function (require, exports, module) {
             // Strip leading/trailing quotes, if present
             tokenString = tokenString.replace(/(^['"])|(['"]$)/g, "");
             
-            if (/^(data\:image)|(\.gif|\.png|\.jpg|\.jpeg|\.svg)$/i.test(tokenString)) {
+            if (/^(data\:image)|(\.gif|\.png|\.jpg|\.jpeg|\.webp|\.svg)$/i.test(tokenString)) {
                 var sPos, ePos;
                 var docPath = editor.document.file.fullPath;
                 var imgPath;
@@ -605,7 +607,7 @@ define(function (require, exports, module) {
             popoverState = popover;
         } else {
             // Query providers and append to popoverState
-            token = cm.getTokenAt(pos, true);
+            token = TokenUtils.getTokenAt(cm, pos);
             popoverState = $.extend({}, popoverState, queryPreviewProviders(editor, pos, token));
         }
         
@@ -774,8 +776,9 @@ define(function (require, exports, module) {
     ExtensionUtils.loadStyleSheet(module, "QuickView.less");
     
     // Register command
+    // Insert menu at specific pos since this may load before OR after code folding extension
     CommandManager.register(Strings.CMD_ENABLE_QUICK_VIEW, CMD_ENABLE_QUICK_VIEW, toggleEnableQuickView);
-    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_QUICK_VIEW);
+    Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_QUICK_VIEW, null, Menus.AFTER, Commands.VIEW_TOGGLE_INSPECTION);
     
     // Convert old preferences
     PreferencesManager.convertPreferences(module, {

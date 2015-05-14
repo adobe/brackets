@@ -296,7 +296,7 @@ define(function (require, exports, module) {
                 console.log("boo");
             });
         
-            waitsForDone(deferred.promise(), "removeTempDirectory", 1000);
+            waitsForDone(deferred.promise(), "removeTempDirectory", 2000);
         });
     }
     
@@ -526,10 +526,23 @@ define(function (require, exports, module) {
             
             // signals that main.js should configure RequireJS for tests
             params.put("testEnvironment", true);
+
+            if (options) {
+                // option to set the params
+                if (options.hasOwnProperty("params")) {
+                    var paramObject = options.params || {};
+                    var obj;
+                    for (obj in paramObject) {
+                        if (paramObject.hasOwnProperty(obj)) {
+                            params.put(obj, paramObject[obj]);
+                        }
+                    }
+                }
             
-            // option to launch test window with either native or HTML menus
-            if (options && options.hasOwnProperty("hasNativeMenus")) {
-                params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
+                // option to launch test window with either native or HTML menus
+                if (options.hasOwnProperty("hasNativeMenus")) {
+                    params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
+                }
             }
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);

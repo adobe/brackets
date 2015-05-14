@@ -875,11 +875,11 @@ define(function (require, exports, module) {
             it("should add new method on String .prototype", function () {
                 var start = { line: 37, ch: 0 };
                 var testPos = { line: 40, ch: 12 };
-                testDoc.replaceRange("String.prototype.times = function (count) {\n" + "\treturn count < 1 ? '' : new Array[count + 1].join(this);\n};\n\"hello\".time", start, start);
+                testDoc.replaceRange("String.prototype.times = function (count) {\n" + "\treturn count < 1 ? '' : new Array[count + 1].join(this);\n};\n\"hello\".tim", start, start);
                 testEditor.setCursorPos(testPos);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
-                    hintsPresentOrdered(hintObj, ["times", "trimLeft"]);
+                    hintsPresentOrdered(hintObj, ["times", "trim"]);
                 });
             });
 
@@ -1742,91 +1742,6 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("regression tests", function () {
-
-            afterEach(function () {
-                tearDownTest();
-            });
-
-            // FIXME (issue #3558)
-            xit("should return true for valid identifier, false for invalid one", function () {
-                var identifierList = ["ᾩ", "ĦĔĽĻŎ", "〱〱〱〱", "जावास्क्रि",
-                                      "KingGeorgeⅦ", "π", "ಠ_ಠ",
-                                      "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
-                var invalidIdentifierList = [" break", "\tif", "\ntrade"];
-                
-                invalidIdentifierList.forEach(function (element) {
-                    var result = HintUtils.maybeIdentifier(element);
-                    expect(result).toBe(false);
-                });
-                
-                identifierList.forEach(function (element) {
-                    var result = HintUtils.maybeIdentifier(element);
-                    expect(result).toBe(true);
-                });
-            });
-        });
-        
-        describe("JavaScript Code Hinting with test.html file", function () {
-            var testFile = extensionPath + "/unittest-files/basic-test-files/test.html";
-
-            beforeEach(function () {
-                setupTest(testFile, true);
-            });
-
-            afterEach(function () {
-                tearDownTest();
-                
-            });
-            
-            // FIXME (issue #3915)
-            xit("should read function name has double byte chars", function () {
-                var start   = { line: 15, ch: 8 },
-                    testPos = { line: 15, ch: 10 };
-
-                runs(function () {
-                    testEditor.setCursorPos(start);
-                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                    hintsPresentExact(hintObj, ["fun測试"]);
-                });
-                runs(function () {
-                    testEditor.setCursorPos(testPos);
-                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                    hintsPresentExact(hintObj, ["fun測试()"]);
-                });
-            });
-            
-            it("should jump to function name with double byte chars", function () {
-                var start        = { line: 16, ch: 9 };
-                
-                testEditor.setCursorPos(start);
-                runs(function () {
-                    editorJumped({line: 12, ch: 20});
-                });
-            });
-            
-            // FIXME (issue #3915)
-            xit("should read function name has non ascii chars", function () {
-                var start = { line: 16, ch: 16 };
-
-                runs(function () {
-                    testEditor.setCursorPos(start);
-                    var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                    hintsPresentExact(hintObj, ["frenchçProp()"]);
-                });
-            });
-            
-            it("should jump to function name with non ascii chars", function () {
-                var start        = { line: 16, ch: 12 };
-                
-                testEditor.setCursorPos(start);
-                runs(function () {
-                    editorJumped({line: 12, ch: 20});
-                });
-            });
-
-        });
-
         describe("Code Hinting Regression", function () {
             var testFile = extensionPath + "/unittest-files/module-test-files/china/cupFiller.js";
 

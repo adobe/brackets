@@ -251,6 +251,23 @@ define(function (require, exports, module) {
             _updateTitle();
         }
     }
+    
+    /**
+     * Shows an error dialog indicating that the given file could not be opened due to the given error
+     * @param {!FileSystemError} name
+     * @return {!Dialog}
+     */
+    function showFileOpenError(name, path) {
+        return Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_ERROR,
+            Strings.ERROR_OPENING_FILE_TITLE,
+            StringUtils.format(
+                Strings.ERROR_OPENING_FILE,
+                StringUtils.breakableUrl(path),
+                FileUtils.getFileErrorString(name)
+            )
+        );
+    }
 
     /**
      * @private
@@ -288,7 +305,7 @@ define(function (require, exports, module) {
             if (silent) {
                 _cleanup(fileError, fullFilePath);
             } else {
-                FileUtils.showFileOpenError(fileError, fullFilePath).done(function () {
+                showFileOpenError(fileError, fullFilePath).done(function () {
                     _cleanup(fileError, fullFilePath);
                 });
             }
@@ -803,7 +820,7 @@ define(function (require, exports, module) {
                 if (suppressError) {
                     result.resolve();
                 } else {
-                    FileUtils.showFileOpenError(error, doc.file.fullPath)
+                    showFileOpenError(error, doc.file.fullPath)
                         .done(function () {
                             result.reject(error);
                         });
@@ -1675,6 +1692,9 @@ define(function (require, exports, module) {
     } else if (brackets.platform === "mac") {
         showInOS    = Strings.CMD_SHOW_IN_FINDER;
     }
+    
+    // Define public API
+    exports.showFileOpenError = showFileOpenError;
 
     // Deprecated commands
     CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET,          Commands.FILE_ADD_TO_WORKING_SET,        handleFileAddToWorkingSet);

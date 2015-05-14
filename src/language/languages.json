@@ -255,7 +255,7 @@
   
     "image": {
         "name": "Image",
-        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico", "bmp"],
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico", "bmp", "webp"],
         "isBinary": true
     },
     
@@ -277,5 +277,13 @@
             "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip"
         ],
         "isBinary": true
+    },
+
+    "haskell": {
+        "name": "Haskell",
+        "mode": "haskell",
+        "fileExtensions": ["hs"],
+        "blockComment": ["{-", "-}"],
+        "lineComment": ["--"]
     }
 }

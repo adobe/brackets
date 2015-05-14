@@ -88,6 +88,7 @@ define({
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",
 	"ERROR_PREFS_CORRUPT": "環境設定ファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。変更を反映するには、{APP_NAME} を再起動する必要があります。",
+	"ERROR_PROJ_PREFS_CORRUPT": "プロジェクトの環境設定ファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。変更を反映するには、プロジェクトを再読み込みする必要があります。",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",
@@ -132,9 +133,9 @@ define({
 	"CONFIRM_FOLDER_DELETE_TITLE": "削除の確認",
 	"CONFIRM_FOLDER_DELETE": "<span class='dialog-filename'>{0}</span> フォルダーを削除してもよろしいですか？",
 	"FILE_DELETED_TITLE": "ファイルは削除されました",
-	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> はディスク上で変更されています。<br /><br />ファイルを保存し、これらの変更を上書きしますか。",
-	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
-	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> はディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
+	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で変更されています。<br /><br />ファイルを保存し、これらの変更を上書きしますか？",
+	"EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で変更されていますが、{APP_NAME} 内にも保存されていない変更があります。<br /><br />どちらのバージョンを保持しますか？",
+	"EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で削除されていますが、{APP_NAME} 内に保存されていない変更があります。<br /><br />変更を保持しますか？",
 
     // Generic dialog/button labels
 	"DONE": "完了",
@@ -363,11 +364,9 @@ define({
 	"CMD_ADD_NEXT_MATCH": "選択範囲に次の候補を追加",
 	"CMD_SKIP_CURRENT_MATCH": "スキップして次の候補を追加",
 	"CMD_FIND_IN_FILES": "ファイルを横断して検索",
-	"CMD_FIND_IN_SELECTED": "選択したファイルまたはフォルダーを検索",
 	"CMD_FIND_IN_SUBTREE": "検索先\u2026",
 	"CMD_REPLACE": "置換",
 	"CMD_REPLACE_IN_FILES": "ファイルを横断して置換",
-	"CMD_REPLACE_IN_SELECTED": "選択したファイルまたはフォルダーで置換",
 	"CMD_REPLACE_IN_SUBTREE": "置換対象\u2026",
 
     // View menu commands
@@ -417,6 +416,7 @@ define({
 	"CMD_RELEASE_NOTES": "リリースノート",
 	"CMD_GET_INVOLVED": "コミュニティに参加",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",
+	"CMD_HEALTH_DATA_STATISTICS": "正常性レポート",
 	"CMD_HOMEPAGE": "{APP_TITLE} ホームページ",
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
@@ -566,7 +566,6 @@ define({
     /**
      * Unit names
      */
-
 	"UNIT_PIXELS": "ピクセル",
 
     // extensions/default/DebugCommands
@@ -576,6 +575,7 @@ define({
 	"CMD_REFRESH_WINDOW": "拡張機能付きでリロード",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "拡張機能なしでリロード",
 	"CMD_NEW_BRACKETS_WINDOW": "新しい {APP_NAME} ウィンドウ",
+	"CMD_LAUNCH_SCRIPT_MAC": "コマンドラインショートカットをインストール",
 	"CMD_SWITCH_LANGUAGE": "言語を切り替える",
 	"CMD_RUN_UNIT_TESTS": "テストを実行",
 	"CMD_SHOW_PERF_DATA": "パフォーマンスデータを表示",
@@ -583,13 +583,30 @@ define({
 	"CMD_LOG_NODE_STATE": "Node の状態をコンソールに記録",
 	"CMD_RESTART_NODE": "Node を再起動",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
-	"CMD_OPEN_BRACKETS_SOURCE": "オープン Brackets ソース",
+	"CMD_OPEN_BRACKETS_SOURCE": "{APP_NAME} ソースを開く",
+    
+	"CREATING_LAUNCH_SCRIPT_TITLE": "{APP_NAME} コマンドラインショートカット",
+	"ERROR_CREATING_LAUNCH_SCRIPT": "コマンドラインショートカットのインストール中にエラーが発生しました。<a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>これらのトラブルシューティングの提案</a>をお試しください。<br/><br/>理由 : {0}",
+	"ERROR_CLTOOLS_RMFAILED": "既存の <code>/usr/local/bin/brackets</code> シンボリックリンクを削除できません。",
+	"ERROR_CLTOOLS_MKDIRFAILED": "<code>/usr/local/bin</code> ディレクトリを作成できません。",
+	"ERROR_CLTOOLS_LNFAILED": "<code>/usr/local/bin/brackets</code> シンボリックリンクを作成できません。",
+	"ERROR_CLTOOLS_SERVFAILED": "内部エラーです。",
+	"ERROR_CLTOOLS_NOTSUPPORTED": "この OS ではコマンドラインショートカットがサポートされていません。",
+	"LAUNCH_SCRIPT_CREATE_SUCCESS": "成功しました。{APP_NAME} をコマンドラインから簡単に起動できるようになりました (<code>brackets myFile.txt</code> でファイルを開く、<code>brackets myFolder</code> でプロジェクトを切り替えるなど)。<br/><br/>コマンドラインから {APP_NAME} を使用する方法について<a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>詳細</a>をご確認ください。",
 
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",
 	"LANGUAGE_SUBMIT": "{APP_NAME} をリロード",
 	"LANGUAGE_CANCEL": "キャンセル",
 	"LANGUAGE_SYSTEM_DEFAULT": "システムのデフォルト",
+
+    // extensions/default/HealthData
+	"HEALTH_DATA_NOTIFICATION": "Health Report Preferences",
+	"HEALTH_FIRST_POPUP_TITLE": "{APP_NAME} の正常性レポート",
+	"HEALTH_DATA_DO_TRACK": "{APP_NAME} の使用方法に関する情報を匿名で共有します",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>匿名の</strong>統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<br><br>お客様のデータを確認するには、または、データを共有しないように選択するには、<strong>ヘルプ／正常性レポート</strong>を選択してください。<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポートに関する詳細情報</a>",
+	"HEALTH_DATA_PREVIEW": "{APP_NAME} の正常性レポート",
+	"HEALTH_DATA_PREVIEW_INTRO": "<p>{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>匿名の</strong>統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポート</a>やこれが {APP_NAME} コミュニティでのプライバシーの保護にどのように役立つかについて詳細をご確認ください。</p><p>有効にした場合に、次回のお客様の正常性レポートで送信されるデータのプレビューを以下に示します。<em></em></p>",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "時間",
@@ -612,7 +629,7 @@ define({
 	"CMD_SHOW_PARAMETER_HINT": "パラメーターヒントを表示",
 	"NO_ARGUMENTS": "<パラメーターがありません>",
 	"DETECTED_EXCLUSION_TITLE": "JavaScript ファイルの推論問題",
-	"DETECTED_EXCLUSION_INFO": "Brackets で <span class='dialog-filename'>{0}</span> の処理中に問題が発生しました。<br><br>このファイルはコードヒント、定義にジャンプ、またはクイック編集では処理されません。このファイルを再度有効にするには、プロジェクトで <code>.brackets.json</code> を開いて <code>jscodehints.detectedExclusions</code> を編集してください。<br><br>これは、Brackets のバグである可能性があります。このファイルのコピーをご提供いただける場合は、ここで名付けたファイルへのリンクを記載して<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>バグを登録</a>してください。",
+	"DETECTED_EXCLUSION_INFO": "{APP_NAME} で <span class='dialog-filename'>{0}</span> の処理中に問題が発生しました。<br><br>このファイルはコードヒント、定義にジャンプ、またはクイック編集では処理されません。このファイルを再度有効にするには、プロジェクトで <code>.brackets.json</code> を開いて <code>jscodehints.detectedExclusions</code> を編集してください。<br><br>これは、{APP_NAME} のバグである可能性があります。このファイルのコピーをご提供いただける場合は、ここで名付けたファイルへのリンクを記載して<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>バグを登録</a>してください。",
 
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
@@ -624,5 +641,11 @@ define({
 	"CMD_TOGGLE_RECENT_PROJECTS": "最近使用したプロジェクト",
 
     // extensions/default/WebPlatformDocs
-	"DOCS_MORE_LINK": "詳細"
+	"DOCS_MORE_LINK": "詳細",
+
+    // extensions/default/CodeFolding
+	"COLLAPSE_ALL": "すべて折りたたむ",
+	"EXPAND_ALL": "すべて展開",
+	"COLLAPSE_CURRENT": "現在のコードをたたむ",
+	"EXPAND_CURRENT": "現在のコードを展開"
 });

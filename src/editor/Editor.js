@@ -128,7 +128,7 @@ define(function (require, exports, module) {
     
     PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", false);
     PreferencesManager.definePreference(CLOSE_TAGS,         "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
-    PreferencesManager.definePreference(DRAG_DROP,          "boolean", true);
+    PreferencesManager.definePreference(DRAG_DROP,          "boolean", false);
     PreferencesManager.definePreference(HIGHLIGHT_MATCHES,  "boolean", false);
     PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false);
     PreferencesManager.definePreference(SHOW_CURSOR_SELECT, "boolean", false);
@@ -313,17 +313,18 @@ define(function (require, exports, module) {
             coverGutterNextToScrollbar  : true,
             cursorScrollMargin          : 3,
             dragDrop                    : currentOptions[DRAG_DROP],
-            electricChars               : false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
+            electricChars               : true,
             extraKeys                   : codeMirrorKeyMap,
             highlightSelectionMatches   : currentOptions[HIGHLIGHT_MATCHES],
             indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
             indentWithTabs              : currentOptions[USE_TAB_CHAR],
+            inputStyle                  : "textarea", // the "contenteditable" mode used on mobiles could cause issues
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
             lineWrapping                : currentOptions[WORD_WRAP],
             matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
             matchTags                   : { bothTags: true },
-            showCursorWhenSelecting     : currentOptions[SHOW_CURSOR_SELECT],
             scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
+            showCursorWhenSelecting     : currentOptions[SHOW_CURSOR_SELECT],
             smartIndent                 : currentOptions[SMART_INDENT],
             styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
             tabSize                     : currentOptions[TAB_SIZE]
@@ -422,53 +423,48 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Checks if the user just typed a closing brace/bracket/paren, and considers automatically
-     * back-indenting it if so.
-     */
-    Editor.prototype._checkElectricChars = function (event) {
-        var instance = this._codeMirror,
-            keyStr = String.fromCharCode(event.which || event.keyCode);
-
-        if (/[\]\{\}\)]/.test(keyStr)) {
-            // If all text before the cursor is whitespace, auto-indent it
-            var cursor = this.getCursorPos();
-            var lineStr = instance.getLine(cursor.line);
-            var nonWS = lineStr.search(/\S/);
-
-            if (nonWS === -1 || nonWS >= cursor.ch) {
-                if (nonWS === -1) {
-                    // if the line is all whitespace, move the cursor to the end of the line
-                    // before indenting so that embedded whitespace such as indents are not
-                    // orphaned to the right of the electric char being inserted
-                    this.setCursorPos(cursor.line, this.document.getLine(cursor.line).length);
-                }
-                // Need to do the auto-indent on a timeout to ensure
-                // the keypress is handled before auto-indenting.
-                // This is the same timeout value used by the
-                // electricChars feature in CodeMirror.
-                window.setTimeout(function () {
-                    instance.indentLine(cursor.line);
-                }, 75);
-            }
-        }
-    };
-    
-    /**
-     * @private
      * Handle any cursor movement in editor, including selecting and unselecting text.
      * @param {!Event} event
      */
     Editor.prototype._handleCursorActivity = function (event) {
         this._updateStyleActiveLine();
     };
-    
+
+    /**
+     * @private
+     * Removes any whitespace after one of ]{}) to prevent trailing whitespace when auto-indenting
+     */
+    Editor.prototype._handleWhitespaceForElectricChars = function () {
+        var self        = this,
+            instance    = this._codeMirror,
+            selections,
+            lineStr;
+
+        selections = this.getSelections().map(function (sel) {
+            lineStr = instance.getLine(sel.end.line);
+
+            if (lineStr && !/\S/.test(lineStr)) {
+                // if the line is all whitespace, move the cursor to the end of the line
+                // before indenting so that embedded whitespace such as indents are not
+                // orphaned to the right of the electric char being inserted
+                sel.end.ch = self.document.getLine(sel.end.line).length;
+            }
+            return sel;
+        });
+        this.setSelections(selections);
+    };
+
     /**
      * @private
      * Handle CodeMirror key events.
      * @param {!Event} event
      */
     Editor.prototype._handleKeypressEvents = function (event) {
-        this._checkElectricChars(event);
+        var keyStr = String.fromCharCode(event.which || event.keyCode);
+
+        if (/[\]\{\}\)]/.test(keyStr)) {
+            this._handleWhitespaceForElectricChars();
+        }
     };
 
     /**
@@ -936,6 +932,7 @@ define(function (require, exports, module) {
         
         // This *will* fire a change event, but we clear the undo immediately afterward
         this._codeMirror.setValue(text);
+        this._codeMirror.refresh();
         
         // Make sure we can't undo back to the empty state before setValue(), and mark
         // the document clean.
@@ -1330,25 +1327,11 @@ define(function (require, exports, module) {
     /**
      * Selects word that the given pos lies within or adjacent to. If pos isn't touching a word
      * (e.g. within a token like "//"), moves the cursor to pos without selecting a range.
-     * Adapted from selectWordAt() in CodeMirror v2.
      * @param {!{line:number, ch:number}}
      */
     Editor.prototype.selectWordAt = function (pos) {
-        var line = this.document.getLine(pos.line),
-            start = pos.ch,
-            end = pos.ch;
-        
-        function isWordChar(ch) {
-            return (/\w/).test(ch) || ch.toUpperCase() !== ch.toLowerCase();
-        }
-        
-        while (start > 0 && isWordChar(line.charAt(start - 1))) {
-            --start;
-        }
-        while (end < line.length && isWordChar(line.charAt(end))) {
-            ++end;
-        }
-        this.setSelection({line: pos.line, ch: start}, {line: pos.line, ch: end});
+        var word = this._codeMirror.findWordAt(pos);
+        this.setSelection(word.anchor, word.head);
     };
     
     /**
@@ -2421,6 +2404,14 @@ define(function (require, exports, module) {
      */
     Editor.getWordWrap = function (fullPath) {
         return PreferencesManager.get(WORD_WRAP, _buildPreferencesContext(fullPath));
+    };
+    
+    /**
+     * Runs callback for every Editor instance that currently exists
+     * @param {!function(!Editor)} callback
+     */
+    Editor.forEveryEditor = function (callback) {
+        _instances.forEach(callback);
     };
     
     /**
