@@ -69,7 +69,7 @@ define({
     "ERROR_DELETING_FILE"               : "Errore durante il tentativo di eliminazione del file <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Il nome del file non è valido",
     "INVALID_FILENAME_MESSAGE"          : "Il nome {0} non può usare caratteri di sistema riservati, finire con un punto (.) o contenere i seguenti caratteri: <code class='emphasized'>{1}</code>",
-    "FILE_ALREADY_EXISTS"               : "Il file <span class='dialog-filename'>{0}</span> esiste già.",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "Il file o la cartella <span class='dialog-filename'>{0}</span> esiste già.",
     "ERROR_CREATING_FILE_TITLE"         : "Errore durante la creazione del file",
     "ERROR_CREATING_FILE"               : "Errore durante il tentativo di creare il file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_MIXED_DRAGDROP"              : "Impossibile aprire una cartella contemporaneamente all'apertura di altri file.",
