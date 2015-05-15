@@ -32,14 +32,14 @@ define({
 
     // General file io error strings
     "GENERIC_ERROR"                     : "(errore {0})",
-    "NOT_FOUND_ERR"                     : "Impossibile trovare il file.",
-    "NOT_READABLE_ERR"                  : "Il file non può essere letto.",
+    "NOT_FOUND_ERR"                     : "Impossibile trovare il file o la cartella.",
+    "NOT_READABLE_ERR"                  : "Impossibile leggere il file o la cartella.",
     "EXCEEDS_MAX_FILE_SIZE"             : "File oltre {0} MB non possono essere aperti con {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "La cartella selezionata non può essere modificata.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Non hai i permessi necessari per effettuare la modifica.",
     "CONTENTS_MODIFIED_ERR"             : "Il file è stato modificato fuori {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "Attualmente {APP_NAME} supporta solo testo codificato in UTF-8",
-    "FILE_EXISTS_ERR"                   : "Il file è già presente.",
+    "FILE_EXISTS_ERR"                   : "Il file o la cartella è già presente.",
     "FILE"                              : "file",
     "FILE_TITLE"                        : "File",
     "DIRECTORY"                         : "cartella",
