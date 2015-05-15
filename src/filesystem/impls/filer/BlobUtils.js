@@ -32,6 +32,12 @@ define(function (require, exports, module) {
         filename = Path.normalize(filename);
 
         var url = blobURLs[filename];
+        // The first time a file is written, we won't have
+        // a stale cache entry to clean up.
+        if(!url) {
+            return;
+        }
+
         delete blobURLs[filename];
         delete paths[url];
         // Delete the reference from memory
