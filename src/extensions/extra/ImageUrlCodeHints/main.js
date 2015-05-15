@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         LanguageManager = brackets.getModule("language/LanguageManager"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
-        Camera          = require("camera"),
+        Camera          = require("camera/index"),
+        CameraDialog    = require("camera-dialog"),
 
         Data            = require("text!data.json"),
 
@@ -215,11 +216,11 @@ define(function (require, exports, module) {
         result.forEach(function (item){
             item = item.split("/");
             item = item[item.length-1];
-            if(item.indexOf("selfie") !== -1 && item.indexOf("selfie") === 0) {
+            if(item.indexOf("selfie") === 0) {
                 // Removes extension from filename
-                item = item.split(".")[0];
+                var fileNameParts = /selfie(\d*)\.png/.exec(item);
 
-                var currentNumber = Number(item.substr(6));
+                var currentNumber = fileNameParts && fileNameParts[1] ? Number(fileNameParts[1]) : 0;
                 if(currentNumber > highestNumber) {
                     highestNumber = currentNumber;
                 }
@@ -562,6 +563,7 @@ define(function (require, exports, module) {
      */
     ImageUrlCodeHints.prototype.insertHint = function (completion) {
         var that = this;
+        var cameraDialog;
 
         function insert(text) {
             var mode = that.editor.getModeForSelection();
@@ -579,7 +581,8 @@ define(function (require, exports, module) {
         }
 
         if (completion === selfieLabel) {
-            Camera.show("/" + selfieFileName)
+            cameraDialog = new CameraDialog("/" + selfieFileName);
+            cameraDialog.show()
                 .done(function(selfieFilePath){
                     if(selfieFilePath) {
                         insert(selfieFilePath);
@@ -591,10 +594,7 @@ define(function (require, exports, module) {
                     console.error("[Selfie error] ", err);
                 })
                 .always(function() {
-                    var dialog = Camera.getDialog();
-                    if(dialog) {
-                        dialog.close();
-                    }
+                    cameraDialog.close();
                 });
             return false;
         }
