@@ -28,6 +28,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var StringMatch     = brackets.getModule("utils/StringMatch"),
+        TokenUtils      = brackets.getModule("utils/TokenUtils"),
         LanguageManager = brackets.getModule("language/LanguageManager"),
         HTMLUtils       = brackets.getModule("language/HTMLUtils"),
         HintUtils       = require("HintUtils"),
@@ -130,9 +131,9 @@ define(function (require, exports, module) {
         var cm = this.editor._codeMirror;
 
         if (cursor) {
-            return cm.getTokenAt(cursor);
+            return TokenUtils.getTokenAt(cm, cursor);
         } else {
-            return cm.getTokenAt(this.getCursor());
+            return TokenUtils.getTokenAt(cm, this.getCursor());
         }
     };
 
