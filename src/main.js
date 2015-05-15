@@ -60,8 +60,10 @@ if (window.location.search.indexOf("testEnvironment") > -1) {
      * navigator.language in ExtensionLoader (when making require contexts for each
      * extension).
      */
+    var urlLocale = window.location.search && /locale=([^&]+)&?/.exec(window.location.search);
+
     require.config({
-        locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
+        locale: urlLocale ? urlLocale[1] : (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
     });
 }
 
