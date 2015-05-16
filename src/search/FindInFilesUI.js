@@ -83,9 +83,7 @@ define(function (require, exports, module) {
             .done(function (zeroFilesToken) {
                 // Done searching all files: show results
                 if (FindInFiles.searchModel.hasResults()) {
-                    if (progressFirstUpdate) {
-                        _resultsView._updateResults();
-                    } else {
+                    if (!progressFirstUpdate) {
                         _resultsView.open();
                         if (_findBar) {
                             _findBar.close();
@@ -111,7 +109,7 @@ define(function (require, exports, module) {
             })
             .progress(function (results) {
                 // Update first page of panel (100 matches) for every file with matches,
-                // then only update for every page (100 matches)
+                // then only update the summary for every page (100 matches)
                 if (results.matches && results.matches.length) {
                     progressCount += results.matches.length;
                     if (!progressFirstUpdate) {
@@ -132,7 +130,7 @@ define(function (require, exports, module) {
                         // Subsequent full pages
                         if (progressCount >= 100) {
                             progressCount -= 100;
-                            _resultsView._updateResults();
+                            _resultsView._showSummary();
                         }
                     }
                 }

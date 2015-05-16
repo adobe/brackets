@@ -351,6 +351,33 @@ define(function (require, exports, module) {
         }
         return {valid: true, queryExpr: queryExpr};
     }
+    
+    /**
+     * Returns the path of the currently open file or null if there isn't one open
+     * @return {?string}
+     */
+    function getOpenFilePath() {
+        var currentDoc = DocumentManager.getCurrentDocument();
+        return currentDoc ? currentDoc.file.fullPath : null;
+    }
+    
+    /**
+     * Sorts the file keys to show the results from the selected file first and the rest sorted by path
+     * @param {Array.<*>} files An array of file paths or file objects to sort
+     * @param {function(*):string} getPath A function that given an item from the files array returns a file path
+     * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.
+     * @return {Array.<*>}
+     */
+    function getSortedFiles(files, getPath, firstFile) {
+        return files.sort(function (file1, file2) {
+            if (firstFile === getPath(file1)) {
+                return -1;
+            } else if (firstFile === getPath(file2)) {
+                return 1;
+            }
+            return FileUtils.comparePaths(getPath(file1), getPath(file2));
+        });
+    }
 
     exports.parseDollars                    = parseDollars;
     exports.getInitialQuery                 = getInitialQuery;
@@ -358,5 +385,7 @@ define(function (require, exports, module) {
     exports.performReplacements             = performReplacements;
     exports.labelForScope                   = labelForScope;
     exports.parseQueryInfo                  = parseQueryInfo;
+    exports.getOpenFilePath                 = getOpenFilePath;
+    exports.getSortedFiles                  = getSortedFiles;
     exports.ERROR_FILE_CHANGED              = "fileChanged";
 });

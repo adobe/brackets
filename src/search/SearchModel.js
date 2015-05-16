@@ -26,8 +26,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils   = require("file/FileUtils"),
-        FindUtils   = require("search/FindUtils");
+    var FindUtils   = require("search/FindUtils");
 
     /**
      * @constructor
@@ -206,14 +205,7 @@ define(function (require, exports, module) {
      * @return {Array.<string>}
      */
     SearchModel.prototype.getSortedFiles = function (firstFile) {
-        return Object.keys(this.results).sort(function (key1, key2) {
-            if (firstFile === key1) {
-                return -1;
-            } else if (firstFile === key2) {
-                return 1;
-            }
-            return FileUtils.comparePaths(key1, key2);
-        });
+        return FindUtils.getSortedFiles(Object.keys(this.results), function (file) { return file; }, firstFile);
     };
 
     /**

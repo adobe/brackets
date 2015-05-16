@@ -31,7 +31,6 @@ define(function (require, exports, module) {
 
     var CommandManager        = require("command/CommandManager"),
         Commands              = require("command/Commands"),
-        DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
         ProjectManager        = require("project/ProjectManager"),
         FileViewController    = require("project/FileViewController"),
@@ -542,8 +541,7 @@ define(function (require, exports, module) {
         this._allChecked    = true;
         
         // Save the currently open document's fullpath, if any, so we can sort it to the top of the result list.
-        var currentDoc = DocumentManager.getCurrentDocument();
-        this._initialFilePath = currentDoc ? currentDoc.file.fullPath : null;
+        this._initialFilePath = FindUtils.getOpenFilePath();
 
         this._render();
         

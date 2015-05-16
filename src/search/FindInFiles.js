@@ -400,6 +400,7 @@ define(function (require, exports, module) {
             .then(function (fileListResult) {
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
+                fileListResult = FindUtils.getSortedFiles(fileListResult, function (file) { return file.fullPath; }, FindUtils.getOpenFilePath());
                 
                 function _doSearchInOneFileWithNotify(item) {
                     return _doSearchInOneFile(item)
