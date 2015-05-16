@@ -1,0 +1,40 @@
+{
+    "closeBrackets": {
+        "type": "boolean"
+    },
+    "closeOthers.above": {
+        "type": "boolean"
+    },
+    "closeOthers.below": {
+        "type": "boolean"
+    },
+    "closeTags": {
+        "type": "object",
+        "keys": {
+            "dontCloseTags": {
+                "type": "array"
+            },
+            "whenOpening": {
+                "type": "boolean"
+            },
+            "whenClosing": {
+                "type": "boolean"
+            },
+            "indentTags": {
+                "type": "array"
+            }
+        }
+    },
+    "insertHintOnTab": {
+        "type": "boolean"
+    },
+    "language": {
+        "type": "object"
+    },
+    "spaceUnits": {
+        "type": "number"
+    },
+    "useTabChar": {
+        "type": "boolean"
+    }
+}

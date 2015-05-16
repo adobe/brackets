@@ -61,11 +61,16 @@ define(function (require, exports, module) {
     var styleLanguages = ["css", "text/x-less", "sass", "text/x-scss"];
 
     prefs = PreferencesManager.getExtensionPrefs("quickview");
-    prefs.definePreference("enabled", "boolean", true);
+    prefs.definePreference("enabled", "boolean", true, {
+        description: Strings.DESCRIPTION_QUICK_VIEW_ENABLED
+    });
+    
     // Whether or not to try and show image previews for URLs missing extensions
     // (e.g., https://avatars2.githubusercontent.com/u/476009?v=3&s=200)
-    prefs.definePreference("extensionlessImagePreview", "boolean", true);
-
+    prefs.definePreference("extensionlessImagePreview", "boolean", true, {
+        description: Strings.DESCRIPTION_EXTENSION_LESS_IMAGE_PREVIEW
+    });
+    
     /**
      * There are three states for this var:
      * 1. If null, there is no provider result for the given mouse position.

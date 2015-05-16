@@ -77,7 +77,9 @@ define(function main(require, exports, module) {
     // "livedev.multibrowser" preference
     var PREF_MULTIBROWSER = "multibrowser";
     var prefs = PreferencesManager.getExtensionPrefs("livedev");
-    var multiBrowserPref = prefs.definePreference(PREF_MULTIBROWSER, "boolean", false);
+    var multiBrowserPref = prefs.definePreference(PREF_MULTIBROWSER, "boolean", false, {
+        description: Strings.DESCRIPTION_LIVE_DEV_MULTIBROWSER
+    });
 
     /** Toggles or sets the preference **/
     function _togglePref(key, value) {
