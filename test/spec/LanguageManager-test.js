@@ -506,8 +506,7 @@ define(function (require, exports, module) {
                 var DocumentManager,
                     FileSystem,
                     LanguageManager,
-                    MainViewManager,
-                    _$;
+                    MainViewManager;
                 
                 SpecRunnerUtils.createTempDirectory();
                 
@@ -517,7 +516,6 @@ define(function (require, exports, module) {
                     LanguageManager = w.brackets.test.LanguageManager;
                     DocumentManager = w.brackets.test.DocumentManager;
                     MainViewManager = w.brackets.test.MainViewManager;
-                    _$ = w.$;
                 });
                 
                 var writeDeferred = $.Deferred();
@@ -554,8 +552,8 @@ define(function (require, exports, module) {
                     doc.addRef();
 
                     // listen for event
-                    _$(doc).on("languageChanged", spy);
-                    _$(DocumentManager).on("currentDocumentLanguageChanged", dmspy);
+                    doc.on("languageChanged", spy);
+                    DocumentManager.on("currentDocumentLanguageChanged", dmspy);
                     
                     // trigger a rename
                     oldFile.rename(newFilename, function (err) {
@@ -605,7 +603,7 @@ define(function (require, exports, module) {
                     
                     // listen for event
                     spy = jasmine.createSpy("languageChanged event handler");
-                    $(doc).on("languageChanged", spy);
+                    doc.on("languageChanged", spy);
                     
                     // sanity check language
                     expect(doc.getLanguage()).toBe(unknown);
@@ -657,7 +655,7 @@ define(function (require, exports, module) {
                 
                 // listen for event
                 spy = jasmine.createSpy("languageChanged event handler");
-                $(doc).on("languageChanged", spy);
+                doc.on("languageChanged", spy);
                 
                 // sanity check language
                 expect(doc.getLanguage()).toBe(unknown);
@@ -693,7 +691,7 @@ define(function (require, exports, module) {
                 
                 // listen for event
                 spy = jasmine.createSpy("languageChanged event handler");
-                $(doc).on("languageChanged", spy);
+                doc.on("languageChanged", spy);
                 
                 // sanity check language
                 expect(doc.getLanguage()).toBe(unknownLang);
@@ -734,7 +732,7 @@ define(function (require, exports, module) {
                 
                 // listen for event
                 spy = jasmine.createSpy("languageChanged event handler");
-                $(doc).on("languageChanged", spy);
+                doc.on("languageChanged", spy);
                 
                 // sanity check language
                 expect(doc.getLanguage()).toBe(unknownLang);
@@ -885,6 +883,46 @@ define(function (require, exports, module) {
 
             it("should recognize unknown file extensions as non-binary", function () {
                 expect(LanguageManager.getLanguageForPath("test.abcxyz").isBinary()).toBeFalsy();
+            });
+        });
+        
+        describe("getCompoundFileExtension", function () {
+
+            it("should get the extension of a normalized win file path", function () {
+                expect(LanguageManager.getCompoundFileExtension("C:/foo/bar/baz.txt")).toBe("txt");
+            });
+
+            it("should get the extension of a posix file path", function () {
+                expect(LanguageManager.getCompoundFileExtension("/foo/bar/baz.txt")).toBe("txt");
+            });
+
+            it("should return empty extension for a normalized win directory path", function () {
+                expect(LanguageManager.getCompoundFileExtension("C:/foo/bar/")).toBe("");
+            });
+
+            it("should return empty extension for a posix directory path", function () {
+                expect(LanguageManager.getCompoundFileExtension("bar")).toBe("");
+            });
+
+            it("should return the extension of a filename containing .", function () {
+                expect(LanguageManager.getCompoundFileExtension("C:/foo/bar/.baz/jaz.txt")).toBe("txt");
+                expect(LanguageManager.getCompoundFileExtension("foo/bar/baz/.jaz.txt")).toBe("txt");
+                expect(LanguageManager.getCompoundFileExtension("foo.bar.baz..jaz.txt")).toBe("txt");
+            });
+
+            it("should return no extension for files with only . as a first character", function () {
+                expect(LanguageManager.getCompoundFileExtension("C:/foo/bar/.baz/.jaz")).toBe("");
+            });
+
+            it("should return the extension containing . for known types", function () {
+                expect(LanguageManager.getCompoundFileExtension("C:/foo/bar/.baz/jaz.scss.erb")).toBe("scss.erb");
+                expect(LanguageManager.getCompoundFileExtension("foo/bar/baz/.jaz.js.erb")).toBe("js.erb");
+            });
+
+            it("should return the extension combined from other known extensions", function () {
+                expect(LanguageManager.getCompoundFileExtension("foo.bar.php.js")).toBe("php.js");
+                expect(LanguageManager.getCompoundFileExtension("foo.bar.php.html.js")).toBe("php.html.js");
+                expect(LanguageManager.getCompoundFileExtension("foo.bar.php.scss.erb")).toBe("php.scss.erb");
             });
         });
     });

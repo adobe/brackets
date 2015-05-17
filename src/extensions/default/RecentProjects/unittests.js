@@ -56,19 +56,16 @@ define(function (require, exports, module) {
         });
 
         function openRecentProjectDropDown() {
-            var flag = false;
             CommandManager.execute("recentProjects.toggle");
-            testWindow.setTimeout(function () {
-                flag = true;
-            }, 100);
-
-            waitsFor(function () { return flag; });
+            waitsFor(function () {
+                return $("#project-dropdown").is(":visible");
+            });
         }
 
         function setupRecentProjectsSpy(howManyProjects) {
             spyOn(PreferencesManager, "getViewState").andCallFake(function (prefId) {
                 if (prefId === "recentProjects") {
-                    // return howManyProjects recent projects
+                    // return howManyProjects number of fake recent projects entries
                     return _.map(_.range(1, howManyProjects + 1), function (num) { return extensionPath + "/Test-Project-" + num; });
                 } else {
                     return [];
@@ -84,7 +81,6 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $dropDown = $("#project-dropdown");
-                    expect($("#project-dropdown").is(":visible")).toEqual(true);
                     expect($dropDown.children().length).toEqual(1);
                 });
             });
@@ -98,7 +94,6 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $dropDown = $("#project-dropdown");
-                    expect($dropDown.is(":visible")).toEqual(true);
                     expect($dropDown.find(".recent-folder-link").length).toEqual(5);
                 });
             });
@@ -118,7 +113,6 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var $dropDown = $("#project-dropdown");
-                    expect($dropDown.is(":visible")).toEqual(true);
                     expect($dropDown.find(".recent-folder-link").length).toEqual(4);
                 });
             });

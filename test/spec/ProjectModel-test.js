@@ -98,6 +98,27 @@ define(function (require, exports, module) {
             it("won't create a relative path to a file outside the project", function () {
                 expect(pm.makeProjectRelativeIfPossible("/some/other/project/README.md")).toBe("/some/other/project/README.md");
             });
+            
+            it("will return a directory within the project", function () {
+                expect(pm.getDirectoryInProject("/foo/bar/project/baz/")).toBe("/foo/bar/project/baz/");
+                expect(pm.getDirectoryInProject("/foo/bar/project/baz")).toBe("/foo/bar/project/baz/");
+                expect(pm.getDirectoryInProject({
+                    fullPath: "/foo/bar/project/foo2/",
+                    isDirectory: true
+                })).toBe("/foo/bar/project/foo2/");
+            });
+            
+            it("will default to project root when getDirectoryInProject", function () {
+                expect(pm.getDirectoryInProject()).toBe("/foo/bar/project/");
+                expect(pm.getDirectoryInProject(null)).toBe("/foo/bar/project/");
+                expect(pm.getDirectoryInProject("")).toBe("/foo/bar/project/");
+                expect(pm.getDirectoryInProject({
+                    isFile: true,
+                    isDirectory: false,
+                    fullPath: "/foo/bar/project/README.txt"
+                })).toBe("/foo/bar/project/");
+                expect(pm.getDirectoryInProject("/other/project/")).toBe("/foo/bar/project/");
+            });
         });
         
         describe("All Files Cache", function () {
@@ -711,13 +732,41 @@ define(function (require, exports, module) {
                 });
                 
                 it("adjusts the selection if the renamed file was selected", function () {
+                    spyOn(model, "_renameItem").andReturn(new $.Deferred().resolve().promise());
                     model.setSelected("/foo/afile.js");
                     model.startRename("/foo/afile.js");
                     model.setRenameValue("something.js");
                     model.performRename();
                     expect(model._selections.selected).toBe("/foo/something.js");
                 });
+                
+                it("does not adjust the selection if renaming it fails", function () {
+                    spyOn(model, "_renameItem").andReturn(new $.Deferred().reject().promise());
+                    model.setSelected("/foo/afile.js");
+                    model.startRename("/foo/afile.js");
+                    model.setRenameValue("something.js");
+                    model.performRename();
+                    expect(model._selections.selected).toBe("/foo/afile.js");
+                });
 
+                it("adjusts the selection if a parent folder is renamed", function () {
+                    spyOn(model, "_renameItem").andReturn(new $.Deferred().resolve().promise());
+                    model.setSelected("/foo/afile.js");
+                    model.startRename("/foo");
+                    model.setRenameValue("bar");
+                    model.performRename();
+                    expect(model._selections.selected).toBe("/bar/afile.js");
+                });
+                
+                it("does not adjust the selection if renaming a parent folder fails", function () {
+                    spyOn(model, "_renameItem").andReturn(new $.Deferred().reject().promise());
+                    model.setSelected("/foo/afile.js");
+                    model.startRename("/foo");
+                    model.setRenameValue("bar");
+                    model.performRename();
+                    expect(model._selections.selected).toBe("/foo/afile.js");
+                });
+                
                 it("does nothing if setRenameValue is called when there's no rename in progress", function () {
                     model.setRenameValue("/foo/bar/baz");
                     expect(model._selections.rename).toBeUndefined();

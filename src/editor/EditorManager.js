@@ -58,6 +58,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Commands            = require("command/Commands"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         WorkspaceManager    = require("view/WorkspaceManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         CommandManager      = require("command/CommandManager"),
@@ -81,7 +82,7 @@ define(function (require, exports, module) {
     
     /**
      * Registered inline-editor widget providers sorted descending by priority. 
-     * @see {@link #registerInlineEditProvider()}.
+     * @see {@link #registerInlineEditProvider}.
      * @type {Array.<{priority:number, provider:function(...)}>}
      * @private
      */
@@ -89,7 +90,7 @@ define(function (require, exports, module) {
     
     /**
      * Registered inline documentation widget providers sorted descending by priority.
-     * @see {@link #registerInlineDocsProvider()}.
+     * @see {@link #registerInlineDocsProvider}.
      * @type {Array.<{priority:number, provider:function(...)}>}
      * @private
      */
@@ -97,7 +98,7 @@ define(function (require, exports, module) {
     
     /**
      * Registered jump-to-definition providers. 
-     * @see {@link #registerJumpToDefProvider()}.
+     * @see {@link #registerJumpToDefProvider}.
      * @private
      * @type {Array.<function(...)>}
      */
@@ -161,7 +162,7 @@ define(function (require, exports, module) {
         var previous = _lastFocusedEditor;
         _lastFocusedEditor = current;
         
-        $(exports).triggerHandler("activeEditorChange", [current, previous]);
+        exports.trigger("activeEditorChange", current, previous);
     }
 	
     /**
@@ -196,11 +197,11 @@ define(function (require, exports, module) {
     function _createEditorForDocument(doc, makeMasterEditor, container, range) {
         var editor = new Editor(doc, makeMasterEditor, container, range);
 
-        $(editor).on("focus", function () {
-            _notifyActiveEditorChanged(this);
+        editor.on("focus", function () {
+            _notifyActiveEditorChanged(editor);
         });
         
-        $(editor).on("beforeDestroy", function () {
+        editor.on("beforeDestroy", function () {
             if (editor.$el.is(":visible")) {
                 _saveEditorViewState(editor);
             }
@@ -477,7 +478,7 @@ define(function (require, exports, module) {
         var editor = _createEditorForDocument(document, true, pane.$content);
         editor.setVisible(false);
         pane.addView(editor);
-        $(exports).triggerHandler("_fullEditorCreatedForDocument", [document, editor, pane.id]);
+        exports.trigger("_fullEditorCreatedForDocument", document, editor, pane.id);
         return editor;
     }
  
@@ -598,7 +599,7 @@ define(function (require, exports, module) {
     
     /**
      * @deprecated Register a View Factory instead  
-     * @see MainViewManager.registerViewFactory()
+     * @see MainViewFactory::#registerViewFactory
      */
     function registerCustomViewer() {
         throw new Error("EditorManager.registerCustomViewer() has been removed.");
@@ -685,7 +686,7 @@ define(function (require, exports, module) {
      * Returns the current active editor (full-sized OR inline editor). This editor may not 
      * have focus at the moment, but it is visible and was the last editor that was given 
      * focus. Returns null if no editors are active.
-     * @see getFocusedEditor()
+     * @see #getFocusedEditor
      * @return {?Editor}
      */
     function getActiveEditor() {
@@ -767,10 +768,13 @@ define(function (require, exports, module) {
     }
 
     
+    // Set up event dispatching
+    EventDispatcher.makeEventDispatcher(exports);
+    
     // File-based preferences handling
-    $(exports).on("activeEditorChange", function (e, current) {
+    exports.on("activeEditorChange", function (e, current) {
         if (current && current.document && current.document.file) {
-            PreferencesManager._setCurrentEditingFile(current.document.file.fullPath);
+            PreferencesManager._setCurrentFile(current.document.file.fullPath);
         }
     });
     
@@ -786,8 +790,8 @@ define(function (require, exports, module) {
     // Create PerfUtils measurement
     PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
-    $(MainViewManager).on("currentFileChange", _handleCurrentFileChange);
-    $(MainViewManager).on("workingSetRemove workingSetRemoveList", _handleRemoveFromPaneView);
+    MainViewManager.on("currentFileChange", _handleCurrentFileChange);
+    MainViewManager.on("workingSetRemove workingSetRemoveList", _handleRemoveFromPaneView);
 
     
     // For unit tests and internal use only

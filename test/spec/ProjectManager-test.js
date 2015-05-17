@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
+/*global define, describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast, waits */
 
 define(function (require, exports, module) {
     "use strict";
@@ -367,6 +367,14 @@ define(function (require, exports, module) {
                     expect($selectedItem.text().trim()).toBe(name);
                 }
             }
+            
+            /**
+             * ProjectManager pauses between renders for performance reasons. For some tests,
+             * we'll need to wait for the next render.
+             */
+            function waitForRenderDebounce() {
+                waits(ProjectManager._RENDER_DEBOUNCE_TIME);
+            }
 
             it("should deselect after opening file not rendered in tree", function () {
                 var promise,
@@ -377,12 +385,14 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: exposedFile });
                     waitsForDone(promise);
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(exposedFile);
 
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: unexposedFile });
                     waitsForDone(promise);
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(null);
                 });
@@ -429,6 +439,7 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: initialFile });
                     waitsForDone(promise);
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(initialFile);
                     toggleFolder(folder, true);     // open folder
@@ -437,6 +448,7 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: fileInFolder });
                     waitsForDone(promise);
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(fileInFolder);
                     toggleFolder(folder, false);    // close folder
@@ -444,6 +456,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     toggleFolder(folder, true);     // open folder again
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(fileInFolder);
                     toggleFolder(folder, false);    // close folder
@@ -460,6 +473,7 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: initialFile });
                     waitsForDone(promise);
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(initialFile);
                     toggleFolder(folder, true);     // open folder
@@ -471,10 +485,12 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: fileInFolder });
                     waitsForDone(promise);
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(null);
                     toggleFolder(folder, true);     // open folder again
                 });
+                waitForRenderDebounce();
                 runs(function () {
                     expectSelected(fileInFolder);
                     toggleFolder(folder, false);    // close folder

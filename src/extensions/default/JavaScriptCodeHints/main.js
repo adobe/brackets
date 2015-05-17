@@ -614,7 +614,7 @@ define(function (require, exports, module) {
             
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, previousEditor);
-                $(editor)
+                editor
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {
                         if (!ignoreChange) {
                             ScopeManager.handleFileChange(changeList);
@@ -636,8 +636,7 @@ define(function (require, exports, module) {
          */
         function uninstallEditorListeners(editor) {
             if (editor) {
-                $(editor)
-                    .off(HintUtils.eventName("change"));
+                editor.off(HintUtils.eventName("change"));
             }
         }
 
@@ -653,11 +652,11 @@ define(function (require, exports, module) {
         function handleActiveEditorChange(event, current, previous) {
             // Uninstall "languageChanged" event listeners on previous editor's document & put them on current editor's doc
             if (previous) {
-                $(previous.document)
+                previous.document
                     .off(HintUtils.eventName("languageChanged"));
             }
             if (current) {
-                $(current.document)
+                current.document
                     .on(HintUtils.eventName("languageChanged"), function () {
                         // If current doc's language changed, reset our state by treating it as if the user switched to a
                         // different document altogether
@@ -828,18 +827,17 @@ define(function (require, exports, module) {
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
         
         // uninstall/install change listener as the active editor changes
-        $(EditorManager)
-            .on(HintUtils.eventName("activeEditorChange"),
+        EditorManager.on(HintUtils.eventName("activeEditorChange"),
                 handleActiveEditorChange);
         
-        $(ProjectManager).on("beforeProjectClose", function () {
+        ProjectManager.on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();
         });
 
-        $(ProjectManager).on("projectOpen", function () {
+        ProjectManager.on("projectOpen", function () {
             ScopeManager.handleProjectOpen();
         });
-
+        
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
 

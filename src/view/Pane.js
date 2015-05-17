@@ -59,8 +59,11 @@
   *  - viewListChange - Whenever there is a file change to a file in the working set.  These 2 events: `DocumentManger.pathRemove` 
   *  and `DocumentManger.fileNameChange` will cause a `viewListChange` event so the WorkingSetView can update.
   *
-  *  - currentViewChange - triggered whenever the current view changes.
+  *  - currentViewChange - Whenever the current view changes.
   *             (e, newView:View, oldView:View)
+  *
+  *  - viewDestroy - Whenever a view has been destroyed
+  *             (e, view:View)
   *
   * View Interface:  
   *
@@ -153,6 +156,7 @@ define(function (require, exports, module) {
     "use strict";
         
     var _                   = require("thirdparty/lodash"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         FileSystem          = require("filesystem/FileSystem"),
         InMemoryFile        = require("document/InMemoryFile"),
         ViewStateManager    = require("view/ViewStateManager"),
@@ -170,8 +174,8 @@ define(function (require, exports, module) {
      * @param {boolean} requestIndex - true to request an index, false if not
      * @param {number} index - the index to request
      * @return {indexRequested:boolean, index:number} an object that can be pased to 
-     * Pane._addToViewList to insert the item at a specific index
-     * @see {Pane._addToViewList}
+     * {@link Pane#addToViewList} to insert the item at a specific index
+     * @see Pane#addToViewList
      */
     function _makeIndexRequestObject(requestIndex, index) {
         return {indexRequested: requestIndex, index: index};
@@ -253,15 +257,15 @@ define(function (require, exports, module) {
         this.updateHeaderText();
 
         // Listen to document events so we can update ourself
-        $(DocumentManager).on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
-        $(DocumentManager).on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
-        $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
-        $(MainViewManager).on(this._makeEventName("workingSetAdd"), _.bind(this.updateHeaderText, this));
-        $(MainViewManager).on(this._makeEventName("workingSetRemove"), _.bind(this.updateHeaderText, this));
-        $(MainViewManager).on(this._makeEventName("workingSetAddList"), _.bind(this.updateHeaderText, this));
-        $(MainViewManager).on(this._makeEventName("workingSetRemoveList"), _.bind(this.updateHeaderText, this));
-        
+        DocumentManager.on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
+        DocumentManager.on(this._makeEventName("pathDeleted"), _.bind(this._handleFileDeleted, this));
+        MainViewManager.on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
+        MainViewManager.on(this._makeEventName("workingSetAdd"), _.bind(this.updateHeaderText, this));
+        MainViewManager.on(this._makeEventName("workingSetRemove"), _.bind(this.updateHeaderText, this));
+        MainViewManager.on(this._makeEventName("workingSetAddList"), _.bind(this.updateHeaderText, this));
+        MainViewManager.on(this._makeEventName("workingSetRemoveList"), _.bind(this.updateHeaderText, this));
     }
+    EventDispatcher.makeEventDispatcher(Pane.prototype);
 
     /**
      * id of the pane
@@ -505,6 +509,7 @@ define(function (require, exports, module) {
         
         // Destroy temporary views
         _.forEach(viewsToDestroy, function (view) {
+            self.trigger("viewDestroy", view);
             view.destroy();
         });
 
@@ -526,8 +531,8 @@ define(function (require, exports, module) {
 
         this._reset();
         
-        $(DocumentManager).off(this._makeEventName(""));
-        $(MainViewManager).off(this._makeEventName(""));
+        DocumentManager.off(this._makeEventName(""));
+        MainViewManager.off(this._makeEventName(""));
 
         this.$el.off(".pane");
         this.$el.remove();
@@ -585,7 +590,7 @@ define(function (require, exports, module) {
     
     /** 
      * Return value from reorderItem when the Item was not found 
-     * @see {@link reorderItem()}
+     * @see {@link Pane#reorderItem}
      * @const 
      */
     Pane.prototype.ITEM_NOT_FOUND = -1;
@@ -593,7 +598,7 @@ define(function (require, exports, module) {
     /** 
      * Return value from reorderItem when the Item was found at its natural index 
      * and the workingset does not need to be resorted
-     * @see {@link reorderItem()}
+     * @see {@link Pane#reorderItem}
      * @const 
      */
     Pane.prototype.ITEM_FOUND_NO_SORT = 0;
@@ -601,7 +606,7 @@ define(function (require, exports, module) {
     /** 
      * Return value from reorderItem when the Item was found and reindexed 
      * and the workingset needs to be resorted
-     * @see {@link reorderItem()}
+     * @see {@link Pane#reorderItem}
      * @const 
      */
     Pane.prototype.ITEM_FOUND_NEEDS_SORT = 1;
@@ -721,7 +726,7 @@ define(function (require, exports, module) {
     Pane.prototype._notifyCurrentViewChange = function (newView, oldView) {
         this.updateHeaderText();
         
-        $(this).triggerHandler("currentViewChange", [newView, oldView]);
+        this.trigger("currentViewChange", newView, oldView);
     };
     
     
@@ -738,6 +743,7 @@ define(function (require, exports, module) {
             this._hideCurrentView();
         }
         delete this._views[view.getFile().fullPath];
+        this.trigger("viewDestroy", view);
         view.destroy();
     };
     
@@ -898,7 +904,7 @@ define(function (require, exports, module) {
         
         // dispatch the change event
         if (dispatchEvent) {
-            $(this).triggerHandler("viewListChange");
+            this.trigger("viewListChange");
         }
     };
 
@@ -910,7 +916,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype._handleFileDeleted = function (e, fullPath) {
         if (this.removeView({fullPath: fullPath})) {
-            $(this).triggerHandler("viewListChange");
+            this.trigger("viewListChange");
         }
     };
     
@@ -1083,6 +1089,7 @@ define(function (require, exports, module) {
             var file = view.getFile(),
                 path = file && file.fullPath;
             delete this._views[path];
+            this.trigger("viewDestroy", view);
             view.destroy();
         }
     };
@@ -1092,7 +1099,8 @@ define(function (require, exports, module) {
      * @private
      */
     Pane.prototype._reset = function () {
-        var views = [],
+        var self = this,
+            views = [],
             view = this._currentView;
 
         _.forEach(this._views, function (_view) {
@@ -1115,6 +1123,7 @@ define(function (require, exports, module) {
 
         // Now destroy the views
         views.forEach(function (_view) {
+            self.trigger("viewDestroy", _view);
             _view.destroy();
         });
     };
@@ -1243,19 +1252,13 @@ define(function (require, exports, module) {
             return;
         }
             
-        // If the focus was in a "textarea" and the currentView is anything other than 
-        //  a codeMirror view then we must blur the textarea to force focus to the body tag.
-        //
-        // If we don't then the focus will stay in the text-area which directs keyboard input
-        //  to the codemirror document when it shouldn't
-        //
-        // Steps: 
+        // If the focus was in a <textarea> (assumed to be CodeMirror) and currentView is
+        // anything other than an Editor, blur the textarea explicitly, in case the new
+        // _currentView's $el isn't focusable. E.g.:
         //  1. Open a js file in the left pane and an image in the right pane and
         //  2. Focus the js file using the working-set
         //  3. Focus the image view using the working-set.
-        //
-        // ==> Focus is still in the text area. Any keyboard input will modify the document
-        
+        //  ==> Focus is still in the text area. Any keyboard input will modify the document
         if (current.tagName.toLowerCase() === "textarea" &&
                 (!this._currentView || !this._currentView._codeMirror)) {
             current.blur();

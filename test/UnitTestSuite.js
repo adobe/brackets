@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     require("spec/EditorCommandHandlers-test");
     require("spec/EditorOptionHandlers-test");
     require("spec/EditorManager-test");
+    require("spec/EventDispatcher-test");
     require("spec/ExtensionInstallation-test");
     require("spec/ExtensionLoader-test");
     require("spec/ExtensionManager-test");
@@ -62,6 +63,7 @@ define(function (require, exports, module) {
     require("spec/KeyBindingManager-test");
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
+    require("spec/LiveDevelopmentMultiBrowser-test");
     require("spec/LowLevelFileIO-test");
     require("spec/MainViewFactory-test");
     require("spec/MainViewManager-test");
@@ -75,6 +77,7 @@ define(function (require, exports, module) {
     require("spec/ProjectManager-test");
     require("spec/ProjectModel-test");
     require("spec/QuickOpen-test");
+    require("spec/QuickSearchField-test");
     require("spec/RemoteFunctions-test");
     require("spec/StringMatch-test");
     require("spec/StringUtils-test");
@@ -84,8 +87,9 @@ define(function (require, exports, module) {
     require("spec/UrlParams-test");
     require("spec/ValidationUtils-test");
     require("spec/ViewFactory-test");
-    //require("spec/ViewCommandHandlers-test");
+    require("spec/ViewCommandHandlers-test");
     require("spec/ViewUtils-test");
     require("spec/WorkingSetView-test");
     require("spec/WorkingSetSort-test");
+    require("spec/XMLUtils-test");
 });

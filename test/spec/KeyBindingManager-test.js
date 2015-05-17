@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     var CommandManager      = require("command/CommandManager"),
         Dialogs             = require("widgets/Dialogs"),
         KeyBindingManager   = require("command/KeyBindingManager"),
+        KeyEvent            = require("utils/KeyEvent"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         Strings             = require("strings"),
         _                   = require("thirdparty/lodash");
@@ -629,10 +630,9 @@ define(function (require, exports, module) {
                         var msgPrefix = Strings.ERROR_INVALID_SHORTCUTS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
                         expect(message).toMatch("command-2");
-                        expect(message).toMatch("Home");
                         expect(message).toMatch("Option-Cmd-Backspace");
                         expect(message).toMatch("ctrl-kk");
-                        expect(message).toMatch("cmd-Delete");
+                        expect(message).toMatch("cmd-Del");
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
                 });
@@ -760,6 +760,166 @@ define(function (require, exports, module) {
             
         });
         
+        describe("handle AltGr key", function () {
+            var commandCalled, ctrlAlt1Event, ctrlAltEvents;
+            var ctrlEvent = {
+                ctrlKey: true,
+                keyIdentifier: "Control",
+                keyCode: KeyEvent.DOM_VK_CONTROL,
+                immediatePropagationStopped: false,
+                propagationStopped: false,
+                defaultPrevented: false,
+                stopImmediatePropagation: function () {
+                    this.immediatePropagationStopped = true;
+                },
+                stopPropagation: function () {
+                    this.propagationStopped = true;
+                },
+                preventDefault: function () {
+                    this.defaultPrevented = true;
+                }
+            };
+            
+            function makeCtrlAltKeyEvents() {
+                var altGrEvents = [],
+                    altEvent = _.cloneDeep(ctrlEvent);
+                
+                altEvent.keyIdentifier = "Alt";
+                altEvent.altKey = true;
+                altEvent.keyCode = KeyEvent.DOM_VK_ALT;
+                
+                altGrEvents.push(_.cloneDeep(ctrlEvent));
+                altGrEvents.push(altEvent);
+                
+                return altGrEvents;
+            }
+            
+            function makeCtrlAlt1KeyEvent() {
+                return {
+                    ctrlKey: true,
+                    altKey: true,
+                    keyCode: "1".charCodeAt(0),
+                    immediatePropagationStopped: false,
+                    propagationStopped: false,
+                    defaultPrevented: false,
+                    stopImmediatePropagation: function () {
+                        this.immediatePropagationStopped = true;
+                    },
+                    stopPropagation: function () {
+                        this.propagationStopped = true;
+                    },
+                    preventDefault: function () {
+                        this.defaultPrevented = true;
+                    }
+                };
+            }
+            
+            beforeEach(function () {
+                commandCalled = false;
+                ctrlAlt1Event = makeCtrlAlt1KeyEvent();
+                ctrlAltEvents = makeCtrlAltKeyEvents();
+                CommandManager.register("FakeUnitTestCommand", "unittest.fakeCommand", function () {
+                    commandCalled = true;
+                });
+                KeyBindingManager.addBinding("unittest.fakeCommand", "Ctrl-Alt-1");
+
+                // Modify platform to "win" since right Alt key detection is done only on Windows.
+                brackets.platform = "win";
+            });
+            
+            afterEach(function () {
+                // Restore the platform.
+                brackets.platform = "test";
+            });
+            
+            it("should block command execution if right Alt key is pressed", function () {
+                // Simulate a right Alt key down with the specific sequence of keydown events.
+                ctrlAltEvents.forEach(function (e) {
+                    e.timeStamp = new Date();
+                    KeyBindingManager._handleKeyEvent(e);
+                });
+                
+                // Simulate the command shortcut
+                KeyBindingManager._handleKeyEvent(ctrlAlt1Event);
+                expect(commandCalled).toBe(false);
+                
+                // In this case, the event should not have been stopped, because KBM didn't handle it.
+                expect(ctrlAlt1Event.immediatePropagationStopped).toBe(false);
+                expect(ctrlAlt1Event.propagationStopped).toBe(false);
+                expect(ctrlAlt1Event.defaultPrevented).toBe(false);
+                
+                // Now explicitly remove the keyup event listener created by _detectAltGrKeyDown function.
+                KeyBindingManager._onCtrlUp(ctrlEvent);
+            });
+
+            it("should block command execution when right Alt key is pressed following a Ctrl shortcut execution", function () {
+                var ctrlEvent1 = _.cloneDeep(ctrlEvent);
+                
+                // Simulate holding down Ctrl key and execute a Ctrl shortcut in native shell code
+                // No need to call the actual Ctrl shortcut since it is not handled in KBM anyway.
+                KeyBindingManager._handleKeyEvent(ctrlEvent1);
+                ctrlEvent1.repeat = true;
+                KeyBindingManager._handleKeyEvent(ctrlEvent1);
+                KeyBindingManager._handleKeyEvent(ctrlEvent1);
+                
+                // Simulate a right Alt key down with the specific sequence of keydown events.
+                ctrlAltEvents.forEach(function (e) {
+                    e.timeStamp = new Date();
+                    e.repeat = false;
+                    KeyBindingManager._handleKeyEvent(e);
+                });
+                
+                // Simulate the command shortcut
+                KeyBindingManager._handleKeyEvent(ctrlAlt1Event);
+                expect(commandCalled).toBe(false);
+                
+                // In this case, the event should not have been stopped, because KBM didn't handle it.
+                expect(ctrlAlt1Event.immediatePropagationStopped).toBe(false);
+                expect(ctrlAlt1Event.propagationStopped).toBe(false);
+                expect(ctrlAlt1Event.defaultPrevented).toBe(false);
+                
+                // Now explicitly remove the keyup event listener created by _detectAltGrKeyDown function.
+                KeyBindingManager._onCtrlUp(ctrlEvent);
+            });
+
+            it("should not block command execution if interval between Ctrl & Alt events are more than 30 ms.", function () {
+                var lastTS;
+
+                // Simulate a Ctrl-Alt keys down with the specific sequence of keydown events.
+                ctrlAltEvents.forEach(function (e) {
+                    if (!lastTS) {
+                        e.timeStamp = new Date();
+                        lastTS = e.timeStamp;
+                    } else {
+                        e.timeStamp = lastTS + 50;
+                    }
+                    KeyBindingManager._handleKeyEvent(e);
+                });
+                
+                // Simulate the command shortcut
+                KeyBindingManager._handleKeyEvent(ctrlAlt1Event);
+                expect(commandCalled).toBe(true);
+                
+                // In this case, the event should have been stopped (but not immediately) because
+                // KBM handled it.
+                expect(ctrlAlt1Event.immediatePropagationStopped).toBe(false);
+                expect(ctrlAlt1Event.propagationStopped).toBe(true);
+                expect(ctrlAlt1Event.defaultPrevented).toBe(true);
+            });
+
+            it("should not block command execution when the right Alt key is not used", function () {
+                // Simulate the command shortcut
+                KeyBindingManager._handleKeyEvent(ctrlAlt1Event);
+                expect(commandCalled).toBe(true);
+
+                // In this case, the event should have been stopped (but not immediately) because
+                // KBM handled it.
+                expect(ctrlAlt1Event.immediatePropagationStopped).toBe(false);
+                expect(ctrlAlt1Event.propagationStopped).toBe(true);
+                expect(ctrlAlt1Event.defaultPrevented).toBe(true);
+            });
+        });
+
         describe("global hooks", function () {
             var commandCalled, hook1Called, hook2Called, ctrlAEvent;
             

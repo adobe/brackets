@@ -32,23 +32,22 @@ define({
 
     // General file io error strings
     "GENERIC_ERROR"                     : "(errore {0})",
-    "NOT_FOUND_ERR"                     : "Impossibile trovare il file.",
-    "NOT_READABLE_ERR"                  : "Il file non può essere letto.",
+    "NOT_FOUND_ERR"                     : "Impossibile trovare il file o la cartella.",
+    "NOT_READABLE_ERR"                  : "Impossibile leggere il file o la cartella.",
     "EXCEEDS_MAX_FILE_SIZE"             : "File oltre {0} MB non possono essere aperti con {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "La cartella selezionata non può essere modificata.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Non hai i permessi necessari per effettuare la modifica.",
     "CONTENTS_MODIFIED_ERR"             : "Il file è stato modificato fuori {APP_NAME}.",
-    "UNSUPPORTED_ENCODING_ERR"          : "Il file non è testo codificato in UTF-8",
-    "FILE_EXISTS_ERR"                   : "Il file è già presente.",
+    "UNSUPPORTED_ENCODING_ERR"          : "Attualmente {APP_NAME} supporta solo testo codificato in UTF-8",
+    "FILE_EXISTS_ERR"                   : "Il file o la cartella è già presente.",
     "FILE"                              : "file",
     "FILE_TITLE"                        : "File",
     "DIRECTORY"                         : "cartella",
     "DIRECTORY_TITLE"                   : "Cartella",
-    "DIRECTORY_NAMES_LEDE"              : "Nomi cartelle",
-    "FILENAMES_LEDE"                    : "Nomi dei file",
-    "FILENAME"                          : "Nome del file",
-    "DIRECTORY_NAME"                    : "Nome cartella",
-
+    "DIRECTORY_NAMES_LEDE"              : "nomi delle cartelle",
+    "FILENAMES_LEDE"                    : "nomi dei file",
+    "FILENAME"                          : "nome del file",
+    "DIRECTORY_NAME"                    : "nome della cartella",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Errore durante il caricamento del progetto",
@@ -68,21 +67,21 @@ define({
     "ERROR_RENAMING_FILE"               : "Errore durante il tentativo di rinominare il file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Errore durante il tentativo di eliminazione del file",
     "ERROR_DELETING_FILE"               : "Errore durante il tentativo di eliminazione del file <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Il nome del file non è valido",
-    "INVALID_FILENAME_MESSAGE"          : "Il nome del file non può contenere i seguenti caratteri: {0}",
-    "FILE_ALREADY_EXISTS"               : "Il file <span class='dialog-filename'>{0}</span> esiste già.",
+    "INVALID_FILENAME_TITLE"            : "Il {0} non è valido",
+    "INVALID_FILENAME_MESSAGE"          : "I {0} non possono usare caratteri di sistema riservati, finire con un punto (.) o contenere i seguenti caratteri: <code class='emphasized'>{1}</code>",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "Il file o la cartella <span class='dialog-filename'>{0}</span> esiste già.",
     "ERROR_CREATING_FILE_TITLE"         : "Errore durante la creazione del file",
     "ERROR_CREATING_FILE"               : "Errore durante il tentativo di creare il file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_MIXED_DRAGDROP"              : "Impossibile aprire una cartella contemporaneamente all'apertura di altri file.",
 
-
     // User key map error strings
-    "ERROR_KEYMAP_TITLE"                : "Errore nella lettura della key map",
-    "ERROR_KEYMAP_CORRUPT"              : "Il tuo file non è in formato JSON valido.  Il file sarà riaperto per poter correggere il formato.",
-    "ERROR_LOADING_KEYMAP"              : "La tua key map non è un file UTF-8 valido e non può essere caricato",
+    "ERROR_KEYMAP_TITLE"                : "Errore nella lettura del Key Map",
+    "ERROR_KEYMAP_CORRUPT"              : "Il tuo file non è in formato JSON valido. Il file sarà riaperto per poter correggere il formato.",
+    "ERROR_LOADING_KEYMAP"              : "La tua Key Map non è un file UTF-8 valido e non può essere caricato",
     "ERROR_RESTRICTED_COMMANDS"         : "Non puoi riassegnare queste scorciatoie: {0}",
     "ERROR_RESTRICTED_SHORTCUTS"        : "Non puoi riassegnare delle scorciatoie a questi comandi: {0}",
     "ERROR_MULTIPLE_SHORTCUTS"          : "Stai riassegnando più di una scorciatoia a questi comandi:: {0}",
+    "ERROR_DUPLICATE_SHORTCUTS"         : "Possiedi più possibilità in queste scorciatoie: {0}",
     "ERROR_INVALID_SHORTCUTS"           : "Queste scorciatoie non sono valide: {0}",
     "ERROR_NONEXISTENT_COMMANDS"        : "Stai assegnando scorciatoie a comandi inesistenti: {0}",
 
@@ -164,9 +163,9 @@ define({
     "BUTTON_PREV_HINT"                  : "Corrispondenza precedente",
     "BUTTON_CASESENSITIVE_HINT"         : "Rispetta maiuscole/minuscole",
     "BUTTON_REGEXP_HINT"                : "Espressione regolare",
-    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Sostituire senza Annulla",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "Perché più di {0} file hanno bisogno di essere sostituiti, {APP_NAME} modificherà i file aperti sul disco.<br />Non sarai in grado di annullare le sostituzioni in quei file.",
-    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Sostituire senza Annulla",
+    "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Sostituire senza Annullare",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Poichè più di {0} file deve essere modificato, {APP_NAME} modificherà i file aperti sul disco.<br />Non sarai in grado di annullare le modifiche in quei file.",
+    "BUTTON_REPLACE_WITHOUT_UNDO"       : "Sostituire senza Annullare",
    
     "OPEN_FILE"                         : "Apri File",
     "SAVE_FILE_AS"                      : "Salva File",
@@ -194,7 +193,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Oltre ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
-    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click per Espandere/Chiudere tutto",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click per Espandere/Comprimi tutto",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Sostituire errori",
     "REPLACE_IN_FILES_ERRORS"           : "I seguenti file non sono stati modificati perché hanno cambiato dopo la ricerca o non potevano essere scritti.",
     
@@ -329,7 +328,7 @@ define({
     "CMD_FILE_REFRESH"                    : "Ricarica il percorso file",
     "CMD_QUIT"                            : "Abbandona",
     // Used in native File menu on Windows
-    "CMD_EXIT"                            : "Esci",
+    "CMD_EXIT"                          : "Esci",
 
     // Edit menu commands
     "EDIT_MENU"                         : "Modifica",
@@ -365,11 +364,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Aggiungi la prossima corrispondenza alla selezione",
     "CMD_SKIP_CURRENT_MATCH"              : "Salta e aggiungi prossima correspondenza",
     "CMD_FIND_IN_FILES"                   : "Cerca nei file",
-    "CMD_FIND_IN_SELECTED"                : "Cerca nel file/cartella selezionata",
     "CMD_FIND_IN_SUBTREE"                 : "Cerca in\u2026",
     "CMD_REPLACE"                         : "Sostituisci",
     "CMD_REPLACE_IN_FILES"                : "Sostituisci nei file",
-    "CMD_REPLACE_IN_SELECTED"             : "Sostituisci nei selezionati file/cartelle",
     "CMD_REPLACE_IN_SUBTREE"              : "Sostituisci in\u2026",
     
     // View menu commands
@@ -419,10 +416,12 @@ define({
     "CMD_RELEASE_NOTES"                 : "Note di rilascio",
     "CMD_GET_INVOLVED"                  : "Far parte",
     "CMD_SHOW_EXTENSIONS_FOLDER"        : "Mostra cartella estensioni",
+    "CMD_HEALTH_DATA_STATISTICS"        : "Health Data Report",
     "CMD_HOMEPAGE"                      : "Sito WEB di {APP_TITLE}",
     "CMD_TWITTER"                       : "{TWITTER_NAME} su Twitter",
     "CMD_ABOUT"                         : "Informazioni su {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"              : "Apri il file delle preferenze",
+    "CMD_OPEN_KEYMAP"                   : "Apri la Key Map del utente",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                : "build sperimentale",
@@ -510,10 +509,10 @@ define({
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Manager delle Estensioni",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Impossibile accedere al registro delle estensioni. Riprova più tardi.",
-    "INSTALL_EXTENSION_DRAG"               : "Trascina .zip qui o",
-    "INSTALL_EXTENSION_DROP"               : "Rilascia .zip per l'installazione",
+    "INSTALL_EXTENSION_DRAG"               : "Trascina il file .zip qui o",
+    "INSTALL_EXTENSION_DROP"               : "Rilascia il file .zip per l'installazione",
     "INSTALL_EXTENSION_DROP_ERROR"         : "Installazione/Aggiornamento interrotto a causa dei seguenti errori:",
-    "INSTALL_FROM_URL"                     : "Installo dall’indirizzo URL\u2026",
+    "INSTALL_FROM_URL"                     : "Installa dall’indirizzo URL\u2026",
     "INSTALL_EXTENSION_VALIDATING"         : "Convalida\u2026",
     "EXTENSION_AUTHOR"                     : "Autore",
     "EXTENSION_DATE"                       : "Data",
@@ -551,12 +550,13 @@ define({
     "NO_EXTENSIONS"                        : "Nessuna estensione ancora installata.<br />Clicca nel tab delle Disponibili per iniziare.",
     "NO_EXTENSION_MATCHES"                 : "Nessuna estensione soddisfa la tua ricerca.",
     "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: Queste estensioni possono provenire da autori diversi da {APP_NAME} se stessi. Le estensioni non vengono riviste e dispongono di privilegi locali completi. Fai attenzione quando installi le estensioni da sorgenti sconosciute.",
-    "EXTENSIONS_INSTALLED_TITLE"           : "Installata",
+    "EXTENSIONS_INSTALLED_TITLE"           : "Installate",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponibili",
     "EXTENSIONS_THEMES_TITLE"              : "Temi",
     "EXTENSIONS_UPDATES_TITLE"             : "Aggiornamenti",
     
     "INLINE_EDITOR_NO_MATCHES"             : "Nessuna corrispondenza disponibile.",
+    "INLINE_EDITOR_HIDDEN_MATCHES"         : "Tutte le corrispondenze sono crollate. Espandere i file elencati a destra per vedere le corrispondenze",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Non ci sono regole CSS esistenti che corrispondano alla tua selezione.<br />Clicca \"Nuova Regola\" per crearne una.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Non ci sono fogli di stile nel tuo progetto.<br />Creane uno per aggiungere regole CSS.",
     
@@ -571,10 +571,12 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
+    "ERRORS"                                    : "Errori",
     "CMD_SHOW_DEV_TOOLS"                        : "Mostra strumenti per gli sviluppatori",
     "CMD_REFRESH_WINDOW"                        : "Riavvia con le Estensioni",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Riavvia senza Estensioni",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Nuova finestra di {APP_NAME}",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "Aggiungi linea di comando di Brackets",
     "CMD_SWITCH_LANGUAGE"                       : "Cambia la lingua",
     "CMD_RUN_UNIT_TESTS"                        : "Esegui i test",
     "CMD_SHOW_PERF_DATA"                        : "Mostra dati sulla performance",
@@ -582,14 +584,29 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Registra i Log Node State nella Console",
     "CMD_RESTART_NODE"                          : "Riavvia Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostra errori nella barra di stato",
-    "CMD_OPEN_BRACKETS_SOURCE"                  : "Apri sorgente di Brackets",
-    "ERRORS"                                    : "Errori",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Apri {APP_NAME} sorgente",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Si è verificato un errore durante la creazione {APP_NAME} strumento a riga di comando al <code>/usr/local/bin</code>. Per favore riferisci a <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>linea di comando</a> wiki per la risoluzione dei problemi.<br/><br/>Motivo: ",
+    "ERROR_CLTOOLS_RMFAILED"                    : "Impossibile rimuovere collegamento simbolico esistente {APP_NAME} a <code>/usr/local/bin.</code>",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "Impossibile creare <code>/usr/local/bin</code> struttura di directory.",
+    "ERROR_CLTOOLS_LNFAILED"                    : "Impossibile creare {APP_NAME} collegamento simbolico a <code>/usr/local/bin</code>.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "Impossibile creare l'oggetto autorizzato.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "{APP_NAME} comando di installazione strumento linea non è supportato su questo SO.",
+
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Strumento a riga di comando installato correttamente! Ora si può facilmente lanciare {APP_NAME} dalla riga di comando utilizzando <code>{APP_NAME} myFile.txt</code> o <code>{APP_NAME} myFolder</code>. <br/><br/>Per favore riferisci a <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>linea du comando</a> wiki per maggiori informazioni.",
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "Aggiungi la linea di comando di Brackets",
 
     "LANGUAGE_TITLE"                            : "Cambia la lingua",
     "LANGUAGE_MESSAGE"                          : "Lingua:",
     "LANGUAGE_SUBMIT"                           : "Riavvia {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Annulla",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Default di sistema",
+    
+    // extensions/default/HealthData
+    "HEALTH_DATA_NOTIFICATION"                  : "Preferenze Health Data",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "Brackets Health Report",
+    "HEALTH_DATA_DO_TRACK"                      : "Sì, mi piacerebbe condividere informazioni su come uso Brackets.",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Al fine di migliorare Brackets stiamo implementando un nuovo Health Report che invia <strong>anonimo</strong> dati a Adobe su come usi Brackets. Questo rapporto aiuterà il gruppo di sviluppo e gli sviluppatori di estensioni sulle caratteristiche prioritarie, bug, problemi di usabilità e reperibilità.<br><br>È possibile visualizzare i dati inviati così come cambiare la vostra preferenza in qualsiasi momento visitando <strong>Help->Health Data Report</strong>. Ulteriori informazioni su Brackets Health Report e sullo stato <a href='https://github.com/adobe/brackets/wiki/Health-Data'>nella pagina wiki</a>.",
+    "HEALTH_DATA_PREVIEW"                       : "Anteprima Health Data",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tempo",
@@ -624,8 +641,14 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Progetti recenti",
     
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Leggi tutto"
+    "DOCS_MORE_LINK"                            : "Leggi tutto",
+    
+     // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Comprimi tutto",
+    "EXPAND_ALL"                    : "Espandi tutto",
+    "COLLAPSE_CURRENT"              : "Comprimi attuale",
+    "EXPAND_CURRENT"                : "Espandi attuale"
 });
 
-/* Last translation of: 91b392bf349ece5058595b26a11c651697ee7ff6*/
+/* Last translation of: 671629589db5b7d0a91a1c5bbac954cc93bdff57*/
 

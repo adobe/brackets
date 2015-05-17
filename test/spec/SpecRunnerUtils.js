@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, jasmine, expect, beforeEach, waitsFor, waitsForDone, runs */
+/*global define, $, brackets, jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn */
 define(function (require, exports, module) {
     'use strict';
     
@@ -296,7 +296,7 @@ define(function (require, exports, module) {
                 console.log("boo");
             });
         
-            waitsForDone(deferred.promise(), "removeTempDirectory", 1000);
+            waitsForDone(deferred.promise(), "removeTempDirectory", 2000);
         });
     }
     
@@ -526,10 +526,23 @@ define(function (require, exports, module) {
             
             // signals that main.js should configure RequireJS for tests
             params.put("testEnvironment", true);
+
+            if (options) {
+                // option to set the params
+                if (options.hasOwnProperty("params")) {
+                    var paramObject = options.params || {};
+                    var obj;
+                    for (obj in paramObject) {
+                        if (paramObject.hasOwnProperty(obj)) {
+                            params.put(obj, paramObject[obj]);
+                        }
+                    }
+                }
             
-            // option to launch test window with either native or HTML menus
-            if (options && options.hasOwnProperty("hasNativeMenus")) {
-                params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
+                // option to launch test window with either native or HTML menus
+                if (options.hasOwnProperty("hasNativeMenus")) {
+                    params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
+                }
             }
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
@@ -1115,6 +1128,32 @@ define(function (require, exports, module) {
         }
     }
 
+    
+    /**
+     * Patches ProjectManager.getAllFiles() in the given test window (for just the current it() block) so that it
+     * includes one extra file in its results. The file need not actually exist on disk.
+     * @param {!Window} testWindow  Brackets popup window
+     * @param {string} extraFilePath  Absolute path for the extra result file
+     */
+    function injectIntoGetAllFiles(testWindow, extraFilePath) {
+        var ProjectManager  = testWindow.brackets.test.ProjectManager,
+            FileSystem      = testWindow.brackets.test.FileSystem,
+            origGetAllFiles = ProjectManager.getAllFiles;
+        
+        spyOn(ProjectManager, "getAllFiles").andCallFake(function () {
+            var testResult = new testWindow.$.Deferred();
+            origGetAllFiles.apply(ProjectManager, arguments).done(function (result) {
+                var dummyFile = FileSystem.getFileForPath(extraFilePath);
+                var newResult = result.concat([dummyFile]);
+                testResult.resolve(newResult);
+            }).fail(function (error) {
+                testResult.reject(error);
+            });
+            return testResult;
+        });
+    }
+    
+    
     /**
      * Counts the number of active specs in the current suite. Includes all
      * descendants.
@@ -1343,6 +1382,7 @@ define(function (require, exports, module) {
     exports.getResultMessage                = getResultMessage;
     exports.parseOffsetsFromText            = parseOffsetsFromText;
     exports.findDOMText                     = findDOMText;
+    exports.injectIntoGetAllFiles           = injectIntoGetAllFiles;
     exports.countSpecs                      = countSpecs;
     exports.runBeforeFirst                  = runBeforeFirst;
     exports.runAfterLast                    = runAfterLast;

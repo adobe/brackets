@@ -31,12 +31,14 @@ define(function (require, exports, module) {
     "use strict";
 
     var InMemoryFile        = require("document/InMemoryFile"),
+        EventDispatcher     = require("utils/EventDispatcher"),
         FileUtils           = require("file/FileUtils"),
         _                   = require("thirdparty/lodash"),
         FileSystem          = require("filesystem/FileSystem"),
         FileSystemError     = require("filesystem/FileSystemError"),
         FileTreeViewModel   = require("project/FileTreeViewModel"),
-        Async               = require("utils/Async");
+        Async               = require("utils/Async"),
+        PerfUtils           = require("utils/PerfUtils");
 
     // Constants
     var EVENT_CHANGE            = "change",
@@ -92,7 +94,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * See shouldShow
+     * @see #shouldShow
      */
     function _shouldShowName(name) {
         return !name.match(_exclusionListRegEx);
@@ -207,6 +209,12 @@ define(function (require, exports, module) {
      *
      * The ProjectModel provides methods for accessing information about the current open project.
      * It also manages the view model to display a FileTreeView of the project.
+     * 
+     * Events:
+     * - EVENT_CHANGE (`change`) - Fired when there's a change that should refresh the UI
+     * - EVENT_SHOULD_SELECT (`select`) - Fired when a selection has been made in the file tree and the file tree should be selected
+     * - EVENT_SHOULD_FOCUS (`focus`)
+     * - ERROR_CREATION (`creationError`) - Triggered when there's a problem creating a file
      */
     function ProjectModel(initial) {
         initial = initial || {};
@@ -219,10 +227,11 @@ define(function (require, exports, module) {
         }
         this._viewModel = new FileTreeViewModel.FileTreeViewModel();
         this._viewModel.on(FileTreeViewModel.EVENT_CHANGE, function () {
-            $(this).trigger(EVENT_CHANGE);
+            this.trigger(EVENT_CHANGE);
         }.bind(this));
         this._selections = {};
     }
+    EventDispatcher.makeEventDispatcher(ProjectModel.prototype);
 
     /**
      * @type {Directory}
@@ -244,7 +253,7 @@ define(function (require, exports, module) {
      * @type {string}
      * 
      * Encoded URL
-     * @see getBaseUrl(), setBaseUrl()
+     * @see {@link ProjectModel#getBaseUrl}, {@link ProjectModel#setBaseUrl}
      */
     ProjectModel.prototype._projectBaseUrl = "";
 
@@ -365,6 +374,30 @@ define(function (require, exports, module) {
         }
         return absPath;
     };
+    
+    /**
+     * Returns a valid directory within the project, either the path (or Directory object)
+     * provided or the project root.
+     * 
+     * @param {string|Directory} path Directory path to verify against the project
+     * @return {string} A directory path within the project.
+     */
+    ProjectModel.prototype.getDirectoryInProject = function (path) {
+        if (path && typeof path === "string") {
+            if (_.last(path) !== "/") {
+                path += "/";
+            }
+        } else if (path && path.isDirectory) {
+            path = path.fullPath;
+        } else {
+            path = null;
+        }
+        
+        if (!path || (typeof path !== "string") || !this.isWithinProject(path)) {
+            path = this.projectRoot.fullPath;
+        }
+        return path;
+    };
 
     /**
      * @private
@@ -393,11 +426,16 @@ define(function (require, exports, module) {
                 };
 
             this._allFilesCachePromise = deferred.promise();
+            
+            var projectIndexTimer = PerfUtils.markStart("Creating project files cache: " +
+                                                        this.projectRoot.fullPath);
 
             this.projectRoot.visit(allFilesVisitor, function (err) {
                 if (err) {
+                    PerfUtils.finalizeMeasurement(projectIndexTimer);
                     deferred.reject(err);
                 } else {
+                    PerfUtils.addMeasurement(projectIndexTimer);
                     deferred.resolve(allFiles);
                 }
             }.bind(this));
@@ -454,13 +492,13 @@ define(function (require, exports, module) {
             try {
                 filteredFilesDeferred.resolve(result);
             } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
+                console.error("Unhandled exception in getAllFiles handler: " + e, e.stack);
             }
         }).fail(function (err) {
             try {
                 filteredFilesDeferred.reject(err);
             } catch (e) {
-                console.warn("Unhandled exception in getAllFiles handler: ", e);
+                console.error("Unhandled exception in getAllFiles handler: " + e, e.stack);
             }
         });
 
@@ -474,26 +512,6 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype._resetCache = function _resetCache() {
         this._allFilesCachePromise = null;
-    };
-
-    /**
-     * Adds an event listener for this ProjectModel. See jQuery's documentation for .on.
-     *
-     * Available events:
-     *
-     * * EVENT_CHANGE (`change`) - Fired when there's a change that should refresh the UI
-     * * EVENT_SHOULD_SELECT (`select`) - Specifies that a selection has been made in the file tree and that the file tree should be selected
-     * * ERROR_CREATION (`creationError`) - Triggered when there is a problem creating a file.
-     */
-    ProjectModel.prototype.on = function (event, handler) {
-        $(this).on(event, handler);
-    };
-
-    /**
-     * Removes an event listener for this ProjectModel. See jQuery's documentation for .off.
-     */
-    ProjectModel.prototype.off = function (event, handler) {
-        $(this).off(event, handler);
     };
 
     /**
@@ -668,14 +686,14 @@ define(function (require, exports, module) {
 
         if (path) {
             if (!doNotOpen) {
-                $(this).trigger(EVENT_SHOULD_SELECT, {
+                this.trigger(EVENT_SHOULD_SELECT, {
                     path: path,
                     previousPath: previousSelection,
                     hadFocus: this._focused
                 });
             }
             
-            $(this).trigger(EVENT_SHOULD_FOCUS);
+            this.trigger(EVENT_SHOULD_FOCUS);
         }
     };
     
@@ -704,7 +722,7 @@ define(function (require, exports, module) {
      */
     ProjectModel.prototype.selectInWorkingSet = function (path) {
         this.performRename();
-        $(this).trigger(EVENT_SHOULD_SELECT, {
+        this.trigger(EVENT_SHOULD_SELECT, {
             path: path,
             add: true
         });
@@ -921,18 +939,21 @@ define(function (require, exports, module) {
         
         delete this._selections.rename;
         delete this._selections.context;
-        if (this._selections.selected === oldPath) {
-            this._selections.selected = newPath;
-        }
         
         viewModel.moveMarker("rename", oldProjectPath, null);
         viewModel.moveMarker("context", oldProjectPath, null);
         viewModel.moveMarker("creating", oldProjectPath, null);
+        
+        function finalizeRename() {
+            viewModel.renameItem(oldProjectPath, newName);
+            if (self._selections.selected && self._selections.selected.indexOf(oldPath) === 0) {
+                self._selections.selected = newPath + self._selections.selected.slice(oldPath.length);
+            }
+        }
 
         if (renameInfo.type === FILE_CREATING) {
             this.createAtPath(newPath).done(function (entry) {
-                viewModel.renameItem(oldProjectPath, newName);
-                
+                finalizeRename();
                 renameInfo.deferred.resolve(entry);
             }).fail(function (error) {
                 self._viewModel.deleteAtPath(self.makeProjectRelativeIfPossible(renameInfo.path));
@@ -940,7 +961,7 @@ define(function (require, exports, module) {
             });
         } else {
             this._renameItem(oldPath, newPath).then(function () {
-                viewModel.renameItem(oldProjectPath, newName);
+                finalizeRename();
                 renameInfo.deferred.resolve({
                     newPath: newPath
                 });
@@ -973,7 +994,7 @@ define(function (require, exports, module) {
                 self.selectInWorkingSet(entry.fullPath);
             }
         }).fail(function (error) {
-            $(self).trigger(ERROR_CREATION, {
+            self.trigger(ERROR_CREATION, {
                 type: error,
                 name: name,
                 isFolder: isFolder
@@ -1142,7 +1163,7 @@ define(function (require, exports, module) {
             if (!added && !removed) {
                 entry.getContents(function (err, contents) {
                     if (err) {
-                        console.error("Unexpected error refreshing file tree for directory", entry.fullPath, err);
+                        console.error("Unexpected error refreshing file tree for directory " + entry.fullPath + ": " + err, err.stack);
                         return;
                     }
                     self._viewModel.setDirectoryContents(self.makeProjectRelativeIfPossible(entry.fullPath), contents);
@@ -1236,7 +1257,7 @@ define(function (require, exports, module) {
      * Returns the full path to the welcome project, which we open on first launch.
      *
      * @param {string} sampleUrl URL for getting started project
-     * @param {string} initialPath Path to Brackets directory (see FileUtils.getNativeBracketsDirectoryPath())
+     * @param {string} initialPath Path to Brackets directory (see {@link FileUtils::#getNativeBracketsDirectoryPath})
      * @return {!string} fullPath reference
      */
     function _getWelcomeProjectPath(sampleUrl, initialPath) {

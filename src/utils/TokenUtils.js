@@ -33,20 +33,73 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror");
+    var _           = require("thirdparty/lodash"),
+        CodeMirror  = require("thirdparty/CodeMirror2/lib/codemirror");
+    
+    var cache;
+    
+    
+    function _clearCache(cm) {
+        cache = null;
+        if (cm) { // event handler
+            cm.off("changes", _clearCache);
+        }
+    }
+
+    /*
+     * Caches the tokens for the given editor/line if needed
+     * @param {!CodeMirror} cm
+     * @param {!number} line
+     * @return {Array.<Object>} (Cached) array of tokens
+     */
+    function _manageCache(cm, line) {
+        if (!cache || !cache.tokens || cache.line !== line || cache.cm !== cm) {
+            // Cache is no longer matching -> Update
+            var tokens = cm.getLineTokens(line, false);
+            // Add empty beginning-of-line token for backwards compatibility
+            tokens.unshift(cm.getTokenAt({line: line, ch: 0}, false));
+            cache = {
+                cm: cm,
+                line: line,
+                timeStamp: Date.now(),
+                tokens: tokens,
+            };
+            cm.off("changes", _clearCache);
+            cm.on("changes", _clearCache);
+        }
+        return cache.tokens;
+    }
+    
+    /*
+     * Like cm.getTokenAt, but with caching. Way more performant for long lines.
+     * @param {!CodeMirror} cm
+     * @param {!{ch:number, line:number}} pos
+     * @param {boolean} precise If given, results in more current results. Suppresses caching.
+     * @return {Object} Token for position
+     */
+    function getTokenAt(cm, pos, precise) {
+        if (precise) {
+            _clearCache(); // reset cache
+            return cm.getTokenAt(pos, precise);
+        }
+        var cachedTokens    = _manageCache(cm, pos.line),
+            tokenIndex      = _.sortedIndex(cachedTokens, {end: pos.ch}, "end"), // binary search is faster for long arrays
+            token           = cachedTokens[tokenIndex];
+        return token || cm.getTokenAt(pos, precise); // fall back to CMs getTokenAt, for example in an empty line
+    }
     
    /**
      * Creates a context object for the given editor and position, suitable for passing to the
      * move functions.
-     * @param {!CodeMirror} editor
+     * @param {!CodeMirror} cm
      * @param {!{ch:number, line:number}} pos
      * @return {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}}
      */
-    function getInitialContext(editor, pos) {
+    function getInitialContext(cm, pos) {
         return {
-            "editor": editor,
+            "editor": cm,
             "pos": pos,
-            "token": editor.getTokenAt(pos, true)
+            "token": cm.getTokenAt(pos, true)
         };
     }
     
@@ -72,7 +125,7 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.start;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos, precise);
+        ctx.token = getTokenAt(ctx.editor, ctx.pos, precise);
         return true;
     }
     
@@ -107,7 +160,7 @@ define(function (require, exports, module) {
         } else {
             ctx.pos.ch = ctx.token.end + 1;
         }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos, precise);
+        ctx.token = getTokenAt(ctx.editor, ctx.pos, precise);
         return true;
     }
     
@@ -155,19 +208,25 @@ define(function (require, exports, module) {
      * Returns the mode object and mode name string at a given position
      * @param {!CodeMirror} cm CodeMirror instance
      * @param {!{line:number, ch:number}} pos Position to query for mode
+     * @param {boolean} precise If given, results in more current results. Suppresses caching.
      * @return {mode:{Object}, name:string}
      */
-    function getModeAt(cm, pos) {
-        var outerMode = cm.getMode(),
-            modeData = CodeMirror.innerMode(outerMode, cm.getTokenAt(pos, true).state),
+    function getModeAt(cm, pos, precise) {
+        precise = precise || true;
+        var modeData = cm.getMode(),
             name;
 
-        name = (modeData.mode.name === "xml") ?
-                modeData.mode.configuration : modeData.mode.name;
+        if (modeData.innerMode) {
+            modeData = CodeMirror.innerMode(modeData, getTokenAt(cm, pos, precise).state).mode;
+        }
 
-        return {mode: modeData.mode, name: name};
+        name = (modeData.name === "xml") ?
+                modeData.configuration : modeData.name;
+
+        return {mode: modeData, name: name};
     }
 
+    exports.getTokenAt              = getTokenAt;
     exports.movePrevToken           = movePrevToken;
     exports.moveNextToken           = moveNextToken;
     exports.isAtStart               = isAtStart;

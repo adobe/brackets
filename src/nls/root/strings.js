@@ -25,15 +25,15 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
 
     // General file io error strings
     "GENERIC_ERROR"                     : "(error {0})",
-    "NOT_FOUND_ERR"                     : "The file could not be found.",
-    "NOT_READABLE_ERR"                  : "The file could not be read.",
+    "NOT_FOUND_ERR"                     : "The file/directory could not be found.",
+    "NOT_READABLE_ERR"                  : "The file/directory could not be read.",
     "EXCEEDS_MAX_FILE_SIZE"             : "Files larger than {0} MB cannot be opened in {APP_NAME}.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
@@ -48,7 +48,6 @@ define({
     "FILENAMES_LEDE"                    : "Filenames",
     "FILENAME"                          : "Filename",
     "DIRECTORY_NAME"                    : "Directory Name",
-    
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error Loading Project",
@@ -89,11 +88,12 @@ define({
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Error Reading Preferences",
     "ERROR_PREFS_CORRUPT"               : "Your preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to restart {APP_NAME} for the changes to take effect.",
+    "ERROR_PROJ_PREFS_CORRUPT"          : "Your project preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to reload the project for the changes to take effect.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} Doesn't Run in Browsers Yet.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
-    
+
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
     "ERROR_MAX_FILES"                   : "This project contains more than 30,000 files. Features that operate across multiple files may be disabled or behave as if the project is empty. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Read more about working with large projects</a>.",
@@ -102,7 +102,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error Launching Browser",
     "ERROR_CANT_FIND_CHROME"            : "The Google Chrome browser could not be found. Please make sure it is installed.",
     "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview Error",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connecting to Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?<br /><br />",
@@ -113,7 +113,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS or HTML files</strong>. Changes to JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing\u2026",
@@ -125,7 +125,7 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Live Preview was cancelled because the page was closed in the browser",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Live Preview was cancelled because the browser navigated to a page that is not part of the current project",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Live Preview was cancelled for an unknown reason ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Save Changes",
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
@@ -133,10 +133,10 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirm Delete",
     "CONFIRM_FOLDER_DELETE"             : "Are you sure you want to delete the folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Deleted",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk.<br /><br />Do you want to save the file and overwrite those changes?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
-    
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk outside of {APP_NAME}, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
+
     // Generic dialog/button labels
     "DONE"                              : "Done",
     "OK"                                : "OK",
@@ -148,7 +148,7 @@ define({
     "DELETE"                            : "Delete",
     "BUTTON_YES"                        : "Yes",
     "BUTTON_NO"                         : "No",
-    
+
     // Find, Replace, Find in Files
     "FIND_MATCH_INDEX"                  : "{0} of {1}",
     "FIND_NO_RESULTS"                   : "No results",
@@ -196,10 +196,10 @@ define({
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click to expand/collapse all",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Replace Errors",
     "REPLACE_IN_FILES_ERRORS"           : "The following files weren't modified because they changed after the search or couldn't be written.",
-    
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error Getting Update Info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
-    
+
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "New Exclusion Set\u2026",
     "CLEAR_FILE_FILTER"                 : "Don't Exclude Files",
@@ -256,7 +256,7 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
-    
+
     /**
      * StatusBar strings
      */
@@ -294,12 +294,11 @@ define({
     "NOTHING_TO_LINT"                       : "Nothing to lint",
     "LINTER_TIMED_OUT"                      : "{0} has timed out after waiting for {1} ms",
     "LINTER_FAILED"                         : "{0} terminated with error: {1}",
-    
-    
+
     /**
      * Command Name Constants
      */
- 
+
     // File menu commands
     "FILE_MENU"                           : "File",
     "CMD_FILE_NEW_UNTITLED"               : "New",
@@ -319,6 +318,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_FILE_SAVE_AS"                    : "Save As\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Enable Experimental Live Preview",
     "CMD_RELOAD_LIVE_PREVIEW"             : "Force Reload Live Preview",
     "CMD_PROJECT_SETTINGS"                : "Project Settings\u2026",
     "CMD_FILE_RENAME"                     : "Rename",
@@ -354,7 +354,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
     "CMD_SHOW_CODE_HINTS"                 : "Show Code Hints",
-    
+
     // Search menu commands
     "FIND_MENU"                           : "Find",
     "CMD_FIND"                            : "Find",
@@ -364,13 +364,11 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Add Next Match to Selection",
     "CMD_SKIP_CURRENT_MATCH"              : "Skip and Add Next Match",
     "CMD_FIND_IN_FILES"                   : "Find in Files",
-    "CMD_FIND_IN_SELECTED"                : "Find in Selected File/Folder",
     "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
     "CMD_REPLACE"                         : "Replace",
     "CMD_REPLACE_IN_FILES"                : "Replace in Files",
-    "CMD_REPLACE_IN_SELECTED"             : "Replace in Selected File/Folder",
     "CMD_REPLACE_IN_SUBTREE"              : "Replace in\u2026",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "View",
     "CMD_HIDE_SIDEBAR"                    : "Hide Sidebar",
@@ -396,7 +394,7 @@ define({
     "CMD_QUICK_OPEN"                      : "Quick Open",
     "CMD_GOTO_LINE"                       : "Go to Line",
     "CMD_GOTO_DEFINITION"                 : "Quick Find Definition",
-    "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Error/Warning",
+    "CMD_GOTO_FIRST_PROBLEM"              : "Go to First Problem",
     "CMD_TOGGLE_QUICK_EDIT"               : "Quick Edit",
     "CMD_TOGGLE_QUICK_DOCS"               : "Quick Docs",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Previous Match",
@@ -408,7 +406,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "Show in Explorer",
     "CMD_SHOW_IN_FINDER"                  : "Show in Finder",
     "CMD_SHOW_IN_OS"                      : "Show in OS",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Help",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
@@ -418,6 +416,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "Release Notes",
     "CMD_GET_INVOLVED"                    : "Get Involved",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
+    "CMD_HEALTH_DATA_STATISTICS"          : "Health Report",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} Homepage",
     "CMD_TWITTER"                         : "{TWITTER_NAME} on Twitter",
     "CMD_ABOUT"                           : "About {APP_TITLE}",
@@ -454,7 +453,7 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
     "EMPTY_VIEW_HEADER"                    : "<em>Open a file while this pane has focus</em>",
-    
+
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Current Theme",
     "USE_THEME_SCROLLBARS"                 : "Use Theme Scrollbars",
@@ -464,7 +463,7 @@ define({
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "New Rule",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Install",
     "UPDATE"                               : "Update",
@@ -555,7 +554,7 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Available",
     "EXTENSIONS_THEMES_TITLE"              : "Themes",
     "EXTENSIONS_UPDATES_TITLE"             : "Updates",
-    
+
     "INLINE_EDITOR_NO_MATCHES"             : "No matches available.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "There are no existing CSS rules that match your selection.<br> Click \"New Rule\" to create one.",
@@ -563,11 +562,10 @@ define({
 
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "largest",
-    
+
     /**
      * Unit names
      */
-
     "UNIT_PIXELS"                          : "pixels",
 
     // extensions/default/DebugCommands
@@ -577,6 +575,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "Reload With Extensions",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Reload Without Extensions",
     "CMD_NEW_BRACKETS_WINDOW"                   : "New {APP_NAME} Window",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "Install Command Line Shortcut",
     "CMD_SWITCH_LANGUAGE"                       : "Switch Language",
     "CMD_RUN_UNIT_TESTS"                        : "Run Tests",
     "CMD_SHOW_PERF_DATA"                        : "Show Performance Data",
@@ -584,21 +583,38 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Log Node State to Console",
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
-    "CMD_OPEN_BRACKETS_SOURCE"                  : "Open Brackets Source",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
     
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} Command Line Shortcut",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "An error occured while installing the command line shortcut. Please try <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>these troubleshooting suggestions</a>.<br/><br/>Reason: {0}",
+    "ERROR_CLTOOLS_RMFAILED"                    : "Unable to remove existing <code>/usr/local/bin/brackets</code> symlink.",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "Unable to create <code>/usr/local/bin</code> directory.",
+    "ERROR_CLTOOLS_LNFAILED"                    : "Unable to create <code>/usr/local/bin/brackets</code> symlink.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "Internal error.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "Command line shortcut is not supported on this OS.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Success! Now you can easily launch {APP_NAME} from the command line: <code>brackets myFile.txt</code> to open a file or <code>brackets myFolder</code> to switch projects. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Learn more</a> about using {APP_NAME} from the command line.",
+
     "LANGUAGE_TITLE"                            : "Switch Language",
     "LANGUAGE_MESSAGE"                          : "Language:",
     "LANGUAGE_SUBMIT"                           : "Reload {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Cancel",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "System Default",
-    
+
+    // extensions/default/HealthData
+    "HEALTH_DATA_NOTIFICATION"                  : "Health Report Preferences",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME} Health Report",
+    "HEALTH_DATA_DO_TRACK"                      : "Share anonymous information on how I use {APP_NAME}",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "In order to improve {APP_NAME}, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues.<br><br>You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about {APP_NAME} Health Report</a>",
+    "HEALTH_DATA_PREVIEW"                       : "{APP_NAME} Health Report",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>In order to improve {APP_NAME}, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use {APP_NAME}. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about {APP_NAME} Health Report</a> and how it benefits the {APP_NAME} community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>",
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Time",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progression",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Current Color",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Original Color",
@@ -607,23 +623,29 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Used {1} time)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Used {1} times)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Jump to Definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To reenable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a Brackets bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
-    
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To reenable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Quick View on Hover",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Recent Projects",
-    
+
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Read more"
+    "DOCS_MORE_LINK"                            : "Read more",
+
+    // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Collapse All",
+    "EXPAND_ALL"                    : "Expand All",
+    "COLLAPSE_CURRENT"              : "Collapse Current",
+    "EXPAND_CURRENT"                : "Expand Current"
 });

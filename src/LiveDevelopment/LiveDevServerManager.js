@@ -79,7 +79,8 @@ define(function (require, exports, module) {
     }
 
     /**
-     * The method by which a server registers itself.
+     * The method by which a server registers itself. It returns an
+     * object handler that can be used to remove that server from the list.
      *
      * @param {BaseServer|{create: function():BaseServer}} provider
      *  The provider to be registered, described below.
@@ -88,6 +89,7 @@ define(function (require, exports, module) {
      *  particular url. Providers that register with a higher priority will
      *  have the opportunity to provide a given url before those with a
      *  lower priority. The higher the number, the higher the priority.
+     * @return {{object}}
      */
     function registerServer(provider, priority) {
         if (!provider.create) {
@@ -102,6 +104,22 @@ define(function (require, exports, module) {
 
         _serverProviders.push(providerObj);
         _serverProviders.sort(_providerSort);
+        
+        return providerObj;
+    }
+    
+    /**
+     * Remove a server from the list of the registered providers.
+     * 
+     * @param {{object}} provider The provider to be removed.
+     */
+    function removeServer(provider) {
+        var i;
+        for (i = 0; i < _serverProviders.length; i++) {
+            if (provider === _serverProviders[i]) {
+                _serverProviders.splice(i, 1);
+            }
+        }
     }
     
     // Backwards compatibility
@@ -111,4 +129,5 @@ define(function (require, exports, module) {
     // Define public API
     exports.getServer           = getServer;
     exports.registerServer      = registerServer;
+    exports.removeServer        = removeServer;
 });

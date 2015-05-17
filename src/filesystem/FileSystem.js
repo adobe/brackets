@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define */
 
 /**
  * FileSystem is a model object representing a complete file system. This object creates
@@ -96,7 +96,8 @@ define(function (require, exports, module) {
         File            = require("filesystem/File"),
         FileIndex       = require("filesystem/FileIndex"),
         FileSystemError = require("filesystem/FileSystemError"),
-        WatchedRoot     = require("filesystem/WatchedRoot");
+        WatchedRoot     = require("filesystem/WatchedRoot"),
+        EventDispatcher = require("utils/EventDispatcher");
     
     /**
      * The FileSystem is not usable until init() signals its callback.
@@ -115,6 +116,7 @@ define(function (require, exports, module) {
         // Initialize the queue of pending external changes
         this._externalChanges = [];
     }
+    EventDispatcher.makeEventDispatcher(FileSystem.prototype);
     
     /**
      * The low-level file system implementation used by this object. 
@@ -524,6 +526,22 @@ define(function (require, exports, module) {
     };
 
     /**
+     * This method adds an entry for a file in the file Index. Files on disk are added
+     * to the file index either on load or on open. This method is primarily needed to add
+     * in memory files to the index
+     *
+     * @param {File} The fileEntry which needs to be added
+     * @param {String} The full path to the file
+     */
+    FileSystem.prototype.addEntryForPathIfRequired = function (fileEntry, path) {
+        var entry = this._index.getEntry(path);
+
+        if (!entry) {
+            this._index.addEntry(fileEntry);
+        }
+    };
+
+    /**
      * Return a (strict subclass of a) FileSystemEntry object for the specified
      * path using the provided constuctor. For now, the provided constructor
      * should be either File or Directory.
@@ -669,7 +687,7 @@ define(function (require, exports, module) {
      * @param {string} newPath The entry's current fullPath
      */
     FileSystem.prototype._fireRenameEvent = function (oldPath, newPath) {
-        $(this).trigger("rename", [oldPath, newPath]);
+        this.trigger("rename", oldPath, newPath);
     };
 
     /**
@@ -682,7 +700,7 @@ define(function (require, exports, module) {
      *      is a set of removed entries from the directory.
      */
     FileSystem.prototype._fireChangeEvent = function (entry, added, removed) {
-        $(this).trigger("change", [entry, added, removed]);
+        this.trigger("change", entry, added, removed);
     };
     
     /**
@@ -968,6 +986,7 @@ define(function (require, exports, module) {
     exports.close = _wrap(FileSystem.prototype.close);
     exports.shouldShow = _wrap(FileSystem.prototype.shouldShow);
     exports.getFileForPath = _wrap(FileSystem.prototype.getFileForPath);
+    exports.addEntryForPathIfRequired = _wrap(FileSystem.prototype.addEntryForPathIfRequired);
     exports.getDirectoryForPath = _wrap(FileSystem.prototype.getDirectoryForPath);
     exports.resolve = _wrap(FileSystem.prototype.resolve);
     exports.showOpenDialog = _wrap(FileSystem.prototype.showOpenDialog);
@@ -989,7 +1008,7 @@ define(function (require, exports, module) {
      * @param {function} handler The handler for the event
      */
     exports.on = function (event, handler) {
-        $(_instance).on(event, handler);
+        _instance.on(event, handler);
     };
     
     /**
@@ -999,7 +1018,7 @@ define(function (require, exports, module) {
      * @param {function} handler The handler for the event
      */
     exports.off = function (event, handler) {
-        $(_instance).off(event, handler);
+        _instance.off(event, handler);
     };
     
     // Export the FileSystem class as "private" for unit testing only.

@@ -133,6 +133,7 @@ define(function (require, exports, module) {
     
     // Dependencies
     var CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
+        EventDispatcher       = require("utils/EventDispatcher"),
         Async                 = require("utils/Async"),
         FileUtils             = require("file/FileUtils"),
         _defaultLanguagesJSON = require("text!language/languages.json"),
@@ -357,7 +358,7 @@ define(function (require, exports, module) {
     function _triggerLanguageAdded(language) {
         // finally, store language to _language map
         _languages[language.getId()] = language;
-        $(exports).triggerHandler("languageAdded", [language]);
+        exports.trigger("languageAdded", language);
     }
 
     /**
@@ -366,7 +367,7 @@ define(function (require, exports, module) {
      * @param {!Language} language The modified language
      */
     function _triggerLanguageModified(language) {
-        $(exports).triggerHandler("languageModified", [language]);
+        exports.trigger("languageModified", language);
     }
     
     /**
@@ -397,7 +398,40 @@ define(function (require, exports, module) {
     function _resetPathLanguageOverrides() {
         _filePathToLanguageMap = {};
     }
+    
+    /**
+     * Get the file extension (excluding ".") given a path OR a bare filename.
+     * Returns "" for names with no extension.
+     * If the only `.` in the file is the first character,
+     * returns "" as this is not considered an extension.
+     * This method considers known extensions which include `.` in them.
+     *
+     * @param {string} fullPath full path to a file or directory
+     * @return {string} Returns the extension of a filename or empty string if
+     * the argument is a directory or a filename with no extension
+     */
+    function getCompoundFileExtension(fullPath) {
+        var baseName = FileUtils.getBaseName(fullPath),
+            parts = baseName.split(".");
 
+        // get rid of file name
+        parts.shift();
+        if (baseName[0] === ".") {
+            // if starts with a `.`, then still consider it as file name
+            parts.shift();
+        }
+
+        var extension = [parts.pop()], // last part is always an extension
+            i = parts.length;
+        while (i--) {
+            if (getLanguageForExtension(parts[i])) {
+                extension.unshift(parts[i]);
+            } else {
+                break;
+            }
+        }
+        return extension.join(".");
+    }
 
     
 
@@ -807,7 +841,7 @@ define(function (require, exports, module) {
      * Returns either a language associated with the mode or the fallback language.
      * Used to disambiguate modes used by multiple languages.
      * @param {!string} mode The mode to associate the language with
-     * @return {Language} This language if it uses the mode, or whatever {@link LanguageManager#_getLanguageForMode} returns
+     * @return {Language} This language if it uses the mode, or whatever {@link #_getLanguageForMode} returns
      */
     Language.prototype.getLanguageForMode = function (mode) {
         if (mode === this._mode) {
@@ -846,7 +880,7 @@ define(function (require, exports, module) {
     
     /**
      * Trigger the "languageModified" event if this language is registered already
-     * @see _triggerLanguageModified
+     * @see #_triggerLanguageModified
      * @private
      */
     Language.prototype._wasModified = function () {
@@ -1056,6 +1090,8 @@ define(function (require, exports, module) {
     }
     
    
+    EventDispatcher.makeEventDispatcher(exports);
+    
     // Prevent modes from being overwritten by extensions
     _patchCodeMirror();
     
@@ -1064,10 +1100,15 @@ define(function (require, exports, module) {
     // far were strings, so we spare us the trouble of allowing more complex mode values.
     CodeMirror.defineMIME("text/x-brackets-html", {
         "name": "htmlmixed",
-        "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|^text\/html$/i,
+        "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|\/ng-template$|^text\/html$/i,
                        "mode": null}]
     });
- 
+
+    // Define SVG MIME type so an SVG language can be defined for SVG-specific code hints.
+    // Currently, SVG uses XML mode so it has generic XML syntax highlighting. This can
+    // be removed when SVG gets its own CodeMirror mode with SVG syntax highlighting.
+    CodeMirror.defineMIME("image/svg+xml", "xml");
+    
     // Load the default languages
     _defaultLanguagesJSON = JSON.parse(_defaultLanguagesJSON);
     _ready = Async.doInParallel(Object.keys(_defaultLanguagesJSON), function (key) {
@@ -1127,4 +1168,5 @@ define(function (require, exports, module) {
     exports.getLanguageForPath          = getLanguageForPath;
     exports.getLanguages                = getLanguages;
     exports.setLanguageOverrideForPath  = setLanguageOverrideForPath;
+    exports.getCompoundFileExtension    = getCompoundFileExtension;
 });
