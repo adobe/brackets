@@ -39,9 +39,7 @@ define(function main(require, exports, module) {
     var DocumentManager     = require("document/DocumentManager"),
         Commands            = require("command/Commands"),
         AppInit             = require("utils/AppInit"),
-        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
         MultiBrowserLiveDev = require("LiveDevelopment/LiveDevMultiBrowser"),
-        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
         CommandManager      = require("command/CommandManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         Dialogs             = require("widgets/Dialogs"),
@@ -77,7 +75,8 @@ define(function main(require, exports, module) {
     // "livedev.multibrowser" preference
     var PREF_MULTIBROWSER = "multibrowser";
     var prefs = PreferencesManager.getExtensionPrefs("livedev");
-    var multiBrowserPref = prefs.definePreference(PREF_MULTIBROWSER, "boolean", false);
+    // XXXBramble - we use multibrowser always in the browser
+    var multiBrowserPref = prefs.definePreference(PREF_MULTIBROWSER, "boolean", true);
 
     /** Toggles or sets the preference **/
     function _togglePref(key, value) {
@@ -252,61 +251,37 @@ define(function main(require, exports, module) {
      * keeps default LiveDevelopment implementation based on CDT otherwise.
      * It also resets the listeners and UI elements.
      */
-    function _setImplementation(multibrowser) {
-        if (multibrowser) {
-            // set implemenation
-            LiveDevImpl = MultiBrowserLiveDev;
-            // update styles for UI status 
-            _status = [
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "warning" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_CONNECTED, style: "success" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC, style: "out-of-sync" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_SYNC_ERROR, style: "sync-error" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" }
-            ];
-        } else {
-            LiveDevImpl = LiveDevelopment;
-            _status = [
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "warning" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS2, style: "info" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_CONNECTED, style: "success" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC, style: "out-of-sync" },
-                { tooltip: Strings.LIVE_DEV_STATUS_TIP_SYNC_ERROR, style: "sync-error" }
-            ];
-        }
+    function _setImplementation() {
+        // XXXBramble: We always use multibrowser in Bramble.
+        LiveDevImpl = MultiBrowserLiveDev;
+        // update styles for UI status 
+        _status = [
+            { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "warning" },
+            { tooltip: Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, style: "" },
+            { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" },
+            { tooltip: Strings.LIVE_DEV_STATUS_TIP_CONNECTED, style: "success" },
+            { tooltip: Strings.LIVE_DEV_STATUS_TIP_OUT_OF_SYNC, style: "out-of-sync" },
+            { tooltip: Strings.LIVE_DEV_STATUS_TIP_SYNC_ERROR, style: "sync-error" },
+            { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" },
+            { tooltip: Strings.LIVE_DEV_STATUS_TIP_PROGRESS1, style: "info" }
+        ];
+
         // setup status changes listeners for new implementation
         _setupGoLiveButton();
         _setupGoLiveMenu();
         // toggle the menu
-        _toggleLivePreviewMultiBrowser(multibrowser);
+        _toggleLivePreviewMultiBrowser(true);
     }
     
-    /** Setup window references to useful LiveDevelopment modules */
-    function _setupDebugHelpers() {
-        window.ld = LiveDevelopment;
-        window.i = Inspector;
-        window.report = function report(params) { window.params = params; console.info(params); };
-    }
-
     /** force reload the live preview */
     function _handleReloadLivePreviewCommand() {
-        if (LiveDevelopment.status >= LiveDevelopment.STATUS_ACTIVE) {
-            LiveDevelopment.reload();
-        }
+        // XXXBramble: nothing to be done
     }
     
     /** Initialize LiveDevelopment */
     AppInit.appReady(function () {
         params.parse();
 
-        Inspector.init(config);
-        LiveDevelopment.init(config);
-        
         // init experimental multi-browser implementation 
         // it can be enable by setting 'livedev.multibrowser' preference to true.
         // It has to be initiated at this point in case of dynamically switching 
@@ -317,10 +292,6 @@ define(function main(require, exports, module) {
         _updateHighlightCheckmark();
         
         _setImplementation(prefs.get(PREF_MULTIBROWSER));
-        
-        if (config.debug) {
-            _setupDebugHelpers();
-        }
 
         // trigger autoconnect
         if (config.autoconnect &&
@@ -328,15 +299,7 @@ define(function main(require, exports, module) {
                 DocumentManager.getCurrentDocument()) {
             _handleGoLiveCommand();
         }
-        
-        // Redraw highlights when window gets focus. This ensures that the highlights
-        // will be in sync with any DOM changes that may have occurred.
-        $(window).focus(function () {
-            if (Inspector.connected() && config.highlight) {
-                LiveDevelopment.redrawHighlight();
-            }
-        });
-        
+
         multiBrowserPref
             .on("change", function () {
                 // Stop the current session if it is open and set implementation based on 

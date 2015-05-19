@@ -374,7 +374,8 @@ define(function Inspector(require, exports, module) {
     function init(theConfig) {
         exports.config = theConfig;
 
-        var InspectorText = require("text!LiveDevelopment/Inspector/Inspector.json"),
+        // XXXBramble: we don't need Inspector.json, so don't load it (save space)
+        var InspectorText = "{}",
             InspectorJSON = JSON.parse(InspectorText);
         
         var i, j, domain, command;

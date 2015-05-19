@@ -86,13 +86,14 @@ define(function (require, exports, module) {
         _                    = require("thirdparty/lodash"),
         LiveDevelopmentUtils = require("LiveDevelopment/LiveDevelopmentUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
-        NodeSocketTransport  = require("LiveDevelopment/MultiBrowserImpl/transports/NodeSocketTransport"),
-        LiveDevProtocol      = require("LiveDevelopment/MultiBrowserImpl/protocol/LiveDevProtocol"),
-        DefaultLauncher      = require("LiveDevelopment/MultiBrowserImpl/launchers/Launcher");
+        LiveDevProtocol      = require("LiveDevelopment/MultiBrowserImpl/protocol/LiveDevProtocol");
     
     // Documents
     var LiveCSSDocument      = require("LiveDevelopment/MultiBrowserImpl/documents/LiveCSSDocument"),
         LiveHTMLDocument     = require("LiveDevelopment/MultiBrowserImpl/documents/LiveHTMLDocument");
+
+    // XXXBramble: we need to get this loaded so our extension can require/use it later
+    require("LiveDevelopment/Servers/BaseServer");
     
     /** 
      * @private
@@ -828,12 +829,6 @@ define(function (require, exports, module) {
         ProjectManager
             .on("beforeProjectClose beforeAppClose", close);
         
-        // Default transport for live connection messages - can be changed
-        setTransport(NodeSocketTransport);
-        
-        // Default launcher for preview browser - can be changed
-        setLauncher(DefaultLauncher);
-
         // Initialize exports.status
         _setStatus(STATUS_INACTIVE);
     }
