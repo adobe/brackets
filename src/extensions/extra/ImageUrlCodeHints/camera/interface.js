@@ -8,7 +8,7 @@ define(function (require, exports, module) {
 
     var selfieWidgetHTML = require("text!camera/selfieWidget.html");
     var base64ToBuffer = require("camera/utils").base64ToBuffer;
-    var shutter = new Audio("./extensions/extra/ImageUrlCodeHints/Camera/camera-shutter-click-08.mp3");
+    var shutter = new Audio("./extensions/extra/ImageUrlCodeHints/camera/camera-shutter-click-08.mp3");
 
     // We hardcode the width of the video interface for now
     var _width = 320;
