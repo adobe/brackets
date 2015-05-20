@@ -54,6 +54,8 @@ define(function (require, exports, module) {
         case 'ENOSPC':
             return FileSystemError.OUT_OF_SPACE;
         case 'ENOTEMPTY':
+            // There's no good case for this in Brackets (trying to rmdir non-empty dir)
+            return "Directory Not Empty";
         case 'EEXIST':
             return FileSystemError.ALREADY_EXISTS;
         case 'ENOTDIR':
@@ -282,11 +284,20 @@ define(function (require, exports, module) {
     }
 
     function unlink(path, callback) {
-        fs.unlink(path, function(err){
-            // TODO: deal with the symlink case (i.e., only remove cache
-            // item if file is really going away).
-            BlobUtils.remove(path);
-            callback(_mapError(err));
+        fs.stat(path, function(err, stats) {
+            if (err) {
+                callback(_mapError(err));
+                return;
+            }
+
+            // Deal with dir vs. file
+            var fnName = stats.isDirectory() ? 'rmdir' : 'unlink';
+            fs[fnName](path, function(err) {
+                // TODO: deal with the symlink case (i.e., only remove cache
+                // item if file is really going away).
+                BlobUtils.remove(path);
+                callback(_mapError(err));
+            });
         });
     }
 
