@@ -30,8 +30,6 @@ define(function (require, exports, module) {
 
     // Core modules
     var EditorManager        = brackets.getModule("editor/EditorManager"),
-        FileSystem           = brackets.getModule("filesystem/FileSystem"),
-        FileUtils            = brackets.getModule("file/FileUtils"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         CSSUtils             = brackets.getModule("language/CSSUtils");
     
@@ -50,26 +48,19 @@ define(function (require, exports, module) {
     function getCSSDocs() {
         if (!_cssDocsPromise) {
             var result = new $.Deferred();
-            
-            var path = ExtensionUtils.getModulePath(module, "css.json"),
-                file = FileSystem.getFileForPath(path);
-            
-            FileUtils.readAsText(file)
-                .done(function (text) {
-                    var jsonData;
-                    try {
-                        jsonData = JSON.parse(text);
-                    } catch (ex) {
-                        console.error("Malformed CSS documentation database: ", ex);
-                        result.reject();
-                    }
-                    result.resolve(jsonData);  // ignored if we already reject()ed above
-                })
-                .fail(function (err) {
-                    console.error("Unable to load CSS documentation database: ", err);
-                    result.reject();
-                });
-            
+
+            $.ajax({
+                url: ExtensionUtils.getModulePath(module, "css.json"),
+                dataType: "json"
+            })
+            .done(function(data, status, jqXHR) {
+                result.resolve(data);
+            })
+            .fail(function(jqXHR, status, err) {
+                console.error("Unable to load CSS documentation database: ", err);
+                result.reject();
+            });
+
             _cssDocsPromise = result.promise();
         }
         
