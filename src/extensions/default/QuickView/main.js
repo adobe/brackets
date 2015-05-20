@@ -40,7 +40,9 @@ define(function (require, exports, module) {
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         Strings             = brackets.getModule("strings"),
         ViewUtils           = brackets.getModule("utils/ViewUtils"),
-        TokenUtils          = brackets.getModule("utils/TokenUtils");
+        TokenUtils          = brackets.getModule("utils/TokenUtils"),
+        Path                = brackets.getModule("filesystem/impls/filer/BracketsFiler").Path,
+        BlobUtils           = brackets.getModule("filesystem/impls/filer/BlobUtils");
    
     var previewContainerHTML       = require("text!QuickViewTemplate.html");
     
@@ -90,8 +92,6 @@ define(function (require, exports, module) {
      * }}
      */
     var popoverState = null;
-    
-    
     
     // Popover widget management ----------------------------------------------
     
@@ -483,8 +483,9 @@ define(function (require, exports, module) {
             imgPath = tokenString;
         }
         // Use this filename if this is a path with a known image extension.
+        // We'll already have this image file's Blob URL cached in BlobUtils.
         else if (!hasProtocol && isImage) {
-            imgPath = "file:///" + FileUtils.getDirectoryPath(docPath) + tokenString;
+            imgPath = BlobUtils.getUrl(Path.join(FileUtils.getDirectoryPath(docPath), tokenString));
         }
 
         if (!imgPath) {
@@ -508,7 +509,6 @@ define(function (require, exports, module) {
         var showHandler = function () {
             // Hide the preview container until the image is loaded.
             $previewContainer.hide();
-
             $previewContainer.find(".image-preview > img").on("load", function () {
                 $previewContent
                     .append("<div class='img-size'>" +

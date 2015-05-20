@@ -35,12 +35,17 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         FileSystem          = require("filesystem/FileSystem"),
+        BlobUtils           = require("filesystem/impls/filer/BlobUtils"),
         FileUtils           = require("file/FileUtils"),
         _                   = require("thirdparty/lodash");
-    
-    
+
     var _viewers = {};
-        
+
+    // Get a Blob URL out of the cache
+    function _getImageUrl(file) {
+        return BlobUtils.getUrl(FileUtils.encodeFilePath(file.fullPath));
+    }
+
     /**
      * ImageView objects are constructed when an image is opened 
      * @see {@link Pane} for more information about where ImageViews are rendered
@@ -51,8 +56,7 @@ define(function (require, exports, module) {
      */
     function ImageView(file, $container) {
         this.file = file;
-        this.$el = $(Mustache.render(ImageViewTemplate, {fullPath: FileUtils.encodeFilePath(file.fullPath),
-                                                         now: new Date().valueOf()}));
+        this.$el = $(Mustache.render(ImageViewTemplate, {imgUrl: _getImageUrl(file)}));
         
         $container.append(this.$el);
 
@@ -393,22 +397,8 @@ define(function (require, exports, module) {
      * Refreshes the image preview with what's on disk
      */
     ImageView.prototype.refresh = function () {
-        var noCacheUrl = this.$imagePreview.attr("src"),
-            now = new Date().valueOf(),
-            index = noCacheUrl.indexOf("?");
-
-        // strip the old param off 
-        if (index > 0) {
-            noCacheUrl = noCacheUrl.slice(0, index);
-        }
-        
-        // add a new param which will force chrome to 
-        //  re-read the image from disk 
-        noCacheUrl = noCacheUrl + "?ver=" + now;
-        
-
         // Update the DOM node with the src URL 
-        this.$imagePreview.attr("src", noCacheUrl);
+        this.$imagePreview.attr("src", _getImageUrl(this.file));
     };
     
     /* 
