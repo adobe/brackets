@@ -261,6 +261,12 @@ define(function (require, exports, module) {
             // Always select initial value
             selectInitial = true;
             
+            // We need to end the session and begin a new session if the ( char is typed to 
+            // get arguments into the list when typing too fast
+            if (implicitChar === "(") {
+                return true;
+            }
+            
             // When switching from a NAME to a VALUE context, restart the session
             // to give other more specialized providers a chance to intervene.
             if (lastContext === CSSUtils.PROP_NAME) {
