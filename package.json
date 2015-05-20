@@ -48,7 +48,8 @@
         "semver": "^4.1.0",
         "jshint": "2.1.4",
         "xmldoc": "^0.1.2",
-        "grunt-cleanempty": "1.0.3"
+        "grunt-cleanempty": "1.0.3",
+        "slowparse": "^1.1.4"
     },
     "scripts": {
         "postinstall": "grunt install",

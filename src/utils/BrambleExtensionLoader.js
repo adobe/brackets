@@ -28,7 +28,6 @@ define(function (require, exports, module) {
         "UrlCodeHints",
 
         // Custom extensions we want loaded by default
-        // "HTMLHinter",
         "brackets-browser-livedev",
         "brackets-paste-and-indent"
     ];
@@ -60,7 +59,8 @@ define(function (require, exports, module) {
      */
     var extraExtensions = [
         "brackets-cdn-suggestions",    // https://github.com/szdc/brackets-cdn-suggestions
-        "ImageUrlCodeHints"
+        "ImageUrlCodeHints",
+        "HTMLHinter"
     ];
 
     // Disable any extensions we found on the query string's disableExtensions param

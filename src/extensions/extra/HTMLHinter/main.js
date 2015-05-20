@@ -13,7 +13,6 @@ define(function (require, exports, module) {
         defaultFont,
         errorCache = {};
 
-
     ExtensionUtils.loadStyleSheet(module, "main.less");
 
     function main(){

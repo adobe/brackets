@@ -4,8 +4,9 @@
 define(function(require) {
     "use strict";
 
-    var slowparse = require("slowparse/slowparse");
-    var errorMessages = require("text!slowparse/locale/en_US.json");
+    // Requires an `npm install` from root
+    var slowparse = require("../../../../node_modules/slowparse/slowparse");
+    var errorMessages = require("text!../../../../node_modules/slowparse/locale/en_US.json");
     errorMessages = JSON.parse(errorMessages);
 
     function render(html, context) {
