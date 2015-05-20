@@ -1,0 +1,46 @@
+/*Font family for errorPanel*/
+@fontFamily: Helvetica, Arial, "Meiryo UI", "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+
+.errorHighlight {
+    background-color: #EDC5C5;
+}
+
+.errorPanel {
+    padding-left: 20px;
+    background-color: #EDC5C5;
+    color: black;
+    font-family: @fontFamily;
+}
+
+.errorPanel h4 {
+    font-weight: bold;
+    font-family: @fontFamily;
+}
+
+.tooltipsy {
+    padding: 2px;
+    max-width: 200px;
+    color: #303030;
+    background-color: #f5f5b5;
+    border: 1px solid #deca7e;
+}
+
+.hint-marker-positioning {
+    left: auto !important; /* CodeMirror will set this value, but we don't want it set! */
+    right: 1em;
+    background-color: transparent;
+
+    cursor: pointer;
+
+    width: 1.4em;
+    height: 1.4em;
+    margin-top: -1.3em;
+
+    background-size: 100% 100%;
+    z-index: 999;
+}
+
+.hint-marker-error {
+    background-image: url("./explanationpt.png");
+}
+

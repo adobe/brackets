@@ -1,0 +1,52 @@
+html, body {
+  font-size: 12pt;
+}
+
+em[data-highlight] {
+  border-bottom: 1px dotted red;
+  color: red;
+}
+
+code {
+  font-family: monospace;
+  background: rgba(0,0,0,0.4);
+  color: white;
+  padding: 1px 3px;
+  font-size: 0.9em;
+}
+
+#entries div {
+  background: lightblue;
+  border: 1px solid black;
+  padding: 0;
+  margin: 0;
+}
+
+#entries div + div {
+  margin-top: 2em;
+}
+
+#entries h1 {
+  font-family: sans-serif;
+  font-size: 1.5em;
+  background:white;
+  padding: 2px;
+  margin: 0;
+  text-indent: 0.2em;
+}
+
+#entries p {
+  font-family: serif;
+  font-size: 1em;
+  text-indent: 1em;
+}
+
+#entries pre {
+  padding: 1em;
+  background: rgba(255,255,250, 0.6);
+  font-family: monospace;
+  color: darkblue;
+  font-size: 1em;
+  white-space: normal;
+  margin: 0;
+}

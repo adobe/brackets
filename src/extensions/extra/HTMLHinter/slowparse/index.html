@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+  <head>
+    <meta charset="utf-8">
+    <title>Slowparse, a friendlier HTML5 parser</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <header>
+      <h1>Slowparse, a friendlier HTML5 parser.</h1>
+    </header>
+
+    <p>Slowparse is an experimental HTML5 parser that yields friendlier errors than
+      most other parsers, using localisable strings. The fields below let you test
+      Slowparse by writing HTML in the left panel, which will either render in the
+      right panel if correct, or will show the base error detected in the middle
+      panel with the error rendered in a friendlier, human-readable form on the right.</p>
+
+    <main>
+      <textarea class="text pane">
+<!doctype html>
+<html>
+  <head>
+  </head>
+  <body>
+  </body>
+</html>
+      </textarea>
+      <textarea class="error pane" readonly></textarea>
+      <div class="preview pane"></div>
+    </main>
+
+    <footer>
+      <p>For the full Slowparse documentation, please see the <a href="http://github.com/mozilla/slowparse">github repository</a>.</p>
+      <p>For the locale strings used by Slowparse to generate its friendlier, human-readable errors, <a href="./locale">click here</a>.</p>
+    </footer>
+
+    <script src="slowparse.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>
