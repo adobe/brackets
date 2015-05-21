@@ -28,9 +28,6 @@
 [submodule "src/thirdparty/filer"]
 	path = src/thirdparty/filer
 	url = https://github.com/filerjs/filer.git
-[submodule "src/thirdparty/filer-dialogs"]
-	path = src/thirdparty/filer-dialogs
-	url = https://github.com/ScottDowne/filer-dialogs
 [submodule "src/extensions/default/brackets-browser-livedev"]
 	path = src/extensions/default/brackets-browser-livedev
 	url = https://github.com/humphd/brackets-browser-livedev.git

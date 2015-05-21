@@ -7,7 +7,6 @@ define(function (require, exports, module) {
     var FileSystemError = require("filesystem/FileSystemError"),
         FileSystemStats = require("filesystem/FileSystemStats"),
         Filer           = require("filesystem/impls/filer/BracketsFiler"),
-        Dialog          = require("thirdparty/filer-dialogs/filer-dialogs"),
         BlobUtils       = require("filesystem/impls/filer/BlobUtils"),
         Handlers        = require("filesystem/impls/filer/lib/handlers");
 
@@ -18,11 +17,11 @@ define(function (require, exports, module) {
     var _changeCallback;            // Callback to notify FileSystem of watcher changes
 
     function showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback) {
-        Dialog.showOpenDialog.apply(null, arguments);
+        throw new Error("Filer dialogs not supported. See: https://github.com/humphd/brackets/pull/309");
     }
 
     function showSaveDialog(title, initialPath, defaultName, callback) {
-        Dialog.showSaveAsDialog.apply(null, arguments);
+        throw new Error("Filer dialogs not supported. See: https://github.com/humphd/brackets/pull/309");
     }
 
     /**
