@@ -487,7 +487,7 @@ module.exports = function (grunt) {
             }
         }
     });
-    
+
     // Load postcss
     grunt.loadNpmTasks('grunt-postcss');
 
@@ -532,6 +532,7 @@ module.exports = function (grunt) {
         grunt.task.run([
             // Confirm we're ready to start
             'checkBranch',
+            'jshint:src',
 
             // Update submodules, commit and push to "master"
             'update_submodules:publish',
