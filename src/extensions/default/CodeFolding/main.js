@@ -30,7 +30,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var CodeMirror              = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror              = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         Strings                 = brackets.getModule("strings"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         CommandManager          = brackets.getModule("command/CommandManager"),
@@ -56,9 +56,9 @@ define(function (require, exports, module) {
     ExtensionUtils.loadStyleSheet(module, "main.less");
     
     // Load CodeMirror addons
-    brackets.getModule(["thirdparty/CodeMirror2/addon/fold/brace-fold"]);
-    brackets.getModule(["thirdparty/CodeMirror2/addon/fold/comment-fold"]);
-    brackets.getModule(["thirdparty/CodeMirror2/addon/fold/markdown-fold"]);
+    brackets.getModule(["thirdparty/CodeMirror/addon/fold/brace-fold"]);
+    brackets.getModule(["thirdparty/CodeMirror/addon/fold/comment-fold"]);
+    brackets.getModule(["thirdparty/CodeMirror/addon/fold/markdown-fold"]);
 
     // Still using slightly modified versions of the foldcode.js and foldgutter.js since we
     // need to modify the gutter click handler to take care of some collapse and expand features

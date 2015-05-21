@@ -29,7 +29,7 @@
 /**
  * Adds Find and Replace commands
  *
- * Originally based on the code in CodeMirror2/lib/util/search.js.
+ * Originally based on the code in CodeMirror/lib/util/search.js.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -46,7 +46,7 @@ define(function (require, exports, module) {
         FindInFilesUI       = require("search/FindInFilesUI"),
         ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
         _                   = require("thirdparty/lodash"),
-        CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror");
+        CodeMirror          = require("thirdparty/CodeMirror/lib/codemirror");
     
     /**
      * Maximum file size to search within (in chars)

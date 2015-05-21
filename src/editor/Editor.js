@@ -68,7 +68,7 @@ define(function (require, exports, module) {
     
     var AnimationUtils     = require("utils/AnimationUtils"),
         Async              = require("utils/Async"),
-        CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+        CodeMirror         = require("thirdparty/CodeMirror/lib/codemirror"),
         LanguageManager    = require("language/LanguageManager"),
         EventDispatcher    = require("utils/EventDispatcher"),
         Menus              = require("command/Menus"),

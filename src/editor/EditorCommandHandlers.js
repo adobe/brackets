@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         EditorManager      = require("editor/EditorManager"),
         StringUtils        = require("utils/StringUtils"),
         TokenUtils         = require("utils/TokenUtils"),
-        CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+        CodeMirror         = require("thirdparty/CodeMirror/lib/codemirror"),
         _                  = require("thirdparty/lodash");
     
     /**
