@@ -3,41 +3,33 @@
 define(function (require, exports, module) {
     "use strict";
 
-    module.exports = {
-        isMedia: function(ext) {
-            return ext === '.avi'  ||
-                   ext === '.mpeg' ||
-                   ext === '.mp4'  ||
-                   ext === '.ogg'  ||
-                   ext === '.webm' ||
-                   ext === '.mov'  ||
-                   ext === '.qt'   ||
-                   ext === '.divx' ||
-                   ext === '.wmv'  ||
-                   ext === '.mp3'  ||
-                   ext === '.wav';
-        },
+    var LanguageManager = require('language/LanguageManager');
 
+    function _getLanguageId(ext) {
+        ext = ext.replace(/^\./, "");
+        var language = LanguageManager.getLanguageForExtension(ext);
+        return language ? language.getId() : "";
+    }
+
+    module.exports = {
         isImage: function(ext) {
-            return ext === '.png'  ||
-                   ext === '.jpg'  ||
-                   ext === '.jpe'  ||
-                   ext === '.pjpg' ||
-                   ext === '.jpeg' ||
-                   ext === '.gif'  ||
-                   ext === '.bmp'  ||
-                   ext === '.ico';
+            var id = _getLanguageId(ext);
+            return id === "image" || id === "svg";
         },
 
         isHTML: function(ext) {
-            return ext === '.html' ||
-                   ext === '.htm'  ||
-                   ext === '.htx'  ||
-                   ext === '.htmls';
+            var id = _getLanguageId(ext);
+            return id === "html";
         },
 
         isCSS: function(ext) {
-            return ext === '.css';
+            var id = _getLanguageId(ext);
+            return id === "css";
+        },
+
+        isMarkdown: function(ext) {
+            var id = _getLanguageId(ext);
+            return id === "markdown";
         },
 
         mimeFromExt: function(ext) {
@@ -46,6 +38,9 @@ define(function (require, exports, module) {
             case '.htmls':
             case '.htm':
             case '.htx':
+            // We transform Markdown into HTML
+            case '.md':
+            case '.markdown':
                 return 'text/html';
             case '.ico':
                 return 'image/x-icon';

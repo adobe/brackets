@@ -37,3 +37,6 @@
 [submodule "src/extensions/extra/brackets-cdn-suggestions"]
 	path = src/extensions/extra/brackets-cdn-suggestions
 	url = https://github.com/szdc/brackets-cdn-suggestions.git
+[submodule "src/thirdparty/marked"]
+	path = src/thirdparty/marked
+	url = https://github.com/chjj/marked.git
