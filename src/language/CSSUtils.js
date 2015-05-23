@@ -31,7 +31,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror          = require("thirdparty/CodeMirror/lib/codemirror"),
         Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),

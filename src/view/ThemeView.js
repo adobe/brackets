@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror         = require("thirdparty/CodeMirror/lib/codemirror"),
         PreferencesManager = require("preferences/PreferencesManager"),
         prefs              = PreferencesManager.getExtensionPrefs("themes");
 
