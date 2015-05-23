@@ -45,19 +45,19 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-twipsy-mod");
 
     // Load CodeMirror add-ons--these attach themselves to the CodeMirror module
-    require("thirdparty/CodeMirror/addon/edit/closebrackets");
-    require("thirdparty/CodeMirror/addon/edit/closetag");
-    require("thirdparty/CodeMirror/addon/edit/matchbrackets");
-    require("thirdparty/CodeMirror/addon/edit/matchtags");
-    require("thirdparty/CodeMirror/addon/fold/xml-fold");
-    require("thirdparty/CodeMirror/addon/mode/multiplex");
-    require("thirdparty/CodeMirror/addon/mode/overlay");
-    require("thirdparty/CodeMirror/addon/scroll/scrollpastend");
-    require("thirdparty/CodeMirror/addon/search/match-highlighter");
-    require("thirdparty/CodeMirror/addon/search/searchcursor");
-    require("thirdparty/CodeMirror/addon/selection/active-line");
-    require("thirdparty/CodeMirror/addon/selection/mark-selection");
-    require("thirdparty/CodeMirror/keymap/sublime");
+    require("thirdparty/CodeMirror2/addon/edit/closebrackets");
+    require("thirdparty/CodeMirror2/addon/edit/closetag");
+    require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
+    require("thirdparty/CodeMirror2/addon/edit/matchtags");
+    require("thirdparty/CodeMirror2/addon/fold/xml-fold");
+    require("thirdparty/CodeMirror2/addon/mode/multiplex");
+    require("thirdparty/CodeMirror2/addon/mode/overlay");
+    require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
+    require("thirdparty/CodeMirror2/addon/search/match-highlighter");
+    require("thirdparty/CodeMirror2/addon/search/searchcursor");
+    require("thirdparty/CodeMirror2/addon/selection/active-line");
+    require("thirdparty/CodeMirror2/addon/selection/mark-selection");
+    require("thirdparty/CodeMirror2/keymap/sublime");
 
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
@@ -104,11 +104,11 @@ define(function (require, exports, module) {
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
     // expose our required CodeMirror globally so as to avoid breaking extensions in the
     // interim.
-    var CodeMirror = require("thirdparty/CodeMirror/lib/codemirror");
+    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror");
 
     Object.defineProperty(window, "CodeMirror", {
         get: function () {
-            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/CodeMirror/lib/codemirror") instead of global CodeMirror.', true);
+            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/CodeMirror2/lib/codemirror") instead of global CodeMirror.', true);
             return CodeMirror;
         }
     });
