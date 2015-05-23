@@ -850,7 +850,7 @@ define(function (require, exports, module) {
      * (switching to single line comments because the glob interferes with the multiline comment):
      */
 //    "path": {
-//        "src/thirdparty/CodeMirror/**/*.js": {
+//        "src/thirdparty/CodeMirror2/**/*.js": {
 //            "spaceUnits": 2,
 //            "linting.enabled": false
 //        }
