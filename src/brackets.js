@@ -74,7 +74,6 @@ define(function (require, exports, module) {
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         Async               = require("utils/Async"),
-        UpdateNotification  = require("utils/UpdateNotification"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         PreferencesManager  = require("preferences/PreferencesManager"),
         DragAndDrop         = require("utils/DragAndDrop"),
@@ -106,8 +105,6 @@ define(function (require, exports, module) {
     require("project/SidebarView");
     require("utils/Resizer");
     require("LiveDevelopment/main");
-    require("utils/NodeConnection");
-    require("utils/NodeDomain");
     require("utils/ColorUtils");
     require("view/ThemeManager");
     require("thirdparty/lodash");
@@ -132,9 +129,6 @@ define(function (require, exports, module) {
     require("editor/EditorOptionHandlers");
     require("editor/EditorStatusBar");
     require("editor/ImageViewer");
-    require("extensibility/InstallExtensionDialog");
-    require("extensibility/ExtensionManagerDialog");
-    require("help/HelpCommandHandlers");
     require("search/FindInFilesUI");
     require("search/FindReplace");
     
@@ -254,14 +248,6 @@ define(function (require, exports, module) {
                 });
             });
         });
-
-        // Check for updates
-        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
-            AppInit.appReady(function () {
-                // launches periodic checks for updates cca every 24 hours
-                UpdateNotification.launchAutomaticUpdate();
-            });
-        }
     }
     
     /**
