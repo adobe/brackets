@@ -190,3 +190,34 @@ background: -ms-linear-gradient(top,  #d2dfed 0%,#c8d7eb 26%,#bed0ea 51%,#a6c0e3
     background-image: linear-gradient(to bottom, #333, #CCC;
     background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(51,51,51)), to(rgb(204,204,204));
 }
+
+.good-preview-image-urls {
+    background: "http://example.com/image.gif";
+    background: "http://example.com/image.png";
+    background: "http://example.com/image.jpe";
+    background: "http://example.com/image.jpeg";
+    background: "http://example.com/image.jpg";
+    background: "http://example.com/image.ico";
+    background: "http://example.com/image.bmp";
+    background: "http://example.com/image.svg";
+
+    background: "https://image.service.com/id/1234513";
+    background: "http://image.service.com/id/1234513";
+    background: "https://image.service.com/id/1234513?w=300&h=400";
+}
+
+.ignored-preview-image-urls {
+    background: "https://website.com/index.html";
+    background: "https://website.com/style.css";
+    background: "https://website.com/script.js";
+    background: "https://website.com/package.json";
+    background: "https://website.com/readme.md";
+    background: "https://website.com/data.xml";
+    background: "https://website.com/music.mp3";
+    background: "https://website.com/video.ogv";
+    background: "https://website.com/video.mp4";
+    background: "https://website.com/video.mpeg";
+    background: "https://website.com/video.webm";
+    background: "https://website.com/archive.zip";
+    background: "https://website.com/archive.tgz";
+}
