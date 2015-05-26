@@ -19,8 +19,10 @@ define(function (require, exports, module) {
         var mimeType = Content.mimeFromExt(ext);
 
         // NOTE: we call toString() on `data` so that only utf8 data is used if a
-        // buffer was passed in as a parameter
-        data = data.toString();
+        // buffer was passed in as a parameter and should be read as utf8.
+        if(Content.isUTF8Encoded(ext)) {
+            data = data.toString();
+        }
 
         if(Content.isHTML(ext)) {
             data = HTMLRewriter.rewrite(path, data);

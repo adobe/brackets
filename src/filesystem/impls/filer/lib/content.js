@@ -50,6 +50,8 @@ define(function (require, exports, module) {
                 return 'text/css';
             case '.js':
                 return 'text/javascript';
+            case '.txt':
+                return 'text/plain';
             case '.svg':
                 return 'image/svg+xml';
             case '.png':
@@ -88,11 +90,15 @@ define(function (require, exports, module) {
             return 'application/octet-stream';
         },
 
+        // Whether or not this is a text/* mime type
+        isTextType: function(mime) {
+            return (/^text/).test(mime);
+        },
+
         // Check if the file can be read in utf8 encoding
         isUTF8Encoded: function(ext) {
             var mime = this.mimeFromExt(ext);
-
-            return (/^text/).test(mime);
+            return this.isTextType(mime);
         },
 
         // Test if the given URL is really a relative path (into the fs)
