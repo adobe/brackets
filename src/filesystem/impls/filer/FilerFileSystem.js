@@ -185,8 +185,7 @@ define(function (require, exports, module) {
             callback = options;
         }
         options = options || {};
-
-        var encoding = options.encoding || "utf8";
+        options.encoding = options.encoding === null ? null : "utf8";
 
         // Execute the read and stat calls in parallel. Callback early if the
         // read call completes first with an error; otherwise wait for both
@@ -208,7 +207,7 @@ define(function (require, exports, module) {
             });
         }
 
-        fs.readFile(path, encoding, function (_err, _data) {
+        fs.readFile(path, options.encoding, function (_err, _data) {
             if (_err) {
                 callback(_mapError(_err));
                 return;
@@ -228,11 +227,10 @@ define(function (require, exports, module) {
             callback = options;
         }
         options = options || {};
-
-        var encoding = options.encoding || "utf8";
+        options.encoding = options.encoding === null ? null : "utf8";
 
         function _finishWrite(created) {
-            fs.writeFile(path, data, encoding, function (err) {
+            fs.writeFile(path, data, options.encoding, function (err) {
                 if (err) {
                     callback(_mapError(err));
                     return;
@@ -263,7 +261,7 @@ define(function (require, exports, module) {
                 console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
 
                 if (options.hasOwnProperty("expectedContents")) {
-                    fs.readFile(path, encoding, function (_err, _data) {
+                    fs.readFile(path, options.encoding, function (_err, _data) {
                         if (_err || _data !== options.expectedContents) {
                             callback(FileSystemError.CONTENTS_MODIFIED);
                             return;
