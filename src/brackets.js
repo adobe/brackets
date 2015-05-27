@@ -82,6 +82,9 @@ define(function (require, exports, module) {
         ViewCommandHandlers = require("view/ViewCommandHandlers"),
         MainViewManager     = require("view/MainViewManager");
 
+    // XXXBramble
+    var BrambleStartupProject = require("bramble/BrambleStartupProject");
+
     var MainViewHTML        = require("text!htmlContent/main-view.html");
 
     // XXXBramble: load dependent modules that aren't used here (jshint 'defined but never used')
@@ -183,38 +186,26 @@ define(function (require, exports, module) {
 
                 // Finish UI initialization
                 ViewCommandHandlers.restoreFontSize();
-                var initialProjectPath = ProjectManager.getInitialProjectPath();
-                ProjectManager.openProject(initialProjectPath).always(function () {
-                    // XXXThimble: We force the "SampleProjectLoad" logic to execute
-                    //             by modifying preferences in our thimbleProxy
-                    //             extension. This is a shortcut to opening
-                    //             the Thimble make in brackets.
+
+                // XXXBramble: get path passed into iframe from hosting app
+                var startupProjectInfo = BrambleStartupProject.getInfo();
+                ProjectManager.openProject(startupProjectInfo.root).always(function () {
                     var deferred = new $.Deferred();
-                    
-                    if (!params.get("skipSampleProjectLoad") && !PreferencesManager.getViewState("afterFirstLaunch")) {
-                        PreferencesManager.setViewState("afterFirstLaunch", "true");
-                        if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                            FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
-                                if (!err) {
-                                    var promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: file.fullPath });
-                                    promise.then(deferred.resolve, deferred.reject);
-                                } else {
-                                    deferred.reject();
-                                }
-                            });
+                    FileSystem.resolve(startupProjectInfo.fullPath, function (err, file) {
+                        if (!err) {
+                            var promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: file.fullPath });
+                            promise.then(deferred.resolve, deferred.reject);
                         } else {
-                            deferred.resolve();
+                            deferred.reject();
                         }
-                    } else {
-                        deferred.resolve();
-                    }
-                    
+                    });
+
                     deferred.always(function () {
                         // Signal that Brackets is loaded
                         AppInit._dispatchReady(AppInit.APP_READY);
-                        
+
                         PerfUtils.addMeasurement("Application Startup");
-                        
+
                         if (PreferencesManager._isUserScopeCorrupt()) {
                             var userPrefFullPath = PreferencesManager.getUserPrefFile();
                             // user scope can get corrupt only if the file exists, is readable,
@@ -280,8 +271,10 @@ define(function (require, exports, module) {
             }());
         }
         
-        // Localize MainViewHTML and inject into <BODY> tag
-        $("body").html(Mustache.render(MainViewHTML, Strings));
+        // Localize MainViewHTML and inject.
+        // XXXBramble: we don't use <body> here, so that we can do a loading spinner first
+        // that will get turned off, and this div shown, in bramble UI.initUI().
+        $("#main-view").html(Mustache.render(MainViewHTML, Strings));
         
         // Update title
         $("title").text(brackets.config.app_title);

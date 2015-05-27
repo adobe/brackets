@@ -75,6 +75,9 @@ define(function (require, exports, module) {
         else if(_orientation === HORIZONTAL_ORIENTATION) {
             CommandManager.execute(Commands.CMD_SPLITVIEW_HORIZONTAL);
         }
+
+        // SplitView will focus new pane, put it back on first editor pane
+        MainViewManager.setActivePaneId("first-pane");
     }
 
     /**

@@ -98,7 +98,10 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils"),
         Resizer             = require("utils/Resizer"),
         Pane                = require("view/Pane").Pane;
-        
+
+    // XXXBramble: broadcast layout changes on the first editor pane
+    var BrambleEvents       = require("bramble/BrambleEvents");
+
     /** 
      * Preference setting name for the MainView Saved State
      * @const
@@ -1105,6 +1108,10 @@ define(function (require, exports, module) {
         
         firstPane.$el.on("panelResizeUpdate", function () {
             _updateLayout();
+            BrambleEvents.triggerUpdateLayoutStart();
+        });
+        firstPane.$el.on("panelResizeEnd", function () {
+            BrambleEvents.triggerUpdateLayoutStart();
         });
     }
     

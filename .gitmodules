@@ -40,3 +40,6 @@
 [submodule "src/thirdparty/slowparse"]
 	path = src/thirdparty/slowparse
 	url = https://github.com/mozilla/slowparse.git
+[submodule "src/bramble/thirdparty/EventEmitter"]
+	path = src/bramble/thirdparty/EventEmitter
+	url = https://github.com/Wolfy87/EventEmitter.git

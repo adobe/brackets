@@ -6,8 +6,9 @@ define(function (require, exports, module) {
 
     // BlobUtils provides an opportunistic cache for BLOB Object URLs
     // which can be looked-up synchronously.
-
-    var Path  = require("filesystem/impls/filer/BracketsFiler").Path;
+    var Content = require("filesystem/impls/filer/lib/content");
+    var Path = require("filesystem/impls/filer/FilerUtils").Path;
+    var fs = require("filesystem/impls/filer/BracketsFiler").fs();
 
     // 2-way cache for blob URL to path for looking up either way:
     // * paths - paths keyed on blobUrls
@@ -58,16 +59,41 @@ define(function (require, exports, module) {
     }
 
     // Given a filename, lookup the cached BLOB URL
-    function getUrl(filename) {
+    function _getUrlSync(filename) {
         var url = blobURLs[Path.normalize(filename)];
 
         // We expect this to exist, if it doesn't,
         // return path back unchanged
-        if(!url) {
-            return filename;
+        return url || filename;
+    }
+
+    function _getUrlAsync(filename, callback) {
+        var cachedUrl = blobURLs[Path.normalize(filename)];
+        if(cachedUrl) {
+            callback(null, cachedUrl);
+            return;
         }
 
-        return url;
+        fs.readFile(filename, null, function(err, data) {
+            if(err) {
+                callback(err);
+                return;
+            }
+
+            var mime = Content.mimeFromExt(Path.extname(filename));
+            var url = createURL(filename, data, mime);
+            callback(null, url);
+        });        
+    }
+
+    // Support sync and async calls to the URL cache. Also check to see
+    // if async calls can by run immediately regardless (i.e., no disk access).
+    function getUrl(filename, maybeCallback) {
+        if(typeof maybeCallback === "function") {
+            _getUrlAsync(filename, maybeCallback);
+        } else {
+            return _getUrlSync(filename);
+        }
     }
 
     // Given a BLOB URL, lookup the associated filename
@@ -79,7 +105,6 @@ define(function (require, exports, module) {
         if(!filename) {
             return blobUrl;
         }
-
         return filename;
     }
 

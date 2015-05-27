@@ -28,7 +28,14 @@ define(function (require, exports, module) {
         var server = this.server;
         var browser = this.browser;
 
-        browser.update(server.serveLiveDoc(url));
+        server.serveLiveDoc(url, function(err, urlOrHTML) {
+            if(err) {
+                // TODO: how to deal with this error?                
+                console.error("[Launcher Error]", err);
+                return;
+            }
+            browser.update(urlOrHTML);
+        });
     };
 
     Launcher.getCurrentInstance = function() {

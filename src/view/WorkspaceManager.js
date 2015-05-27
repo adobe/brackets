@@ -41,8 +41,10 @@ define(function (require, exports, module) {
     var AppInit                 = require("utils/AppInit"),
         EventDispatcher         = require("utils/EventDispatcher"),
         Resizer                 = require("utils/Resizer");
-    
-    
+
+    // XXXBramble: broadcast layout changes on the sidebar
+    var BrambleEvents           = require("bramble/BrambleEvents");
+
     /** 
      * The ".content" vertical stack (editor + all header/footer panels) 
      * @type {jQueryObject} 
@@ -142,11 +144,11 @@ define(function (require, exports, module) {
      */
     function listenToResize($panel) {
         // Update editor height when shown/hidden, & continuously as panel is resized
-        $panel.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
+        $panel.on("panelCollapsed panelExpanded panelResizeUpdate", function (e) {
             triggerUpdateLayout();
         });
         // Update max size of sibling panels when shown/hidden, & at *end* of resize gesture
-        $panel.on("panelCollapsed panelExpanded panelResizeEnd", function () {
+        $panel.on("panelCollapsed panelExpanded panelResizeEnd", function (e) {
             updateResizeLimits();
         });
     }
@@ -243,7 +245,22 @@ define(function (require, exports, module) {
         
         // Sidebar is a special case: it isn't a Panel, and is not created dynamically. Need to explicitly
         // listen for resize here.
-        listenToResize($("#sidebar"));
+        var $sidebar = $("#sidebar");
+        listenToResize($sidebar);
+
+        // XXXBramble: we need more details about events on the sidebar
+        $sidebar.on("panelCollapsed", function() {
+            BrambleEvents.triggerSidebarCollapsed();
+        });
+        $sidebar.on("panelExpanded", function() {
+            BrambleEvents.triggerSidebarExpanded();
+        });
+        $sidebar.on("panelCollapsed panelExpanded panelResizeUpdate", function (e) {
+            BrambleEvents.triggerUpdateLayoutStart();
+        });
+        $sidebar.on("panelCollapsed panelExpanded panelResizeEnd", function (e) {
+            BrambleEvents.triggerUpdateLayoutEnd();
+        });
     });
     
     /* Unit test only: allow passing in mock DOM notes, e.g. for use with SpecRunnerUtils.createMockEditor() */

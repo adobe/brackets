@@ -7,14 +7,14 @@ define(function (require, exports, module) {
     var HTMLRewriter = require("filesystem/impls/filer/lib/HTMLRewriter");
     var MarkdownRewriter = require("filesystem/impls/filer/lib/MarkdownRewriter");
     var CSSRewriter = require("filesystem/impls/filer/lib/CSSRewriter");
-    var Path  = require("filesystem/impls/filer/BracketsFiler").Path;
+    var Path = require("filesystem/impls/filer/FilerUtils").Path;
     var BlobUtils = require("filesystem/impls/filer/BlobUtils");
 
     /**
      * Process known files into Blob URLs, processing known types first
      * so they are rendered and rewritten (e.g., paths->blob urls) properly.
      */
-    function handleFile(path, data) {
+    function handleFile(path, data, callback) {
         var ext = Path.extname(path);
         var mimeType = Content.mimeFromExt(ext);
 
@@ -25,15 +25,24 @@ define(function (require, exports, module) {
         }
 
         if(Content.isHTML(ext)) {
-            data = HTMLRewriter.rewrite(path, data);
+            HTMLRewriter.rewrite(path, data, callback);
         } else if(Content.isMarkdown(ext)) {
             // Convert Markdown to HTML, then rewrite the resulting HTML
-            data = HTMLRewriter.rewrite(path, MarkdownRewriter.rewrite(path, data));
+            HTMLRewriter.rewrite(path, MarkdownRewriter.rewrite(path, data), callback);
         } else if(Content.isCSS(ext)) {
-            data = CSSRewriter.rewrite(path, data);
-        }
-
-        return BlobUtils.createURL(path, data, mimeType);
+            CSSRewriter.rewrite(path, data, function(err, css) {
+                if(err) {
+                    console.error("[Handler.handleFile() Error", path, err);
+                    callback(err);
+                    return;
+                }
+                BlobUtils.createURL(path, css, mimeType);
+                callback();
+            });
+        } else {
+            BlobUtils.createURL(path, data, mimeType);
+            callback();
+        } 
     }
 
     exports.handleFile = handleFile;

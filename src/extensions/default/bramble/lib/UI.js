@@ -9,12 +9,18 @@ define(function (require, exports, module) {
         UrlParams           = brackets.getModule("utils/UrlParams").UrlParams,
         StatusBar           = brackets.getModule("widgets/StatusBar"),
         Strings             = brackets.getModule("strings"),
-        MainViewManager     = brackets.getModule("view/MainViewManager");
+        MainViewManager     = brackets.getModule("view/MainViewManager"),
+        BrambleEvents       = brackets.getModule("bramble/BrambleEvents"),
+        BrambleStartupProject = brackets.getModule("bramble/BrambleStartupProject"),
+        FileSystem          = brackets.getModule("filesystem/FileSystem"),
+        SidebarView         = brackets.getModule("project/SidebarView");
 
     var PhonePreview  = require("text!lib/Mobile.html");
     var PostMessageTransport = require("lib/PostMessageTransport");
     var IframeBrowser = require("lib/iframe-browser");
     var Compatibility = require("lib/compatibility");
+
+    var isMobileViewOpen = false;
 
     /**
      * This function calls all the hide functions and listens
@@ -24,14 +30,29 @@ define(function (require, exports, module) {
         addLivePreviewButton(function() {
             toggleMobileViewButton();
 
-            if(shouldHideUI()) {
-                removeTitleBar();
-                removeMainToolBar();
-                removeLeftSideToolBar();
-                removeRightSideToolBar();
-            }
+            // Check to see if there is more than 1 file in the project folder
+            var root = BrambleStartupProject.getInfo().root;
+            FileSystem.getDirectoryForPath(root).getContents(function(err, contents) {
+                var hideSideBar = contents && contents.length === 1;
 
-            callback();
+                if(shouldHideUI()) {
+                    removeTitleBar();
+                    removeMainToolBar();
+                    removeLeftSideToolBar();
+                    removeRightSideToolBar();
+                    removeStatusBar();
+
+                    if(hideSideBar) {
+                        SidebarView.hide();
+                    }
+                }
+
+                // Show the editor, remove spinner
+                $("#spinner-container").remove();
+                $("#main-view").css("visibility", "visible");
+
+                callback();
+            });
         });
     }
 
@@ -46,6 +67,13 @@ define(function (require, exports, module) {
     }
 
     /**
+     * By default we disable/hide the StatusBar
+     */
+    function removeStatusBar() {
+        StatusBar.disable();
+    }
+
+    /**
      * This function merely removes the left side tool bar
      */
     function removeLeftSideToolBar() {
@@ -53,7 +81,6 @@ define(function (require, exports, module) {
         $("#working-set-list-second-pane").addClass("hideLeftToolbar");
         //Remove splitview button
         $("#sidebar .working-set-splitview-btn").remove();
-        Resizer.hide("#sidebar");
     }
 
     /**
@@ -100,23 +127,58 @@ define(function (require, exports, module) {
         $(".content").addClass("hideRightToolbar");
     }
 
-    /**
-     * Used to show the mobile view.
-     */
-    function showMobile() {
+    // Make sure we don't lose focus and hide the status bar in mobile view
+    function stealFocus(e) {
+        e.preventDefault();
+        MainViewManager.setActivePaneId("first-pane");
+    }
+
+    function showDesktopView() {
+        if(!isMobileViewOpen) {
+            return;
+        }
+
+        // Switch the icon
+        $("#mobileViewButton").removeClass("desktopButton");
+        $("#mobileViewButton").addClass("mobileButton");
+        // Updates the tooltip
+        StatusBar.updateIndicator("mobileViewButtonBox", true, "",
+                                  "Click to open preview in a mobile view");
+
+        $("#bramble-iframe-browser").appendTo("#second-pane");
+        $(".phone-container").detach();
+        $("#second-pane").removeClass("second-pane-scroll");
+        $("#second-pane").off("click", stealFocus);
+
+        isMobileViewOpen = false;
+        BrambleEvents.triggerPreviewModeChange("desktop");
+        PostMessageTransport.reload();
+    }
+
+    function showMobileView() {
+        if(isMobileViewOpen) {
+            return;
+        }
+
+        // Switch the icon
+        $("#mobileViewButton").removeClass("mobileButton");
+        $("#mobileViewButton").addClass("desktopButton");
+        // Updates the tooltip
+        StatusBar.updateIndicator("mobileViewButtonBox", true, "",
+                                  "Click to open preview in a desktop view");
+
         $("#bramble-iframe-browser").addClass("phone-body");
         $("#second-pane").append(PhonePreview);
         $("#bramble-iframe-browser").appendTo("#phone-content");
         $("#second-pane").addClass("second-pane-scroll");
-    }
 
-    /**
-     * Used to hide the mobile view.
-     */
-    function hideMobile() {
-        $("#bramble-iframe-browser").appendTo("#second-pane");
-        $(".phone-container").detach();
-        $("#second-pane").removeClass("second-pane-scroll");
+        // Give focus back to the editor when the outside of the mobile phone is clicked.
+        // Prevents the status bar from disappearing.
+        $("#second-pane").on("click", stealFocus);
+
+        isMobileViewOpen = true;
+        BrambleEvents.triggerPreviewModeChange("mobile");
+        PostMessageTransport.reload();
     }
 
     /**
@@ -124,44 +186,16 @@ define(function (require, exports, module) {
      * between mobile view and desktop view.
      */
     function toggleMobileViewButton() {
-        var isMobileViewOpen = false;
-
         var mobileView = Mustache.render("<div><a id='mobileViewButton' href=#></a></div>", Strings);
         StatusBar.addIndicator("mobileViewButtonBox", $(mobileView), true, "",
                                "Click to open preview in a mobile view", "status-overwrite");
         $("#mobileViewButton").addClass("mobileButton");
 
         $("#mobileViewButton").click(function () {
-            PostMessageTransport.reload();
-
             if(!isMobileViewOpen) {
-                // Switch the icon
-                $("#mobileViewButton").removeClass("mobileButton");
-                $("#mobileViewButton").addClass("desktopButton");
-                // Updates the tooltip
-                StatusBar.updateIndicator("mobileViewButtonBox", true, "",
-                                          "Click to open preview in a desktop view");
-
-                showMobile();
-
-                isMobileViewOpen = true;
-                // Give focus back to the editor when the outside of the mobile phone is clicked.
-                // Prevents the status bar from disappearing.
-                $("#second-pane").click(function() {
-                    MainViewManager.setActivePaneId("first-pane");
-                });
-            }
-            else {
-                // Switch the icon
-                $("#mobileViewButton").removeClass("desktopButton");
-                $("#mobileViewButton").addClass("mobileButton");
-                // Updates the tooltip
-                StatusBar.updateIndicator("mobileViewButtonBox", true, "",
-                                          "Click to open preview in a mobile view");
-
-                hideMobile();
-
-                isMobileViewOpen = false;
+                showMobileView();
+            } else {
+                showDesktopView();
             }
         });
     }
@@ -210,8 +244,18 @@ define(function (require, exports, module) {
         });
     }
 
+    /**
+     * Which preview mode we're in, "desktop" or "mobile"
+     */
+    function getPreviewMode() {
+        return isMobileViewOpen ? "mobile" : "desktop";
+    }
+
     // Define public API
     exports.initUI                 = initUI;
+    exports.showMobileView         = showMobileView;
+    exports.showDesktopView        = showDesktopView;
+    exports.getPreviewMode         = getPreviewMode;
     exports.removeLeftSideToolBar  = removeLeftSideToolBar;
     exports.removeMainToolBar      = removeMainToolBar;
     exports.removeRightSideToolBar = removeRightSideToolBar;

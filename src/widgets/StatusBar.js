@@ -53,6 +53,9 @@ define(function (require, exports, module) {
         $statusBar,
         $indicators,
         $busyIndicator;
+
+    // XXXBramble: whether the status bar is enabled or disabled
+    var _enabled = false;
         
     /**
      * Shows the 'busy' indicator
@@ -244,12 +247,33 @@ define(function (require, exports, module) {
             return;
         }
 
+        // XXXBramble: ignore requests to show the status bar if not enabled
+        if (!_enabled) {
+            return;
+        }
+
         if (!$statusBar.is(":visible")) {
             $statusBar.show();
             WorkspaceManager.recomputeLayout();
         }
     }
     
+    /**
+     * XXXBramble: Disables the status bar completely, such that calls to show() do nothing
+     */
+    function enable() {
+        _enabled = true;
+        show();
+    }
+
+    /**
+     * XXXBramble: Enables the status bar, such that calls to show() do something
+     */
+    function disable() {
+        _enabled = false;
+        hide();
+    }
+
     AppInit.htmlReady(function () {
         var $parent = $(".main-view .content");
         $parent.append(Mustache.render(StatusBarHTML, Strings));
@@ -278,4 +302,6 @@ define(function (require, exports, module) {
     exports.updateIndicator   = updateIndicator;
     exports.hide              = hide;
     exports.show              = show;
+    exports.enable            = enable;
+    exports.disable           = disable;
 });

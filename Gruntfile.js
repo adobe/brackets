@@ -80,6 +80,7 @@ module.exports = function (grunt) {
                         '!**/unittest-files/**',
                         '!extensions/default/JavaScriptCodeHints/thirdparty/*/test/**/*',
                         '!extensions/default/**/node_modules/**/*',
+                        '!extensions/extra/**/node_modules/**/*',
                         'thirdparty/CodeMirror/addon/{,*/}*.js',
                         'thirdparty/CodeMirror/keymap/{,*/}*.js',
                         'thirdparty/CodeMirror/lib/{,*/}*.js',
@@ -206,7 +207,11 @@ module.exports = function (grunt) {
                     optimize: 'uglify2',
                     // brackets.js should not be loaded until after polyfills defined in "utils/Compatibility"
                     // so explicitly include it in main.js
-                    include: ["utils/Compatibility", "brackets"],
+                    include: [
+                        "utils/Compatibility",
+                        "bramble/thirdparty/MessageChannel/message_channel",
+                        "brackets"
+                    ],
                     // required to support SourceMaps
                     // http://requirejs.org/docs/errors.html#sourcemapcomments
                     preserveLicenseComments: false,
@@ -215,6 +220,23 @@ module.exports = function (grunt) {
                     wrap: false,
                     exclude: ["text!config.json"],
                     uglify2: {} // https://github.com/mishoo/UglifyJS2
+                }
+            },
+            iframe: {
+                // Standalone dist/bramble.js iframe api
+                options: {
+                    name: 'thirdparty/almond',
+                    baseUrl: 'src',
+                    optimize: 'uglify2',
+                    preserveLicenseComments: false,
+                    useStrict: true,
+                    wrap: {
+                        startFile: 'src/bramble/bramble-start.frag',
+                        endFile: 'src/bramble/bramble-end.frag'
+                    },
+                    include: ['bramble/api'],
+                    out: 'dist/bramble.js',
+                    uglify2: {}
                 }
             }
         },
@@ -360,13 +382,8 @@ module.exports = function (grunt) {
                 '<%= meta.grunt %>',
                 '<%= meta.src %>',
                 '<%= meta.test %>',
-                // These modules include lots of third-party code, so we skip them
-                '!src/extensions/default/HTMLHinter/slowparse/**',
-                '!src/extensions/default/HTMLHinter/tooltipsy.source.js',
-                '!src/extensions/default/bramble/nohost/**',
                 '!src/extensions/extra/**',
-                //With Previous skip statement, this file was ignored, so we specify it directly for jshinting
-                'src/extensions/default/bramble/nohost/src/NoHostServer.js'
+                '!src/bramble/thirdparty/**'
             ],
             grunt:  '<%= meta.grunt %>',
             src:    [
@@ -374,10 +391,8 @@ module.exports = function (grunt) {
                 // These modules include lots of third-party code, so we skip them
                 '!src/extensions/default/HTMLHinter/slowparse/**',
                 '!src/extensions/default/HTMLHinter/tooltipsy.source.js',
-                '!src/extensions/default/bramble/nohost/**',
                 '!src/extensions/extra/**',
-                //With Previous skip statement, this file was ignored, so we specify it directly for jshinting
-                'src/extensions/default/bramble/nohost/src/NoHostServer.js'
+                '!src/bramble/thirdparty/**'
             ],
             test:   '<%= meta.test %>',
             /* use strict options to mimic JSLINT until we migrate to JSHINT in Brackets */
@@ -565,7 +580,7 @@ module.exports = function (grunt) {
         'targethtml',
         'useminPrepare',
         'htmlmin',
-        'requirejs',
+        'requirejs:dist',
         'concat',
         /*'cssmin',*/
         /*'uglify',*/
@@ -576,7 +591,12 @@ module.exports = function (grunt) {
     ]);
 
     // task: build dist/ for browser
-    grunt.registerTask('build-browser', ['build', 'replace:ternDefs', 'uglify']);
+    grunt.registerTask('build-browser', [
+        'build',
+        'replace:ternDefs',
+        'requirejs:iframe',
+        'uglify'
+    ]);
 
     // task: build dist/ for browser, pre-compressed with gzip
     grunt.registerTask('build-browser-compressed', ['build-browser', 'compress']);

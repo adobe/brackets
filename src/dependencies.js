@@ -29,8 +29,8 @@
  */
 window.setTimeout(function () {
     "use strict";
-    
-    var key, missingDeps = "";
+
+    var key, missingDeps = "", str;
     var deps = { "Mustache": window.Mustache, "jQuery": window.$, "RequireJS": window.require };
     
     for (key in deps) {
@@ -40,14 +40,24 @@ window.setTimeout(function () {
     }
     
     if (missingDeps.length > 0) {
-        var str = "<h1>Missing libraries</h1>" +
-                  "<p>Oops! One or more required libraries could not be found.</p>" +
-                  "<ul>" + missingDeps + "</ul>" +
-                  "<p>If you're running from a local copy of the Brackets source, please make sure submodules are updated by running:</p>" +
-                  "<pre>git submodule update --init</pre>" +
-                  "<p>If you're still having problems, please contact us via one of the channels mentioned at the bottom of the <a target=\"blank\" href=\"../README.md\">README</a>.</p>" +
-                  "<p><a href=\"#\" onclick=\"window.location.reload()\">Reload Brackets</a></p>";
-        
+        str = "<h1>Missing libraries</h1>" +
+            "<p>Oops! One or more required libraries could not be found.</p>" +
+            "<ul>" + missingDeps + "</ul>" +
+            "<p>If you're running from a local copy of the Brackets source, please make sure submodules are updated by running:</p>" +
+            "<pre>git submodule update --init</pre>" +
+            "<p>If you're still having problems, please contact us via one of the channels mentioned at the bottom of the <a target=\"blank\" href=\"../README.md\">README</a>.</p>" +
+            "<p><a href=\"#\" onclick=\"window.location.reload()\">Reload Brackets</a></p>";
+    }
+
+    // We host the filesystem in the hosting, parent window.  Make sure
+    // we're loaded within an iframe, and warn if not.
+    if (window.location === window.parent.location) {
+        str = "<h1>Bramble must be hosted</h1>" +
+            "<p>Oops! Bramble was loaded directly, outside of an iframe. For security it must be hosted in an iframe.</p>" +
+            "<p>For local development, you can run Bramble in an iframe by using <a href=\"hosted.html\">hosted.html</a> instead of <a href=\"index.html\">index.html</a>.</p>";
+    }
+
+    if (str) {              
         document.write(str);
     }
 }, 1000);
