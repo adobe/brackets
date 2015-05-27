@@ -1,0 +1,12 @@
+{
+    "name": "Brackets.BrowserLiveDev",
+    "title": "Brackets In Browser Live Development",
+    "description": "Allow Live Development when running Brackets in a Browser",
+    "homepage": "https://github.com/humphd/brackets-browser-livedev",
+    "version": "0.0.1",
+    "author": "@humphd",
+    "license": "MIT",
+    "engines": {
+        "brackets": ">=0.44.0"
+    }
+}

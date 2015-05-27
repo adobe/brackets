@@ -363,10 +363,10 @@ module.exports = function (grunt) {
                 // These modules include lots of third-party code, so we skip them
                 '!src/extensions/default/HTMLHinter/slowparse/**',
                 '!src/extensions/default/HTMLHinter/tooltipsy.source.js',
-                '!src/extensions/default/brackets-browser-livedev/nohost/**',
+                '!src/extensions/default/bramble/nohost/**',
                 '!src/extensions/extra/**',
                 //With Previous skip statement, this file was ignored, so we specify it directly for jshinting
-                'src/extensions/default/brackets-browser-livedev/nohost/src/NoHostServer.js'
+                'src/extensions/default/bramble/nohost/src/NoHostServer.js'
             ],
             grunt:  '<%= meta.grunt %>',
             src:    [
@@ -374,10 +374,10 @@ module.exports = function (grunt) {
                 // These modules include lots of third-party code, so we skip them
                 '!src/extensions/default/HTMLHinter/slowparse/**',
                 '!src/extensions/default/HTMLHinter/tooltipsy.source.js',
-                '!src/extensions/default/brackets-browser-livedev/nohost/**',
+                '!src/extensions/default/bramble/nohost/**',
                 '!src/extensions/extra/**',
                 //With Previous skip statement, this file was ignored, so we specify it directly for jshinting
-                'src/extensions/default/brackets-browser-livedev/nohost/src/NoHostServer.js'
+                'src/extensions/default/bramble/nohost/src/NoHostServer.js'
             ],
             test:   '<%= meta.test %>',
             /* use strict options to mimic JSLINT until we migrate to JSHINT in Brackets */
@@ -406,7 +406,7 @@ module.exports = function (grunt) {
         "update_submodules": {
             publish: {
                 options: {
-                    params: "--remote -- src/extensions/default/brackets-browser-livedev src/extensions/default/HTMLHinter"
+                    params: "--remote -- src/extensions/default/bramble src/extensions/default/HTMLHinter"
                 }
             }
         },
@@ -436,7 +436,7 @@ module.exports = function (grunt) {
             },
             modules: {
                 files: {
-                    src: ['./src/extensions/default/brackets-browser-livedev', './src/extensions/default/HTMLHinter']
+                    src: ['./src/extensions/default/bramble', './src/extensions/default/HTMLHinter']
                 }
             }
         },

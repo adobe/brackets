@@ -28,7 +28,7 @@ define(function (require, exports, module) {
         "UrlCodeHints",
 
         // Custom extensions we want loaded by default
-        "brackets-browser-livedev",
+        "bramble",
         "brackets-paste-and-indent"
     ];
 

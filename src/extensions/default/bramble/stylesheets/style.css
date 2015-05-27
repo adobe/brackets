@@ -1,0 +1,142 @@
+/* Statusbar buttons start */
+.mobileButton {
+    width: 25px;
+    height: 25px;
+    background-image: url("../lib/mobileButton.svg");
+    background-size: contain;
+    display: block;
+}
+
+.desktopButton {
+    width: 25px;
+    height: 25px;
+    background-image: url("../lib/desktopButton.svg");
+    background-size: contain;
+    display: block;
+}
+
+#liveDevButton {
+    width: 25px;
+    height: 25px;
+    background-size: contain;
+    display: block;
+}
+
+.liveDevButtonDetach {
+    background-image: url("../lib/appbar.new.window.svg");
+}
+.liveDevButtonAttach {
+    background-image: url("../lib/appbar.fullscreen.box.svg");
+}
+
+.second-pane-scroll {
+    overflow: scroll !important;
+}
+
+.expandEditor {
+    width: 100% !important;
+}
+/* Statusbar buttons end */
+
+/* Mobile view start */
+.phone-container {
+    margin: 0px auto;
+    margin-top: 30px;
+    position: relative;
+    z-index: 1;
+    border: 2px solid #555;
+    width: 330px;
+    border-radius: 20px;
+    background: #222 none repeat scroll 0% 0%;
+}
+
+.phone-inner {
+    margin: 0px auto;
+}
+
+.phone-top {
+    height: 55px;
+    width: 100%;
+    border-radius: 6px 6px 0px 0px;
+    background-position: center center;
+    background-repeat: no-repeat;
+    text-align: center;
+}
+
+.phone-border {
+    background: #FFF none repeat scroll 0% 0%;
+    border: 2px solid #555;
+    border-radius: 2px;
+    width: 310px;
+    margin: 0px auto;
+    height: 480px;
+}
+
+.phone-shadow {
+    background-color: #333;
+    height: 50px;
+    width: 340px;
+    border-radius: 25px;
+    position: absolute;
+    bottom: -26px;
+    left: -5px;
+    opacity: 0.15;
+    transform: scaleY(0.3);
+}
+
+.phone-bottom::after {
+    content: "";
+    height: 30px;
+    width: 30px;
+    position: absolute;
+    left: calc(50% - 18px);
+    border-radius: 30px;
+    bottom: 13px;
+    border: 3px solid #444;
+}
+
+.phone-bottom {
+    height: 60px;
+    width: 100%;
+    border-radius: 0px 0px 6px 6px;
+}
+
+.phone-container .phone-body {
+    height: 480px;
+    height: 100%;
+    width: 100%;
+}
+
+.phone-body {
+    display: block;
+    position: relative;
+    width: 100%;
+    background: #FFF none repeat scroll 0% 0%;
+    height: 100%;
+}
+/* Mobile view end */
+
+/* Hide UI start */
+.hideLeftToolbar {
+    visibility: hidden;
+}
+
+.editor-holder-height {
+    height: 96%;
+}
+
+.first-pane-height {
+    height: 100%;
+}
+
+.hideRightToolbar {
+    right: 0 !important;
+}
+/* Hide UI end */
+
+/* Iframe start */
+.iframeWidthHeight {
+    width: 100%;
+    height: 100%;
+}
+/* Iframe end */
