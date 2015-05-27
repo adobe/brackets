@@ -40,3 +40,6 @@
 [submodule "src/thirdparty/marked"]
 	path = src/thirdparty/marked
 	url = https://github.com/chjj/marked.git
+[submodule "src/thirdparty/slowparse"]
+	path = src/thirdparty/slowparse
+	url = https://github.com/mozilla/slowparse.git

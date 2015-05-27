@@ -85,6 +85,7 @@ module.exports = function (grunt) {
                         'thirdparty/CodeMirror/lib/{,*/}*.js',
                         'thirdparty/CodeMirror/mode/{,*/}*.js',
                         'thirdparty/CodeMirror/theme/{,*/}*.js',
+                        'thirdparty/slowparse/slowparse.js',
                         'thirdparty/i18n/*.js',
                         'thirdparty/text/*.js'
                     ],
@@ -108,6 +109,7 @@ module.exports = function (grunt) {
                             'xorigin.js',
                             'dependencies.js',
                             'thirdparty/requirejs/require.js',
+                            'thirdparty/slowparse/locale/*',
                             'LiveDevelopment/launch.html',
                             'LiveDevelopment/MultiBrowserImpl/transports/**',
                             'LiveDevelopment/MultiBrowserImpl/launchers/**'
