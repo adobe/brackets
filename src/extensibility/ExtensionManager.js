@@ -67,6 +67,7 @@ define(function (require, exports, module) {
      * Extension status constants.
      */
     var ENABLED      = "enabled",
+        DISABLED     = "disabled",
         START_FAILED = "startFailed";
 
     /**
@@ -240,8 +241,9 @@ define(function (require, exports, module) {
      * @param {string} path The local path of the loaded extension's folder.
      */
     function _handleExtensionLoad(e, path) {
-        function setData(id, metadata) {
+        function setData(metadata) {
             var locationType,
+                id = metadata.name,
                 userExtensionPath = ExtensionLoader.getUserExtensionPath();
             if (path.indexOf(userExtensionPath) === 0) {
                 locationType = LOCATION_USER;
@@ -265,27 +267,33 @@ define(function (require, exports, module) {
                 metadata: metadata,
                 path: path,
                 locationType: locationType,
-                status: (e.type === "loadFailed" ? START_FAILED : ENABLED)
+                status: (e.type === "loadFailed" ? START_FAILED : (metadata.disabled ? DISABLED : ENABLED))
             };
 
             synchronizeEntry(id);
             loadTheme(id);
             exports.trigger("statusChange", id);
         }
+        
+        function deduceMetadata() {
+            var match = path.match(/\/([^\/]+)$/),
+                name = (match && match[1]) || path,
+                metadata = { name: name, title: name };
+            return metadata;
+        }
 
-        ExtensionUtils.loadPackageJson(path)
+        ExtensionUtils.loadMetadata(path)
             .done(function (metadata) {
-                setData(metadata.name, metadata);
+                setData(metadata);
             })
-            .fail(function () {
+            .fail(function (disabled) {
                 // If there's no package.json, this is a legacy extension. It was successfully loaded,
                 // but we don't have an official ID or metadata for it, so we just create an id and
                 // "title" for it (which is the last segment of its pathname)
                 // and record that it's enabled.
-                var match = path.match(/\/([^\/]+)$/),
-                    name = (match && match[1]) || path,
-                    metadata = { name: name, title: name };
-                setData(name, metadata);
+                var metadata = deduceMetadata();
+                metadata.disabled = disabled;
+                setData(metadata);
             });
     }
 
@@ -764,7 +772,8 @@ define(function (require, exports, module) {
     // Listen to extension load and loadFailed events
     ExtensionLoader
         .on("load", _handleExtensionLoad)
-        .on("loadFailed", _handleExtensionLoad);
+        .on("loadFailed", _handleExtensionLoad)
+        .on("disabled", _handleExtensionLoad);
     
     
     EventDispatcher.makeEventDispatcher(exports);
