@@ -1,0 +1,24 @@
+{
+    "name": "HTMLHinter",
+    "title": "HTML Hinter",
+    "version": "1.0.0",
+    "i18n": [
+        "da-DK",
+        "de",
+        "en-US",
+        "es-CL",
+        "es-MX",
+        "fr",
+        "hi-IN",
+        "id",
+        "it",
+        "ja",
+        "nl",
+        "pl-PL",
+        "pt-BR",
+        "sq",
+        "sv",
+        "tr-TR",
+        "zh-CN"
+    ]
+}

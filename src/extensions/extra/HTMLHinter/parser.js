@@ -6,34 +6,22 @@ define(function(require) {
 
     // Requires an `npm install` from root
     var slowparse = require("../../../thirdparty/slowparse/slowparse");
-    var errorMessages = require("text!../../../thirdparty/slowparse/locale/en_US.json");
-    errorMessages = JSON.parse(errorMessages);
+    var errorMessages = require("strings");
 
-    function render(html, context) {
-        var replaceText = {
-            closeTag: context.closeTag && context.closeTag.name ? context.closeTag.name : "",
-            openTag: context.openTag && context.openTag.name ? context.openTag.name : "",
-            attribute: context.attribute && context.attribute.name && context.attribute.name.value ? context.attribute.name.value : "",
-            cssValue: context.cssValue && context.cssValue.value ? context.cssValue.value : "",
-            cssSelector: context.cssSelector && context.cssSelector.selector ?  context.cssSelector.selector : "",
-            cssProperty: context.cssProperty && context.cssProperty.property ? context.cssProperty.property : "",
-            cssKeyword: context.cssKeyword && context.cssKeyword.value ? context.cssKeyword.value : "",
-            name: context.name || "",
-            error: context.error && context.error.msg ? context.error.msg : "",
-            value: context.value || ""
-        };
-
-        return html
-                .replace(/\[\[closeTag\.name\]\]/g, replaceText.closeTag)
-                .replace(/\[\[openTag\.name\]\]/g, replaceText.openTag)
-                .replace(/\[\[attribute\.name\.value\]\]/g, replaceText.attribute)
-                .replace(/\[\[cssValue\.value\]\]/g, replaceText.cssValue)
-                .replace(/\[\[cssSelector\.selector\]\]/g, replaceText.cssSelector)
-                .replace(/\[\[cssProperty\.property\]\]/g, replaceText.cssProperty)
-                .replace(/\[\[cssKeyword\.value\]\]/g, replaceText.cssKeyword)
-                .replace(/\[\[name\]\]/g, replaceText.name)
-                .replace(/\[\[error\.msg\]\]/g, replaceText.error)
-                .replace(/\[\[value\]\]/g, replaceText.value);
+    // Taken from https://github.com/mozilla/slowparse
+    function templatify(input, macros) {
+        if(!macros) {
+            return input.replace(new RegExp("\\[\\[[^\\]]+\\]\\]", "g"), "");
+        }
+        return input.replace(new RegExp("\\[\\[([^\\]]+)\\]\\]", "g"), function(a,b) {
+            b = b.split(".");
+            var rep = macros[b[0]];
+            b = b.slice(1);
+            while(b && b.length>0 && rep) {
+                rep = rep[b.splice(0,1)[0]];
+            }
+            return rep!==null && rep!==undefined ? rep : "";
+        });
     }
 
     function parse(input) {
@@ -42,7 +30,7 @@ define(function(require) {
 
         if(result.error) {
             error = {};
-            error.message = render(errorMessages[result.error.type], result.error);
+            error.message = templatify(errorMessages[result.error.type], result.error);
             error.cursor = result.error.cursor;
         }
 
