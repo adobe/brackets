@@ -356,7 +356,7 @@ define(function (require, exports, module) {
         
         this._$table.empty();
         this._updateMessage();
-        window.scrollTo(0,0);
+        $(".modal-body", $dlg).scrollTop(0);
         
         this.model.filterSet.forEach(function (id) {
             var $item = self._itemViews[id];
