@@ -558,10 +558,9 @@ define(function (require, exports, module) {
                         // close session when the last connection was closed
                         if (_protocol.getConnectionIds().length === 0) {
                             setTimeout(function () {
-                                if (_protocol.getConnectionIds().length === 0) {
-                                    if (exports.status <= STATUS_ACTIVE) {
-                                        _close(false, "detached_target_closed");
-                                    }
+                                if (_protocol.getConnectionIds().length === 0 &&
+                                        exports.status <= STATUS_ACTIVE) {
+                                    _close(false, "detached_target_closed");
                                 }
                             }, 5000);
                         }
