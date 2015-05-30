@@ -1,0 +1,21 @@
+<div class="health-data-preview modal">
+    <div class="modal-header">
+        <h1 class="dialog-title">{{Strings.HEALTH_DATA_PREVIEW}}</h1>
+    </div>
+    <div class="modal-body">
+        <div class="dialog-message">{{{Strings.HEALTH_DATA_PREVIEW_INTRO}}}</div>
+		<div class="dialog-message">
+			<label>
+	            <input type="checkbox" data-target="hdPref" {{#hdPref}}checked{{/hdPref}} />
+	            {{Strings.HEALTH_DATA_DO_TRACK}}
+	        </label>
+    	</div>
+	    <div class="dialog-message preview-content-container">
+	        <p class="preview-content">{{{content}}}</p>
+	    </div>
+	</div>
+    <div class="modal-footer">
+         <button class="dialog-button btn" data-button-id="cancel">{{Strings.CANCEL}}</button>
+        <button class="dialog-button btn primary" data-button-id="save">{{Strings.DONE}}</button>
+    </div>
+</div>
