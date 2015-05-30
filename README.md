@@ -66,7 +66,6 @@ A standard set of default extensions are always turned on:
 * QuickOpenJavaScript
 * QuickView
 * UrlCodeHints
-* HTMLHinter
 * brackets-paste-and-indent
 
 You could disable QuickView and CSSCodeHints by loading Bramble with `?disableExtensions=QuickView,CSSCodeHints`
@@ -85,6 +84,8 @@ In addition, you can enable other extra extensions:
 * QuickOpenCSS
 * RecentProjects
 * brackets-cdn-suggestions
+* ImageUrlCodeHints
+* HTMLHinter
 
 You could enable JSLint and LESSSupport by loading Bramble with `?enableExtensions=JSLint,LESSSupport`
 on the URL
