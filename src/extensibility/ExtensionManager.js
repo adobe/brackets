@@ -104,8 +104,9 @@ define(function (require, exports, module) {
     /**
      * Requested changes to the installed extensions.
      */
-    var _idsToRemove = [],
-        _idsToUpdate = [];
+    var _idsToRemove = {},
+        _idsToUpdate = {},
+        _idsToDisable = {};
 
     PreferencesManager.stateManager.definePreference(FOLDER_AUTOINSTALL, "object", undefined);
 
@@ -187,8 +188,9 @@ define(function (require, exports, module) {
      */
     function _reset() {
         exports.extensions = extensions = {};
-        _idsToRemove = [];
-        _idsToUpdate = [];
+        _idsToRemove = {};
+        _idsToUpdate = {};
+        _idsToDisable = {};
     }
 
     /**
@@ -267,7 +269,7 @@ define(function (require, exports, module) {
                 metadata: metadata,
                 path: path,
                 locationType: locationType,
-                status: (e.type === "loadFailed" ? START_FAILED : (metadata.disabled ? DISABLED : ENABLED))
+                status: (e.type === "loadFailed" ? START_FAILED : (e.type === "disabled" ? DISABLED : ENABLED))
             };
 
             synchronizeEntry(id);
@@ -406,6 +408,60 @@ define(function (require, exports, module) {
         }
         return result.promise();
     }
+    
+    /**
+     * Disables the installed extension with the given id.
+     * 
+     * @param {string} id The id of the extension to disable.
+     * @return {$.Promise} A promise that's resolved when the extenion is disabled or
+     *      rejected with an error that prevented the disabling.
+     */
+    function disable(id) {
+        var result = new $.Deferred(),
+            extension = extensions[id];
+        if (extension && extension.installInfo) {
+            Package.disable(extension.installInfo.path)
+                .done(function () {
+                    extension.installInfo.status = DISABLED;
+                    extension.installInfo.metadata.disabled = true;
+                    result.resolve();
+                    exports.trigger("statusChange", id);
+                })
+                .fail(function (err) {
+                    result.reject(err);
+                });
+        } else {
+            result.reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
+        }
+        return result.promise();
+    }
+    
+    /**
+     * Enables the installed extension with the given id.
+     * 
+     * @param {string} id The id of the extension to enable.
+     * @return {$.Promise} A promise that's resolved when the extenion is enabled or
+     *      rejected with an error that prevented the enabling.
+     */
+    function enable(id) {
+        var result = new $.Deferred(),
+            extension = extensions[id];
+        if (extension && extension.installInfo) {
+            Package.enable(extension.installInfo.path)
+                .done(function () {
+                    extension.installInfo.status = ENABLED;
+                    extension.installInfo.metadata.disabled = false;
+                    result.resolve();
+                    exports.trigger("statusChange", id);
+                })
+                .fail(function (err) {
+                    result.reject(err);
+                });
+        } else {
+            result.reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
+        }
+        return result.promise();
+    }
 
     /**
      * Updates an installed extension with the given package file.
@@ -460,7 +516,7 @@ define(function (require, exports, module) {
         }
         exports.trigger("statusChange", id);
     }
-
+    
     /**
      * Returns true if an extension is marked for removal.
      * @param {string} id The id of the extension to check.
@@ -469,13 +525,46 @@ define(function (require, exports, module) {
     function isMarkedForRemoval(id) {
         return !!(_idsToRemove[id]);
     }
-
+    
     /**
      * Returns true if there are any extensions marked for removal.
      * @return {boolean} true if there are extensions to remove
      */
     function hasExtensionsToRemove() {
         return Object.keys(_idsToRemove).length > 0;
+    }
+
+    /**
+     * Marks an extension for disabling later, or unmarks an extension previously marked.
+     * 
+     * @param {string} id The id of the extension
+     * @param {boolean} mark Whether to mark or unmark the extension.
+     */
+    function markForDisabling(id, mark) {
+        if (mark) {
+            _idsToDisable[id] = true;
+        } else {
+            delete _idsToDisable[id];
+        }
+        exports.trigger("statusChange", id);
+    }
+
+    /**
+     * Returns true if an extension is mark for disabling.
+     * 
+     * @param {string} id The id of the extension to check.
+     * @return {boolean} true if it's been mark for disabling, false otherwise.
+     */
+    function isMarkedForDisabling(id) {
+        return !!(_idsToDisable[id]);
+    }
+
+    /**
+     * Returns true if there are any extensions marked for disabling.
+     * @return {boolean} true if there are extensions to disable
+     */
+    function hasExtensionsToDisable() {
+        return Object.keys(_idsToDisable).length > 0;
     }
 
     /**
@@ -547,6 +636,25 @@ define(function (require, exports, module) {
             Object.keys(_idsToRemove),
             function (id) {
                 return remove(id);
+            }
+        );
+    }
+    
+    /**
+     * Disables extensions marked for disabling.
+     * 
+     * If the return promise is rejected, the argument will contain an array of objects. Each
+     * element is an object identifying the extension failed with "item" property set to the
+     * extension id which has failed to be disabled and "error" property set to the error.
+     * 
+     * @return {$.Promise} A promise that's resolved when all extensions marked for disabling are
+     *      disabled or rejected if one or more extensions can't be disabled.
+     */
+    function disableMarkedExtensions() {
+        return Async.doInParallel_aggregateErrors(
+            Object.keys(_idsToDisable),
+            function (id) {
+                return disable(id);
             }
         );
     }
@@ -784,17 +892,23 @@ define(function (require, exports, module) {
     exports.getExtensionURL         = getExtensionURL;
     exports.remove                  = remove;
     exports.update                  = update;
+    exports.disable                 = disable;
+    exports.enable                  = enable;
     exports.extensions              = extensions;
     exports.cleanupUpdates          = cleanupUpdates;
     exports.markForRemoval          = markForRemoval;
     exports.isMarkedForRemoval      = isMarkedForRemoval;
     exports.unmarkAllForRemoval     = unmarkAllForRemoval;
     exports.hasExtensionsToRemove   = hasExtensionsToRemove;
+    exports.markForDisabling        = markForDisabling;
+    exports.isMarkedForDisabling    = isMarkedForDisabling;
+    exports.hasExtensionsToDisable  = hasExtensionsToDisable;
     exports.updateFromDownload      = updateFromDownload;
     exports.removeUpdate            = removeUpdate;
     exports.isMarkedForUpdate       = isMarkedForUpdate;
     exports.hasExtensionsToUpdate   = hasExtensionsToUpdate;
     exports.removeMarkedExtensions  = removeMarkedExtensions;
+    exports.disableMarkedExtensions = disableMarkedExtensions;
     exports.updateExtensions        = updateExtensions;
     exports.getAvailableUpdates     = getAvailableUpdates;
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
@@ -802,6 +916,7 @@ define(function (require, exports, module) {
     exports.hasDownloadedRegistry   = false;
     
     exports.ENABLED       = ENABLED;
+    exports.DISABLED      = DISABLED;
     exports.START_FAILED  = START_FAILED;
 
     exports.LOCATION_DEFAULT  = LOCATION_DEFAULT;

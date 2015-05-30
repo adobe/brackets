@@ -181,6 +181,8 @@ define(function (require, exports, module) {
                     ExtensionManager.markForRemoval($target.attr("data-extension-id"), true);
                 } else if ($target.hasClass("undo-update")) {
                     ExtensionManager.removeUpdate($target.attr("data-extension-id"));
+                } else if ($target.hasClass("undo-disable")) {
+                    ExtensionManager.markForDisabling($target.attr("data-extension-id"), false);
                 } else if ($target.data("toggle-desc") === "expand-desc") {
                     this._toggleDescription($target.attr("data-extension-id"), $target, true);
                 } else if ($target.data("toggle-desc") === "trunc-desc") {
@@ -195,6 +197,12 @@ define(function (require, exports, module) {
             })
             .on("click", "button.remove", function (e) {
                 ExtensionManager.markForRemoval($(e.target).attr("data-extension-id"), true);
+            })
+            .on("click", "button.disable", function (e) {
+                ExtensionManager.markForDisabling($(e.target).attr("data-extension-id"), true);
+            })
+            .on("click", "button.enable", function (e) {
+                ExtensionManager.enable($(e.target).attr("data-extension-id"));
             });
     };
     
@@ -221,6 +229,7 @@ define(function (require, exports, module) {
         // arrays as iteration contexts.
         context.isInstalled = !!entry.installInfo;
         context.failedToStart = (entry.installInfo && entry.installInfo.status === ExtensionManager.START_FAILED);
+        context.disabled = (entry.installInfo && entry.installInfo.status === ExtensionManager.DISABLED);
         context.hasVersionInfo = !!info.versions;
                 
         if (entry.registryInfo) {
@@ -259,7 +268,9 @@ define(function (require, exports, module) {
         }
 
         context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);
+        context.isMarkedForDisabling = ExtensionManager.isMarkedForDisabling(info.metadata.name);
         context.isMarkedForUpdate = ExtensionManager.isMarkedForUpdate(info.metadata.name);
+        var hasPendingAction = context.isMarkedForDisabling || context.isMarkedForRemoval || context.isMarkedForUpdate;
         
         context.showInstallButton = (this.model.source === this.model.SOURCE_REGISTRY || this.model.source === this.model.SOURCE_THEMES) && !context.updateAvailable;
         context.showUpdateButton = context.updateAvailable && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
@@ -314,7 +325,11 @@ define(function (require, exports, module) {
         }
 
         context.removalAllowed = this.model.source === "installed" &&
-            !context.failedToStart && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
+            !context.failedToStart && !hasPendingAction;
+        context.disablingAllowed = this.model.source === "installed" &&
+            !context.disabled && !hasPendingAction;
+        context.enablingAllowed = this.model.source === "installed" &&
+            context.disabled && !hasPendingAction;
         
         // Copy over helper functions that we share with the registry app.
         ["lastVersionDate", "authorInfo"].forEach(function (helper) {
