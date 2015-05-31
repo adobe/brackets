@@ -49,6 +49,10 @@ define(function (require, exports, module) {
 
     var prefs = PreferencesManager.getExtensionPrefs("fonts");
 
+    // These variables contain the preference values. They are used to no-op in case nothing changed
+    // and  updated *after* the call to setFontSize/setFontFamily.
+    var fontSizeValue, fontFamilyValue;
+
     /**
      * @const
      * @type {string}
@@ -194,9 +198,7 @@ define(function (require, exports, module) {
      * @param {string} fontSize The font size with size unit as 'px' or 'em'
      */
     function setFontSize(fontSize) {
-        var oldValue = prefs.get("fontSize");
-
-        if (oldValue === fontSize) {
+        if (fontSizeValue === fontSize) {
             return;
         }
 
@@ -214,7 +216,7 @@ define(function (require, exports, module) {
             }
         });
 
-        exports.trigger("fontSizeChange", fontSize, oldValue);
+        exports.trigger("fontSizeChange", fontSize, fontSizeValue);
         prefs.set("fontSize", fontSize);
     }
 
@@ -232,10 +234,9 @@ define(function (require, exports, module) {
      * @param {string} fontFamily The font family to be set.  It can be a string with multiple comma separated fonts
      */
     function setFontFamily(fontFamily) {
-        var editor = EditorManager.getCurrentFullEditor(),
-            oldValue = prefs.get("fontFamily");
+        var editor = EditorManager.getCurrentFullEditor();
 
-        if (oldValue === fontFamily) {
+        if (fontFamilyValue === fontFamily) {
             return;
         }
 
@@ -244,7 +245,7 @@ define(function (require, exports, module) {
             _addDynamicFontFamily(fontFamily);
         }
 
-        exports.trigger("fontFamilyChange", fontFamily, oldValue);
+        exports.trigger("fontFamilyChange", fontFamily, fontFamilyValue);
         prefs.set("fontFamily", fontFamily);
 
         if (editor) {
@@ -333,8 +334,10 @@ define(function (require, exports, module) {
      * Initializes the different settings that need to loaded
      */
     function init() {
-        _addDynamicFontFamily(prefs.get("fontFamily"));
-        _addDynamicFontSize(prefs.get("fontSize"));
+        fontFamilyValue = prefs.get("fontFamily");
+        _addDynamicFontFamily(fontFamilyValue);
+        fontSizeValue = prefs.get("fontSize");
+        _addDynamicFontSize(fontSizeValue);
         _updateUI();
     }
 
@@ -488,8 +491,14 @@ define(function (require, exports, module) {
 
     PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
 
-    prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px");
-    prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
+    prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px").on("change", function () {
+        setFontSize(prefs.get("fontSize"));
+        fontSizeValue = prefs.get("fontSize");
+    });
+    prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY).on("change", function () {
+        setFontFamily(prefs.get("fontFamily"));
+        fontFamilyValue = prefs.get("fontFamily");
+    });
 
     // Update UI when opening or closing a document
     MainViewManager.on("currentFileChange", _updateUI);
