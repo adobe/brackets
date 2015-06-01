@@ -130,7 +130,7 @@ define(function (require, exports, module) {
                         disableErrors = errorArray;
                     });
                 
-                Async.waitForAll([removeExtensionsPromise, updateExtensionsPromise, disableExtensionsPromise])
+                Async.waitForAll([removeExtensionsPromise, updateExtensionsPromise, disableExtensionsPromise], true)
                     .always(function () {
                         dlg.close();
                     })
