@@ -286,7 +286,6 @@
         },
         
         onClose: function () {
-            // TODO: This is absolutely temporary solution.
             var body = document.getElementsByTagName("body")[0],
                 overlay = document.createElement("div"),
                 background = document.createElement("div"),
@@ -357,8 +356,7 @@
             try {
                 msg = JSON.parse(msgStr);
             } catch (e) {
-                console.log("[Brackets LiveDev] Invalid Message Received");
-                // TODO: we should probably send back an error message here?
+                console.log("[Brackets LiveDev] Malformed message received: ", msgStr);
                 return;
             }
             // delegates handling/routing to MessageBroker.
