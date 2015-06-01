@@ -40,6 +40,18 @@
                     <input type="text" data-target="fontFamily" value="{{settings.fontFamily}}">
                 </div>
             </div>
+            <div class="control-group">
+                <label class="control-label">{{Strings.USE_CUSTOM_CSS}}:</label>
+                <div class="controls">
+                    {{#settings.customCSS}}
+                        <input type="checkbox" data-target="customCSS" checked>
+                    {{/settings.customCSS}}
+                    {{^settings.customCSS}}
+                        <input type="checkbox" data-target="customCSS">
+                    {{/settings.customCSS}}
+                </div>
+            </div>
+
         </form>
     </div>
     <div class="modal-footer">

@@ -46,7 +46,8 @@ define(function (require, exports, module) {
      */
     var defaults = {
         "themeScrollbars": true,
-        "theme": "light-theme"
+        "theme": "light-theme",
+        "customCSS": false
     };
 
 
@@ -154,10 +155,12 @@ define(function (require, exports, module) {
     function restore() {
         prefs.set("theme", defaults.theme);
         prefs.set("themeScrollbars", defaults.themeScrollbars);
+        prefs.set("customCSS", defaults.customCSS);
     }
 
     prefs.definePreference("theme", "string", defaults.theme);
     prefs.definePreference("themeScrollbars", "boolean", defaults.themeScrollbars);
+    prefs.definePreference("customCSS", "boolean", defaults.customCSS);
 
     exports._setThemes = setThemes;
     exports.restore    = restore;

@@ -333,6 +333,10 @@ define(function (require, exports, module) {
         // Add the platform (mac, win or linux) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
         
+        var themePrefs = PreferencesManager.getExtensionPrefs("themes");
+        if (themePrefs.get("customCSS") === true) {
+            ExtensionUtils.addLinkedStyleSheet("custom.css");
+        }
         // Browser-hosted version may also have different CSS (e.g. since '#titlebar' is shown)
         if (brackets.inBrowser) {
             $("body").addClass("in-browser");
