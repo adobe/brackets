@@ -117,18 +117,15 @@ define(function (require, exports, module) {
                     updateErrors,
                     disableErrors;
                 
-                removeExtensionsPromise = ExtensionManager.removeMarkedExtensions();
-                removeExtensionsPromise
+                removeExtensionsPromise = ExtensionManager.removeMarkedExtensions()
                     .fail(function (errorArray) {
                         removeErrors = errorArray;
                     });
-                updateExtensionsPromise = ExtensionManager.updateExtensions();
-                updateExtensionsPromise
+                updateExtensionsPromise = ExtensionManager.updateExtensions()
                     .fail(function (errorArray) {
                         updateErrors = errorArray;
                     });
-                disableExtensionsPromise = ExtensionManager.disableMarkedExtensions();
-                disableExtensionsPromise
+                disableExtensionsPromise = ExtensionManager.disableMarkedExtensions()
                     .fail(function (errorArray) {
                         disableErrors = errorArray;
                     });
@@ -207,6 +204,7 @@ define(function (require, exports, module) {
                 dlg.close();
                 ExtensionManager.cleanupUpdates();
                 ExtensionManager.unmarkAllForRemoval();
+                ExtensionManager.unmarkAllForDisabling();
             }
         });
     }

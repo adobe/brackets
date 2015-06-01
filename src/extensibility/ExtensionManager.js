@@ -566,6 +566,13 @@ define(function (require, exports, module) {
     function hasExtensionsToDisable() {
         return Object.keys(_idsToDisable).length > 0;
     }
+    
+    /**
+     * Unmarks all the extensions that have been marked for disabling.
+     */
+    function unmarkAllForDisabling() {
+        _idsToDisable = {};
+    }
 
     /**
      * If a downloaded package appears to be an update, mark the extension for update.
@@ -902,6 +909,7 @@ define(function (require, exports, module) {
     exports.hasExtensionsToRemove   = hasExtensionsToRemove;
     exports.markForDisabling        = markForDisabling;
     exports.isMarkedForDisabling    = isMarkedForDisabling;
+    exports.unmarkAllForDisabling   = unmarkAllForDisabling;
     exports.hasExtensionsToDisable  = hasExtensionsToDisable;
     exports.updateFromDownload      = updateFromDownload;
     exports.removeUpdate            = removeUpdate;

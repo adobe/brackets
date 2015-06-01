@@ -469,6 +469,7 @@ define(function (require, exports, module) {
                 .done(result.resolve)
                 .fail(result.reject);
         });
+        return result.promise();
     }
     
     /**
