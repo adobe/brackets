@@ -83,7 +83,7 @@ define(function (require, exports, module) {
         // Setting Untitled documents to non-text mode isn't supported yet, so disable the switcher in that case for now
         languageSelect.$button.prop("disabled", doc.isUntitled());
         // Show the current language as button title
-        languageSelect.$button.text(lang.getName());
+        languageSelect.$button.text(lang.getLocalizedName());
     }
     
     /**
@@ -301,7 +301,7 @@ define(function (require, exports, module) {
         
         // sort dropdown alphabetically
         languages.sort(function (a, b) {
-            return a.getName().toLowerCase().localeCompare(b.getName().toLowerCase());
+            return a.getLocalizedName().toLowerCase().localeCompare(b.getLocalizedName().toLowerCase());
         });
         
         languageSelect.items = languages;
@@ -332,7 +332,7 @@ define(function (require, exports, module) {
                 return { html: label, enabled: document.getLanguage() !== defaultLang };
             }
             
-            var html = _.escape(item.getName());
+            var html = _.escape(item.getLocalizedName());
             
             // Show indicators for currently selected & default languages for the current file
             if (item === defaultLang) {

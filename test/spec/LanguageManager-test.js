@@ -93,6 +93,12 @@ define(function (require, exports, module) {
             } else {
                 expect(actual.hasLineCommentSyntax()).toBe(false);
             }
+
+            if (expected.localizedName) {
+                expect(actual.getLocalizedName()).toBe(expected.localizedName);
+            } else {
+                expect(actual.getLocalizedName()).toBe(expected.name);
+            }
         }
         
         describe("built-in languages", function () {
@@ -485,6 +491,19 @@ define(function (require, exports, module) {
                     // confirm the mode is loaded in CodeMirror
                     expect(CodeMirror.modes[id]).not.toBe(undefined);
                 });
+            });
+
+            it("should define a language with a localized name", function () {
+                var language,
+                    promise,
+                    def = { id: "six", name: "Six", localizedName: "Xis", mode: ["null", "text/plain"] };
+
+                // mode already exists, this test is completely synchronous
+                promise = defineLanguage(def).done(function (lang) {
+                    language = lang;
+                });
+
+                validateLanguage(def, language);
             });
             
         });

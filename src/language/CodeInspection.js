@@ -456,7 +456,7 @@ define(function (require, exports, module) {
             Resizer.hide($problemsPanel);
             var language = currentDoc && LanguageManager.getLanguageForPath(currentDoc.file.fullPath);
             if (language) {
-                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", StringUtils.format(Strings.NO_LINT_AVAILABLE, language.getName()));
+                StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", StringUtils.format(Strings.NO_LINT_AVAILABLE, language.getLocalizedName()));
             } else {
                 StatusBar.updateIndicator(INDICATOR_ID, true, "inspection-disabled", Strings.NOTHING_TO_LINT);
             }
