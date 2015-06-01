@@ -120,6 +120,15 @@
  *         isBinary: true    
  *     });
  * 
+ * You can also specify a localized name using the localizedName field.
+ * It will then be used in some places and can be accessed through language.getLocalizedName().
+ * 
+ *     LanguageManager.defineLanguage("image", {
+ *         name: "Image",
+ *         localizedName: "Bild",
+ *         isBinary: true
+ *     });
+ * 
  * 
  * LanguageManager dispatches two events:
  * 
