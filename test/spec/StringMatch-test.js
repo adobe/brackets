@@ -560,6 +560,20 @@ define(function (require, exports, module) {
                 expect(stringMatch("brackets/utils/brackets.js", "brack", { segmentedSearch: false })).toEqual(expectedResult);
             });
             
+            it("should handle slash after separator the right way", function () {
+                var result = stringMatch("brackets_/LICENSE", "brack", { segmentedSearch: true });
+                expect(result).toEqual({
+                    matchGoodness: jasmine.any(Number),
+                    label: "brackets_/LICENSE",
+                    stringRanges: [
+                        { text: "brack", matched: true, includesLastSegment: false },
+                        { text: "ets_/LICENSE", matched: false, includesLastSegment: true }
+                    ]
+                });
+                
+                expect(result.matchGoodness).toBeGreaterThan(-Number.MAX_VALUE);
+            });
+            
             var goodRelativeOrdering = function (query, testStrings) {
                 var lastScore = -Infinity;
                 var goodOrdering = true;

@@ -221,7 +221,7 @@ define(function (require, exports, module) {
      */
     UrlCodeHints.prototype._getUrlHints = function (query) {
         var hints = [],
-            sortFunc = null;
+            sortFunc;
 
         // Do not show hints after "?" in url
         if (query.queryStr.indexOf("?") === -1) {
@@ -398,7 +398,7 @@ define(function (require, exports, module) {
             cursor = this.editor.getCursorPos(),
             filter = "",
             hints = [],
-            sortFunc = null,
+            sortFunc,
             query = { queryStr: "" },
             result = [];
 

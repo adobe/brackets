@@ -102,6 +102,7 @@ define(function (require, exports, module) {
         _showErrorDialog,
         _saveTreeState,
         renameItemInline,
+        _renderTreeSync,
         _renderTree;
 
     /**
@@ -618,7 +619,7 @@ define(function (require, exports, module) {
      * 
      * @param {boolean} forceRender Force the tree to rerender. Should only be needed by extensions that call rerenderTree.
      */
-    _renderTree = function (forceRender) {
+    _renderTreeSync = function (forceRender) {
         var projectRoot = getProjectRoot();
         if (!projectRoot) {
             return;
@@ -627,7 +628,7 @@ define(function (require, exports, module) {
         FileTreeView.render(fileTreeViewContainer, model._viewModel, projectRoot, actionCreator, forceRender, brackets.platform);
     };
 
-    _renderTree = _.debounce(_renderTree, _RENDER_DEBOUNCE_TIME);
+    _renderTree = _.debounce(_renderTreeSync, _RENDER_DEBOUNCE_TIME);
 
     /**
      * @private
@@ -818,6 +819,38 @@ define(function (require, exports, module) {
 
         // Some legacy code calls this API with a non-canonical path
         rootPath = ProjectModel._ensureTrailingSlash(rootPath);
+
+        var projectPrefFullPath = (rootPath + SETTINGS_FILENAME),
+            file   = FileSystem.getFileForPath(projectPrefFullPath);
+            
+        //Verify that the project preferences file (.brackets.json) is NOT corrupted.
+        //If corrupted, display the error message and open the file in editor for the user to edit.
+        FileUtils.readAsText(file)
+            .done(function (text) {
+                try {
+                    if (text) {
+                        JSON.parse(text);
+                    }
+                } catch (err) {
+                    // Cannot parse the text read from the project preferences file.
+                    var info = MainViewManager.findInAllWorkingSets(projectPrefFullPath);
+                    var paneId;
+                    if (info.length) {
+                        paneId = info[0].paneId;
+                    }
+                    FileViewController.openFileAndAddToWorkingSet(projectPrefFullPath, paneId)
+                        .done(function () {
+                            Dialogs.showModalDialog(
+                                DefaultDialogs.DIALOG_ID_ERROR,
+                                Strings.ERROR_PREFS_CORRUPT_TITLE,
+                                Strings.ERROR_PROJ_PREFS_CORRUPT
+                            ).done(function () {
+                                // give the focus back to the editor with the pref file
+                                MainViewManager.focusActivePane();
+                            });
+                        });
+                }
+            });
 
         if (isUpdating) {
             // We're just refreshing. Don't need to unwatch the project root, so we can start loading immediately.
@@ -1183,7 +1216,8 @@ define(function (require, exports, module) {
                 Menus.closeAll();
                 actionCreator.setContext(null);
             }
-            _renderTree();
+            // we need to render the tree without a delay to not cause selection extension issues (#10573)
+            _renderTreeSync();
         });
         
         _renderTree();

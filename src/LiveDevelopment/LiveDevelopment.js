@@ -78,6 +78,7 @@ define(function LiveDevelopment(require, exports, module) {
     var STATUS_SYNC_ERROR     = exports.STATUS_SYNC_ERROR     =  5;
 
     var Async                = require("utils/Async"),
+        CSSUtils             = require("language/CSSUtils"),
         Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         DocumentManager      = require("document/DocumentManager"),
@@ -86,6 +87,7 @@ define(function LiveDevelopment(require, exports, module) {
         FileServer           = require("LiveDevelopment/Servers/FileServer").FileServer,
         FileSystemError      = require("filesystem/FileSystemError"),
         FileUtils            = require("file/FileUtils"),
+        LiveDevelopmentUtils = require("LiveDevelopment/LiveDevelopmentUtils"),
         LiveDevServerManager = require("LiveDevelopment/LiveDevServerManager"),
         MainViewManager      = require("view/MainViewManager"),
         NativeApp            = require("utils/NativeApp"),
@@ -188,14 +190,15 @@ define(function LiveDevelopment(require, exports, module) {
      * @type {BaseServer}
      */
     var _server;
+    
+    /**
+     * @private
+     * Handles of registered servers
+     */
+    var _regServers = [];
 
     function _isPromisePending(promise) {
         return promise && promise.state() === "pending";
-    }
-    
-    function _isHtmlFileExt(ext) {
-        return (FileUtils.isStaticHtmlFileExt(ext) ||
-                (ProjectManager.getBaseUrl() && FileUtils.isServerHtmlFileExt(ext)));
     }
 
     /** Get the current document from the document manager
@@ -219,7 +222,7 @@ define(function LiveDevelopment(require, exports, module) {
             return exports.config.experimental ? JSDocument : null;
         }
 
-        if (_isHtmlFileExt(doc.file.fullPath)) {
+        if (LiveDevelopmentUtils.isHtmlFileExt(doc.file.fullPath)) {
             return HTMLDocument;
         }
 
@@ -651,7 +654,7 @@ define(function LiveDevelopment(require, exports, module) {
      *  - index.html
      *  - index.htm
      * 
-     * If the project is configured with a custom base url for live developmment, then
+     * If the project is configured with a custom base url for live development, then
      * the list of possible index files is extended to contain these index files too:
      *  - index.php
      *  - index.php3
@@ -683,7 +686,7 @@ define(function LiveDevelopment(require, exports, module) {
         // Is the currently opened document already a file we can use for Live Development?
         if (doc) {
             refPath = doc.file.fullPath;
-            if (FileUtils.isStaticHtmlFileExt(refPath) || FileUtils.isServerHtmlFileExt(refPath)) {
+            if (LiveDevelopmentUtils.isStaticHtmlFileExt(refPath) || LiveDevelopmentUtils.isServerHtmlFileExt(refPath)) {
                 return new $.Deferred().resolve(doc);
             }
         }
@@ -715,11 +718,11 @@ define(function LiveDevelopment(require, exports, module) {
                 if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
                     if (FileUtils.getFilenameWithoutExtension(fileInfo.name) === "index") {
                         if (hasOwnServerForLiveDevelopment) {
-                            if ((FileUtils.isServerHtmlFileExt(fileInfo.name)) ||
-                                    (FileUtils.isStaticHtmlFileExt(fileInfo.name))) {
+                            if ((LiveDevelopmentUtils.isServerHtmlFileExt(fileInfo.name)) ||
+                                    (LiveDevelopmentUtils.isStaticHtmlFileExt(fileInfo.name))) {
                                 return true;
                             }
-                        } else if (FileUtils.isStaticHtmlFileExt(fileInfo.name)) {
+                        } else if (LiveDevelopmentUtils.isStaticHtmlFileExt(fileInfo.name)) {
                             return true;
                         }
                     } else {
@@ -769,7 +772,7 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function onActiveEditorChange(event, current, previous) {
         if (previous && previous.document &&
-                FileUtils.isCSSPreprocessorFile(previous.document.file.fullPath)) {
+                CSSUtils.isCSSPreprocessorFile(previous.document.file.fullPath)) {
             var prevDocUrl = _server && _server.pathToUrl(previous.document.file.fullPath);
             
             if (_relatedDocuments && _relatedDocuments[prevDocUrl]) {
@@ -777,7 +780,7 @@ define(function LiveDevelopment(require, exports, module) {
             }
         }
         if (current && current.document &&
-                FileUtils.isCSSPreprocessorFile(current.document.file.fullPath)) {
+                CSSUtils.isCSSPreprocessorFile(current.document.file.fullPath)) {
             var docUrl = _server && _server.pathToUrl(current.document.file.fullPath);
             _styleSheetAdded(null, docUrl);
         }
@@ -868,6 +871,11 @@ define(function LiveDevelopment(require, exports, module) {
             var closeDeferred = (brackets.platform === "mac") ? NativeApp.closeLiveBrowser() : $.Deferred().resolve();
             closeDeferred.done(function () {
                 _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+                // clean-up registered servers
+                _regServers.forEach(function (server) {
+                    LiveDevServerManager.removeServer(server);
+                });
+                _regServers = [];
                 _closeDeferred.resolve();
             }).fail(function (err) {
                 if (err) {
@@ -1258,7 +1266,7 @@ define(function LiveDevelopment(require, exports, module) {
         // Optionally prompt for a base URL if no server was found but the
         // file is a known server file extension
         showBaseUrlPrompt = !exports.config.experimental && !_server &&
-            FileUtils.isServerHtmlFileExt(doc.file.fullPath);
+            LiveDevelopmentUtils.isServerHtmlFileExt(doc.file.fullPath);
 
         if (showBaseUrlPrompt) {
             // Prompt for a base URL
@@ -1291,6 +1299,22 @@ define(function LiveDevelopment(require, exports, module) {
         return deferred.promise();
     }
 
+    function getCurrentProjectServerConfig() {
+        return {
+            baseUrl: ProjectManager.getBaseUrl(),
+            pathResolver: ProjectManager.makeProjectRelativeIfPossible,
+            root: ProjectManager.getProjectRoot().fullPath
+        };
+    }
+    
+    function _createUserServer() {
+        return new UserServer(getCurrentProjectServerConfig());
+    }
+    
+    function _createFileServer() {
+        return new FileServer(getCurrentProjectServerConfig());
+    }
+    
     /**
      * Open the Connection and go live
      *
@@ -1316,6 +1340,10 @@ define(function LiveDevelopment(require, exports, module) {
                 });
             }
         }
+        
+        // Register user defined server provider and keep handlers for further clean-up
+        _regServers.push(LiveDevServerManager.registerServer({ create: _createUserServer }, 99));
+        _regServers.push(LiveDevServerManager.registerServer({ create: _createFileServer }, 0));
         
         // TODO: need to run _onFileChanged() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
@@ -1444,22 +1472,6 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    function getCurrentProjectServerConfig() {
-        return {
-            baseUrl: ProjectManager.getBaseUrl(),
-            pathResolver: ProjectManager.makeProjectRelativeIfPossible,
-            root: ProjectManager.getProjectRoot().fullPath
-        };
-    }
-    
-    function _createUserServer() {
-        return new UserServer(getCurrentProjectServerConfig());
-    }
-    
-    function _createFileServer() {
-        return new FileServer(getCurrentProjectServerConfig());
-    }
-
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
@@ -1478,10 +1490,6 @@ define(function LiveDevelopment(require, exports, module) {
             .on("dirtyFlagChange", _onDirtyFlagChange);
         ProjectManager
             .on("beforeProjectClose beforeAppClose", close);
-        
-        // Register user defined server provider
-        LiveDevServerManager.registerServer({ create: _createUserServer }, 99);
-        LiveDevServerManager.registerServer({ create: _createFileServer }, 0);
 
         // Initialize exports.status
         _setStatus(STATUS_INACTIVE);

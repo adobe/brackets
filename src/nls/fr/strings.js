@@ -88,6 +88,7 @@ define({
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "Erreur lors de la lecture des préférences",
 	"ERROR_PREFS_CORRUPT": "Votre fichier de préférences n’est pas un fichier JSON valide, il va donc être ouvert afin que vous puissiez corriger le format. Vous devrez ensuite redémarrer {APP_NAME} pour que les modifications prennent effet.",
+	"ERROR_PROJ_PREFS_CORRUPT": "Votre fichier de préférences de projet n’est pas un fichier JSON valide, il va donc être ouvert afin que vous puissiez corriger le format. Vous devrez ensuite recharger le projet pour que les modifications prennent effet.",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
@@ -132,9 +133,9 @@ define({
 	"CONFIRM_FOLDER_DELETE_TITLE": "Confirmer la suppression",
 	"CONFIRM_FOLDER_DELETE": "Voulez-vous vraiment supprimer le dossier <span class='dialog-filename'>{0}</span> ?",
 	"FILE_DELETED_TITLE": "Fichier supprimé",
-	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",
-	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
-	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
+	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque, dans une application autre que {APP_NAME}.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",
+	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque dans une autre application que {APP_NAME} mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
+	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé du disque dans une autre application que {APP_NAME} mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
 
     // Generic dialog/button labels
 	"DONE": "Terminé",
@@ -363,11 +364,9 @@ define({
 	"CMD_ADD_NEXT_MATCH": "Ajouter l’occurrence suivante à la sélection",
 	"CMD_SKIP_CURRENT_MATCH": "Ignorer et ajouter l’occurrence suivante",
 	"CMD_FIND_IN_FILES": "Rechercher dans les fichiers",
-	"CMD_FIND_IN_SELECTED": "Rechercher dans le fichier/dossier sélectionné",
 	"CMD_FIND_IN_SUBTREE": "Rechercher dans\u2026",
 	"CMD_REPLACE": "Remplacer",
 	"CMD_REPLACE_IN_FILES": "Remplacer dans les fichiers",
-	"CMD_REPLACE_IN_SELECTED": "Remplacer dans le fichier/dossier sélectionné",
 	"CMD_REPLACE_IN_SUBTREE": "Remplacer dans\u2026",
 
     // View menu commands
@@ -417,6 +416,7 @@ define({
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_GET_INVOLVED": "Participer",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
+	"CMD_HEALTH_DATA_STATISTICS": "Rapport sur l’état de santé",
 	"CMD_HOMEPAGE": "Page d’accueil de {APP_TITLE}",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
@@ -507,7 +507,7 @@ define({
 	"UNSUPPORTED_PROTOCOL": "L’URL doit commencer par http ou https.",
 	"UNKNOWN_ERROR": "Erreur interne inconnue.",
     // For NOT_FOUND_ERR, see generic strings above
-	"EXTENSION_MANAGER_TITLE": "Le gestionnaire d'extensions",
+	"EXTENSION_MANAGER_TITLE": "Gestionnaire d’extensions",
 	"EXTENSION_MANAGER_ERROR_LOAD": "Impossible d’accéder au registre de l’extension. Réessayez ultérieurement.",
 	"INSTALL_EXTENSION_DRAG": "Faire glisser le fichier .zip ici ou",
 	"INSTALL_EXTENSION_DROP": "Déposer le fichier .zip pour lancer l’installation",
@@ -566,7 +566,6 @@ define({
     /**
      * Unit names
      */
-
 	"UNIT_PIXELS": "pixels",
 
     // extensions/default/DebugCommands
@@ -576,6 +575,7 @@ define({
 	"CMD_REFRESH_WINDOW": "Recharger avec les extensions",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions",
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
+	"CMD_LAUNCH_SCRIPT_MAC": "Installer le raccourci de ligne de commande",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
 	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
 	"CMD_SHOW_PERF_DATA": "Afficher les données de performances",
@@ -583,13 +583,30 @@ define({
 	"CMD_LOG_NODE_STATE": "Noter l’état du nœud dans la console",
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
-	"CMD_OPEN_BRACKETS_SOURCE": "Ouvrir la source Brackets",
+	"CMD_OPEN_BRACKETS_SOURCE": "Ouvrir la source de {APP_NAME}",
+    
+	"CREATING_LAUNCH_SCRIPT_TITLE": "Raccourci de ligne de commande {APP_NAME}",
+	"ERROR_CREATING_LAUNCH_SCRIPT": "Une erreur est survenue lors de l’installation du raccourci de ligne de commande. Essayez d’appliquer <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>ces suggestions pour résoudre le problème</a>.<br/><br/>Motif : {0}",
+	"ERROR_CLTOOLS_RMFAILED": "Impossible de supprimer le lien symbolique existant <code>/usr/local/bin/brackets</code>.",
+	"ERROR_CLTOOLS_MKDIRFAILED": "Impossible de créer le répertoire <code>/usr/local/bin</code>.",
+	"ERROR_CLTOOLS_LNFAILED": "Impossible de créer le lien symbolique <code>/usr/local/bin/brackets</code>.",
+	"ERROR_CLTOOLS_SERVFAILED": "Erreur interne.",
+	"ERROR_CLTOOLS_NOTSUPPORTED": "Le raccourci de ligne de commande n’est pas pris en charge par ce système d’exploitation.",
+	"LAUNCH_SCRIPT_CREATE_SUCCESS": "Opération réussie ! À présent, vous pouvez facilement lancer {APP_NAME} depuis la ligne de commande : utilisez <code>brackets myFile.txt</code> pour ouvrir un fichier ou <code>brackets myFolder</code> pour changer de projet. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>En savoir plus</a> sur l’utilisation de {APP_NAME} depuis la ligne de commande.",
 
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",
 	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
+
+    // extensions/default/HealthData
+	"HEALTH_DATA_NOTIFICATION": "Health Report Preferences",
+	"HEALTH_FIRST_POPUP_TITLE": "Rapport sur l’état de santé de {APP_NAME}",
+	"HEALTH_DATA_DO_TRACK": "Partager des informations anonymes sur la façon dont j’utilise {APP_NAME}",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "Afin d’améliorer {APP_NAME}, nous transmettons régulièrement des statistiques limitées et <strong>anonymes</strong> à Adobe sur la manière dont vous utilisez {APP_NAME}. Ces données permettent de hiérarchiser les fonctionnalités à traiter, de détecter les bugs éventuels et d’identifier les problèmes d’utilisation.<br><br>Pour voir les renseignements collectés et choisir ceux que vous ne souhaitez pas partager, cliquez sur <strong>Aide > Rapport sur l’état de santé</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lisez cet article pour en savoir plus concernant le rapport sur l’état de santé de {APP_NAME}</a>",
+	"HEALTH_DATA_PREVIEW": "Rapport sur l’état de santé de {APP_NAME}",
+	"HEALTH_DATA_PREVIEW_INTRO": "<p>Afin d’améliorer {APP_NAME}, nous transmettons régulièrement des statistiques limitées et <strong>anonymes</strong> à Adobe sur la manière dont vous utilisez {APP_NAME}. Ces données permettent de hiérarchiser les fonctionnalités à traiter, de détecter les bugs éventuels et d’identifier les problèmes d’utilisation. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lisez cet article concernant le rapport sur l’état de santé de {APP_NAME}</a> et découvrez en quoi il est utile à la communauté {APP_NAME} tout en préservant votre confidentialité.</p><p>Vous trouverez ci-dessous un résumé des données qui seront envoyées dans le cadre de votre prochain rapport sur l’état de santé <em>si</em> vous décidez d’activer cette option.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",
@@ -612,7 +629,7 @@ define({
 	"CMD_SHOW_PARAMETER_HINT": "Afficher l’indicateur de paramètre",
 	"NO_ARGUMENTS": "<aucun paramètre>",
 	"DETECTED_EXCLUSION_TITLE": "Problème d’inférence de fichier Javascript",
-	"DETECTED_EXCLUSION_INFO": "Brackets a rencontré des problèmes lors du traitement du fichier <span class='dialog-filename'>{0}</span>.<br><br>La fonction d’accès aux définitions, les indicateurs de code et la fonction Edition rapide de ce fichier ne seront plus traités. Pour réactiver ce fichier, ouvrez <code>.brackets.json</code> dans votre projet et éditez la section <code>jscodehints.detectedExclusions</code>.<br><br>Il s’agit vraisemblablement d’un bug au niveau de l’application Brackets. Si vous pouvez nous transmettre une copie de ce fichier, merci de <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>consigner un bug</a> en fournissant un lien vers le fichier en question.",
+	"DETECTED_EXCLUSION_INFO": "{APP_NAME} a rencontré des problèmes lors du traitement du fichier <span class='dialog-filename'>{0}</span>.<br><br>La fonction d’accès aux définitions, les indicateurs de code et la fonction Edition rapide de ce fichier ne seront plus traités. Pour réactiver ce fichier, ouvrez <code>.brackets.json</code> dans votre projet et éditez la section <code>jscodehints.detectedExclusions</code>.<br><br>Il s’agit vraisemblablement d’un bug au niveau de l’application {APP_NAME}. Si vous pouvez nous transmettre une copie de ce fichier, merci de <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>consigner un bug</a> en fournissant un lien vers le fichier en question.",
 
     // extensions/default/JSLint
 	"JSLINT_NAME": "JSLint",
@@ -624,5 +641,11 @@ define({
 	"CMD_TOGGLE_RECENT_PROJECTS": "Projets récents",
 
     // extensions/default/WebPlatformDocs
-	"DOCS_MORE_LINK": "En savoir plus"
+	"DOCS_MORE_LINK": "En savoir plus",
+
+    // extensions/default/CodeFolding
+	"COLLAPSE_ALL": "Réduire tout",
+	"EXPAND_ALL": "Développer tout",
+	"COLLAPSE_CURRENT": "Réduire l’élément actif",
+	"EXPAND_CURRENT": "Développer l’élément actif"
 });

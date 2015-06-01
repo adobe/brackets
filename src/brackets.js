@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: true, $, window, navigator, Mustache */
+/*global define, brackets: true, $, window, navigator, Mustache, jQuery */
 
 // TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
 
@@ -39,61 +39,51 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent non-module scripts
+    require("thirdparty/path-utils/path-utils.min");
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
     require("widgets/bootstrap-twipsy-mod");
-    require("thirdparty/path-utils/path-utils.min");
-    require("thirdparty/smart-auto-complete-local/jquery.smart_autocomplete");
 
-    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
-    require("thirdparty/CodeMirror2/addon/fold/xml-fold");
-    require("thirdparty/CodeMirror2/addon/edit/matchtags");
-    require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
-    require("thirdparty/CodeMirror2/addon/edit/closebrackets");
-    require("thirdparty/CodeMirror2/addon/edit/closetag");
-    require("thirdparty/CodeMirror2/addon/scroll/scrollpastend");
-    require("thirdparty/CodeMirror2/addon/selection/active-line");
-    require("thirdparty/CodeMirror2/addon/selection/mark-selection");
-    require("thirdparty/CodeMirror2/addon/mode/multiplex");
-    require("thirdparty/CodeMirror2/addon/mode/overlay");
-    require("thirdparty/CodeMirror2/addon/search/match-highlighter");
-    require("thirdparty/CodeMirror2/addon/search/searchcursor");
-    require("thirdparty/CodeMirror2/keymap/sublime");
+    // Load CodeMirror add-ons--these attach themselves to the CodeMirror module
+    require("thirdparty/CodeMirror/addon/edit/closebrackets");
+    require("thirdparty/CodeMirror/addon/edit/closetag");
+    require("thirdparty/CodeMirror/addon/edit/matchbrackets");
+    require("thirdparty/CodeMirror/addon/edit/matchtags");
+    require("thirdparty/CodeMirror/addon/fold/xml-fold");
+    require("thirdparty/CodeMirror/addon/mode/multiplex");
+    require("thirdparty/CodeMirror/addon/mode/overlay");
+    require("thirdparty/CodeMirror/addon/scroll/scrollpastend");
+    require("thirdparty/CodeMirror/addon/search/match-highlighter");
+    require("thirdparty/CodeMirror/addon/search/searchcursor");
+    require("thirdparty/CodeMirror/addon/selection/active-line");
+    require("thirdparty/CodeMirror/addon/selection/mark-selection");
+    require("thirdparty/CodeMirror/keymap/sublime");
 
     // Load dependent modules
-    var AppInit                 = require("utils/AppInit"),
-        LanguageManager         = require("language/LanguageManager"),
-        ProjectManager          = require("project/ProjectManager"),
-        DocumentManager         = require("document/DocumentManager"),
-        EditorManager           = require("editor/EditorManager"),
-        JSUtils                 = require("language/JSUtils"),
-        WorkingSetView          = require("project/WorkingSetView"),
-        DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
-        FileViewController      = require("project/FileViewController"),
-        FileSyncManager         = require("project/FileSyncManager"),
-        KeyBindingManager       = require("command/KeyBindingManager"),
-        Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager"),
-        CodeHintManager         = require("editor/CodeHintManager"),
-        PerfUtils               = require("utils/PerfUtils"),
-        FileSystem              = require("filesystem/FileSystem"),
-        Menus                   = require("command/Menus"),
-        MainViewHTML            = require("text!htmlContent/main-view.html"),
-        Strings                 = require("strings"),
-        Dialogs                 = require("widgets/Dialogs"),
-        DefaultDialogs          = require("widgets/DefaultDialogs"),
-        ExtensionLoader         = require("utils/ExtensionLoader"),
-        Async                   = require("utils/Async"),
-        UpdateNotification      = require("utils/UpdateNotification"),
-        UrlParams               = require("utils/UrlParams").UrlParams,
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        ExtensionUtils          = require("utils/ExtensionUtils"),
-        DragAndDrop             = require("utils/DragAndDrop"),
-        CodeInspection          = require("language/CodeInspection"),
-        NativeApp               = require("utils/NativeApp"),
-        DeprecationWarning      = require("utils/DeprecationWarning"),
-        ViewCommandHandlers     = require("view/ViewCommandHandlers"),
-        MainViewManager         = require("view/MainViewManager");
+    var AppInit             = require("utils/AppInit"),
+        LanguageManager     = require("language/LanguageManager"),
+        ProjectManager      = require("project/ProjectManager"),
+        FileViewController  = require("project/FileViewController"),
+        FileSyncManager     = require("project/FileSyncManager"),
+        Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
+        PerfUtils           = require("utils/PerfUtils"),
+        FileSystem          = require("filesystem/FileSystem"),
+        Strings             = require("strings"),
+        Dialogs             = require("widgets/Dialogs"),
+        DefaultDialogs      = require("widgets/DefaultDialogs"),
+        ExtensionLoader     = require("utils/ExtensionLoader"),
+        Async               = require("utils/Async"),
+        UpdateNotification  = require("utils/UpdateNotification"),
+        UrlParams           = require("utils/UrlParams").UrlParams,
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        DragAndDrop         = require("utils/DragAndDrop"),
+        NativeApp           = require("utils/NativeApp"),
+        DeprecationWarning  = require("utils/DeprecationWarning"),
+        ViewCommandHandlers = require("view/ViewCommandHandlers"),
+        MainViewManager     = require("view/MainViewManager");
+
+    var MainViewHTML        = require("text!htmlContent/main-view.html");
 
     // load modules for later use
     require("utils/Global");
@@ -114,11 +104,11 @@ define(function (require, exports, module) {
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
     // expose our required CodeMirror globally so as to avoid breaking extensions in the
     // interim.
-    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror");
+    var CodeMirror = require("thirdparty/CodeMirror/lib/codemirror");
 
     Object.defineProperty(window, "CodeMirror", {
         get: function () {
-            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/CodeMirror2/lib/codemirror") instead of global CodeMirror.', true);
+            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/CodeMirror/lib/codemirror") instead of global CodeMirror.', true);
             return CodeMirror;
         }
     });
@@ -126,20 +116,20 @@ define(function (require, exports, module) {
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
     require("document/ChangedDocumentTracker");
-    require("editor/EditorStatusBar");
     require("editor/EditorCommandHandlers");
     require("editor/EditorOptionHandlers");
+    require("editor/EditorStatusBar");
+    require("editor/ImageViewer");
+    require("extensibility/InstallExtensionDialog");
+    require("extensibility/ExtensionManagerDialog");
     require("help/HelpCommandHandlers");
     require("search/FindInFilesUI");
     require("search/FindReplace");
-    require("extensibility/InstallExtensionDialog");
-    require("extensibility/ExtensionManagerDialog");
-    require("editor/ImageViewer");
     
     // Compatibility shims for filesystem API migration
-    require("project/FileIndexManager");
-    require("file/NativeFileSystem");
     require("file/NativeFileError");
+    require("file/NativeFileSystem");
+    require("project/FileIndexManager");
     
     // Compatibility shim for PanelManager to WorkspaceManager migration
     require("view/PanelManager");
@@ -152,6 +142,7 @@ define(function (require, exports, module) {
     // read URL params
     params.parse();
     
+
     /**
      * Setup test object
      */
@@ -162,50 +153,50 @@ define(function (require, exports, module) {
         // in the modules since they would run in context of the unit test window,
         // and would not have access to the app html/css.
         brackets.test = {
-            CodeHintManager         : CodeHintManager,
-            CodeInspection          : CodeInspection,
-            CommandManager          : CommandManager,
-            Commands                : Commands,
+            CodeHintManager         : require("editor/CodeHintManager"),
+            CodeInspection          : require("language/CodeInspection"),
+            CommandManager          : require("command/CommandManager"),
+            Commands                : require("command/Commands"),
             CSSUtils                : require("language/CSSUtils"),
-            DefaultDialogs          : DefaultDialogs,
-            Dialogs                 : Dialogs,
-            DocumentCommandHandlers : DocumentCommandHandlers,
-            DocumentManager         : DocumentManager,
+            DefaultDialogs          : require("widgets/DefaultDialogs"),
+            Dialogs                 : require("widgets/Dialogs"),
+            DocumentCommandHandlers : require("document/DocumentCommandHandlers"),
+            DocumentManager         : require("document/DocumentManager"),
             DocumentModule          : require("document/Document"),
             DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
-            DragAndDrop             : DragAndDrop,
-            EditorManager           : EditorManager,
-            ExtensionLoader         : ExtensionLoader,
-            ExtensionUtils          : ExtensionUtils,
+            DragAndDrop             : require("utils/DragAndDrop"),
+            EditorManager           : require("editor/EditorManager"),
+            ExtensionLoader         : require("utils/ExtensionLoader"),
+            ExtensionUtils          : require("utils/ExtensionUtils"),
             File                    : require("filesystem/File"),
             FileFilters             : require("search/FileFilters"),
-            FileSyncManager         : FileSyncManager,
-            FileSystem              : FileSystem,
-            FileViewController      : FileViewController,
+            FileSyncManager         : require("project/FileSyncManager"),
+            FileSystem              : require("filesystem/FileSystem"),
             FileUtils               : require("file/FileUtils"),
+            FileViewController      : require("project/FileViewController"),
             FindInFiles             : require("search/FindInFiles"),
             FindInFilesUI           : require("search/FindInFilesUI"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
-            JSUtils                 : JSUtils,
-            KeyBindingManager       : KeyBindingManager,
-            LanguageManager         : LanguageManager,
+            JSUtils                 : require("language/JSUtils"),
+            KeyBindingManager       : require("command/KeyBindingManager"),
+            LanguageManager         : require("language/LanguageManager"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             LiveDevMultiBrowser     : require("LiveDevelopment/LiveDevMultiBrowser"),
             LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
-            MainViewManager         : MainViewManager,
             MainViewFactory         : require("view/MainViewFactory"),
-            Menus                   : Menus,
+            MainViewManager         : require("view/MainViewManager"),
+            Menus                   : require("command/Menus"),
             MultiRangeInlineEditor  : require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
-            NativeApp               : NativeApp,
-            PerfUtils               : PerfUtils,
-            PreferencesManager      : PreferencesManager,
-            ProjectManager          : ProjectManager,
+            NativeApp               : require("utils/NativeApp"),
+            PerfUtils               : require("utils/PerfUtils"),
+            PreferencesManager      : require("preferences/PreferencesManager"),
+            ProjectManager          : require("project/ProjectManager"),
             RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
             ScrollTrackMarkers      : require("search/ScrollTrackMarkers"),
             UpdateNotification      : require("utils/UpdateNotification"),
-            WorkingSetView          : WorkingSetView,
+            WorkingSetView          : require("project/WorkingSetView"),
             doneLoading             : false
         };
 
@@ -325,7 +316,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         // Check for updates
         if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
             AppInit.appReady(function () {
@@ -339,7 +330,7 @@ define(function (require, exports, module) {
      * Setup event handlers prior to dispatching AppInit.HTML_READY
      */
     function _beforeHTMLReady() {
-        // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
+        // Add the platform (mac, win or linux) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
         
         // Browser-hosted version may also have different CSS (e.g. since '#titlebar' is shown)
@@ -370,36 +361,10 @@ define(function (require, exports, module) {
         
         // Update title
         $("title").text(brackets.config.app_title);
-            
-        // Prevent unhandled drag and drop of files into the browser from replacing 
-        // the entire Brackets app. This doesn't prevent children from choosing to
-        // handle drops.
-        $(window.document.body)
-            .on("dragover", function (event) {
-                var dropEffect = "none";
-                if (event.originalEvent.dataTransfer.files) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    // Don't allow drag-and-drop of files/folders when a modal dialog is showing.
-                    if ($(".modal.instance").length === 0 &&
-                            DragAndDrop.isValidDrop(event.originalEvent.dataTransfer.items)) {
-                        dropEffect = "copy";
-                    }
-                    event.originalEvent.dataTransfer.dropEffect = dropEffect;
-                }
-            })
-            .on("drop", function (event) {
-                var files = event.originalEvent.dataTransfer.files;
-                if (files && files.length) {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    brackets.app.getDroppedFiles(function (err, paths) {
-                        if (!err) {
-                            DragAndDrop.openDroppedFiles(paths);
-                        }
-                    });
-                }
-            });
+        
+        // Respond to dragging & dropping files/folders onto the window by opening them. If we don't respond
+        // to these events, the file would load in place of the Brackets UI
+        DragAndDrop.attachHandlers();
         
         // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
         $(window).focus(function () {
@@ -451,7 +416,31 @@ define(function (require, exports, module) {
                 node = node.parentElement;
             }
         }, true);
-        
+
+        // on Windows, cancel every other scroll event (#10214)
+        // TODO: remove this hack when we upgrade CEF to a build with this bug fixed:
+        // https://bitbucket.org/chromiumembedded/cef/issue/1481
+        var winCancelWheelEvent = true;
+        function windowsScrollFix(e) {
+            winCancelWheelEvent = !winCancelWheelEvent;
+            if (winCancelWheelEvent) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+        }
+
+        function enableOrDisableWinScrollFix() {
+            window.document.body.removeEventListener("wheel", windowsScrollFix, true);
+            if (PreferencesManager.get("_windowsScrollFix")) {
+                window.document.body.addEventListener("wheel", windowsScrollFix, true);
+            }
+        }
+
+        if (brackets.platform === "win" && !brackets.inBrowser) {
+            PreferencesManager.definePreference("_windowsScrollFix", "boolean", true).on("change", enableOrDisableWinScrollFix);
+            enableOrDisableWinScrollFix();
+        }
+
         // Prevent extensions from using window.open() to insecurely load untrusted web content
         var real_windowOpen = window.open;
         window.open = function (url) {
@@ -460,6 +449,27 @@ define(function (require, exports, module) {
                 throw new Error("Brackets-shell is not a secure general purpose web browser. Use NativeApp.openURLInDefaultBrowser() to open URLs in the user's main browser");
             }
             return real_windowOpen.apply(window, arguments);
+        };
+        
+        // jQuery patch to shim deprecated usage of $() on EventDispatchers
+        var DefaultCtor = jQuery.fn.init;
+        jQuery.fn.init = function (firstArg, secondArg) {
+            var jQObject = new DefaultCtor(firstArg, secondArg);
+
+            // Is this a Brackets EventDispatcher object? (not a DOM node or other object)
+            if (firstArg && firstArg._EventDispatcher) {
+                // Patch the jQ wrapper object so it calls EventDispatcher's APIs instead of jQuery's
+                jQObject.on  = firstArg.on.bind(firstArg);
+                jQObject.one = firstArg.one.bind(firstArg);
+                jQObject.off = firstArg.off.bind(firstArg);
+                // Don't offer legacy support for trigger()/triggerHandler() on core model objects; extensions
+                // shouldn't be doing that anyway since it's basically poking at private API
+
+                // Console warning, since $() is deprecated for EventDispatcher objects
+                // (pass true to only print once per caller, and index 4 since the extension caller is deeper in the stack than usual)
+                DeprecationWarning.deprecationWarning("Deprecated: Do not use $().on/off() on Brackets modules and model objects. Call on()/off() directly on the object without a $() wrapper.", true, 4);
+            }
+            return jQObject;
         };
     }
     

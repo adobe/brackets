@@ -27,8 +27,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var BaseServer  = require("LiveDevelopment/Servers/BaseServer").BaseServer,
-        FileUtils   = require("file/FileUtils");
+    var BaseServer           = require("LiveDevelopment/Servers/BaseServer").BaseServer,
+        LiveDevelopmentUtils = require("LiveDevelopment/LiveDevelopmentUtils");
 
     // The path on Windows starts with a drive letter (e.g. "C:").
     // In order to make it a valid file: URL we need to add an
@@ -61,7 +61,7 @@ define(function (require, exports, module) {
      */
     FileServer.prototype.canServe = function (localPath) {
         // FileServer requires that the base URL is undefined and static HTML files
-        return (!this._baseUrl && FileUtils.isStaticHtmlFileExt(localPath));
+        return (!this._baseUrl && LiveDevelopmentUtils.isStaticHtmlFileExt(localPath));
     };
 
     /**

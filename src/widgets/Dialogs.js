@@ -179,8 +179,8 @@ define(function (require, exports, module) {
                 $focusedElement.click();
             }
         } else if (brackets.platform === "mac") {
-            // CMD+D Don't Save
-            if (e.metaKey && (which === "D")) {
+            // CMD+Backspace Don't Save
+            if (e.metaKey && (e.which === KeyEvent.DOM_VK_BACK_SPACE)) {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
@@ -413,6 +413,26 @@ define(function (require, exports, module) {
         });
     }
     
+    /**
+     * Ensures that all <a> tags with a URL have a tooltip showing the same URL
+     * @param {!jQueryObject|Dialog} elementOrDialog  Dialog intance, or root of other DOM tree to add tooltips to
+     */
+    function addLinkTooltips(elementOrDialog) {
+        var $element;
+        if (elementOrDialog.getElement) {
+            $element = elementOrDialog.getElement().find(".dialog-message");
+        } else {
+            $element = elementOrDialog;
+        }
+        $element.find("a").each(function (index, elem) {
+            var $elem = $(elem);
+            var url = $elem.attr("href");
+            if (url && url !== "#" && !$elem.attr("title")) {
+                $elem.attr("title", url);
+            }
+        });
+    }
+    
     window.addEventListener("resize", setDialogMaxSize);
     
     exports.DIALOG_BTN_CANCEL            = DIALOG_BTN_CANCEL;
@@ -429,4 +449,5 @@ define(function (require, exports, module) {
     exports.showModalDialog              = showModalDialog;
     exports.showModalDialogUsingTemplate = showModalDialogUsingTemplate;
     exports.cancelModalDialogIfOpen      = cancelModalDialogIfOpen;
+    exports.addLinkTooltips              = addLinkTooltips;
 });

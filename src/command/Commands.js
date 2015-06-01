@@ -92,7 +92,6 @@ define(function (require, exports, module) {
     // FIND
     exports.CMD_FIND                    = "cmd.find";                   // FindReplace.js               _launchFind()
     exports.CMD_FIND_IN_FILES           = "cmd.findInFiles";            // FindInFilesUI.js             _showFindBar()
-    exports.CMD_FIND_IN_SELECTED        = "cmd.findInSelected";         // FindInFilesUI.js             _showFindBarForSubtree()
     exports.CMD_FIND_IN_SUBTREE         = "cmd.findInSubtree";          // FindInFilesUI.js             _showFindBarForSubtree()
     exports.CMD_FIND_NEXT               = "cmd.findNext";               // FindReplace.js               _findNext()
     exports.CMD_FIND_PREVIOUS           = "cmd.findPrevious";           // FindReplace.js               _findPrevious()
@@ -101,7 +100,6 @@ define(function (require, exports, module) {
     exports.CMD_SKIP_CURRENT_MATCH      = "cmd.skipCurrentMatch";       // FindReplace.js               _skipCurrentMatch()
     exports.CMD_REPLACE                 = "cmd.replace";                // FindReplace.js               _replace()
     exports.CMD_REPLACE_IN_FILES        = "cmd.replaceInFiles";         // FindInFilesUI.js             _showReplaceBar()
-    exports.CMD_REPLACE_IN_SELECTED     = "cmd.replaceInSelected";      // FindInFilesUI.js             _showReplaceBarForSubtree()
     exports.CMD_REPLACE_IN_SUBTREE      = "cmd.replaceInSubtree";       // FindInFilesUI.js             _showReplaceBarForSubtree()
     
     // VIEW

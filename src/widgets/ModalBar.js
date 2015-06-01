@@ -46,6 +46,8 @@ define(function (require, exports, module) {
      *     bar may remain visible and in the DOM while its closing animation is playing. However,
      *     by the time "close" is fired, the bar has been "popped out" of the layout and the
      *     editor scroll position has already been restored.
+     *     Second argument is the reason for closing (one of ModalBar.CLOSE_*).
+     *     Third argument is the Promise that close() will be returning.
      * 
      * @constructor
      *
@@ -122,6 +124,10 @@ define(function (require, exports, module) {
      */
     ModalBar.prototype.isLockedOpen = null;
     
+    ModalBar.CLOSE_ESCAPE = "escape";
+    ModalBar.CLOSE_BLUR = "blur";
+    ModalBar.CLOSE_API = "api";
+    
     /**
      * @return {number} Height of the modal bar in pixels, if open.
      */
@@ -162,7 +168,7 @@ define(function (require, exports, module) {
             MainViewManager.cacheScrollState(MainViewManager.ALL_PANES);
         }
         WorkspaceManager.recomputeLayout();  // changes available ht for editor area
-        // restore scroll position of all vies
+        // restore scroll position of all views
         if (restoreScrollPos) {
             MainViewManager.restoreAdjustedScrollState(MainViewManager.ALL_PANES, -barHeight);
         }
@@ -179,9 +185,10 @@ define(function (require, exports, module) {
      *     function if you call it first).
      * @param {boolean=} animate If true (the default), animate the closing of the ModalBar,
      *     otherwise close it immediately.
+     * @param {string=} _reason For internal use only.
      * @return {$.Promise} promise resolved when close is finished
      */
-    ModalBar.prototype.close = function (restoreScrollPos, animate) {
+    ModalBar.prototype.close = function (restoreScrollPos, animate, _reason) {
         var result = new $.Deferred(),
             self = this;
 
@@ -202,7 +209,7 @@ define(function (require, exports, module) {
             window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
         }
 
-        this.trigger("close");
+        this.trigger("close", _reason, result);
         
         function doRemove() {
             self._$root.remove();
@@ -222,13 +229,13 @@ define(function (require, exports, module) {
     };
     
     /**
-     * If autoClose is set, handles the RETURN/ESC keys in the input field.
+     * If autoClose is set, close the bar when Escape is pressed
      */
     ModalBar.prototype._handleKeydown = function (e) {
         if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
             e.stopPropagation();
             e.preventDefault();
-            this.close();
+            this.close(undefined, undefined, ModalBar.CLOSE_ESCAPE);
         }
     };
     
@@ -245,7 +252,7 @@ define(function (require, exports, module) {
         var effectiveElem = $(e.target).data("attached-to") || e.target;
         
         if (!$.contains(this._$root.get(0), effectiveElem)) {
-            this.close();
+            this.close(undefined, undefined, ModalBar.CLOSE_BLUR);
         }
     };
     
