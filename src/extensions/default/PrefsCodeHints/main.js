@@ -157,14 +157,19 @@ define(function (require, exports, module) {
     function PrefsCodeHints() {
         this.ctxInfo = null;
 
-        // Add all the preferences defined.
-        var preferences = PreferencesManager.getAllPreferences();
+        // Add all the preferences defined except the excluded ones.
+        var preferences = PreferencesManager.getAllPreferences(),
+            preference;
         Object.keys(preferences).forEach(function (pref) {
-            data[pref] = $.extend(data[pref], preferences[pref]);
+            preference = preferences[pref];
+            if (preference.excluded) {
+                return;
+            }
+            data[pref] = $.extend(data[pref], preference);
             
             // If child keys found, add them.
-            if (preferences[pref].keys) {
-                data[pref].keys = _.clone(preferences[pref].keys);
+            if (preference.keys) {
+                data[pref].keys = _.clone(preference.keys);
             }
         });
         

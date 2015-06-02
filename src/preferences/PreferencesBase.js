@@ -1305,6 +1305,7 @@ define(function (require, exports, module) {
                 name: options.name,
                 description: options.description,
                 validator: options.validator,
+                excluded: options.excluded,
                 keys: options.keys,
                 values: options.values,
                 valueType: options.valueType
