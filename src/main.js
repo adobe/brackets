@@ -36,6 +36,11 @@ require.config({
         // The file system implementation. Change this value to use different
         // implementations (e.g. cloud-based storage).
         "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
+    },
+    map: {
+        "*": {
+            "thirdparty/CodeMirror2": "thirdparty/CodeMirror"
+        }
     }
 });
 

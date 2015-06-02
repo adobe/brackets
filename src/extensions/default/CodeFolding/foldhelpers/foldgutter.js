@@ -6,7 +6,7 @@
 /*global define, brackets, document, window, $*/
 define(function (require, exports, module) {
     "use strict";
-    var CodeMirror      = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror      = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         prefs           = require("Prefs");
 
     function State(options) {
