@@ -23,14 +23,6 @@
         "type": "object",
         "string": "DESCRIPTION_LANGUAGE"
     },
-    "language.fileExtensions": {
-        "type": "object",
-        "string": "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"
-    },
-    "language.fileNames": {
-        "type": "object",
-        "string": "DESCRIPTION_LANGUAGE_FILE_NAMES"
-    },
     "linting.prefer": {
         "type": "array",
         "string": "DESCRIPTION_LINTING_PREFER",
