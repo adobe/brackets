@@ -181,12 +181,29 @@ define(function (require, exports, module) {
             var errorList = [];
 
             function prepareDropPaths(fileList) {
-                // Convert FileList object to an Array with all *.html files at the end,
-                // since we need to write any .css, .js, etc. resources first such that
-                // Blob URLs can be generated for these resources prior to rewriting an HTML file.
+                // Convert FileList object to an Array with all image files first, then CSS
+                // followed by HTML files at the end, since we need to write any .css, .js, etc.
+                // resources first such that Blob URLs can be generated for these resources
+                // prior to rewriting an HTML file.
+                function rateFileByType(filename) {
+                    var ext = Path.extname(filename);
+
+                    // We want to end up with: [images, ..., js, ..., css, html]
+                    // since CSS can include images, and HTML can include CSS or JS.
+                    // We also treat .md like an HTML file, since we render them.
+                    if(Content.isHTML(ext) || Content.isMarkdown(ext)) {
+                        return 10;
+                    } else if(Content.isCSS(ext)) {
+                        return 8;
+                    } else if(Content.isImage(ext)) {
+                        return 1;
+                    }
+                    return 3;
+                }
+
                 return _.toArray(fileList).sort(function(a,b) {
-                    a = Content.isHTML(Path.extname(a.name)) ? 10 : 1;
-                    b = Content.isHTML(Path.extname(b.name)) ? 10 : 1;
+                    a = rateFileByType(a.name);
+                    b = rateFileByType(b.name);
 
                     if(a < b) {
                         return -1;
