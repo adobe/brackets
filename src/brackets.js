@@ -100,6 +100,7 @@ define(function (require, exports, module) {
     require("view/ThemeManager");
     require("thirdparty/lodash");
     require("language/XMLUtils");
+    require("language/JSONUtils");
     
     // DEPRECATED: In future we want to remove the global CodeMirror, but for now we
     // expose our required CodeMirror globally so as to avoid breaking extensions in the
@@ -437,7 +438,9 @@ define(function (require, exports, module) {
         }
 
         if (brackets.platform === "win" && !brackets.inBrowser) {
-            PreferencesManager.definePreference("_windowsScrollFix", "boolean", true).on("change", enableOrDisableWinScrollFix);
+            PreferencesManager.definePreference("_windowsScrollFix", "boolean", true, {
+                excludeFromHints: true
+            }).on("change", enableOrDisableWinScrollFix);
             enableOrDisableWinScrollFix();
         }
 
