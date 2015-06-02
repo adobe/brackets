@@ -162,7 +162,7 @@ define(function (require, exports, module) {
             preference;
         Object.keys(preferences).forEach(function (pref) {
             preference = preferences[pref];
-            if (preference.excluded) {
+            if (preference.excludeFromHints) {
                 return;
             }
             data[pref] = $.extend(data[pref], preference);

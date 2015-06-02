@@ -739,7 +739,6 @@ define({
     "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "True to show errors in status bar",
     "DESCRIPTION_QUICK_VIEW_ENABLED"                 : "True to enable Quick View",
     "DESCRIPTION_EXTENSION_LESS_IMAGE_PREVIEW"       : "True to show image previews for URLs missing extensions",
-    "DESCRIPTION_WINDOW_SCROLL_FIX"                  : "True to fix scroll amount on Windows",
     "DESCRIPTION_THEME"                              : "Select a Brackets theme",
     "DESCRIPTION_USE_THEME_SCROLLBARS"               : "True to allow custom scroll bars",
     "DESCRIPTION_LINTING_COLLAPSED"                  : "True to collapse linting panel",

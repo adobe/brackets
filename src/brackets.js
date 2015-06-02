@@ -439,7 +439,7 @@ define(function (require, exports, module) {
 
         if (brackets.platform === "win" && !brackets.inBrowser) {
             PreferencesManager.definePreference("_windowsScrollFix", "boolean", true, {
-                description: Strings.DESCRIPTION_WINDOW_SCROLL_FIX
+                excludeFromHints: true
             }).on("change", enableOrDisableWinScrollFix);
             enableOrDisableWinScrollFix();
         }
