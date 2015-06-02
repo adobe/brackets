@@ -29,6 +29,7 @@ define(function (require, exports, module) {
 
         // Custom extensions we want loaded by default
         "bramble",
+        "Autosave",
         "brackets-paste-and-indent"
     ];
 
