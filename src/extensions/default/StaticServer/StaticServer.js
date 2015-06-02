@@ -41,6 +41,8 @@ define(function (require, exports, module) {
      */
     var _prefs = PreferencesManager.getExtensionPrefs("staticserver");
 
+    _prefs.definePreference("port", "number", 0);
+
     /**
      * @constructor
      * @extends {BaseServer}

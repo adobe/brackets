@@ -32,10 +32,16 @@ define(function (require, exports, module) {
     var AppInit             = brackets.getModule("utils/AppInit"),
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         HTMLTags            = require("text!HtmlTags.json"),
         HTMLAttributes      = require("text!HtmlAttributes.json"),
         tags,
         attributes;
+
+
+    PreferencesManager.definePreference("codehint.TagHints", "boolean", true);
+
+    PreferencesManager.definePreference("codehint.AttrHints", "boolean", true);
 
     /**
      * @constructor

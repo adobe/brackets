@@ -605,7 +605,11 @@ define(function (require, exports, module) {
         });
     
     prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000);
-        
+
+    prefs.definePreference(PREF_PREFER_PROVIDERS, "array", []);
+
+    prefs.definePreference(PREF_PREFERRED_ONLY, "boolean", false);
+
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         // Create bottom panel to list error details
