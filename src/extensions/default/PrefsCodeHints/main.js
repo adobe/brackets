@@ -111,7 +111,7 @@ define(function (require, exports, module) {
     function formatHints(hints, query) {
         
         var hasMetadata = hints.some(function (token) {
-            return token.type || token.description || token.needsMarquee;
+            return token.type || token.description;
         });
         
         StringMatch.basicMatchSort(hints);
@@ -142,9 +142,6 @@ define(function (require, exports, module) {
                     $hintItem.append($("<span>")
                                         .addClass("hint-description")
                                         .text(token.description));
-                }
-                if (token.needsMarquee) {
-                    $hintObj.addClass("marquee");
                 }
             }
             return $hintItem;
@@ -239,7 +236,6 @@ define(function (require, exports, module) {
                         if (match) {
                             match.type = keys[key].type || option.type;
                             match.description = keys[key].description || Strings[keys[key].string] || null;
-                            match.needsMarquee = key.length > 45;
                             return match;
                         }
                     }
@@ -274,7 +270,6 @@ define(function (require, exports, module) {
                     if (match) {
                         match.type = option.valueType || option.type;
                         match.description = Strings[option.string] || option.description || null;
-                        match.needsMarquee = value.length > 45;
                         return match;
                     }
                 });
