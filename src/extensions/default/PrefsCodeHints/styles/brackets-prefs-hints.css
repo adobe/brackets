@@ -27,3 +27,24 @@
 .highlight .brackets-pref-hints .hint-description {
     display: block;
 }
+.highlight .brackets-pref-hints .hint-obj.marquee {
+    -webkit-animation: marquee 5s linear infinite alternate 1s;
+    animation: marquee 5s linear infinite alternate 1s;
+}
+
+@-webkit-keyframes marquee {
+    from {
+        -webkit-transform: translateX(0);
+    }
+    to {
+        -webkit-transform: translateX(-75%);
+    }
+}
+@keyframes marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-75%);
+    }
+}
