@@ -206,6 +206,10 @@ define({
     /**
      * MainViewManager
      */
+    "TOP"               : "Góra",
+    "BOTTOM"            : "Dół",
+    "LEFT"              : "Lewa",
+    "RIGHT"             : "Prawa",
 
     "CMD_SPLITVIEW_NONE"        : "Bez podziału",
     "CMD_SPLITVIEW_VERTICAL"    : "Podziel pionowo",
@@ -568,4 +572,4 @@ define({
     "EXPAND_CURRENT"                : "Rozwiń to"
 });
 
-/* Last translated 143aac5dc44a3e285bb708870b41d1cd0e2b1a64 */
+/* Last translated 50cbe1b8848786c6be27d4788e4b6a367244abc2 */
