@@ -194,7 +194,7 @@ define({
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"        : "Szybka edycja JS: umieść kursor na nazwie funkcji",
 
     // Quick Docs
-    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"       : "Nie znaleziono dokumentacji dla bieżącego miejsca.",
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"       : "Nie znaleziono dokumentacji dla tego elementu.",
 
     /**
      * ProjectManager
@@ -203,6 +203,19 @@ define({
     "UNTITLED"                          : "Bez_nazwy",
     "WORKING_FILES"                     : "Otwarte pliki",
 
+    /**
+     * MainViewManager
+     */
+
+    "CMD_SPLITVIEW_NONE"        : "Bez podziału",
+    "CMD_SPLITVIEW_VERTICAL"    : "Podziel pionowo",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Podziel poziomo",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Podziel edytor na pół - poziomo lub pionowo",
+    "GEAR_MENU_TOOLTIP"         : "Uporządkuj pliki",
+
+    "SPLITVIEW_INFO_TITLE"              : "Plik jest już otwarty ",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Plik jest już otwarty w innym panelu. {APP_NAME} niedługo będzie pozwalał otwierać ten sam plik w wielu panelach. Do tego czasu plik będzie widoczny w panelu, w którym już jest otwarty.<br /><br />(Tę wiadomość zobaczysz tylko raz.)",
+    
     /**
      * Keyboard modifier names
      */
@@ -303,7 +316,7 @@ define({
     "CMD_SHOW_CODE_HINTS"                 : "Pokaż podpowiedzi",
 
     // Search menu commands
-    "FIND_MENU"                           : "Find",
+    "FIND_MENU"                           : "Szukaj",
     "CMD_FIND"                            : "Znajdź",
     "CMD_FIND_FIELD_PLACEHOLDER"          : "Znajdź…",
     "CMD_FIND_NEXT"                       : "Znajdź następny",
@@ -311,9 +324,9 @@ define({
     "CMD_FIND_ALL_AND_SELECT"             : "Zaznacz wszystkie wystapienia",
     "CMD_ADD_NEXT_MATCH"                  : "Dodaj nastepny do zaznaczenia",
     "CMD_SKIP_CURRENT_MATCH"              : "Pomiń i dodaj następny",
-    "CMD_FIND_IN_FILES"                   : "Znajdź w plikach",
-    "CMD_FIND_IN_SELECTED"                : "Find in Selected File/Folder",
-    "CMD_FIND_IN_SUBTREE"                 : "Znajdź\u2026",
+    "CMD_FIND_IN_FILES"                   : "Szukaj w plikach",
+    "CMD_FIND_IN_SELECTED"                : "Szukaj w zaznaczonym pliku/folderze",
+    "CMD_FIND_IN_SUBTREE"                 : "Szukaj\u2026",
     "CMD_REPLACE"                         : "Zamień",
 
     // View menu commands
@@ -330,10 +343,11 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Zawijaj wiersze",
     "CMD_LIVE_HIGHLIGHT"                  : "Podświetlanie przy podglądzie błyskawicznym",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Sprawdzaj poprawność przy zapisywaniu",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortuj według dodanych",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortuj według nazwy",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortuj według typu",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatyczne sortowanie",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Sortuj według dodanych",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Sortuj według nazwy",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sortuj według typu",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatyczne sortowanie",
+    "CMD_THEMES"                          : "Motywy\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Nawigacja",
@@ -358,13 +372,14 @@ define({
     "CMD_CHECK_FOR_UPDATE"                : "Sprawdź aktualizacje",
     "CMD_HOW_TO_USE_BRACKETS"             : "Jak używać {APP_NAME}",
     "CMD_SUPPORT"                         : "Wsparcie {APP_NAME}",
-    "CMD_SUGGEST"                         : "Zarzuć pomysłem",
+    "CMD_SUGGEST"                         : "Zaproponuj swój pomysł",
     "CMD_RELEASE_NOTES"                   : "Informacje o wydaniu",
     "CMD_GET_INVOLVED"                    : "Zaangażuj się…",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Pokaż folder rozszerzeń",
     "CMD_TWITTER"                         : "{TWITTER_NAME} na Twitterze",
     "CMD_ABOUT"                           : "O programie {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Otwórz plik ustawień",
+    "CMD_OPEN_KEYMAP"                     : "Konfiguracja klawiszy użytkownika",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "build eksperymentalny",
@@ -393,6 +408,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Adres URL nie może zawierać znaku hash: \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Znaki specjalne takie jak '{0}' muszą zostać %-zakodowane.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Nieznany błąd podczas parsowania adresu URL.",
+    "EMPTY_VIEW_HEADER"                    : "<em>Kliknij w to okno, a następnie otwórz plik</em>",
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nowa reguła",
@@ -461,9 +477,9 @@ define({
     "EXTENSION_MANAGER_UPDATE"             : "Zaktualizuj rozszerzenie",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "Nie udało się zaktualizować rozszerzeń: {0}. {APP_NAME} zamknie się.",
     "MARKED_FOR_REMOVAL"                   : "Zaznaczono do usunięcia",
-    "UNDO_REMOVE"                          : "Cofnij",
+    "UNDO_REMOVE"                          : "Cofnij usunięcie",
     "MARKED_FOR_UPDATE"                    : "Zaznaczono do aktualizacji",
-    "UNDO_UPDATE"                          : "Cofnij",
+    "UNDO_UPDATE"                          : "Cofnij aktualizację",
     "CHANGE_AND_RELOAD_TITLE"              : "Rozszerzenia",
     "CHANGE_AND_RELOAD_MESSAGE"            : "Aby Słowo stało się ciałem, {APP_NAME} musi zostać ponownie uruchomiony. Czy chcesz tego dokonać teraz?",
     "REMOVE_AND_RELOAD"                    : "Usuń i zrestartuj",
@@ -479,7 +495,7 @@ define({
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizacja",
 
     "INLINE_EDITOR_NO_MATCHES"             : "Brak wyników.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "Brak reguł.<br> Kliknij „New Rule”, aby utworzyć regułę.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Brak reguł.<br> Kliknij „Nowa reguła”, aby utworzyć regułę.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Nie ma w tym projekcie arkuszy stylów.",
 
     // Custom Viewers
@@ -493,7 +509,7 @@ define({
 
     // extensions/default/DebugCommands
     "DEBUG_MENU"                           : "Debuguj",
-    "ERRORS"                               : "Errors",
+    "ERRORS"                               : "Błędy",
     "CMD_SHOW_DEV_TOOLS"                   : "Pokaż narzędzia dewelopera",
     "CMD_REFRESH_WINDOW"                   : "Uruchom ponownie {APP_NAME}",
     "CMD_RELOAD_WITHOUT_USER_EXTS"         : "Uruchom ponownie (bez rozszerzeń)    ",
@@ -504,7 +520,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"             : "Włącz debugger Node",
     "CMD_LOG_NODE_STATE"                   : "Zapisz stan Node do Konsoli",
     "CMD_RESTART_NODE"                     : "Zrestartuj Node",
-    "CMD_SHOW_ERRORS_IN_STATUS_BAR"        : "Show Errors in Status Bar",
+    "CMD_SHOW_ERRORS_IN_STATUS_BAR"        : "Pokazuj błędy na pasku statusu",
 
     "LANGUAGE_TITLE"                       : "Zmień język",
     "LANGUAGE_MESSAGE"                     : "Wybierz język z poniższej listy:",
@@ -544,6 +560,12 @@ define({
 
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Czytaj więcej"
+    
+    // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Zwiń wszystko",
+    "EXPAND_ALL"                    : "Rozwiń wszystko",
+    "COLLAPSE_CURRENT"              : "Zwiń to",
+    "EXPAND_CURRENT"                : "Rozwiń to"
 });
 
 /* Last translated 143aac5dc44a3e285bb708870b41d1cd0e2b1a64 */
