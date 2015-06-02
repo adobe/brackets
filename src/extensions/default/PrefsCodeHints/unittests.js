@@ -571,6 +571,19 @@ define(function (require, exports, module) {
                 expectTokenAt({line: 8, ch: 27}, "\"python\"", "string");
                 expectCursorAt({line: 8, ch: 27});
             });
+            it("should insert a value if the next token is also a value", function () {
+                // Before true
+                testEditor.setCursorPos({line: 1, ch: 21});
+                selectHint(PrefsCodeHints.hintProvider, "false");
+                expectTokenAt({line: 1, ch: 26}, "false", "atom");
+                expectCursorAt({line: 1, ch: 26});
+
+                // Before "JSHint"
+                testEditor.setCursorPos({line: 24, ch: 23});
+                selectHint(PrefsCodeHints.hintProvider, "JSLint");
+                expectTokenAt({line: 24, ch: 31}, "\"JSLint\"", "string");
+                expectCursorAt({line: 24, ch: 31});
+            });
         });
     });
 });

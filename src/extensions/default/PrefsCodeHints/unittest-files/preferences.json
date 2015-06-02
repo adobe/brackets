@@ -31,6 +31,11 @@
     "language": {
         "type": "object"
     },
+    "linting.prefer": {
+        "type": "array",
+        "values": ["JSHint", "JSLint"],
+        "valueType": "string"
+    },
     "spaceUnits": {
         "type": "number"
     },
