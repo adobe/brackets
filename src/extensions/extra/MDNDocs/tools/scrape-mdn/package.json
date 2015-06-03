@@ -1,0 +1,14 @@
+{
+  "name": "scape-mdn",
+  "version": "1.0.0",
+  "description": "Fetches HTML and CSS docs in raw JSON from the  Mozilla Developer Network (MDN) and simplifies it, writing HTML and CSS docs to individual JSON files.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jordan Theriault",
+  "license": "MIT",
+  "dependencies": {
+    "request": "^2.57.0"
+  }
+}
