@@ -103,10 +103,17 @@ define(function (require, exports, module) {
 
         var currentDir = Path.dirname(currentDoc.doc.file.fullPath);
         var linkRegex = new RegExp('(\\\\?\\"?)(href|src|url|value)(\\\\?\\"?\\s?:?\\s?\\(?\\\\?\\"?)([^\\\\"\\),]+)(\\\\?\\"?)', 'gm');
-        var resolvedMessage = message.replace(linkRegex, function(match, quote1, attr, seperator, path, quote2) {
-            path = BlobUtils.getUrl(path.charAt(0) === "/" ? path : Path.join(currentDir, path));
+        var resolvedMessage = message.replace(linkRegex, function(match, quote1, attr, seperator, value, quote2) {
+            var path = value.charAt(0) === "/" ? value : Path.join(currentDir, value);
+            var url = BlobUtils.getUrl(path);
+            // If BlobUtils could not find the path in the filesystem, it
+            // returns the path back unmodified. However, since we are
+            // resolving the path above to an absolute path, we should not
+            // modify the original value that was captured if a url mapping
+            // for the absolute path was not found.
+            value = url === path ? value : url;
 
-            return [quote1, attr, seperator, path, quote2].join('');
+            return [quote1, attr, seperator, value, quote2].join('');
         });
 
         return resolvedMessage;

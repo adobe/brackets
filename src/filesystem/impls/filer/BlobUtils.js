@@ -59,9 +59,7 @@ define(function (require, exports, module) {
 
     // Given a filename, lookup the cached BLOB URL
     function getUrl(filename) {
-        filename = Path.normalize(filename);
-
-        var url = blobURLs[filename];
+        var url = blobURLs[Path.normalize(filename)];
 
         // We expect this to exist, if it doesn't,
         // return path back unchanged
@@ -86,7 +84,7 @@ define(function (require, exports, module) {
     }
 
     // Create a Blob URL Object, and manage its lifetime by caching.
-    // Subsequent calls to create a URL for this path will auto-revoke an existing URL.  
+    // Subsequent calls to create a URL for this path will auto-revoke an existing URL.
     function createURL(path, data, type) {
         var blob = new Blob([data], {type: type});
         var url = URL.createObjectURL(blob);
