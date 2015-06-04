@@ -41,7 +41,7 @@ define(function (require, exports, module) {
     var loadedThemes    = {},
         currentTheme    = null,
         styleNode       = $(ExtensionUtils.addEmbeddedStyleSheet("")),
-        defaultTheme    = "thor-light-theme",
+        defaultTheme    = "Light Theme",
         commentRegex    = /\/\*([\s\S]*?)\*\//mg,
         scrollbarsRegex = /((?:[^}|,]*)::-webkit-scrollbar(?:[^{]*)[{](?:[^}]*?)[}])/mgi,
         stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/";
@@ -227,23 +227,26 @@ define(function (require, exports, module) {
      */
     function loadCurrentTheme() {
         var theme = getCurrentTheme();
+        var pending = new $.Deferred();
 
-        var pending = theme && FileUtils.readAsText(theme.file)
-            .then(function (lessContent) {
-                return lessifyTheme(lessContent.replace(commentRegex, ""), theme);
-            })
-            .then(function (content) {
-                var result = extractScrollbars(content);
-                theme.scrollbar = result.scrollbar;
-                return result.content;
-            })
-            .then(function (cssContent) {
-                $("body").toggleClass("dark", theme.dark);
-                styleNode.text(cssContent);
-                return theme;
+        if (theme) {
+            require(['text!' + theme.file._path], function(lessContent) {
+                lessifyTheme(lessContent.replace(commentRegex, ""), theme)
+                .then(function (content) {
+                    var result = extractScrollbars(content);
+                    theme.scrollbar = result.scrollbar;
+                    return result.content;
+                })
+                .then(function (cssContent) {
+                    $("body").toggleClass("dark", theme.dark);
+                    styleNode.text(cssContent);
+
+                    pending.resolve(theme);
+                });
             });
+        }
 
-        return $.when(pending);
+        return $.when(theme && pending);
     }
 
 
@@ -321,6 +324,50 @@ define(function (require, exports, module) {
         return loadFile(fileName, themePackage.metadata);
     }
 
+    /**
+     * XXXBramble: Required for loading themes from the server vs.
+     * the filesystem (the brackets default)
+     *
+     * Loads a remote theme by stubbing the File object expected by
+     * the Theme constructor. It must contain:
+     *
+     * {
+     *   name: {String} filename of the theme's LESS file
+     *   _path: {String} URL path to the theme's LESS file
+     * }
+     *
+     * Likewise, the options object must contain whatever metadata
+     * is found in the theme's package.json file:
+     *
+     * {
+     *   name: "theme-name",
+     *   theme: {
+     *      dark: true
+     *   }
+     * }
+     *
+     * @param {Object} pre-populated file object.
+     * @param {Object} metadata options for the theme
+     * @return {Theme} the Theme object created for this theme
+     */
+    function addTheme(file, options) {
+        var currentThemeName = prefs.get("theme");
+        var theme = new Theme(file, options);
+
+        currentTheme = theme.name;
+
+        loadedThemes[theme.name] = theme;
+        ThemeSettings._setThemes(loadedThemes);
+
+        // For themes that are loaded after ThemeManager has been loaded,
+        // we should check if it's the current theme.  If it is, then we just
+        // load it.
+        if (currentThemeName === theme.name) {
+            refresh(true);
+        }
+
+        return theme;
+    }
 
     prefs.on("change", "theme", function () {
         // Make sure we don't reprocess a theme that's already loaded
@@ -367,6 +414,10 @@ define(function (require, exports, module) {
     exports.loadPackage     = loadPackage;
     exports.getCurrentTheme = getCurrentTheme;
     exports.getAllThemes    = getAllThemes;
+
+    // XXXBramble: We created this back-door to avoid loading
+    // themes as extensions
+    exports.addTheme        = addTheme;
 
     // Exposed for testing purposes
     exports._toDisplayName     = toDisplayName;

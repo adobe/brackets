@@ -1,6 +1,6 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
 maxerr: 50, browser: true */
-/*global define, brackets, $ */
+/*global define, brackets */
 
 /**
  * This extension provides in-editor livepreview through an iframe,
@@ -22,6 +22,7 @@ define(function (require, exports, module) {
         UrlParams            = brackets.getModule("utils/UrlParams").UrlParams,
         Editor               = brackets.getModule("editor/Editor").Editor,
         Rewriter             = brackets.getModule("filesystem/impls/filer/lib/HTMLRewriter"),
+
         // Load nohost dependencies
         Browser              = require("lib/iframe-browser"),
         UI                   = require("lib/UI"),
@@ -33,7 +34,10 @@ define(function (require, exports, module) {
         FileSystem           = brackets.getModule("filesystem/FileSystem"),
         Path                 = brackets.getModule("filesystem/impls/filer/BracketsFiler").Path,
         BlobUtils            = brackets.getModule("filesystem/impls/filer/BlobUtils"),
-        XHRHandler           = require("lib/xhr/XHRHandler");
+        XHRHandler           = require("lib/xhr/XHRHandler"),
+
+        // Other modules
+        Theme                = require("lib/Theme");
 
     ExtensionUtils.loadStyleSheet(module, "stylesheets/style.css");
 
@@ -47,6 +51,7 @@ define(function (require, exports, module) {
     var defaultHTML = brackets.getModule("text!filesystem/impls/filer/lib/default.html");
     var defaultCSS  = require("text!lib/default-files/style.css");
     var defaultJS   = require("text!lib/default-files/script.txt");
+
 
     // Force entry to if statments on line 262 of brackets.js to create
     // a new project
@@ -214,6 +219,10 @@ define(function (require, exports, module) {
     });
 
     AppInit.appReady(function (){
+        // Load the two theme extensions outside of
+        // the ExtensionLoader logic (avoids circular dependencies)
+        Theme.init();
+
         function attachListeners() {
             parentWindow.postMessage(JSON.stringify({
                 type: "bramble:loaded"
@@ -270,6 +279,11 @@ define(function (require, exports, module) {
 
                 if(type === "message") {
                     handleMessage(data.message);
+                    return;
+                }
+
+                if(type === "themeToggle") {
+                    Theme.toggle(data.theme);
                     return;
                 }
 
@@ -334,6 +348,9 @@ define(function (require, exports, module) {
             if (!data || data.type !== "bramble:init") {
                 return;
             }
+
+            // Set initial theme
+            Theme.setTheme(data.theme);
 
             window.removeEventListener("message", _getInitialDocument);
 
