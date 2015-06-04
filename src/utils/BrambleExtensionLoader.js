@@ -61,7 +61,8 @@ define(function (require, exports, module) {
     var extraExtensions = [
         "brackets-cdn-suggestions",    // https://github.com/szdc/brackets-cdn-suggestions
         "ImageUrlCodeHints",
-        "HTMLHinter"
+        "HTMLHinter",
+        "MDNDocs"
     ];
 
     // Disable any extensions we found on the query string's disableExtensions param

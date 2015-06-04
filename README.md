@@ -86,6 +86,7 @@ In addition, you can enable other extra extensions:
 * brackets-cdn-suggestions
 * ImageUrlCodeHints
 * HTMLHinter
+* MdnDocs
 
 You could enable JSLint and LESSSupport by loading Bramble with `?enableExtensions=JSLint,LESSSupport`
 on the URL

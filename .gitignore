@@ -7,6 +7,9 @@ Thumbs.db
 /node_modules
 /npm-debug.log
 
+# ignore node_modules created by seldomly used documentation updating tool
+/src/extensions/extra/MDNDocs/tools/scrape-mdn/node_modules
+
 # ignore compiled files
 /dist
 /src/.index.html
