@@ -752,6 +752,7 @@ define(function (require, exports, module) {
             orig = doc.getText(),
             gen = "",
             lastIndex = 0,
+            remoteScriptInserted = false,
             markCache;
         
         if (!dom) {
@@ -808,11 +809,11 @@ define(function (require, exports, module) {
                 
                 // If we have a script to inject and this is the head tag, inject it immediately
                 // after the open tag.
-                // TODO: handle cases where explicit html/head are missing
-                if (remoteScript && node.tag === "head") {
+                if (remoteScript && !remoteScriptInserted && node.tag === "head") {
                     insertIndex = node.openEnd;
                     gen += orig.substr(lastIndex, insertIndex - lastIndex) + remoteScript;
                     lastIndex = insertIndex;
+                    remoteScriptInserted = true;
                 }
             }
             
@@ -824,6 +825,12 @@ define(function (require, exports, module) {
         walk(dom);
         gen += orig.substr(lastIndex);
         
+        if (remoteScript && !remoteScriptInserted) {
+            // if the remote script couldn't be injected before (e.g. due to missing "head" tag),
+            // append it at the end
+            gen += remoteScript;
+        }
+
         return gen;
     }
     
