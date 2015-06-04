@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, brackets, Worker */
 
 /*
  * UI and controller logic for find/replace across multiple files within the project.
@@ -51,8 +51,10 @@ define(function (require, exports, module) {
         StatusBar         = require("widgets/StatusBar"),
         Strings           = require("strings"),
         StringUtils       = require("utils/StringUtils"),
+        ExtensionUtils    = brackets.getModule("utils/ExtensionUtils"),
         _                 = require("thirdparty/lodash");
-
+    
+    var _searchWorker;
 
     /** @const Maximum number of files to do replacements in-memory instead of on disk. */
     var MAX_IN_MEMORY = 20;
@@ -74,38 +76,83 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
     function searchAndShowResults(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
-        return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
-            .done(function (zeroFilesToken) {
-                // Done searching all files: show results
-                if (FindInFiles.searchModel.hasResults()) {
-                    _resultsView.open();
+        var search_object = {
+            "queryInfo": queryInfo,
+            "scope": scope,
+            "filter": filter,
+            "replaceText": replaceText,
+            "candidateFilesPromise": candidateFilesPromise
+        };
+        if (typeof _searchWorker === 'undefined') {
+            var path = ExtensionUtils.getModulePath(module, "search-worker.js");
+            _searchWorker = new Worker(path);
+            
+            // listen to the response from the Worker
+            _searchWorker.addEventListener('message', function (e) {
+                showResults();
+            });
+        }
+        _searchWorker.postMessage(search_object);
+        
+        function showResults(zeroFilesToken) {
+            // Done searching all files: show results
+            if (FindInFiles.searchModel.hasResults()) {
+                _resultsView.open();
 
-                    if (_findBar) {
-                        _findBar.close();
-                    }
-
-                } else {
-                    _resultsView.close();
-
-                    if (_findBar) {
-                        var showMessage = false;
-                        _findBar.enable(true);
-                        _findBar.focusQuery();
-                        if (zeroFilesToken === FindInFiles.ZERO_FILES_TO_SEARCH) {
-                            _findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, FindUtils.labelForScope(FindInFiles.searchModel.scope)), true);
-                        } else {
-                            showMessage = true;
-                        }
-                        _findBar.showNoResults(true, showMessage);
-                    }
+                if (_findBar) {
+                    _findBar.close();
                 }
 
-                StatusBar.hideBusyIndicator();
-            })
-            .fail(function (err) {
-                console.log("find in files failed: ", err);
-                StatusBar.hideBusyIndicator();
-            });
+            } else {
+                _resultsView.close();
+
+                if (_findBar) {
+                    var showMessage = false;
+                    _findBar.enable(true);
+                    _findBar.focusQuery();
+                    if (zeroFilesToken === FindInFiles.ZERO_FILES_TO_SEARCH) {
+                        _findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, FindUtils.labelForScope(FindInFiles.searchModel.scope)), true);
+                    } else {
+                        showMessage = true;
+                    }
+                    _findBar.showNoResults(true, showMessage);
+                }
+            }
+        }
+
+        
+//        return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
+//            .done(function (zeroFilesToken) {
+//                // Done searching all files: show results
+//                if (FindInFiles.searchModel.hasResults()) {
+//                    _resultsView.open();
+//
+//                    if (_findBar) {
+//                        _findBar.close();
+//                    }
+//
+//                } else {
+//                    _resultsView.close();
+//
+//                    if (_findBar) {
+//                        var showMessage = false;
+//                        _findBar.enable(true);
+//                        _findBar.focusQuery();
+//                        if (zeroFilesToken === FindInFiles.ZERO_FILES_TO_SEARCH) {
+//                            _findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, FindUtils.labelForScope(FindInFiles.searchModel.scope)), true);
+//                        } else {
+//                            showMessage = true;
+//                        }
+//                        _findBar.showNoResults(true, showMessage);
+//                    }
+//                }
+//
+//                StatusBar.hideBusyIndicator();
+//            })
+//            .fail(function (err) {
+//                console.log("find in files failed: ", err);
+//                StatusBar.hideBusyIndicator();
+//            });
     }
     
     /**
