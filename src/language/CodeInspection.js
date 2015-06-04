@@ -199,6 +199,21 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Returns an array of the IDs of providers registered for a specific language
+     *
+     * @param {!string} languageId
+     * @return {Array.<string>} Names of registered providers.
+     */
+    function getProviderIDsForLanguage(languageId) {
+        if (!_providers[languageId]) {
+            return null;
+        }
+        return _providers[languageId].map(function (provider) {
+            return provider.name;
+        });
+    }
+
+    /**
      * Runs a file inspection over passed file. Uses the given list of providers if specified, otherwise uses
      * the set of providers that are registered for the file's language.
      * This method doesn't update the Brackets UI, just provides inspection results.
@@ -681,10 +696,11 @@ define(function (require, exports, module) {
     exports._PREF_PREFERRED_ONLY    = PREF_PREFERRED_ONLY;
 
     // Public API
-    exports.register            = register;
-    exports.Type                = Type;
-    exports.toggleEnabled       = toggleEnabled;
-    exports.inspectFile         = inspectFile;
-    exports.requestRun          = run;
-    exports.getProvidersForPath = getProvidersForPath;
+    exports.register                    = register;
+    exports.Type                        = Type;
+    exports.toggleEnabled               = toggleEnabled;
+    exports.inspectFile                 = inspectFile;
+    exports.requestRun                  = run;
+    exports.getProvidersForPath         = getProvidersForPath;
+    exports.getProviderNamesForLanguage = getProviderNamesForLanguage;
 });
