@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, brackets, Worker */
 
 /*
  * The core search functionality used by Find in Files and single-file Replace Batch.
@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         PerfUtils             = require("utils/PerfUtils"),
         FindUtils             = require("search/FindUtils");
     
+    var ExtensionUtils      = brackets.getModule("utils/ExtensionUtils");
     /**
      * Token used to indicate a specific reason for zero search results
      * @const @type {!Object}
@@ -61,7 +62,7 @@ define(function (require, exports, module) {
      * @type {SearchModel} 
      */
     var searchModel = new SearchModel();
-    
+    var _searchWorker;
     /* Forward declarations */
     var _documentChangeHandler, _fileSystemChangeHandler, _fileNameChangeHandler;
     
@@ -425,7 +426,28 @@ define(function (require, exports, module) {
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
                 
                 if (fileListResult.length) {
-                    return Async.doInParallel(fileListResult, _doSearchInOneFile);
+                    if (typeof _searchWorker === 'undefined') {
+                        var path = ExtensionUtils.getModulePath(module, "search-worker.js");
+                        _searchWorker = new Worker(path);
+            
+                        // listen to the response from the Worker
+                        _searchWorker.addEventListener('message', function (e) {
+                            console.log("Received message from search worker!!" + e.data);
+                            return e.data;
+                        });
+                    }
+                     
+                    fileListResult.forEach(function (ele) {
+                        delete ele._watchedRoot;
+                        delete ele._fileSystem;
+                    });
+                    var search_object = {
+                        "queryInfo": queryInfo,
+                        "fileListResult": fileListResult
+                    };
+                    _searchWorker.postMessage(search_object);
+                    console.log("Sending message to search worker for searching '" + search_object.queryInfo.query + "'!!");
+                    //return Async.doInParallel(fileListResult, _doSearchInOneFile);
                 } else {
                     return ZERO_FILES_TO_SEARCH;
                 }
