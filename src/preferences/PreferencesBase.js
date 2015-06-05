@@ -1304,7 +1304,11 @@ define(function (require, exports, module) {
                 initial: initial,
                 name: options.name,
                 description: options.description,
-                validator: options.validator
+                validator: options.validator,
+                excludeFromHints: options.excludeFromHints,
+                keys: options.keys,
+                values: options.values,
+                valueType: options.valueType
             });
             this.set(id, initial, {
                 location: {
@@ -1321,6 +1325,15 @@ define(function (require, exports, module) {
          */
         getPreference: function (id) {
             return this._knownPrefs[id];
+        },
+
+        /**
+         * Returns a clone of all preferences defined.
+         *
+         * @return {Object}
+         */
+        getAllPreferences: function () {
+            return _.cloneDeep(this._knownPrefs);
         },
 
         /**

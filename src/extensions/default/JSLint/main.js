@@ -50,7 +50,127 @@ define(function (require, exports, module) {
      */
     var _lastRunOptions;
     
-    prefs.definePreference("options", "object", undefined)
+    prefs.definePreference("options", "object", undefined, {
+        description: Strings.DESCRIPTION_JSLINT_OPTIONS,
+        keys: {
+            ass: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_ASS
+            },
+            bitwise: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_BITWISE
+            },
+            browser: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_BROWSER
+            },
+            closure: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_CLOSURE
+            },
+            "continue": {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_CONTINUE
+            },
+            couch: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_COUCH
+            },
+            debug: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_DEBUG
+            },
+            devel: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_DEVEL
+            },
+            eqeq: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_EQEQ
+            },
+            es6: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_ES6
+            },
+            evil: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_EVIL
+            },
+            forin: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_FORIN
+            },
+            indent: {
+                type: "number",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_INDENT
+            },
+            maxerr: {
+                type: "number",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_MAXERR
+            },
+            maxlen: {
+                type: "number",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_MAXLEN
+            },
+            newcap: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_NEWCAP
+            },
+            node: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_NODE
+            },
+            nomen: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_NOMEN
+            },
+            passfail: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_PASSFAIL
+            },
+            plusplus: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_PLUSPLUS
+            },
+            regexp: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_REGEXP
+            },
+            rhino: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_RHINO
+            },
+            sloppy: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_SLOPPY
+            },
+            stupid: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_STUPID
+            },
+            sub: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_SUB
+            },
+            todo: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_TODO
+            },
+            unparam: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_UNPARAM
+            },
+            vars: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_VARS
+            },
+            white: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_JSLINT_OPTIONS_WHITE
+            }
+        }
+    })
         .on("change", function (e, data) {
             var options = prefs.get("options");
             if (!_.isEqual(options, _lastRunOptions)) {

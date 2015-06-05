@@ -44,9 +44,15 @@ define(function (require, exports, module) {
     var prefs                   = PreferencesManager.getExtensionPrefs("closeOthers"),
         menuEntriesShown        = {};
     
-    prefs.definePreference("below",  "boolean", true);
-    prefs.definePreference("others", "boolean", true);
-    prefs.definePreference("above",  "boolean", true);
+    prefs.definePreference("below",  "boolean", true, {
+        description: Strings.DESCRIPTION_CLOSE_OTHERS_BELOW
+    });
+    prefs.definePreference("others", "boolean", true, {
+        description: Strings.DESCRIPTION_CLOSE_OTHERS
+    });
+    prefs.definePreference("above",  "boolean", true, {
+        description: Strings.DESCRIPTION_CLOSE_OTHERS_ABOVE
+    });
     
     
     /**
