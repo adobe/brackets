@@ -437,14 +437,19 @@ define(function (require, exports, module) {
                         });
                     }
                      
-                    fileListResult.forEach(function (ele) {
-                        delete ele._watchedRoot;
-                        delete ele._fileSystem;
-                    });
+                    var files = fileListResult
+                        .filter(function (entry) {
+                            return entry.isFile && _isReadableText(entry.fullPath);
+                        })
+                        .map(function (entry) {
+                            return entry.fullPath;
+                        });
+
                     var search_object = {
                         "queryInfo": queryInfo,
-                        "fileListResult": fileListResult
+                        "files": files
                     };
+                    
                     _searchWorker.postMessage(search_object);
                     console.log("Sending message to search worker for searching '" + search_object.queryInfo.query + "'!!");
                     //return Async.doInParallel(fileListResult, _doSearchInOneFile);
