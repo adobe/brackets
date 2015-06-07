@@ -14,11 +14,11 @@ importScripts("thirdparty/requirejs/require.js");
         function search(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
             FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise);
         }
-        
+
         self.addEventListener('message', function (e) {
             var search_object = e.data;
-            search(search_object.queryInfo, search_object.scope, search_object.filter, search_object.replaceText, search_object.candidateFilesPromise);
-            self.postMessage("OK!! Done searching for \"" + search_object.queryInfo.query + "\"");
+            console.log(search_object.queryInfo + ";" + search_object.scope + ";" + search_object.filter + ";" + search_object.replaceText + ";");
+            self.postMessage("Web worker: OK!! Done searching for \"" + search_object.queryInfo.query + "\"");
         }, false);
     });
 

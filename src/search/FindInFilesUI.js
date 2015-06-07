@@ -80,8 +80,8 @@ define(function (require, exports, module) {
             "queryInfo": queryInfo,
             "scope": scope,
             "filter": filter,
-            "replaceText": replaceText,
-            "candidateFilesPromise": candidateFilesPromise
+            "replaceText": replaceText//,
+            //"candidateFilesPromise": candidateFilesPromise
         };
         if (typeof _searchWorker === 'undefined') {
             var path = ExtensionUtils.getModulePath(module, "search-worker.js");
@@ -89,9 +89,11 @@ define(function (require, exports, module) {
             
             // listen to the response from the Worker
             _searchWorker.addEventListener('message', function (e) {
-                showResults();
+                console.log("Main Thread: Returned from web worker!");
+                console.log(e.data);
             });
         }
+        console.log("Main Thread: Sending to web worker!");
         _searchWorker.postMessage(search_object);
         
         function showResults(zeroFilesToken) {
@@ -119,7 +121,6 @@ define(function (require, exports, module) {
                 }
             }
         }
-
         
 //        return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
 //            .done(function (zeroFilesToken) {
