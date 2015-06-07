@@ -8,10 +8,12 @@ var config = {};
 (function () {
     "use strict";
     
-    var MessageIds, MAX_DISPLAY_LENGTH, MAX_TOTAL_RESULTS;
-    var Tern, Infer;
-    require(["./MsgIds"], function (messageIds) {
+    var MessageIds, StringUtils, MAX_DISPLAY_LENGTH, MAX_TOTAL_RESULTS;
+    var ProjectCache = {};
+    var search_object;
+    require(["./MsgIds", "utils/StringUtils"], function (messageIds, stringUtils) {
         MessageIds = messageIds;
+        StringUtils = stringUtils;
         MAX_DISPLAY_LENGTH = 200;
         MAX_TOTAL_RESULTS = 100000;
         
@@ -92,39 +94,13 @@ var config = {};
 //            return matches;
 //        }
 //        
-//        function _doSearchInOneFile(file) {
-//            var result = new $.Deferred();
-//
-//            DocumentManager.getDocumentText(file)
-//                .done(function (text, timestamp) {
-//                    // Note that we don't fire a model change here, since this is always called by some outer batch
-//                    // operation that will fire it once it's done.
-//                    var matches = _getSearchMatches(text, searchModel.queryExpr);
-//                    searchModel.setResults(file.fullPath, {matches: matches, timestamp: timestamp});
-//                    result.resolve(!!matches.length);
-//                })
-//                .fail(function () {
-//                    // Always resolve. If there is an error, this file
-//                    // is skipped and we move on to the next file.
-//                    result.resolve(false);
-//                });
-//
-//            return result.promise();
-//        }
-//        
-//        function _subtreeFilter(file, scope) {
-//            if (scope) {
-//                if (scope.isDirectory) {
-//                    // Dirs always have trailing slash, so we don't have to worry about being
-//                    // a substring of another dir name
-//                    return file.fullPath.indexOf(scope.fullPath) === 0;
-//                } else {
-//                    return file.fullPath === scope.fullPath;
-//                }
-//            }
-//            return true;
-//        }
-//        
+        function _doSearchInOneFile(file, text) {
+            // Note that we don't fire a model change here, since this is always called by some outer batch
+            // operation that will fire it once it's done.
+            var matches = _getSearchMatches(text, searchModel.queryExpr);
+            searchModel.setResults(file.fullPath, {matches: matches, timestamp: timestamp});
+        }
+        
         function searchInParallel(fileListResult, searchString) {
             var promises = [];
             var masterDeferred = new $.Deferred();
@@ -135,8 +111,8 @@ var config = {};
                 var numCompleted = 0;
                 var hasFailed = false;
 
-                fileListResult.forEach(function (item, i) {
-                    var itemPromise;// = _doSearchInOneFile(item, i);
+                fileListResult.forEach(function (filePath, i) {
+                    var itemPromise = _doSearchInOneFile(filePath, ProjectCache[filePath]);
                     promises.push(itemPromise);
 
                     itemPromise.fail(function () {
@@ -159,10 +135,20 @@ var config = {};
         }
         
         self.addEventListener('message', function (e) {
-            var search_object = e.data;
-            //searchInParallel(search_object.fileListResult, search_object.queryInfo.query);
+            search_object = e.data;
+            var type = search_object.type;
+            
+            if (type === MessageIds.FIF_PROJECT_INIT) {
+                console.log("Type=FIF_PROJECT_INIT");
+                ProjectCache = search_object.fileContents;
+            } else if (type === MessageIds.FIF_SEARCH) {
+                console.log("Type=FIF_SEARCH");
+                searchInParallel(search_object.files, search_object.queryInfo.query);
+            } else {
+                console.log("Type=Others");
+            }
             console.log("Worker: Almost done searching");
-            self.postMessage("OK!! Done searching for '" + search_object.queryInfo.query + "'!");
+            self.postMessage("OK!! Done searching!");
         }, false);
     });
 

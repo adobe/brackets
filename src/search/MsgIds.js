@@ -27,20 +27,12 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var FIF_ADD_FILES_MSG          = "AddFiles",
-        FIF_UPDATE_FILE_MSG        = "UpdateFile",
-        FIF_INIT_MSG               = "Init",
-        FIF_GET_FILE_MSG           = "GetFile",
-        FIF_WORKER_READY           = "WorkerReady",
-        SET_CONFIG                  = "SetConfig";
+    var FIF_PROJECT_INIT           = "Init Search for Project",
+        FIF_SEARCH                 = "Do Search in Files";
 
 
-    exports.FIF_ADD_FILES_MSG          = FIF_ADD_FILES_MSG;
-    exports.FIF_INIT_MSG               = FIF_INIT_MSG;
-    exports.FIF_GET_FILE_MSG           = FIF_GET_FILE_MSG;
-    exports.FIF_UPDATE_FILE_MSG        = FIF_UPDATE_FILE_MSG;
-    exports.FIF_WORKER_READY           = FIF_WORKER_READY;
-    exports.SET_CONFIG                  = SET_CONFIG;
+    exports.FIF_PROJECT_INIT           = FIF_PROJECT_INIT;
+    exports.FIF_SEARCH                 = FIF_SEARCH;
 });
 
 

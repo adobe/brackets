@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         FileSystem            = require("filesystem/FileSystem"),
         LanguageManager       = require("language/LanguageManager"),
         SearchModel           = require("search/SearchModel").SearchModel,
+        MsgIds                = require("search/MsgIds"),
         PerfUtils             = require("utils/PerfUtils"),
         FindUtils             = require("search/FindUtils");
     
@@ -50,6 +51,7 @@ define(function (require, exports, module) {
      * @const @type {!Object}
      */
     var ZERO_FILES_TO_SEARCH = {};
+    var isFirstSearch = true;
     
     /**
      * Maximum length of text displayed in search results panel
@@ -433,6 +435,7 @@ define(function (require, exports, module) {
                         // listen to the response from the Worker
                         _searchWorker.addEventListener('message', function (e) {
                             console.log("Received message from search worker!!" + e.data);
+                            isFirstSearch = false;
                             return e.data;
                         });
                     }
@@ -445,13 +448,31 @@ define(function (require, exports, module) {
                             return entry.fullPath;
                         });
 
-                    var search_object = {
-                        "queryInfo": queryInfo,
-                        "files": files
-                    };
-                    
+                    var search_object;
+                    if (isFirstSearch) {
+                        search_object = {
+                            "type": MsgIds.FIF_PROJECT_INIT,
+                            "files": files,
+                            "fileContents": {}
+                        };
+                        files.forEach(function (filePath) {
+                            var file = FileSystem.getFileForPath(filePath),
+                                promise = DocumentManager.getDocumentText(file);
+
+                            promise.done(function (docText) {
+                                search_object.fileContents[filePath] = docText;
+                            });
+                        });
+                        console.log("First FiF search!! Indexing!!");
+                    } else {
+                        search_object = {
+                            "type": MsgIds.FIF_SEARCH,
+                            "files": files,
+                            "queryInfo": queryInfo
+                        };
+                    }
                     _searchWorker.postMessage(search_object);
-                    console.log("Sending message to search worker for searching '" + search_object.queryInfo.query + "'!!");
+                    console.log("Sending message to search worker for searching '" + queryInfo.query + "'!!");
                     //return Async.doInParallel(fileListResult, _doSearchInOneFile);
                 } else {
                     return ZERO_FILES_TO_SEARCH;
