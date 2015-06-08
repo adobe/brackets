@@ -143,7 +143,24 @@ define(function (require, exports, module) {
     // read URL params
     params.parse();
     
+    if (brackets.platform === "mac") {
+        
+        // define a preference for font smoothing mode.
+        // By default fontSmoothing is set to subpixel_antialiasing
+        // It could be overidden to antialiasing
+        PreferencesManager.definePreference("fontSmoothing", "string", "subpixel_antialiased", {
+            description: Strings.DESCRIPTION_FONT_SMOOTHING,
+            values: ["subpixel-antialiased", "antialiased"]
+        });
 
+        PreferencesManager.on("change", "fontSmoothing", function () {
+            var aaType = PreferencesManager.get("fontSmoothing");
+            if (aaType === "subpixel-antialiased" || aaType === "antialiased") {
+                $("body").css("-webkit-font-smoothing", aaType);
+            }
+        });
+    }
+    
     /**
      * Setup test object
      */

@@ -54,33 +54,6 @@ html, body {
     /* And make sure we get a pointer cursor even over text */
     cursor: default;
 
-    &.platform-mac {
-
-        -webkit-font-smoothing: subpixel_antialised;
-
-        //-webkit-backface-visibility: visible !important;
-        //backface-visibility: visible !important;
-
-        @media (screen),
-            (min-resolution: 2dppx),
-            (min-resolution: 192dpi) {
-
-            /* Turn off subpixel antialiasing on Mac since it flickers during animations. */
-
-            //-webkit-font-smoothing: antialiased;
-
-            // This is a hack to avoid flicker when animations (like inline editors) that use the GPU complete.
-            // It seems that we have to put it here rather than on the animated element in order to prevent the
-            // entire window from flashing.
-            // See: http://stackoverflow.com/questions/3461441/prevent-flicker-on-webkit-transition-of-webkit-transform
-            // Mac-only though, since this would turn off subpixel antialiasing (ClearType) on Windows
-
-            //-webkit-backface-visibility: hidden;
-            //backface-visibility: hidden;
-        }
-
-    }
-
     .dark,
     &.dark {
          color: @dark-bc-text;
@@ -337,10 +310,6 @@ a, img {
 
 #editor-holder {
     position: relative;
-
-    -webkit-font-smoothing: subpixel_antialiased;
-    -webkit-backface-visibility: visible !important;
-    backface-visibility: visible !important;
 
     /* Placeholder shown when there is no editor open */
 
