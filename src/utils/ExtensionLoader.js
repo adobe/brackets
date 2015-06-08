@@ -44,7 +44,6 @@ define(function (require, exports, module) {
         FileSystem     = require("filesystem/FileSystem"),
         FileUtils      = require("file/FileUtils"),
         Async          = require("utils/Async"),
-        ExtensionUtils = require("utils/ExtensionUtils"),
         UrlParams      = require("utils/UrlParams").UrlParams,
         BrambleExtensionLoader = require("utils/BrambleExtensionLoader");
 
@@ -240,20 +239,11 @@ define(function (require, exports, module) {
      *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
      */
     function loadExtension(name, config, entryPoint) {
-        var promise = new $.Deferred();
+        // XXXBramble: we disable the loading of extension package.json files,
+        // since a) it would require many unnecessary trips to the server;
+        // b) the data isn't used, except for themes (and we do our own theme loading).
 
-        // Try to load the package.json to figure out if we are loading a theme.
-        ExtensionUtils.loadPackageJson(config.baseUrl).always(promise.resolve);
-
-        return promise
-            .then(function (metadata) {
-                // No special handling for themes... Let the promise propagate into the ExtensionManager
-                if (metadata && metadata.theme) {
-                    return;
-                }
-
-                return loadExtensionModule(name, config, entryPoint);
-            })
+        return loadExtensionModule(name, config, entryPoint)
             .then(function () {
                 exports.trigger("load", config.baseUrl);
             }, function (err) {
