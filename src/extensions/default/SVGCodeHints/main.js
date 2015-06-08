@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         StringMatch         = brackets.getModule("utils/StringMatch"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         ColorUtils          = brackets.getModule("utils/ColorUtils"),
+        Strings             = brackets.getModule("strings"),
         _                   = brackets.getModule("thirdparty/lodash"),
         SVGTags             = require("text!SVGTags.json"),
         SVGAttributes       = require("text!SVGAttributes.json"),
@@ -48,7 +49,9 @@ define(function (require, exports, module) {
     };
 
     // Define our own pref for hinting.
-    PreferencesManager.definePreference("codehint.SVGHints", "boolean", true);
+    PreferencesManager.definePreference("codehint.SVGHints", "boolean", true, {
+        description: Strings.DESCRIPTION_SVG_HINTS
+    });
     
     // Preferences to control hint.
     function _isSVGHintsEnabled() {

@@ -71,7 +71,9 @@ define(function (require, exports, module) {
         DEBUG_SHOW_ERRORS_IN_STATUS_BAR = "debug.showErrorsInStatusBar",
         DEBUG_OPEN_BRACKETS_SOURCE      = "debug.openBracketsSource";
 
-    PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false);
+    PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false, {
+        description: Strings.DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR
+    });
     
     function handleShowDeveloperTools() {
         brackets.app.showDeveloperTools();
