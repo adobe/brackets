@@ -109,6 +109,11 @@ define(function (require, exports, module) {
     PreferencesManager.stateManager.definePreference(FOLDER_AUTOINSTALL, "object", undefined);
 
     /**
+     * ETag of last successfully downloaded registry
+     */
+    var lastSuccesfulDownloadRegistryEtag;
+
+    /**
      * @private
      * Synchronizes the information between the public registry and the installed
      * extensions. Specifically, this makes the `owner` available in each and sets
@@ -204,13 +209,13 @@ define(function (require, exports, module) {
 
         pendingDownloadRegistry = new $.Deferred();
 
-        $.ajax({
-            url: brackets.config.extension_registry,
-            dataType: "json",
-            cache: false
-        })
-            .done(function (data) {
-                exports.hasDownloadedRegistry = true;
+        function updateRegistryDownloadedStatus() {
+            exports.hasDownloadedRegistry = true;
+            exports.trigger("registryDownload");
+        }
+
+        function _downloadRegistry() {
+            function synchronizeRegistry(data) {
                 Object.keys(data).forEach(function (id) {
                     if (!extensions[id]) {
                         extensions[id] = {};
@@ -218,16 +223,43 @@ define(function (require, exports, module) {
                     extensions[id].registryInfo = data[id];
                     synchronizeEntry(id);
                 });
-                exports.trigger("registryDownload");
+
+                updateRegistryDownloadedStatus();
+            }
+
+            $.ajax({
+                url: brackets.config.extension_registry,
+                dataType: "json",
+                cache: false
+            }).done(function (data, status, xhdr) {
+                lastSuccesfulDownloadRegistryEtag = xhdr.getResponseHeader("ETag");
+
+                synchronizeRegistry(data);
                 pendingDownloadRegistry.resolve();
-            })
-            .fail(function () {
+            }).fail(function () {
                 pendingDownloadRegistry.reject();
-            })
-            .always(function () {
+            }).always(function () {
                 // Make sure to clean up the pending registry so that new requests can be made.
                 pendingDownloadRegistry = null;
             });
+        }
+
+        // Check if we already have the latest version of the registry
+        $.ajax({
+            url: brackets.config.extension_registry,
+            type: "HEAD",
+            cache: false
+        }).done(function (data, status, xhdr) {
+            var etag = xhdr.getResponseHeader("ETag");
+            if (lastSuccesfulDownloadRegistryEtag !== etag) {
+                _downloadRegistry();
+            } else {
+                updateRegistryDownloadedStatus();
+                pendingDownloadRegistry.resolve();
+            }
+        }).fail(function () {
+            // can not reach server?
+        });
 
         return pendingDownloadRegistry.promise();
     }
