@@ -412,6 +412,15 @@ define(function (require, exports, module) {
      *      Will be null if the query is invalid.
      */
     function _doSearch(queryInfo, candidateFilesPromise, filter) {
+        /*var path = ExtensionUtils.getModulePath(module, "testWorker.js");
+        var worker = new Worker(path);
+
+        worker.addEventListener('message', function(e) {
+            console.log('Worker said : ' , e.data);
+        }, false);
+
+        worker.postMessage('Hello World');*/
+
         searchModel.filter = filter;
         
         var queryResult = searchModel.setQueryInfo(queryInfo);
@@ -428,18 +437,6 @@ define(function (require, exports, module) {
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
                 
                 if (fileListResult.length) {
-                    if (typeof _searchWorker === 'undefined') {
-                        var path = ExtensionUtils.getModulePath(module, "search-worker.js");
-                        _searchWorker = new Worker(path);
-                        console.log("Search worker created!!");
-                        // listen to the response from the Worker
-                        _searchWorker.addEventListener('message', function (e) {
-                            console.log("Received message from search worker!!");
-                            isFirstSearch = false;
-                            return e.data;
-                        });
-                    }
-                     
                     var files = fileListResult
                         .filter(function (entry) {
                             return entry.isFile && _isReadableText(entry.fullPath);
@@ -482,7 +479,27 @@ define(function (require, exports, module) {
                             "queryInfo": queryInfo
                         };
                     }
+
+                    if (typeof _searchWorker === 'undefined') {
+                        var path = ExtensionUtils.getModulePath(module, "search-worker.js");
+                        _searchWorker = new Worker(path);
+                        console.log("Search worker created!!");
+                        // listen to the response from the Worker
+                        _searchWorker.addEventListener('message', function (e) {
+                            var response = e.data;
+
+                            console.log("Received message from search worker!!");
+                            
+                            if (response === 'Search Worker Started') {
+                                _searchWorker.postMessage(search_object);
+                            }
+                            isFirstSearch = false;
+                            return e.data;
+                        });
+                    }
+                     else {
                     _searchWorker.postMessage(search_object);
+                }
                     console.log("Sending message to search worker for searching '" + queryInfo.query + "'!!");
                     //return Async.doInParallel(fileListResult, _doSearchInOneFile);
                 } else {

@@ -153,6 +153,7 @@ var config = {};
         }
         
         self.addEventListener('message', function (e) {
+            console.log('Received the message in worker');
             search_object = e.data;
             var type = search_object.type;
             var files = search_object.files;
@@ -191,6 +192,8 @@ var config = {};
             console.log("Worker: Almost done searching");
             self.postMessage("OK!! Done searching!");
         }, false);
+
+        self.postMessage('Search Worker Started');
     });
 
 }());
