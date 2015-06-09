@@ -431,10 +431,10 @@ define(function (require, exports, module) {
                     if (typeof _searchWorker === 'undefined') {
                         var path = ExtensionUtils.getModulePath(module, "search-worker.js");
                         _searchWorker = new Worker(path);
-            
+                        console.log("Search worker created!!");
                         // listen to the response from the Worker
                         _searchWorker.addEventListener('message', function (e) {
-                            console.log("Received message from search worker!!" + e.data);
+                            console.log("Received message from search worker!!");
                             isFirstSearch = false;
                             return e.data;
                         });
@@ -453,17 +453,28 @@ define(function (require, exports, module) {
                         search_object = {
                             "type": MsgIds.FIF_PROJECT_INIT,
                             "files": files,
+                            "queryInfo": queryInfo
+                        };
+                        //In case we want to pass file contents from main thread
+                        /*    ,
                             "fileContents": {}
                         };
-                        files.forEach(function (filePath) {
+                        
+                        console.log("T1: Start Indexing!!" + (new Date()).getTime());
+                        files.forEach(function (filePath, i) {
                             var file = FileSystem.getFileForPath(filePath),
                                 promise = DocumentManager.getDocumentText(file);
 
                             promise.done(function (docText) {
                                 search_object.fileContents[filePath] = docText;
+                                if (i === (files.length - 1)) {
+                                    console.log("T1: Done Indexing!! " + (new Date()).getTime());
+                                    _searchWorker.postMessage(search_object);
+                                    console.log("Sending message to search worker for searching '" + queryInfo.query + "'!!");
+                                }
                             });
-                        });
-                        console.log("First FiF search!! Indexing!!");
+                        });*/
+                        
                     } else {
                         search_object = {
                             "type": MsgIds.FIF_SEARCH,
