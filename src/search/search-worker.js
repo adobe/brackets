@@ -2,27 +2,43 @@
 /*global self, importScripts, $, require */
 
 importScripts("thirdparty/requirejs/require.js");
+//importScripts("thirdparty/requirejs/require.js", "thirdparty/jquery2.js");
 
 var config = {};
 
 (function () {
     "use strict";
     
-    var MessageIds, StringUtils, SearchModel, MAX_DISPLAY_LENGTH, MAX_TOTAL_RESULTS;
+    var MessageIds, StringUtils, MAX_DISPLAY_LENGTH, MAX_TOTAL_RESULTS;
     var ProjectCache = {};
-    var ProjectCache2 = {};
-    var search_object, searchModel;
-    require(["./MsgIds"], function (messageIds) {
+    var results = {},
+        numMatches = 0,
+        foundMaximum = false,
+        exceedsMaximum = false;
+    var search_object, send_object;//, "./thirdparty/jquery-2.1.3.min"
+    
+    require(["./MsgIds", "../utils/StringUtils"], function (messageIds, stringUtils) {
+        
         MessageIds = messageIds;
-        //StringUtils = stringUtils;
+        StringUtils = stringUtils;
+        //$ = jquery;
         //SearchModel = srchModel.SearchModel;
         MAX_DISPLAY_LENGTH = 200;
         MAX_TOTAL_RESULTS = 100000;
         //searchModel = new SearchModel();
         
+           
+        
+        //var ternRequire = require.config({baseUrl: "./thirdparty"});
+        //ternRequire(["./thirdparty/jquery"], function (jquery) {
+            
+         //$ = jquery;
         function _getSearchMatches(contents, queryExpr) {
+            if (!contents) {
+                return;
+            }
             // Quick exit if not found or if we hit the limit
-            if (searchModel.foundMaximum || contents.search(queryExpr) === -1) {
+            if (foundMaximum || contents.search(queryExpr) === -1) {
                 return [];
             }
 
@@ -97,44 +113,71 @@ var config = {};
             return matches;
         }
         
-        function _doSearchInOneFile(file, text) {
-            // Note that we don't fire a model change here, since this is always called by some outer batch
-            // operation that will fire it once it's done.
-            var matches = _getSearchMatches(text, searchModel.queryExpr);
-            //searchModel.setResults(file.fullPath, {matches: matches, timestamp: timestamp});
+        function setResults(fullpath, resultInfo) {
+            if (results[fullpath]) {
+                numMatches -= results[fullpath].matches.length;
+                delete results[fullpath];
+            }
+
+            if (foundMaximum || !resultInfo || !resultInfo.matches || !resultInfo.matches.length) {
+                return;
+            }
+
+            // Make sure that the optional `collapsed` property is explicitly set to either true or false,
+            // to avoid logic issues later with comparing values.
+            resultInfo.collapsed = !!resultInfo.collapsed;
+
+            results[fullpath] = resultInfo;
+            numMatches += resultInfo.matches.length;
+            if (numMatches >= MAX_TOTAL_RESULTS) {
+                foundMaximum = true;
+
+                // Remove final result if there have been over MAX_TOTAL_RESULTS found
+                if (numMatches > MAX_TOTAL_RESULTS) {
+                    results[fullpath].matches.pop();
+                    numMatches--;
+                    exceedsMaximum = true;
+                }
+            }
         }
         
-        function searchInParallel(fileListResult, searchString) {
-            var promises = [];
-            var masterDeferred = new $.Deferred();
+        function _doSearchInOneFile(filepath, text, queryExpr) {
+            // Note that we don't fire a model change here, since this is always called by some outer batch
+            // operation that will fire it once it's done.
+            var matches = _getSearchMatches(text, queryExpr);
+            setResults(filepath, {matches: matches});
+//            setResults(file.fullPath, {matches: matches, timestamp: timestamp});
+        }
+        
+        function doSearchInFiles(fileListResult, searchString, queryExpr) {
+            
             if (fileListResult.length === 0) {
-                masterDeferred.resolve();
+                console.log('no files found');
+                return;
 
             } else {
                 var numCompleted = 0;
                 var hasFailed = false;
 
                 fileListResult.forEach(function (filePath, i) {
-                    var itemPromise = _doSearchInOneFile(filePath, ProjectCache[filePath]);
-                    promises.push(itemPromise);
-
-                    itemPromise.fail(function () {
-                        hasFailed = true;
-                    });
-                    itemPromise.always(function () {
-                        numCompleted++;
-                        if (numCompleted === fileListResult.length) {
-                            if (hasFailed) {
-                                masterDeferred.reject();
-                            } else {
-                                masterDeferred.resolve();
-                            }
-                        }
-                    });
+                    _doSearchInOneFile(filePath, ProjectCache[filePath], queryExpr);
+//                    promises.push(itemPromise);
+//
+//                    itemPromise.fail(function () {
+//                        hasFailed = true;
+//                    });
+//                    itemPromise.always(function () {
+//                        numCompleted++;
+//                        if (numCompleted === fileListResult.length) {
+//                            if (hasFailed) {
+//                                masterDeferred.reject();
+//                            } else {
+//                                masterDeferred.resolve();
+//                            }
+//                        }
+//                    });
                 });
             }
-        
-            return masterDeferred.promise();
         }
         
         function readFile(path) {
@@ -144,7 +187,7 @@ var config = {};
                 receiveReq.open("GET", fname, true);
                 receiveReq.onreadystatechange = function () {
                     if (receiveReq.readyState === 4) {
-                        ProjectCache2[path] = receiveReq.responseText;
+                        ProjectCache[path] = receiveReq.responseText;
                     }
                 };
                 receiveReq.send(null);
@@ -153,44 +196,65 @@ var config = {};
         }
         
         self.addEventListener('message', function (e) {
+            console.log("message receibed");
             search_object = e.data;
             var type = search_object.type;
-            var files = search_object.files;
+            var files = search_object.files,
+                queryExpr = search_object.queryExpr;
             
             if (type === MessageIds.FIF_PROJECT_INIT) {
                 console.log("Type=FIF_PROJECT_INIT");
-                ProjectCache = search_object.fileContents;
+                //ProjectCache = search_object.fileContents;
                 //console.log("T2: Start Indexing!!" + (new Date()).getTime());
                 
                 files.forEach(function (filePath, i) {
                     readFile(filePath);
                     //UnComment the following in case you want to calculate the time taken to cache files. 
                     //Then comment out the previous line
-                    /*var receiveReq = new XMLHttpRequest(),
+                    var receiveReq = new XMLHttpRequest(),
                         fname = "file:///" + filePath;
                     if (receiveReq.readyState === 4 || receiveReq.readyState === 0) {
                         receiveReq.open("GET", fname, true);
                         receiveReq.onreadystatechange = function () {
                             if (receiveReq.readyState === 4) {
-                                ProjectCache2[filePath] = receiveReq.responseText;
+                                ProjectCache[filePath] = receiveReq.responseText;
                                 if (i === (files.length - 1)) {
                                     console.log("T2: Done Indexing!! " + (new Date()).getTime());
+                                    console.log('beginning search for first time:');
+                                    doSearchInFiles(search_object.files, search_object.queryInfo.query, queryExpr);
+                                    var send_object = {
+                                        "type": MessageIds.FIF_SEND_RESULTS,
+                                        "results":  results,
+                                        "numMatches": numMatches,
+                                        "foundMaximum":  foundMaximum,
+                                        "exceedsMaximum":  exceedsMaximum
+                                    };
+                                    self.postMessage(send_object);
                                 }
                             }
                         };
                         receiveReq.send(null);
-                    }*/
+                    }
                     
                 });
             } else if (type === MessageIds.FIF_SEARCH) {
                 console.log("Type=FIF_SEARCH");
-                searchInParallel(search_object.files, search_object.queryInfo.query);
+                doSearchInFiles(search_object.files, search_object.queryInfo.query, queryExpr);
+                send_object = {
+                    "type": MessageIds.FIF_SEND_RESULTS,
+                    "results":  results,
+                    "numMatches": numMatches,
+                    "foundMaximum":  foundMaximum,
+                    "exceedsMaximum":  exceedsMaximum
+                };
+                self.postMessage(send_object);
             } else {
                 console.log("Type=Others");
             }
             console.log("Worker: Almost done searching");
             self.postMessage("OK!! Done searching!");
         }, false);
+        //});
     });
 
 }());

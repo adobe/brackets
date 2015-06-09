@@ -28,11 +28,15 @@ define(function (require, exports, module) {
     "use strict";
 
     var FIF_PROJECT_INIT           = "Init Search for Project",
-        FIF_SEARCH                 = "Do Search in Files";
+        FIF_SEARCH                 = "Do Search in Files",
+        FIF_PROJECT_UPDATE         = "Update the Project Files",
+        FIF_SEND_RESULTS           = "Send results back to Main Thread";
 
 
     exports.FIF_PROJECT_INIT           = FIF_PROJECT_INIT;
     exports.FIF_SEARCH                 = FIF_SEARCH;
+    exports.FIF_PROJECT_UPDATE         = FIF_PROJECT_UPDATE;
+    exports.FIF_SEND_RESULTS           = FIF_SEND_RESULTS;
 });
 
 
