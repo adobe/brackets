@@ -43,7 +43,8 @@ define(function (require, exports, module) {
         SearchModel           = require("search/SearchModel").SearchModel,
         MsgIds                = require("search/MsgIds"),
         PerfUtils             = require("utils/PerfUtils"),
-        FindUtils             = require("search/FindUtils");
+        FindUtils             = require("search/FindUtils"),
+        MessageIds            = require("search/MsgIds");
     
     var ExtensionUtils      = brackets.getModule("utils/ExtensionUtils");
     /**
@@ -435,8 +436,28 @@ define(function (require, exports, module) {
             .then(function (fileListResult) {
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
-                
+                var searchDeferred = new $.Deferred();
                 if (fileListResult.length) {
+                    if (typeof _searchWorker === 'undefined') {
+                        var path = ExtensionUtils.getModulePath(module, "search-worker.js");
+                        _searchWorker = new Worker(path);
+                        console.log("Search worker created!!");
+                        // listen to the response from the Worker
+                        _searchWorker.addEventListener('message', function (e) {
+                            console.log("Received message from search worker!!");
+                            isFirstSearch = false;
+                            var rcvd_object = e.data;
+                            if (rcvd_object.type === MessageIds.FIF_SEND_RESULTS) {
+                                searchModel.results = rcvd_object.results;
+                                searchModel.numMatches = rcvd_object.numMatches;
+                                searchModel.foundMaximum = rcvd_object.foundMaximum;
+                                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                            }
+                                
+                            searchDeferred.resolve();
+                        });
+                    }
+                     
                     var files = fileListResult
                         .filter(function (entry) {
                             return entry.isFile && _isReadableText(entry.fullPath);
@@ -450,7 +471,8 @@ define(function (require, exports, module) {
                         search_object = {
                             "type": MsgIds.FIF_PROJECT_INIT,
                             "files": files,
-                            "queryInfo": queryInfo
+                            "queryInfo": queryInfo,
+                            "queryExpr": searchModel.queryExpr
                         };
                         //In case we want to pass file contents from main thread
                         /*    ,
@@ -476,7 +498,8 @@ define(function (require, exports, module) {
                         search_object = {
                             "type": MsgIds.FIF_SEARCH,
                             "files": files,
-                            "queryInfo": queryInfo
+                            "queryInfo": queryInfo,
+                            "queryExpr": searchModel.queryExpr
                         };
                     }
 
@@ -501,6 +524,7 @@ define(function (require, exports, module) {
                     _searchWorker.postMessage(search_object);
                 }
                     console.log("Sending message to search worker for searching '" + queryInfo.query + "'!!");
+                    return searchDeferred.promise();
                     //return Async.doInParallel(fileListResult, _doSearchInOneFile);
                 } else {
                     return ZERO_FILES_TO_SEARCH;
