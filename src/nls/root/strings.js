@@ -744,5 +744,5 @@ define({
     "DESCRIPTION_LINTING_COLLAPSED"                  : "True to collapse linting panel",
     "DESCRIPTION_FONT_FAMILY"                        : "Change font family",
     "DESCRIPTION_FONT_SIZE"                          : "Change font size; e.g, 13px",
-    "DESCRIPTION_FONT_SMOOTHING"                     : "Use \"subpixel_antialiasing\" to enable sub-pixel antialiasing and \"antialiasing\" for gray scale antliasing."
+    "DESCRIPTION_FONT_SMOOTHING"                     : "\"subpixel-antialiased\" to enable sub-pixel antialiasing and \"antialiased\" for gray scale antialiasing"
 });

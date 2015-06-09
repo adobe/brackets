@@ -53,6 +53,15 @@ html, body {
 
     /* And make sure we get a pointer cursor even over text */
     cursor: default;
+    
+    &.platform-mac {
+        // Use gray scale antialiasing for UI. Code view editor-holder
+        // overrides this to use subpixel antialiasing, which then
+        // can be overridden by setting "fontSmoothing" preference to
+        // "antialiased". Gray scale AA is used for UI has SourceSansPro
+        // font does not look good with subpixel AA well on low res monitors.
+        -webkit-font-smoothing: antialiased;
+    }
 
     .dark,
     &.dark {
