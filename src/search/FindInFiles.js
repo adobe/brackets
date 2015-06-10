@@ -413,15 +413,6 @@ define(function (require, exports, module) {
      *      Will be null if the query is invalid.
      */
     function _doSearch(queryInfo, candidateFilesPromise, filter) {
-        /*var path = ExtensionUtils.getModulePath(module, "testWorker.js");
-        var worker = new Worker(path);
-
-        worker.addEventListener('message', function(e) {
-            console.log('Worker said : ' , e.data);
-        }, false);
-
-        worker.postMessage('Hello World');*/
-
         searchModel.filter = filter;
         
         var queryResult = searchModel.setQueryInfo(queryInfo);
@@ -434,30 +425,11 @@ define(function (require, exports, module) {
         
         return candidateFilesPromise
             .then(function (fileListResult) {
+            console.log("executing first then");
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
                 var searchDeferred = new $.Deferred();
-                if (fileListResult.length) {
-                    if (typeof _searchWorker === 'undefined') {
-                        var path = ExtensionUtils.getModulePath(module, "search-worker.js");
-                        _searchWorker = new Worker(path);
-                        console.log("Search worker created!!");
-                        // listen to the response from the Worker
-                        _searchWorker.addEventListener('message', function (e) {
-                            console.log("Received message from search worker!!");
-                            isFirstSearch = false;
-                            var rcvd_object = e.data;
-                            if (rcvd_object.type === MessageIds.FIF_SEND_RESULTS) {
-                                searchModel.results = rcvd_object.results;
-                                searchModel.numMatches = rcvd_object.numMatches;
-                                searchModel.foundMaximum = rcvd_object.foundMaximum;
-                                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
-                                searchDeferred.resolve();
-                            }
-                                
-                            
-                        });
-                    }
+                if (fileListResult.length) {                    
                      
                     var files = fileListResult
                         .filter(function (entry) {
@@ -510,11 +482,19 @@ define(function (require, exports, module) {
                         console.log("Search worker created!!");
                         // listen to the response from the Worker
                         _searchWorker.addEventListener('message', function (e) {
-                            var response = e.data;
+                            var rcvd_object = e.data;
 
-                            console.log("Received message from search worker!!");
-                            
-                            if (response === 'Search Worker Started') {
+                            console.log("Received message from search worker with type= " + rcvd_object.type);
+                            if (rcvd_object.type === MessageIds.FIF_RESULTS_PREPARED) {
+                                console.log("search data received");
+                                searchModel.results = rcvd_object.results;
+                                searchModel.numMatches = rcvd_object.numMatches;
+                                searchModel.foundMaximum = rcvd_object.foundMaximum;
+                                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                                console.log("Resolving 'first-then' promise");
+                                searchDeferred.resolve();
+                            } else if (rcvd_object.type === MessageIds.FIF_WORKER_INITED) {
+                                console.log("Worker initialized. Sending first search");
                                 _searchWorker.postMessage(search_object);
                             }
                             isFirstSearch = false;
@@ -522,16 +502,21 @@ define(function (require, exports, module) {
                         });
                     }
                      else {
+                         console.log("Sending second or subsequent searches");
                     _searchWorker.postMessage(search_object);
                 }
-                    console.log("Sending message to search worker for searching '" + queryInfo.query + "'!!");
-                    return searchDeferred.promise();
+//                    console.log("Sending message to search worker for searching '" + queryInfo.query + "'!!");
+                   // if (!isFirstSearch) {
+                        console.log("Returning first promise")
+                        return searchDeferred.promise();
+                   // }
                     //return Async.doInParallel(fileListResult, _doSearchInOneFile);
                 } else {
                     return ZERO_FILES_TO_SEARCH;
                 }
             })
             .then(function (zeroFilesToken) {
+                console.log("Executing second then");
                 exports._searchDone = true; // for unit tests
                 PerfUtils.addMeasurement(perfTimer);
                 

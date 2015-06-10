@@ -76,6 +76,7 @@ define(function (require, exports, module) {
     function searchAndShowResults(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
         return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
             .done(function (zeroFilesToken) {
+                console.log("search and show results: done");
                 // Done searching all files: show results
                 if (FindInFiles.searchModel.hasResults()) {
                     _resultsView.open();

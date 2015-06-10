@@ -30,13 +30,15 @@ define(function (require, exports, module) {
     var FIF_PROJECT_INIT           = "Init Search for Project",
         FIF_SEARCH                 = "Do Search in Files",
         FIF_PROJECT_UPDATE         = "Update the Project Files",
-        FIF_SEND_RESULTS           = "Send results back to Main Thread";
+        FIF_RESULTS_PREPARED       = "Send results back to Main Thread",
+        FIF_WORKER_INITED          = "Worker init done";
 
 
     exports.FIF_PROJECT_INIT           = FIF_PROJECT_INIT;
     exports.FIF_SEARCH                 = FIF_SEARCH;
     exports.FIF_PROJECT_UPDATE         = FIF_PROJECT_UPDATE;
-    exports.FIF_SEND_RESULTS           = FIF_SEND_RESULTS;
+    exports.FIF_RESULTS_PREPARED       = FIF_RESULTS_PREPARED;
+    exports.FIF_WORKER_INITED          = FIF_WORKER_INITED;
 });
 
 

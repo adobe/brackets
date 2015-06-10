@@ -27,12 +27,6 @@ var config = {};
         MAX_TOTAL_RESULTS = 100000;
         //searchModel = new SearchModel();
         
-           
-        
-        //var ternRequire = require.config({baseUrl: "./thirdparty"});
-        //ternRequire(["./thirdparty/jquery"], function (jquery) {
-            
-         //$ = jquery;
         function _getSearchMatches(contents, queryExpr) {
             if (!contents) {
                 return;
@@ -176,7 +170,7 @@ var config = {};
 //                            }
 //                        }
 //                    });
-                    });
+                });
             }
         }
         
@@ -192,19 +186,17 @@ var config = {};
                 };
                 receiveReq.send(null);
             }
-
         }
         
         self.addEventListener('message', function (e) {
-            console.log('Received the message in worker');
-            console.log("message receibed");
+            console.log('Worker: Received the message in worker');
             search_object = e.data;
             var type = search_object.type;
             var files = search_object.files,
                 queryExpr = search_object.queryExpr;
             
             if (type === MessageIds.FIF_PROJECT_INIT) {
-                console.log("Type=FIF_PROJECT_INIT");
+                console.log("Worker: Type=FIF_PROJECT_INIT");
                 //ProjectCache = search_object.fileContents;
                 //console.log("T2: Start Indexing!!" + (new Date()).getTime());
                 
@@ -224,7 +216,7 @@ var config = {};
                                     console.log('beginning search for first time:');
                                     doSearchInFiles(search_object.files, search_object.queryInfo.query, queryExpr);
                                     var send_object = {
-                                        "type": MessageIds.FIF_SEND_RESULTS,
+                                        "type": MessageIds.FIF_RESULTS_PREPARED,
                                         "results":  results,
                                         "numMatches": numMatches,
                                         "foundMaximum":  foundMaximum,
@@ -239,10 +231,10 @@ var config = {};
                     
                 });
             } else if (type === MessageIds.FIF_SEARCH) {
-                console.log("Type=FIF_SEARCH");
+                console.log("Worker: Type=FIF_SEARCH");
                 doSearchInFiles(search_object.files, search_object.queryInfo.query, queryExpr);
                 send_object = {
-                    "type": MessageIds.FIF_SEND_RESULTS,
+                    "type": MessageIds.FIF_RESULTS_PREPARED,
                     "results":  results,
                     "numMatches": numMatches,
                     "foundMaximum":  foundMaximum,
@@ -250,14 +242,10 @@ var config = {};
                 };
                 self.postMessage(send_object);
             } else {
-                console.log("Type=Others");
+                console.log("Worker: Type=Others");
             }
-            console.log("Worker: Almost done searching");
-            self.postMessage("OK!! Done searching!");
         }, false);
 
-        self.postMessage('Search Worker Started');
-        //});
+        self.postMessage({"type": MessageIds.FIF_WORKER_INITED});
     });
-
 }());
