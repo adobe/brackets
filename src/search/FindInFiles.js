@@ -452,9 +452,10 @@ define(function (require, exports, module) {
                                 searchModel.numMatches = rcvd_object.numMatches;
                                 searchModel.foundMaximum = rcvd_object.foundMaximum;
                                 searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                                searchDeferred.resolve();
                             }
                                 
-                            searchDeferred.resolve();
+                            
                         });
                     }
                      
