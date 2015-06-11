@@ -500,19 +500,58 @@ define(function (require, exports, module) {
      * @private
      */
     function _handleOpenPreferences() {
-        var fullPath = getUserPrefFile(),
-            file = FileSystem.getFileForPath(fullPath);
-        file.exists(function (err, doesExist) {
-            if (doesExist) {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
-            } else {
-                FileUtils.writeText(file, "", true)
-                    .done(function () {
-                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
-                    });
-            }
-        });
         
+        // This is to circumvent the circular dependencies
+        require(["view/MainViewManager"], function (MainViewManager) {
+            
+            var fullPath = getUserPrefFile(),
+                file = FileSystem.getFileForPath(fullPath);
+            
+            var allPrefs = PreferencesImpl.manager.getAllPreferences();
+            
+            var entireText = "";
+            var i = 0;
+            //for (property  in allPrefs) {
+            //    entireText = entireText + property  + "\n";
+                //theStatus[theName] = 'normal';
+            //}
+            
+            file.exists(function (err, doesExist) {
+                if (doesExist) {
+                    var currScheme = MainViewManager.getLayoutScheme();
+                    
+                    if (currScheme.rows === 1 && currScheme.columns === 1) {
+                        // Split layout is not active yet. Intitate the 
+                        // split view.
+                        MainViewManager.setLayoutScheme(1, 2);
+                    }
+
+                    // Make sure the preference file is already
+                    if (MainViewManager.findInWorkingSet("first-pane", fullPath) >= 0) {
+                        
+                        MainViewManager._moveView("first-pane", "second-pane", file, 0, true);
+                        
+                        // Circular dependencies again
+                        require(["project/WorkingSetView"], function (WorkingSetView) {
+                            // Now refresh the project tree by asking
+                            // it to rebuild the UI.
+                            WorkingSetView.refresh(true);
+                            
+                        });
+                    }
+                    
+                    CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath, paneId: "second-pane" });
+                    
+                    //CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+                    //CommandManager.execute(Commands.FILE_OPEN, { fullPath: FileUtils.getNativeBracketsDirectoryPath(), paneId: MainViewManager.FIRST_PANE });
+                } else {
+                    FileUtils.writeText(file, "", true)
+                        .done(function () {
+                            CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+                        });
+                }
+            });
+        });
     }
     
     CommandManager.register(Strings.CMD_OPEN_PREFERENCES, Commands.FILE_OPEN_PREFERENCES, _handleOpenPreferences);
