@@ -43,6 +43,7 @@ define(function (require, exports, module) {
         FileSystem              = require("filesystem/FileSystem"),
         Strings                 = require("strings"),
         PreferencesImpl         = require("preferences/PreferencesImpl"),
+        StringUtils             = require("utils/StringUtils"),
         _                       = require("thirdparty/lodash");
     
     /**
@@ -506,16 +507,32 @@ define(function (require, exports, module) {
             
             var fullPath = getUserPrefFile(),
                 file = FileSystem.getFileForPath(fullPath);
-            
+
             var allPrefs = PreferencesImpl.manager.getAllPreferences();
-            
-            var entireText = "";
-            var i = 0;
-            //for (property  in allPrefs) {
-            //    entireText = entireText + property  + "\n";
-                //theStatus[theName] = 'normal';
-            //}
-            
+
+            var entireText     = "// Use this as a reference to override the preferences. \n{\n"
+            var prefFormatText = "\t// {0}\n\t{1}: {2}"
+            var numKeys        = Object.keys(allPrefs).length;
+            var currKey        = 0;
+
+            for (var property in allPrefs) {
+
+                currKey++;
+
+                var pref = allPrefs[property];
+                var formattedText = StringUtils.format(prefFormatText, pref.description, property, pref.initial);
+
+                entireText = entireText + formattedText;
+                if (currKey !== numKeys) {
+                    entireText = entireText + ",\n\n";
+                } else {
+                    entireText = entireText + '\n';
+                }
+
+            }
+
+            entireText = entireText + "}\n";
+
             file.exists(function (err, doesExist) {
                 if (doesExist) {
                     var currScheme = MainViewManager.getLayoutScheme();
