@@ -279,8 +279,13 @@ define(function (require, exports, module) {
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
      */
-    function Editor(document, makeMasterEditor, container, range) {
+    function Editor(document, makeMasterEditor, container, range, isReadOnly) {
         var self = this;
+        
+        if (typeof isReadOnly === "undefined") {
+            isReadOnly = false;
+        }
+        
         
         _instances.push(this);
         
@@ -384,7 +389,8 @@ define(function (require, exports, module) {
             showCursorWhenSelecting     : currentOptions[SHOW_CURSOR_SELECT],
             smartIndent                 : currentOptions[SMART_INDENT],
             styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
-            tabSize                     : currentOptions[TAB_SIZE]
+            tabSize                     : currentOptions[TAB_SIZE],
+            readOnly                    : isReadOnly
         });
         
         // Can't get CodeMirror's focused state without searching for
