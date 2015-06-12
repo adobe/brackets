@@ -42,7 +42,17 @@ define(function (require, exports, module) {
         LanguageManager       = require("language/LanguageManager"),
         SearchModel           = require("search/SearchModel").SearchModel,
         PerfUtils             = require("utils/PerfUtils"),
+		NodeDomain     		  = require("utils/NodeDomain"),
+		FileUtils			  = require("file/FileUtils"),
         FindUtils             = require("search/FindUtils");
+    
+    var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
+        _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
+        _nodePath       = "node/FindInFilesDomain",
+        _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
+        searchDomain     = new NodeDomain("FindInFiles", _domainPath);
+    
+    //var searchDomain = new NodeDomain("FindInFiles", _domainPath);
     
     /**
      * Token used to indicate a specific reason for zero search results
@@ -423,9 +433,20 @@ define(function (require, exports, module) {
             .then(function (fileListResult) {
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
-                
-                if (fileListResult.length) {
-                    return Async.doInParallel(fileListResult, _doSearchInOneFile);
+                var files = fileListResult
+                        .filter(function (entry) {
+                            return entry.isFile && _isReadableText(entry.fullPath);
+                        })
+                        .map(function (entry) {
+                            return entry.fullPath;
+                        });
+                if (files.length) {
+                    searchDomain.exec("doSearch", files)
+                        .done(function (filelistnum) {
+                            console.log("NUMMM "  + filelistnum);
+                            console.log('search completed');    
+                        })
+                    //return Async.doInParallel(fileListResult, _doSearchInOneFile);
                 } else {
                     return ZERO_FILES_TO_SEARCH;
                 }
