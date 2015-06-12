@@ -42,7 +42,7 @@ define(function (require, exports, module) {
         LanguageManager       = require("language/LanguageManager"),
         SearchModel           = require("search/SearchModel").SearchModel,
         PerfUtils             = require("utils/PerfUtils"),
-		NodeDomain     		  = require("utils/NodeDomain"),
+		NodeDomain            = require("utils/NodeDomain"),
 		FileUtils			  = require("file/FileUtils"),
         FindUtils             = require("search/FindUtils");
     
@@ -431,6 +431,16 @@ define(function (require, exports, module) {
         
         return candidateFilesPromise
             .then(function (fileListResult) {
+            
+            
+            
+//                fileListResult = FileFilters.filterFileList(filter, fileListResult);
+//                if (fileListResult.length) {
+//                    return Async.doInParallel(fileListResult, _doSearchInOneFile);
+            
+            
+            
+                var searchDeferred = new $.Deferred();
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
                 var files = fileListResult
@@ -441,12 +451,30 @@ define(function (require, exports, module) {
                             return entry.fullPath;
                         });
                 if (files.length) {
-                    searchDomain.exec("doSearch", files)
-                        .done(function (filelistnum) {
-                            console.log("NUMMM "  + filelistnum);
-                            console.log('search completed');    
-                        })
-                    //return Async.doInParallel(fileListResult, _doSearchInOneFile);
+                    var searchObject = {
+                            "files": files,
+                            "queryInfo": queryInfo,
+                            "queryExpr": searchModel.queryExpr
+                        };
+                    searchDomain.exec("doSearch", searchObject)
+                        .done(function (rcvd_object) {
+                            //console.log("NUMMM "  + filelistnum);
+                            console.log('search completed');
+                            searchModel.results = rcvd_object.results;
+                            searchModel.numMatches = rcvd_object.numMatches;
+                            searchModel.foundMaximum = rcvd_object.foundMaximum;
+                            searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                            searchDeferred.resolve();
+                        });
+                    return searchDeferred.promise();
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                 } else {
                     return ZERO_FILES_TO_SEARCH;
                 }
