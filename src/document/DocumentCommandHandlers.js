@@ -449,7 +449,7 @@ define(function (require, exports, module) {
             paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE,
             result = new $.Deferred();
         
-        _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
+        _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData)
             .done(function (file) {
                 if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
                     MainViewManager.setActivePaneId(paneId);
