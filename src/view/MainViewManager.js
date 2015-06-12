@@ -930,6 +930,32 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Get the next or previous file in list order.
+     * @param {!number} direction - Must be 1 or -1 to traverse forward or backward
+     * @return {?{file:File, paneId:string}} The File object of the next item in the traversal order or null if there aren't any files to traverse.
+     *                                       May return current file if there are no other files to traverse.
+     */
+    function traverseToNextViewInListOrder(direction) {
+        var file = getCurrentlyViewedFile(),
+            curPaneId = getActivePaneId(),
+            allFiles = [],
+            index;
+
+        getPaneIdList().forEach(function (paneId) {
+            var paneFiles = getWorkingSet(paneId).map(function (file) {
+                return { file: file, pane: paneId };
+            });
+            allFiles = allFiles.concat(paneFiles);
+        });
+
+        index = _.findIndex(allFiles, function (record) {
+            return (record.file === file && record.pane === curPaneId);
+        });
+
+        return ViewUtils.traverseViewArray(allFiles, index, direction);
+    }
+
+    /**
      * Indicates that traversal has begun. 
      * Can be called any number of times.
      */
@@ -1726,6 +1752,7 @@ define(function (require, exports, module) {
     exports.beginTraversal                = beginTraversal;
     exports.endTraversal                  = endTraversal;
     exports.traverseToNextViewByMRU       = traverseToNextViewByMRU;
+    exports.traverseToNextViewInListOrder = traverseToNextViewInListOrder;
     
     // PaneView Attributes
     exports.getActivePaneId               = getActivePaneId;

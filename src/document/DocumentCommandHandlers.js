@@ -1471,35 +1471,7 @@ define(function (require, exports, module) {
      */
     function findNextPrevDoc(inc, listOrder) {
         if (listOrder) {
-            var allFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
-            if (!allFiles.length) {
-                // No files in any working set, so we cannot switch to one
-                return null;
-            }
-
-            var curFile = MainViewManager.getCurrentlyViewedFile(),
-                curFileIndex = _.findIndex(allFiles, curFile);
-
-            curFileIndex += inc;
-            curFileIndex = (curFileIndex + allFiles.length) % allFiles.length;
-
-            var newFile = allFiles[curFileIndex],
-                paneId;
-
-            // Given the index, find the pane our file is in
-            MainViewManager.getPaneIdList().some(function (curPaneId) {
-                var workingSetSize = MainViewManager.getWorkingSetSize(curPaneId);
-                if (workingSetSize <= curFileIndex) {
-                    curFileIndex -= workingSetSize;
-                } else {
-                    paneId = curPaneId;
-                    return true; // break the loop now that we have our paneId
-                }
-            });
-            return {
-                file: newFile,
-                paneId: paneId
-            };
+            return MainViewManager.traverseToNextViewInListOrder(inc);
         } else {
             return MainViewManager.traverseToNextViewByMRU(inc);
         }
