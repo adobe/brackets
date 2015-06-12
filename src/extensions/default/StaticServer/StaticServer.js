@@ -31,7 +31,8 @@ define(function (require, exports, module) {
 
     var BaseServer           = brackets.getModule("LiveDevelopment/Servers/BaseServer").BaseServer,
         LiveDevelopmentUtils = brackets.getModule("LiveDevelopment/LiveDevelopmentUtils"),
-        PreferencesManager   = brackets.getModule("preferences/PreferencesManager");
+        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
+        Strings              = brackets.getModule("strings");
 
     
     /**
@@ -41,7 +42,9 @@ define(function (require, exports, module) {
      */
     var _prefs = PreferencesManager.getExtensionPrefs("staticserver");
 
-    _prefs.definePreference("port", "number", 0);
+    _prefs.definePreference("port", "number", 0, {
+        description: Strings.DESCRIPTION_STATIC_SERVER_PORT
+    });
 
     /**
      * @constructor

@@ -37,8 +37,8 @@ define(function (require, exports, module) {
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
-
-        Data            = require("text!data.json"),
+        Strings             = brackets.getModule("strings"),
+        Data                = require("text!data.json"),
 
         urlHints,
         data,
@@ -46,7 +46,9 @@ define(function (require, exports, module) {
         styleModes      = ["css", "text/x-less", "text/x-scss"];
 
 
-    PreferencesManager.definePreference("codehint.UrlCodeHints", "boolean", true);
+    PreferencesManager.definePreference("codehint.UrlCodeHints", "boolean", true, {
+        description: Strings.DESCRIPTION_URL_CODE_HINTS
+    });
 
     /**
      * @constructor
