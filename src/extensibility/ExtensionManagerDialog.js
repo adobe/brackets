@@ -302,6 +302,18 @@ define(function (require, exports, module) {
             }
         }
 
+        // Update the search when tab is changed
+        function updateSearch() {
+            var value = $search.val();
+            views.forEach(function (view, index) {
+                view.filter(value);
+            });
+
+            if (!updateSearchDisabled()) {
+                $search.focus();
+            }
+        }
+
         // Open the dialog
         dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(dialogTemplate, context));
         
@@ -328,7 +340,7 @@ define(function (require, exports, module) {
             $tab.tab("show");
             if (models[_activeTabIndex]) {
                 $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
-                clearSearch();
+                updateSearch();
             }
         }
 
