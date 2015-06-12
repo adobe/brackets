@@ -510,28 +510,34 @@ define(function (require, exports, module) {
 
             var allPrefs = PreferencesImpl.manager.getAllPreferences();
 
-            var entireText     = "// Use this as a reference to override the preferences. \n{\n"
-            var prefFormatText = "\t// {0}\n\t{1}: {2}"
-            var numKeys        = Object.keys(allPrefs).length;
-            var currKey        = 0;
+            var entireText     = "// Use this as a reference to override the preferences. \n{\n",
+                prefFormatText = "\t// {0}\n\t{1}: {2}",
+                numKeys        = Object.keys(allPrefs).length,
+                currKey        = 0,
+                property;
 
-            for (var property in allPrefs) {
+            for (property in allPrefs) {
+                
+                if (allPrefs.hasOwnProperty(property)) {
+                    currKey++;
 
-                currKey++;
+                    var pref = allPrefs[property];
+                    var formattedText = StringUtils.format(prefFormatText, pref.description, property, pref.initial);
 
-                var pref = allPrefs[property];
-                var formattedText = StringUtils.format(prefFormatText, pref.description, property, pref.initial);
-
-                entireText = entireText + formattedText;
-                if (currKey !== numKeys) {
-                    entireText = entireText + ",\n\n";
-                } else {
-                    entireText = entireText + '\n';
+                    entireText = entireText + formattedText;
+                    if (currKey !== numKeys) {
+                        entireText = entireText + ",\n\n";
+                    } else {
+                        entireText = entireText + '\n';
+                    }
                 }
 
             }
 
             entireText = entireText + "}\n";
+            
+            // TODO: Write all the settings generated above to
+            // a file under user preferences.
 
             file.exists(function (err, doesExist) {
                 if (doesExist) {
@@ -557,7 +563,7 @@ define(function (require, exports, module) {
                         });
                     }
                     
-                    CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath, paneId: "second-pane" });
+                    CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath, paneId: "second-pane"});
                     
                     //CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
                     //CommandManager.execute(Commands.FILE_OPEN, { fullPath: FileUtils.getNativeBracketsDirectoryPath(), paneId: MainViewManager.FIRST_PANE });
