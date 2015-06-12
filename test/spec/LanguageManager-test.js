@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var CodeMirror          = require("thirdparty/CodeMirror/lib/codemirror"),
+        AppInit             = require("utils/AppInit"),
         LanguageManager     = require("language/LanguageManager"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         PreferencesManager  = require("preferences/PreferencesManager");
@@ -850,6 +851,21 @@ define(function (require, exports, module) {
                 PreferencesManager.set(LanguageManager._NAME_MAP_PREF, { });
                 language = LanguageManager.getLanguageForPath("Gemfile");
                 expect(language.getId()).toBe("ruby");
+            });
+            
+            it("should manage languages which are not defined yet", function () {
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, {
+                    test: "six"
+                });
+                var language = LanguageManager.getLanguageForExtension("test");
+                expect(language).toBeUndefined();
+                defineLanguage({ id: "six", name: "Six", mode: ["null", "text/plain"] });
+                
+                // simulate an extensionsLoaded event, which causes LanguageManager to reload its mapping
+                AppInit._dispatchReady(AppInit.EXTENSIONS_LOADED);
+                
+                language = LanguageManager.getLanguageForExtension("test");
+                expect(language.getId()).toBe("six");
             });
         });
 
