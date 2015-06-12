@@ -1042,11 +1042,22 @@ define(function (require, exports, module) {
      */
     function _updateFromPrefs(pref) {
         var newMapping = PreferencesManager.get(pref),
-            newNames = Object.keys(newMapping),
+            newNames,
             state = _prefState[pref],
             last = state.last,
             overridden = state.overridden;
         
+        // Filter out the languages that are not (yet) defined.
+        // Important to be able to add extensions to languages defined by extensions.
+        newMapping = _.reduce(newMapping, function (result, languageId, ext) {
+            if (getLanguage(languageId)) {
+                result[ext] = languageId;
+            }
+            return result;
+        }, {});
+
+        newNames = Object.keys(newMapping);
+
         // Look for added and changed names (extensions or filenames)
         newNames.forEach(function (name) {
             var language;
