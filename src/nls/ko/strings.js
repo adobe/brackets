@@ -72,7 +72,7 @@ define({
     "INVALID_FILENAME_MESSAGE": "파일 이름에는 다음 문자를 포함 할 수 없습니다: {0} 또는 시스템의 모든 예약어",
     "ENTRY_WITH_SAME_NAME_EXISTS": "<span class='dialog-filename'>{0}</span> 이름을 가진 파일 또는 디렉토리가 이미 존재합니다.",
     "FILE_ALREADY_EXISTS": "{0} <span class='dialog-filename'>{1}</span>은 이미 존재 합니다.",
-    "ERROR_CREATING_FILE_TITLE": "{0}를 만던 중에 에러가 발생했습니다",
+    "ERROR_CREATING_FILE_TITLE": "{0}를 만들던  중에 에러가 발생했습니다",
     "ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span>를 만들던 중에 에러가 발생했습니다.{2}",
     
     // User key map error strings
