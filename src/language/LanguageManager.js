@@ -134,6 +134,7 @@ define(function (require, exports, module) {
     // Dependencies
     var CodeMirror            = require("thirdparty/CodeMirror/lib/codemirror"),
         EventDispatcher       = require("utils/EventDispatcher"),
+        AppInit               = require("utils/AppInit"),
         Async                 = require("utils/Async"),
         FileUtils             = require("file/FileUtils"),
         Strings               = require("strings"),
@@ -1168,6 +1169,11 @@ define(function (require, exports, module) {
             });
             _updateFromPrefs(_EXTENSION_MAP_PREF);
             _updateFromPrefs(_NAME_MAP_PREF);
+
+            AppInit.extensionsLoaded(function () {
+                _updateFromPrefs(_EXTENSION_MAP_PREF);
+                _updateFromPrefs(_NAME_MAP_PREF);
+            });
         });
     });
     
