@@ -31,7 +31,6 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var CodeMirror          = require("thirdparty/CodeMirror/lib/codemirror"),
-        AppInit             = require("utils/AppInit"),
         LanguageManager     = require("language/LanguageManager"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         PreferencesManager  = require("preferences/PreferencesManager");
@@ -859,10 +858,9 @@ define(function (require, exports, module) {
                 });
                 var language = LanguageManager.getLanguageForExtension("test");
                 expect(language).toBeUndefined();
-                defineLanguage({ id: "six", name: "Six", mode: ["null", "text/plain"] });
                 
-                // simulate an extensionsLoaded event, which causes LanguageManager to reload its mapping
-                AppInit._dispatchReady(AppInit.EXTENSIONS_LOADED);
+                // This defineLanguage is enough to re-read the preferences and update the mappings
+                defineLanguage({ id: "six", name: "Six", mode: ["null", "text/plain"] });
                 
                 language = LanguageManager.getLanguageForExtension("test");
                 expect(language.getId()).toBe("six");
