@@ -1463,27 +1463,18 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Finds the next/previous document in MRU or list order
-     * @param {!number} inc Delta indicating in which direction we're going
-     * @param {?boolean} listOrder Whether to navigate using MRU or list order. Defaults to MRU order
-     * @return {?{file:File, paneId:string}} The File object of the next item in the travesal order or null if there aren't any files to traverse.
-     *                                       May return current file if there are no other files to traverse.
-     */
-    function findNextPrevDoc(inc, listOrder) {
-        if (listOrder) {
-            return MainViewManager.traverseToNextViewInListOrder(inc);
-        } else {
-            return MainViewManager.traverseToNextViewByMRU(inc);
-        }
-    }
-
-    /**
      * Navigate to the next/previous (MRU or list order) document. Don't update MRU order yet
      * @param {!number} inc Delta indicating in which direction we're going
      * @param {?boolean} listOrder Whether to navigate using MRU or list order. Defaults to MRU order
      */
     function goNextPrevDoc(inc, listOrder) {
-        var result = findNextPrevDoc(inc, listOrder);
+        var result;
+        if (listOrder) {
+            result = MainViewManager.traverseToNextViewInListOrder(inc);
+        } else {
+            result = MainViewManager.traverseToNextViewByMRU(inc);
+        }
+
         if (result) {
             var file = result.file,
                 paneId = result.paneId;
