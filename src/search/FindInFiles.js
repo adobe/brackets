@@ -418,6 +418,7 @@ define(function (require, exports, module) {
      * @return {?$.Promise} A promise that's resolved with the search results (or ZERO_FILES_TO_SEARCH) or rejected when the find competes. 
      *      Will be null if the query is invalid.
      */
+    var firstTime = true;
     function _doSearch(queryInfo, candidateFilesPromise, filter) {
         searchModel.filter = filter;
         
@@ -443,19 +444,29 @@ define(function (require, exports, module) {
                 var searchDeferred = new $.Deferred();
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
-                var files = fileListResult
-                        .filter(function (entry) {
-                            return entry.isFile && _isReadableText(entry.fullPath);
-                        })
-                        .map(function (entry) {
-                            return entry.fullPath;
-                        });
-                if (files.length) {
-                    var searchObject = {
+                
+                if (fileListResult.length) {
+                    var searchObject;
+                    if (firstTime) {
+                        var files = fileListResult
+                            .filter(function (entry) {
+                                return entry.isFile && _isReadableText(entry.fullPath);
+                            })
+                            .map(function (entry) {
+                                return entry.fullPath;
+                            });
+                        searchObject = {
                             "files": files,
                             "queryInfo": queryInfo,
                             "queryExpr": searchModel.queryExpr
                         };
+                        firstTime = false;
+                    } else {
+                        searchObject = {
+                            "queryInfo": queryInfo,
+                            "queryExpr": searchModel.queryExpr
+                        };
+                    }
                     searchDomain.exec("doSearch", searchObject)
                         .done(function (rcvd_object) {
                             //console.log("NUMMM "  + filelistnum);
