@@ -425,11 +425,11 @@ define(function (require, exports, module) {
         
         return candidateFilesPromise
             .then(function (fileListResult) {
-            console.log("executing first then");
+                console.log("executing first then");
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
                 var searchDeferred = new $.Deferred();
-                if (fileListResult.length) {                    
+                if (fileListResult.length) {
                      
                     var files = fileListResult
                         .filter(function (entry) {
@@ -500,16 +500,13 @@ define(function (require, exports, module) {
                             isFirstSearch = false;
                             return e.data;
                         });
+                    } else {
+                        console.log("Sending second or subsequent searches");
+                        _searchWorker.postMessage(search_object);
                     }
-                     else {
-                         console.log("Sending second or subsequent searches");
-                    _searchWorker.postMessage(search_object);
-                }
-//                    console.log("Sending message to search worker for searching '" + queryInfo.query + "'!!");
-                   // if (!isFirstSearch) {
-                        console.log("Returning first promise")
-                        return searchDeferred.promise();
-                   // }
+
+                    console.log("Returning first promise");
+                    return searchDeferred.promise();
                     //return Async.doInParallel(fileListResult, _doSearchInOneFile);
                 } else {
                     return ZERO_FILES_TO_SEARCH;
