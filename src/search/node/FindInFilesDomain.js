@@ -30,8 +30,9 @@ maxerr: 50, node: true */
     
     var fs = require("fs");
     var projectCache = {};
+    var files;
     var MAX_DISPLAY_LENGTH = 200,
-        MAX_TOTAL_RESULTS = 100000;
+        MAX_TOTAL_RESULTS = 100;
     
     var results = {},
         numMatches = 0,
@@ -192,11 +193,14 @@ maxerr: 50, node: true */
     
     function _doSearchInOneFile(filepath, text, queryExpr) {
         var matches = _getSearchMatches(text, queryExpr);
+//        if (matches.length) {
+//            debugger;
+//        }
         setResults(filepath, {matches: matches});
     }
     
     function doSearchInFiles(fileList, queryExpr) {
-            
+        var i;
         if (fileList.length === 0) {
             console.log('no files found');
             return;
@@ -205,9 +209,12 @@ maxerr: 50, node: true */
            // var numCompleted = 0;
            // var hasFailed = false;
 
-            fileList.forEach(function (filePath, i) {
-                _doSearchInOneFile(filePath, getFileContentsForFile(filePath), queryExpr);
-            });
+            for (i = 0; i < fileList.length && !foundMaximum; i++) {
+                _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
+            }
+//            fileList.forEach(function (filePath, i) {
+//                
+//            });
         }
     }
     
@@ -247,8 +254,17 @@ maxerr: 50, node: true */
     }
     
     function doSearch(searchObject) {
+        console.log("doSearch");
+        results = {};
+        numMatches = 0;
+        foundMaximum = false;
+        exceedsMaximum = false;
         var queryObject = parseQueryInfo(searchObject.queryInfo);
-        doSearchInFiles(searchObject.files, queryObject.queryExpr);
+        if (!files) {
+            console.log("no file object found");
+            files = searchObject.files;
+        }
+        doSearchInFiles(files, queryObject.queryExpr);
         var send_object = {
             "results":  results,
             "numMatches": numMatches,
