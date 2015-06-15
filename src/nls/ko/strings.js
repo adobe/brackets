@@ -195,7 +195,7 @@ define({
     "FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd를 클릭하면 전부 펼치거나 접습니다",
 	"REPLACE_IN_FILES_ERRORS_TITLE"     : "바꾸기 에러",
-	"REPLACE_IN_FILES_ERRORS"           : "다음 파일은 검색 후에 변경되었거나 저장할 수 없는 파일이므로 수정할 수 없습니다.",    
+	"REPLACE_IN_FILES_ERRORS"           : "다음 파일은 검색 후에 변경되었거나 저장할 수 없는 파일이므로 수정할 수 없습니다.",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE": "업데이트 정보를 검색하는 중 오류가 발생했습니다.",
     "ERROR_FETCHING_UPDATE_INFO_MSG": "서버에서 최신 업데이트를 검색하는 중 오류가 발생했습니다. 인터넷 연결을 확인하고 다시 시도하세요.",
