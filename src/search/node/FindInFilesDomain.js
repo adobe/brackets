@@ -253,17 +253,26 @@ maxerr: 50, node: true */
         return {valid: true, queryExpr: queryExpr};
     }
     
+    function initCache(fileList) {
+        files = fileList;
+        files.forEach(function (file) {
+            getFileContentsForFile(file);
+        });
+        return true;
+    }
+    
     function doSearch(searchObject) {
         console.log("doSearch");
+        
+        if (!files) {
+            console.log("no file object found");
+            return {};
+        }
         results = {};
         numMatches = 0;
         foundMaximum = false;
         exceedsMaximum = false;
         var queryObject = parseQueryInfo(searchObject.queryInfo);
-        if (!files) {
-            console.log("no file object found");
-            files = searchObject.files;
-        }
         doSearchInFiles(files, queryObject.queryExpr);
         var send_object = {
             "results":  results,
@@ -291,8 +300,21 @@ maxerr: 50, node: true */
             [{name: "search_object", // parameters
                 type: "object",
                 description: "Object containing search data"}],
-            [{name: "sdf", // return values
+            [{name: "searchResults", // return values
                 type: "object",
+                description: "Object containing results of the search"}]
+        );
+        domainManager.registerCommand(
+            "FindInFiles",       // domain name
+            "initCache",    // command name
+            initCache,   // command handler function
+            false,          // this command is synchronous in Node
+            "Caches the project for find in files in node",
+            [{name: "fileList", // parameters
+                type: "Array",
+                description: "List of all project files - Path only"}],
+            [{name: "sdf", // return values
+                type: "boolean",
                 description: "don't know yet"}]
         );
     }
