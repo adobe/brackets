@@ -158,8 +158,8 @@ maxerr: 50, node: true */
 //                console.log("File contents" + data);
 //            }
 //        });
-        
-        return fs.readFileSync(filePath, 'utf8');
+        projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
+        return projectCache[filePath];
         
     }
     
