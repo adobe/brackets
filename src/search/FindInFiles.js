@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     var _                     = require("thirdparty/lodash"),
         FileFilters           = require("search/FileFilters"),
         Async                 = require("utils/Async"),
+        AppInit               = require("utils/AppInit"),
         StringUtils           = require("utils/StringUtils"),
         ProjectManager        = require("project/ProjectManager"),
         DocumentModule        = require("document/Document"),
@@ -418,7 +419,7 @@ define(function (require, exports, module) {
      * @return {?$.Promise} A promise that's resolved with the search results (or ZERO_FILES_TO_SEARCH) or rejected when the find competes. 
      *      Will be null if the query is invalid.
      */
-    var firstTime = true;
+    var firstTime = false;
     function _doSearch(queryInfo, candidateFilesPromise, filter) {
         searchModel.filter = filter;
         
@@ -691,6 +692,29 @@ define(function (require, exports, module) {
             }
         });
     };
+    
+    AppInit.appReady(function () {
+        function filter(file) {
+            return _subtreeFilter(file, null) && _isReadableText(file.fullPath);
+        }
+        
+        ProjectManager.getAllFiles(filter, true)
+            .done(function (fileListResult) {
+                var files = fileListResult
+                    .filter(function (entry) {
+                        return entry.isFile && _isReadableText(entry.fullPath);
+                    })
+                    .map(function (entry) {
+                        return entry.fullPath;
+                    });
+                console.log('Starting cache creation');
+                searchDomain.exec("initCache", files)
+                    .done(function () {
+                        console.log('cache created');
+                    });
+            });
+        
+    });
     
     // Public exports
     exports.searchModel          = searchModel;
