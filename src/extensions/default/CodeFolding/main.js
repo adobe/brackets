@@ -51,7 +51,9 @@ define(function (require, exports, module) {
         collapseKey             = "Ctrl-Alt-[",
         expandKey               = "Ctrl-Alt-]",
         collapseAllKey          = "Alt-1",
-        expandAllKey            = "Shift-Alt-1";
+        expandAllKey            = "Shift-Alt-1",
+        collapseAllKeyMac       = "Cmd-1",
+        expandAllKeyMac         = "Cmd-Shift-1";
 
     ExtensionUtils.loadStyleSheet(module, "main.less");
     
@@ -303,6 +305,8 @@ define(function (require, exports, module) {
         KeyBindingManager.removeBinding(expandKey);
         KeyBindingManager.removeBinding(collapseAllKey);
         KeyBindingManager.removeBinding(expandAllKey);
+        KeyBindingManager.removeBinding(collapseAllKeyMac);
+        KeyBindingManager.removeBinding(expandAllKeyMac);
 
         //remove menus
         Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuDivider(codeFoldingMenuDivider.id);
@@ -356,8 +360,8 @@ define(function (require, exports, module) {
         Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
         
         //register keybindings
-        KeyBindingManager.addBinding(COLLAPSE_ALL, collapseAllKey);
-        KeyBindingManager.addBinding(EXPAND_ALL, expandAllKey);
+        KeyBindingManager.addBinding(COLLAPSE_ALL, [ {key: collapseAllKey}, {key: collapseAllKeyMac, platform: "mac"} ]);
+        KeyBindingManager.addBinding(EXPAND_ALL, [ {key: expandAllKey}, {key: expandAllKeyMac, platform: "mac"} ]);
         KeyBindingManager.addBinding(COLLAPSE, collapseKey);
         KeyBindingManager.addBinding(EXPAND, expandKey);
 
