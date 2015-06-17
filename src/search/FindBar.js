@@ -217,6 +217,11 @@ define(function (require, exports, module) {
         }
     };
     
+    var lastTypedTime = 0,
+        currentTime = 0,
+        intervalId = 0,
+        hasSearchedForCurrentText = false;
+    
     /**
      * Opens the Find bar, closing any other existing Find bars.
      */
@@ -260,6 +265,37 @@ define(function (require, exports, module) {
                 self.trigger("queryChange");
             })
             .on("keydown", "#find-what, #replace-with", function (e) {
+                hasSearchedForCurrentText = false;
+                var d = new Date();
+                lastTypedTime = d.getTime();
+                var executeSearchIfNeeded = function () {
+                    if (self._closed) {
+                        return;
+                    }
+                    d = new Date();
+                    currentTime = d.getTime();
+                    console.log("current" + currentTime);
+                    console.log("last" + lastTypedTime);
+                    if (lastTypedTime && (currentTime - lastTypedTime >= 100) && !hasSearchedForCurrentText) {
+                        // init Search
+                        console.log('time diff found');
+                        if (self._options.multifile) {
+                            console.log('multifile');
+                            if ($(e.target).is("#find-what")) {
+                                if (!self._options.replace) {
+                                    console.log('search exec');
+                                    self.trigger("doFind");
+                                    hasSearchedForCurrentText = true;
+                                }
+                            }
+                        }
+                    }
+                };
+                if (intervalId === 0) {
+                    intervalId = setInterval(executeSearchIfNeeded, 50);
+                }
+                
+                
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -332,6 +368,9 @@ define(function (require, exports, module) {
         if (this._modalBar) {
             // 1st arg = restore scroll pos; 2nd arg = no animation, since getting replaced immediately
             this._modalBar.close(true, !suppressAnimation);
+            clearInterval(intervalId);
+            intervalId = 0;
+            lastTypedTime = 0;
         }
     };
     
@@ -420,8 +459,12 @@ define(function (require, exports, module) {
      * @param {boolean} enable Whether to enable or disable the controls.
      */
     FindBar.prototype.enable = function (enable) {
-        this.$("#find-what, #replace-with, #find-prev, #find-next, #find-case-sensitive, #find-regexp").prop("disabled", !enable);
-        this._enabled = enable;
+//        this.$("#find-what, #replace-with, #find-prev, #find-next, #find-case-sensitive, #find-regexp").prop("disabled", !enable);
+//        this._enabled = enable;
+    };
+    
+    FindBar.prototype.focus = function (enable) {
+        this.$("#find-what").focus();
     };
     
     /**
@@ -466,9 +509,9 @@ define(function (require, exports, module) {
      * @param {string} selector The selector for the field.
      */
     FindBar.prototype._focus = function (selector) {
-        this.$(selector)
-            .focus()
-            .get(0).select();
+//        this.$(selector)
+//            .focus()
+//            .get(0).select();
     };
     
     /**

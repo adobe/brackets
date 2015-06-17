@@ -80,8 +80,12 @@ define(function (require, exports, module) {
                 if (FindInFiles.searchModel.hasResults()) {
                     _resultsView.open();
 
+//                    if (_findBar) {
+//                        _findBar.close();
+//                    }
                     if (_findBar) {
-                        _findBar.close();
+                        _findBar.enable(true);
+                        _findBar.focus();
                     }
 
                 } else {
