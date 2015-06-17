@@ -501,82 +501,21 @@ define(function (require, exports, module) {
      * @private
      */
     function _handleOpenPreferences() {
-        
-        // This is to circumvent the circular dependencies
-        require(["view/MainViewManager"], function (MainViewManager) {
-            
-            var fullPath = getUserPrefFile(),
-                file = FileSystem.getFileForPath(fullPath);
-
-            var allPrefs = PreferencesImpl.manager.getAllPreferences();
-
-            var entireText     = "// Use this as a reference to override the preferences. \n{\n",
-                prefFormatText = "\t// {0}\n\t{1}: {2}",
-                numKeys        = Object.keys(allPrefs).length,
-                currKey        = 0,
-                property;
-
-            for (property in allPrefs) {
-                
-                if (allPrefs.hasOwnProperty(property)) {
-                    currKey++;
-
-                    var pref = allPrefs[property];
-                    var formattedText = StringUtils.format(prefFormatText, pref.description, property, pref.initial);
-
-                    entireText = entireText + formattedText;
-                    if (currKey !== numKeys) {
-                        entireText = entireText + ",\n\n";
-                    } else {
-                        entireText = entireText + '\n';
-                    }
-                }
-
+        var fullPath = getUserPrefFile(),
+            file = FileSystem.getFileForPath(fullPath);
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+            } else {
+                FileUtils.writeText(file, "", true)
+                    .done(function () {
+                        CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
+                    });
             }
-
-            entireText = entireText + "}\n";
-            
-            // TODO: Write all the settings generated above to
-            // a file under user preferences.
-
-            file.exists(function (err, doesExist) {
-                if (doesExist) {
-                    var currScheme = MainViewManager.getLayoutScheme();
-                    
-                    if (currScheme.rows === 1 && currScheme.columns === 1) {
-                        // Split layout is not active yet. Intitate the 
-                        // split view.
-                        MainViewManager.setLayoutScheme(1, 2);
-                    }
-
-                    // Make sure the preference file is already
-                    if (MainViewManager.findInWorkingSet("first-pane", fullPath) >= 0) {
-                        
-                        MainViewManager._moveView("first-pane", "second-pane", file, 0, true);
-                        
-                        // Circular dependencies again
-                        require(["project/WorkingSetView"], function (WorkingSetView) {
-                            // Now refresh the project tree by asking
-                            // it to rebuild the UI.
-                            WorkingSetView.refresh(true);
-                            
-                        });
-                    }
-                    
-                    CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath, paneId: "second-pane"});
-                    
-                    //CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
-                    //CommandManager.execute(Commands.FILE_OPEN, { fullPath: FileUtils.getNativeBracketsDirectoryPath(), paneId: MainViewManager.FIRST_PANE });
-                } else {
-                    FileUtils.writeText(file, "", true)
-                        .done(function () {
-                            CommandManager.execute(Commands.FILE_OPEN, { fullPath: fullPath });
-                        });
-                }
-            });
         });
+
     }
-    
+
     CommandManager.register(Strings.CMD_OPEN_PREFERENCES, Commands.FILE_OPEN_PREFERENCES, _handleOpenPreferences);
     
     /**

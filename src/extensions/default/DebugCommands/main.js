@@ -41,6 +41,8 @@ define(function (require, exports, module) {
         Strings                = brackets.getModule("strings"),
         PreferencesManager     = brackets.getModule("preferences/PreferencesManager"),
         LocalizationUtils      = brackets.getModule("utils/LocalizationUtils"),
+        MainViewManager        = brackets.getModule("view/MainViewManager"),
+        WorkingSetView         = brackets.getModule("project/WorkingSetView"),
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
@@ -48,6 +50,13 @@ define(function (require, exports, module) {
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
+    var reloadPrefs = true;
+    var DEFAULT_SETTINGS_FILENAME = "defaultSettings.json";
+
+    // default preferences file name
+    var defaultSettingsFileName = brackets.app.getApplicationSupportDirectory() + "/" + DEFAULT_SETTINGS_FILENAME;
+
+
     /**
      * Brackets Application Menu Constant
      * @const {string}
@@ -58,18 +67,19 @@ define(function (require, exports, module) {
       * Debug commands IDs
       * @enum {string}
       */
-    var DEBUG_REFRESH_WINDOW            = "debug.refreshWindow", // string must MATCH string in native code (brackets_extensions)
-        DEBUG_SHOW_DEVELOPER_TOOLS      = "debug.showDeveloperTools",
-        DEBUG_RUN_UNIT_TESTS            = "debug.runUnitTests",
-        DEBUG_SHOW_PERF_DATA            = "debug.showPerfData",
-        DEBUG_RELOAD_WITHOUT_USER_EXTS  = "debug.reloadWithoutUserExts",
-        DEBUG_NEW_BRACKETS_WINDOW       = "debug.newBracketsWindow",
-        DEBUG_SWITCH_LANGUAGE           = "debug.switchLanguage",
-        DEBUG_ENABLE_NODE_DEBUGGER      = "debug.enableNodeDebugger",
-        DEBUG_LOG_NODE_STATE            = "debug.logNodeState",
-        DEBUG_RESTART_NODE              = "debug.restartNode",
-        DEBUG_SHOW_ERRORS_IN_STATUS_BAR = "debug.showErrorsInStatusBar",
-        DEBUG_OPEN_BRACKETS_SOURCE      = "debug.openBracketsSource";
+    var DEBUG_REFRESH_WINDOW                  = "debug.refreshWindow", // string must MATCH string in native code (brackets_extensions)
+        DEBUG_SHOW_DEVELOPER_TOOLS            = "debug.showDeveloperTools",
+        DEBUG_RUN_UNIT_TESTS                  = "debug.runUnitTests",
+        DEBUG_SHOW_PERF_DATA                  = "debug.showPerfData",
+        DEBUG_RELOAD_WITHOUT_USER_EXTS        = "debug.reloadWithoutUserExts",
+        DEBUG_NEW_BRACKETS_WINDOW             = "debug.newBracketsWindow",
+        DEBUG_SWITCH_LANGUAGE                 = "debug.switchLanguage",
+        DEBUG_ENABLE_NODE_DEBUGGER            = "debug.enableNodeDebugger",
+        DEBUG_LOG_NODE_STATE                  = "debug.logNodeState",
+        DEBUG_RESTART_NODE                    = "debug.restartNode",
+        DEBUG_SHOW_ERRORS_IN_STATUS_BAR       = "debug.showErrorsInStatusBar",
+        DEBUG_OPEN_BRACKETS_SOURCE            = "debug.openBracketsSource",
+        DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView";
 
     PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false, {
         description: Strings.DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR
@@ -257,6 +267,158 @@ define(function (require, exports, module) {
         brackets.app.showOSFolder(dir);
     }
 
+    function _getDefaultPrefsFile() {
+        // User-level preferences
+        return defaultSettingsFileName;
+    }
+
+    function _openFile(prefsPath, defaultPrefsPath) {
+
+        var currScheme = MainViewManager.getLayoutScheme(),
+            file       = FileSystem.getFileForPath(prefsPath);
+
+        // Open the default preferences in the left pane.
+        CommandManager.execute(Commands.FILE_OPEN, { fullPath: defaultPrefsPath, paneId: "first-pane"});
+
+        if (currScheme.rows === 1 && currScheme.columns === 1) {
+            // Split layout is not active yet. Inititate the
+            // split view.
+            MainViewManager.setLayoutScheme(1, 2);
+        }
+
+
+        // Make sure the preference file is already
+        if (MainViewManager.findInWorkingSet("first-pane", prefsPath) >= 0) {
+
+            MainViewManager._moveView("first-pane", "second-pane", file, 0, true);
+
+            // Now refresh the project tree by asking
+            // it to rebuild the UI.
+            WorkingSetView.refresh(true);
+        }
+
+        CommandManager.execute(Commands.FILE_OPEN, { fullPath: prefsPath, paneId: "second-pane"});
+
+    }
+
+    function _getDefaultPreferencesString() {
+
+        var allPrefs       = PreferencesManager.getAllPreferences();
+        var entireText     = "// Use this as a reference to override the preferences. \n{\n",
+            prefFormatText = "\t// {0}\n\t\"{1}\": {2}",
+            numKeys        = Object.keys(allPrefs).length,
+            currKey        = 0,
+            property;
+
+        for (property in allPrefs) {
+
+            if (allPrefs.hasOwnProperty(property)) {
+                currKey++;
+
+                var pref = allPrefs[property];
+
+                if (pref.description === undefined || pref.description.length === 0) {
+                    pref.description = "Default: " + pref.initial;
+                }
+
+                if (pref.type !== "boolean" && pref.type !== "number") {
+                    pref.initial = "\"" + pref.initial + "\"";
+                }
+
+                // TODO: Handle Object types.
+
+                var formattedText = StringUtils.format(prefFormatText, pref.description, property, pref.initial);
+
+                entireText = entireText + formattedText;
+                if (currKey !== numKeys) {
+                    entireText = entireText + ",\n\n";
+                } else {
+                    entireText = entireText + '\n';
+                }
+            }
+
+        }
+
+        entireText = entireText + "}\n";
+
+        return entireText;
+    }
+
+    function _loadDefaultPrefs(prefsPath) {
+
+        var defaultPrefsPath = _getDefaultPrefsFile(),
+            file             = FileSystem.getFileForPath(defaultPrefsPath);
+
+        file.exists(function (err, doesExist) {
+
+            if (doesExist) {
+
+                // Go about recreating the default preferecences file.
+                if (reloadPrefs) {
+
+                    var prefsString = _getDefaultPreferencesString();
+                    reloadPrefs     = false;
+
+                    // We need to delete this first
+                    file.unlink(function (err) {
+                        if (!err) {
+                            // Go about recreating this
+                            // file and write the default
+                            // preferences string to this file.
+                            FileUtils.writeText(file, prefsString, true)
+                                .done(function () {
+                                    reloadPrefs = false;
+                                    _openFile(prefsPath, defaultPrefsPath);
+                                });
+                        } else {
+                            // Some error occured while trying to delete
+                            // the file. In this case open the user
+                            // preferences alone.
+                            console.error("Unable to delete the existing default preferences file! error code:" + err);
+                            CommandManager.execute(Commands.FILE_OPEN, { fullPath: prefsPath});
+                        }
+                    });
+
+                } else {
+                    // Default preferences already generated.
+                    // Just go about opening both the files.
+                    _openFile(prefsPath, defaultPrefsPath);
+                }
+            } else {
+
+                // The default prefs file does not exist at all.
+                // So go about recreating the default preferences
+                // file.
+                var _prefsString = _getDefaultPreferencesString();
+                FileUtils.writeText(file, _prefsString, true)
+                    .done(function () {
+                        reloadPrefs = false;
+                        _openFile(prefsPath, defaultPrefsPath);
+                    });
+            }
+        });
+    }
+
+    function handleOpenPrefsInSplitView() {
+
+        var fullPath = PreferencesManager.getUserPrefFile(),
+            file     = FileSystem.getFileForPath(fullPath);
+
+        file.exists(function (err, doesExist) {
+
+            if (doesExist) {
+                _loadDefaultPrefs(fullPath);
+
+            } else {
+                FileUtils.writeText(file, "", true)
+                    .done(function () {
+                        _loadDefaultPrefs(fullPath);
+                    });
+            }
+        });
+
+    }
+
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
@@ -284,6 +446,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_LOG_NODE_STATE,       DEBUG_LOG_NODE_STATE,         NodeDebugUtils.logNodeState);
     CommandManager.register(Strings.CMD_RESTART_NODE,         DEBUG_RESTART_NODE,           NodeDebugUtils.restartNode);
     
+    CommandManager.register(Strings.CMD_OPEN_PREFERENCES, DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW, handleOpenPrefsInSplitView);
+
     enableRunTestsMenuItem();
     toggleErrorNotification(PreferencesManager.get(DEBUG_SHOW_ERRORS_IN_STATUS_BAR));
 
@@ -310,7 +474,7 @@ define(function (require, exports, module) {
     menu.addMenuItem(DEBUG_LOG_NODE_STATE);
     menu.addMenuItem(DEBUG_RESTART_NODE);
     menu.addMenuItem(DEBUG_SHOW_ERRORS_IN_STATUS_BAR);
-    menu.addMenuItem(Commands.FILE_OPEN_PREFERENCES); // this command is defined in core, but exposed only in Debug menu for now
+    menu.addMenuItem(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW); // this command will enable defaultPreferences and brackets preferences to be open side by side in split view.
     menu.addMenuItem(Commands.FILE_OPEN_KEYMAP);      // this command is defined in core, but exposed only in Debug menu for now
     
     // exposed for convenience, but not official API
