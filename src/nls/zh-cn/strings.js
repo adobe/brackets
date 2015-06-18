@@ -586,12 +586,12 @@ define({
     "CMD_OPEN_BRACKETS_SOURCE"                  : "打开 Brackets 源码",
 
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} 命令行快捷方式",
-    "ERROR_CREATING_LAUNCH_SCRIPT"              : "安装命令行扩展时发生错误。 请尝试<a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>这些故障排除建议</a>.<br/><br/>原因: {0}",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "安装命令行快捷方式时发生错误。 请尝试<a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>这些故障排除建议</a>.<br/><br/>原因: {0}",
     "ERROR_CLTOOLS_RMFAILED"                    : "无法移除已存在的 <code>/usr/local/bin/brackets</code> 符号链接.",
     "ERROR_CLTOOLS_MKDIRFAILED"                 : "无法创建 <code>/usr/local/bin</code> 目录.",
     "ERROR_CLTOOLS_LNFAILED"                    : "无法创建 <code>/usr/local/bin/brackets</code> 符号链接.",
     "ERROR_CLTOOLS_SERVFAILED"                  : "内部错误.",
-    "ERROR_CLTOOLS_NOTSUPPORTED"                : "此 OS 不支持命令行快捷方式.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "该系统不支持命令行快捷方式.",
     "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "成功！现在你可以以这样的命令简单地启动 {APP_NAME} 了: <code>brackets myFile.txt</code> 打开文件， <code>brackets myFolder</code> 切换项目，<br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>点击此处</a>了解更多 {APP_NAME} 命令行的使用方法。",
 
     "LANGUAGE_TITLE"                            : "切换语言",
@@ -604,9 +604,9 @@ define({
     "HEALTH_DATA_NOTIFICATION"                  : "健康报告首选项",
     "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME} 健康报告",
     "HEALTH_DATA_DO_TRACK"                      : "共享关于我如何使用 {APP_NAME} 的匿名信息",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "为了改进 {APP_NAME}，我们会周期性地发送有限的 <strong>匿名</strong> 统计报告给 Adobe 提供如何使用 {APP_NAME}的信息. 这些信息有助于调整功能优先级，发现Bug，定位可用性问题。<br><br>你可以看见这些信息，也可以通过 <strong>帮助 > 健康报告</strong> 选择不分享这些信息。<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>了解 {APP_NAME} 健康报告详情</a>",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "为了改进 {APP_NAME}，我们会周期性地向 Adobe 发送有限的 <strong>匿名</strong> 的关于你如何使用 {APP_NAME} 的统计信息. 这些信息有助于调整特性的优先顺序, 寻找错误和定位可用性问题. <br><br>你可以通过 <strong>帮助 > 健康报告</strong> 查看你的数据或者选择不共享数据. <br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>了解 {APP_NAME} 健康报告详情</a>",
     "HEALTH_DATA_PREVIEW"                       : "{APP_NAME} 健康报告",
-    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>为了改进 {APP_NAME}，我们会周期性地发送有限的 <strong>匿名</strong> 统计报告给 Adobe 提供如何使用 {APP_NAME}的信息. 这些信息有助于调整功能优先级，发现Bug，定位可用性问题。<a href='https://github.com/adobe/brackets/wiki/Health-Data'>了解 {APP_NAME} 健康报告详情</a> ，并知晓它如何在贡献 {APP_NAME} 社区的同时保护你的隐私。</p><p><em>如果</em>这项功能启用，以下预览的就是健康报告下次发送的数据。</p>",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>为了改进 {APP_NAME}，我们会周期性地向 Adobe 发送有限的 <strong>匿名</strong> 的关于你如何使用 {APP_NAME} 的统计信息. 这些信息有助于调整特性的优先顺序, 寻找错误和定位可用性问题. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>了解更多 {APP_NAME} 健康报告</a> ，以及它是怎样在保护你的隐私的情况下帮助 {APP_NAME} 社区. </p><p><em>如果</em>你打开它，下面的数据将被用于下次健康报告的发送。</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "时间",
