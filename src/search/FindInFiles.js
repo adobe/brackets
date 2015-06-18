@@ -693,7 +693,7 @@ define(function (require, exports, module) {
         });
     };
     
-    AppInit.appReady(function () {
+    var _initCache = function () {
         function filter(file) {
             return _subtreeFilter(file, null) && _isReadableText(file.fullPath);
         }
@@ -711,10 +711,15 @@ define(function (require, exports, module) {
                 searchDomain.exec("initCache", files)
                     .done(function () {
                         console.log('cache created');
+                    }).fail(function (err) {
+                        console.log("Error");
                     });
             });
         
-    });
+    };
+    
+    //AppInit.appReady(_initCache);
+   // ProjectManager.on("projectOpen", _initCache);
     
     // Public exports
     exports.searchModel          = searchModel;

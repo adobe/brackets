@@ -158,8 +158,12 @@ maxerr: 50, node: true */
 //                console.log("File contents" + data);
 //            }
 //        });
-        projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
-        return projectCache[filePath];
+        
+        
+//        projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
+//        return projectCache[filePath];
+        
+        return fs.readFileSync(filePath, 'utf8');
         
     }
     
@@ -254,10 +258,14 @@ maxerr: 50, node: true */
     }
     
     function initCache(fileList) {
+        var i;
         files = fileList;
-        files.forEach(function (file) {
-            getFileContentsForFile(file);
-        });
+        // Temporarily increase caching time for testing
+        for (i = 0; i < 10; i++) {
+            files.forEach(function (file) {
+                getFileContentsForFile(file);
+            });
+        }
         return true;
     }
     
