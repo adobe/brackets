@@ -252,9 +252,15 @@ define(function (require, exports, module) {
         codeHintsEnabled = true;
 
 
-    PreferencesManager.definePreference("showCodeHints", "boolean", true);
-    PreferencesManager.definePreference("insertHintOnTab", "boolean", false);
-    PreferencesManager.definePreference("maxCodeHints", "integer", 50);
+    PreferencesManager.definePreference("showCodeHints", "boolean", true, {
+        description: Strings.DESCRIPTION_SHOW_CODE_HINTS
+    });
+    PreferencesManager.definePreference("insertHintOnTab", "boolean", false, {
+        description: Strings.DESCRIPTION_INSERT_HINT_ON_TAB
+    });
+    PreferencesManager.definePreference("maxCodeHints", "number", 50, {
+        description: Strings.DESCRIPTION_MAX_CODE_HINTS
+    });
 
     PreferencesManager.on("change", "showCodeHints", function () {
         codeHintsEnabled = PreferencesManager.get("showCodeHints");

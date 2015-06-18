@@ -1284,7 +1284,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH,          refreshFileTree);
 
     // Define the preference to decide how to sort the Project Tree files
-    PreferencesManager.definePreference(SORT_DIRECTORIES_FIRST, "boolean", brackets.platform !== "mac")
+    PreferencesManager.definePreference(SORT_DIRECTORIES_FIRST, "boolean", brackets.platform !== "mac", {
+        description: Strings.DESCRIPTION_SORT_DIRECTORIES_FIRST
+    })
         .on("change", function () {
             actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
         });

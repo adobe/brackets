@@ -11,34 +11,30 @@ define(function (require, exports, module) {
     
     var ProjectManager              = brackets.getModule("project/ProjectManager"),
         PreferencesManager          = brackets.getModule("preferences/PreferencesManager"),
+        Strings                     = brackets.getModule("strings"),
         prefs                       = PreferencesManager.getExtensionPrefs("code-folding"),
         FOLDS_PREF_KEY              = "code-folding.folds",
         // preference key strings are here for now since they are not used in any UI
         ENABLE_CODE_FOLDING         = "Enable code folding",
         MIN_FOLD_SIZE               = "Minimum fold size",
-        MIN_FOLD_SIZE_HELP          = "Minimum number of lines to allow in a foldable range",
         SAVE_FOLD_STATES            = "Save fold states",
-        SAVE_FOLD_STATES_HELP       = "Save fold states to disk when editor is closed and restore the folds when reopened",
         ALWAYS_USE_INDENT_FOLD      = "Always use indent fold",
-        ALWAYS_USE_INDENT_FOLD_HELP = "Fall back to using level of indentation as a folding guideline if no range finder is found for the current mode.",
         HIDE_FOLD_BUTTONS           = "Hide fold triangles",
-        HIDE_FOLD_BUTTONS_HELP      = "Hide fold triangles unless the mouse is over the gutter",
-        MAX_FOLD_LEVEL              = "Max fold level",
-        MAX_FOLD_LEVEL_HELP         = "Used to limit the number of nested folds to find and collapse when View -> Collapse All is called or Alt is held down when collapsing. Should improve performance for large files.";
+        MAX_FOLD_LEVEL              = "Max fold level";
 
     //default preference values
     prefs.definePreference("enabled", "boolean", true,
-                           {name: ENABLE_CODE_FOLDING, description: ENABLE_CODE_FOLDING});
+                           {name: ENABLE_CODE_FOLDING, description: Strings.DESCRIPTION_CODE_FOLDING_ENABLED});
     prefs.definePreference("minFoldSize", "number", 2,
-                           {name: MIN_FOLD_SIZE, description: MIN_FOLD_SIZE_HELP});
+                           {name: MIN_FOLD_SIZE, description: Strings.DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE});
     prefs.definePreference("saveFoldStates", "boolean", true,
-                           {name: SAVE_FOLD_STATES, description: SAVE_FOLD_STATES_HELP});
+                           {name: SAVE_FOLD_STATES, description: Strings.DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES});
     prefs.definePreference("alwaysUseIndentFold", "boolean", false,
-                           {name: ALWAYS_USE_INDENT_FOLD, description: ALWAYS_USE_INDENT_FOLD_HELP});
+                           {name: ALWAYS_USE_INDENT_FOLD, description: Strings.DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD});
     prefs.definePreference("hideUntilMouseover", "boolean", false,
-                           {name: HIDE_FOLD_BUTTONS, description: HIDE_FOLD_BUTTONS_HELP});
+                           {name: HIDE_FOLD_BUTTONS, description: Strings.DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER});
     prefs.definePreference("maxFoldLevel", "number", 2,
-                           {name: MAX_FOLD_LEVEL, description: MAX_FOLD_LEVEL_HELP});
+                           {name: MAX_FOLD_LEVEL, description: Strings.DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL});
     
     PreferencesManager.stateManager.definePreference(FOLDS_PREF_KEY, "object", {});
 
