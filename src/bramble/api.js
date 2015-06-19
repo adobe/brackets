@@ -101,6 +101,8 @@ define([
             return;
         }
 
+        options = options || {};
+
         // Turn on logging if in debug mode
         if (options.debug) {
             debug = console.log.bind(console);
