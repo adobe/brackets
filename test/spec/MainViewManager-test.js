@@ -999,12 +999,14 @@ define(function (require, exports, module) {
             
             it("should traverse in list order", function () {
                 runs(function () {
-                    MainViewManager.setActivePaneId("first-pane");
-                });
-                runs(function () {
-                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
-                                                                            paneId: "first-pane" });
-                    waitsForDone(promise, Commands.FILE_OPEN);
+                    // Make test.js the active file
+                    promise = new $.Deferred();
+                    DocumentManager.getDocumentForPath(testPath + "/test.js")
+                        .done(function (doc) {
+                            MainViewManager._edit("first-pane", doc);
+                            promise.resolve();
+                        });
+                    waitsForDone(promise, "MainViewManager._edit");
                 });
                 runs(function () {
                     var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
@@ -1016,8 +1018,6 @@ define(function (require, exports, module) {
             
             it("should traverse between panes in list order", function () {
                 runs(function () {
-                    MainViewManager.setActivePaneId("second-pane");
-                    
                     var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
                     
                     expect(traverseResult.file).toEqual(getFileObject("test.js"));
@@ -1027,6 +1027,7 @@ define(function (require, exports, module) {
             
             it("should traverse to the first Working Set item if a file not in the Working Set is being viewed", function () {
                 runs(function () {
+                    // Close test.js to then reopen it without being in the Working Set
                     CommandManager.execute(Commands.FILE_CLOSE, { file: getFileObject("test.js") });
                     promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
                                                                             paneId: "first-pane" });
