@@ -268,7 +268,7 @@ define(function (require, exports, module) {
     }
 
     function _getDefaultPrefsFile() {
-        // User-level preferences
+        // Default preferences
         return defaultSettingsFileName;
     }
 
@@ -301,6 +301,83 @@ define(function (require, exports, module) {
 
     }
 
+    function _formatObject(propName,  prefObj, indentLevel) {
+        
+        // check for validity of the parameters being passed
+        if (!prefObj || indentLevel < 0 || prefObj.type !== "object") {
+            return "";
+        }
+        
+        var iLevel,
+            entireText,
+            property,
+            prefFormatText,
+            currKey,
+            tabIndents     = "",
+            numKeys        = Object.keys(prefObj).length;
+
+        // Generate the indentLevel
+        for (iLevel = 0; iLevel < indentLevel; iLevel++) {
+            tabIndents = tabIndents + "\t";
+        }
+
+        entireText = tabIndents + "// " + prefObj.description + "\n" + tabIndents + "\"" + propName + "\": " + "{";
+        
+        // In  case the object array is empty
+        if (numKeys <= 0) {
+            entireText = entireText + "}";
+            return entireText;
+        } else {
+            entireText = entireText + "\n";
+        }
+        
+        prefFormatText = tabIndents + "\t// {0}\n" + tabIndents + "\t\"{1}\": {2}";
+        
+        for (property in prefObj) {
+            
+            if (prefObj.hasOwnProperty(property)) {
+
+                currKey++;
+                var pref = prefObj[property];
+                
+                if (!pref.excludeFromHints) {
+                    
+                    var prefDescription = pref.description;
+                    var prefDefault     = pref.initial;
+                    
+                    if (prefDescription === undefined || prefDescription.length === 0) {
+                        prefDescription = "Default: " + pref.initial;
+                    }
+
+                    if (pref.type !== "boolean" && pref.type !== "number") {
+                        prefDefault = "\"" + pref.initial + "\"";
+                    }
+
+                    // Handle other inner objects format.
+                    var formattedText;
+                    if (pref.type === "object") {
+                        formattedText = _formatObject(property, pref, indentLevel + 1);
+                    } else {
+                    
+                        formattedText = StringUtils.format(prefFormatText, prefDescription, property, prefDefault);
+                    }
+
+                    entireText = entireText + formattedText;
+                    if (currKey !== numKeys) {
+                        entireText = entireText + ",\n\n";
+                    } else {
+                        entireText = entireText + '\n';
+                    }
+                }
+            }
+        }
+        
+        entireText = tabIndents + "}";
+        
+        return entireText;
+        
+    }
+    
     function _getDefaultPreferencesString() {
 
         var allPrefs       = PreferencesManager.getAllPreferences();
@@ -316,25 +393,34 @@ define(function (require, exports, module) {
                 currKey++;
 
                 var pref = allPrefs[property];
+                
+                if (!pref.excludeFromHints) {
+                    
+                    if (pref.description === undefined || pref.description.length === 0) {
+                        pref.description = "Default: " + pref.initial;
+                    }
 
-                if (pref.description === undefined || pref.description.length === 0) {
-                    pref.description = "Default: " + pref.initial;
+                    if (pref.type !== "boolean" && pref.type !== "number") {
+                        pref.initial = "\"" + pref.initial + "\"";
+                    }
+
+                    var formattedText;
+                    if (pref.type === "object") {
+                        var numKeys2        = Object.keys(pref).length;
+                        formattedText = _formatObject(property, pref, 1);
+                    } else {
+                    
+                        formattedText = StringUtils.format(prefFormatText, pref.description, property, pref.initial);
+                    }
+
+                    entireText = entireText + formattedText;
+                    if (currKey !== numKeys) {
+                        entireText = entireText + ",\n\n";
+                    } else {
+                        entireText = entireText + '\n';
+                    }
                 }
 
-                if (pref.type !== "boolean" && pref.type !== "number") {
-                    pref.initial = "\"" + pref.initial + "\"";
-                }
-
-                // TODO: Handle Object types.
-
-                var formattedText = StringUtils.format(prefFormatText, pref.description, property, pref.initial);
-
-                entireText = entireText + formattedText;
-                if (currKey !== numKeys) {
-                    entireText = entireText + ",\n\n";
-                } else {
-                    entireText = entireText + '\n';
-                }
             }
 
         }
