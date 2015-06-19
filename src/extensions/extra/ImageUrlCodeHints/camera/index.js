@@ -6,6 +6,9 @@
 define(function (require, exports, module) {
     "use strict";
 
+    var CommandManager = brackets.getModule("command/CommandManager");
+    var Commands       = brackets.getModule("command/Commands");
+
     var Interface = require("camera/interface");
     var Video = require("camera/video");
     var Photo = require("camera/photo");
@@ -47,6 +50,9 @@ define(function (require, exports, module) {
             if(err) {
                  return self.fail(err);
             }
+
+            // Update the file tree to show the new file
+            CommandManager.execute(Commands.FILE_REFRESH);
 
             self.success(self.savePath);
         });

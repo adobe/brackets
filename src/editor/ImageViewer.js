@@ -43,7 +43,7 @@ define(function (require, exports, module) {
 
     // Get a Blob URL out of the cache
     function _getImageUrl(file) {
-        return BlobUtils.getUrl(FileUtils.encodeFilePath(file.fullPath));
+        return BlobUtils.getUrl(file.fullPath);
     }
 
     /**

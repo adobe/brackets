@@ -39,6 +39,8 @@ define(function (require, exports, module) {
         LanguageManager = brackets.getModule("language/LanguageManager"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
+        StartupProject  = brackets.getModule("bramble/BrambleStartupProject"),
+        Path            = brackets.getModule("filesystem/impls/filer/FilerUtils").Path,
         Camera          = require("camera/index"),
         CameraDialog    = require("camera-dialog"),
 
@@ -564,6 +566,7 @@ define(function (require, exports, module) {
     ImageUrlCodeHints.prototype.insertHint = function (completion) {
         var that = this;
         var cameraDialog;
+        var savePath;
 
         function insert(text) {
             var mode = that.editor.getModeForSelection();
@@ -581,7 +584,8 @@ define(function (require, exports, module) {
         }
 
         if (completion === selfieLabel) {
-            cameraDialog = new CameraDialog("/" + selfieFileName);
+            savePath = Path.join(StartupProject.getInfo().root, selfieFileName);
+            cameraDialog = new CameraDialog(savePath);
             cameraDialog.show()
                 .done(function(selfieFilePath){
                     if(selfieFilePath) {

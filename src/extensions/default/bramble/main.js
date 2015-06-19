@@ -119,7 +119,11 @@ define(function (require, exports, module) {
         LiveDevelopment.open();
     }
 
-    function finishStartup() {
+    function finishStartup(err) {
+        if(err) {
+            console.warn("Unable to preload filesystem URLs", err);
+        }
+
         // Below are methods to change the preferences of brackets, more available at:
         // https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#list-of-supported-preferences
         PreferencesManager.set("insertHintOnTab", true);
@@ -169,6 +173,9 @@ define(function (require, exports, module) {
         // Setup the iframe browser and Blob URL live dev servers and
         // load the initial document into the preview.
         startLiveDev();
+
+        // Preload BlobURLs for all assets in the filesystem
+        BlobUtils.preload(BrambleStartupProject.getInfo().root, finishStartup);
 
         // When the app is loaded and ready, hide the menus/toolbars
         UI.initUI(finishStartup);

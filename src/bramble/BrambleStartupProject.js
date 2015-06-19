@@ -23,4 +23,9 @@ define(function (require, exports, module) {
             fullPath: _fullPath
         };
     };
+
+    // If the project root gets renamed, update it
+    exports.updateRoot = function(root) {
+        _root = root;
+    };
 });

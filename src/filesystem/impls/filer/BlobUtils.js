@@ -7,7 +7,10 @@ define(function (require, exports, module) {
     // BlobUtils provides an opportunistic cache for BLOB Object URLs
     // which can be looked-up synchronously.
     var Content = require("filesystem/impls/filer/lib/content");
-    var Path = require("filesystem/impls/filer/FilerUtils").Path;
+    var FilerUtils = require("filesystem/impls/filer/FilerUtils");
+    var async = require("filesystem/impls/filer/lib/async");
+    var Path = FilerUtils.Path;
+    var decodePath = FilerUtils.decodePath;
     var fs = require("filesystem/impls/filer/BracketsFiler").fs();
 
     // 2-way cache for blob URL to path for looking up either way:
@@ -30,6 +33,7 @@ define(function (require, exports, module) {
 
     // Remove the cached BLOB URL for the given filename
     function remove(filename) {
+        filename = decodePath(filename);
         filename = Path.normalize(filename);
 
         var url = blobURLs[filename];
@@ -47,7 +51,9 @@ define(function (require, exports, module) {
 
     // Update the cached records for the given filename
     function rename(oldPath, newPath) {
+        oldPath = decodePath(oldPath);
         oldPath = Path.normalize(oldPath);
+        newPath = decodePath(newPath);
         newPath = Path.normalize(newPath);
 
         var url = blobURLs[oldPath];
@@ -60,7 +66,7 @@ define(function (require, exports, module) {
 
     // Given a filename, lookup the cached BLOB URL
     function _getUrlSync(filename) {
-        var url = blobURLs[Path.normalize(filename)];
+        var url = blobURLs[Path.normalize(decodePath(filename))];
 
         // We expect this to exist, if it doesn't,
         // return path back unchanged
@@ -68,26 +74,29 @@ define(function (require, exports, module) {
     }
 
     function _getUrlAsync(filename, callback) {
-        var cachedUrl = blobURLs[Path.normalize(filename)];
+        var decodedFilename = decodePath(filename);
+        var cachedUrl = blobURLs[Path.normalize(decodedFilename)];
         if(cachedUrl) {
             callback(null, cachedUrl);
             return;
         }
 
-        fs.readFile(filename, null, function(err, data) {
+        fs.readFile(decodedFilename, null, function(err, data) {
             if(err) {
                 callback(err);
                 return;
             }
 
-            var mime = Content.mimeFromExt(Path.extname(filename));
-            var url = createURL(filename, data, mime);
+            var mime = Content.mimeFromExt(Path.extname(decodedFilename));
+            var url = createURL(decodedFilename, data, mime);
             callback(null, url);
         });        
     }
 
     // Support sync and async calls to the URL cache. Also check to see
     // if async calls can by run immediately regardless (i.e., no disk access).
+    // NOTE: make sure that we always return the filename unchanged if we
+    // don't have a cached URL.  Don't return a normalized, decoded version.
     function getUrl(filename, maybeCallback) {
         if(typeof maybeCallback === "function") {
             _getUrlAsync(filename, maybeCallback);
@@ -111,6 +120,7 @@ define(function (require, exports, module) {
     // Create a Blob URL Object, and manage its lifetime by caching.
     // Subsequent calls to create a URL for this path will auto-revoke an existing URL.
     function createURL(path, data, type) {
+        path = decodePath(path);
         var blob = new Blob([data], {type: type});
         var url = URL.createObjectURL(blob);
         // NOTE: cache() will clean up existing URLs for this path.
@@ -118,6 +128,38 @@ define(function (require, exports, module) {
         return url;
     }
 
+    // Walk the project root dir and make sure we have Blob URLs generated for all file paths
+    function preload(root, callback) {
+        function _preload(dirPath, callback) {
+            fs.readdir(dirPath, function(err, entries) {
+                if(err) {
+                    return callback(err);
+                }
+
+                function _getBlobUrl(name, callback) {
+                    name = Path.join(dirPath, name);
+
+                    fs.stat(name, function(err, stats) {
+                        if(err) {
+                            return callback(err);
+                        }
+
+                        if(stats.type === 'DIRECTORY') {
+                            _preload(name, callback);
+                        } else {
+                            getUrl(name, callback);
+                        }
+                    });
+                }
+
+                async.eachSeries(entries, _getBlobUrl, callback);
+            });
+        }
+
+        _preload(root, callback);
+    }
+
+    exports.preload = preload;
     exports.remove = remove;
     exports.rename = rename;
     exports.getUrl = getUrl;

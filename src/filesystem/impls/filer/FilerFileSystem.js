@@ -8,6 +8,7 @@ define(function (require, exports, module) {
         FileSystemStats = require("filesystem/FileSystemStats"),
         Filer           = require("filesystem/impls/filer/BracketsFiler"),
         BlobUtils       = require("filesystem/impls/filer/BlobUtils"),
+        decodePath      = require("filesystem/impls/filer/FilerUtils").decodePath,
         Handlers = require("filesystem/impls/filer/lib/handlers"),
         Content = require("filesystem/impls/filer/lib/content"),
         Async = require("utils/Async");
@@ -87,6 +88,8 @@ define(function (require, exports, module) {
     }
 
     function stat(path, callback) {
+        path = decodePath(path);
+
         fs.stat(path, function(err, stats) {
             if (err){
                 callback(_mapError(err));
@@ -112,12 +115,15 @@ define(function (require, exports, module) {
 
 
     function exists(path, callback) {
+        path = decodePath(path);
+
         fs.exists(path, function(exists) {
             callback(null, exists);
         });
     }
 
     function readdir(path, callback) {
+        path = decodePath(path);
         path = Path.normalize(path);
 
         fs.readdir(path, function (err, contents) {
@@ -146,6 +152,8 @@ define(function (require, exports, module) {
     }
 
     function mkdir(path, mode, callback) {
+        path = decodePath(path);
+
         if(typeof mode === 'function') {
             callback = mode;
         }
@@ -160,6 +168,9 @@ define(function (require, exports, module) {
     }
 
     function rename(oldPath, newPath, callback) {
+        oldPath = decodePath(oldPath);
+        newPath = decodePath(newPath);
+
         function updateBlobURL(err) {
             if(err) {
                 return callback(_mapError(err));
@@ -171,7 +182,7 @@ define(function (require, exports, module) {
                     return callback(_mapError(err));
                 }
 
-                if(stat.type === "FILE") {
+                if(stat.isFile) {
                     BlobUtils.rename(oldPath, newPath);
                 }
 
@@ -183,6 +194,8 @@ define(function (require, exports, module) {
     }
 
     function readFile(path, options, callback) {
+        path = decodePath(path);
+
         if(typeof options === 'function') {
             callback = options;
         }
@@ -225,6 +238,8 @@ define(function (require, exports, module) {
     }
 
     function writeFile(path, data, options, callback) {
+        path = decodePath(path);
+
         if(typeof options === 'function') {
             callback = options;
         }
@@ -320,6 +335,8 @@ define(function (require, exports, module) {
     }
 
     function unlink(path, callback) {
+        path = decodePath(path);
+
         fs.stat(path, function(err, stats) {
             if (err) {
                 callback(_mapError(err));
@@ -338,6 +355,8 @@ define(function (require, exports, module) {
     }
 
     function moveToTrash(path, callback) {
+        path = decodePath(path);
+
         // TODO: do we want to support a .trash/ dir or the like?
         unlink(path, callback);
     }
@@ -347,6 +366,7 @@ define(function (require, exports, module) {
     }
 
     function watchPath(path, callback) {
+        path = decodePath(path);
         path = Path.normalize(path);
 
         if(watchers[path]) {
@@ -364,6 +384,7 @@ define(function (require, exports, module) {
     }
 
     function unwatchPath(path, callback) {
+        path = decodePath(path);
         path = Path.normalize(path);
 
         if(watchers[path]) {

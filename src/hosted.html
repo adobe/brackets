@@ -32,7 +32,8 @@ This page is a helper for local development.
         
         require(["bramble/api"], function(Bramble) {
             Bramble.load("#bramble",{
-                url: "index.html"
+                url: "index.html",
+                useLocationSearch: true
             });
 
             // Event listeners

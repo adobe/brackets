@@ -7,4 +7,9 @@ define(function (require, exports, module) {
     // If you need to debug Path or Buffer, change away from .min versions here
     exports.Path = require("thirdparty/filer/dist/path.min");
     exports.Buffer = require("thirdparty/filer/dist/buffer.min");
+
+    // Deal with Brackets encoding filepath URIs
+    exports.decodePath = function(path) {
+        return decodeURI(path);
+    };
 });

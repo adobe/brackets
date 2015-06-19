@@ -39,7 +39,7 @@ define(function (require, exports, module) {
                 }
 
                 data = new FilerBuffer(data);
-                if(options === "utf8" || options.encoding === "utf8") {
+                if(options && (options === "utf8" || options.encoding === "utf8")) {
                     data = data.toString("utf8");
                 }
 
