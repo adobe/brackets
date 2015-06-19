@@ -83,7 +83,7 @@ define(function (require, exports, module) {
      * The default font size used only to convert the old fontSizeAdjustment view state to the new fontSize
      * @type {number}
      */
-    var DEFAULT_FONT_SIZE = 12;
+    var DEFAULT_FONT_SIZE = 15;
 
     /**
      * @const
