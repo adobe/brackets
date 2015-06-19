@@ -42,7 +42,7 @@ define(function (require, exports, module) {
         BEZIER_CURVE_GENERAL_REGEX      = /cubic-bezier\((.*)\)/,
         EASE_STRICT_REGEX               = /[: ,]ease(?:-in)?(?:-out)?[ ,;]/,
         EASE_LAX_REGEX                  = /ease(?:-in)?(?:-out)?/,
-        LINEAR_STRICT_REGEX             = /transition|animation.*?[: ,]linear[ ,;]/,
+        LINEAR_STRICT_REGEX             = /(transition|animation).*?[: ,]linear[ ,;]/,
         LINEAR_LAX_REGEX                = /linear/,
         STEPS_VALID_REGEX               = /steps\(\s*(\d+)\s*(?:,\s*(\w+)\s*)?\)/,
         STEPS_GENERAL_REGEX             = /steps\((.*)\)/,
