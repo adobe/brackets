@@ -1042,6 +1042,25 @@ define(function (require, exports, module) {
                     expect(traverseResult.pane).toEqual("first-pane");
                 });
             });
+
+            it("should traverse between panes in reverse list order", function () {
+                runs(function () {
+                    // Make test.js the active file
+                    promise = new $.Deferred();
+                    DocumentManager.getDocumentForPath(testPath + "/test.js")
+                        .done(function (doc) {
+                            MainViewManager._edit("first-pane", doc);
+                            promise.resolve();
+                        });
+                    waitsForDone(promise, "MainViewManager._edit");
+                });
+                runs(function () {
+                    var traverseResult = MainViewManager.traverseToNextViewInListOrder(-1);
+
+                    expect(traverseResult.file).toEqual(getFileObject("test.html"));
+                    expect(traverseResult.pane).toEqual("second-pane");
+                });
+            });
         });
     });
 });
