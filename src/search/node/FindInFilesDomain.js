@@ -23,14 +23,13 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
 maxerr: 50, node: true */
-/*global */
 
 (function () {
     "use strict";
     
     var fs = require("fs");
     var projectCache = {};
-    var files;
+    var allFiles;
     var MAX_DISPLAY_LENGTH = 200,
         MAX_TOTAL_RESULTS = 100;
     
@@ -159,12 +158,8 @@ maxerr: 50, node: true */
 //            }
 //        });
         
-        
-//        projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
-//        return projectCache[filePath];
-        
-        return fs.readFileSync(filePath, 'utf8');
-        
+        projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
+        return projectCache[filePath];
     }
     
     function setResults(fullpath, resultInfo) {
@@ -258,20 +253,16 @@ maxerr: 50, node: true */
     }
     
     function initCache(fileList) {
-        var i;
-        files = fileList;
-        // Temporarily increase caching time for testing
-        for (i = 0; i < 10; i++) {
-            files.forEach(function (file) {
-                getFileContentsForFile(file);
-            });
-        }
+        allFiles = fileList;
+        allFiles.forEach(function (file) {
+            getFileContentsForFile(file);
+        });
         return true;
     }
     
     function doSearch(searchObject) {
         console.log("doSearch");
-        
+        var files = searchObject.files;
         if (!files) {
             console.log("no file object found");
             return {};

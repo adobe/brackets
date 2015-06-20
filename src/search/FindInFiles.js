@@ -419,7 +419,6 @@ define(function (require, exports, module) {
      * @return {?$.Promise} A promise that's resolved with the search results (or ZERO_FILES_TO_SEARCH) or rejected when the find competes. 
      *      Will be null if the query is invalid.
      */
-    var firstTime = false;
     function _doSearch(queryInfo, candidateFilesPromise, filter) {
         searchModel.filter = filter;
         
@@ -448,26 +447,18 @@ define(function (require, exports, module) {
                 
                 if (fileListResult.length) {
                     var searchObject;
-                    if (firstTime) {
-                        var files = fileListResult
-                            .filter(function (entry) {
-                                return entry.isFile && _isReadableText(entry.fullPath);
-                            })
-                            .map(function (entry) {
-                                return entry.fullPath;
-                            });
-                        searchObject = {
-                            "files": files,
-                            "queryInfo": queryInfo,
-                            "queryExpr": searchModel.queryExpr
-                        };
-                        firstTime = false;
-                    } else {
-                        searchObject = {
-                            "queryInfo": queryInfo,
-                            "queryExpr": searchModel.queryExpr
-                        };
-                    }
+                    var files = fileListResult
+                        .filter(function (entry) {
+                            return entry.isFile && _isReadableText(entry.fullPath);
+                        })
+                        .map(function (entry) {
+                            return entry.fullPath;
+                        });
+                    searchObject = {
+                        "files": files,
+                        "queryInfo": queryInfo,
+                        "queryExpr": searchModel.queryExpr
+                    };
                     searchDomain.exec("doSearch", searchObject)
                         .done(function (rcvd_object) {
                             //console.log("NUMMM "  + filelistnum);
@@ -479,14 +470,6 @@ define(function (require, exports, module) {
                             searchDeferred.resolve();
                         });
                     return searchDeferred.promise();
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
                 } else {
                     return ZERO_FILES_TO_SEARCH;
                 }
@@ -693,7 +676,7 @@ define(function (require, exports, module) {
         });
     };
     
-    var _initCache = function () {
+    AppInit.appReady(function () {
         function filter(file) {
             return _subtreeFilter(file, null) && _isReadableText(file.fullPath);
         }
@@ -716,7 +699,7 @@ define(function (require, exports, module) {
                     });
             });
         
-    };
+    });
     
     //AppInit.appReady(_initCache);
    // ProjectManager.on("projectOpen", _initCache);
