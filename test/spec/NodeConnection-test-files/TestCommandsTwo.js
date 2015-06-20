@@ -49,6 +49,24 @@
     }
     
     /**
+     * @private
+     * Handler for test.reverseAsyncWithProgress command. Reverses the specified string
+     * and then returns the result asynconously, but launches progress event before that.
+     * @param {string} s String to reverse.
+     * @param {Function} cb Callback function of the form cb(err, response)
+     * @param {Function} pcb Progress callback function of the form pcb(message)
+     */
+    function cmdTestReverseAsyncWithProgress(s, cb, pcb) {
+        var result = s.split("").reverse().join("");
+        process.nextTick(function () {
+            pcb("progress");
+            process.nextTick(function () {
+                cb(null, result);
+            });
+        });
+    }
+
+    /**
      * Initializes the test domain with an additional test command.
      * @param {DomainManager} DomainManager The DomainManager for the server
      */
@@ -63,6 +81,15 @@
             cmdTestReverseAsync,
             true,
             "reverses the specified string using an async call on the server",
+            [{name: "s", type: "string"}],
+            [{name: "reversedString", type: "string"}]
+        );
+        _domainManager.registerCommand(
+            "test",
+            "reverseAsyncWithProgress",
+            cmdTestReverseAsyncWithProgress,
+            true,
+            "reverses the specified string using an async call on the server and calls a progress event before",
             [{name: "s", type: "string"}],
             [{name: "reversedString", type: "string"}]
         );
