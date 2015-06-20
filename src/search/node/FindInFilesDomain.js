@@ -31,7 +31,7 @@ maxerr: 50, node: true */
     var projectCache = {};
     var allFiles;
     var MAX_DISPLAY_LENGTH = 200,
-        MAX_TOTAL_RESULTS = 100;
+        MAX_TOTAL_RESULTS = 100000;
     
     var results = {},
         numMatches = 0,
