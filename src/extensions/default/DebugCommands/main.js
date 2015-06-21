@@ -300,68 +300,107 @@ define(function (require, exports, module) {
         CommandManager.execute(Commands.FILE_OPEN, { fullPath: prefsPath, paneId: "second-pane"});
 
     }
+    
+    function _formatDefault(pref, property, tabIndentStr) {
+        
+        if (!pref || pref.type === "object") {
+            // return empty string in case of
+            // object and pref not defined.
+            return "";
+        }
+        
+        var prefDescription = pref.description,
+            prefDefault     = pref.initial,
+            prefFormatText  = tabIndentStr + "\t// {0}\n" + tabIndentStr + "\t\"{1}\": {2}";
+            
+        if (prefDefault === undefined) {
+            if (pref.type === "number") {
+                prefDefault = 0;
+            } else if (pref.type === "boolean") {
+                prefDefault = true;
+            }
+        }
 
+        if (prefDescription === undefined || prefDescription.length === 0) {
+            prefDescription = "Default: " + pref.initial;
+        }
+
+        if (pref.type === "array") {
+            prefDefault = "[]";
+        } else if (pref.type !== "boolean" && pref.type !== "number") {
+            prefDefault = "\"" + prefDefault + "\"";
+        }
+
+        return StringUtils.format(prefFormatText, prefDescription, property, prefDefault);
+        
+    }
+    
     function _formatObject(propName,  prefObj, indentLevel) {
         
         // check for validity of the parameters being passed
-        if (!prefObj || indentLevel < 0 || prefObj.type !== "object") {
+        if (!prefObj || indentLevel < 0) {
             return "";
         }
         
         var iLevel,
             entireText,
             property,
-            prefFormatText,
-            currKey,
+            prefFormatText = "",
+            hasKeys        = false,
+            currKey        = 0,
             tabIndents     = "",
-            numKeys        = Object.keys(prefObj).length;
+            numKeys        = 0;
 
         // Generate the indentLevel
         for (iLevel = 0; iLevel < indentLevel; iLevel++) {
             tabIndents = tabIndents + "\t";
         }
-
+        
+        if (prefObj.keys && Object.keys(prefObj.keys).length > 0) {
+            hasKeys = true;
+        }
+        
+        if (prefObj.type !== "object" && hasKeys === false) {
+            return _formatDefault(prefObj, propName, tabIndents);
+        }
+        
+        // Indent the object
+        tabIndents = tabIndents + "\t";
         entireText = tabIndents + "// " + prefObj.description + "\n" + tabIndents + "\"" + propName + "\": " + "{";
+        
+        if (prefObj.keys) {
+            numKeys = prefObj.keys.length;
+        }
         
         // In  case the object array is empty
         if (numKeys <= 0) {
             entireText = entireText + "}";
             return entireText;
         } else {
-            entireText = entireText + "\n";
+            entireText = entireText + "\n\n";
         }
         
         prefFormatText = tabIndents + "\t// {0}\n" + tabIndents + "\t\"{1}\": {2}";
         
-        for (property in prefObj) {
+        var allKeys = prefObj.keys;
+        
+        for (property in allKeys) {
             
-            if (prefObj.hasOwnProperty(property)) {
+            if (allKeys.hasOwnProperty(property)) {
 
                 currKey++;
-                var pref = prefObj[property];
+                var pref = allKeys[property];
                 
                 if (!pref.excludeFromHints) {
-                    
-                    var prefDescription = pref.description;
-                    var prefDefault     = pref.initial;
-                    
-                    if (prefDescription === undefined || prefDescription.length === 0) {
-                        prefDescription = "Default: " + pref.initial;
-                    }
 
-                    if (pref.type !== "boolean" && pref.type !== "number") {
-                        prefDefault = "\"" + pref.initial + "\"";
-                    }
-
-                    // Handle other inner objects format.
-                    var formattedText;
+                    var formattedText = "";
+                    
                     if (pref.type === "object") {
                         formattedText = _formatObject(property, pref, indentLevel + 1);
                     } else {
-                    
-                        formattedText = StringUtils.format(prefFormatText, prefDescription, property, prefDefault);
+                        formattedText = _formatDefault(pref, property, tabIndents);
                     }
-
+                    
                     entireText = entireText + formattedText;
                     if (currKey !== numKeys) {
                         entireText = entireText + ",\n\n";
@@ -372,7 +411,7 @@ define(function (require, exports, module) {
             }
         }
         
-        entireText = tabIndents + "}";
+        entireText = entireText + tabIndents + "}";
         
         return entireText;
         
@@ -395,24 +434,9 @@ define(function (require, exports, module) {
                 var pref = allPrefs[property];
                 
                 if (!pref.excludeFromHints) {
+
+                    var formattedText = _formatObject(property, pref, 0);
                     
-                    if (pref.description === undefined || pref.description.length === 0) {
-                        pref.description = "Default: " + pref.initial;
-                    }
-
-                    if (pref.type !== "boolean" && pref.type !== "number") {
-                        pref.initial = "\"" + pref.initial + "\"";
-                    }
-
-                    var formattedText;
-                    if (pref.type === "object") {
-                        var numKeys2        = Object.keys(pref).length;
-                        formattedText = _formatObject(property, pref, 1);
-                    } else {
-                    
-                        formattedText = StringUtils.format(prefFormatText, pref.description, property, pref.initial);
-                    }
-
                     entireText = entireText + formattedText;
                     if (currKey !== numKeys) {
                         entireText = entireText + ",\n\n";
@@ -422,7 +446,6 @@ define(function (require, exports, module) {
                 }
 
             }
-
         }
 
         entireText = entireText + "}\n";
