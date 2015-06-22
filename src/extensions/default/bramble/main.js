@@ -175,10 +175,14 @@ define(function (require, exports, module) {
         startLiveDev();
 
         // Preload BlobURLs for all assets in the filesystem
-        BlobUtils.preload(BrambleStartupProject.getInfo().root, finishStartup);
+        BlobUtils.preload(BrambleStartupProject.getInfo().root, function(err) {
+            if(err) {
+                // Possibly non-critical error, warn at least, but keep going.
+                console.warn("[Bramble] unable to preload all filesystem Blob URLs", err);
+            }
 
-        // When the app is loaded and ready, hide the menus/toolbars
-        UI.initUI(finishStartup);
+            UI.initUI(finishStartup);
+        });
     });
 
     // We expect the hosting app to setup the filesystem, and give us a
