@@ -48,6 +48,7 @@ define(function (require, exports, module) {
         InMemoryFile      = require("document/InMemoryFile"),
         ProjectManager    = require("project/ProjectManager"),
         SearchResultsView = require("search/SearchResultsView").SearchResultsView,
+        BackgroundSearchResultsView = require("search/BackgroundSearchResultsView").SearchResultsView,
         StatusBar         = require("widgets/StatusBar"),
         Strings           = require("strings"),
         StringUtils       = require("utils/StringUtils"),
@@ -368,13 +369,23 @@ define(function (require, exports, module) {
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var model = FindInFiles.searchModel;
-        _resultsView = new SearchResultsView(model, "find-in-files-results", "find-in-files.results");
+        _resultsView = new BackgroundSearchResultsView(model, "find-in-files-results", "find-in-files.results");
         _resultsView
             .on("replaceAll", function () {
                 _finishReplaceAll(model);
             })
             .on("close", function () {
                 FindInFiles.clearSearch();
+            })
+            .on("findNextPage", function () {
+                FindInFiles.getNextPageofSearchResults()
+                    .done(function () {
+                        if (FindInFiles.searchModel.hasResults()) {
+//                            _resultsView._currentStart += 100;
+//                            _resultsView._render();
+                            _resultsView.open();
+                        }
+                    });
             });
     });
     

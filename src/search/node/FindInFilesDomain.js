@@ -23,7 +23,6 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
 maxerr: 50, node: true */
-/*global */
 
 (function () {
     "use strict";
@@ -32,12 +31,16 @@ maxerr: 50, node: true */
     var projectCache = {};
     var files;
     var MAX_DISPLAY_LENGTH = 200,
+        RESULTS_PER_PAGE = 100,
         MAX_TOTAL_RESULTS = 100;
     
     var results = {},
         numMatches = 0,
         foundMaximum = false,
-        exceedsMaximum = false;
+        fileTopIndex = -1,
+        fileBottomIndex = -1,
+        exceedsMaximum = false,
+        queryObject;
     
     function offsetToLineNum(textOrLines, offset) {
         if (Array.isArray(textOrLines)) {
@@ -168,6 +171,7 @@ maxerr: 50, node: true */
     }
     
     function setResults(fullpath, resultInfo) {
+        console.log("In setResults. numMatches:" + numMatches);
         if (results[fullpath]) {
             numMatches -= results[fullpath].matches.length;
             delete results[fullpath];
@@ -205,21 +209,21 @@ maxerr: 50, node: true */
     
     function doSearchInFiles(fileList, queryExpr) {
         var i;
-        if (fileList.length === 0) {
-            console.log('no files found');
-            return;
-
-        } else {
-           // var numCompleted = 0;
-           // var hasFailed = false;
-
-            for (i = 0; i < fileList.length && !foundMaximum; i++) {
-                _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
-            }
-//            fileList.forEach(function (filePath, i) {
-//                
-//            });
+        fileTopIndex = 0;
+        for (i = 0; i < fileList.length && !foundMaximum; i++) {
+            _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
         }
+        fileBottomIndex = i;
+    }
+    
+    function doSearchInFilesNextPage(fileList, queryExpr) {
+        console.log('doSearchInFilesNextPage');
+        var i;
+        fileTopIndex = fileBottomIndex + 1;
+        for (i = fileTopIndex; i < fileList.length && !foundMaximum; i++) {
+            _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
+        }
+        fileBottomIndex = i;
     }
     
     function regexEscape(str) {
@@ -269,6 +273,15 @@ maxerr: 50, node: true */
         return true;
     }
     
+    function findNumMatches(fileList, queryExpr) {
+        var i;
+        fileTopIndex = 0;
+        for (i = 0; i < fileList.length && !foundMaximum; i++) {
+            _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
+        }
+        fileBottomIndex = i;
+    }
+    
     function doSearch(searchObject) {
         console.log("doSearch");
         
@@ -279,9 +292,57 @@ maxerr: 50, node: true */
         results = {};
         numMatches = 0;
         foundMaximum = false;
+        fileTopIndex = -1;
+        fileBottomIndex = -1;
         exceedsMaximum = false;
-        var queryObject = parseQueryInfo(searchObject.queryInfo);
+        queryObject = parseQueryInfo(searchObject.queryInfo);
         doSearchInFiles(files, queryObject.queryExpr);
+        var send_object = {
+            "results":  results,
+            "numMatches": numMatches,
+            "foundMaximum":  foundMaximum,
+            "exceedsMaximum":  exceedsMaximum
+        };
+        return send_object;
+    }
+    
+    function searchResultSlice(index) {
+        var searchNumCount = 0,
+            resultsClone = {},
+            copyProperty = false,
+            currentMatches;
+        
+        Object.keys(results)
+            .forEach(function (filePath) {
+                currentMatches = results[filePath].matches;
+                searchNumCount += currentMatches.length;
+                if (copyProperty) {
+                    resultsClone[filePath] = results[filePath];
+                }
+                if (!copyProperty && searchNumCount > index) {
+                    resultsClone[filePath] = {matches: currentMatches.slice(currentMatches.length - (searchNumCount - index))};
+                    copyProperty = true;
+                }
+            });
+        results = resultsClone;
+    }
+    
+    function getNextPageofSearchResults() {
+        console.log("getNextPageofSearchResults" +numMatches);
+        
+        if (!files) {
+            console.log("no file object found");
+            return {};
+        }
+//        console.log('results length before clearing 100' + results.length);
+//        results = results.slice();
+//        console.log('results length after clearing 100' + results.length);
+        searchResultSlice(RESULTS_PER_PAGE);
+        numMatches = 0;
+        foundMaximum = false;
+        exceedsMaximum = false;
+        //var queryObject = parseQueryInfo(searchObject.queryInfo);
+        doSearchInFilesNextPage(files, queryObject.queryExpr);
         var send_object = {
             "results":  results,
             "numMatches": numMatches,
@@ -301,6 +362,19 @@ maxerr: 50, node: true */
         }
         domainManager.registerCommand(
             "FindInFiles",       // domain name
+            "initCache",    // command name
+            initCache,   // command handler function
+            false,          // this command is synchronous in Node
+            "Caches the project for find in files in node",
+            [{name: "fileList", // parameters
+                type: "Array",
+                description: "List of all project files - Path only"}],
+            [{name: "sdf", // return values
+                type: "boolean",
+                description: "don't know yet"}]
+        );
+        domainManager.registerCommand(
+            "FindInFiles",       // domain name
             "doSearch",    // command name
             doSearch,   // command handler function
             false,          // this command is synchronous in Node
@@ -314,17 +388,16 @@ maxerr: 50, node: true */
         );
         domainManager.registerCommand(
             "FindInFiles",       // domain name
-            "initCache",    // command name
-            initCache,   // command handler function
+            "nextPage",    // command name
+            getNextPageofSearchResults,   // command handler function
             false,          // this command is synchronous in Node
-            "Caches the project for find in files in node",
-            [{name: "fileList", // parameters
-                type: "Array",
-                description: "List of all project files - Path only"}],
-            [{name: "sdf", // return values
-                type: "boolean",
-                description: "don't know yet"}]
+            "Searches in project files and returns matches",
+            [],
+            [{name: "searchResults", // return values
+                type: "object",
+                description: "Object containing results of the search"}]
         );
+        
     }
     
     exports.init = init;
