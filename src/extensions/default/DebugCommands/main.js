@@ -50,13 +50,77 @@ define(function (require, exports, module) {
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
-    var reloadPrefs = true;
+    // default preferences file name    
     var DEFAULT_SETTINGS_FILENAME = "defaultSettings.json";
+    
+    var reComputeDefaultPrefs     = true,
+        defaultSettingsFullPath   = brackets.app.getApplicationSupportDirectory() + "/" + DEFAULT_SETTINGS_FILENAME;
+    
+    // Unit Test cases.
+    PreferencesManager.definePreference("TestPreferences", "object", { whenOpening: true, whenClosing: true, indentTags: [] },
+        {
+            description: Strings.DESCRIPTION_CLOSE_TAGS,
+            keys: {
+                nestedObject: {
+                    type: "object",
+                    description: "Simple Nested Object",
+                    keys: {
+                        dontCloseTags: {
+                            type: "array",
+                            description: Strings.DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS
+                        },
+                        whenOpening: {
+                            type: "boolean",
+                            description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING,
+                            initial: true
+                        },
+                        whenClosing: {
+                            type: "boolean",
+                            description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING,
+                            initial: true
+                        },
+                        indentTags: {
+                            type: "array",
+                            description: Strings.DESCRIPTION_CLOSE_TAGS_INDENT_TAGS
+                        }
+                    }
+                },
+                
+                dontCloseTags: {
+                    type: "array",
+                    description: Strings.DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS
+                },
+                whenOpening: {
+                    type: "boolean",
+                    description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING,
+                    initial: true
+                },
+                whenClosing: {
+                    type: "boolean",
+                    description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING,
+                    initial: true
+                },
+                indentTags: {
+                    type: "array",
+                    description: Strings.DESCRIPTION_CLOSE_TAGS_INDENT_TAGS
+                },
 
-    // default preferences file name
-    var defaultSettingsFileName = brackets.app.getApplicationSupportDirectory() + "/" + DEFAULT_SETTINGS_FILENAME;
-
-
+            }
+        });
+    
+    PreferencesManager.definePreference("TestPreferences2", "object", { whenOpening: true, whenClosing: true, indentTags: [] },
+        {
+            description: Strings.DESCRIPTION_CLOSE_TAGS,
+            keys: {
+            }
+        });
+    
+    PreferencesManager.definePreference("TestPreferences3", "boolean", { whenOpening: true, whenClosing: true, indentTags: [] },
+        {
+            initial: 123
+            
+        });
+    
     /**
      * Brackets Application Menu Constant
      * @const {string}
@@ -267,12 +331,12 @@ define(function (require, exports, module) {
         brackets.app.showOSFolder(dir);
     }
 
-    function _getDefaultPrefsFile() {
+    function _getDefaultPrefsFilePath() {
         // Default preferences
-        return defaultSettingsFileName;
+        return defaultSettingsFullPath;
     }
 
-    function _openFile(prefsPath, defaultPrefsPath) {
+    function _openPrefFilesInSplitView(prefsPath, defaultPrefsPath) {
 
         var currScheme = MainViewManager.getLayoutScheme(),
             file       = FileSystem.getFileForPath(prefsPath);
@@ -301,44 +365,70 @@ define(function (require, exports, module) {
 
     }
     
-    function _formatDefault(pref, property, tabIndentStr) {
+    function _isValidPref(pref) {
         
-        if (!pref || pref.type === "object") {
+        // Make sure to generate pref description only for
+        // user overrides and don't generate for properties
+        // meant to be used for internal purposes. Also check
+        // if the preference type is valid or not.
+        if (!pref.excludeFromHints && pref.type &&
+                        (pref.type === "number" ||
+                        pref.type === "boolean" ||
+                        pref.type === "string" ||
+                        pref.type === "array"   ||
+                        pref.type === "object")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    function _formatDefault(prefObj, prefName, tabIndentStr) {
+        
+        if (!prefObj || !prefObj.type || prefObj.type === "object") {
             // return empty string in case of
             // object and pref not defined.
             return "";
         }
         
-        var prefDescription = pref.description,
-            prefDefault     = pref.initial,
+        var prefDescription = prefObj.description,
+            prefDefault     = prefObj.initial,
             prefFormatText  = tabIndentStr + "\t// {0}\n" + tabIndentStr + "\t\"{1}\": {2}";
-            
+        
+                
         if (prefDefault === undefined) {
-            if (pref.type === "number") {
+            if (prefObj.type === "number") {
                 prefDefault = 0;
-            } else if (pref.type === "boolean") {
-                prefDefault = true;
+            } else if (prefObj.type === "boolean") {
+                // Defaulting the preference to false,
+                // in case this is missing.
+                prefDefault = false;
+            } else {
+                // for all other types
+                prefDefault = "";
             }
+        } else if (typeof (prefDefault) === "object" || typeof (prefDefault) === "array") {
+            prefDefault = "";
         }
 
         if (prefDescription === undefined || prefDescription.length === 0) {
-            prefDescription = "Default: " + pref.initial;
+            prefDescription = "Default: " + prefDefault;
         }
 
-        if (pref.type === "array") {
+        if (prefObj.type === "array") {
             prefDefault = "[]";
-        } else if (pref.type !== "boolean" && pref.type !== "number") {
+        } else if (prefDefault.length === 0 || (prefObj.type !== "boolean" && prefObj.type !== "number")) {
             prefDefault = "\"" + prefDefault + "\"";
         }
 
-        return StringUtils.format(prefFormatText, prefDescription, property, prefDefault);
+        return StringUtils.format(prefFormatText, prefDescription, prefName, prefDefault);
         
     }
     
-    function _formatObject(propName,  prefObj, indentLevel) {
+    function _formatPref(prefName,  prefObj, indentLevel) {
         
         // check for validity of the parameters being passed
-        if (!prefObj || indentLevel < 0) {
+        if (!prefObj || indentLevel < 0 || !prefName || !prefName.length || prefName.length <= 0) {
             return "";
         }
         
@@ -347,7 +437,6 @@ define(function (require, exports, module) {
             property,
             prefFormatText = "",
             hasKeys        = false,
-            currKey        = 0,
             tabIndents     = "",
             numKeys        = 0;
 
@@ -360,58 +449,67 @@ define(function (require, exports, module) {
             hasKeys = true;
         }
         
+        // There are some properties like "highlightMatches" that
+        // are declared as boolean type but still can take object keys.
+        // The below condition check can take care of cases like this.
         if (prefObj.type !== "object" && hasKeys === false) {
-            return _formatDefault(prefObj, propName, tabIndents);
+            return _formatDefault(prefObj, prefName, tabIndents);
         }
         
-        // Indent the object
+        // Indent the beginning of the object.
         tabIndents = tabIndents + "\t";
-        entireText = tabIndents + "// " + prefObj.description + "\n" + tabIndents + "\"" + propName + "\": " + "{";
+        
+        if (prefObj.description && prefObj.description.length > 0) {
+            entireText = tabIndents + "// " + prefObj.description + "\n";
+        }
+        
+        entireText = entireText + tabIndents + "\"" + prefName + "\": " + "{";
         
         if (prefObj.keys) {
-            numKeys = prefObj.keys.length;
+            numKeys = Object.keys(prefObj.keys).length;
         }
         
-        // In  case the object array is empty
+        // In case the object array is empty
         if (numKeys <= 0) {
             entireText = entireText + "}";
             return entireText;
         } else {
-            entireText = entireText + "\n\n";
+            entireText = entireText + "\n";
         }
         
-        prefFormatText = tabIndents + "\t// {0}\n" + tabIndents + "\t\"{1}\": {2}";
-        
+        // Now iterate through all the keys
+        // and generate nested formatted objects.
         var allKeys = prefObj.keys;
         
         for (property in allKeys) {
             
             if (allKeys.hasOwnProperty(property)) {
 
-                currKey++;
                 var pref = allKeys[property];
                 
-                if (!pref.excludeFromHints) {
+                if (_isValidPref(pref)) {
 
                     var formattedText = "";
                     
-                    if (pref.type === "object") {
-                        formattedText = _formatObject(property, pref, indentLevel + 1);
+                    if (pref.type === "object" || (pref.keys && pref.keys.length > 0)) {
+                        formattedText = _formatPref(property, pref, indentLevel + 1);
                     } else {
                         formattedText = _formatDefault(pref, property, tabIndents);
                     }
                     
-                    entireText = entireText + formattedText;
-                    if (currKey !== numKeys) {
-                        entireText = entireText + ",\n\n";
-                    } else {
-                        entireText = entireText + '\n';
+                    if (formattedText.length > 0) {
+                        entireText = entireText + formattedText + ",\n\n";
                     }
                 }
             }
         }
         
-        entireText = entireText + tabIndents + "}";
+        // Strip ",\n\n" that got added above, for the last property
+        if (entireText.length > 0) {
+            entireText = entireText.slice(0, -3) + "\n" + tabIndents + "}";
+        } else {
+            entireText = "{}";
+        }
         
         return entireText;
         
@@ -419,43 +517,37 @@ define(function (require, exports, module) {
     
     function _getDefaultPreferencesString() {
 
-        var allPrefs       = PreferencesManager.getAllPreferences();
-        var entireText     = "// Use this as a reference to override the preferences. \n{\n",
+        var allPrefs       = PreferencesManager.getAllPreferences(),
+            headerComment  = "// Use this as a reference to override the preferences. \n{\n",
             prefFormatText = "\t// {0}\n\t\"{1}\": {2}",
-            numKeys        = Object.keys(allPrefs).length,
-            currKey        = 0,
+            entireText     = "",
             property;
 
         for (property in allPrefs) {
 
             if (allPrefs.hasOwnProperty(property)) {
-                currKey++;
 
                 var pref = allPrefs[property];
-                
-                if (!pref.excludeFromHints) {
 
-                    var formattedText = _formatObject(property, pref, 0);
-                    
-                    entireText = entireText + formattedText;
-                    if (currKey !== numKeys) {
-                        entireText = entireText + ",\n\n";
-                    } else {
-                        entireText = entireText + '\n';
-                    }
+                if (_isValidPref(pref)) {
+                    entireText  = entireText + _formatPref(property, pref, 0) + ",\n\n";
                 }
-
             }
         }
-
-        entireText = entireText + "}\n";
+        
+        // Strip ",\n\n" that got added above, for the last property
+        if (entireText.length > 0) {
+            entireText = headerComment + entireText.slice(0, -3) + "\n}\n";
+        } else {
+            entireText = headerComment + "}\n";
+        }
 
         return entireText;
     }
 
     function _loadDefaultPrefs(prefsPath) {
 
-        var defaultPrefsPath = _getDefaultPrefsFile(),
+        var defaultPrefsPath = _getDefaultPrefsFilePath(),
             file             = FileSystem.getFileForPath(defaultPrefsPath);
 
         file.exists(function (err, doesExist) {
@@ -463,10 +555,10 @@ define(function (require, exports, module) {
             if (doesExist) {
 
                 // Go about recreating the default preferecences file.
-                if (reloadPrefs) {
+                if (reComputeDefaultPrefs) {
 
                     var prefsString = _getDefaultPreferencesString();
-                    reloadPrefs     = false;
+                    reComputeDefaultPrefs     = false;
 
                     // We need to delete this first
                     file.unlink(function (err) {
@@ -476,8 +568,8 @@ define(function (require, exports, module) {
                             // preferences string to this file.
                             FileUtils.writeText(file, prefsString, true)
                                 .done(function () {
-                                    reloadPrefs = false;
-                                    _openFile(prefsPath, defaultPrefsPath);
+                                    reComputeDefaultPrefs = false;
+                                    _openPrefFilesInSplitView(prefsPath, defaultPrefsPath);
                                 });
                         } else {
                             // Some error occured while trying to delete
@@ -491,7 +583,7 @@ define(function (require, exports, module) {
                 } else {
                     // Default preferences already generated.
                     // Just go about opening both the files.
-                    _openFile(prefsPath, defaultPrefsPath);
+                    _openPrefFilesInSplitView(prefsPath, defaultPrefsPath);
                 }
             } else {
 
@@ -501,8 +593,8 @@ define(function (require, exports, module) {
                 var _prefsString = _getDefaultPreferencesString();
                 FileUtils.writeText(file, _prefsString, true)
                     .done(function () {
-                        reloadPrefs = false;
-                        _openFile(prefsPath, defaultPrefsPath);
+                        reComputeDefaultPrefs = false;
+                        _openPrefFilesInSplitView(prefsPath, defaultPrefsPath);
                     });
             }
         });
