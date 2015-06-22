@@ -52,75 +52,10 @@ define(function (require, exports, module) {
     
     // default preferences file name    
     var DEFAULT_SETTINGS_FILENAME = "defaultSettings.json";
-    
+
     var reComputeDefaultPrefs     = true,
         defaultSettingsFullPath   = brackets.app.getApplicationSupportDirectory() + "/" + DEFAULT_SETTINGS_FILENAME;
-    
-    // Unit Test cases.
-    PreferencesManager.definePreference("TestPreferences", "object", { whenOpening: true, whenClosing: true, indentTags: [] },
-        {
-            description: Strings.DESCRIPTION_CLOSE_TAGS,
-            keys: {
-                nestedObject: {
-                    type: "object",
-                    description: "Simple Nested Object",
-                    keys: {
-                        dontCloseTags: {
-                            type: "array",
-                            description: Strings.DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS
-                        },
-                        whenOpening: {
-                            type: "boolean",
-                            description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING,
-                            initial: true
-                        },
-                        whenClosing: {
-                            type: "boolean",
-                            description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING,
-                            initial: true
-                        },
-                        indentTags: {
-                            type: "array",
-                            description: Strings.DESCRIPTION_CLOSE_TAGS_INDENT_TAGS
-                        }
-                    }
-                },
-                
-                dontCloseTags: {
-                    type: "array",
-                    description: Strings.DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS
-                },
-                whenOpening: {
-                    type: "boolean",
-                    description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING,
-                    initial: true
-                },
-                whenClosing: {
-                    type: "boolean",
-                    description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING,
-                    initial: true
-                },
-                indentTags: {
-                    type: "array",
-                    description: Strings.DESCRIPTION_CLOSE_TAGS_INDENT_TAGS
-                },
 
-            }
-        });
-    
-    PreferencesManager.definePreference("TestPreferences2", "object", { whenOpening: true, whenClosing: true, indentTags: [] },
-        {
-            description: Strings.DESCRIPTION_CLOSE_TAGS,
-            keys: {
-            }
-        });
-    
-    PreferencesManager.definePreference("TestPreferences3", "boolean", { whenOpening: true, whenClosing: true, indentTags: [] },
-        {
-            initial: 123
-            
-        });
-    
     /**
      * Brackets Application Menu Constant
      * @const {string}
@@ -144,7 +79,12 @@ define(function (require, exports, module) {
         DEBUG_SHOW_ERRORS_IN_STATUS_BAR       = "debug.showErrorsInStatusBar",
         DEBUG_OPEN_BRACKETS_SOURCE            = "debug.openBracketsSource",
         DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView";
-
+    
+    // define a preference to turn off opening preferences in split-view.
+    PreferencesManager.definePreference(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW, "boolean", true, {
+        description: Strings.DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW
+    });
+    
     PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false, {
         description: Strings.DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR
     });
@@ -341,8 +281,8 @@ define(function (require, exports, module) {
         var currScheme = MainViewManager.getLayoutScheme(),
             file       = FileSystem.getFileForPath(prefsPath);
 
-        // Open the default preferences in the left pane.
-        CommandManager.execute(Commands.FILE_OPEN, { fullPath: defaultPrefsPath, paneId: "first-pane"});
+        // Open the default preferences in the left pane in the read only mode.
+        CommandManager.execute(Commands.FILE_OPEN, { fullPath: defaultPrefsPath, paneId: "first-pane", isReadOnly: true});
 
         if (currScheme.rows === 1 && currScheme.columns === 1) {
             // Split layout is not active yet. Inititate the
@@ -387,7 +327,7 @@ define(function (require, exports, module) {
         
         if (!prefObj || !prefObj.type || prefObj.type === "object") {
             // return empty string in case of
-            // object and pref not defined.
+            // object or pref not defined.
             return "";
         }
         
@@ -411,8 +351,12 @@ define(function (require, exports, module) {
             prefDefault = "";
         }
 
-        if (prefDescription === undefined || prefDescription.length === 0) {
-            prefDescription = "Default: " + prefDefault;
+        if ((prefDescription === undefined || prefDescription.length === 0)) {
+            if (typeof (prefDefault)  === "string" && prefDefault.length === 0) {
+                prefDescription = "";
+            } else {
+                prefDescription = "Default: " + prefDefault;
+            }
         }
 
         if (prefObj.type === "array") {
@@ -424,7 +368,7 @@ define(function (require, exports, module) {
         return StringUtils.format(prefFormatText, prefDescription, prefName, prefDefault);
         
     }
-    
+
     function _formatPref(prefName,  prefObj, indentLevel) {
         
         // check for validity of the parameters being passed
@@ -518,8 +462,7 @@ define(function (require, exports, module) {
     function _getDefaultPreferencesString() {
 
         var allPrefs       = PreferencesManager.getAllPreferences(),
-            headerComment  = "// Use this as a reference to override the preferences. \n{\n",
-            prefFormatText = "\t// {0}\n\t\"{1}\": {2}",
+            headerComment  = Strings.DEFAULT_SETTINGS_JSON_HEADER_COMMENT + "\n{\n",
             entireText     = "",
             property;
 
@@ -576,7 +519,7 @@ define(function (require, exports, module) {
                             // the file. In this case open the user
                             // preferences alone.
                             console.error("Unable to delete the existing default preferences file! error code:" + err);
-                            CommandManager.execute(Commands.FILE_OPEN, { fullPath: prefsPath});
+                            CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
                         }
                     });
 
@@ -602,21 +545,26 @@ define(function (require, exports, module) {
 
     function handleOpenPrefsInSplitView() {
 
-        var fullPath = PreferencesManager.getUserPrefFile(),
-            file     = FileSystem.getFileForPath(fullPath);
+        var fullPath        = PreferencesManager.getUserPrefFile(),
+            file            = FileSystem.getFileForPath(fullPath),
+            splitViewPrefOn = PreferencesManager.get(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW);
+        
+        if (!splitViewPrefOn) {
+            CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+        } else {
+            file.exists(function (err, doesExist) {
 
-        file.exists(function (err, doesExist) {
+                if (doesExist) {
+                    _loadDefaultPrefs(fullPath);
 
-            if (doesExist) {
-                _loadDefaultPrefs(fullPath);
-
-            } else {
-                FileUtils.writeText(file, "", true)
-                    .done(function () {
-                        _loadDefaultPrefs(fullPath);
-                    });
-            }
-        });
+                } else {
+                    FileUtils.writeText(file, "", true)
+                        .done(function () {
+                            _loadDefaultPrefs(fullPath);
+                        });
+                }
+            });
+        }
 
     }
 
