@@ -33,7 +33,6 @@ define(function (require, exports, module) {
     var _                     = require("thirdparty/lodash"),
         FileFilters           = require("search/FileFilters"),
         Async                 = require("utils/Async"),
-        AppInit               = require("utils/AppInit"),
         StringUtils           = require("utils/StringUtils"),
         ProjectManager        = require("project/ProjectManager"),
         DocumentModule        = require("document/Document"),
@@ -419,7 +418,6 @@ define(function (require, exports, module) {
      * @return {?$.Promise} A promise that's resolved with the search results (or ZERO_FILES_TO_SEARCH) or rejected when the find competes. 
      *      Will be null if the query is invalid.
      */
-    var firstTime = false;
     function _doSearch(queryInfo, candidateFilesPromise, filter) {
         searchModel.filter = filter;
         
@@ -448,26 +446,18 @@ define(function (require, exports, module) {
                 
                 if (fileListResult.length) {
                     var searchObject;
-                    if (firstTime) {
-                        var files = fileListResult
-                            .filter(function (entry) {
-                                return entry.isFile && _isReadableText(entry.fullPath);
-                            })
-                            .map(function (entry) {
-                                return entry.fullPath;
-                            });
-                        searchObject = {
-                            "files": files,
-                            "queryInfo": queryInfo,
-                            "queryExpr": searchModel.queryExpr
-                        };
-                        firstTime = false;
-                    } else {
-                        searchObject = {
-                            "queryInfo": queryInfo,
-                            "queryExpr": searchModel.queryExpr
-                        };
-                    }
+                    var files = fileListResult
+                        .filter(function (entry) {
+                            return entry.isFile && _isReadableText(entry.fullPath);
+                        })
+                        .map(function (entry) {
+                            return entry.fullPath;
+                        });
+                    searchObject = {
+                        "files": files,
+                        "queryInfo": queryInfo,
+                        "queryExpr": searchModel.queryExpr
+                    };
                     searchDomain.exec("doSearch", searchObject)
                         .done(function (rcvd_object) {
                             //console.log("NUMMM "  + filelistnum);
@@ -479,13 +469,6 @@ define(function (require, exports, module) {
                             searchDeferred.resolve();
                         });
                     return searchDeferred.promise();
-                    
-                    
-                    
-                    
-                    
-                    
-                    
                     
                 } else {
                     return ZERO_FILES_TO_SEARCH;
