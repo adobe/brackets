@@ -12,7 +12,7 @@ define(function (require, exports, module) {
 
     var Path             = brackets.getModule("filesystem/impls/filer/BracketsFiler").Path;
     var basePath         = PathUtils.directory(window.location.href);
-    var themePath        = Path.join(basePath, 'extensions/default');
+    var themePath        = Path.join(basePath, 'extensions/default/bramble/stylesheets');
 
     // Store the current theme, and load defaults as if
     // they were third party themes
@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     function init(theme) {
         var lightFile = {
             name: "main.less",
-            _path: Path.join(themePath, "LightTheme", "main.less")
+            _path: Path.join(themePath, "lightTheme.less")
         };
         var lightOptions = {
             name: "light-theme"
@@ -39,7 +39,7 @@ define(function (require, exports, module) {
 
         var darkFile = {
             name: "main.less",
-            _path: Path.join(themePath, "DarkTheme", "main.less")
+            _path: Path.join(themePath, "darkTheme.less")
         };
         var darkOptions = {
             name: "dark-theme",
