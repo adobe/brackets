@@ -9,9 +9,10 @@ define(function (require, exports, module) {
         Filer           = require("filesystem/impls/filer/BracketsFiler"),
         BlobUtils       = require("filesystem/impls/filer/BlobUtils"),
         decodePath      = require("filesystem/impls/filer/FilerUtils").decodePath,
-        Handlers = require("filesystem/impls/filer/lib/handlers"),
-        Content = require("filesystem/impls/filer/lib/content"),
-        Async = require("utils/Async");
+        Handlers        = require("filesystem/impls/filer/lib/handlers"),
+        Content         = require("filesystem/impls/filer/lib/content"),
+        Async           = require("utils/Async"),
+        BrambleEvents   = require("bramble/BrambleEvents");
 
     var fs              = Filer.fs(),
         Path            = Filer.Path,
@@ -184,6 +185,7 @@ define(function (require, exports, module) {
 
                 if(stat.isFile) {
                     BlobUtils.rename(oldPath, newPath);
+                    BrambleEvents.triggerFileRenamed(oldPath, newPath);
                 }
 
                 callback();
@@ -349,6 +351,10 @@ define(function (require, exports, module) {
                 // TODO: deal with the symlink case (i.e., only remove cache
                 // item if file is really going away).
                 BlobUtils.remove(path);
+
+                if(!err) {
+                    BrambleEvents.triggerFileRemoved(path);
+                }
                 callback(_mapError(err));
             });
         });

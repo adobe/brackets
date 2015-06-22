@@ -49,4 +49,12 @@ define(function (require, exports, module) {
     exports.triggerSidebarExpanded = function() {
         exports.trigger("bramble:sidebarChange", true);
     };
+
+    // file delete and rename needs to get broadcast to live dev transport
+    exports.triggerFileRenamed = function(oldFilename, newFilename) {
+        exports.trigger("fileRenamed", oldFilename, newFilename);
+    };
+    exports.triggerFileRemoved = function(filename) {
+        exports.trigger("fileRemoved", filename);
+    };
 });

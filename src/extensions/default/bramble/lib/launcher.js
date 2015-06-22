@@ -24,7 +24,7 @@ define(function (require, exports, module) {
         _launcherInstance = this;
     }
 
-    Launcher.prototype.launch = function(url) {
+    Launcher.prototype.launch = function(url, callback) {
         var server = this.server;
         var browser = this.browser;
 
@@ -35,6 +35,10 @@ define(function (require, exports, module) {
                 return;
             }
             browser.update(urlOrHTML);
+
+            if(typeof callback === "function") {
+                callback();
+            }
         });
     };
 

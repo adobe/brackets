@@ -15,6 +15,7 @@ define(function (require, exports, module) {
     var EventDispatcher     = brackets.getModule("utils/EventDispatcher"),
         LiveDevMultiBrowser = brackets.getModule("LiveDevelopment/LiveDevMultiBrowser"),
         BlobUtils           = brackets.getModule("filesystem/impls/filer/BlobUtils"),
+        BrambleEvents       = brackets.getModule("bramble/BrambleEvents"),
         Path                = brackets.getModule("filesystem/impls/filer/BracketsFiler").Path;
 
     // The script that will be injected into the previewed HTML to handle the other side of the post message connection.
@@ -81,6 +82,10 @@ define(function (require, exports, module) {
     */
     function start(){
         window.addEventListener("message", _listener);
+
+        // Reload whenever files are removed or renamed
+        BrambleEvents.on("fileRemoved", reload);
+        BrambleEvents.on("fileRenamed", reload);
     }
 
     /**
@@ -163,12 +168,23 @@ define(function (require, exports, module) {
             "<script>\n" + XHRShim + "</script>\n";
     }
 
+    // URL of document being rewritten/launched (if any)
+    var _pendingReloadUrl;
+
     function reload() {
         var launcher = Launcher.getCurrentInstance();
         var liveDoc = LiveDevMultiBrowser._getCurrentLiveDoc();
         var url = BlobUtils.getUrl(liveDoc.doc.file.fullPath);
 
-        launcher.launch(url);
+        // Don't start rewriting a URL if it's already in process (prevents infinite loop)
+        if(_pendingReloadUrl === url) {
+            return;
+        }
+
+        _pendingReloadUrl = url;
+        launcher.launch(url, function() {
+            _pendingReloadUrl = null;
+        });
     }
 
     // Exports
