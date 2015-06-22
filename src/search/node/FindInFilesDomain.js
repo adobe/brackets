@@ -160,10 +160,10 @@ maxerr: 50, node: true */
 //        });
         
         
-//        projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
-//        return projectCache[filePath];
+        projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
+        return projectCache[filePath];
         
-        return fs.readFileSync(filePath, 'utf8');
+//        return fs.readFileSync(filePath, 'utf8');
         
     }
     
@@ -261,7 +261,7 @@ maxerr: 50, node: true */
         var i;
         files = fileList;
         // Temporarily increase caching time for testing
-        for (i = 0; i < 10; i++) {
+        for (i = 0; i < 1; i++) {
             files.forEach(function (file) {
                 getFileContentsForFile(file);
             });

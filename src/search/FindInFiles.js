@@ -719,7 +719,7 @@ define(function (require, exports, module) {
     };
     
     //AppInit.appReady(_initCache);
-   // ProjectManager.on("projectOpen", _initCache);
+    ProjectManager.on("projectOpen", _initCache);
     
     // Public exports
     exports.searchModel          = searchModel;
