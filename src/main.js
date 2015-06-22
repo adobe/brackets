@@ -81,7 +81,9 @@ define(function (require) {
         // XXXBramble: get the filesystem loading ASAP for connection with parent window
         require(["filesystem/impls/filer/RemoteFiler"], function(RemoteFiler) {
             RemoteFiler.init();
-            require("brackets");
+            // Load the brackets module. This is a self-running module that loads and
+            // runs the entire application.
+            require(["brackets"]);
         });
     });
 });
