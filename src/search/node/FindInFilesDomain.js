@@ -28,35 +28,52 @@ maxerr: 50, node: true */
 (function () {
     
     'use strict';
-    
-    var childProcess, retrieveChild;
+    var fs = require('fs');
+    var childProcess, retrieveChild = null;
     
     function _init() {
         childProcess = require("child_process");
         retrieveChild = childProcess.spawn("node", ["C://Users//vaishnav//Desktop//Adobe//git//brackets//src//search//node//ChildFIF.js"], {stdio: ['ipc']});
 
         console.log("Child Process Created with PID " + retrieveChild.pid);
-
-        retrieveChild.on('close', function (code) {
-            console.log('child process exited with code ' + code);
-        });
     }
     
+    function restartChildNodeProcess(callback, asyncCallback) {
+        var data;
+        if (retrieveChild) {
+            data = {
+                "msg" : "shutDown"
+            };
+            //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " In MainProcess: ChildProcess restart " + retrieveChild.pid + " and sending exit message", function (err) {});
+            retrieveChild.send(data);
+            retrieveChild.on('exit', function (code) {
+                retrieveChild = null;
+                //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " In MainProcess: ChildProcess exited with code : " + code + ".. ", function (err) {});
+                _init();
+                callback(asyncCallback);
+            });
+        } else {
+            _init();
+            callback(asyncCallback);
+        }
+        
+    }
     
     function initCache(fileList, callback) {
-        var data = {
-            "msg" : "initCache",
-            "fileList" : fileList
-        };
+        restartChildNodeProcess(function (callback) {
+            var data = {
+                "msg" : "initCache",
+                "fileList" : fileList
+            };
         
-        retrieveChild.send(data);
-        retrieveChild.on('message', function (msg) {
-            //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Receive Message on Parent.. ", function (err) {});
-            if (msg.msg === "cacheComplete") {
-                callback(null, msg.result);
-            }
-        });
-        
+            retrieveChild.send(data);
+            retrieveChild.on('message', function (msg) {
+                //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Receive Message on Parent.. ", function (err) {});
+                if (msg.msg === "cacheComplete") {
+                    callback(null, msg.result);
+                }
+            });
+        }, callback);
     }
     
      //Receive result from initCache
@@ -75,8 +92,6 @@ maxerr: 50, node: true */
             }
         });
     }
-    
-    _init();
     
     //Receive result from doSearch
     

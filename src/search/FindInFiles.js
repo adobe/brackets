@@ -693,7 +693,7 @@ define(function (require, exports, module) {
         });
     };
     
-    AppInit.appReady(function () {
+    ProjectManager.on("projectOpen", function () {
         function filter(file) {
             return _subtreeFilter(file, null) && _isReadableText(file.fullPath);
         }

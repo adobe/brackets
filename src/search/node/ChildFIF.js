@@ -283,8 +283,13 @@ maxerr: 50, node: true */
         return send_object;
     }
     
+    function shutDown() {
+        //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " In ChildProcess: Child Process is about to exit.. ", function (err) {});
+        process.exit(0);
+    }
+    
     process.on('message', function (msg) {
-// fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Received Message ", function (err) {});
+        //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Received Message " + msg.msg + ".. ", function (err) {});
         var data;
         if (msg.msg === "initCache") {
             var fileList = msg.fileList;
@@ -297,6 +302,8 @@ maxerr: 50, node: true */
             var result = doSearch(searchObject);
             data = {"msg" : "searchComplete", "result" : result};
             process.send(data);
+        } else if (msg.msg === "shutDown") {
+            shutDown();
         }
         
     });
