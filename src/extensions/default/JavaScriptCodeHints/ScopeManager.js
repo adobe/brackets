@@ -858,7 +858,8 @@ define(function (require, exports, module) {
              * @return {jQuery.Promise} - the Promise returned from DocumentMangaer.getDocumentText()
              */
             function getDocText(filePath) {
-                if (!FileSystem.isAbsolutePath(filePath)) {
+                if (!FileSystem.isAbsolutePath(filePath) || // don't handle URLs
+                        filePath.slice(0, 2) === "//") { // don't handle protocol-relative URLs like //example.com/main.js (see #10566)
                     return (new $.Deferred()).reject().promise();
                 }
                 
