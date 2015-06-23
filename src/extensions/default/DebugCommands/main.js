@@ -57,6 +57,70 @@ define(function (require, exports, module) {
         defaultSettingsFullPath   = brackets.app.getApplicationSupportDirectory() + "/" + DEFAULT_SETTINGS_FILENAME;
     
     // unit testing.
+    // Unit Test cases.
+    PreferencesManager.definePreference("TestPreferences", "object", { whenOpening: true, whenClosing: true, indentTags: [] },
+        {
+            description: Strings.DESCRIPTION_CLOSE_TAGS,
+            keys: {
+                nestedObject: {
+                    type: "object",
+                    description: "Simple Nested Object",
+                    keys: {
+                        dontCloseTags: {
+                            type: "array",
+                            description: Strings.DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS
+                        },
+                        whenOpening: {
+                            type: "boolean",
+                            description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING,
+                            initial: false
+                        },
+                        whenClosing: {
+                            type: "boolean",
+                            description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING
+                        },
+                        indentTags: {
+                            type: "array",
+                            description: Strings.DESCRIPTION_CLOSE_TAGS_INDENT_TAGS
+                        }
+                    }
+                },
+                
+                dontCloseTags: {
+                    type: "array",
+                    description: Strings.DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS
+                },
+                whenOpening: {
+                    type: "boolean",
+                    description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING,
+                    initial: true
+                },
+                whenClosing: {
+                    type: "boolean",
+                    description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING,
+                    initial: true
+                },
+                indentTags: {
+                    type: "array",
+                    description: Strings.DESCRIPTION_CLOSE_TAGS_INDENT_TAGS
+                },
+
+            }
+        });
+    
+    PreferencesManager.definePreference("TestPreferences2", "object", { whenOpening: true, whenClosing: true, indentTags: [] },
+        {
+            description: Strings.DESCRIPTION_CLOSE_TAGS,
+            keys: {
+            }
+        });
+    
+    PreferencesManager.definePreference("TestPreferences3", "boolean", { whenOpening: true, whenClosing: true, indentTags: [] },
+        {
+            initial: 123
+            
+        });
+    
     var preferencesId      = "denniskehrig.ShowWhitespace";
     var defaultPreferences = {
         checked: true,
@@ -305,6 +369,8 @@ define(function (require, exports, module) {
         var currScheme = MainViewManager.getLayoutScheme(),
             file       = FileSystem.getFileForPath(prefsPath);
 
+        CommandManager.execute(Commands.FILE_CLOSE, {file: file});
+
         // Open the default preferences in the left pane in the read only mode.
         CommandManager.execute(Commands.FILE_OPEN, { fullPath: defaultPrefsPath, paneId: "first-pane", isReadOnly: true});
 
@@ -315,7 +381,8 @@ define(function (require, exports, module) {
         }
 
 
-        // Make sure the preference file is already
+        // Make sure the preference file is going to be opened in the second
+        // pane
         if (MainViewManager.findInWorkingSet("first-pane", prefsPath) >= 0) {
 
             MainViewManager._moveView("first-pane", "second-pane", file, 0, true);
@@ -334,7 +401,7 @@ define(function (require, exports, module) {
     // value, object type, object's type property.
     function _getObjType(prefObj) {
         
-        var prefType;
+        var prefType = "undefined";
         
         if (prefObj) {
             
@@ -349,7 +416,7 @@ define(function (require, exports, module) {
                      prefType !== "string"  &&
                      prefType !== "array"   &&
                      prefType !== "object")) {
-                    prefType = undefined;
+                    prefType = "undefined";
                 }
             } else if (typeof (prefObj.initial) !== "undefined") {
                 
@@ -359,7 +426,7 @@ define(function (require, exports, module) {
                 // variable.
                 prefType = typeof (prefObj.initial);
                 
-            } else if (prefObj.keys !== undefined) {
+            } else if (typeof (prefObj.keys) !== "undefined") {
                 prefType = typeof (prefObj.keys);
             } else {
                 prefType = typeof (prefObj);
@@ -392,7 +459,7 @@ define(function (require, exports, module) {
             property,
             keysFound = false;
         
-        if (!finalObj) {
+        if (!prefObj) {
             return {};
         }
         
@@ -417,7 +484,8 @@ define(function (require, exports, module) {
             }
         }
         
-        // Last resort: Maybe plain objects.
+        // Last resort: Maybe plain objects, in which case
+        // we blindly extract all the properties.
         if (keysFound === false) {
             for (property in prefObj) {
                 if (prefObj.hasOwnProperty(property)) {
@@ -432,9 +500,9 @@ define(function (require, exports, module) {
 
     function _formatDefault(prefObj, prefName, tabIndentStr) {
         
-        if (!prefObj || _getObjType(prefObj) === "object") {
+        if (!prefObj || typeof (prefName) !== "string" || _getObjType(prefObj) === "object") {
             // return empty string in case of
-            // object or pref not defined.
+            // object or pref is not defined.
             return "";
         }
         
@@ -444,9 +512,9 @@ define(function (require, exports, module) {
             prefObjType     = _getObjType(prefObj);
         
         if (prefObj.initial === undefined && !prefObj.description) {
-                
+            // This could be the case when prefObj is a basic JS variable.
             if (prefObjType === "number" || prefObjType === "boolean" || prefObjType === "string") {
-                prefDefault     = prefObj;
+                prefDefault = prefObj;
             }
         }
 
@@ -482,14 +550,14 @@ define(function (require, exports, module) {
     function _formatPref(prefName,  prefObj, indentLevel) {
         
         // check for validity of the parameters being passed
-        if (!prefObj || indentLevel < 0 || !prefName || !prefName.length || prefName.length <= 0) {
+        if (!prefObj || indentLevel < 0 || !prefName || !prefName.length) {
             return "";
         }
         
         var iLevel,
-            entireText     = "",
             property,
             prefObjKeys,
+            entireText     = "",
             prefObjDesc    = prefObj.description || "",
             prefObjType    = prefObj.type,
             hasKeys        = false,
@@ -497,11 +565,12 @@ define(function (require, exports, module) {
             numKeys        = 0;
         
 
-        // Generate the indentLevel
+        // Generate the indentLevel string
         for (iLevel = 0; iLevel < indentLevel; iLevel++) {
             tabIndents = tabIndents + "\t";
         }
         
+        // Check if the preference is an object.
         if (_getObjType(prefObj) === "object") {
             prefObjKeys = _getObjKeys(prefObj);
         }
@@ -550,8 +619,7 @@ define(function (require, exports, module) {
                 if (_isValidPref(pref)) {
 
                     var formattedText = "";
-                    
-                    //if (pref.type === "object" || (pref.keys && pref.keys.length > 0)) {
+
                     if (_getObjType(pref) === "object") {
                         formattedText = _formatPref(property, pref, indentLevel + 1);
                     } else {
@@ -578,10 +646,10 @@ define(function (require, exports, module) {
     
     function _getDefaultPreferencesString() {
 
-        var allPrefs       = PreferencesManager.getAllPreferences(),
+        var property,
+            allPrefs       = PreferencesManager.getAllPreferences(),
             headerComment  = Strings.DEFAULT_SETTINGS_JSON_HEADER_COMMENT + "\n{\n",
-            entireText     = "",
-            property;
+            entireText     = "";
 
         for (property in allPrefs) {
 
@@ -625,8 +693,8 @@ define(function (require, exports, module) {
                 // Go about recreating the default preferecences file.
                 if (reComputeDefaultPrefs) {
 
-                    var prefsString = _getDefaultPreferencesString();
-                    reComputeDefaultPrefs     = false;
+                    var prefsString       = _getDefaultPreferencesString();
+                    reComputeDefaultPrefs = false;
 
                     // We need to delete this first
                     file.unlink(function (err) {
@@ -638,6 +706,10 @@ define(function (require, exports, module) {
                                 .done(function () {
                                     reComputeDefaultPrefs = false;
                                     _openPrefFilesInSplitView(prefsPath, defaultPrefsPath);
+                                }).fail(function (error) {
+                                    // Give a chance for default preferences command.
+                                    console.error("Unable to write to default preferences file! error code:" + error);
+                                    CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
                                 });
                         } else {
                             // Some error occured while trying to delete
@@ -663,6 +735,10 @@ define(function (require, exports, module) {
                     .done(function () {
                         reComputeDefaultPrefs = false;
                         _openPrefFilesInSplitView(prefsPath, defaultPrefsPath);
+                    }).fail(function (error) {
+                        // Give a chance for default preferences command.
+                        console.error("Unable to write to default preferences file! error code:" + error);
+                        CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
                     });
             }
         });
