@@ -12,6 +12,7 @@ define(function (require, exports, module) {
     var HTMLRewriter   = brackets.getModule("filesystem/impls/filer/lib/HTMLRewriter");
     var SidebarView    = brackets.getModule("project/SidebarView");
     var StatusBar      = brackets.getModule("widgets/StatusBar");
+    var WorkspaceManager = brackets.getModule("view/WorkspaceManager");
 
     var PostMessageTransport = require("lib/PostMessageTransport");
     var Theme = require("lib/Theme");
@@ -70,6 +71,10 @@ define(function (require, exports, module) {
             break;
         case "BRAMBLE_SHOW_STATUSBAR":
             StatusBar.enable();
+            break;
+        case "RESIZE":
+            // The host window was resized, update all panes
+            WorkspaceManager.recomputeLayout(true);
             break;
         default:
             console.log('[Bramble] unknown command:', command);

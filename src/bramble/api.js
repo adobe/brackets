@@ -189,6 +189,11 @@ define([
         options = options || {};
 
         function startEvents(win) {
+            // Listen for resize events on the window, and let Bramble know
+            addEventListener("resize", function(e) {
+                self._executeRemoteCommand({commandCategory: "bramble", command: "RESIZE"});
+            });
+
             addEventListener("message", function(e) {
                 var data = parseEventData(e.data);
 
