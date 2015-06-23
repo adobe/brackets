@@ -46,7 +46,7 @@ define(function (require, exports, module) {
         Path            = Filer.Path,
         Content         = require("filesystem/impls/filer/lib/content"),
         LanguageManager = require("language/LanguageManager"),
-        StartupProject  = require("bramble/BrambleStartupProject");
+        StartupState    = require("bramble/StartupState");
 
     // 3M size limit for imported files
     var byteLimit = 3 * 1024 * 1000;
@@ -254,7 +254,7 @@ define(function (require, exports, module) {
                 reader.onload = function(e) {
                     delete reader.onload;
 
-                    var filename = Path.join(StartupProject.getInfo().root, item.name);
+                    var filename = Path.join(StartupState.project("root"), item.name);
                     var file = FileSystem.getFileForPath(filename);
 
                     // Create a Filer Buffer, and determine the proper encoding. We

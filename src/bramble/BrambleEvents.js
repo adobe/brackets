@@ -37,6 +37,11 @@ define(function (require, exports, module) {
         exports.trigger("bramble:previewModeChange", mode);
     };
 
+    // bramble:themeChange event when the theme is switched
+    exports.triggerThemeChange = function(theme) {
+        exports.trigger("bramble:themeChange", theme);
+    };
+
     // bramble:sidebarChange event when collapsed or expanded. Second arg is visible (true/false);
     exports.triggerSidebarCollapsed = function() {
         exports.trigger("bramble:sidebarChange", false);

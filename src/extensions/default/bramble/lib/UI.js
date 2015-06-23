@@ -11,14 +11,17 @@ define(function (require, exports, module) {
         Strings             = brackets.getModule("strings"),
         MainViewManager     = brackets.getModule("view/MainViewManager"),
         BrambleEvents       = brackets.getModule("bramble/BrambleEvents"),
-        BrambleStartupProject = brackets.getModule("bramble/BrambleStartupProject"),
+        BrambleStartupState = brackets.getModule("bramble/StartupState"),
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
-        SidebarView         = brackets.getModule("project/SidebarView");
+        ViewCommandHandlers = brackets.getModule("view/ViewCommandHandlers"),
+        SidebarView         = brackets.getModule("project/SidebarView"),
+        WorkspaceManager    = brackets.getModule("view/WorkspaceManager");
 
     var PhonePreview  = require("text!lib/Mobile.html");
     var PostMessageTransport = require("lib/PostMessageTransport");
     var IframeBrowser = require("lib/iframe-browser");
     var Compatibility = require("lib/compatibility");
+    var Theme = require("lib/Theme");
 
     var isMobileViewOpen = false;
 
@@ -31,10 +34,8 @@ define(function (require, exports, module) {
             toggleMobileViewButton();
 
             // Check to see if there is more than 1 file in the project folder
-            var root = BrambleStartupProject.getInfo().root;
+            var root = BrambleStartupState.project("root");
             FileSystem.getDirectoryForPath(root).getContents(function(err, contents) {
-                var hideSideBar = contents && contents.length === 1;
-
                 if(shouldHideUI()) {
                     removeTitleBar();
                     removeMainToolBar();
@@ -42,10 +43,13 @@ define(function (require, exports, module) {
                     removeRightSideToolBar();
                     removeStatusBar();
 
-                    if(hideSideBar) {
+                    // If there's only 1 file in the project, hide the sidebar
+                    if(contents && contents.length === 1) {
                         SidebarView.hide();
                     }
                 }
+
+                restoreState();
 
                 // Show the editor, remove spinner
                 $("#spinner-container").remove();
@@ -54,6 +58,61 @@ define(function (require, exports, module) {
                 callback();
             });
         });
+    }
+
+    /**
+     * Restores user state sent from the hosting app
+     */
+    function restoreState() {
+        var theme = BrambleStartupState.ui("theme");
+        switch(theme) {
+        case "light-theme":
+        case "dark-theme":
+            Theme.setTheme(theme);
+            break;
+        default:
+            console.warn("[Bramble] unknown theme: `" + theme + "`");
+        }
+
+        var previewMode = BrambleStartupState.ui("previewMode");
+        switch(previewMode) {
+        case "desktop":
+            showDesktopView();
+            break;
+        case "mobile":
+            showMobileView();
+            break;
+        default:
+            console.warn("[Bramble] unknown preview mode: `" + previewMode + "`");
+        }
+
+        var sidebarWidth = BrambleStartupState.ui("sidebarWidth");
+        if(sidebarWidth) {
+            $("#sidebar").width(sidebarWidth);
+        }
+
+        var sidebarVisible = BrambleStartupState.ui("sidebarVisible");
+        if(sidebarVisible !== null) {
+            if(sidebarVisible) {
+                SidebarView.show();
+            } else {
+                SidebarView.hide();
+            }
+        }
+
+        var firstPaneWidth = BrambleStartupState.ui("firstPaneWidth");
+        if(firstPaneWidth) {
+            $("#first-pane").width(firstPaneWidth);
+        }
+
+        var fontSize = BrambleStartupState.ui("fontSize");
+        if(fontSize && /\d+px/.test(fontSize)) {
+            ViewCommandHandlers.setFontSize(fontSize);
+        }
+
+        // I'm not 100% sure this is needed, but we're messing with the elements
+        // so I suspect we want to sync code that manages them.
+        WorkspaceManager.recomputeLayout(true);
     }
 
     /**

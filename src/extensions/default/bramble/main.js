@@ -16,7 +16,7 @@ define(function (require, exports, module) {
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
         LiveDevelopment      = brackets.getModule("LiveDevelopment/LiveDevMultiBrowser"),
-        BrambleStartupProject = brackets.getModule("bramble/BrambleStartupProject"),
+        BrambleStartupState  = brackets.getModule("bramble/StartupState"),
         Browser              = require("lib/iframe-browser"),
         UI                   = require("lib/UI"),
         Launcher             = require("lib/launcher"),
@@ -175,7 +175,7 @@ define(function (require, exports, module) {
         startLiveDev();
 
         // Preload BlobURLs for all assets in the filesystem
-        BlobUtils.preload(BrambleStartupProject.getInfo().root, function(err) {
+        BlobUtils.preload(BrambleStartupState.project("root"), function(err) {
             if(err) {
                 // Possibly non-critical error, warn at least, but keep going.
                 console.warn("[Bramble] unable to preload all filesystem Blob URLs", err);
@@ -191,27 +191,38 @@ define(function (require, exports, module) {
     exports.initExtension = function() {
         var deferred = new $.Deferred();
 
-        function mountFileSystem(e) {
+        function init(e) {
             var data = parseData(e.data, deferred);
-            if (!(data && data.type === "bramble:mountPath")) {
+            if (!(data && data.type === "bramble:init")) {
                 return;
             }
 
-            window.removeEventListener("message", mountFileSystem, false);
-
-            // Set initial theme
-            // XXXhumph: why is this here? we don't have data.theme in this message
-            Theme.setTheme(data.theme);
-
+            window.removeEventListener("message", init, false);
             window.addEventListener("message", RemoteCommandHandler.handleRequest, false);
 
             // Set the mount point for the project we want to open and signal
             // to Brackets that it can keep going, which will pick this up.
-            BrambleStartupProject.setInfo(data.root, data.filename);
+            BrambleStartupState.project.init({
+                root: data.mount.root,
+                filename: data.mount.filename,
+                fullPath: Path.join(data.mount.root, data.mount.filename)
+            });
+
+            // Set initial UI state values (if present)
+            BrambleStartupState.ui.init({
+                fontSize: data.state.fontSize,
+                theme: data.state.theme,
+                sidebarVisible: data.state.sidebarVisible,
+                sidebarWidth: data.state.sidebarWidth,
+                firstPaneWidth: data.state.firstPaneWidth,
+                secondPaneWidth: data.state.secondPaneWidth,
+                previewMode: data.state.previewMode
+            });
+
             deferred.resolve();
         }
 
-        window.addEventListener("message", mountFileSystem, false);
+        window.addEventListener("message", init, false);
 
         RemoteEvents.start();
 

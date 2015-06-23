@@ -83,7 +83,7 @@ define(function (require, exports, module) {
         MainViewManager     = require("view/MainViewManager");
 
     // XXXBramble
-    var BrambleStartupProject = require("bramble/BrambleStartupProject");
+    var BrambleStartupState = require("bramble/StartupState");
 
     var MainViewHTML        = require("text!htmlContent/main-view.html");
 
@@ -188,10 +188,9 @@ define(function (require, exports, module) {
                 ViewCommandHandlers.restoreFontSize();
 
                 // XXXBramble: get path passed into iframe from hosting app
-                var startupProjectInfo = BrambleStartupProject.getInfo();
-                ProjectManager.openProject(startupProjectInfo.root).always(function () {
+                ProjectManager.openProject(BrambleStartupState.project("root")).always(function () {
                     var deferred = new $.Deferred();
-                    FileSystem.resolve(startupProjectInfo.fullPath, function (err, file) {
+                    FileSystem.resolve(BrambleStartupState.project("fullPath"), function (err, file) {
                         if (!err) {
                             var promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: file.fullPath });
                             promise.then(deferred.resolve, deferred.reject);
