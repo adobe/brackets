@@ -351,7 +351,7 @@ define(function (require, exports, module) {
                      prefType !== "object")) {
                     prefType = undefined;
                 }
-            } else if (prefObj.initial) {
+            } else if (typeof (prefObj.initial) !== "undefined") {
                 
                 // OK looks like this preference has
                 // no explicit type defined. instead 
@@ -359,7 +359,7 @@ define(function (require, exports, module) {
                 // variable.
                 prefType = typeof (prefObj.initial);
                 
-            } else if (prefObj.keys) {
+            } else if (prefObj.keys !== undefined) {
                 prefType = typeof (prefObj.keys);
             } else {
                 prefType = typeof (prefObj);
@@ -396,7 +396,7 @@ define(function (require, exports, module) {
             return {};
         }
         
-        if (prefObj.initial && typeof (prefObj.initial) === "object") {
+        if (typeof (prefObj.initial) === "object") {
             // iterate through the list.
             keysFound = true;
             for (property in prefObj.initial) {
@@ -406,7 +406,7 @@ define(function (require, exports, module) {
             }
         }
         
-        if (prefObj.keys && typeof (prefObj.keys) === "object") {
+        if (typeof (prefObj.keys) === "object") {
             // iterate through the list.
             var allKeys = prefObj.keys;
             keysFound = true;
@@ -432,7 +432,7 @@ define(function (require, exports, module) {
 
     function _formatDefault(prefObj, prefName, tabIndentStr) {
         
-        if (!prefObj || !prefObj.type || _getObjType(prefObj) === "object") {
+        if (!prefObj || _getObjType(prefObj) === "object") {
             // return empty string in case of
             // object or pref not defined.
             return "";
@@ -443,6 +443,12 @@ define(function (require, exports, module) {
             prefFormatText  = tabIndentStr + "\t// {0}\n" + tabIndentStr + "\t\"{1}\": {2}",
             prefObjType     = _getObjType(prefObj);
         
+        if (prefObj.initial === undefined && !prefObj.description) {
+                
+            if (prefObjType === "number" || prefObjType === "boolean" || prefObjType === "string") {
+                prefDefault     = prefObj;
+            }
+        }
 
         if (prefDefault === undefined) {
             if (prefObjType === "number") {
@@ -455,14 +461,10 @@ define(function (require, exports, module) {
                 // for all other types
                 prefDefault = "";
             }
-        } //else if (typeof (prefDefault) === "object" || typeof (prefDefault) === "array") {
-        //    prefDefault = "";
-        //}
+        }
 
         if ((prefDescription === undefined || prefDescription.length === 0)) {
-            if (typeof (prefDefault)  !== "object" &&
-                    typeof (prefDefault)  !== "array" &&
-                    prefDefault.length === 0) {
+            if (!prefDefault.isArray) {
                 prefDescription = "Default: " + prefDefault;
             }
         }
@@ -488,7 +490,6 @@ define(function (require, exports, module) {
             entireText     = "",
             property,
             prefObjKeys,
-            prefFormatText = "",
             prefObjDesc    = prefObj.description || "",
             prefObjType    = prefObj.type,
             hasKeys        = false,
@@ -592,6 +593,9 @@ define(function (require, exports, module) {
                 }
                 if (property === "language.fileExtensions") {
                     var i2 = 0;
+                }
+                if (property === "linting.usePreferredOnly") {
+                    var i3 = 0;
                 }
                 if (_isValidPref(pref)) {
                     entireText  = entireText + _formatPref(property, pref, 0) + ",\n\n";
