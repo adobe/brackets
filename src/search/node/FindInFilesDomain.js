@@ -39,6 +39,7 @@ maxerr: 50, node: true */
         foundMaximum = false,
         fileTopIndex = -1,
         fileBottomIndex = -1,
+        totalMatches = 0,
         exceedsMaximum = false,
         queryObject;
     
@@ -273,13 +274,44 @@ maxerr: 50, node: true */
         return true;
     }
     
-    function findNumMatches(fileList, queryExpr) {
-        var i;
-        fileTopIndex = 0;
-        for (i = 0; i < fileList.length && !foundMaximum; i++) {
-            _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
+    function _countNumMatches(contents, queryExpr) {
+        if (!contents) {
+            console.log('NO contents');
+            return 0;
+        } 
+        var matches = contents.match(queryExpr);
+        //console.log('countnum1')
+        if (matches && isNaN(matches.length)) {
+            console.log('contents for nan' + contents);
+            console.log(JSON.stringify(matches));
         }
-        fileBottomIndex = i;
+        //console.log('countnum2')
+        return matches ? matches.length : 0;
+//        if (matches) {
+//            return 10;
+//        } else {
+//            return 0;
+//        }
+    }
+    
+    function getNumMatches(fileList, queryExpr) {
+        console.log('getNumatches');
+        var i,
+            matches = 0;
+        for (i = 0; i < fileList.length; i++) {
+//            _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
+//             if (i%100 === 0) {console.log(i);                 }
+            var temp = _countNumMatches(getFileContentsForFile(fileList[i]), queryExpr);
+            matches += temp;
+           
+//            if (isNaN(temp)) {
+//                console.log('typeof' + typeof temp);
+//                console.log("NANANANA");
+//            }
+//            console.log('nummatches in getnummatches' + matches);
+        }
+        console.log('for completed' + matches);
+        return matches;
     }
     
     function doSearch(searchObject) {
@@ -297,9 +329,10 @@ maxerr: 50, node: true */
         exceedsMaximum = false;
         queryObject = parseQueryInfo(searchObject.queryInfo);
         doSearchInFiles(files, queryObject.queryExpr);
+        totalMatches = getNumMatches(files, queryObject.queryExpr)
         var send_object = {
             "results":  results,
-            "numMatches": numMatches,
+            "numMatches": totalMatches,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
@@ -345,7 +378,7 @@ maxerr: 50, node: true */
         doSearchInFilesNextPage(files, queryObject.queryExpr);
         var send_object = {
             "results":  results,
-            "numMatches": numMatches,
+            "numMatches": totalMatches,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
