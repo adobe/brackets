@@ -55,7 +55,31 @@ define(function (require, exports, module) {
 
     var reComputeDefaultPrefs     = true,
         defaultSettingsFullPath   = brackets.app.getApplicationSupportDirectory() + "/" + DEFAULT_SETTINGS_FILENAME;
-
+    
+    // unit testing.
+    var preferencesId      = "denniskehrig.ShowWhitespace";
+    var defaultPreferences = {
+        checked: true,
+        colors: {
+            "light": {
+                "empty": "#ccc",
+                "leading": "#ccc",
+                "trailing": "#ff0000",
+                "whitespace": "#ccc"
+            },
+            "dark": {
+                "empty": "#686963",
+                "leading": "#686963",
+                "trailing": "#ff0000",
+                "whitespace": "#686963"
+            }
+        }
+    };
+    
+    var _preferences = PreferencesManager.getExtensionPrefs(preferencesId);
+    _preferences.definePreference("checked", "boolean", defaultPreferences.checked);
+    _preferences.definePreference("colors", "Object", defaultPreferences.colors);
+    
     /**
      * Brackets Application Menu Constant
      * @const {string}
@@ -304,42 +328,126 @@ define(function (require, exports, module) {
         CommandManager.execute(Commands.FILE_OPEN, { fullPath: prefsPath, paneId: "second-pane"});
 
     }
-    
+
+    // This method tries to deduce the preference type
+    // based on various parameters like objects initial
+    // value, object type, object's type property.
+    function _getObjType(prefObj) {
+        
+        var prefType;
+        
+        if (prefObj) {
+            
+            // check the type parameter.
+            if (prefObj.type) {
+                
+                // preference object's type
+                // is defined. Check if that is valid or not.
+                prefType = prefObj.type.toLowerCase();
+                if ((prefType !== "number"  &&
+                     prefType !== "boolean" &&
+                     prefType !== "string"  &&
+                     prefType !== "array"   &&
+                     prefType !== "object")) {
+                    prefType = undefined;
+                }
+            } else if (prefObj.initial) {
+                
+                // OK looks like this preference has
+                // no explicit type defined. instead 
+                // it needs to be deduced from initial
+                // variable.
+                prefType = typeof (prefObj.initial);
+                
+            } else if (prefObj.keys) {
+                prefType = typeof (prefObj.keys);
+            } else {
+                prefType = typeof (prefObj);
+            }
+        }
+        
+        return prefType;
+    }
+
     function _isValidPref(pref) {
         
         // Make sure to generate pref description only for
         // user overrides and don't generate for properties
         // meant to be used for internal purposes. Also check
         // if the preference type is valid or not.
-        if (!pref.excludeFromHints && pref.type &&
-                        (pref.type === "number" ||
-                        pref.type === "boolean" ||
-                        pref.type === "string" ||
-                        pref.type === "array"   ||
-                        pref.type === "object")) {
+        
+        if (pref && !pref.excludeFromHints && _getObjType(pref) !== "undefined") {
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
     
+    // This method tries to matach between initial objects
+    // and key objects and then aggregates objects from both
+    // the properties.
+    function _getObjKeys(prefObj) {
+
+        var finalObj = {},
+            property,
+            keysFound = false;
+        
+        if (!finalObj) {
+            return {};
+        }
+        
+        if (prefObj.initial && typeof (prefObj.initial) === "object") {
+            // iterate through the list.
+            keysFound = true;
+            for (property in prefObj.initial) {
+                if (prefObj.initial.hasOwnProperty(property)) {
+                    finalObj[property] = prefObj.initial[property];
+                }
+            }
+        }
+        
+        if (prefObj.keys && typeof (prefObj.keys) === "object") {
+            // iterate through the list.
+            var allKeys = prefObj.keys;
+            keysFound = true;
+            for (property in allKeys) {
+                if (allKeys.hasOwnProperty(property)) {
+                    finalObj[property] = prefObj.keys[property];
+                }
+            }
+        }
+        
+        // Last resort: Maybe plain objects.
+        if (keysFound === false) {
+            for (property in prefObj) {
+                if (prefObj.hasOwnProperty(property)) {
+                    finalObj[property] = prefObj[property];
+                }
+            }
+        }
+        
+        return finalObj;
+        
+    }
+
     function _formatDefault(prefObj, prefName, tabIndentStr) {
         
-        if (!prefObj || !prefObj.type || prefObj.type === "object") {
+        if (!prefObj || !prefObj.type || _getObjType(prefObj) === "object") {
             // return empty string in case of
             // object or pref not defined.
             return "";
         }
         
-        var prefDescription = prefObj.description,
+        var prefDescription = prefObj.description || "",
             prefDefault     = prefObj.initial,
-            prefFormatText  = tabIndentStr + "\t// {0}\n" + tabIndentStr + "\t\"{1}\": {2}";
+            prefFormatText  = tabIndentStr + "\t// {0}\n" + tabIndentStr + "\t\"{1}\": {2}",
+            prefObjType     = _getObjType(prefObj);
         
-                
+
         if (prefDefault === undefined) {
-            if (prefObj.type === "number") {
+            if (prefObjType === "number") {
                 prefDefault = 0;
-            } else if (prefObj.type === "boolean") {
+            } else if (prefObjType === "boolean") {
                 // Defaulting the preference to false,
                 // in case this is missing.
                 prefDefault = false;
@@ -347,28 +455,28 @@ define(function (require, exports, module) {
                 // for all other types
                 prefDefault = "";
             }
-        } else if (typeof (prefDefault) === "object" || typeof (prefDefault) === "array") {
-            prefDefault = "";
-        }
+        } //else if (typeof (prefDefault) === "object" || typeof (prefDefault) === "array") {
+        //    prefDefault = "";
+        //}
 
         if ((prefDescription === undefined || prefDescription.length === 0)) {
-            if (typeof (prefDefault)  === "string" && prefDefault.length === 0) {
-                prefDescription = "";
-            } else {
+            if (typeof (prefDefault)  !== "object" &&
+                    typeof (prefDefault)  !== "array" &&
+                    prefDefault.length === 0) {
                 prefDescription = "Default: " + prefDefault;
             }
         }
 
-        if (prefObj.type === "array") {
+        if (prefObjType === "array") {
             prefDefault = "[]";
-        } else if (prefDefault.length === 0 || (prefObj.type !== "boolean" && prefObj.type !== "number")) {
+        } else if (prefDefault.length === 0 || (prefObjType !== "boolean" && prefObjType !== "number")) {
             prefDefault = "\"" + prefDefault + "\"";
         }
 
         return StringUtils.format(prefFormatText, prefDescription, prefName, prefDefault);
         
     }
-
+        
     function _formatPref(prefName,  prefObj, indentLevel) {
         
         // check for validity of the parameters being passed
@@ -377,40 +485,48 @@ define(function (require, exports, module) {
         }
         
         var iLevel,
-            entireText,
+            entireText     = "",
             property,
+            prefObjKeys,
             prefFormatText = "",
+            prefObjDesc    = prefObj.description || "",
+            prefObjType    = prefObj.type,
             hasKeys        = false,
             tabIndents     = "",
             numKeys        = 0;
+        
 
         // Generate the indentLevel
         for (iLevel = 0; iLevel < indentLevel; iLevel++) {
             tabIndents = tabIndents + "\t";
         }
         
-        if (prefObj.keys && Object.keys(prefObj.keys).length > 0) {
+        if (_getObjType(prefObj) === "object") {
+            prefObjKeys = _getObjKeys(prefObj);
+        }
+        
+        if (prefObjKeys && Object.keys(prefObjKeys).length > 0) {
             hasKeys = true;
         }
         
         // There are some properties like "highlightMatches" that
         // are declared as boolean type but still can take object keys.
         // The below condition check can take care of cases like this.
-        if (prefObj.type !== "object" && hasKeys === false) {
+        if (prefObjType !== "object" && hasKeys === false) {
             return _formatDefault(prefObj, prefName, tabIndents);
         }
         
         // Indent the beginning of the object.
         tabIndents = tabIndents + "\t";
         
-        if (prefObj.description && prefObj.description.length > 0) {
-            entireText = tabIndents + "// " + prefObj.description + "\n";
+        if (prefObjDesc && prefObjDesc.length > 0) {
+            entireText = tabIndents + "// " + prefObjDesc + "\n";
         }
         
         entireText = entireText + tabIndents + "\"" + prefName + "\": " + "{";
         
-        if (prefObj.keys) {
-            numKeys = Object.keys(prefObj.keys).length;
+        if (prefObjKeys) {
+            numKeys = Object.keys(prefObjKeys).length;
         }
         
         // In case the object array is empty
@@ -423,19 +539,19 @@ define(function (require, exports, module) {
         
         // Now iterate through all the keys
         // and generate nested formatted objects.
-        var allKeys = prefObj.keys;
-        
-        for (property in allKeys) {
-            
-            if (allKeys.hasOwnProperty(property)) {
 
-                var pref = allKeys[property];
+        for (property in prefObjKeys) {
+            
+            if (prefObjKeys.hasOwnProperty(property)) {
+
+                var pref = prefObjKeys[property];
                 
                 if (_isValidPref(pref)) {
 
                     var formattedText = "";
                     
-                    if (pref.type === "object" || (pref.keys && pref.keys.length > 0)) {
+                    //if (pref.type === "object" || (pref.keys && pref.keys.length > 0)) {
+                    if (_getObjType(pref) === "object") {
                         formattedText = _formatPref(property, pref, indentLevel + 1);
                     } else {
                         formattedText = _formatDefault(pref, property, tabIndents);
@@ -471,7 +587,12 @@ define(function (require, exports, module) {
             if (allPrefs.hasOwnProperty(property)) {
 
                 var pref = allPrefs[property];
-
+                if (property === "denniskehrig.ShowWhitespace.colors") {
+                    var i = 0;
+                }
+                if (property === "language.fileExtensions") {
+                    var i2 = 0;
+                }
                 if (_isValidPref(pref)) {
                     entireText  = entireText + _formatPref(property, pref, 0) + ",\n\n";
                 }
