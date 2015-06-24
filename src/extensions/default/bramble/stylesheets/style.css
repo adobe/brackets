@@ -29,6 +29,10 @@
     background-image: url("../lib/appbar.fullscreen.box.svg");
 }
 
+#second-pane {
+    background: white !important;
+}
+
 .second-pane-scroll {
     overflow: scroll !important;
 }
