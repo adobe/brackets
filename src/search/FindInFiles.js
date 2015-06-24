@@ -458,7 +458,7 @@ define(function (require, exports, module) {
                      * otherwise the order of matches will be different than in complete one-go search
                      * where sorting of matched files is done in SearchResultsView.
                      * Temp- For comparing it with master, comment the following line. */
-                    files = FindUtils.getSortedFiles(files, function (file) { return file; }, FindUtils.getOpenFilePath());
+                    //files = FindUtils.getSortedFiles(files, function (file) { return file; }, FindUtils.getOpenFilePath());
                     
                     searchObject = {
                         "files": files,
