@@ -28,10 +28,12 @@ define(function (require, exports, module) {
     "use strict";
     
     var AppInit                 = brackets.getModule("utils/AppInit"),
+        HealthUtils             = brackets.getModule("utils/HealthUtils"),
         Menus                   = brackets.getModule("command/Menus"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         Strings                 = brackets.getModule("strings"),
         Commands                = brackets.getModule("command/Commands"),
+        PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         
         HealthDataNotification  = require("HealthDataNotification"),  // self-initializes to show first-launch notification
         HealthDataManager       = require("HealthDataManager"),  // self-initializes timer to send data
@@ -58,10 +60,15 @@ define(function (require, exports, module) {
         brackets.test.HealthDataManager      = HealthDataManager;
         brackets.test.HealthDataNotification = HealthDataNotification;
         brackets.test.HealthDataPopup        = HealthDataPopup;
+
+        var prefs = PreferencesManager.getExtensionPrefs("healthData"),
+            hdPref = prefs.get("healthDataTracking");
+        HealthUtils.setHealthLogsEnabled(hdPref);
     }
     
     AppInit.appReady(function () {
         initTest();
+        HealthUtils.init();
     });
     
     addCommand();
