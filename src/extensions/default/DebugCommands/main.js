@@ -80,7 +80,7 @@ define(function (require, exports, module) {
         DEBUG_SHOW_ERRORS_IN_STATUS_BAR       = "debug.showErrorsInStatusBar",
         DEBUG_OPEN_BRACKETS_SOURCE            = "debug.openBracketsSource",
         DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView";
-    
+
     // define a preference to turn off opening preferences in split-view.
     PreferencesManager.definePreference(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW, "boolean", true, {
         description: Strings.DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW
@@ -331,7 +331,7 @@ define(function (require, exports, module) {
     // based on various parameters like objects initial
     // value, object type, object's type property.
     function _getObjType(prefObj) {
-        
+
         var prefType = "undefined";
 
         if (prefObj) {
@@ -373,9 +373,9 @@ define(function (require, exports, module) {
                 prefType = "array";
             } else if (typeof (prefObj.initial) !== "undefined"  ||
                        typeof (prefObj.keys) !== "undefined") {
-                
+
                 // OK looks like this preference has
-                // no explicit type defined. instead 
+                // no explicit type defined. instead
                 // it needs to be deduced from initial/keys
                 // variable.
                 var _prefVar;
@@ -390,12 +390,12 @@ define(function (require, exports, module) {
                     // typeof is returning a function.
                     prefType = "array";
                 }
-                
+
             } else {
                 prefType = typeof (prefObj);
             }
         }
-        
+
         // Now make sure we recognize this format.
         if (!_isSupportedPrefType(prefType)) {
             prefType = "undefined";
@@ -405,7 +405,7 @@ define(function (require, exports, module) {
     }
 
     function _isValidPref(pref) {
-        
+
         // Make sure to generate pref description only for
         // user overrides and don't generate for properties
         // meant to be used for internal purposes. Also check
@@ -426,11 +426,11 @@ define(function (require, exports, module) {
         var finalObj = {},
             property,
             keysFound = false;
-        
+
         if (!prefObj) {
             return {};
         }
-        
+
         if (typeof (prefObj.initial) === "object") {
             // iterate through the list.
             keysFound = true;
@@ -440,7 +440,7 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         if (typeof (prefObj.keys) === "object") {
             // iterate through the list.
             var allKeys = prefObj.keys;
@@ -451,7 +451,7 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         // Last resort: Maybe plain objects, in which case
         // we blindly extract all the properties.
         if (keysFound === false) {
@@ -514,16 +514,15 @@ define(function (require, exports, module) {
         }
 
         return StringUtils.format(prefFormatText, prefDescription, prefName, prefDefault);
-        
     }
-        
+
     function _formatPref(prefName,  prefObj, indentLevel) {
-        
+
         // check for validity of the parameters being passed
         if (!prefObj || indentLevel < 0 || !prefName || !prefName.length) {
             return "";
         }
-        
+
         var iLevel,
             property,
             prefObjKeys,
@@ -533,42 +532,42 @@ define(function (require, exports, module) {
             hasKeys        = false,
             tabIndents     = "",
             numKeys        = 0;
-        
+
 
         // Generate the indentLevel string
         for (iLevel = 0; iLevel < indentLevel; iLevel++) {
             tabIndents = tabIndents + "\t";
         }
-        
+
         // Check if the preference is an object.
         if (_getObjType(prefObj) === "object") {
             prefObjKeys = _getObjKeys(prefObj);
         }
-        
+
         if (prefObjKeys && Object.keys(prefObjKeys).length > 0) {
             hasKeys = true;
         }
-        
+
         // There are some properties like "highlightMatches" that
         // are declared as boolean type but still can take object keys.
         // The below condition check can take care of cases like this.
         if (prefObjType !== "object" && hasKeys === false) {
             return _formatDefault(prefObj, prefName, tabIndents);
         }
-        
+
         // Indent the beginning of the object.
         tabIndents = tabIndents + "\t";
-        
+
         if (prefObjDesc && prefObjDesc.length > 0) {
             entireText = tabIndents + "// " + prefObjDesc + "\n";
         }
-        
+
         entireText = entireText + tabIndents + "\"" + prefName + "\": " + "{";
-        
+
         if (prefObjKeys) {
             numKeys = Object.keys(prefObjKeys).length;
         }
-        
+
         // In case the object array is empty
         if (numKeys <= 0) {
             entireText = entireText + "}";
@@ -576,16 +575,16 @@ define(function (require, exports, module) {
         } else {
             entireText = entireText + "\n";
         }
-        
+
         // Now iterate through all the keys
         // and generate nested formatted objects.
 
         for (property in prefObjKeys) {
-            
+
             if (prefObjKeys.hasOwnProperty(property)) {
 
                 var pref = prefObjKeys[property];
-                
+
                 if (_isValidPref(pref)) {
 
                     var formattedText = "";
@@ -595,25 +594,24 @@ define(function (require, exports, module) {
                     } else {
                         formattedText = _formatDefault(pref, property, tabIndents);
                     }
-                    
+
                     if (formattedText.length > 0) {
                         entireText = entireText + formattedText + ",\n\n";
                     }
                 }
             }
         }
-        
+
         // Strip ",\n\n" that got added above, for the last property
         if (entireText.length > 0) {
             entireText = entireText.slice(0, -3) + "\n" + tabIndents + "}";
         } else {
             entireText = "{}";
         }
-        
+
         return entireText;
-        
     }
-    
+
     function _getDefaultPreferencesString() {
 
         var property,
@@ -632,7 +630,7 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         // Strip ",\n\n" that got added above, for the last property
         if (entireText.length > 0) {
             entireText = headerComment + entireText.slice(0, -3) + "\n}\n";
@@ -711,7 +709,7 @@ define(function (require, exports, module) {
         var fullPath        = PreferencesManager.getUserPrefFile(),
             file            = FileSystem.getFileForPath(fullPath),
             splitViewPrefOn = PreferencesManager.get(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW);
-        
+
         if (!splitViewPrefOn) {
             CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
         } else {

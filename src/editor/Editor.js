@@ -289,8 +289,7 @@ define(function (require, exports, module) {
         if (typeof isReadOnly === "undefined") {
             isReadOnly = false;
         }
-        
-        
+
         _instances.push(this);
         
         // Attach to document: add ref & handlers
