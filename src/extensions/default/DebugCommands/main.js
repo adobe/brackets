@@ -85,7 +85,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW, "boolean", true, {
         description: Strings.DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW
     });
-    
+
     PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false, {
         description: Strings.DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR
     });
@@ -290,7 +290,7 @@ define(function (require, exports, module) {
         }
 
         // Open the default preferences in the left pane in the read only mode.
-        CommandManager.execute(Commands.FILE_OPEN, { fullPath: defaultPrefsPath, paneId: "first-pane", isReadOnly: true});
+        CommandManager.execute(Commands.FILE_OPEN, { fullPath: defaultPrefsPath, paneId: "first-pane", options: { isReadOnly: true } });
 
         if (currScheme.rows === 1 && currScheme.columns === 1) {
             // Split layout is not active yet. Inititate the
