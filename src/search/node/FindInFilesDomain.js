@@ -29,13 +29,44 @@ maxerr: 50, node: true */
     
     'use strict';
     var fs = require('fs');
-    var childProcess, retrieveChild = null;
+    var childProcess = null,
+        retrieveChild = null,
+        forceExit = false;
+    
+    function onChildProcessExit() {
+        if (retrieveChild) {
+            fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Child Process is exiting : " + retrieveChild.pid, function (err) {});
+            retrieveChild.removeListener('exit', onChildProcessExit);
+            retrieveChild = null;
+        }
+
+        if (!forceExit) {
+            // send message to Brackets about child Process exit. Either restart the query or fallback to previous search.     
+        }
+    }
+    
+    function onProcessExit() {
+        killChildProcess(true);
+    }
     
     function _init() {
         childProcess = require("child_process");
-        retrieveChild = childProcess.spawn("node", ["C://Users//vaishnav//Desktop//Adobe//git//brackets//src//search//node//ChildFIF.js"], {stdio: ['ipc']});
-
+        retrieveChild = childProcess.spawn(process.execPath, ["C://Users//vaishnav//Desktop//Adobe//git//brackets//src//search//node//ChildFIF.js"], {stdio: ['ipc']});
+        fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', "Child Process Created with PID " + retrieveChild.pid + " at " + (new Date()).getTime(), function (err) {});
         console.log("Child Process Created with PID " + retrieveChild.pid);
+        retrieveChild.on('exit', onChildProcessExit);
+    }
+    
+    function killChildProcess(status) {
+        fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Killing Child Process from Parent Process " + status + "..", function (err) {});
+        var data,
+            forceExit = status;
+        if (retrieveChild) {
+            data = {
+                "msg" : "shutDown"
+            };
+            retrieveChild.send(data);
+        }
     }
     
     function restartChildNodeProcess(callback, asyncCallback) {
@@ -44,11 +75,10 @@ maxerr: 50, node: true */
             data = {
                 "msg" : "shutDown"
             };
-            //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " In MainProcess: ChildProcess restart " + retrieveChild.pid + " and sending exit message", function (err) {});
-            retrieveChild.send(data);
-            retrieveChild.on('exit', function (code) {
-                retrieveChild = null;
-                //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " In MainProcess: ChildProcess exited with code : " + code + ".. ", function (err) {});
+            fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " In MainProcess: ChildProcess restart " + retrieveChild.pid + " and sending exit message", function (err) {});
+            killChildProcess(false);
+            retrieveChild.once('exit', function (code) {
+                fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " In MainProcess: ChildProcess exited with code : " + code + ".. ", function (err) {});
                 _init();
                 callback(asyncCallback);
             });
@@ -68,7 +98,7 @@ maxerr: 50, node: true */
         
             retrieveChild.send(data);
             retrieveChild.on('message', function (msg) {
-                //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Receive Message on Parent.. ", function (err) {});
+                fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Receive Message on Parent from Child Process.. ", function (err) {});
                 if (msg.msg === "cacheComplete") {
                     callback(null, msg.result);
                 }
@@ -79,14 +109,19 @@ maxerr: 50, node: true */
      //Receive result from initCache
     
     function doSearch(searchObject, callback) {
+        fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Receive Message on Parent from Brackets for doSearch at " + (new Date()).getTime(), function (err) {});
         var data = {
             "msg" : "doSearch",
             "searchObject" : searchObject
         };
         
+        if (!retrieveChild) {
+            _init();
+        }
+        
         retrieveChild.send(data);
         retrieveChild.on('message', function (msg) {
-            //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Receive Message on Parent.. ", function (err) {});
+            fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Receive Message on Parent.. ", function (err) {});
             if (msg.msg === "searchComplete") {
                 callback(null, msg.result);
             }
@@ -95,6 +130,7 @@ maxerr: 50, node: true */
     
     //Receive result from doSearch
     
+    process.on('exit', onProcessExit);
     
     /**
      * Initializes the test domain with several test commands.
