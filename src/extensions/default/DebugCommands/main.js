@@ -51,7 +51,7 @@ define(function (require, exports, module) {
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
-    // default preferences file name    
+    // default preferences file name
     var DEFAULT_SETTINGS_FILENAME = "defaultSettings.json";
 
     var reComputeDefaultPrefs     = true,
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false, {
         description: Strings.DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR
     });
-    
+
     function handleShowDeveloperTools() {
         brackets.app.showDeveloperTools();
     }
@@ -410,14 +410,13 @@ define(function (require, exports, module) {
         // user overrides and don't generate for properties
         // meant to be used for internal purposes. Also check
         // if the preference type is valid or not.
-        
         if (pref && !pref.excludeFromHints && _getObjType(pref) !== "undefined") {
             return true;
         }
 
         return false;
     }
-    
+
     // This method tries to matach between initial objects
     // and key objects and then aggregates objects from both
     // the properties.
@@ -461,24 +460,23 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         return finalObj;
-        
     }
 
     function _formatDefault(prefObj, prefName, tabIndentStr) {
-        
+
         if (!prefObj || typeof (prefName) !== "string" || _getObjType(prefObj) === "object") {
             // return empty string in case of
             // object or pref is not defined.
             return "";
         }
-        
+
         var prefDescription = prefObj.description || "",
             prefDefault     = prefObj.initial,
             prefFormatText  = tabIndentStr + "\t// {0}\n" + tabIndentStr + "\t\"{1}\": {2}",
             prefObjType     = _getObjType(prefObj);
-        
+
         if (prefDefault === undefined && !prefObj.description) {
             // This could be the case when prefObj is a basic JS variable.
             if (prefObjType === "number" || prefObjType === "boolean" || prefObjType === "string") {
