@@ -139,13 +139,11 @@ define(function (require, exports, module) {
             },
             whenOpening: {
                 type: "boolean",
-                description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING,
-                initial: true
+                description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING
             },
             whenClosing: {
                 type: "boolean",
-                description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING,
-                initial: true
+                description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING
             },
             indentTags: {
                 type: "array",
@@ -162,12 +160,12 @@ define(function (require, exports, module) {
             showToken: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN,
-                initial: true
+                initial: false
             },
             wordsOnly: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY,
-                initial: true
+                initial: false
             }
         }
     });

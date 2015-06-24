@@ -43,7 +43,6 @@ define(function (require, exports, module) {
         FileSystem              = require("filesystem/FileSystem"),
         Strings                 = require("strings"),
         PreferencesImpl         = require("preferences/PreferencesImpl"),
-        StringUtils             = require("utils/StringUtils"),
         _                       = require("thirdparty/lodash");
     
     /**
@@ -520,9 +519,9 @@ define(function (require, exports, module) {
                     });
             }
         });
-
+        
     }
-
+    
     CommandManager.register(Strings.CMD_OPEN_PREFERENCES, Commands.FILE_OPEN_PREFERENCES, _handleOpenPreferences);
     
     /**

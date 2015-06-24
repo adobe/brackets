@@ -446,7 +446,6 @@ define(function (require, exports, module) {
      * any other inline widgets that might be open but don't contain Editors).
      * @param {!Editor} hostEditor
      * @return {Array.<Editor>}
-     * @return {Array.<Editor>}
      *
      */
     function getInlineEditors(hostEditor) {

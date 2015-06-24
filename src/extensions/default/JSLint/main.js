@@ -56,62 +56,62 @@ define(function (require, exports, module) {
             ass: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_ASS,
-                initial: true
+                initial: false
             },
             bitwise: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_BITWISE,
-                initial: true
+                initial: false
             },
             browser: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_BROWSER,
-                initial: true
+                initial: false
             },
             closure: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_CLOSURE,
-                initial: true
+                initial: false
             },
             "continue": {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_CONTINUE,
-                initial: true
+                initial: false
             },
             couch: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_COUCH,
-                initial: true
+                initial: false
             },
             debug: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_DEBUG,
-                initial: true
+                initial: false
             },
             devel: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_DEVEL,
-                initial: true
+                initial: false
             },
             eqeq: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_EQEQ,
-                initial: true
+                initial: false
             },
             es6: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_ES6,
-                initial: true
+                initial: false
             },
             evil: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_EVIL,
-                initial: true
+                initial: false
             },
             forin: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_FORIN,
-                initial: true
+                initial: false
             },
             indent: {
                 type: "number",
@@ -128,72 +128,72 @@ define(function (require, exports, module) {
             newcap: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_NEWCAP,
-                initial: true
+                initial: false
             },
             node: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_NODE,
-                initial: true
+                initial: false
             },
             nomen: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_NOMEN,
-                initial: true
+                initial: false
             },
             passfail: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_PASSFAIL,
-                initial: true
+                initial: false
             },
             plusplus: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_PLUSPLUS,
-                initial: true
+                initial: false
             },
             regexp: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_REGEXP,
-                initial: true
+                initial: false
             },
             rhino: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_RHINO,
-                initial: true
+                initial: false
             },
             sloppy: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_SLOPPY,
-                initial: true
+                initial: false
             },
             stupid: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_STUPID,
-                initial: true
+                initial: false
             },
             sub: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_SUB,
-                initial: true
+                initial: false
             },
             todo: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_TODO,
-                initial: true
+                initial: false
             },
             unparam: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_UNPARAM,
-                initial: true
+                initial: false
             },
             vars: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_VARS,
-                initial: true
+                initial: false
             },
             white: {
                 type: "boolean",
                 description: Strings.DESCRIPTION_JSLINT_OPTIONS_WHITE,
-                initial: true
+                initial: false
             }
         }
     })
