@@ -156,23 +156,21 @@ define(function (require, exports, module) {
             })
             // The link to go the first page
             .on("click.searchResults", ".first-page:not(.disabled)", function () {
-                self._currentStart = 0;
-                self._render();
+                self.trigger('getFirstPage');
+               // self._render();
             })
             // The link to go the previous page
             .on("click.searchResults", ".prev-page:not(.disabled)", function () {
-                self._currentStart -= RESULTS_PER_PAGE;
-                self._render();
+                self.trigger('getPrevPage');
             })
             // The link to go to the next page
             .on("click.searchResults", ".next-page:not(.disabled)", function () {
-                self.trigger('findNextPage');
+                self.trigger('getNextPage');
                 //self._render();
             })
             // The link to go to the last page
             .on("click.searchResults", ".last-page:not(.disabled)", function () {
-                self._currentStart = self._getLastCurrentStart();
-                self._render();
+                self.trigger('getLastPage');
             })
             
             // Add the file to the working set on double click
@@ -397,16 +395,21 @@ define(function (require, exports, module) {
 
             // Since the amount of matches on this item plus the amount of matches we skipped until
             // now is still smaller than the first match that we want to display, skip these.
-            if (matchesCounter + item.matches.length < self._currentStart) {
+//            if (matchesCounter + item.matches.length < self._currentStart) {
+            if (matchesCounter + item.matches.length < 0) {
                 matchesCounter += item.matches.length;
                 showMatches = false;
 
             // If we still haven't skipped enough items to get to the first match, but adding the
             // item matches to the skipped ones is greater the the first match we want to display,
             // then we can display the matches from this item skipping the first ones
-            } else if (matchesCounter < self._currentStart) {
-                i = self._currentStart - matchesCounter;
-                matchesCounter = self._currentStart;
+//            } else if (matchesCounter < self._currentStart) {
+//                i = self._currentStart - matchesCounter;
+//                matchesCounter = self._currentStart;
+                
+              } else if (matchesCounter < 0) {
+                    i = 0 - matchesCounter;
+                    matchesCounter = 0;
 
             // If we already skipped enough matches to get to the first match to display, we can start
             // displaying from the first match of this item
@@ -457,7 +460,7 @@ define(function (require, exports, module) {
                         StringUtils.breakableUrl(directoryPath),
                         directoryPath ? "&mdash;" : ""
                     );
-
+ 
                 self._searchList.push({
                     fileIndex:   self._searchList.length,
                     filename:    displayFileName,

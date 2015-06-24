@@ -537,6 +537,52 @@ define(function (require, exports, module) {
             });
         return searchDeferred.promise();
     }
+    
+    function getFirstPageofSearchResults() {
+        var searchDeferred = $.Deferred();
+        searchDomain.exec("firstPage")
+            .done(function (rcvd_object) {
+                //console.log("NUMMM "  + filelistnum);
+                console.log('search completed');
+                searchModel.results = rcvd_object.results;
+                searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.foundMaximum = rcvd_object.foundMaximum;
+                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                searchDeferred.resolve();
+            });
+        return searchDeferred.promise();
+    }
+    
+    function getPrevPageofSearchResults() {
+        var searchDeferred = $.Deferred();
+        searchDomain.exec("prevPage")
+            .done(function (rcvd_object) {
+                //console.log("NUMMM "  + filelistnum);
+                console.log('search completed');
+                searchModel.results = rcvd_object.results;
+                searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.foundMaximum = rcvd_object.foundMaximum;
+                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                searchDeferred.resolve();
+            });
+        return searchDeferred.promise();
+    }
+    
+    function getLastPageofSearchResults() {
+        var searchDeferred = $.Deferred();
+        searchDomain.exec("lastPage")
+            .done(function (rcvd_object) {
+            rcvd_object = JSON.parse( (  ( rcvd_object ) ) )
+                //console.log("NUMMM "  + filelistnum);
+                console.log('search completed');
+                searchModel.results = rcvd_object.results;
+                searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.foundMaximum = rcvd_object.foundMaximum;
+                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                searchDeferred.resolve();
+            });
+        return searchDeferred.promise();
+    }    
 
     /**
      * Does a search in the given scope with the given filter. Used when you want to start a search
@@ -743,6 +789,9 @@ define(function (require, exports, module) {
     exports.getCandidateFiles    = getCandidateFiles;
     exports.clearSearch          = clearSearch;
     exports.getNextPageofSearchResults          = getNextPageofSearchResults;
+    exports.getFirstPageofSearchResults          = getFirstPageofSearchResults;
+    exports.getPrevPageofSearchResults          = getPrevPageofSearchResults;
+    exports.getLastPageofSearchResults          = getLastPageofSearchResults;
     exports.ZERO_FILES_TO_SEARCH = ZERO_FILES_TO_SEARCH;
     
     // For unit tests only

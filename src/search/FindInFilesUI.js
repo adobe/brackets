@@ -377,13 +377,40 @@ define(function (require, exports, module) {
             .on("close", function () {
                 FindInFiles.clearSearch();
             })
-            .on("findNextPage", function () {
+            .on("getFirstPage", function () {
+                FindInFiles.getFirstPageofSearchResults()
+                    .done(function () {
+                        if (FindInFiles.searchModel.hasResults()) {
+                            _resultsView._currentStart = 0;
+                            _resultsView._render();
+                        }
+                    });
+            })
+            .on("getPrevPage", function () {
+                FindInFiles.getPrevPageofSearchResults()
+                    .done(function () {
+                        if (FindInFiles.searchModel.hasResults()) {
+                            _resultsView._currentStart -= 100;
+                            _resultsView._render();
+                        }
+                    });
+            })
+            .on("getNextPage", function () {
                 FindInFiles.getNextPageofSearchResults()
                     .done(function () {
                         if (FindInFiles.searchModel.hasResults()) {
-//                            _resultsView._currentStart += 100;
-//                            _resultsView._render();
-                            _resultsView.open();
+                            _resultsView._currentStart += 100;
+                            _resultsView._render();
+//                            _resultsView.open();
+                        }
+                    });
+            })
+            .on("getLastPage", function () {
+                FindInFiles.getLastPageofSearchResults()
+                    .done(function () {
+                        if (FindInFiles.searchModel.hasResults()) {
+                            _resultsView._currentStart = _resultsView._getLastCurrentStart();
+                            _resultsView._render();
                         }
                     });
             });
