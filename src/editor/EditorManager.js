@@ -194,8 +194,8 @@ define(function (require, exports, module) {
      *          to display in this editor. Inclusive.
      * @return {Editor} the newly created editor.
      */
-    function _createEditorForDocument(doc, makeMasterEditor, container, range, isReadOnly) {
-        var editor = new Editor(doc, makeMasterEditor, container, range, isReadOnly);
+    function _createEditorForDocument(doc, makeMasterEditor, container, range, editorOptions) {
+        var editor = new Editor(doc, makeMasterEditor, container, range, editorOptions);
 
         editor.on("focus", function () {
             _notifyActiveEditorChanged(editor);
@@ -446,6 +446,7 @@ define(function (require, exports, module) {
      * any other inline widgets that might be open but don't contain Editors).
      * @param {!Editor} hostEditor
      * @return {Array.<Editor>}
+     * @return {Array.<Editor>}
      *
      */
     function getInlineEditors(hostEditor) {
@@ -473,9 +474,9 @@ define(function (require, exports, module) {
      * @param {!Pane} pane  Pane in which the editor will be hosted
      * @return {!Editor}
      */
-    function _createFullEditorForDocument(document, pane, isReadOnly) {
+    function _createFullEditorForDocument(document, pane, editorOptions) {
         // Create editor; make it initially invisible
-        var editor = _createEditorForDocument(document, true, pane.$content, undefined, isReadOnly);
+        var editor = _createEditorForDocument(document, true, pane.$content, undefined, editorOptions);
         editor.setVisible(false);
         pane.addView(editor);
         exports.trigger("_fullEditorCreatedForDocument", document, editor, pane.id);
@@ -532,7 +533,7 @@ define(function (require, exports, module) {
      * @param {!Pane} pane - pane to show it in
      * @private
      */
-    function _showEditor(document, pane, isReadOnly) {
+    function _showEditor(document, pane, editorOptions) {
         // Ensure a main editor exists for this document to show in the UI
         var createdNewEditor = false,
             editor = document._masterEditor;
@@ -545,7 +546,7 @@ define(function (require, exports, module) {
             }
             
             // Editor doesn't exist: populate a new Editor with the text
-            editor = _createFullEditorForDocument(document, pane, isReadOnly);
+            editor = _createFullEditorForDocument(document, pane, editorOptions);
             createdNewEditor = true;
         } else if (editor.$el.parent()[0] !== pane.$content[0]) {
             // editor does exist but is not a child of the pane so add it to the 
@@ -620,11 +621,11 @@ define(function (require, exports, module) {
      * @param {!Pane} pane - the pane to open the document in
      * @return {boolean} true if the file can be opened, false if not
      */
-    function openDocument(doc, pane, isReadOnly) {
+    function openDocument(doc, pane, editorOptions) {
         var perfTimerName = PerfUtils.markStart("EditorManager.openDocument():\t" + (!doc || doc.file.fullPath));
 
         if (doc && pane) {
-            _showEditor(doc, pane, isReadOnly);
+            _showEditor(doc, pane, editorOptions);
         }
 
         PerfUtils.addMeasurement(perfTimerName);

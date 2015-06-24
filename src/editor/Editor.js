@@ -283,11 +283,12 @@ define(function (require, exports, module) {
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
      */
-    function Editor(document, makeMasterEditor, container, range, isReadOnly) {
+    function Editor(document, makeMasterEditor, container, range, editorOptions) {
         var self = this;
-        
-        if (typeof isReadOnly === "undefined") {
-            isReadOnly = false;
+
+        var isReadOnly = false;
+        if (editorOptions !== undefined && typeof (editorOptions.isReadOnly) === "boolean") {
+            isReadOnly = editorOptions.isReadOnly;
         }
 
         _instances.push(this);
