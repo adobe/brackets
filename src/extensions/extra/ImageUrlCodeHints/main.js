@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         LanguageManager = brackets.getModule("language/LanguageManager"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
-        StartupProject  = brackets.getModule("bramble/BrambleStartupProject"),
+        StartupState    = brackets.getModule("bramble/StartupState"),
         Path            = brackets.getModule("filesystem/impls/filer/FilerUtils").Path,
         Camera          = require("camera/index"),
         CameraDialog    = require("camera-dialog"),
@@ -584,7 +584,7 @@ define(function (require, exports, module) {
         }
 
         if (completion === selfieLabel) {
-            savePath = Path.join(StartupProject.getInfo().root, selfieFileName);
+            savePath = Path.join(StartupState.project("root"), selfieFileName);
             cameraDialog = new CameraDialog(savePath);
             cameraDialog.show()
                 .done(function(selfieFilePath){

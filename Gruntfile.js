@@ -231,10 +231,10 @@ module.exports = function (grunt) {
                     preserveLicenseComments: false,
                     useStrict: true,
                     wrap: {
-                        startFile: 'src/bramble/bramble-start.frag',
-                        endFile: 'src/bramble/bramble-end.frag'
+                        startFile: 'src/bramble/client/bramble-start.frag',
+                        endFile: 'src/bramble/client/bramble-end.frag'
                     },
-                    include: ['bramble/api'],
+                    include: ['bramble/client/main'],
                     out: 'dist/bramble.js',
                     uglify2: {}
                 }

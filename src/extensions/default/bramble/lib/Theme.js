@@ -13,6 +13,7 @@ define(function (require, exports, module) {
     var Path             = brackets.getModule("filesystem/impls/filer/BracketsFiler").Path;
     var basePath         = PathUtils.directory(window.location.href);
     var themePath        = Path.join(basePath, 'extensions/default/bramble/stylesheets');
+    var BrambleEvents    = brackets.getModule("bramble/BrambleEvents");
 
     // Store the current theme, and load defaults as if
     // they were third party themes
@@ -26,6 +27,11 @@ define(function (require, exports, module) {
     function setTheme(theme) {
         currentTheme = theme;
         ThemePreferences.set("theme", theme);
+        BrambleEvents.triggerThemeChange(theme);
+    }
+
+    function getTheme() {
+        return currentTheme;
     }
 
     function init(theme) {
@@ -57,6 +63,7 @@ define(function (require, exports, module) {
 
     module.exports.toggle = toggle;
     module.exports.setTheme = setTheme;
+    module.exports.getTheme = getTheme;
     module.exports.init = init;
 });
 

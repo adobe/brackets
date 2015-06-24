@@ -198,6 +198,7 @@ The `options` object allows you to configure Bramble:
      * `enable`: `<Array(String)>` a list of extensions to enable
      * `disable`: `<Array(String)>` a list of extensions to disable
  * `hideUntilReady`: `<Boolean>` whether to hide Bramble until it's fully loaded.
+ * `disableUIState`: `<Boolean>` by default, UI state is kept between sessions.  This disables it (and clears old values), and uses the defaults from Bramble.
  * `debug`: `<Boolean>` whether to log debug info.
 
 ## Bramble.mount(root[, filename])
@@ -256,6 +257,8 @@ a number of read-only getters are available in order to access state information
 * `getPreviewMode()` - returns one of `"mobile"` or `"desktop"`, depending on current preview mode
 * `getSidebarVisible()` - returns `true` or `false` depending on whether the sidebar (file tree) is visible
 * `getLayout()` - returns an `Object` with three integer properties: `sidebarWidth`, `firstPaneWidth`, `secondPaneWidth`.  The `firstPaneWidth` refers to the editor, where `secondPaneWidth` is the preview.
+* `getTheme()` - returns the name of the current theme.
+* `getFontSize()` - returns the current font size as a string (e.g., `"12px"`).
 
 **NOTE**: calling these getters before the `ready()` callback on the bramble instance
 won't do what you want.
@@ -299,6 +302,9 @@ the following events:
 * `"activeEditorChange"` - triggered whenever the editor changes from one file to another. It includs an `Object` with the current file's `fullPath` and `filename`.
 * `"previewModeChange"` - triggered whenever the preview mode is changed. It includes an `Object` with the new `mode`
 * `"sidebarChange"` - triggered whenever the sidebar is hidden or shown. It includes an `Object` with a `visible` property set to `true` or `false`
+* `"themeChange"` - triggered whenever the theme changes. It inclues an `Object` with a `theme` property that indicates the new theme
+* `"fontSizeChange"` - triggered whenever the font size changes. It includes an `Object` with a `fontSize` property that indicates the new size (e.g., `"12px"`).
+
 
 There are also high-level events for changes to files:
 

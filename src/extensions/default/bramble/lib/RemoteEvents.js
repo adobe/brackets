@@ -7,8 +7,10 @@ define(function (require, exports, module) {
     var BrambleEvents = brackets.getModule("bramble/BrambleEvents");
     var EditorManager = brackets.getModule("editor/EditorManager");
     var MainViewManager = brackets.getModule("view/MainViewManager");
+    var ViewCommandHandlers = brackets.getModule("view/ViewCommandHandlers");
     var Path = brackets.getModule("filesystem/impls/filer/FilerUtils").Path;
     var UI = require("lib/UI");
+    var Theme = require("lib/Theme");
 
     function sendEvent(data) {
         parent.postMessage(JSON.stringify(data), "*");
@@ -79,6 +81,22 @@ define(function (require, exports, module) {
                 sendActiveEditorChangeEvent(file);
             }
         });
+
+        // Listen for changes to the theme
+        BrambleEvents.on("bramble:themeChange", function(e, theme) {
+            sendEvent({
+                type: "bramble:themeChange",
+                theme: theme
+            });
+        });
+
+        // Listen for changes to the font size
+        ViewCommandHandlers.on("fontSizeChange", function(e, fontSize) {
+            sendEvent({
+                type: "bramble:fontSizeChange",
+                fontSize: fontSize
+            });
+        });
     }
 
     /**
@@ -101,7 +119,9 @@ define(function (require, exports, module) {
             secondPaneWidth: $secondPane ? $secondPane.width() : 0,
             fullPath: fullPath,
             filename: filename,
-            previewMode: UI.getPreviewMode()
+            previewMode: UI.getPreviewMode(),
+            fontSize: ViewCommandHandlers.getFontSize(),
+            theme: Theme.getTheme()
         });
     }
 

@@ -28,9 +28,10 @@ define([
     "thirdparty/filer/dist/filer.min",
     "bramble/ChannelUtils",
     "bramble/thirdparty/EventEmitter/EventEmitter.min",
+    "bramble/client/StateManager",
     "bramble/thirdparty/MessageChannel/message_channel"
-], function(Filer, ChannelUtils, EventEmitter) {
-    "use strict";    
+], function(Filer, ChannelUtils, EventEmitter, StateManager) {
+    "use strict";
 
     // PROD URL for Bramble, which can be changed below
     var PROD_BRAMBLE_URL = "https://mozillathimblelivepreview.net/bramble/dist/index.html";
@@ -113,22 +114,13 @@ define([
 
     // After calling Bramble.load(), Bramble.mount() specifies project root entry path info
     Bramble.mount = function(root, filename) {
-        // Assume index.html if no filename provided.
         if (!filename) {
-            filename = "index.html";
-            debug("no filename passed to Bramble.mount(), assuming `index.html`");
+            debug("no filename passed to Bramble.mount()");
         }
 
         if (!_instance) {
             setReadyState(Bramble.ERROR, new Error("Bramble.mount() called before Bramble.load()."));
             return;
-        }
-
-        root = Path.normalize(root);
-
-        if (Path.isAbsolute(filename)) {
-            filename = Path.relative(root, filename);
-            debug("converted absolute filename path in mount() to relative", filename);
         }
 
         _instance.mount(root, filename);
@@ -139,6 +131,7 @@ define([
      */
     function BrambleProxy(div, options) {
         var self = this;
+        options = options || {};
 
         // The id used for the iframe element
         var _id = "bramble-" + UUID.generate();
@@ -158,27 +151,23 @@ define([
         // Whether to transfer ownership of ArrayBuffers or not
         var _allowArrayBufferTransfer;
 
-        // Various bits of private state we want to track, updated via events
-        var _currentFullPath;
-        var _currentFilename;
-        var _sidebarVisible;
-        var _sidebarWidth;
-        var _firstPaneWidth;
-        var _secondPaneWidth;
-        var _currentPreviewMode;
+        // State info for UI
+        var _state = new StateManager(options.disableUIState);
 
         // Public getters for state. Most of these aren't useful until bramble.ready()
         self.getID = function() { return _id; };
         self.getIFrame = function() { return _iframe; };
-        self.getFullPath = function() { return _currentFullPath; };
-        self.getFilename = function() { return _currentFilename; };
-        self.getPreviewMode = function() { return _currentPreviewMode; };
-        self.getSidebarVisible = function() { return _sidebarVisible; };
+        self.getFullPath = function() { return _state.fullPath; };
+        self.getFilename = function() { return _state.filename; };
+        self.getPreviewMode = function() { return _state.previewMode; };
+        self.getTheme = function() { return _state.theme; };
+        self.getFontSize = function() { return _state.fontSize; };
+        self.getSidebarVisible = function() { return _state.sidebarVisible; };
         self.getLayout = function() {
             return {
-                sidebarWidth: _sidebarWidth,
-                firstPaneWidth: _firstPaneWidth,
-                secondPaneWidth: _secondPaneWidth
+                sidebarWidth: _state.sidebarWidth,
+                firstPaneWidth: _state.firstPaneWidth,
+                secondPaneWidth: _state.secondPaneWidth
             };
         };
 
@@ -186,7 +175,6 @@ define([
             options = div;
             div = null;
         }
-        options = options || {};
 
         function startEvents(win) {
             // Listen for resize events on the window, and let Bramble know
@@ -219,14 +207,17 @@ define([
                     if (options.hideUntilReady) {
                         _iframe.style.visibility = "visible";
                     }
+
                     // Set intial state
-                    _currentFullPath = data.fullPath;
-                    _currentFilename = data.filename;
-                    _sidebarVisible = data.sidebarVisible;
-                    _sidebarWidth = data.sidebarWidth;
-                    _firstPaneWidth = data.firstPaneWidth;
-                    _secondPaneWidth = data.secondPaneWidth;
-                    _currentPreviewMode = data.previewMode;
+                    _state.fullPath = data.fullPath;
+                    _state.filename = data.filename;
+                    _state.fontSize = data.fontSize;
+                    _state.sidebarVisible = data.sidebarVisible;
+                    _state.sidebarWidth = data.sidebarWidth;
+                    _state.firstPaneWidth = data.firstPaneWidth;
+                    _state.secondPaneWidth = data.secondPaneWidth;
+                    _state.previewMode = data.previewMode;
+                    _state.theme = data.theme;
 
                     setReadyState(Bramble.READY);
                 }
@@ -239,16 +230,20 @@ define([
 
                     // Update internal state before firing event
                     if (eventName === "layout") {
-                        _sidebarWidth = data.sidebarWidth;
-                        _firstPaneWidth = data.firstPaneWidth;
-                        _secondPaneWidth = data.secondPaneWidth;
+                        _state.sidebarWidth = data.sidebarWidth;
+                        _state.firstPaneWidth = data.firstPaneWidth;
+                        _state.secondPaneWidth = data.secondPaneWidth;
                     } else if (eventName === "activeEditorChange") {
-                        _currentFullPath = data.fullPath;
-                        _currentFilename = data.filename;
+                        _state.fullPath = data.fullPath;
+                        _state.filename = data.filename;
                     } else if (eventName === "previewModeChange") {
-                        _currentPreviewMode = data.mode;
+                        _state.previewMode = data.mode;
+                    } else if (eventName === "themeChange") {
+                        _state.theme = data.theme;
+                    } else if (eventName === "fontSizeChange") {
+                        _state.fontSize = data.fontSize;
                     } else if (eventName === "sidebarChange") {
-                        _sidebarVisible = data.visible;
+                        _state.sidebarVisible = data.visible;
                     }
 
                     debug("triggering remote event", eventName, data);
@@ -268,8 +263,8 @@ define([
 
             div.innerHTML = "<iframe id='" + _id +
                             "' frameborder='0' width='100%' height='100%'></iframe>";
-            
-            _iframe = document.getElementById(_id);            
+
+            _iframe = document.getElementById(_id);
             if (options.hideUntilReady) {
                 _iframe.style.visibility = "hidden";
             }
@@ -323,6 +318,14 @@ define([
             function _mount() {
                 setReadyState(Bramble.MOUNTING);
 
+                root = Path.normalize(root);
+                filename = filename || (_state.filename || "index.html");
+
+                if (Path.isAbsolute(filename)) {
+                    filename = Path.relative(root, filename);
+                    debug("converted absolute filename path in mount() to relative", filename);
+                }
+
                 // Make sure the path we were given exists in the filesystem, and is a dir
                 _fs.stat(root, function(err, stats) {
                     if (err) {
@@ -338,12 +341,23 @@ define([
                     if (!stats.isDirectory()) {
                         setReadyState(Bramble.ERROR, new Error("mount path is not a directory: " + root));
                     } else {
-                        var mountMessage = {
-                            type: "bramble:mountPath",
-                            root: root,
-                            filename: filename
+                        var initMessage = {
+                            type: "bramble:init",
+                            mount: {
+                                root: root,
+                                filename: filename
+                            },
+                            state: {
+                                fontSize: _state.fontSize,
+                                theme: _state.theme,
+                                sidebarVisible: _state.sidebarVisible,
+                                sidebarWidth: _state.sidebarWidth,
+                                firstPaneWidth: _state.firstPaneWidth,
+                                secondPaneWidth: _state.secondPaneWidth,
+                                previewMode: _state.previewMode
+                            }
                         };
-                        _brambleWindow.postMessage(JSON.stringify(mountMessage), _iframe.src);
+                        _brambleWindow.postMessage(JSON.stringify(initMessage), _iframe.src);
                     }
                 });
             }
@@ -558,7 +572,7 @@ define([
     };
 
     BrambleProxy.prototype.refreshPreview = function() {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_RELOAD"});        
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_RELOAD"});
     };
 
     BrambleProxy.prototype.useMobilePreview = function() {
