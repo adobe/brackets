@@ -29,7 +29,7 @@ maxerr: 50, node: true */
     
     var fs = require("fs");
     var projectCache = {};
-    var allFiles;
+    var files;
     var MAX_DISPLAY_LENGTH = 200,
         RESULTS_PER_PAGE = 100,
         MAX_TOTAL_RESULTS = 100;
@@ -161,7 +161,7 @@ maxerr: 50, node: true */
     }
     
     function setResults(fullpath, resultInfo) {
-        console.log("In setResults");
+       // console.log("In setResults");
         if (results[fullpath]) {
             numMatches -= results[fullpath].matches.length;
             delete results[fullpath];
@@ -190,7 +190,7 @@ maxerr: 50, node: true */
                 //exceedsMaximum = true;
             }
         }
-        console.log('setResults. Filepath: ' + fullpath + '  :matches: ' + results[fullpath].matches.length + ' numMatches: ' + numMatches);
+        //console.log('setResults. Filepath: ' + fullpath + '  :matches: ' + results[fullpath].matches.length + ' numMatches: ' + numMatches);
     }
     
     function _doSearchInOneFile(filepath, text, queryExpr, dontSetResults) {
@@ -295,7 +295,7 @@ maxerr: 50, node: true */
                 
                 console.log('out');
             }
-            console.log('setResults in PREV. Filepath: ' + fileList[i] + '  :matches: ' + matchedResults.matches.length + ' numMatches: ' + numMatches);
+            //console.log('setResults in PREV. Filepath: ' + fileList[i] + '  :matches: ' + matchedResults.matches.length + ' numMatches: ' + numMatches);
             reversedResults.push(matchedResults);
             
         }
@@ -346,7 +346,7 @@ maxerr: 50, node: true */
                 
                 console.log('out');
             }
-            console.log('setResults in PREV. Filepath: ' + fileList[i] + '  :matches: ' + matchedResults.matches.length + ' numMatches: ' + numMatches);
+            //console.log('setResults in PREV. Filepath: ' + fileList[i] + '  :matches: ' + matchedResults.matches.length + ' numMatches: ' + numMatches);
             reversedResults.push(matchedResults);
             
         }
@@ -400,7 +400,7 @@ maxerr: 50, node: true */
     
     function initCache(fileList) {
         var i;
-        allFiles = fileList;
+        var allFiles = fileList;
         // Temporarily increase caching time for testing
         for (i = 0; i < 1; i++) {
             allFiles.forEach(function (file) {
@@ -452,7 +452,7 @@ maxerr: 50, node: true */
     
     function doSearch(searchObject) {
         console.log("doSearch");
-        var files = searchObject.files;
+        files = searchObject.files;
         if (!files) {
             console.log("no file object found");
             return {};
@@ -463,7 +463,7 @@ maxerr: 50, node: true */
         exceedsMaximum = false;
         queryObject = parseQueryInfo(searchObject.queryInfo);
         doSearchInFiles(files, queryObject.queryExpr);
-        totalMatches = getNumMatches(files, queryObject.queryExpr)
+        totalMatches = getNumMatches(files, queryObject.queryExpr);
         var send_object = {
             "results":  results,
             "numMatches": totalMatches,
@@ -476,28 +476,7 @@ maxerr: 50, node: true */
         return send_object;
     }
     
-    function searchResultSlice(index) {
-        var searchNumCount = 0,
-            resultsClone = {},
-            copyProperty = false,
-            currentMatches;
-        
-        Object.keys(results)
-            .forEach(function (filePath) {
-                currentMatches = results[filePath].matches;
-                searchNumCount += currentMatches.length;
-                if (copyProperty) {
-                    resultsClone[filePath] = results[filePath];
-                }
-                if (!copyProperty && searchNumCount > index) {
-                    resultsClone[filePath] = {matches: currentMatches.slice(currentMatches.length - (searchNumCount - index))};
-                    copyProperty = true;
-                }
-            });
-        results = resultsClone;
-    }
-    
-    function getFirstPageofSearchResults(searchObject) {
+    function getFirstPageofSearchResults() {
         console.log("doSearch");
         
         if (!files) {
@@ -543,7 +522,6 @@ maxerr: 50, node: true */
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
-        var resultKeys = Object.keys(results);
         fileTopIndex = files.indexOf(resultKeys[0]);
         fileBottomIndex = files.indexOf(resultKeys.pop());
         return send_object;
@@ -570,7 +548,6 @@ maxerr: 50, node: true */
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
-        var resultKeys = Object.keys(results);
         fileTopIndex = files.indexOf(resultKeys[0]);
         fileBottomIndex = files.indexOf(resultKeys.pop());
         return send_object;
@@ -608,14 +585,14 @@ maxerr: 50, node: true */
         fileTopIndex = files.indexOf(resultKeys[0]);
         fileBottomIndex = files.indexOf(resultKeys.pop());
         console.log('SENDDDD');
-        try{
-        var str = ( ( JSON.stringify( send_object ) ) );
-            console.log('str' + str);
-        } catch (err)
-        {
-            console.log(err);
-        }
-        return str;
+//        try{
+//        var str = ( ( JSON.stringify( send_object ) ) );
+//            console.log('str' + str);
+//        } catch (err)
+//        {
+//            console.log(err);
+//        }
+        return send_object;
     }
         
     /**
