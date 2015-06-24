@@ -65,25 +65,29 @@ define(function (require, exports, module) {
      */
     function restoreState() {
         var theme = BrambleStartupState.ui("theme");
-        switch(theme) {
-        case "light-theme":
-        case "dark-theme":
-            Theme.setTheme(theme);
-            break;
-        default:
-            console.warn("[Bramble] unknown theme: `" + theme + "`");
+        if(theme) {
+            switch(theme) {
+            case "light-theme":
+            case "dark-theme":
+                Theme.setTheme(theme);
+                break;
+            default:
+                console.warn("[Bramble] unknown theme: `" + theme + "`");
+            }
         }
 
         var previewMode = BrambleStartupState.ui("previewMode");
-        switch(previewMode) {
-        case "desktop":
-            showDesktopView();
-            break;
-        case "mobile":
-            showMobileView();
-            break;
-        default:
-            console.warn("[Bramble] unknown preview mode: `" + previewMode + "`");
+        if(previewMode) {
+            switch(previewMode) {
+            case "desktop":
+                showDesktopView();
+                break;
+            case "mobile":
+                showMobileView();
+                break;
+            default:
+                console.warn("[Bramble] unknown preview mode: `" + previewMode + "`");
+            }
         }
 
         var sidebarWidth = BrambleStartupState.ui("sidebarWidth");
