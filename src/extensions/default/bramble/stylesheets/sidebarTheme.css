@@ -1,0 +1,58 @@
+/* Components to hide */
+#working-set-list-container {
+	display: none !important;
+}
+span#project-title.title {
+	display: none;
+}
+div.working-set-option-btn[style] {
+	display: none !important;
+}
+
+/* Recoloring */
+#sidebar {
+	background-color: black;
+	text-shadow: none;
+	color: #333333;
+}
+li.jstree-leaf>a {
+	padding: 5px;
+}
+li.jstree-leaf>a>span {
+	font-size: 15px;
+	color: #666666;
+}
+li.jstree-open>a>span {
+	font-size: 15px;
+	color: #666666;
+}
+li.jstree-closed>a>span {
+	font-size: 15px;
+	color: #666666;
+}
+li.jstree-leaf>a>span.extension {
+	color: #666666;
+}
+
+.filetree-selection {
+	background-color: #333333;
+	border: none;
+	color: white;
+	font-weight: bolder;
+	padding: 13px;
+	width: 100% !important;
+}
+.filetree-selection-extension {
+	background-color: #333333;
+	border: none;
+}
+
+li.jstree-leaf>a.jstree-clicked>span {
+	color: white;
+}
+li.jstree-leaf>a.jstree-clicked>span.extension {
+	color: white;
+}
+a.jstree-clicked .extension {
+	color: white !important;
+}
