@@ -25,7 +25,7 @@
 /*global define, brackets*/
 
 /**
- *  Utilities functions related to localization/i18n
+ *  Utilities functions related to Health data loggig
  */
 define(function (require, exports, module) {
     "use strict";
@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         LanguageManager             = brackets.getModule("language/LanguageManager"),
         FileUtils                   = brackets.getModule("file/FileUtils"),
 
-        HEALTH_DATA_STATE_KEY        = "HealthData.Logs",
+        HEALTH_DATA_STATE_KEY       = "HealthData.Logs",
         logHealthData               = true;
 
     /**

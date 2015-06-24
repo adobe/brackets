@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var AppInit                 = brackets.getModule("utils/AppInit"),
-        HealthUtils             = brackets.getModule("utils/HealthUtils"),
+        HealthLogger            = brackets.getModule("utils/HealthLogger"),
         Menus                   = brackets.getModule("command/Menus"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         Strings                 = brackets.getModule("strings"),
@@ -63,12 +63,12 @@ define(function (require, exports, module) {
 
         var prefs = PreferencesManager.getExtensionPrefs("healthData"),
             hdPref = prefs.get("healthDataTracking");
-        HealthUtils.setHealthLogsEnabled(hdPref);
+        HealthLogger.setHealthLogsEnabled(hdPref);
     }
     
     AppInit.appReady(function () {
         initTest();
-        HealthUtils.init();
+        HealthLogger.init();
     });
     
     addCommand();

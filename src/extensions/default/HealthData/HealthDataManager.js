@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var AppInit             = brackets.getModule("utils/AppInit"),
-        HealthUtils         = brackets.getModule("utils/HealthUtils"),
+        HealthLogger        = brackets.getModule("utils/HealthLogger"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         UrlParams           = brackets.getModule("utils/UrlParams").UrlParams,
         Strings             = brackets.getModule("strings"),
@@ -70,7 +70,7 @@ define(function (require, exports, module) {
         oneTimeHealthData.osLanguage = brackets.app.language;
         oneTimeHealthData.bracketsLanguage = brackets.getLocale();
         oneTimeHealthData.bracketsVersion = brackets.metadata.version;
-        $.extend(oneTimeHealthData, HealthUtils.getHealthData());
+        $.extend(oneTimeHealthData, HealthLogger.getHealthData());
 
         HealthDataUtils.getUserInstalledExtensions()
             .done(function (userInstalledExtensions) {
@@ -125,7 +125,7 @@ define(function (require, exports, module) {
     function checkHealthDataSend() {
         var result = new $.Deferred(),
             isHDTracking = prefs.get("healthDataTracking");
-        HealthUtils.setHealthLogsEnabled(isHDTracking);
+        HealthLogger.setHealthLogsEnabled(isHDTracking);
         window.clearTimeout(timeoutVar);
         if (isHDTracking) {
             var nextTimeToSend = PreferencesManager.getViewState("nextHealthDataSendTime"),
@@ -148,7 +148,7 @@ define(function (require, exports, module) {
                     .done(function () {
                         //We have already sent the health data, so can clear ll health data
                         //Logged till now
-                        HealthUtils.clearHealthData();
+                        HealthLogger.clearHealthData();
                         result.resolve();
                     })
                     .fail(function () {

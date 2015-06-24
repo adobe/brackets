@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         InMemoryFile        = require("document/InMemoryFile"),
         StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
-        HealthUtils         = require("utils/HealthUtils"),
+        HealthLogger        = require("utils/HealthLogger"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
@@ -452,7 +452,7 @@ define(function (require, exports, module) {
         
         _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
             .done(function (file) {
-                HealthUtils.fileOpened(fileInfo.path);
+                HealthLogger.fileOpened(fileInfo.path);
                 if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
                     MainViewManager.setActivePaneId(paneId);
                 }
@@ -530,7 +530,7 @@ define(function (require, exports, module) {
         return handleFileOpen(commandData).done(function (file) {
             var paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
             MainViewManager.addToWorkingSet(paneId, file, commandData.index, commandData.forceRedraw);
-            HealthUtils.fileOpened(file.fullPath, true);
+            HealthLogger.fileOpened(file.fullPath, true);
         });
     }
 
