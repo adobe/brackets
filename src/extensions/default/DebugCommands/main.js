@@ -43,6 +43,7 @@ define(function (require, exports, module) {
         LocalizationUtils      = brackets.getModule("utils/LocalizationUtils"),
         MainViewManager        = brackets.getModule("view/MainViewManager"),
         WorkingSetView         = brackets.getModule("project/WorkingSetView"),
+        ExtensionManager       = brackets.getModule("extensibility/ExtensionManager"),
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
@@ -55,95 +56,7 @@ define(function (require, exports, module) {
 
     var reComputeDefaultPrefs     = true,
         defaultSettingsFullPath   = brackets.app.getApplicationSupportDirectory() + "/" + DEFAULT_SETTINGS_FILENAME;
-    
-    // unit testing.
-    // Unit Test cases.
-    PreferencesManager.definePreference("TestPreferences", "object", { whenOpening: true, whenClosing: true, indentTags: [] },
-        {
-            description: Strings.DESCRIPTION_CLOSE_TAGS,
-            keys: {
-                nestedObject: {
-                    type: "object",
-                    description: "Simple Nested Object",
-                    keys: {
-                        dontCloseTags: {
-                            type: "array",
-                            description: Strings.DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS
-                        },
-                        whenOpening: {
-                            type: "boolean",
-                            description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING,
-                            initial: false
-                        },
-                        whenClosing: {
-                            type: "boolean",
-                            description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING
-                        },
-                        indentTags: {
-                            type: "array",
-                            description: Strings.DESCRIPTION_CLOSE_TAGS_INDENT_TAGS
-                        }
-                    }
-                },
-                
-                dontCloseTags: {
-                    type: "array",
-                    description: Strings.DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS
-                },
-                whenOpening: {
-                    type: "boolean",
-                    description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING,
-                    initial: true
-                },
-                whenClosing: {
-                    type: "boolean",
-                    description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING,
-                    initial: true
-                },
-                indentTags: {
-                    type: "array",
-                    description: Strings.DESCRIPTION_CLOSE_TAGS_INDENT_TAGS
-                },
 
-            }
-        });
-    
-    PreferencesManager.definePreference("TestPreferences2", "object", { whenOpening: true, whenClosing: true, indentTags: [] },
-        {
-            description: Strings.DESCRIPTION_CLOSE_TAGS,
-            keys: {
-            }
-        });
-    
-    PreferencesManager.definePreference("TestPreferences3", "boolean", { whenOpening: true, whenClosing: true, indentTags: [] },
-        {
-            initial: 123
-            
-        });
-    
-    var preferencesId      = "denniskehrig.ShowWhitespace";
-    var defaultPreferences = {
-        checked: true,
-        colors: {
-            "light": {
-                "empty": "#ccc",
-                "leading": "#ccc",
-                "trailing": "#ff0000",
-                "whitespace": "#ccc"
-            },
-            "dark": {
-                "empty": "#686963",
-                "leading": "#686963",
-                "trailing": "#ff0000",
-                "whitespace": "#686963"
-            }
-        }
-    };
-    
-    var _preferences = PreferencesManager.getExtensionPrefs(preferencesId);
-    _preferences.definePreference("checked", "boolean", defaultPreferences.checked);
-    _preferences.definePreference("colors", "Object", defaultPreferences.colors);
-    
     /**
      * Brackets Application Menu Constant
      * @const {string}
@@ -366,10 +279,15 @@ define(function (require, exports, module) {
 
     function _openPrefFilesInSplitView(prefsPath, defaultPrefsPath) {
 
-        var currScheme = MainViewManager.getLayoutScheme(),
-            file       = FileSystem.getFileForPath(prefsPath);
+        var currScheme       = MainViewManager.getLayoutScheme(),
+            file             = FileSystem.getFileForPath(prefsPath),
+            defaultPrefsFile = FileSystem.getFileForPath(defaultPrefsPath);
 
-        CommandManager.execute(Commands.FILE_CLOSE, {file: file});
+        if (MainViewManager.findInWorkingSet("first-pane", defaultPrefsPath) >= 0) {
+            CommandManager.execute(Commands.FILE_CLOSE, {file: defaultPrefsFile, paneId: "first-pane"});
+        } else if (MainViewManager.findInWorkingSet("second-pane", defaultPrefsPath) >= 0) {
+            CommandManager.execute(Commands.FILE_CLOSE, {file: defaultPrefsFile, paneId: "second-pane"});
+        }
 
         // Open the default preferences in the left pane in the read only mode.
         CommandManager.execute(Commands.FILE_OPEN, { fullPath: defaultPrefsPath, paneId: "first-pane", isReadOnly: true});
@@ -396,21 +314,51 @@ define(function (require, exports, module) {
 
     }
 
+    function _isSupportedPrefType(prefType) {
+        if (prefType !== undefined &&
+                (prefType === "number" ||
+                prefType === "boolean" ||
+                prefType === "string"  ||
+                prefType === "array"   ||
+                prefType === "object")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     // This method tries to deduce the preference type
     // based on various parameters like objects initial
     // value, object type, object's type property.
     function _getObjType(prefObj) {
         
         var prefType = "undefined";
-        
+
         if (prefObj) {
-            
             // check the type parameter.
-            if (prefObj.type) {
-                
+            var _type = prefObj.type;
+            if (typeof (_type) !== "undefined") {
+                prefType = prefObj.type.toLowerCase();
+                // make sure the initial property's
+                // object type matches to that of 'type' propety.
+                if (prefObj.initial !== undefined) {
+
+                    if (Array.isArray(prefObj.initial)) {
+                        _type = "array";
+                    } else {
+                        var _initialType = typeof (prefObj.initial);
+                        _initialType = _initialType.toLowerCase();
+                        if (_type !== _initialType) {
+                            _type = _initialType;
+                        }
+                    }
+                }
+            }
+
+            if (_type) {
                 // preference object's type
                 // is defined. Check if that is valid or not.
-                prefType = prefObj.type.toLowerCase();
+                prefType = _type;
                 if ((prefType !== "number"  &&
                      prefType !== "boolean" &&
                      prefType !== "string"  &&
@@ -418,21 +366,41 @@ define(function (require, exports, module) {
                      prefType !== "object")) {
                     prefType = "undefined";
                 }
-            } else if (typeof (prefObj.initial) !== "undefined") {
+            } else if (Array.isArray(prefObj)) {
+                // Check if the object itself
+                // is an array, in which case
+                // we log the default.
+                prefType = "array";
+            } else if (typeof (prefObj.initial) !== "undefined"  ||
+                       typeof (prefObj.keys) !== "undefined") {
                 
                 // OK looks like this preference has
                 // no explicit type defined. instead 
-                // it needs to be deduced from initial
+                // it needs to be deduced from initial/keys
                 // variable.
-                prefType = typeof (prefObj.initial);
+                var _prefVar;
+                if (typeof (prefObj.initial) !== "undefined") {
+                    _prefVar = prefObj.initial;
+                } else {
+                    _prefVar = prefObj.keys;
+                }
+
+                if (Array.isArray(_prefVar)) {
+                    // In cases of array the
+                    // typeof is returning a function.
+                    prefType = "array";
+                }
                 
-            } else if (typeof (prefObj.keys) !== "undefined") {
-                prefType = typeof (prefObj.keys);
             } else {
                 prefType = typeof (prefObj);
             }
         }
         
+        // Now make sure we recognize this format.
+        if (!_isSupportedPrefType(prefType)) {
+            prefType = "undefined";
+        }
+
         return prefType;
     }
 
@@ -511,7 +479,7 @@ define(function (require, exports, module) {
             prefFormatText  = tabIndentStr + "\t// {0}\n" + tabIndentStr + "\t\"{1}\": {2}",
             prefObjType     = _getObjType(prefObj);
         
-        if (prefObj.initial === undefined && !prefObj.description) {
+        if (prefDefault === undefined && !prefObj.description) {
             // This could be the case when prefObj is a basic JS variable.
             if (prefObjType === "number" || prefObjType === "boolean" || prefObjType === "string") {
                 prefDefault = prefObj;
@@ -532,8 +500,10 @@ define(function (require, exports, module) {
         }
 
         if ((prefDescription === undefined || prefDescription.length === 0)) {
-            if (!prefDefault.isArray) {
-                prefDescription = "Default: " + prefDefault;
+            if (!Array.isArray(prefDefault)) {
+                prefDescription = Strings.DEFAULT_SETTINGS_JSON_DEFAULT + ": " + prefDefault;
+            } else {
+                prefDescription = "";
             }
         }
 
@@ -559,7 +529,7 @@ define(function (require, exports, module) {
             prefObjKeys,
             entireText     = "",
             prefObjDesc    = prefObj.description || "",
-            prefObjType    = prefObj.type,
+            prefObjType    = _getObjType(prefObj),
             hasKeys        = false,
             tabIndents     = "",
             numKeys        = 0;
@@ -656,15 +626,7 @@ define(function (require, exports, module) {
             if (allPrefs.hasOwnProperty(property)) {
 
                 var pref = allPrefs[property];
-                if (property === "denniskehrig.ShowWhitespace.colors") {
-                    var i = 0;
-                }
-                if (property === "language.fileExtensions") {
-                    var i2 = 0;
-                }
-                if (property === "linting.usePreferredOnly") {
-                    var i3 = 0;
-                }
+
                 if (_isValidPref(pref)) {
                     entireText  = entireText + _formatPref(property, pref, 0) + ",\n\n";
                 }
@@ -768,6 +730,12 @@ define(function (require, exports, module) {
         }
 
     }
+
+    ExtensionManager.on("statusChange", function (id) {
+        // Seems like an extension(s) got installed.
+        // Need to recompute the default prefs.
+        reComputeDefaultPrefs = true;
+    });
 
     /* Register all the command handlers */
     
