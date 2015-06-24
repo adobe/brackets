@@ -52,13 +52,13 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     // default preferences file name
-    var DEFAULT_SETTINGS_FILENAME = "defaultSettings.json";
+    var DEFAULT_PREFERENCES_FILENAME = "defaultPreferences.json";
 
     var reComputeDefaultPrefs     = true,
-        defaultSettingsFullPath   = brackets.app.getApplicationSupportDirectory() + "/" + DEFAULT_SETTINGS_FILENAME;
+        defaultPreferencesFullPath   = brackets.app.getApplicationSupportDirectory() + "/" + DEFAULT_PREFERENCES_FILENAME;
 
     /**
-     * Brackets Application Menu Constant
+Preferencesrackets Application Menu Constant
      * @const {string}
      */
     var DEBUG_MENU = "debug-menu";
@@ -274,7 +274,7 @@ define(function (require, exports, module) {
 
     function _getDefaultPrefsFilePath() {
         // Default preferences
-        return defaultSettingsFullPath;
+        return defaultPreferencesFullPath;
     }
 
     function _openPrefFilesInSplitView(prefsPath, defaultPrefsPath) {
@@ -283,10 +283,9 @@ define(function (require, exports, module) {
             file             = FileSystem.getFileForPath(prefsPath),
             defaultPrefsFile = FileSystem.getFileForPath(defaultPrefsPath);
 
-        if (MainViewManager.findInWorkingSet("first-pane", defaultPrefsPath) >= 0) {
-            CommandManager.execute(Commands.FILE_CLOSE, {file: defaultPrefsFile, paneId: "first-pane"});
-        } else if (MainViewManager.findInWorkingSet("second-pane", defaultPrefsPath) >= 0) {
-            CommandManager.execute(Commands.FILE_CLOSE, {file: defaultPrefsFile, paneId: "second-pane"});
+        var resultObj = MainViewManager.findInAllWorkingSets(defaultPrefsPath);
+        if (resultObj && resultObj.length > 0) {
+            CommandManager.execute(Commands.FILE_CLOSE, {file: defaultPrefsFile, paneId: resultObj[0].paneId});
         }
 
         // Open the default preferences in the left pane in the read only mode.
@@ -315,12 +314,11 @@ define(function (require, exports, module) {
     }
 
     function _isSupportedPrefType(prefType) {
-        if (prefType !== undefined &&
-                (prefType === "number" ||
+        if (prefType === "number" ||
                 prefType === "boolean" ||
                 prefType === "string"  ||
                 prefType === "array"   ||
-                prefType === "object")) {
+                prefType === "object") {
             return true;
         } else {
             return false;
@@ -337,7 +335,7 @@ define(function (require, exports, module) {
         if (prefObj) {
             // check the type parameter.
             var _type = prefObj.type;
-            if (typeof (_type) !== "undefined") {
+            if (_type !== undefined) {
                 prefType = prefObj.type.toLowerCase();
                 // make sure the initial property's
                 // object type matches to that of 'type' propety.
@@ -359,11 +357,7 @@ define(function (require, exports, module) {
                 // preference object's type
                 // is defined. Check if that is valid or not.
                 prefType = _type;
-                if ((prefType !== "number"  &&
-                     prefType !== "boolean" &&
-                     prefType !== "string"  &&
-                     prefType !== "array"   &&
-                     prefType !== "object")) {
+                if (!_isSupportedPrefType(prefType)) {
                     prefType = "undefined";
                 }
             } else if (Array.isArray(prefObj)) {
@@ -371,15 +365,15 @@ define(function (require, exports, module) {
                 // is an array, in which case
                 // we log the default.
                 prefType = "array";
-            } else if (typeof (prefObj.initial) !== "undefined"  ||
-                       typeof (prefObj.keys) !== "undefined") {
+            } else if (prefObj.initial !== undefined  ||
+                       prefObj.keys !== undefined) {
 
                 // OK looks like this preference has
                 // no explicit type defined. instead
                 // it needs to be deduced from initial/keys
                 // variable.
                 var _prefVar;
-                if (typeof (prefObj.initial) !== "undefined") {
+                if (prefObj.initial !== undefined) {
                     _prefVar = prefObj.initial;
                 } else {
                     _prefVar = prefObj.keys;
@@ -499,7 +493,7 @@ define(function (require, exports, module) {
 
         if ((prefDescription === undefined || prefDescription.length === 0)) {
             if (!Array.isArray(prefDefault)) {
-                prefDescription = Strings.DEFAULT_SETTINGS_JSON_DEFAULT + ": " + prefDefault;
+                prefDescription = Strings.DEFAULT_PREFERENCES_JSON_DEFAULT + ": " + prefDefault;
             } else {
                 prefDescription = "";
             }
@@ -614,7 +608,7 @@ define(function (require, exports, module) {
 
         var property,
             allPrefs       = PreferencesManager.getAllPreferences(),
-            headerComment  = Strings.DEFAULT_SETTINGS_JSON_HEADER_COMMENT + "\n{\n",
+            headerComment  = Strings.DEFAULT_PREFERENCES_JSON_HEADER_COMMENT + "\n{\n",
             entireText     = "";
 
         for (property in allPrefs) {
