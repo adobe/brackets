@@ -13,7 +13,8 @@ define(function (require, exports, module) {
     var SidebarView    = brackets.getModule("project/SidebarView");
     var StatusBar      = brackets.getModule("widgets/StatusBar");
     var WorkspaceManager = brackets.getModule("view/WorkspaceManager");
-
+    var BrambleEvents = brackets.getModule("bramble/BrambleEvents");
+    
     var PostMessageTransport = require("lib/PostMessageTransport");
     var Theme = require("lib/Theme");
     var UI = require("lib/UI");
@@ -75,6 +76,7 @@ define(function (require, exports, module) {
         case "RESIZE":
             // The host window was resized, update all panes
             WorkspaceManager.recomputeLayout(true);
+            BrambleEvents.triggerUpdateLayoutEnd();
             break;
         default:
             console.log('[Bramble] unknown command:', command);
