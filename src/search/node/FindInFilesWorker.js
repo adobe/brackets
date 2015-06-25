@@ -183,14 +183,18 @@ maxerr: 50, node: true */
             // Remove final result if there have been over MAX_TOTAL_RESULTS found
             if (numMatches > MAX_TOTAL_RESULTS) {
                 console.log('numMatches more than MAX_Results');
+                fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n numMatches more than MAX_Results', function (err) {});
+                console.log('length for last item of page: ' + results[fullpath].matches.length + ' numMatches: ' + numMatches);
+                fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n length for last item of page: ' + results[fullpath].matches.length + ' numMatches: ' + numMatches, function (err) {});
                 results[fullpath].matches = results[fullpath].matches.slice(0, results[fullpath].matches.length - (numMatches - MAX_TOTAL_RESULTS));
                 numMatches -= (numMatches - MAX_TOTAL_RESULTS);
                 
-                console.log('length for last item of page: ' + results[fullpath].matches.length + ' numMatches: ' + numMatches);
+                
                 //exceedsMaximum = true;
             }
         }
         //console.log('setResults. Filepath: ' + fullpath + '  :matches: ' + results[fullpath].matches.length + ' numMatches: ' + numMatches);
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n setResults. Filepath: ' + fullpath + '  :matches: ' + results[fullpath].matches.length + ' numMatches: ' + numMatches, function (err) {});
     }
     
     function _doSearchInOneFile(filepath, text, queryExpr, dontSetResults) {
@@ -221,6 +225,7 @@ maxerr: 50, node: true */
     
     function doSearchInFilesNextPage(fileList, queryExpr, offset) {
         console.log('doSearchInFilesNextPage' + offset);
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n doSearchInFilesNextPage, offset: ' + offset + ' file bottom i: ' + fileBottomIndex, function (err) {});
 //        var i;
 //        fileTopIndex = fileBottomIndex;
 //        for (i = fileTopIndex + 1; i < fileList.length && !foundMaximum; i++) {
@@ -257,6 +262,7 @@ maxerr: 50, node: true */
     
     function doSearchInFilesPrevPage(fileList, queryExpr, offset) {
         console.log('doSearchInFilesPrevPage'+(fileTopIndex) + '$'+  fileList[fileTopIndex] + 'offset:' + offset);
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n doSearchInFilesPrevPage'+(fileTopIndex) + '$'+  fileList[fileTopIndex] + 'offset:' + offset, function (err) {});
         var i;
         fileBottomIndex = fileTopIndex;
 //        var matchedResults = _doSearchInOneFile(fileList[fileBottomIndex], getFileContentsForFile(fileList[fileBottomIndex]), queryExpr, true);
@@ -296,6 +302,7 @@ maxerr: 50, node: true */
                 console.log('out');
             }
             //console.log('setResults in PREV. Filepath: ' + fileList[i] + '  :matches: ' + matchedResults.matches.length + ' numMatches: ' + numMatches);
+            fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n setResults in PREV. Filepath: ' + fileList[i] + '  :matches: ' + matchedResults.matches.length + ' numMatches: ' + numMatches, function (err) {});
             reversedResults.push(matchedResults);
             
         }
@@ -312,6 +319,7 @@ maxerr: 50, node: true */
     
     function doSearchInFilesLastPage(fileList, queryExpr, pageLength) {
         console.log('doSearchInFilesLastPage'+(fileList.length - 1) + '$'+  fileList[fileList.length - 1] + 'pageLength:' + pageLength);
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n doSearchInFilesLastPage'+(fileList.length - 1) + '$'+  fileList[fileList.length - 1] + 'pageLength:' + pageLength, function (err) {});
         var i;
         fileBottomIndex = fileList.length - 1;
 //        var matchedResults = _doSearchInOneFile(fileList[fileBottomIndex], getFileContentsForFile(fileList[fileBottomIndex]), queryExpr, true);
@@ -322,18 +330,22 @@ maxerr: 50, node: true */
         //matchedResults.matches = matchedResults.matches.slice(0, matchedResults.length - offset);
         console.log('2');
        // reversedResults.push(matchedResults);
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n pre for loop', function (err) {});
         for (i = fileBottomIndex; i >= 0 && !foundMaximum; i--) {
             matchedResults = _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, true);
 
             if (foundMaximum || !matchedResults || !matchedResults.matches || !matchedResults.matches.length) {
                 console.log('CONTINUE');
+                fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n CONTINUE', function (err) {});
                 console.log(fileList[i] + '$' + matchedResults.matches.length);
+                fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n ' + fileList[i] + '$' + matchedResults.matches.length, function (err) {});
                 continue;
             }
             matchedResults.collapsed = !!matchedResults.collapsed;
             numMatches += matchedResults.matches.length;
             if (numMatches >= pageLength) {
                 console.log('in');
+                fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n in', function (err) {});
                 foundMaximum = true;
 
                 
@@ -345,12 +357,15 @@ maxerr: 50, node: true */
                 }
                 
                 console.log('out');
+                fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n out', function (err) {});
             }
             //console.log('setResults in PREV. Filepath: ' + fileList[i] + '  :matches: ' + matchedResults.matches.length + ' numMatches: ' + numMatches);
+            fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n setResults in PREV. Filepath: ' + fileList[i] + '  :matches: ' + matchedResults.matches.length + ' numMatches: ' + numMatches, function (err) {});
             reversedResults.push(matchedResults);
             
         }
         console.log('out of for loop');
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n out of loop', function (err) {});
         results = {};
         while(top = reversedResults.pop()) {
             results[top.filepath] = {
@@ -453,6 +468,7 @@ maxerr: 50, node: true */
     
     function doSearch(searchObject) {
         console.log("doSearch");
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', " \n do Search", function (err) {});
         files = searchObject.files;
         if (!files) {
             console.log("no file object found");
@@ -473,12 +489,15 @@ maxerr: 50, node: true */
         };
         var resultKeys = Object.keys(results);
         fileTopIndex = files.indexOf(resultKeys[0]);
-        fileBottomIndex = files.indexOf(resultKeys.pop());
+        fileBottomIndex = files.indexOf(resultKeys[resultKeys.length-1]);
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n file Botom index" +fileBottomIndex + ' filepath: ' + files[fileBottomIndex], function (err) {});
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n RESULT Keys" + resultKeys.join(), function (err) {});
         return send_object;
     }
     
     function getFirstPageofSearchResults() {
         console.log("getFirstPageofSearchResults");
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n getFirstPageofSearchResults', function (err) {});
         
         if (!files) {
             console.log("no file object found");
@@ -497,12 +516,14 @@ maxerr: 50, node: true */
         };
         var resultKeys = Object.keys(results);
         fileTopIndex = files.indexOf(resultKeys[0]);
-        fileBottomIndex = files.indexOf(resultKeys.pop());
+        fileBottomIndex = files.indexOf(resultKeys[resultKeys.length -1]);
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n file Botom index" +fileBottomIndex + ' filepath: ' + files[fileBottomIndex], function (err) {});
         return send_object;
     }
     
     function getNextPageofSearchResults() {
         console.log("getNextPageofSearchResults" +numMatches);
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n getNextPageofSearchResults" +numMatches, function (err) {});
         
         if (!files) {
             console.log("no file object found");
@@ -523,13 +544,17 @@ maxerr: 50, node: true */
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
+        resultKeys = Object.keys(results);
         fileTopIndex = files.indexOf(resultKeys[0]);
-        fileBottomIndex = files.indexOf(resultKeys.pop());
+        fileBottomIndex = files.indexOf(resultKeys[resultKeys.length-1]);
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n file Botom index" +fileBottomIndex + ' filepath: ' + files[fileBottomIndex], function (err) {});
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n RESULT Keys" + resultKeys.join(), function (err) {});
         return send_object;
     }
     
     function getPrevPageofSearchResults() {
         console.log("getPrevPageofSearchResults" +numMatches);
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n getPrevPageofSearchResults" +numMatches, function (err) {});
         
         if (!files) {
             console.log("no file object found");
@@ -549,6 +574,7 @@ maxerr: 50, node: true */
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
+        resultKeys = Object.keys(results);
         fileTopIndex = files.indexOf(resultKeys[0]);
         fileBottomIndex = files.indexOf(resultKeys.pop());
         return send_object;
@@ -556,6 +582,7 @@ maxerr: 50, node: true */
     
     function getLastPageofSearchResults() {
         console.log("getLastPageofSearchResults" +numMatches);
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n getLastPageofSearchResults" +numMatches, function (err) {});
         
         if (!files) {
             console.log("no file object found");
@@ -574,8 +601,10 @@ maxerr: 50, node: true */
         } catch (err)
         {
             console.log(err);
+            fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n ERROR" + err, function (err) {});
         }
         console.log('BACKKKKK');
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n BACCKKKK" , function (err) {});
         var send_object = {
             "results":  results,
             "numMatches": totalMatches,
@@ -586,6 +615,7 @@ maxerr: 50, node: true */
         fileTopIndex = files.indexOf(resultKeys[0]);
         fileBottomIndex = files.indexOf(resultKeys.pop());
         console.log('SENDDDD');
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n SENDDDD" , function (err) {});
 //        try{
 //        var str = ( ( JSON.stringify( send_object ) ) );
 //            console.log('str' + str);
@@ -597,7 +627,7 @@ maxerr: 50, node: true */
     }
     
     function shutDown() {
-        //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " In ChildProcess: Child Process is about to exit.. ", function (err) {});
+        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', " In ChildProcess: Child Process is about to exit.. ", function (err) {});
         process.exit(0);
     }
     

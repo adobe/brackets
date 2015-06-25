@@ -458,7 +458,7 @@ define(function (require, exports, module) {
                      * otherwise the order of matches will be different than in complete one-go search
                      * where sorting of matched files is done in SearchResultsView.
                      * Temp- For comparing it with master, comment the following line. */
-                    //files = FindUtils.getSortedFiles(files, function (file) { return file; }, FindUtils.getOpenFilePath());
+                    files = FindUtils.getSortedFiles(files, function (file) { return file; }, FindUtils.getOpenFilePath());
                     
                     searchObject = {
                         "files": files,
@@ -562,7 +562,7 @@ define(function (require, exports, module) {
         var searchDeferred = $.Deferred();
         searchDomain.exec("lastPage")
             .done(function (rcvd_object) {
-            rcvd_object = JSON.parse( (  ( rcvd_object ) ) )
+            //rcvd_object = JSON.parse( (  ( rcvd_object ) ) )
                 //console.log("NUMMM "  + filelistnum);
                 console.log('search completed');
                 searchModel.results = rcvd_object.results;
