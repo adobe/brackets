@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         RemoteEvents         = require("lib/RemoteEvents");
 
     ExtensionUtils.loadStyleSheet(module, "stylesheets/style.css");
+    ExtensionUtils.loadStyleSheet(module, "stylesheets/sidebarTheme.css");
 
     var _HTMLServer,
         _staticServer;
