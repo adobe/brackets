@@ -51,6 +51,7 @@
         {{/translated}}
     </td>
     <td class="ext-action">
+        <div>
         {{#showInstallButton}}
             <button class="btn btn-mini install" data-extension-id="{{metadata.name}}" {{^allowInstall}}disabled{{/allowInstall}}>
                 {{^isInstalled}}{{Strings.INSTALL}}{{/isInstalled}}
@@ -64,6 +65,9 @@
                 </button>
             {{/showUpdateButton}}
             {{#disablingAllowed}}
+                {{#showUpdateButton}}
+                </div><div>
+                {{/showUpdateButton}}
                 <button class="btn btn-mini disable" data-extension-id="{{metadata.name}}">
                     {{Strings.DISABLE}}
                 </button>
@@ -93,5 +97,6 @@
                 {{Strings.MARKED_FOR_UPDATE}} (<a class="undo-update" data-extension-id="{{metadata.name}}" href="#">{{Strings.UNDO_UPDATE}}</a>)
             {{/isMarkedForUpdate}}
         {{/isInstalled}}
+        </div>
     </td>
 </tr>
