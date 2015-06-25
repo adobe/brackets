@@ -52,9 +52,10 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     // default preferences file name
-    var DEFAULT_PREFERENCES_FILENAME = "defaultPreferences.json";
+    var DEFAULT_PREFERENCES_FILENAME = "defaultPreferences.json",
+        SUPPORTED_PREFERENCE_TYPES   = ["number", "boolean", "string", "array", "object"];
 
-    var reComputeDefaultPrefs     = true,
+    var reComputeDefaultPrefs        = true,
         defaultPreferencesFullPath   = brackets.app.getApplicationSupportDirectory() + "/" + DEFAULT_PREFERENCES_FILENAME;
 
     /**
@@ -314,11 +315,7 @@ Preferencesrackets Application Menu Constant
     }
 
     function _isSupportedPrefType(prefType) {
-        if (prefType === "number" ||
-                prefType === "boolean" ||
-                prefType === "string"  ||
-                prefType === "array"   ||
-                prefType === "object") {
+        if (SUPPORTED_PREFERENCE_TYPES.indexOf(prefType) >= 0) {
             return true;
         } else {
             return false;
@@ -608,7 +605,7 @@ Preferencesrackets Application Menu Constant
 
         var property,
             allPrefs       = PreferencesManager.getAllPreferences(),
-            headerComment  = Strings.DEFAULT_PREFERENCES_JSON_HEADER_COMMENT + "\n{\n",
+            headerComment  = Strings.DEFAULT_PREFERENCES_JSON_HEADER_COMMENT + "\n\n{\n",
             entireText     = "";
 
         for (property in allPrefs) {

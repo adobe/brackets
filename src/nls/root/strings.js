@@ -746,6 +746,6 @@ define({
     "DESCRIPTION_FONT_FAMILY"                        : "Change font family",
     "DESCRIPTION_FONT_SIZE"                          : "Change font size; e.g, 13px",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "False to disable opening preferences file in split view",
-    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "// Use this as a reference to override the preferences. Please refer to https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences for more information on how to use preferences inside {APP_NAME}",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only reference file for what preferences you can\n * override in your own file. Modify your own preferences on the\n * right and if you have any questions, please refer to\n * https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n * for more information on how to use preferences inside {APP_NAME}.\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default"
 });
