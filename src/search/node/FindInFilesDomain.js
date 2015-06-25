@@ -24,15 +24,15 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
 maxerr: 50, node: true */
 
-
 (function () {
     "use strict";
     
-    var fs = require('fs');
-    var childProcess = null,
-        retrieveChild = null,
-        forceExit = false,
-        pathToSource = "/Users/prkumars/Desktop/brackets/";
+    var fs              = require('fs'),
+        path            = require('path');
+    var childProcess    = null,
+        retrieveChild   = null,
+        forceExit       = false,
+        pathToCPSource    = path.join(path.dirname(module.filename), "FindInFilesWorker.js");;
     
     function onChildProcessExit() {
         if (retrieveChild) {
@@ -53,7 +53,7 @@ maxerr: 50, node: true */
     function _init() {
         childProcess = require("child_process");
         console.log("in Init " + process.execPath);
-        retrieveChild = childProcess.spawn(process.execPath, [pathToSource + "brackets/src/search/node/FindInFilesWorker.js"], {stdio: ['ipc']});
+        retrieveChild = childProcess.spawn(process.execPath, [pathToCPSource], {stdio: ['ipc']});
         //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', "Child Process Created with PID " + retrieveChild.pid + " at " + (new Date()).getTime(), function (err) {});
         console.log("Child Process Created with PID " + retrieveChild.pid);
         retrieveChild.on('exit', onChildProcessExit);
