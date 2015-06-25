@@ -70,7 +70,7 @@ define(function (require, exports, module) {
         oneTimeHealthData.osLanguage = brackets.app.language;
         oneTimeHealthData.bracketsLanguage = brackets.getLocale();
         oneTimeHealthData.bracketsVersion = brackets.metadata.version;
-        $.extend(oneTimeHealthData, HealthLogger.getHealthData());
+        $.extend(oneTimeHealthData, HealthLogger.getAggregatedHealthData());
 
         HealthDataUtils.getUserInstalledExtensions()
             .done(function (userInstalledExtensions) {

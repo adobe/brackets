@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets*/
+/*global define, brackets, jQuery*/
 
 /**
  *  Utilities functions related to Health data loggig
@@ -30,9 +30,10 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var PreferencesManager          = brackets.getModule("preferences/PreferencesManager"),
-        LanguageManager             = brackets.getModule("language/LanguageManager"),
-        FileUtils                   = brackets.getModule("file/FileUtils"),
+    var PreferencesManager          = require("preferences/PreferencesManager"),
+        LanguageManager             = require("language/LanguageManager"),
+        FileUtils                   = require("file/FileUtils"),
+        PerfUtils                   = require("utils/PerfUtils"),
 
         HEALTH_DATA_STATE_KEY       = "HealthData.Logs",
         logHealthData               = true;
@@ -45,7 +46,26 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Return the health data logged till now
+     * Return the Performance related data
+     * @returns {Object} Performance Data aggregated till now
+     */
+    function getPerformanceData() {
+        var perfData = PerfUtils.getHealthReport();
+        return perfData;
+    }
+
+    /**
+     * Return the aggregate of all health data logged till now from all sources
+     * @returns {Object} Health Data aggregated till now
+     */
+    function getAggregatedHealthData() {
+        var healthData = PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY);
+        jQuery.extend(healthData, getPerformanceData());
+        return healthData;
+    }
+
+    /**
+     * Return all health data logged till now stored in the state prefs
      * @returns {Object} Health Data aggregated till now
      */
     function getHealthData() {
@@ -66,6 +86,8 @@ define(function (require, exports, module) {
      */
     function clearHealthData() {
         PreferencesManager.setViewState(HEALTH_DATA_STATE_KEY, {});
+        //clear the preformance relaed health data also
+        PerfUtils.clear();
     }
 
     /**
@@ -117,6 +139,7 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.getHealthData             = getHealthData;
+    exports.getAggregatedHealthData   = getAggregatedHealthData;
     exports.clearHealthData           = clearHealthData;
     exports.fileOpened                = fileOpened;
     exports.setHealthLogsEnabled      = setHealthLogsEnabled;
