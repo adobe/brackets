@@ -36,6 +36,7 @@ maxerr: 50, node: true */
     
     var results = {},
         numMatches = 0,
+        numFiles = 0,
         foundMaximum = false,
         fileTopIndex = -1,
         fileBottomIndex = -1,
@@ -476,14 +477,17 @@ maxerr: 50, node: true */
         }
         results = {};
         numMatches = 0;
+        numFiles = 0;
         foundMaximum = false;
         exceedsMaximum = false;
         queryObject = parseQueryInfo(searchObject.queryInfo);
         doSearchInFiles(files, queryObject.queryExpr);
         totalMatches = getNumMatches(files, queryObject.queryExpr);
+        numFiles = files.length;
         var send_object = {
             "results":  results,
             "numMatches": totalMatches,
+            "numFiles": numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
@@ -511,6 +515,7 @@ maxerr: 50, node: true */
         var send_object = {
             "results":  results,
             "numMatches": totalMatches,
+            "numFiles": numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
@@ -541,6 +546,7 @@ maxerr: 50, node: true */
         var send_object = {
             "results":  results,
             "numMatches": totalMatches,
+            "numFiles": numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
@@ -571,6 +577,7 @@ maxerr: 50, node: true */
         var send_object = {
             "results":  results,
             "numMatches": totalMatches,
+            "numFiles": numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
@@ -608,6 +615,7 @@ maxerr: 50, node: true */
         var send_object = {
             "results":  results,
             "numMatches": totalMatches,
+            "numFiles": numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };

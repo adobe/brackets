@@ -471,6 +471,7 @@ define(function (require, exports, module) {
                             console.log('search completed');
                             searchModel.results = rcvd_object.results;
                             searchModel.numMatches = rcvd_object.numMatches;
+                            searchModel.numFiles = rcvd_object.numFiles;
                             searchModel.foundMaximum = rcvd_object.foundMaximum;
                             searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                             searchDeferred.resolve();
@@ -521,6 +522,7 @@ define(function (require, exports, module) {
                 console.log('search completed');
                 searchModel.results = rcvd_object.results;
                 searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.numFiles = rcvd_object.numFiles;
                 searchModel.foundMaximum = rcvd_object.foundMaximum;
                 searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                 searchDeferred.resolve();
@@ -536,6 +538,7 @@ define(function (require, exports, module) {
                 console.log('search completed');
                 searchModel.results = rcvd_object.results;
                 searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.numFiles = rcvd_object.numFiles;
                 searchModel.foundMaximum = rcvd_object.foundMaximum;
                 searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                 searchDeferred.resolve();
@@ -551,6 +554,7 @@ define(function (require, exports, module) {
                 console.log('search completed');
                 searchModel.results = rcvd_object.results;
                 searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.numFiles = rcvd_object.numFiles;
                 searchModel.foundMaximum = rcvd_object.foundMaximum;
                 searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                 searchDeferred.resolve();
@@ -567,6 +571,7 @@ define(function (require, exports, module) {
                 console.log('search completed');
                 searchModel.results = rcvd_object.results;
                 searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.numFiles = rcvd_object.numFiles;
                 searchModel.foundMaximum = rcvd_object.foundMaximum;
                 searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                 searchDeferred.resolve();
