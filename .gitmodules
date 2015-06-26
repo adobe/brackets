@@ -43,3 +43,6 @@
 [submodule "src/bramble/thirdparty/EventEmitter"]
 	path = src/bramble/thirdparty/EventEmitter
 	url = https://github.com/Wolfy87/EventEmitter.git
+[submodule "src/thirdparty/jszip"]
+	path = src/thirdparty/jszip
+	url = https://github.com/Stuk/jszip.git

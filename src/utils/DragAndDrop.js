@@ -46,7 +46,8 @@ define(function (require, exports, module) {
         Path            = Filer.Path,
         Content         = require("filesystem/impls/filer/lib/content"),
         LanguageManager = require("language/LanguageManager"),
-        StartupState    = require("bramble/StartupState");
+        StartupState    = require("bramble/StartupState"),
+        unzip           = require("filesystem/impls/filer/ZipUtils").unzip;
 
     // 3M size limit for imported files
     var byteLimit = 3 * 1024 * 1000;
@@ -181,6 +182,76 @@ define(function (require, exports, module) {
             var pathList = [];
             var errorList = [];
 
+            function shouldOpenFile(filename, encoding) {
+                var ext = Path.extname(filename).replace(/^\./, "");
+                var language = LanguageManager.getLanguageForExtension(ext);
+                var id = language && language.getId();
+                var isImage = id === "image" || id === "svg";
+
+                return isImage || encoding === "utf8";
+            }
+
+            function handleRegularFile(deferred, file, filename, buffer, encoding) {
+                file.write(buffer, {encoding: encoding}, function(err) {
+                    if (err) {
+                        deferred.reject(err);
+                        return;
+                    }
+
+                    // See if this file is worth trying to open in the editor or not
+                    if(shouldOpenFile(filename, encoding)) {
+                        pathList.push(filename);
+                    }
+
+                    deferred.resolve();
+                });
+            }
+
+            function handleZipFile(deferred, file, filename, buffer, encoding) {
+                var basename = Path.basename(filename);
+                var message = "<p>Do you want to extract the contents of the zip file: <b>" +
+                              basename + "</b>?</p>" +
+                              "<p><em>NOTE: This can take some time.</em><p>";
+
+                // TODO: l10n, UX audit
+                Dialogs.showModalDialog(
+                    DefaultDialogs.DIALOG_ID_INFO,
+                    "Unzip file",
+                    message,
+                    [
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
+                            id        : Dialogs.DIALOG_BTN_CANCEL,
+                            text      : "No"
+                        },
+                        {
+                            className : Dialogs.DIALOG_BTN_CLASS_PRIMARY,
+                            id        : Dialogs.DIALOG_BTN_OK,
+                            text      : "Yes"
+                        }
+                    ]
+                )
+                    .done(function(id) {
+                        if (id === Dialogs.DIALOG_BTN_OK) {
+                            // TODO: we need to give a spinner or something to indicate we're working
+                            unzip(buffer, function(err) {
+                                if (err) {
+                                    deferred.reject(err);
+                                    return;
+                                }
+
+                                Dialogs.showModalDialog(
+                                    DefaultDialogs.DIALOG_ID_INFO,
+                                    "Unzip Completed Successfully",
+                                    "Successfully unzipped <b>" + basename + "</b>."
+                                ).then(deferred.resolve, deferred.reject);
+                            });
+                        } else {
+                            handleRegularFile(deferred, file, filename, buffer, encoding);
+                        }
+                    });
+            }
+
             function prepareDropPaths(fileList) {
                 // Convert FileList object to an Array with all image files first, then CSS
                 // followed by HTML files at the end, since we need to write any .css, .js, etc.
@@ -267,15 +338,12 @@ define(function (require, exports, module) {
                         buffer = buffer.toString();
                     }
 
-                    file.write(buffer, {encoding: encoding}, function(err) {
-                        if (err) {
-                            deferred.reject(err);
-                            return;
-                        }
-
-                        pathList.push(filename);
-                        deferred.resolve();
-                    });
+                    // Special-case .zip files, so we can offer to extract the contents
+                    if(Path.extname(filename) === ".zip") {
+                        handleZipFile(deferred, file, filename, buffer, encoding);
+                    } else {
+                        handleRegularFile(deferred, file, filename, buffer, encoding);
+                    }
                 };
 
                 // Deal with error cases, for example, trying to drop a folder vs. file
