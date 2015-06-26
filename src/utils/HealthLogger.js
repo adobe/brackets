@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, jQuery*/
+/*global define, jQuery*/
 
 /**
  *  Utilities functions related to Health data loggig
@@ -75,10 +75,29 @@ define(function (require, exports, module) {
 
     /**
      * Sets the health data
-     * @returns {Object} The object to be stored as health data
+     * @param {Object} dataObject The object to be stored as health data
      */
     function setHealthData(dataObject) {
         PreferencesManager.setViewState(HEALTH_DATA_STATE_KEY, dataObject);
+    }
+
+    /**
+     * Returns health data logged for the given key
+     * @returns {Object} Health Data object for the key or undefined if no health data stored
+     */
+    function getHealthDataLog(key) {
+        var healthData = getHealthData();
+        return healthData[key];
+    }
+
+    /**
+     * Sets the health data for the given key
+     * @param {Object} dataObject The object to be stored as health data for the key
+     */
+    function setHealthDataLog(key, dataObject) {
+        var healthData = getHealthData();
+        healthData[key] = dataObject;
+        setHealthData(healthData);
     }
 
     /**
@@ -138,7 +157,8 @@ define(function (require, exports, module) {
     }
 
     // Define public API
-    exports.getHealthData             = getHealthData;
+    exports.getHealthDataLog          = getHealthDataLog;
+    exports.setHealthDataLog          = setHealthDataLog;
     exports.getAggregatedHealthData   = getAggregatedHealthData;
     exports.clearHealthData           = clearHealthData;
     exports.fileOpened                = fileOpened;

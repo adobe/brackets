@@ -304,19 +304,38 @@ define(function (require, exports, module) {
     }
 
     /**
-     * return single value, or `,` seperated values for an array
-     * @param   {Array} entry An array or a single value
-     * @returns {String} a single value, or coma seperated values in an array
+     * return single value, or `,` seperated values for an array or return aggregated values with
+     * <min value, average, maxv value, stantard deviation>
+     * @param   {Array}    entry          An array or a single value
+     * @param   {Boolean} aggregateStats If set, the returned value will be aggregated in the form -
+     *                                   <min(avg)max[standard deviation]>
+     * @returns {String}   a single value, or coma seperated values in an array or
+     *                     <min(avg)max[standard deviation]> if aggregateStats is set
      */
-    var getValueAsString = function (entry) {
+    var getValueAsString = function (entry, aggregateStats) {
         if (Array.isArray(entry)) {
-            var i, values = "";
+            var i, values = "", min = entry[0], max = entry[0], avg = 0, sum = 0, sd = 0;
 
             for (i = 0; i < entry.length; i++) {
+                sum = sum + entry[i];
                 values += entry[i];
                 if (i < entry.length - 1) {
                     values += ", ";
                 }
+            }
+            if (aggregateStats) {
+                avg = Math.round(sum / entry.length);
+                sum = 0;
+                for (i = 0; i < entry.length; i++) {
+                    sum = sum + Math.pow((entry[i] - avg), 2);
+                    if (entry[i] < min) {
+                        min = entry[i];
+                    } else if (entry[i] > max) {
+                        max = entry[i];
+                    }
+                }
+                sd = Math.round(Math.sqrt(sum / entry.length));
+                return min + "(" + avg + ")" + max + "[" + sd + "]";
             }
             return values;
         } else {
@@ -365,9 +384,9 @@ define(function (require, exports, module) {
             } else if (StringUtils.startsWith(testName, "brackets module dependencies resolved")) {
                 healthReport.ModuleDepsResolved = getValueAsString(entry);
             } else if (StringUtils.startsWith(testName, "Load Project")) {
-                healthReport.projectLoadTimes = healthReport.projectLoadTimes + ":" + getValueAsString(entry);
+                healthReport.projectLoadTimes = healthReport.projectLoadTimes + ":" + getValueAsString(entry, true);
             } else if (StringUtils.startsWith(testName, "Open File")) {
-                healthReport.fileOpenTimes = healthReport.fileOpenTimes + ":" + getValueAsString(entry);
+                healthReport.fileOpenTimes = healthReport.fileOpenTimes + ":" + getValueAsString(entry, true);
             }
         });
 
