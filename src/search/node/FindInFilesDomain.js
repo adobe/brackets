@@ -109,7 +109,7 @@ maxerr: 50, node: true */
             console.log('First callback in initCache');
         
             retrieveChild.send(data);
-            eventEmitter.on('cacheComplete', function (msg) {
+            eventEmitter.once('cacheComplete', function (msg) {
                 console.log('second callback in initcache');
                 //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Receive Message on Parent from Child Process.. ", function (err) {});
                     callback(null, msg.result);
@@ -130,7 +130,7 @@ maxerr: 50, node: true */
         }
         
         retrieveChild.send(data);
-        eventEmitter.on('searchComplete', function (msg) {
+        eventEmitter.once('searchComplete', function (msg) {
             console.log("Received search complete Message from Child Process");
                 callback(null, msg.result);
         });
@@ -147,7 +147,7 @@ maxerr: 50, node: true */
         }
         
         retrieveChild.send(data);
-        eventEmitter.on('receivedNextPage', function (msg) {
+        eventEmitter.once('receivedNextPage', function (msg) {
             console.log("Received next page Message from Child Process");
                 callback(null, msg.result);
         });
@@ -164,7 +164,7 @@ maxerr: 50, node: true */
         }
         
         retrieveChild.send(data);
-        eventEmitter.on('receivedFirstPage', function (msg) {
+        eventEmitter.once('receivedFirstPage', function (msg) {
             console.log("Received first page Message from Child Process");
                 callback(null, msg.result);
         });
@@ -181,7 +181,7 @@ maxerr: 50, node: true */
         }
         
         retrieveChild.send(data);
-        eventEmitter.on('receivedPrevPage', function (msg) {
+        eventEmitter.once('receivedPrevPage', function (msg) {
             console.log("Received prev page Message from Child Process");
                 callback(null, msg.result);
         });
@@ -198,7 +198,7 @@ maxerr: 50, node: true */
         }
         
         retrieveChild.send(data);
-        eventEmitter.on('receivedLastPage', function (msg) {
+        eventEmitter.once('receivedLastPage', function (msg) {
             console.log("Received last page Message from Child Process");
                 callback(null, msg.result);
         });
