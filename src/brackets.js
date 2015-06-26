@@ -190,7 +190,7 @@ define(function (require, exports, module) {
                 // XXXBramble: get path passed into iframe from hosting app
                 ProjectManager.openProject(BrambleStartupState.project("root")).always(function () {
                     var deferred = new $.Deferred();
-                    FileSystem.resolve(BrambleStartupState.project("fullPath"), function (err, file) {
+                    FileSystem.resolve(BrambleStartupState.project("filename"), function (err, file) {
                         if (!err) {
                             var promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: file.fullPath });
                             promise.then(deferred.resolve, deferred.reject);
