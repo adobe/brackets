@@ -28,11 +28,15 @@ maxerr: 50, node: true */
     "use strict";
     
     var fs              = require('fs'),
-        path            = require('path');
+        path            = require('path'),
+        events          = require('events');
+    
     var childProcess    = null,
         retrieveChild   = null,
         forceExit       = false,
-        pathToCPSource    = path.join(path.dirname(module.filename), "FindInFilesWorker.js");;
+        pathToCPSource  = path.join(path.dirname(module.filename), "FindInFilesWorker.js"),
+        eventEmitter    = new events.EventEmitter();
+
     
     function onChildProcessExit() {
         if (retrieveChild) {
@@ -43,6 +47,18 @@ maxerr: 50, node: true */
 
         if (!forceExit) {
             // send message to Brackets about child Process exit. Either restart the query or fallback to previous search.     
+        }
+    }
+    
+    function killChildProcess(status) {
+       // fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Killing Child Process from Parent Process " + status + "..", function (err) {});
+        var data,
+            forceExit = status;
+        if (retrieveChild) {
+            data = {
+                "msg" : "shutDown"
+            };
+            retrieveChild.send(data);
         }
     }
     
@@ -57,19 +73,10 @@ maxerr: 50, node: true */
         //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', "Child Process Created with PID " + retrieveChild.pid + " at " + (new Date()).getTime(), function (err) {});
         console.log("Child Process Created with PID " + retrieveChild.pid);
         retrieveChild.on('exit', onChildProcessExit);
+        retrieveChild.on('message', processMessageFromChildProcess);
     }
     
-    function killChildProcess(status) {
-       // fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Killing Child Process from Parent Process " + status + "..", function (err) {});
-        var data,
-            forceExit = status;
-        if (retrieveChild) {
-            data = {
-                "msg" : "shutDown"
-            };
-            retrieveChild.send(data);
-        }
-    }
+
     
     function restartChildNodeProcess(callback, asyncCallback) {
         var data;
@@ -102,12 +109,10 @@ maxerr: 50, node: true */
             console.log('First callback in initCache');
         
             retrieveChild.send(data);
-            retrieveChild.on('message', function (msg) {
+            eventEmitter.once('cacheComplete', function (msg) {
                 console.log('second callback in initcache');
                 //fs.appendFile('C://Users//vaishnav//Desktop//nodeLog.txt', " Receive Message on Parent from Child Process.. ", function (err) {});
-                if (msg.msg === "cacheComplete") {
                     callback(null, msg.result);
-                }
             });
         }, callback);
     }
@@ -125,10 +130,9 @@ maxerr: 50, node: true */
         }
         
         retrieveChild.send(data);
-        retrieveChild.on('message', function (msg) {
-            if (msg.msg === "searchComplete") {
+        eventEmitter.once('searchComplete', function (msg) {
+            console.log("Received search complete Message from Child Process");
                 callback(null, msg.result);
-            }
         });
     }
     
@@ -143,10 +147,9 @@ maxerr: 50, node: true */
         }
         
         retrieveChild.send(data);
-        retrieveChild.on('message', function (msg) {
-            if (msg.msg === "receivedNextPage") {
+        eventEmitter.once('receivedNextPage', function (msg) {
+            console.log("Received next page Message from Child Process");
                 callback(null, msg.result);
-            }
         });
     }
     
@@ -161,10 +164,9 @@ maxerr: 50, node: true */
         }
         
         retrieveChild.send(data);
-        retrieveChild.on('message', function (msg) {
-            if (msg.msg === "receivedFirstPage") {
+        eventEmitter.once('receivedFirstPage', function (msg) {
+            console.log("Received first page Message from Child Process");
                 callback(null, msg.result);
-            }
         });
     }
     
@@ -179,10 +181,9 @@ maxerr: 50, node: true */
         }
         
         retrieveChild.send(data);
-        retrieveChild.on('message', function (msg) {
-            if (msg.msg === "receivedPrevPage") {
+        eventEmitter.once('receivedPrevPage', function (msg) {
+            console.log("Received prev page Message from Child Process");
                 callback(null, msg.result);
-            }
         });
     }
     
@@ -197,11 +198,39 @@ maxerr: 50, node: true */
         }
         
         retrieveChild.send(data);
-        retrieveChild.on('message', function (msg) {
-            if (msg.msg === "receivedLastPage") {
+        eventEmitter.once('receivedLastPage', function (msg) {
+            console.log("Received last page Message from Child Process");
                 callback(null, msg.result);
-            }
         });
+    }
+    
+    function processMessageFromChildProcess(msg) {
+        console.log("Received Message from Child Process");
+        if (msg) {
+            switch (msg.msg) {
+            case 'receivedLastPage':
+                eventEmitter.emit('receivedLastPage', msg);
+                break;
+            case 'receivedPrevPage':
+                eventEmitter.emit('receivedPrevPage', msg);
+                break;
+            case 'receivedFirstPage':
+                eventEmitter.emit('receivedFirstPage', msg);
+                break;
+            case 'receivedNextPage':
+                eventEmitter.emit('receivedNextPage', msg);
+                break;
+            case 'searchComplete':
+                eventEmitter.emit('searchComplete', msg);
+                break;
+            case 'cacheComplete':
+                eventEmitter.emit('cacheComplete', msg);
+                break;
+            default:
+                console.log('Unidentified message');
+                break;
+            }
+        }
     }
     
     //Receive result from doSearch
