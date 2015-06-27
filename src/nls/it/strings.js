@@ -85,11 +85,11 @@ define({
     "ERROR_INVALID_SHORTCUTS"           : "Queste scorciatoie non sono valide: {0}",
     "ERROR_NONEXISTENT_COMMANDS"        : "Stai assegnando scorciatoie a comandi inesistenti: {0}",
 
-    
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Errore nella lettura delle preferenze",
     "ERROR_PREFS_CORRUPT"               : "Le tue preferenze non sono in un file JSON valido. Il file verrà aperto in modo da poter correggere il formato. Dovrai riavviare {APP_NAME} così le modifiche avranno effetto.",
-
+    "ERROR_PROJ_PREFS_CORRUPT"          : "Il file delle preferenze di progetto non è valido JSON. Il file verrà aperto in modo da poter correggere il formato. Avrete bisogno di ricaricare il progetto affinché le modifiche abbiano effetto.",
+    
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} non può essere ancora eseguita nel browser.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} è scritta in HTML, ma al momento viene eseguita come applicazione desktop per avere la possibilità di modificare file locali. Puoi usare la shell dal repository <b>github.com/adobe/brackets-shell</b> per eseguire {APP_NAME}.",
@@ -295,7 +295,6 @@ define({
     "LINTER_TIMED_OUT"                      : "{0} è scaduto dopo aver atteso per {1} ms",
     "LINTER_FAILED"                         : "{0} terminato con errore: {1}",
     
-    
     /**
      * Command Name Constants
      */
@@ -319,6 +318,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Salva tutto",
     "CMD_FILE_SAVE_AS"                    : "Salva come\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Anteprima Live",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Abilita esperimento di Anteprima Live",
     "CMD_RELOAD_LIVE_PREVIEW"             : "Forza ricarica Anteprima Live",
     "CMD_PROJECT_SETTINGS"                : "Impostazioni del progetto\u2026",
     "CMD_FILE_RENAME"                     : "Rinomina",
@@ -566,7 +566,6 @@ define({
     /**
      * Unit names
      */
-
     "UNIT_PIXELS"                          : "pixel",
 
     // extensions/default/DebugCommands
@@ -585,21 +584,21 @@ define({
     "CMD_RESTART_NODE"                          : "Riavvia Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostra errori nella barra di stato",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Apri {APP_NAME} sorgente",
-    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Si è verificato un errore durante la creazione {APP_NAME} strumento a riga di comando al <code>/usr/local/bin</code>. Per favore riferisci a <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>linea di comando</a> wiki per la risoluzione dei problemi.<br/><br/>Motivo: ",
+    
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "Scorciatoia Riga di comando di {APP_NAME}",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Si è verificato un errore durante la creazione della funzione Riga di comando. Per favore riferisci a <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>linea di comando</a> wiki per la risoluzione dei problemi.<br/><br/>Motivo: ",
     "ERROR_CLTOOLS_RMFAILED"                    : "Impossibile rimuovere collegamento simbolico esistente {APP_NAME} a <code>/usr/local/bin.</code>",
-    "ERROR_CLTOOLS_MKDIRFAILED"                 : "Impossibile creare <code>/usr/local/bin</code> struttura di directory.",
-    "ERROR_CLTOOLS_LNFAILED"                    : "Impossibile creare {APP_NAME} collegamento simbolico a <code>/usr/local/bin</code>.",
-    "ERROR_CLTOOLS_SERVFAILED"                  : "Impossibile creare l'oggetto autorizzato.",
-    "ERROR_CLTOOLS_NOTSUPPORTED"                : "{APP_NAME} comando di installazione strumento linea non è supportato su questo SO.",
-
-    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Strumento a riga di comando installato correttamente! Ora si può facilmente lanciare {APP_NAME} dalla riga di comando utilizzando <code>{APP_NAME} myFile.txt</code> o <code>{APP_NAME} myFolder</code>. <br/><br/>Per favore riferisci a <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>linea du comando</a> wiki per maggiori informazioni.",
-    "CREATING_LAUNCH_SCRIPT_TITLE"              : "Aggiungi la linea di comando di Brackets",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "Impossibile creare la cartella <code>/usr/local/bin</code>.",
+    "ERROR_CLTOOLS_LNFAILED"                    : "Impossibile creare il collegamento simbolico <code>/usr/local/bin/brackets</code>.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "Errore interno.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "Collegamento Riga di comando non è supportato su questo SO.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "Successo! Ora si può facilmente avviare {APP_NAME} dalla riga di comando: <code>brackets myFile.txt</code> per aprire un file o <code>myFolder</code> parentesi per passare progetti. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Saperne di più</a> per usare {APP_NAME} dalla riga di comando.",
 
     "LANGUAGE_TITLE"                            : "Cambia la lingua",
     "LANGUAGE_MESSAGE"                          : "Lingua:",
     "LANGUAGE_SUBMIT"                           : "Riavvia {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Annulla",
-    "LANGUAGE_SYSTEM_DEFAULT"                   : "Default di sistema",
+    "LANGUAGE_SYSTEM_DEFAULT"                   : "Preferita dal sistema",
     
     // extensions/default/HealthData
     "HEALTH_DATA_NOTIFICATION"                  : "Preferenze Health Data",
@@ -607,6 +606,7 @@ define({
     "HEALTH_DATA_DO_TRACK"                      : "Sì, mi piacerebbe condividere informazioni su come uso Brackets.",
     "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Al fine di migliorare Brackets stiamo implementando un nuovo Health Report che invia <strong>anonimo</strong> dati a Adobe su come usi Brackets. Questo rapporto aiuterà il gruppo di sviluppo e gli sviluppatori di estensioni sulle caratteristiche prioritarie, bug, problemi di usabilità e reperibilità.<br><br>È possibile visualizzare i dati inviati così come cambiare la vostra preferenza in qualsiasi momento visitando <strong>Help->Health Data Report</strong>. Ulteriori informazioni su Brackets Health Report e sullo stato <a href='https://github.com/adobe/brackets/wiki/Health-Data'>nella pagina wiki</a>.",
     "HEALTH_DATA_PREVIEW"                       : "Anteprima Health Data",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Al fine di migliorare {APP_NAME}, periodicamente invieremo limitate, statistiche <strong>anonime</strong> a Adobe su come usi {APP_NAME}. Queste informazioni aiutano priorità caratteristiche , trovare i bug , e individuare problemi di usabilità. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Per saperne di più {APP_NAME} Health Report</a> e come si avvantaggia la comunità di {APP_NAME} mentre la tua privacy é protetta.</p><p>Qui di seguito è una anteprima dei dati che saranno inviati nella tua prossima Health Report <em>se</em> é abilitato.</p>",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tempo",
@@ -648,7 +648,104 @@ define({
     "EXPAND_ALL"                    : "Espandi tutto",
     "COLLAPSE_CURRENT"              : "Comprimi attuale",
     "EXPAND_CURRENT"                : "Espandi attuale"
+    
+    // Descriptions of core preferences
+    "DESCRIPTION_CLOSE_BRACKETS"                     : "Vero per chiudere automaticamente parentesi graffe, staffe e parentesi",
+    "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "Falso per rimuovere le Chiudere Altri Sopra dal menu contestuale di file di lavoro",
+    "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "Falso per rimuovere le Chiudere Altri Sotto dal menu contestuale di file di lavoro",
+    "DESCRIPTION_CLOSE_OTHERS"                       : "Falso per rimuovere le Chiudi Altri dal menu contestuale di file di lavoro",
+    "DESCRIPTION_CLOSE_TAGS"                         : "Imposta le opzioni di tag di chiusura",
+    "DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS"         : "Una serie di tag che non dovrebbe essere auto-chiusura",
+    "DESCRIPTION_CLOSE_TAGS_WHEN_OPENING"            : "Chiudi quando > di tag di apertura viene digitato",
+    "DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING"            : "Chiudi quando / del tag di chiusura viene digitato",
+    "DESCRIPTION_CLOSE_TAGS_INDENT_TAGS"             : "Una serie di tag che, quando aperto ha una riga vuota",
+    "DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD" : "Vero per generare sempre sezione marcatori pieghevoli in caso di modifiche a livello di rientro",
+    "DESCRIPTION_CODE_FOLDING_ENABLED"               : "Vero per consentire il raggruppamento del codice",
+    "DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER"  : "Vero per rendere i marcatori Sezione-Compresso visibile solo quando si sposta il mouse sopra la grondaia",
+    "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limiti quanti livelli si applica profondo Comprimi tutto",
+    "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Prima appare l'icona di sezione comprimibile linee minimi",
+    "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "Vero ricorda le selezioni Compresse se chiudi o riapri un file od un progetto",
+    "DESCRIPTION_ATTR_HINTS"                         : "Abilita/Disabilitala suggerimenti attributi HTML",
+    "DESCRIPTION_CSS_PROP_HINTS"                     : "Abilita/Disabilitala suggerimenti delle proprietà CSS/LESS/SCSS",
+    "DESCRIPTION_JS_HINTS"                           : "Abilita/Disabilitala suggerimenti del codice JavaScript",
+    "DESCRIPTION_PREF_HINTS"                         : "Abilita/Disabilitala suggerimenti del codice delle Preferenze",
+    "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "Abilita/Disabilitala suggerimenti entità HTML",
+    "DESCRIPTION_SVG_HINTS"                          : "Abilita/Disabilitala suggerimenti di codice SVG",
+    "DESCRIPTION_HTML_TAG_HINTS"                     : "Abilita/Disabilitala suggerimenti di tag HTML",
+    "DESCRIPTION_URL_CODE_HINTS"                     : "Abilita/Disabilitala suggerimenti URL in HTML & CSS/LESS/SCSS",
+    "DESCRIPTION_DRAG_DROP_TEXT"                     : "Abilita/Disabilitala funzionalità del Drag & Drop",
+    "DESCRIPTION_HEALTH_DATA_TRACKING"               : "Abilita il tracciamento di Health Data",
+    "DESCRIPTION_HIGHLIGHT_MATCHES"                  : "Abilita l'evidenziazione automatica delle stringhe corrispondenti in tutto il documento",
+    "DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN"       : "Evidenziare tutte le stringhe che corrispondono il token il cursore si trova attualmente in (nessuna selezione necessaria)",
+    "DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY"       : "Evidenziare solo quando la selezione è un token completo",
+    "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "Vero per inserire il codice suggerimento attualmente selezionato nella scheda",
+    "DESCRIPTION_NO_HINTS_ON_DOT"                    : "Vero per non mostrare automaticamente JS suggerimenti sul codice quando . viene digitato",
+    "DESCRIPTION_JSLINT_OPTIONS"                     : "Un oggetto con le opzioni predefinite per JSLint",
+    "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "Vero per consentire espressioni di assegnamento",
+    "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "Vero per consentire agli operatori bit a bit",
+    "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "Vero se globali del browser standard, devono essere predefinite",
+    "DESCRIPTION_JSLINT_OPTIONS_CLOSURE"             : "Vero per consentire idiomi Google Closure",
+    "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "Vero per consentire istruzione continue",
+    "DESCRIPTION_JSLINT_OPTIONS_COUCH"               : "Vero se CouchDB globali devono essere predefiniti",
+    "DESCRIPTION_JSLINT_OPTIONS_DEBUG"               : "Vero per consentire dichiarazioni debugger",
+    "DESCRIPTION_JSLINT_OPTIONS_DEVEL"               : "Vero se globali del browser utili in fase di sviluppo devono essere predefiniti",
+    "DESCRIPTION_JSLINT_OPTIONS_EQEQ"                : "Vero per consentire == e !=",
+    "DESCRIPTION_JSLINT_OPTIONS_ES6"                 : "Vero se ES6 globali dovrebbero essere predefinite",
+    "DESCRIPTION_JSLINT_OPTIONS_EVIL"                : "Vero per consentire eval",
+    "DESCRIPTION_JSLINT_OPTIONS_FORIN"               : "Vero per consentire non filtrato per in",
+    "DESCRIPTION_JSLINT_OPTIONS_INDENT"              : "Imposta una specifica larghezza del tab",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXERR"              : "Il massimo numero di avvertimenti",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXLEN"              : "Il massimo numero di caratteri in una linea",
+    "DESCRIPTION_JSLINT_OPTIONS_NEWCAP"              : "True per consentire costruttori in minuscolo",
+    "DESCRIPTION_JSLINT_OPTIONS_NODE"                : "Vero se le globali Node.js dovrebbero essere predefinite",
+    "DESCRIPTION_JSLINT_OPTIONS_NOMEN"               : "Vero per consentire penzoloni di sottolineatura in identificatori",
+    "DESCRIPTION_JSLINT_OPTIONS_PASSFAIL"            : "Vero per fermarsi al primo errore",
+    "DESCRIPTION_JSLINT_OPTIONS_PLUSPLUS"            : "Vero per consentire ++ e --",
+    "DESCRIPTION_JSLINT_OPTIONS_REGEXP"              : "Vero per consentire . e [^...]. in RegExp",
+    "DESCRIPTION_JSLINT_OPTIONS_RHINO"               : "Vero se globali Rhino devono essere predefiniti",
+    "DESCRIPTION_JSLINT_OPTIONS_SLOPPY"              : "Vero per consentire di omettere `use strict`",
+    "DESCRIPTION_JSLINT_OPTIONS_STUPID"              : "Vero per consentire la stupidità",
+    "DESCRIPTION_JSLINT_OPTIONS_SUB"                 : "Vero per consentire indicizzazione inefficiente",
+    "DESCRIPTION_JSLINT_OPTIONS_TODO"                : "Vero per consentire commenti Cose da fare",
+    "DESCRIPTION_JSLINT_OPTIONS_UNPARAM"             : "Vero per consentire parametri non utilizzati",
+    "DESCRIPTION_JSLINT_OPTIONS_VARS"                : "Vero per consentire a più di 1 var in una funzione",
+    "DESCRIPTION_JSLINT_OPTIONS_WHITE"               : "Vero per ignorare le regole spazio-bianco",
+    "DESCRIPTION_LANGUAGE"                           : "Impostazioni specifiche della lingua",
+    "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Ulteriori mappature di estensione a nome di lingua",
+    "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Ulteriori mappature da nome di file a nome di lingua",
+    "DESCRIPTION_LINTING_ENABLED"                    : "Vero abilità Code Inspection",
+    "DESCRIPTION_ASYNC_TIMEOUT"                      : "Il tempo in millisecondi dopo la pausa del linter asincrono",
+    "DESCRIPTION_LINTING_PREFER"                     : "Vettore di linter da eseguire prima",
+    "DESCRIPTION_LIVE_DEV_MULTIBROWSER"              : "Vero abilita Esperimento Anteprima Live",
+    "DESCRIPTION_USE_PREFERED_ONLY"                  : "Vero avvia fornitori solo da linting.prefer",
+    "DESCRIPTION_MAX_CODE_HINTS"                     : "Massimo numero di suggerimenti visualizzati alla volta",
+    "DESCRIPTION_PATH"                               : "Impostazioni di percorso specifiche",
+    "DESCRIPTION_PROXY"                              : "L'URL del server proxy utilizzato per l'installazione ampliamento",
+    "DESCRIPTION_SCROLL_PAST_END"                    : "Vero per attivare lo scorrimento oltre la fine del documento",
+    "DESCRIPTION_SHOW_CODE_HINTS"                    : "Falso per disattivare tutti i suggerimenti sul codice",
+    "DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING"         : "Mantiene il cursore lampeggiante visibile quando si dispone di una selezione di testo",
+    "DESCRIPTION_SHOW_LINE_NUMBERS"                  : "Vero per mostrare i numeri di riga in un " grondaia " a sinistra del codice",
+    "DESCRIPTION_SMART_INDENT"                       : "Automaticamente trattino quando si crea un nuovo blocco",
+    "DESCRIPTION_SOFT_TABS"                          : "False per disattivare il comportamento soft tab",
+    "DESCRIPTION_SORT_DIRECTORIES_FIRST"             : "Vero per ordinare prima le cartelle nella struttura del progetto",
+    "DESCRIPTION_SPACE_UNITS"                        : "Numero di spazi da utilizzare per il rientro dello spazio",
+    "DESCRIPTION_STATIC_SERVER_PORT"                 : "Numero di porta che il built-in server dovrebbe usare per Anteprima Live",
+    "DESCRIPTION_STYLE_ACTIVE_LINE"                  : "Vero per evidenziare il colore della linea di fondo si trova il cursore",
+    "DESCRIPTION_TAB_SIZE"                           : "Numero di spazi da visualizzare per le tabulazioni",
+    "DESCRIPTION_USE_TAB_CHAR"                       : "Vero utilizzare le tabulazioni al posto degli spazi",
+    "DESCRIPTION_UPPERCASE_COLORS"                   : "Vero per generare caratteri maiuscoli nei colori hex in Inline Color Editor",
+    "DESCRIPTION_WORD_WRAP"                          : "Riga ad ogni ritorno la larghezza viewport",
+    "DESCRIPTION_DETECTED_EXCLUSIONS"                : "Un elenco dei file che sono stati rilevati per causare a Tern di correre fuori controllo",
+    "DESCRIPTION_INFERENCE_TIMEOUT"                  : "La quantità di tempo dopo il quale Tern scadrà quando si cerca di capire i file",
+    "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "Vero per mostrare gli errori nella barra di stato",
+    "DESCRIPTION_QUICK_VIEW_ENABLED"                 : "Vero per abilitare Quick View",
+    "DESCRIPTION_EXTENSION_LESS_IMAGE_PREVIEW"       : "Vero per visualizzare le anteprime delle immagini degli URL delle estensioni mancanti",
+    "DESCRIPTION_THEME"                              : "Seleziona un tema di {APP_NAME}",
+    "DESCRIPTION_USE_THEME_SCROLLBARS"               : "Vero per consentire le barre di scorrimento su misura",
+    "DESCRIPTION_LINTING_COLLAPSED"                  : "Vero al collasso pannello linting",
+    "DESCRIPTION_FONT_FAMILY"                        : "Modifica famiglia di carattere",
+    "DESCRIPTION_FONT_SIZE"                          : "Modifica dimensioni carattere; e.s, 13px"
 });
 
-/* Last translation of: 671629589db5b7d0a91a1c5bbac954cc93bdff57*/
+/* Last translation of: eda6874dfbb9b7f8ad4c5a5d145f19699d4aef30*/
 
