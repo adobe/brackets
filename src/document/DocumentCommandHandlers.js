@@ -132,7 +132,9 @@ define(function (require, exports, module) {
     /** Unique token used to indicate user-driven cancellation of Save As (as opposed to file IO error) */
     var USER_CANCELED = { userCanceled: true };
 
-    PreferencesManager.definePreference("defaultExtension", "string", "");
+    PreferencesManager.definePreference("defaultExtension", "string", "", {
+        excludeFromHints: true
+    });
 
     /**
      * JSLint workaround for circular dependency

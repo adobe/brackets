@@ -504,10 +504,14 @@ define(function (require, exports, module) {
 
     PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
 
-    prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px").on("change", function () {
+    prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px", {
+        description: Strings.DESCRIPTION_FONT_SIZE
+    }).on("change", function () {
         setFontSize(prefs.get("fontSize"));
     });
-    prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY).on("change", function () {
+    prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY, {
+        description: Strings.DESCRIPTION_FONT_FAMILY
+    }).on("change", function () {
         setFontFamily(prefs.get("fontFamily"));
     });
 

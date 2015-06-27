@@ -30,12 +30,15 @@ define(function (require, exports, module) {
     var AppInit             = brackets.getModule("utils/AppInit"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         UrlParams           = brackets.getModule("utils/UrlParams").UrlParams,
+        Strings             = brackets.getModule("strings"),
         HealthDataUtils     = require("HealthDataUtils"),
         uuid                = require("thirdparty/uuid");
 
     var prefs = PreferencesManager.getExtensionPrefs("healthData");
 
-    prefs.definePreference("healthDataTracking", "boolean", true);
+    prefs.definePreference("healthDataTracking", "boolean", true, {
+        description: Strings.DESCRIPTION_HEALTH_DATA_TRACKING
+    });
 
     var ONE_MINUTE = 60 * 1000,
         ONE_DAY = 24 * 60 * ONE_MINUTE,

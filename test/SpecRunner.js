@@ -55,6 +55,7 @@ define(function (require, exports, module) {
         NativeApp               = require("utils/NativeApp");
 
     // Load modules for later use
+    require("language/CodeInspection");
     require("thirdparty/lodash");
     require("editor/CodeHintManager");
     require("utils/Global");
