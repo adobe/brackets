@@ -200,6 +200,57 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Same functionality as doSequentially(), but it executes a batch of tasks (instead of just 1)
+     * at a time. Executing the batches is done with doInParallel().
+     *
+     * The purpose of this function is to provide a balance of sequential execution (which allows
+     * other tasks to execute between our tasks) and parallel execution (which executes a set
+     * of tasks faster).
+     *
+     * @param {!Array.<*>} items
+     * @param {!function(*, number):Promise} beginProcessItem
+     * @param {!boolean} failAndStopFast
+     * @param {!Number} batchSize
+     * @return {$.Promise}
+     */
+    function doInSequentialBatches(items, beginProcessItem, failAndStopFast, batchSize) {
+
+        var masterDeferred = new $.Deferred(),
+            hasFailed = false;
+        
+        function doBatchStartingWith(i) {
+            if (i >= items.length) {
+                if (hasFailed) {
+                    masterDeferred.reject();
+                } else {
+                    masterDeferred.resolve();
+                }
+                return;
+            }
+
+            var batchItems = items.slice(i, i + batchSize),
+                itemPromise = doInParallel(batchItems, beginProcessItem, failAndStopFast);
+            
+            itemPromise.done(function () {
+                doBatchStartingWith(i + batchSize);
+            });
+            itemPromise.fail(function () {
+                if (failAndStopFast) {
+                    masterDeferred.reject();
+                    // note: we do NOT process any further items in this case
+                } else {
+                    hasFailed = true;
+                    doBatchStartingWith(i + batchSize);
+                }
+            });
+        }
+        
+        doBatchStartingWith(0);
+        
+        return masterDeferred.promise();
+    }
+    
+    /**
      * Executes a series of synchronous tasks sequentially spread over time-slices less than maxBlockingTime.
      * Processing yields by idleTime between time-slices.
      * 
@@ -592,6 +643,7 @@ define(function (require, exports, module) {
     exports.doSequentially      = doSequentially;
     exports.doSequentiallyInBackground   = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
+    exports.doInSequentialBatches        = doInSequentialBatches;
     exports.firstSequentially   = firstSequentially;
     exports.withTimeout         = withTimeout;
     exports.waitForAll          = waitForAll;

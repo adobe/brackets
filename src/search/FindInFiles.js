@@ -435,8 +435,9 @@ define(function (require, exports, module) {
                 }
                 
                 if (fileListResult.length) {
-                    // search sequentially to allow incremental updating of panel
-                    return Async.doSequentially(fileListResult, _doSearchInOneFileWithNotify);
+                    // search sequentially to allow incremental updating of panel,
+                    // but in batches so search is not too slow
+                    return Async.doInSequentialBatches(fileListResult, _doSearchInOneFileWithNotify, false, 50);
                 } else {
                     return ZERO_FILES_TO_SEARCH;
                 }
