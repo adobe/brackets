@@ -319,12 +319,7 @@ define([
                 setReadyState(Bramble.MOUNTING);
 
                 root = Path.normalize(root);
-                filename = filename || (_state.filename || "index.html");
-
-                if (Path.isAbsolute(filename)) {
-                    filename = Path.relative(root, filename);
-                    debug("converted absolute filename path in mount() to relative", filename);
-                }
+                filename = Path.resolve(root, filename || (_state.fullPath || "index.html"));
 
                 // Make sure the path we were given exists in the filesystem, and is a dir
                 _fs.stat(root, function(err, stats) {
