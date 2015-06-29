@@ -273,11 +273,6 @@ Preferencesrackets Application Menu Constant
         brackets.app.showOSFolder(dir);
     }
 
-    function _getDefaultPrefsFilePath() {
-        // Default preferences
-        return defaultPreferencesFullPath;
-    }
-
     function _openPrefFilesInSplitView(prefsPath, defaultPrefsPath) {
 
         var currScheme       = MainViewManager.getLayoutScheme(),
@@ -632,7 +627,7 @@ Preferencesrackets Application Menu Constant
 
     function _loadDefaultPrefs(prefsPath) {
 
-        var defaultPrefsPath = _getDefaultPrefsFilePath(),
+        var defaultPrefsPath = defaultPreferencesFullPath,
             file             = FileSystem.getFileForPath(defaultPrefsPath);
 
         file.exists(function (err, doesExist) {
