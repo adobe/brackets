@@ -59,7 +59,7 @@ define(function (require, exports, module) {
         defaultPreferencesFullPath   = brackets.app.getApplicationSupportDirectory() + "/" + DEFAULT_PREFERENCES_FILENAME;
 
     /**
-Preferencesrackets Application Menu Constant
+     * Brackets Application Menu Constant
      * @const {string}
      */
     var DEBUG_MENU = "debug-menu";
