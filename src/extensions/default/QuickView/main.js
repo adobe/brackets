@@ -58,7 +58,7 @@ define(function (require, exports, module) {
         POINTER_HEIGHT              = 15,   // Pointer height, used to shift popover above pointer (plus a little bit of space)
         POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
     
-    var styleLanguages = ["css", "text/x-less", "sass", "text/x-scss"];
+    var styleLanguages = ["css", "text/x-less", "sass", "text/x-scss", "stylus"];
 
     prefs = PreferencesManager.getExtensionPrefs("quickview");
     prefs.definePreference("enabled", "boolean", true, {
