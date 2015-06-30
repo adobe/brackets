@@ -273,39 +273,56 @@ define(function (require, exports, module) {
         brackets.app.showOSFolder(dir);
     }
 
-    function _openPrefFilesInSplitView(prefsPath, defaultPrefsPath) {
+    function _openPrefFilesInSplitView(prefsPath, defaultPrefsPath, deferredPromise) {
 
         var currScheme       = MainViewManager.getLayoutScheme(),
             file             = FileSystem.getFileForPath(prefsPath),
             defaultPrefsFile = FileSystem.getFileForPath(defaultPrefsPath);
 
+        function _openFiles() {
+
+            // Open the default preferences in the left pane in the read only mode.
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: defaultPrefsPath, paneId: "first-pane", options: { isReadOnly: true } })
+                .done(function () {
+                    if (currScheme.rows === 1 && currScheme.columns === 1) {
+                        // Split layout is not active yet. Inititate the
+                        // split view.
+                        MainViewManager.setLayoutScheme(1, 2);
+                    }
+
+                    // Make sure the preference file is going to be opened in the second
+                    // pane
+                    if (MainViewManager.findInWorkingSet("first-pane", prefsPath) >= 0) {
+
+                        MainViewManager._moveView("first-pane", "second-pane", file, 0, true);
+
+                        // Now refresh the project tree by asking
+                        // it to rebuild the UI.
+                        WorkingSetView.refresh(true);
+                    }
+
+                    CommandManager.execute(Commands.FILE_OPEN, { fullPath: prefsPath, paneId: "second-pane"})
+                        .done(function () {
+                            deferredPromise.resolve();
+                        }).fail(function () {
+                            deferredPromise.reject();
+                        });
+                }).fail(function () {
+                    deferredPromise.reject();
+                });
+        }
+
         var resultObj = MainViewManager.findInAllWorkingSets(defaultPrefsPath);
         if (resultObj && resultObj.length > 0) {
-            CommandManager.execute(Commands.FILE_CLOSE, {file: defaultPrefsFile, paneId: resultObj[0].paneId});
+            CommandManager.execute(Commands.FILE_CLOSE, {file: defaultPrefsFile, paneId: resultObj[0].paneId})
+                .done(function () {
+                    _openFiles();
+                }).fail(function () {
+                    deferredPromise.reject();
+                });
+        } else {
+            _openFiles();
         }
-
-        // Open the default preferences in the left pane in the read only mode.
-        CommandManager.execute(Commands.FILE_OPEN, { fullPath: defaultPrefsPath, paneId: "first-pane", options: { isReadOnly: true } });
-
-        if (currScheme.rows === 1 && currScheme.columns === 1) {
-            // Split layout is not active yet. Inititate the
-            // split view.
-            MainViewManager.setLayoutScheme(1, 2);
-        }
-
-
-        // Make sure the preference file is going to be opened in the second
-        // pane
-        if (MainViewManager.findInWorkingSet("first-pane", prefsPath) >= 0) {
-
-            MainViewManager._moveView("first-pane", "second-pane", file, 0, true);
-
-            // Now refresh the project tree by asking
-            // it to rebuild the UI.
-            WorkingSetView.refresh(true);
-        }
-
-        CommandManager.execute(Commands.FILE_OPEN, { fullPath: prefsPath, paneId: "second-pane"});
 
     }
 
@@ -317,9 +334,11 @@ define(function (require, exports, module) {
         }
     }
 
-    // This method tries to deduce the preference type
-    // based on various parameters like objects initial
-    // value, object type, object's type property.
+   /*
+    * This method tries to deduce the preference type
+    * based on various parameters like objects initial
+    * value, object type, object's type property.
+    */
     function _getObjType(prefObj) {
 
         var prefType = "undefined";
@@ -403,9 +422,11 @@ define(function (require, exports, module) {
         return false;
     }
 
-    // This method tries to matach between initial objects
-    // and key objects and then aggregates objects from both
-    // the properties.
+   /*
+    * This method tries to matach between initial objects
+    * and key objects and then aggregates objects from both
+    * the properties.
+    */
     function _getObjKeys(prefObj) {
 
         var finalObj = {},
@@ -625,10 +646,20 @@ define(function (require, exports, module) {
         return entireText;
     }
 
-    function _loadDefaultPrefs(prefsPath) {
+    function _loadDefaultPrefs(prefsPath, deferredPromise) {
 
         var defaultPrefsPath = defaultPreferencesFullPath,
             file             = FileSystem.getFileForPath(defaultPrefsPath);
+
+        function _executeDefaultOpenPrefsCommand() {
+
+            CommandManager.execute(Commands.FILE_OPEN_PREFERENCES)
+                .done(function () {
+                    deferredPromise.resolve();
+                }).fail(function () {
+                    deferredPromise.reject();
+                });
+        }
 
         file.exists(function (err, doesExist) {
 
@@ -649,25 +680,25 @@ define(function (require, exports, module) {
                             FileUtils.writeText(file, prefsString, true)
                                 .done(function () {
                                     reComputeDefaultPrefs = false;
-                                    _openPrefFilesInSplitView(prefsPath, defaultPrefsPath);
+                                    _openPrefFilesInSplitView(prefsPath, defaultPrefsPath, deferredPromise);
                                 }).fail(function (error) {
                                     // Give a chance for default preferences command.
                                     console.error("Unable to write to default preferences file! error code:" + error);
-                                    CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+                                    _executeDefaultOpenPrefsCommand();
                                 });
                         } else {
                             // Some error occured while trying to delete
                             // the file. In this case open the user
                             // preferences alone.
                             console.error("Unable to delete the existing default preferences file! error code:" + err);
-                            CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+                            _executeDefaultOpenPrefsCommand();
                         }
                     });
 
                 } else {
                     // Default preferences already generated.
                     // Just go about opening both the files.
-                    _openPrefFilesInSplitView(prefsPath, defaultPrefsPath);
+                    _openPrefFilesInSplitView(prefsPath, defaultPrefsPath, deferredPromise);
                 }
             } else {
 
@@ -678,11 +709,11 @@ define(function (require, exports, module) {
                 FileUtils.writeText(file, _prefsString, true)
                     .done(function () {
                         reComputeDefaultPrefs = false;
-                        _openPrefFilesInSplitView(prefsPath, defaultPrefsPath);
+                        _openPrefFilesInSplitView(prefsPath, defaultPrefsPath, deferredPromise);
                     }).fail(function (error) {
                         // Give a chance for default preferences command.
                         console.error("Unable to write to default preferences file! error code:" + error);
-                        CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+                        _executeDefaultOpenPrefsCommand();
                     });
             }
         });
@@ -692,25 +723,27 @@ define(function (require, exports, module) {
 
         var fullPath        = PreferencesManager.getUserPrefFile(),
             file            = FileSystem.getFileForPath(fullPath),
-            splitViewPrefOn = PreferencesManager.get(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW);
+            splitViewPrefOn = PreferencesManager.get(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW),
+            result          = new $.Deferred();
 
         if (!splitViewPrefOn) {
-            CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+            return CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
         } else {
             file.exists(function (err, doesExist) {
-
                 if (doesExist) {
-                    _loadDefaultPrefs(fullPath);
-
+                    _loadDefaultPrefs(fullPath, result);
                 } else {
                     FileUtils.writeText(file, "", true)
                         .done(function () {
-                            _loadDefaultPrefs(fullPath);
+                            _loadDefaultPrefs(fullPath, result);
+                        }).fail(function () {
+                            result.reject();
                         });
                 }
             });
         }
 
+        return result.promise();
     }
 
     ExtensionManager.on("statusChange", function (id) {
