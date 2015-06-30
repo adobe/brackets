@@ -461,17 +461,6 @@ define(function (require, exports, module) {
                 // In jQuery promises, returning the error here propagates the rejection,
                 // unlike in Promises/A, where we would need to re-throw it to do so.
                 searchDeferred.reject(err);
-            }).progress(function (fileResult) {
-                // Filter out files/folders that match user's current exclusion filter
-                var fileListResult = FileFilters.filterFileList(filter, [fileResult]);
-
-                if (fileListResult.length) {
-                    _doSearchInOneFile(fileResult).done(function (searchResults) {
-                        if (searchResults.matches && !!searchResults.matches.length) {
-                            searchDeferred.notify(searchModel.results[fileResult.fullPath]);
-                        }
-                    });
-                }
             });
         
         return searchDeferred.promise();

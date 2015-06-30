@@ -229,12 +229,12 @@ define(function (require, exports, module) {
             }
 
             var batchItems = items.slice(i, i + batchSize),
-                itemPromise = doInParallel(batchItems, beginProcessItem, failAndStopFast);
+                batchPromise = doInParallel(batchItems, beginProcessItem, failAndStopFast);
             
-            itemPromise.done(function () {
+            batchPromise.done(function () {
                 doBatchStartingWith(i + batchSize);
             });
-            itemPromise.fail(function () {
+            batchPromise.fail(function () {
                 if (failAndStopFast) {
                     masterDeferred.reject();
                     // note: we do NOT process any further items in this case
