@@ -189,6 +189,34 @@ define(function (require, exports, module) {
                 expect(clientID).toBe("com.adobe.brackets.main");
             });
         });
-        
+
+        describe("Open preferences in split view", function () {
+            it("should open default preferences in left pane and user preferences in right pane", function () {
+                var CommandManager      = testWindow.brackets.test.CommandManager,
+                    Commands            = testWindow.brackets.test.Commands,
+                    MainViewManager     = testWindow.brackets.test.MainViewManager;
+
+                beforeEach(function () {
+                    PreferencesManager._reset();
+                });
+
+                runs(function () {
+                    var promise = CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
+                    waitsForDone(promise);
+                });
+
+                runs(function () {
+                    var currScheme = MainViewManager.getLayoutScheme();
+                    var isSplitView = false;
+                    if (currScheme.rows && currScheme.columns) {
+                        if ((currScheme.rows === 1 && currScheme.columns === 2) ||
+                                (currScheme.rows === 2 && currScheme.columns === 1)) {
+                            isSplitView = true;
+                        }
+                    }
+                    expect(isSplitView).tobe(true);
+                });
+            });
+        });
     });
 });
