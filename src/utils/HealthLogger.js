@@ -46,12 +46,19 @@ define(function (require, exports, module) {
     }
 
     /**
+     * All the logging functions should be disabled if this returns false
+     * @returns {Boolean} true if health data can be logged
+     */
+    function shouldLogHealthData() {
+        return logHealthData;
+    }
+
+    /**
      * Return the Performance related data
      * @returns {Object} Performance Data aggregated till now
      */
     function getPerformanceData() {
-        var perfData = PerfUtils.getHealthReport();
-        return perfData;
+        return PerfUtils.getHealthReport();
     }
 
     /**
@@ -69,8 +76,7 @@ define(function (require, exports, module) {
      * @returns {Object} Health Data aggregated till now
      */
     function getHealthData() {
-        var healthData = PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY);
-        return healthData;
+        return PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY);
     }
 
     /**
@@ -78,6 +84,9 @@ define(function (require, exports, module) {
      * @param {Object} dataObject The object to be stored as health data
      */
     function setHealthData(dataObject) {
+        if (!shouldLogHealthData()) {
+            return;
+        }
         PreferencesManager.setViewState(HEALTH_DATA_STATE_KEY, dataObject);
     }
 
@@ -105,7 +114,7 @@ define(function (require, exports, module) {
      */
     function clearHealthData() {
         PreferencesManager.setViewState(HEALTH_DATA_STATE_KEY, {});
-        //clear the preformance relaed health data also
+        //clear the performance related health data also
         PerfUtils.clear();
     }
 
@@ -121,14 +130,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * All the logging functions should be disabled if this returns false
-     * @returns {Boolean} true if health data can be logged
-     */
-    function shouldLogHealthData() {
-        return logHealthData;
-    }
-
-    /**
      * When ever a file is opened call this function. The function will record the number of times
      * the standard file types have been opened. We only log the standard filetypes
      * @param {String} filePath          The path of the file to be registered
@@ -139,7 +140,7 @@ define(function (require, exports, module) {
         if (!shouldLogHealthData()) {
             return;
         }
-        var fileextension = FileUtils.getFileExtension(filePath),
+        var fileExtension = FileUtils.getFileExtension(filePath),
             language = LanguageManager.getLanguageForPath(filePath),
             healthData = getHealthData();
         healthData.fileStats = healthData.fileStats || {
@@ -148,9 +149,9 @@ define(function (require, exports, module) {
         };
         if (language.getId() !== "unknown") {
             if (addedToWorkingSet) {
-                healthData.fileStats.workingSetFileExt[fileextension] = healthData.fileStats.workingSetFileExt[fileextension] ? healthData.fileStats.workingSetFileExt[fileextension] + 1 : 1;
+                healthData.fileStats.workingSetFileExt[fileExtension] = healthData.fileStats.workingSetFileExt[fileExtension] ? healthData.fileStats.workingSetFileExt[fileExtension] + 1 : 1;
             } else {
-                healthData.fileStats.openedFileExt[fileextension] = healthData.fileStats.openedFileExt[fileextension] ? healthData.fileStats.openedFileExt[fileextension] + 1 : 1;
+                healthData.fileStats.openedFileExt[fileExtension] = healthData.fileStats.openedFileExt[fileExtension] ? healthData.fileStats.openedFileExt[fileExtension] + 1 : 1;
             }
             setHealthData(healthData);
         }
@@ -163,5 +164,6 @@ define(function (require, exports, module) {
     exports.clearHealthData           = clearHealthData;
     exports.fileOpened                = fileOpened;
     exports.setHealthLogsEnabled      = setHealthLogsEnabled;
+    exports.shouldLogHealthData       = shouldLogHealthData;
     exports.init                      = init;
 });

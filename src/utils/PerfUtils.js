@@ -30,8 +30,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("thirdparty/lodash"),
-        StringUtils         = require("utils/StringUtils");
+    var _            = require("thirdparty/lodash"),
+        StringUtils  = require("utils/StringUtils");
 
     // make sure the global brackets variable is loaded
     require("utils/Global");
@@ -304,12 +304,12 @@ define(function (require, exports, module) {
     }
 
     /**
-     * return single value, or `,` seperated values for an array or return aggregated values with
-     * <min value, average, maxv value, stantard deviation>
+     * return single value, or coma separated values for an array or return aggregated values with
+     * <min value, average, max value, standard deviation>
      * @param   {Array}    entry          An array or a single value
      * @param   {Boolean} aggregateStats If set, the returned value will be aggregated in the form -
      *                                   <min(avg)max[standard deviation]>
-     * @returns {String}   a single value, or coma seperated values in an array or
+     * @returns {String}   a single value, or coma separated values in an array or
      *                     <min(avg)max[standard deviation]> if aggregateStats is set
      */
     var getValueAsString = function (entry, aggregateStats) {

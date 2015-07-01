@@ -146,8 +146,8 @@ define(function (require, exports, module) {
                 
                 sendHealthDataToServer()
                     .done(function () {
-                        //We have already sent the health data, so can clear ll health data
-                        //Logged till now
+                        // We have already sent the health data, so can clear all health data
+                        // Logged till now
                         HealthLogger.clearHealthData();
                         result.resolve();
                     })

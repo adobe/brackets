@@ -61,9 +61,8 @@ define(function (require, exports, module) {
         brackets.test.HealthDataNotification = HealthDataNotification;
         brackets.test.HealthDataPopup        = HealthDataPopup;
 
-        var prefs = PreferencesManager.getExtensionPrefs("healthData"),
-            hdPref = prefs.get("healthDataTracking");
-        HealthLogger.setHealthLogsEnabled(hdPref);
+        var prefs = PreferencesManager.getExtensionPrefs("healthData");
+        HealthLogger.setHealthLogsEnabled(prefs.get("healthDataTracking"));
     }
     
     AppInit.appReady(function () {
