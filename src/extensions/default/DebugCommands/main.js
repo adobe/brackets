@@ -55,7 +55,7 @@ define(function (require, exports, module) {
     var DEFAULT_PREFERENCES_FILENAME = "defaultPreferences.json",
         SUPPORTED_PREFERENCE_TYPES   = ["number", "boolean", "string", "array", "object"];
 
-    var reComputeDefaultPrefs        = true,
+    var recomputeDefaultPrefs        = true,
         defaultPreferencesFullPath   = brackets.app.getApplicationSupportDirectory() + "/" + DEFAULT_PREFERENCES_FILENAME;
 
     /**
@@ -327,6 +327,7 @@ define(function (require, exports, module) {
     }
 
     function _isSupportedPrefType(prefType) {
+
         if (SUPPORTED_PREFERENCE_TYPES.indexOf(prefType) >= 0) {
             return true;
         } else {
@@ -339,74 +340,74 @@ define(function (require, exports, module) {
     * based on various parameters like objects initial
     * value, object type, object's type property.
     */
-    function _getObjType(prefObj) {
+    function _getPrefType(prefItem) {
 
-        var prefType = "undefined";
+        var finalPrefType = "undefined";
 
-        if (prefObj) {
+        if (prefItem) {
             // check the type parameter.
-            var _type = prefObj.type;
-            if (_type !== undefined) {
-                prefType = prefObj.type.toLowerCase();
+            var _prefType = prefItem.type;
+            if (_prefType !== undefined) {
+                finalPrefType = prefItem.type.toLowerCase();
                 // make sure the initial property's
                 // object type matches to that of 'type' propety.
-                if (prefObj.initial !== undefined) {
+                if (prefItem.initial !== undefined) {
 
-                    if (Array.isArray(prefObj.initial)) {
-                        _type = "array";
+                    if (Array.isArray(prefItem.initial)) {
+                        _prefType = "array";
                     } else {
-                        var _initialType = typeof (prefObj.initial);
+                        var _initialType = typeof (prefItem.initial);
                         _initialType = _initialType.toLowerCase();
-                        if (_type !== _initialType) {
-                            _type = _initialType;
+                        if (_prefType !== _initialType) {
+                            _prefType = _initialType;
                         }
                     }
                 }
             }
 
-            if (_type) {
+            if (_prefType) {
                 // preference object's type
                 // is defined. Check if that is valid or not.
-                prefType = _type;
-                if (!_isSupportedPrefType(prefType)) {
-                    prefType = "undefined";
+                finalPrefType = _prefType;
+                if (!_isSupportedPrefType(finalPrefType)) {
+                    finalPrefType = "undefined";
                 }
-            } else if (Array.isArray(prefObj)) {
+            } else if (Array.isArray(prefItem)) {
                 // Check if the object itself
                 // is an array, in which case
                 // we log the default.
-                prefType = "array";
-            } else if (prefObj.initial !== undefined  ||
-                       prefObj.keys !== undefined) {
+                finalPrefType = "array";
+            } else if (prefItem.initial !== undefined  ||
+                       prefItem.keys !== undefined) {
 
                 // OK looks like this preference has
                 // no explicit type defined. instead
                 // it needs to be deduced from initial/keys
                 // variable.
                 var _prefVar;
-                if (prefObj.initial !== undefined) {
-                    _prefVar = prefObj.initial;
+                if (prefItem.initial !== undefined) {
+                    _prefVar = prefItem.initial;
                 } else {
-                    _prefVar = prefObj.keys;
+                    _prefVar = prefItem.keys;
                 }
 
                 if (Array.isArray(_prefVar)) {
                     // In cases of array the
                     // typeof is returning a function.
-                    prefType = "array";
+                    finalPrefType = "array";
                 }
 
             } else {
-                prefType = typeof (prefObj);
+                finalPrefType = typeof (prefItem);
             }
         }
 
         // Now make sure we recognize this format.
-        if (!_isSupportedPrefType(prefType)) {
-            prefType = "undefined";
+        if (!_isSupportedPrefType(finalPrefType)) {
+            finalPrefType = "undefined";
         }
 
-        return prefType;
+        return finalPrefType;
     }
 
     function _isValidPref(pref) {
@@ -415,7 +416,7 @@ define(function (require, exports, module) {
         // user overrides and don't generate for properties
         // meant to be used for internal purposes. Also check
         // if the preference type is valid or not.
-        if (pref && !pref.excludeFromHints && _getObjType(pref) !== "undefined") {
+        if (pref && !pref.excludeFromHints && _getPrefType(pref) !== "undefined") {
             return true;
         }
 
@@ -423,78 +424,70 @@ define(function (require, exports, module) {
     }
 
    /*
-    * This method tries to matach between initial objects
+    * This method tries to match between initial objects
     * and key objects and then aggregates objects from both
     * the properties.
     */
-    function _getObjKeys(prefObj) {
+    function _getChildPrefs(prefItem) {
 
         var finalObj = {},
             property,
             keysFound = false;
 
-        if (!prefObj) {
+        if (!prefItem) {
             return {};
         }
 
-        if (typeof (prefObj.initial) === "object") {
-            // iterate through the list.
-            keysFound = true;
-            for (property in prefObj.initial) {
-                if (prefObj.initial.hasOwnProperty(property)) {
-                    finalObj[property] = prefObj.initial[property];
+        function _populateKeys(allKeys) {
+
+            var prop;
+            if (typeof (allKeys) === "object") {
+                // iterate through the list.
+                keysFound = true;
+                for (prop in allKeys) {
+                    if (allKeys.hasOwnProperty(prop)) {
+                        finalObj[prop] = allKeys[prop];
+                    }
                 }
             }
         }
 
-        if (typeof (prefObj.keys) === "object") {
-            // iterate through the list.
-            var allKeys = prefObj.keys;
-            keysFound = true;
-            for (property in allKeys) {
-                if (allKeys.hasOwnProperty(property)) {
-                    finalObj[property] = prefObj.keys[property];
-                }
-            }
-        }
+        _populateKeys(prefItem.initial);
+        _populateKeys(prefItem.keys);
 
         // Last resort: Maybe plain objects, in which case
         // we blindly extract all the properties.
-        if (keysFound === false) {
-            for (property in prefObj) {
-                if (prefObj.hasOwnProperty(property)) {
-                    finalObj[property] = prefObj[property];
-                }
-            }
+        if (!keysFound) {
+            _populateKeys(prefItem);
         }
 
         return finalObj;
     }
 
-    function _formatDefault(prefObj, prefName, tabIndentStr) {
+    function _formatBasicPref(prefItem, prefName, tabIndentStr) {
 
-        if (!prefObj || typeof (prefName) !== "string" || _getObjType(prefObj) === "object") {
+        if (!prefItem || typeof (prefName) !== "string" || _getPrefType(prefItem) === "object") {
             // return empty string in case of
             // object or pref is not defined.
             return "";
         }
 
-        var prefDescription = prefObj.description || "",
-            prefDefault     = prefObj.initial,
+        var prefDescription = prefItem.description || "",
+            prefDefault     = prefItem.initial,
             prefFormatText  = tabIndentStr + "\t// {0}\n" + tabIndentStr + "\t\"{1}\": {2}",
-            prefObjType     = _getObjType(prefObj);
+            prefItemType    = _getPrefType(prefItem);
 
-        if (prefDefault === undefined && !prefObj.description) {
-            // This could be the case when prefObj is a basic JS variable.
-            if (prefObjType === "number" || prefObjType === "boolean" || prefObjType === "string") {
-                prefDefault = prefObj;
+        if (prefDefault === undefined && !prefItem.description) {
+            // This could be the case when prefItem is a basic JS variable.
+            if (prefItemType === "number" || prefItemType === "boolean" || prefItemType === "string") {
+                prefDefault = prefItem;
             }
         }
 
         if (prefDefault === undefined) {
-            if (prefObjType === "number") {
+            if (prefItemType === "number") {
                 prefDefault = 0;
-            } else if (prefObjType === "boolean") {
+            } else if (prefItemType === "boolean") {
                 // Defaulting the preference to false,
                 // in case this is missing.
                 prefDefault = false;
@@ -512,96 +505,94 @@ define(function (require, exports, module) {
             }
         }
 
-        if (prefObjType === "array") {
+        if (prefItemType === "array") {
             prefDefault = "[]";
-        } else if (prefDefault.length === 0 || (prefObjType !== "boolean" && prefObjType !== "number")) {
+        } else if (prefDefault.length === 0 || (prefItemType !== "boolean" && prefItemType !== "number")) {
             prefDefault = "\"" + prefDefault + "\"";
         }
 
         return StringUtils.format(prefFormatText, prefDescription, prefName, prefDefault);
     }
 
-    function _formatPref(prefName,  prefObj, indentLevel) {
+    function _formatPref(prefName,  prefItem, indentLevel) {
 
         // check for validity of the parameters being passed
-        if (!prefObj || indentLevel < 0 || !prefName || !prefName.length) {
+        if (!prefItem || indentLevel < 0 || !prefName || !prefName.length) {
             return "";
         }
 
         var iLevel,
             property,
-            prefObjKeys,
+            prefItemKeys,
             entireText     = "",
-            prefObjDesc    = prefObj.description || "",
-            prefObjType    = _getObjType(prefObj),
+            prefItemDesc   = prefItem.description || "",
+            prefItemType   = _getPrefType(prefItem),
             hasKeys        = false,
             tabIndents     = "",
             numKeys        = 0;
 
-
         // Generate the indentLevel string
         for (iLevel = 0; iLevel < indentLevel; iLevel++) {
-            tabIndents = tabIndents + "\t";
+            tabIndents += "\t";
         }
 
         // Check if the preference is an object.
-        if (_getObjType(prefObj) === "object") {
-            prefObjKeys = _getObjKeys(prefObj);
-        }
-
-        if (prefObjKeys && Object.keys(prefObjKeys).length > 0) {
-            hasKeys = true;
+        if (_getPrefType(prefItem) === "object") {
+            prefItemKeys = _getChildPrefs(prefItem);
+            if (Object.keys(prefItemKeys).length > 0) {
+                hasKeys = true;
+            }
         }
 
         // There are some properties like "highlightMatches" that
         // are declared as boolean type but still can take object keys.
         // The below condition check can take care of cases like this.
-        if (prefObjType !== "object" && hasKeys === false) {
-            return _formatDefault(prefObj, prefName, tabIndents);
+        if (prefItemType !== "object" && hasKeys === false) {
+            return _formatBasicPref(prefItem, prefName, tabIndents);
         }
 
         // Indent the beginning of the object.
-        tabIndents = tabIndents + "\t";
+        tabIndents += "\t";
 
-        if (prefObjDesc && prefObjDesc.length > 0) {
-            entireText = tabIndents + "// " + prefObjDesc + "\n";
+        if (prefItemDesc && prefItemDesc.length > 0) {
+            entireText = tabIndents + "// " + prefItemDesc + "\n";
         }
 
-        entireText = entireText + tabIndents + "\"" + prefName + "\": " + "{";
+        entireText += tabIndents + "\"" + prefName + "\": " + "{";
 
-        if (prefObjKeys) {
-            numKeys = Object.keys(prefObjKeys).length;
+        if (prefItemKeys) {
+            numKeys = Object.keys(prefItemKeys).length;
         }
 
         // In case the object array is empty
         if (numKeys <= 0) {
-            entireText = entireText + "}";
+            entireText += "}";
             return entireText;
         } else {
-            entireText = entireText + "\n";
+            entireText += "\n";
         }
 
         // Now iterate through all the keys
         // and generate nested formatted objects.
 
-        for (property in prefObjKeys) {
+        for (property in prefItemKeys) {
 
-            if (prefObjKeys.hasOwnProperty(property)) {
+            if (prefItemKeys.hasOwnProperty(property)) {
 
-                var pref = prefObjKeys[property];
+                var pref = prefItemKeys[property];
 
                 if (_isValidPref(pref)) {
 
                     var formattedText = "";
 
-                    if (_getObjType(pref) === "object") {
+                    if (_getPrefType(pref) === "object") {
                         formattedText = _formatPref(property, pref, indentLevel + 1);
                     } else {
-                        formattedText = _formatDefault(pref, property, tabIndents);
+                        formattedText = _formatBasicPref(pref, property, tabIndents);
                     }
 
                     if (formattedText.length > 0) {
-                        entireText = entireText + formattedText + ",\n\n";
+                        entireText += formattedText + ",\n\n";
                     }
                 }
             }
@@ -631,7 +622,7 @@ define(function (require, exports, module) {
                 var pref = allPrefs[property];
 
                 if (_isValidPref(pref)) {
-                    entireText  = entireText + _formatPref(property, pref, 0) + ",\n\n";
+                    entireText += _formatPref(property, pref, 0) + ",\n\n";
                 }
             }
         }
@@ -666,10 +657,10 @@ define(function (require, exports, module) {
             if (doesExist) {
 
                 // Go about recreating the default preferecences file.
-                if (reComputeDefaultPrefs) {
+                if (recomputeDefaultPrefs) {
 
                     var prefsString       = _getDefaultPreferencesString();
-                    reComputeDefaultPrefs = false;
+                    recomputeDefaultPrefs = false;
 
                     // We need to delete this first
                     file.unlink(function (err) {
@@ -679,7 +670,7 @@ define(function (require, exports, module) {
                             // preferences string to this file.
                             FileUtils.writeText(file, prefsString, true)
                                 .done(function () {
-                                    reComputeDefaultPrefs = false;
+                                    recomputeDefaultPrefs = false;
                                     _openPrefFilesInSplitView(prefsPath, defaultPrefsPath, deferredPromise);
                                 }).fail(function (error) {
                                     // Give a chance for default preferences command.
@@ -708,7 +699,7 @@ define(function (require, exports, module) {
                 var _prefsString = _getDefaultPreferencesString();
                 FileUtils.writeText(file, _prefsString, true)
                     .done(function () {
-                        reComputeDefaultPrefs = false;
+                        recomputeDefaultPrefs = false;
                         _openPrefFilesInSplitView(prefsPath, defaultPrefsPath, deferredPromise);
                     }).fail(function (error) {
                         // Give a chance for default preferences command.
@@ -749,7 +740,7 @@ define(function (require, exports, module) {
     ExtensionManager.on("statusChange", function (id) {
         // Seems like an extension(s) got installed.
         // Need to recompute the default prefs.
-        reComputeDefaultPrefs = true;
+        recomputeDefaultPrefs = true;
     });
 
     /* Register all the command handlers */

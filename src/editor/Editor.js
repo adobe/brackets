@@ -284,10 +284,7 @@ define(function (require, exports, module) {
     function Editor(document, makeMasterEditor, container, range, options) {
         var self = this;
 
-        var isReadOnly = false;
-        if (options !== undefined && typeof (options.isReadOnly) === "boolean") {
-            isReadOnly = options.isReadOnly;
-        }
+        var isReadOnly = options && options.isReadOnly;
 
         _instances.push(this);
         
