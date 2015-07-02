@@ -154,6 +154,9 @@ define([
         // State info for UI
         var _state = new StateManager(options.disableUIState);
 
+        // Callback functions waiting for a postMessage from Bramble
+        var _callbacks = {};
+
         // Public getters for state. Most of these aren't useful until bramble.ready()
         self.getID = function() { return _id; };
         self.getIFrame = function() { return _iframe; };
@@ -220,6 +223,13 @@ define([
                     _state.theme = data.theme;
 
                     setReadyState(Bramble.READY);
+                }
+                // Listen for callbacks from commands we triggered via _executeRemoteCommand
+                else if(data.type === "bramble:remoteCommand:callback") {
+                    debug("bramble:remoteCommand:callback");
+                    // Trigger the queued callback and remove
+                    _callbacks[data.callback]();
+                    delete _callbacks[data.callback];
                 }
                 // Anything else is some kind of event we need to re-trigger
                 // and alter internal state.
@@ -475,13 +485,19 @@ define([
             }
         }
 
-        self._executeRemoteCommand = function(options) {
+        self._executeRemoteCommand = function(options, callback) {
             if (!_brambleWindow) {
                 console.error("[Bramble Error] No active instance, unable to execute command");
                 return;
             }
 
+            // Queue a callback for later when Bramble posts back to us
+            callback = callback || function(){};
+            options.callback = UUID.generate();
+            _callbacks[options.callback] = callback;
+
             options.type = "bramble:remoteCommand";
+
             debug("executeRemoteCommand", options);
             _brambleWindow.postMessage(JSON.stringify(options), _iframe.src);
         };
@@ -490,100 +506,100 @@ define([
     BrambleProxy.prototype = new EventEmitter();
     BrambleProxy.prototype.constructor = BrambleProxy;
 
-    BrambleProxy.prototype.undo = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "EDIT_UNDO"});
+    BrambleProxy.prototype.undo = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "EDIT_UNDO"}, callback);
     };
 
-    BrambleProxy.prototype.redo = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "EDIT_REDO"});
+    BrambleProxy.prototype.redo = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "EDIT_REDO"}, callback);
     };
 
-    BrambleProxy.prototype.increaseFontSize = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "VIEW_INCREASE_FONT_SIZE"});
+    BrambleProxy.prototype.increaseFontSize = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "VIEW_INCREASE_FONT_SIZE"}, callback);
     };
 
-    BrambleProxy.prototype.decreaseFontSize = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "VIEW_DECREASE_FONT_SIZE"});
+    BrambleProxy.prototype.decreaseFontSize = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "VIEW_DECREASE_FONT_SIZE"}, callback);
     };
 
-    BrambleProxy.prototype.restoreFontSize = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "VIEW_RESTORE_FONT_SIZE"});
+    BrambleProxy.prototype.restoreFontSize = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "VIEW_RESTORE_FONT_SIZE"}, callback);
     };
 
-    BrambleProxy.prototype.save = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "FILE_SAVE"});
+    BrambleProxy.prototype.save = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "FILE_SAVE"}, callback);
     };
 
-    BrambleProxy.prototype.saveAll = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "FILE_SAVE_ALL"});
+    BrambleProxy.prototype.saveAll = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "FILE_SAVE_ALL"}, callback);
     };
 
-    BrambleProxy.prototype.useHorizontalSplitView = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "CMD_SPLITVIEW_HORIZONTAL"});
+    BrambleProxy.prototype.useHorizontalSplitView = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "CMD_SPLITVIEW_HORIZONTAL"}, callback);
     };
 
-    BrambleProxy.prototype.useVerticalSplitView = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "CMD_SPLITVIEW_VERTICAL"});
+    BrambleProxy.prototype.useVerticalSplitView = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "CMD_SPLITVIEW_VERTICAL"}, callback);
     };
 
-    BrambleProxy.prototype.find = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "CMD_FIND"});
+    BrambleProxy.prototype.find = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "CMD_FIND"}, callback);
     };
 
-    BrambleProxy.prototype.findInFiles = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "CMD_FIND_IN_FILES"});
+    BrambleProxy.prototype.findInFiles = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "CMD_FIND_IN_FILES"}, callback);
     };
 
-    BrambleProxy.prototype.replace = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "CMD_REPLACE"});
+    BrambleProxy.prototype.replace = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "CMD_REPLACE"}, callback);
     };
 
-    BrambleProxy.prototype.replaceInFiles = function() {
-        this._executeRemoteCommand({commandCategory: "brackets", command: "CMD_REPLACE_IN_FILES"});
+    BrambleProxy.prototype.replaceInFiles = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "CMD_REPLACE_IN_FILES"}, callback);
     };
 
-    BrambleProxy.prototype.useLightTheme = function() {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_LIGHT_THEME"});
+    BrambleProxy.prototype.useLightTheme = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_LIGHT_THEME"}, callback);
     };
 
-    BrambleProxy.prototype.useDarkTheme = function() {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DARK_THEME"});
+    BrambleProxy.prototype.useDarkTheme = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DARK_THEME"}, callback);
     };
 
-    BrambleProxy.prototype.showSidebar = function() {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_SHOW_SIDEBAR"});
+    BrambleProxy.prototype.showSidebar = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_SHOW_SIDEBAR"}, callback);
     };
 
-    BrambleProxy.prototype.hideSidebar = function() {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_HIDE_SIDEBAR"});
+    BrambleProxy.prototype.hideSidebar = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_HIDE_SIDEBAR"}, callback);
     };
 
-    BrambleProxy.prototype.showStatusbar = function() {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_SHOW_STATUSBAR"});
+    BrambleProxy.prototype.showStatusbar = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_SHOW_STATUSBAR"}, callback);
     };
 
-    BrambleProxy.prototype.hideStatusbar = function() {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_HIDE_STATUSBAR"});
+    BrambleProxy.prototype.hideStatusbar = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_HIDE_STATUSBAR"}, callback);
     };
 
-    BrambleProxy.prototype.refreshPreview = function() {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_RELOAD"});
+    BrambleProxy.prototype.refreshPreview = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_RELOAD"}, callback);
     };
 
-    BrambleProxy.prototype.useMobilePreview = function() {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_MOBILE_PREVIEW"});
+    BrambleProxy.prototype.useMobilePreview = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_MOBILE_PREVIEW"}, callback);
     };
 
-    BrambleProxy.prototype.useDesktopPreview = function() {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DESKTOP_PREVIEW"});
+    BrambleProxy.prototype.useDesktopPreview = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DESKTOP_PREVIEW"}, callback);
     };
 
-    BrambleProxy.prototype.enableJavaScript = function() {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_ENABLE_SCRIPTS"});
+    BrambleProxy.prototype.enableJavaScript = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_ENABLE_SCRIPTS"}, callback);
     };
 
-    BrambleProxy.prototype.disableJavaScript = function() {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DISABLE_SCRIPTS"});
+    BrambleProxy.prototype.disableJavaScript = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DISABLE_SCRIPTS"}, callback);
     };
 
     return Bramble;

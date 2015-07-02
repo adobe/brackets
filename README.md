@@ -266,32 +266,33 @@ won't do what you want.
 ## Bramble Instance Methods
 
 The Bramble instance has a number of methods you can call in order to interact with the
-Bramble editor and preview:
+Bramble editor and preview, all of which take an optional `callback` argument if you want
+to be notified when the action completes:
 
-* `undo()` - undo the last operation in the editor (waits for focus)
-* `redo()` - redo the last operation that was undone in the editor (waits for focus)
-* `increaseFontSize()` - increases the editor's font size
-* `decreaseFontSize()` - decreases the edtior's font size
-* `restoreFontSize()` - restores the editor's font size to normal
-* `save()` - saves the current document
-* `saveAll()` - saves all "dirty" documents
-* `useHorizontalSplitView()` - splits the editor and preview horizontally
-* `useVerticalSplitView()` - splits the editor and preview vertically (default)
-* `find()` - opens the Find dialog to search within the current document
-* `findInFiles()` - opens the Find in Files dialog to search in all project files
-* `replace()` - opens the Replace dialog to replace text in the current document
-* `replaceInFiles()` - opens the Replace In Files dialog to replace text in all project files
-* `useLightTheme()` - sets the editor to use the light theme (default)
-* `useDarkTheme()` - sets the editor to use the dark theme
-* `showSidebar()` - opens the file tree sidebar
-* `hideSidebar()` - hides the file tree sidebar
-* `showStatusbar()` - enables and shows the statusbar
-* `hideStatusbar()` - disables and hides the statusbar
-* `refreshPreview()` - reloads the preview with the latest content in the editor and filesystem
-* `useMobilePreview()` - uses a Mobile view in the preview, as it would look on a smartphone
-* `useDesktopPreview()` - uses a Desktop view in the preview, as it would look on a desktop computer (default)
-* `enableJavaScript()` - turns on JavaScript execution for the preview (default)
-* `disableJavaScript()` - turns off JavaScript execution for the preview
+* `undo([callback])` - undo the last operation in the editor (waits for focus)
+* `redo([callback])` - redo the last operation that was undone in the editor (waits for focus)
+* `increaseFontSize([callback])` - increases the editor's font size
+* `decreaseFontSize([callback])` - decreases the edtior's font size
+* `restoreFontSize([callback])` - restores the editor's font size to normal
+* `save([callback])` - saves the current document
+* `saveAll([callback])` - saves all "dirty" documents
+* `useHorizontalSplitView([callback])` - splits the editor and preview horizontally
+* `useVerticalSplitView([callback])` - splits the editor and preview vertically (default)
+* `find([callback])` - opens the Find dialog to search within the current document
+* `findInFiles([callback])` - opens the Find in Files dialog to search in all project files
+* `replace([callback])` - opens the Replace dialog to replace text in the current document
+* `replaceInFiles([callback])` - opens the Replace In Files dialog to replace text in all project files
+* `useLightTheme([callback])` - sets the editor to use the light theme (default)
+* `useDarkTheme([callback])` - sets the editor to use the dark theme
+* `showSidebar([callback])` - opens the file tree sidebar
+* `hideSidebar([callback])` - hides the file tree sidebar
+* `showStatusbar([callback])` - enables and shows the statusbar
+* `hideStatusbar([callback])` - disables and hides the statusbar
+* `refreshPreview([callback])` - reloads the preview with the latest content in the editor and filesystem
+* `useMobilePreview([callback])` - uses a Mobile view in the preview, as it would look on a smartphone
+* `useDesktopPreview([callback])` - uses a Desktop view in the preview, as it would look on a desktop computer (default)
+* `enableJavaScript([callback])` - turns on JavaScript execution for the preview (default)
+* `disableJavaScript([callback])` - turns off JavaScript execution for the preview
 
 ## Bramble Instance Events
 
@@ -304,7 +305,6 @@ the following events:
 * `"sidebarChange"` - triggered whenever the sidebar is hidden or shown. It includes an `Object` with a `visible` property set to `true` or `false`
 * `"themeChange"` - triggered whenever the theme changes. It inclues an `Object` with a `theme` property that indicates the new theme
 * `"fontSizeChange"` - triggered whenever the font size changes. It includes an `Object` with a `fontSize` property that indicates the new size (e.g., `"12px"`).
-
 
 There are also high-level events for changes to files:
 

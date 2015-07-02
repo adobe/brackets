@@ -1,13 +1,11 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: true */
+/*global define, parent, brackets: true */
 
 define(function (require, exports, module) {
     "use strict";
 
     var CommandManager = brackets.getModule("command/CommandManager");
     var EditorManager  = brackets.getModule("editor/EditorManager");
-// todo - needed?
-//    var Editor               = brackets.getModule("editor/Editor").Editor;
     var Commands       = brackets.getModule("command/Commands");
     var HTMLRewriter   = brackets.getModule("filesystem/impls/filer/lib/HTMLRewriter");
     var SidebarView    = brackets.getModule("project/SidebarView");
@@ -19,10 +17,20 @@ define(function (require, exports, module) {
     var Theme = require("lib/Theme");
     var UI = require("lib/UI");
 
+    function _remoteCallbackFn(callback) {
+        return function() {
+            var message = {
+                type: "bramble:remoteCommand:callback",
+                callback: callback
+            };
+            parent.postMessage(JSON.stringify(message), "*");
+        };
+    }
+
     // Built-in Brackets Commands
-    function _bracketsCommand(command) {
+    function _bracketsCommand(command, callback) {
         function executeCommand() {
-            CommandManager.execute(Commands[command]);
+            CommandManager.execute(Commands[command]).always(callback);
         }
 
         // Make sure the last-focused editor gets focus before executing
@@ -36,7 +44,9 @@ define(function (require, exports, module) {
     }
 
     // Custom Bramble commands
-    function _brambleCommand(command) {
+    function _brambleCommand(command, callback) {
+        var skipCallback = false;
+
         switch(command) {
         case "BRAMBLE_RELOAD":
             PostMessageTransport.reload();
@@ -80,7 +90,12 @@ define(function (require, exports, module) {
             break;
         default:
             console.log('[Bramble] unknown command:', command);
+            skipCallback = true;
             break;
+        }
+
+        if(!skipCallback) {
+            callback();
         }
     }
 
@@ -99,15 +114,10 @@ define(function (require, exports, module) {
 
         switch(remoteRequest.commandCategory) {
         case "brackets":
-            _bracketsCommand(remoteRequest.command);
+            _bracketsCommand(remoteRequest.command, _remoteCallbackFn(remoteRequest.callback));
             break;
-// todo - what is this?
-//        case "editorCommand":
-//  Editor[msgObj.command](msgObj.params);
-//            _editorCommand(remoteRequest);
-//            break;
         case "bramble":
-            _brambleCommand(remoteRequest.command);
+            _brambleCommand(remoteRequest.command, _remoteCallbackFn(remoteRequest.callback));
             break;
         default:
             console.error('[Bramble] unknown remote command request:', remoteRequest);
