@@ -9,3 +9,8 @@
 		flex-flow: space-between;
 	}
 }
+
+/* Make it obvious that files in the sidebar are something you can click. */
+li.jstree-leaf > a {
+	cursor: pointer !important;
+}
