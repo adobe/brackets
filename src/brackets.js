@@ -143,41 +143,6 @@ define(function (require, exports, module) {
     // read URL params
     params.parse();
 
-    // Define a preference for font smoothing mode on Mac.
-    // By default fontSmoothing is set to subpixel-antialiased
-    // for the text inside code editor. It can be overridden
-    // to "antialiased", that would set text rendering AA to use
-    // gray scale antialiasing.
-
-    if (brackets.platform === "mac") {
-
-        PreferencesManager.definePreference("fontSmoothing", "string", "subpixel_antialiased", {
-            description: Strings.DESCRIPTION_FONT_SMOOTHING,
-            values: ["subpixel-antialiased", "antialiased"]
-        });
-
-        PreferencesManager.on("change", "fontSmoothing", function () {
-
-            var aaType = PreferencesManager.get("fontSmoothing");
-
-            // For any other value, set this to subpixel-antialiased
-            if (aaType !== "subpixel-antialiased" && aaType !== "antialiased") {
-                aaType = "subpixel-antialiased";
-            }
-
-            $("#editor-holder").css("-webkit-font-smoothing", aaType);
-
-        });
-
-        AppInit.htmlReady(function () {
-            // The code editor's text anti-aliasing should be defaulted to sub pixel
-            // antialiasing on mac
-            if (brackets.platform === "mac") {
-                $("#editor-holder").css("-webkit-font-smoothing", "subpixel-antialiased");
-            }
-
-        });
-    }
 
     /**
      * Setup test object
@@ -393,8 +358,8 @@ define(function (require, exports, module) {
         }
         
         // Localize MainViewHTML and inject into <BODY> tag
-        $("body").html(Mustache.render(MainViewHTML, Strings));
-        
+        $("body").html(Mustache.render(MainViewHTML, { shouldAddAA: (brackets.platform === "mac"), Strings: Strings }));
+
         // Update title
         $("title").text(brackets.config.app_title);
         
