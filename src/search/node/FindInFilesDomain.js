@@ -37,7 +37,8 @@ maxerr: 50, node: true */
     var results = {},
         numMatches = 0,
         foundMaximum = false,
-        exceedsMaximum = false;
+        exceedsMaximum = false,
+        currentCrawlIndex = 0;
     
     function offsetToLineNum(textOrLines, offset) {
         if (Array.isArray(textOrLines)) {
@@ -147,6 +148,10 @@ maxerr: 50, node: true */
         return matches;
     }
     
+    function clearProjectCache () {
+        projectCache = {};
+    }
+
     function getFileContentsForFile(filePath) {
         if (projectCache[filePath]) {
             return projectCache[filePath];
@@ -253,11 +258,33 @@ maxerr: 50, node: true */
         return {valid: true, queryExpr: queryExpr};
     }
     
+    function fileCrawler()
+    {
+        if(!files||(files && files.length===0)) {
+            setTimeout(fileCrawler,5000);
+            return;
+        }
+        console.log("crawling");
+        var i=0;
+        for(;i<10&&currentCrawlIndex<files.length;)
+        {
+            getFileContentsForFile(files[currentCrawlIndex]);
+            i++;
+            currentCrawlIndex++;
+        }
+        if( currentCrawlIndex<files.length ) {
+            process.nextTick(fileCrawler);
+        }
+        else {
+            setTimeout(fileCrawler,5000);
+        }
+    }
+
     function initCache(fileList) {
+        console.log("cache change");
         files = fileList;
-        files.forEach(function (file) {
-            getFileContentsForFile(file);
-        });
+        currentCrawlIndex = 0;
+        clearProjectCache();
         return true;
     }
     
@@ -317,6 +344,7 @@ maxerr: 50, node: true */
                 type: "boolean",
                 description: "don't know yet"}]
         );
+        fileCrawler();
     }
     
     exports.init = init;
