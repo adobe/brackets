@@ -116,7 +116,7 @@
      *    an error (or null if there was no error) and the server (or null if there
      *    was an error). 
      */
-    function _createServer(path, port, createCompleteCallback) {
+    function _createServer(path, address, port, createCompleteCallback) {
         var server,
             app,
             address,
@@ -240,13 +240,13 @@
         // If the given port/address is in use then use a random port
         server.on("error", function (e) {
             if (e.code === "EADDRINUSE") {
-                server.listen(0, "127.0.0.1");
+                server.listen(0, address);
             } else {
                 throw e;
             }
         });
 
-        server.listen(port, "127.0.0.1");
+        server.listen(port, address);
     }
     
     /**
@@ -262,13 +262,13 @@
      *    The "family" property of the address indicates whether the address is,
      *    for example, IPv4, IPv6, or a UNIX socket.
      */
-    function _cmdGetServer(path, port, cb) {
+    function _cmdGetServer(path, address, port, cb) {
         // Make sure the key doesn't conflict with some built-in property of Object.
         var pathKey = getPathKey(path);
         if (_servers[pathKey]) {
             cb(null, _servers[pathKey].address());
         } else {
-            _createServer(path, port, function (err, server) {
+            _createServer(path, address, port, function (err, server) {
                 if (err) {
                     cb(err, null);
                 } else {
@@ -389,6 +389,11 @@
                     name: "path",
                     type: "string",
                     description: "Absolute filesystem path for root of server."
+                },
+                {
+                    name: "address",
+                    type: "string",
+                    description: "Address to use for HTTP server. Defaults to 127.0.0.1."
                 },
                 {
                     name: "port",

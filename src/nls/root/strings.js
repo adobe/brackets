@@ -732,6 +732,7 @@ define({
     "DESCRIPTION_SORT_DIRECTORIES_FIRST"             : "True to sort the directories first in the project tree",
     "DESCRIPTION_SPACE_UNITS"                        : "Number of spaces to use for space-based indentation",
     "DESCRIPTION_STATIC_SERVER_PORT"                 : "Port number that the built-in server should use for Live Preview",
+    "DESCRIPTION_STATIC_SERVER_ADDRESS"              : "The address that the built-in server should use for Live Preview",
     "DESCRIPTION_STYLE_ACTIVE_LINE"                  : "True to highlight background color of the line the cursor is on",
     "DESCRIPTION_TAB_SIZE"                           : "Number of spaces to display for tabs",
     "DESCRIPTION_USE_TAB_CHAR"                       : "True to use tabs instead of spaces",

@@ -89,7 +89,7 @@ define(function (require, exports, module) {
             it("should start a static server on the given folder", function () {
                 var serverInfo, path = testFolder + "/folder1";
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path, 0)
+                    nodeConnection.domains.staticServer.getServer(path, "127.0.0.1", 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -111,7 +111,7 @@ define(function (require, exports, module) {
                     path = testFolder + "/folder1";
 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path, 54321)
+                    nodeConnection.domains.staticServer.getServer(path, "127.0.0.1", 54321)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -131,11 +131,11 @@ define(function (require, exports, module) {
                     path1 = testFolder + "/folder1", path2 = testFolder + "/folder2";
 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path1, 54321)
+                    nodeConnection.domains.staticServer.getServer(path1, "127.0.0.1", 54321)
                         .done(function (info) {
                             serverInfo1 = info;
                         });
-                    nodeConnection.domains.staticServer.getServer(path2, 54321)
+                    nodeConnection.domains.staticServer.getServer(path2, "127.0.0.1", 54321)
                         .done(function (info) {
                             serverInfo2 = info;
                         });
@@ -155,10 +155,30 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should start the server on the given address", function () {
+                var serverInfo,
+                    path = testFolder + "/folder1";
+
+                runs(function () {
+                    nodeConnection.domains.staticServer.getServer(path, "0.0.0.0", 0)
+                        .done(function (info) {
+                            serverInfo = info;
+                        });
+                });
+
+                waitsFor(function () { return serverInfo; }, "waiting for static server to start");
+                runs(function () {
+                    expect(serverInfo.address).toBe("0.0.0.0");
+
+                    waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
+                                 "waiting for static server to close");
+                });
+            });
+
             it("should serve the text of a file in the given folder", function () {
                 var serverInfo, text, path = testFolder + "/folder1";
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path, 0)
+                    nodeConnection.domains.staticServer.getServer(path, "127.0.0.1", 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -186,11 +206,11 @@ define(function (require, exports, module) {
                 var serverInfo1, serverInfo2,
                     path1 = testFolder + "/folder1", path2 = testFolder + "/folder2";
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path1, 0)
+                    nodeConnection.domains.staticServer.getServer(path1, null, 0)
                         .done(function (info) {
                             serverInfo1 = info;
                         });
-                    nodeConnection.domains.staticServer.getServer(path2, 0)
+                    nodeConnection.domains.staticServer.getServer(path2, null, 0)
                         .done(function (info) {
                             serverInfo2 = info;
                         });
@@ -213,11 +233,11 @@ define(function (require, exports, module) {
                     path1 = testFolder + "/folder1", path2 = testFolder + "/folder2",
                     text1, text2;
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path1, 0)
+                    nodeConnection.domains.staticServer.getServer(path1, null, 0)
                         .done(function (info) {
                             serverInfo1 = info;
                         });
-                    nodeConnection.domains.staticServer.getServer(path2, 0)
+                    nodeConnection.domains.staticServer.getServer(path2, null, 0)
                         .done(function (info) {
                             serverInfo2 = info;
                         });
@@ -257,7 +277,7 @@ define(function (require, exports, module) {
                     timeout = 500;
                 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path, 0)
+                    nodeConnection.domains.staticServer.getServer(path, "127.0.0.1", 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -313,7 +333,7 @@ define(function (require, exports, module) {
                     requestId;
                 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path, 0)
+                    nodeConnection.domains.staticServer.getServer(path, "127.0.0.1", 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -363,7 +383,7 @@ define(function (require, exports, module) {
                     requestId;
                 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path, 0)
+                    nodeConnection.domains.staticServer.getServer(path, "127.0.0.1", 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -410,7 +430,7 @@ define(function (require, exports, module) {
                     requestId;
                 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path, 0)
+                    nodeConnection.domains.staticServer.getServer(path, "127.0.0.1", 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -472,7 +492,7 @@ define(function (require, exports, module) {
                 });
                 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path, 0)
+                    nodeConnection.domains.staticServer.getServer(path, "127.0.0.1", 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
@@ -528,7 +548,7 @@ define(function (require, exports, module) {
                     timeout = 500;
                 
                 runs(function () {
-                    nodeConnection.domains.staticServer.getServer(path, 0)
+                    nodeConnection.domains.staticServer.getServer(path, "127.0.0.1", 0)
                         .done(function (info) {
                             serverInfo = info;
                         });
