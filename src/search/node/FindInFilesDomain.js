@@ -163,7 +163,13 @@ maxerr: 50, node: true */
 //                console.log("File contents" + data);
 //            }
 //        });
-        projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
+        try {
+            //console.log(filePath);
+            projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
+        } catch(ex) {
+            console.log(ex);
+            projectCache[filePath] = "";
+        }
         return projectCache[filePath];
         
     }
@@ -264,7 +270,6 @@ maxerr: 50, node: true */
             setTimeout(fileCrawler,5000);
             return;
         }
-        console.log("crawling");
         var i=0;
         for(;i<10&&currentCrawlIndex<files.length;)
         {
@@ -273,7 +278,8 @@ maxerr: 50, node: true */
             currentCrawlIndex++;
         }
         if( currentCrawlIndex<files.length ) {
-            process.nextTick(fileCrawler);
+            console.log("crawling scheduled");
+            setImmediate(fileCrawler);
         }
         else {
             setTimeout(fileCrawler,5000);
