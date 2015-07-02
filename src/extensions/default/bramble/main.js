@@ -12,16 +12,13 @@ define(function (require, exports, module) {
 
     // Load dependencies
     var AppInit              = brackets.getModule("utils/AppInit"),
-        LiveDevServerManager = brackets.getModule("LiveDevelopment/LiveDevServerManager"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
-        ProjectManager       = brackets.getModule("project/ProjectManager"),
         LiveDevelopment      = brackets.getModule("LiveDevelopment/LiveDevMultiBrowser"),
         BrambleStartupState  = brackets.getModule("bramble/StartupState"),
         Browser              = require("lib/iframe-browser"),
         UI                   = require("lib/UI"),
         Launcher             = require("lib/launcher"),
-        HTMLServer           = require("nohost/src/HTMLServer").HTMLServer,
-        StaticServer         = require("nohost/src/StaticServer").StaticServer,
+        NoHost               = require("nohost/main"),
         ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
         PostMessageTransport = require("lib/PostMessageTransport"),
         Path                 = brackets.getModule("filesystem/impls/filer/BracketsFiler").Path,
@@ -33,31 +30,6 @@ define(function (require, exports, module) {
 
     ExtensionUtils.loadStyleSheet(module, "stylesheets/style.css");
     ExtensionUtils.loadStyleSheet(module, "stylesheets/sidebarTheme.css");
-
-    var _HTMLServer,
-        _staticServer;
-
-    // Server for HTML files only
-    function _getHTMLServer() {
-        if (!_HTMLServer) {
-            _HTMLServer = new HTMLServer({
-                pathResolver    : ProjectManager.makeProjectRelativeIfPossible,
-                root            : ProjectManager.getProjectRoot()
-            });
-        }
-        return _HTMLServer;
-    }
-
-    // Server for non-HTML files only
-    function _getStaticServer() {
-        if (!_staticServer) {
-            _staticServer = new StaticServer({
-                pathResolver    : ProjectManager.makeProjectRelativeIfPossible,
-                root            : ProjectManager.getProjectRoot()
-            });
-        }
-        return _staticServer;
-    }
 
     function parseData(data, deferred) {
         var dataReceived = data;
@@ -114,7 +86,7 @@ define(function (require, exports, module) {
         // Set up our launcher in a similar manner
         LiveDevelopment.setLauncher(new Launcher({
             browser: Browser,
-            server: _getHTMLServer()
+            server: NoHost.getHTMLServer()
         }));
 
         LiveDevelopment.open();
@@ -161,9 +133,8 @@ define(function (require, exports, module) {
         var prefs = PreferencesManager.getExtensionPrefs("livedev");
         prefs.set("multibrowser", true);
 
-        // Register servers with highest priority
-        LiveDevServerManager.registerServer({ create: _getStaticServer }, 9000);
-        LiveDevServerManager.registerServer({ create: _getHTMLServer }, 9001);
+        // Register servers
+        NoHost.init();
     });
 
     AppInit.appReady(function() {
