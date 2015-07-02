@@ -693,7 +693,7 @@ define(function (require, exports, module) {
         });
     };
     
-    AppInit.appReady(function () {
+    var _initCache = function () {
         function filter(file) {
             return _subtreeFilter(file, null) && _isReadableText(file.fullPath);
         }
@@ -714,7 +714,9 @@ define(function (require, exports, module) {
                     });
             });
         
-    });
+    };
+
+    ProjectManager.on("projectOpen", _initCache);
     
     // Public exports
     exports.searchModel          = searchModel;
