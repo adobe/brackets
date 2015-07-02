@@ -29,7 +29,7 @@ maxerr: 50, node: true */
     "use strict";
     
     var fs = require("fs");
-    var projectCache = {};
+    var projectCache = [];
     var files;
     var MAX_DISPLAY_LENGTH = 200,
         MAX_TOTAL_RESULTS = 100;
@@ -149,7 +149,7 @@ maxerr: 50, node: true */
     }
     
     function clearProjectCache () {
-        projectCache = {};
+        projectCache = [];
     }
 
     function getFileContentsForFile(filePath) {
