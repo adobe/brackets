@@ -92,6 +92,7 @@ In addition, you can enable other extra extensions:
 * ImageUrlCodeHints
 * HTMLHinter
 * MdnDocs
+* SVGasXML
 
 You could enable JSLint and LESSSupport by loading Bramble with `?enableExtensions=JSLint,LESSSupport`
 on the URL

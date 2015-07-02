@@ -39,6 +39,10 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         _                   = require("thirdparty/lodash");
 
+    // XXXBramble specific bits to allow opening SVG as a regular image vs. XML doc
+    var PreferencesManager  = require("preferences/PreferencesManager");
+    PreferencesManager.definePreference("openSVGasXML", "boolean", false);
+
     var _viewers = {};
 
     // Get a Blob URL out of the cache
@@ -455,7 +459,12 @@ define(function (require, exports, module) {
     MainViewFactory.registerViewFactory({
         canOpenFile: function (fullPath) {
             var lang = LanguageManager.getLanguageForPath(fullPath);
-            return (lang.getId() === "image");
+            var svgAsXML = PreferencesManager.get("openSVGasXML");
+            var id = lang.getId();
+
+            // Depending on whether or not the user wants to treat SVG files as XML
+            // we default to open as an image.
+            return id === "image" || (!svgAsXML && id === "svg");
         },
         openFile: function (file, pane) {
             return _createImageView(file, pane);
