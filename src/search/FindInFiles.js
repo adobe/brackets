@@ -419,7 +419,7 @@ define(function (require, exports, module) {
      * @return {?$.Promise} A promise that's resolved with the search results (or ZERO_FILES_TO_SEARCH) or rejected when the find competes. 
      *      Will be null if the query is invalid.
      */
-    var firstTime = false;
+    var fileFilterChanged = false;
     function _doSearch(queryInfo, candidateFilesPromise, filter) {
         searchModel.filter = filter;
         
@@ -448,7 +448,7 @@ define(function (require, exports, module) {
                 
                 if (fileListResult.length) {
                     var searchObject;
-                    if (firstTime) {
+                    if (fileFilterChanged) {
                         var files = fileListResult
                             .filter(function (entry) {
                                 return entry.isFile && _isReadableText(entry.fullPath);
@@ -461,7 +461,7 @@ define(function (require, exports, module) {
                             "queryInfo": queryInfo,
                             "queryExpr": searchModel.queryExpr
                         };
-                        firstTime = false;
+                        fileFilterChanged = false;
                     } else {
                         searchObject = {
                             "queryInfo": queryInfo,
@@ -716,7 +716,14 @@ define(function (require, exports, module) {
         
     };
 
+    var _fileFilterChanged = function () {
+        fileFilterChanged = true;
+    };
+
     ProjectManager.on("projectOpen", _initCache);
+    FileFilters.on("fileFilterChanged", _fileFilterChanged);
+
+    console.log(FileFilters);
     
     // Public exports
     exports.searchModel          = searchModel;

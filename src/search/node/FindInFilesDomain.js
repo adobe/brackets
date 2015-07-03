@@ -267,7 +267,7 @@ maxerr: 50, node: true */
     function fileCrawler()
     {
         if(!files||(files && files.length===0)) {
-            setTimeout(fileCrawler,5000);
+            setTimeout(fileCrawler,1000);
             return;
         }
         var i=0;
@@ -282,7 +282,7 @@ maxerr: 50, node: true */
             setImmediate(fileCrawler);
         }
         else {
-            setTimeout(fileCrawler,5000);
+            setTimeout(fileCrawler,1000);
         }
     }
 
@@ -295,7 +295,7 @@ maxerr: 50, node: true */
     }
     
     function doSearch(searchObject) {
-        console.log("doSearch");
+        console.log("doSearch" );
         
         if (!files) {
             console.log("no file object found");
@@ -306,6 +306,9 @@ maxerr: 50, node: true */
         foundMaximum = false;
         exceedsMaximum = false;
         var queryObject = parseQueryInfo(searchObject.queryInfo);
+        if (searchObject.files) {
+            files = searchObject.files;
+        }
         doSearchInFiles(files, queryObject.queryExpr);
         var send_object = {
             "results":  results,
