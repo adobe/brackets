@@ -105,6 +105,26 @@ define(function (require, exports, module) {
     }
     
     /**
+     * XXXBramble: allow resizing programmatically
+     */
+    function resize(width) {
+        $sidebar.width(width);
+
+        ProjectManager._setFileTreeSelectionWidth(width);
+
+        var $element;
+        $sidebar.find(".sidebar-selection").each(function (index, element) {
+            $element = $(element);
+            $element.width($element.parent()[0].scrollWidth);
+        });
+
+        $sidebar.find(".sidebar-selection-extension").css("display", "block").css("left", width);
+        $sidebar.find(".scroller-shadow").css("display", "block");
+        $projectFilesContainer.triggerHandler("scroll");
+        WorkingSetView.syncSelectionIndicator();
+    }
+
+    /**
      * Returns the visibility state of the sidebar.
      * @return {boolean} true if element is visible, false if it is not visible
      */
@@ -279,4 +299,5 @@ define(function (require, exports, module) {
     exports.show        = show;
     exports.hide        = hide;
     exports.isVisible   = isVisible;
+    exports.resize      = resize;
 });

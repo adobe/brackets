@@ -92,7 +92,7 @@ define(function (require, exports, module) {
 
         var sidebarWidth = BrambleStartupState.ui("sidebarWidth");
         if(sidebarWidth) {
-            $("#sidebar").width(sidebarWidth);
+            SidebarView.resize(sidebarWidth);
         }
 
         var sidebarVisible = BrambleStartupState.ui("sidebarVisible");
