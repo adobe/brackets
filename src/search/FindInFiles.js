@@ -693,6 +693,10 @@ define(function (require, exports, module) {
         });
     };
     
+    var _fileFilterChanged = function () {
+        fileFilterChanged = true;
+    };
+
     var _initCache = function () {
         function filter(file) {
             return _subtreeFilter(file, null) && _isReadableText(file.fullPath);
@@ -713,12 +717,9 @@ define(function (require, exports, module) {
                         console.log('cache created');
                     });
             });
-        
+        _fileFilterChanged();
     };
 
-    var _fileFilterChanged = function () {
-        fileFilterChanged = true;
-    };
 
     ProjectManager.on("projectOpen", _initCache);
     FileFilters.on("fileFilterChanged", _fileFilterChanged);
