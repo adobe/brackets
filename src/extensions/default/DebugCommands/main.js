@@ -431,7 +431,6 @@ define(function (require, exports, module) {
     function _getChildPrefs(prefItem) {
 
         var finalObj = {},
-            property,
             keysFound = false;
 
         if (!prefItem) {
