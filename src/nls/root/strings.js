@@ -121,10 +121,10 @@ define({
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview (save file to refresh)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Live Preview (not updating due to syntax error)",
 
-    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Live Preview was cancelled because the browser's developer tools were opened",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Live Preview was cancelled because the page was closed in the browser",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "Live Preview was cancelled because the browser navigated to a page that is not part of the current project",
-    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Live Preview was cancelled for an unknown reason ({0})",
+    "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Live Preview was canceled because the browser's developer tools were opened",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Live Preview was canceled because the page was closed in the browser",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Live Preview was canceled because the browser navigated to a page that is not part of the current project",
+    "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Live Preview was canceled for an unknown reason ({0})",
 
     "SAVE_CLOSE_TITLE"                  : "Save Changes",
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
@@ -198,7 +198,7 @@ define({
     "REPLACE_IN_FILES_ERRORS"           : "The following files weren't modified because they changed after the search or couldn't be written.",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error Getting Update Info",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the Internet and try again.",
 
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "New Exclusion Set\u2026",
@@ -448,7 +448,7 @@ define({
     "GET_IT_NOW"                           : "Get it now!",
     "PROJECT_SETTINGS_TITLE"               : "Project Settings for: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Live Preview Base URL",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "To use a local server, enter a url like http://localhost:8000/",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "To use a local server, enter a URL like http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "The {0} protocol isn't supported by Live Preview&mdash;please use http: or https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "The base URL can't contain search parameters like \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
@@ -588,7 +588,7 @@ define({
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
     
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} Command Line Shortcut",
-    "ERROR_CREATING_LAUNCH_SCRIPT"              : "An error occured while installing the command line shortcut. Please try <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>these troubleshooting suggestions</a>.<br/><br/>Reason: {0}",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "An error occurred while installing the command line shortcut. Please try <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>these troubleshooting suggestions</a>.<br/><br/>Reason: {0}",
     "ERROR_CLTOOLS_RMFAILED"                    : "Unable to remove existing <code>/usr/local/bin/brackets</code> symlink.",
     "ERROR_CLTOOLS_MKDIRFAILED"                 : "Unable to create <code>/usr/local/bin</code> directory.",
     "ERROR_CLTOOLS_LNFAILED"                    : "Unable to create <code>/usr/local/bin/brackets</code> symlink.",
@@ -631,7 +631,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Show Parameter Hint",
     "NO_ARGUMENTS"                              : "<no parameters>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
-    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To reenable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} ran into trouble processing <span class='dialog-filename'>{0}</span>.<br><br>This file will no longer be processed for code hints, Jump to Definition or Quick Edit. To re-enable this file, open <code>.brackets.json</code> in your project and edit <code>jscodehints.detectedExclusions</code>.<br><br>This is likely a {APP_NAME} bug. If you can provide a copy of this file, please <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>file a bug</a> with a link to the file named here.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
@@ -728,7 +728,7 @@ define({
     "DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING"         : "Keeps the blinking cursor visible when you have a text selection",
     "DESCRIPTION_SHOW_LINE_NUMBERS"                  : "True to show line numbers in a “gutter” to the left of the code",
     "DESCRIPTION_SMART_INDENT"                       : "Automatically indent when creating a new block",
-    "DESCRIPTION_SOFT_TABS"                          : "False to turn off soft tabs behaviour",
+    "DESCRIPTION_SOFT_TABS"                          : "False to turn off soft tabs behavior",
     "DESCRIPTION_SORT_DIRECTORIES_FIRST"             : "True to sort the directories first in the project tree",
     "DESCRIPTION_SPACE_UNITS"                        : "Number of spaces to use for space-based indentation",
     "DESCRIPTION_STATIC_SERVER_PORT"                 : "Port number that the built-in server should use for Live Preview",
@@ -746,5 +746,5 @@ define({
     "DESCRIPTION_USE_THEME_SCROLLBARS"               : "True to allow custom scroll bars",
     "DESCRIPTION_LINTING_COLLAPSED"                  : "True to collapse linting panel",
     "DESCRIPTION_FONT_FAMILY"                        : "Change font family",
-    "DESCRIPTION_FONT_SIZE"                          : "Change font size; e.g, 13px"
+    "DESCRIPTION_FONT_SIZE"                          : "Change font size; e.g. 13px"
 });
