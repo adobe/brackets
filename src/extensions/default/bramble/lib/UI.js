@@ -15,7 +15,8 @@ define(function (require, exports, module) {
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         ViewCommandHandlers = brackets.getModule("view/ViewCommandHandlers"),
         SidebarView         = brackets.getModule("project/SidebarView"),
-        WorkspaceManager    = brackets.getModule("view/WorkspaceManager");
+        WorkspaceManager    = brackets.getModule("view/WorkspaceManager"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
 
     var PhonePreview  = require("text!lib/Mobile.html");
     var PostMessageTransport = require("lib/PostMessageTransport");
@@ -88,6 +89,11 @@ define(function (require, exports, module) {
             default:
                 console.warn("[Bramble] unknown preview mode: `" + previewMode + "`");
             }
+        }
+
+        var wordWrap = BrambleStartupState.ui("wordWrap");
+        if(typeof wordWrap === "boolean") {
+            PreferencesManager.set("wordWrap", wordWrap);
         }
 
         var sidebarWidth = BrambleStartupState.ui("sidebarWidth");

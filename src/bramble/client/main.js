@@ -166,6 +166,7 @@ define([
         self.getTheme = function() { return _state.theme; };
         self.getFontSize = function() { return _state.fontSize; };
         self.getSidebarVisible = function() { return _state.sidebarVisible; };
+        self.getWordWrap = function() { return _state.wordWrap; };
         self.getLayout = function() {
             return {
                 sidebarWidth: _state.sidebarWidth,
@@ -221,6 +222,7 @@ define([
                     _state.secondPaneWidth = data.secondPaneWidth;
                     _state.previewMode = data.previewMode;
                     _state.theme = data.theme;
+                    _state.wordWrap = data.wordWrap;
 
                     setReadyState(Bramble.READY);
                 }
@@ -254,6 +256,8 @@ define([
                         _state.fontSize = data.fontSize;
                     } else if (eventName === "sidebarChange") {
                         _state.sidebarVisible = data.visible;
+                    } else if (eventName === "wordWrapChange") {
+                        _state.wordWrap = data.wordWrap;
                     }
 
                     debug("triggering remote event", eventName, data);
@@ -359,7 +363,8 @@ define([
                                 sidebarWidth: _state.sidebarWidth,
                                 firstPaneWidth: _state.firstPaneWidth,
                                 secondPaneWidth: _state.secondPaneWidth,
-                                previewMode: _state.previewMode
+                                previewMode: _state.previewMode,
+                                wordWrap: _state.wordWrap
                             }
                         };
                         _brambleWindow.postMessage(JSON.stringify(initMessage), _iframe.src);
@@ -600,6 +605,14 @@ define([
 
     BrambleProxy.prototype.disableJavaScript = function(callback) {
         this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DISABLE_SCRIPTS"}, callback);
+    };
+
+    BrambleProxy.prototype.enableWordWrap = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_ENABLE_WORD_WRAP"}, callback);
+    };
+
+    BrambleProxy.prototype.disableWordWrap = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DISABLE_WORD_WRAP"}, callback);
     };
 
     return Bramble;

@@ -97,6 +97,10 @@ define(function() {
             fullPath: {
                 get: function()  { return getString(storage, "fullPath"); },
                 set: function(v) { storage.setItem(prefix("fullPath"), v); }
+            },
+            wordWrap: {
+                get: function()  { return getBool(storage, "wordWrap"); },
+                set: function(v) { storage.setItem(prefix("wordWrap"), v); }
             }
         });
     }

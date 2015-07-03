@@ -260,6 +260,7 @@ a number of read-only getters are available in order to access state information
 * `getLayout()` - returns an `Object` with three integer properties: `sidebarWidth`, `firstPaneWidth`, `secondPaneWidth`.  The `firstPaneWidth` refers to the editor, where `secondPaneWidth` is the preview.
 * `getTheme()` - returns the name of the current theme.
 * `getFontSize()` - returns the current font size as a string (e.g., `"12px"`).
+* `getWordWrap()` - returns the current word wrap setting as a `Boolean` (i.e., enabled or disabled).
 
 **NOTE**: calling these getters before the `ready()` callback on the bramble instance
 won't do what you want.
@@ -294,6 +295,8 @@ to be notified when the action completes:
 * `useDesktopPreview([callback])` - uses a Desktop view in the preview, as it would look on a desktop computer (default)
 * `enableJavaScript([callback])` - turns on JavaScript execution for the preview (default)
 * `disableJavaScript([callback])` - turns off JavaScript execution for the preview
+* `enableWordWrap([callback])` - turns on word wrap for the editor (default)
+* `disableWordWrap([callback])` - turns off word wrap for the editor
 
 ## Bramble Instance Events
 
@@ -306,6 +309,7 @@ the following events:
 * `"sidebarChange"` - triggered whenever the sidebar is hidden or shown. It includes an `Object` with a `visible` property set to `true` or `false`
 * `"themeChange"` - triggered whenever the theme changes. It inclues an `Object` with a `theme` property that indicates the new theme
 * `"fontSizeChange"` - triggered whenever the font size changes. It includes an `Object` with a `fontSize` property that indicates the new size (e.g., `"12px"`).
+* `"wordWrapChange"` - triggered whenever the word wrap value changes. It includes an `Object` with a `wordWrap` property that indicates the new value (e.g., `true` or `false`).
 
 There are also high-level events for changes to files:
 

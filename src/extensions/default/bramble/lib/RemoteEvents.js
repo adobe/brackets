@@ -9,6 +9,7 @@ define(function (require, exports, module) {
     var MainViewManager = brackets.getModule("view/MainViewManager");
     var ViewCommandHandlers = brackets.getModule("view/ViewCommandHandlers");
     var Path = brackets.getModule("filesystem/impls/filer/FilerUtils").Path;
+    var PreferencesManager = brackets.getModule("preferences/PreferencesManager");
     var UI = require("lib/UI");
     var Theme = require("lib/Theme");
 
@@ -97,6 +98,14 @@ define(function (require, exports, module) {
                 fontSize: fontSize
             });
         });
+
+        // Listen for changes to word wrap
+        PreferencesManager.on("change", "wordWrap", function () {
+            sendEvent({
+                type: "bramble:wordWrapChange",
+                wordWrap: PreferencesManager.get("wordWrap")
+            });
+        });
     }
 
     /**
@@ -121,7 +130,8 @@ define(function (require, exports, module) {
             filename: filename,
             previewMode: UI.getPreviewMode(),
             fontSize: ViewCommandHandlers.getFontSize(),
-            theme: Theme.getTheme()
+            theme: Theme.getTheme(),
+            wordWrap: PreferencesManager.get("wordWrap")
         });
     }
 

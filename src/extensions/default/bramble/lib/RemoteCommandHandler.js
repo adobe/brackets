@@ -12,7 +12,8 @@ define(function (require, exports, module) {
     var StatusBar      = brackets.getModule("widgets/StatusBar");
     var WorkspaceManager = brackets.getModule("view/WorkspaceManager");
     var BrambleEvents = brackets.getModule("bramble/BrambleEvents");
-    
+    var PreferencesManager = brackets.getModule("preferences/PreferencesManager");
+
     var PostMessageTransport = require("lib/PostMessageTransport");
     var Theme = require("lib/Theme");
     var UI = require("lib/UI");
@@ -94,6 +95,12 @@ define(function (require, exports, module) {
             break;
         case "BRAMBLE_SHOW_STATUSBAR":
             StatusBar.enable();
+            break;
+        case "BRAMBLE_ENABLE_WORD_WRAP":
+            PreferencesManager.set("wordWrap", true);
+            break;
+        case "BRAMBLE_DISABLE_WORD_WRAP":
+            PreferencesManager.set("wordWrap", false);
             break;
         case "RESIZE":
             // The host window was resized, update all panes
