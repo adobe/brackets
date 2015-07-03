@@ -313,33 +313,25 @@ define(function (require, exports, module) {
      *                     <min(avg)max[standard deviation]> if aggregateStats is set
      */
     var getValueAsString = function (entry, aggregateStats) {
-        if (Array.isArray(entry)) {
-            var i, values = "", min = entry[0], max = entry[0], avg = 0, sum = 0, sd = 0;
-
-            for (i = 0; i < entry.length; i++) {
-                sum = sum + entry[i];
-                values += entry[i];
-                if (i < entry.length - 1) {
-                    values += ", ";
-                }
-            }
-            if (aggregateStats) {
-                avg = Math.round(sum / entry.length);
-                sum = 0;
-                for (i = 0; i < entry.length; i++) {
-                    sum = sum + Math.pow((entry[i] - avg), 2);
-                    if (entry[i] < min) {
-                        min = entry[i];
-                    } else if (entry[i] > max) {
-                        max = entry[i];
-                    }
-                }
-                sd = Math.round(Math.sqrt(sum / entry.length));
-                return min + "(" + avg + ")" + max + "[" + sd + "]";
-            }
-            return values;
-        } else {
+        if (!Array.isArray(entry)) {
             return entry;
+        }
+
+        if (aggregateStats) {
+            var sum     = _.sum(entry),
+                avg     = Math.round(sum / entry.length),
+                min     = _.min(entry),
+                max     = _.max(entry),
+                sd,
+                varSum  = 0;
+            
+            entry.forEach(function (value) {
+                varSum += Math.pow(value - avg, 2);
+            });
+            sd = Math.round(Math.sqrt(varSum / entry.length));
+            return min + "(" + avg + ")" + max + "[" + sd + "]";
+        } else {
+            return entry.join(", ");
         }
     };
 
