@@ -234,7 +234,13 @@ define(function (require, exports, module) {
         templateVars.Strings = Strings;
         templateVars.replaceAllLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_ALL);
         
-        this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur
+        ModalBar.prototype._handleFocusChange = function (e) {
+            if (this.isLockedOpen && this.isLockedOpen()) {
+                return;
+            }
+        };
+        
+        this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc
         
         // When the ModalBar closes, clean ourselves up.
         this._modalBar.on("close", function (event) {
