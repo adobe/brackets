@@ -239,9 +239,20 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * If autoClose is set, detects when something other than the modal bar is getting focus and
+     * dismisses the modal bar. DOM nodes with "attached-to" jQuery metadata referencing an element
+     * within the ModalBar are allowed to take focus without closing it.
+     */
     ModalBar.prototype._handleFocusChange = function (e) {
         if (this.isLockedOpen && this.isLockedOpen()) {
             return;
+        }
+        
+        var effectiveElem = $(e.target).data("attached-to") || e.target;
+        
+        if (!$.contains(this._$root.get(0), effectiveElem)) {
+            this.close(undefined, undefined, ModalBar.CLOSE_BLUR);
         }
     };
     
