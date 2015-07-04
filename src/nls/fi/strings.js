@@ -448,7 +448,7 @@ define({
     "GET_IT_NOW"                           : "Hae nyt!",
     "PROJECT_SETTINGS_TITLE"               : "Projektin asetukset kohteelle: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Esikatselun perus-URL",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "Käytä paikall. palvelinta antamalla url, kuten http://localhost:8000/",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "Käytä paikall. palvelinta antamalla URL, kuten http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Esikatselu ei tue {0}-protokollaa. Käytä joko http: tai https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei voi sisältää hakuparametreja, kuten ”{0}”.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei voi sisältää ristikkomerkkejä, kuten ”{0}”.",
@@ -750,4 +750,4 @@ define({
     "DESCRIPTION_FONT_SIZE"                          : "Vaihda fonttikokoa, esim. 13px"
 });
 
-/* Last translated for 7dea6c956806d3dfb3d888c32354a4bfbe4bb431 */
+/* Last translated for 867eb6afac5a68b47647af7a213dd1b5c4066789 */
