@@ -23,7 +23,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
 maxerr: 50, node: true */
-/*global */
+/*global setImmediate*/
 
 (function () {
     "use strict";
@@ -148,7 +148,7 @@ maxerr: 50, node: true */
         return matches;
     }
     
-    function clearProjectCache () {
+    function clearProjectCache() {
         projectCache = [];
     }
 
@@ -166,7 +166,7 @@ maxerr: 50, node: true */
         try {
             //console.log(filePath);
             projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
-        } catch(ex) {
+        } catch (ex) {
             console.log(ex);
             projectCache[filePath] = "";
         }
@@ -264,25 +264,21 @@ maxerr: 50, node: true */
         return {valid: true, queryExpr: queryExpr};
     }
     
-    function fileCrawler()
-    {
-        if(!files||(files && files.length===0)) {
-            setTimeout(fileCrawler,1000);
+    function fileCrawler() {
+        if (!files || (files && files.length === 0)) {
+            setTimeout(fileCrawler, 1000);
             return;
         }
-        var i=0;
-        for(;i<10&&currentCrawlIndex<files.length;)
-        {
+        var i = 0;
+        for (i = 0; i < 10 && currentCrawlIndex < files.length; i = i + 1) {
             getFileContentsForFile(files[currentCrawlIndex]);
-            i++;
             currentCrawlIndex++;
         }
-        if( currentCrawlIndex<files.length ) {
+        if (currentCrawlIndex < files.length) {
             console.log("crawling scheduled");
             setImmediate(fileCrawler);
-        }
-        else {
-            setTimeout(fileCrawler,1000);
+        } else {
+            setTimeout(fileCrawler, 1000);
         }
     }
 
@@ -295,7 +291,7 @@ maxerr: 50, node: true */
     }
     
     function doSearch(searchObject) {
-        console.log("doSearch" );
+        console.log("doSearch");
         
         if (!files) {
             console.log("no file object found");
@@ -353,7 +349,7 @@ maxerr: 50, node: true */
                 type: "boolean",
                 description: "don't know yet"}]
         );
-        setTimeout(fileCrawler,10000);
+        setTimeout(fileCrawler, 10000);
     }
     
     exports.init = init;
