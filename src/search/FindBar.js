@@ -280,13 +280,9 @@ define(function (require, exports, module) {
                     }
                     d = new Date();
                     currentTime = d.getTime();
-                    console.log("current" + currentTime);
-                    console.log("last" + lastTypedTime);
                     if (lastTypedTime && (currentTime - lastTypedTime >= 100) && !hasSearchedForCurrentText) {
                         // init Search
-                        console.log('time diff found');
                         if (self._options.multifile) {
-                            console.log('multifile');
                             if ($(e.target).is("#find-what")) {
                                 if (!self._options.replace) {
                                     console.log('search exec');
