@@ -188,7 +188,7 @@ define(function (require, exports, module) {
             var queryInfo = _findBar.getQueryInfo();
             if (queryInfo && queryInfo.query) {
                 _findBar.enable(false);
-                StatusBar.showBusyIndicator(true);
+                StatusBar.showBusyIndicator(false); //node Search
 
                 var filter;
                 if (filterPicker) {
