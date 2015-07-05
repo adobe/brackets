@@ -94,7 +94,7 @@ define(function (require, exports, module) {
                     if (_findBar) {
                         var showMessage = false;
                         _findBar.enable(true);
-                        _findBar.focusQuery();
+                        //_findBar.focusQuery(); if no instant
                         if (zeroFilesToken === FindInFiles.ZERO_FILES_TO_SEARCH) {
                             _findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, FindUtils.labelForScope(FindInFiles.searchModel.scope)), true);
                         } else {
@@ -120,6 +120,7 @@ define(function (require, exports, module) {
      * @param {boolean=} showReplace If true, show the Replace controls.
      */
     function _showFindBar(scope, showReplace) {
+        FindUtils.notifySearchScopeChanged();
         // If the scope is a file with a custom viewer, then we
         // don't show find in files dialog.
         if (scope && !EditorManager.canOpenPath(scope.fullPath)) {
@@ -338,6 +339,7 @@ define(function (require, exports, module) {
      * Bring up the Find in Files UI with the replace options.
      */
     function _showReplaceBar() {
+        FindUtils.notifySearchScopeChanged();
         _showFindBar(null, true);
     }
     
@@ -346,6 +348,7 @@ define(function (require, exports, module) {
      * Search within the file/subtree defined by the sidebar selection
      */
     function _showFindBarForSubtree() {
+        FindUtils.notifySearchScopeChanged();
         var selectedEntry = ProjectManager.getSelectedItem();
         _showFindBar(selectedEntry);
     }
@@ -355,6 +358,7 @@ define(function (require, exports, module) {
      * Search within the file/subtree defined by the sidebar selection
      */
     function _showReplaceBarForSubtree() {
+        FindUtils.notifySearchScopeChanged();
         var selectedEntry = ProjectManager.getSelectedItem();
         _showFindBar(selectedEntry, true);
     }
