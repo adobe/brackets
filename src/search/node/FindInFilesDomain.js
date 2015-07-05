@@ -353,7 +353,7 @@ maxerr: 50, node: true */
                 type: "boolean",
                 description: "don't know yet"}]
         );
-        fileCrawler();
+        setTimeout(fileCrawler,10000);
     }
     
     exports.init = init;
