@@ -34,10 +34,13 @@ define(function (require, exports, module) {
         FileUtils       = require("file/FileUtils"),
         FindBar         = require("search/FindBar").FindBar,
         ProjectManager  = require("project/ProjectManager"),
+        EventDispatcher = require("utils/EventDispatcher"),
         Strings         = require("strings"),
         StringUtils     = require("utils/StringUtils"),
         _               = require("thirdparty/lodash");
     
+    EventDispatcher.makeEventDispatcher(exports);
+
     /**
      * Given a replace string that contains $-expressions, replace them with data from the given
      * regexp match info.
@@ -352,6 +355,20 @@ define(function (require, exports, module) {
         return {valid: true, queryExpr: queryExpr};
     }
 
+    /**
+     * Raises an event when the file filters applied to a search changes
+     */
+    function notifyFileFiltersChanged() {
+        exports.trigger(exports.SEARCH_FILE_FILTERS_CHANGED);
+    }
+
+    /**
+     * Raises an event when the search scope changes[say search in a sub drictory in the project]
+     */
+    function notifySearchScopeChanged() {
+        exports.trigger(exports.SEARCH_SCOPE_CHANGED);
+    }
+
     exports.parseDollars                    = parseDollars;
     exports.getInitialQuery                 = getInitialQuery;
     exports.hasCheckedMatches               = hasCheckedMatches;
@@ -359,4 +376,12 @@ define(function (require, exports, module) {
     exports.labelForScope                   = labelForScope;
     exports.parseQueryInfo                  = parseQueryInfo;
     exports.ERROR_FILE_CHANGED              = "fileChanged";
+
+    // event notification functions
+    exports.notifyFileFiltersChanged        = notifyFileFiltersChanged;
+    exports.notifySearchScopeChanged        = notifySearchScopeChanged;
+
+    // events raised by FindUtils
+    exports.SEARCH_FILE_FILTERS_CHANGED              = "fileFiltersChanged";
+    exports.SEARCH_SCOPE_CHANGED                     = "searchScopeChanged";
 });

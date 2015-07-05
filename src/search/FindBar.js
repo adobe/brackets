@@ -247,6 +247,9 @@ define(function (require, exports, module) {
             self.showError(null);
             self._modalBar = null;
             self._closed = true;
+            clearInterval(intervalId);
+            intervalId = 0;
+            lastTypedTime = 0;
             FindBar._removeFindBar(self);
             MainViewManager.focusActivePane();
             self.trigger("close");
@@ -263,6 +266,9 @@ define(function (require, exports, module) {
                 $(e.currentTarget).toggleClass("active");
                 self._updatePrefsFromSearchBar();
                 self.trigger("queryChange");
+                if (self._options.multifile) {  //instant search
+                    self.trigger("doFind");
+                }
             })
             .on("keydown", "#find-what, #replace-with", function (e) {
                 hasSearchedForCurrentText = false;
@@ -368,9 +374,6 @@ define(function (require, exports, module) {
         if (this._modalBar) {
             // 1st arg = restore scroll pos; 2nd arg = no animation, since getting replaced immediately
             this._modalBar.close(true, !suppressAnimation);
-            clearInterval(intervalId);
-            intervalId = 0;
-            lastTypedTime = 0;
         }
     };
     
@@ -509,9 +512,9 @@ define(function (require, exports, module) {
      * @param {string} selector The selector for the field.
      */
     FindBar.prototype._focus = function (selector) {
-//        this.$(selector)
-//            .focus()
-//            .get(0).select();
+        this.$(selector)
+            .focus()
+            .get(0).select();
     };
     
     /**

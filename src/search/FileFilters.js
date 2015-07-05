@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         PreferencesManager = require("preferences/PreferencesManager"),
         EditFilterTemplate = require("text!htmlContent/edit-filter-dialog.html"),
         FilterNameTemplate = require("text!htmlContent/filter-name.html"),
-        EventDispatcher    = require("utils/EventDispatcher");
+        FindUtils          = require("search/FindUtils");
   
     /**
      * Constant: first filter index in the filter dropdown list
@@ -59,8 +59,6 @@ define(function (require, exports, module) {
      * @type {DropdownButton}
      */
     var _picker  = null;
-    
-    EventDispatcher.makeEventDispatcher(exports);
 
     /**
      * Get the condensed form of the filter set by joining the first two in the set with
@@ -195,7 +193,7 @@ define(function (require, exports, module) {
             // Explicitly set to -1 to remove the active file filter
             PreferencesManager.setViewState("activeFileFilter", -1);
         }
-        exports.trigger("fileFilterChanged");
+        FindUtils.notifyFileFiltersChanged();
     }
     
     

@@ -51,7 +51,8 @@ define(function (require, exports, module) {
         _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
         _nodePath       = "node/FindInFilesDomain",
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
-        searchDomain     = new NodeDomain("FindInFiles", _domainPath);
+        searchDomain     = new NodeDomain("FindInFiles", _domainPath),
+        fileFilterChanged = false;
     
     //var searchDomain = new NodeDomain("FindInFiles", _domainPath);
     
@@ -419,7 +420,6 @@ define(function (require, exports, module) {
      * @return {?$.Promise} A promise that's resolved with the search results (or ZERO_FILES_TO_SEARCH) or rejected when the find competes. 
      *      Will be null if the query is invalid.
      */
-    var fileFilterChanged = false;
     function _doSearch(queryInfo, candidateFilesPromise, filter) {
         searchModel.filter = filter;
         
@@ -722,9 +722,8 @@ define(function (require, exports, module) {
 
 
     ProjectManager.on("projectOpen", _initCache);
-    FileFilters.on("fileFilterChanged", _fileFilterChanged);
-
-    console.log(FileFilters);
+    FindUtils.on(FindUtils.SEARCH_FILE_FILTERS_CHANGED, _fileFilterChanged);
+    FindUtils.on(FindUtils.SEARCH_SCOPE_CHANGED, _fileFilterChanged);
     
     // Public exports
     exports.searchModel          = searchModel;
