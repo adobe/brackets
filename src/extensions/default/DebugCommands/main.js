@@ -83,6 +83,15 @@ define(function (require, exports, module) {
         DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW  = "debug.openPrefsInSplitView";
 
     // define a preference to turn off opening preferences in split-view.
+    var prefs = PreferencesManager.getExtensionPrefs("preferencesView");
+    prefs.definePreference("openPrefsInSplitView",   "boolean", true, {
+        description: Strings.DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW
+    });
+    
+    prefs.definePreference("defaultPrefsinFirstPane",   "boolean", true, {
+        description: Strings.DESCRIPTION_OPEN_DEFULT_PREFS_IN_FIRST_PANE
+    });
+    
     PreferencesManager.definePreference(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW, "boolean", true, {
         description: Strings.DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW
     });
@@ -275,14 +284,23 @@ define(function (require, exports, module) {
 
     function _openPrefFilesInSplitView(prefsPath, defaultPrefsPath, deferredPromise) {
 
-        var currScheme       = MainViewManager.getLayoutScheme(),
-            file             = FileSystem.getFileForPath(prefsPath),
-            defaultPrefsFile = FileSystem.getFileForPath(defaultPrefsPath);
+        var currScheme         = MainViewManager.getLayoutScheme(),
+            file               = FileSystem.getFileForPath(prefsPath),
+            defaultPrefsFile   = FileSystem.getFileForPath(defaultPrefsPath),
+            DEFAULT_PREFS_PANE = "first-pane",
+            USER_PREFS_PANE    = "second-pane";
+        
+        // Exchange the panes, if default preferences need to be opened
+        // in the right pane.
+        if (!prefs.getPreference("defaultPrefsinFirstPane")) {
+            DEFAULT_PREFS_PANE = "second-pane";
+            USER_PREFS_PANE    = "first-pane";
+        }
 
         function _openFiles() {
 
             // Open the default preferences in the left pane in the read only mode.
-            CommandManager.execute(Commands.FILE_OPEN, { fullPath: defaultPrefsPath, paneId: "first-pane", options: { isReadOnly: true } })
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: defaultPrefsPath, paneId: DEFAULT_PREFS_PANE, options: { isReadOnly: true } })
                 .done(function () {
                     if (currScheme.rows === 1 && currScheme.columns === 1) {
                         // Split layout is not active yet. Inititate the
@@ -292,16 +310,16 @@ define(function (require, exports, module) {
 
                     // Make sure the preference file is going to be opened in the second
                     // pane
-                    if (MainViewManager.findInWorkingSet("first-pane", prefsPath) >= 0) {
+                    if (MainViewManager.findInWorkingSet(DEFAULT_PREFS_PANE, prefsPath) >= 0) {
 
-                        MainViewManager._moveView("first-pane", "second-pane", file, 0, true);
+                        MainViewManager._moveView(DEFAULT_PREFS_PANE, USER_PREFS_PANE, file, 0, true);
 
                         // Now refresh the project tree by asking
                         // it to rebuild the UI.
                         WorkingSetView.refresh(true);
                     }
 
-                    CommandManager.execute(Commands.FILE_OPEN, { fullPath: prefsPath, paneId: "second-pane"})
+                    CommandManager.execute(Commands.FILE_OPEN, { fullPath: prefsPath, paneId: USER_PREFS_PANE})
                         .done(function () {
                             deferredPromise.resolve();
                         }).fail(function () {
@@ -713,7 +731,7 @@ define(function (require, exports, module) {
 
         var fullPath        = PreferencesManager.getUserPrefFile(),
             file            = FileSystem.getFileForPath(fullPath),
-            splitViewPrefOn = PreferencesManager.get(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW),
+            splitViewPrefOn = prefs.getPreference("openPrefsInSplitView"),
             result          = new $.Deferred();
 
         if (!splitViewPrefOn) {
