@@ -288,24 +288,25 @@ define(function (require, exports, module) {
         
         // Exchange the panes, if default preferences need to be opened
         // in the right pane.
-        if (!prefs.get("alwaysOpenPrefsinSecondPane")) {
+        if (!prefs.get("alwaysOpenUserPrefsinSecondPane")) {
             DEFAULT_PREFS_PANE = "second-pane";
             USER_PREFS_PANE    = "first-pane";
         }
 
         function _openFiles() {
 
+            if (currScheme.rows === 1 && currScheme.columns === 1) {
+                // Split layout is not active yet. Inititate the
+                // split view.
+                MainViewManager.setLayoutScheme(1, 2);
+            }
+
             // Open the default preferences in the left pane in the read only mode.
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: defaultPrefsPath, paneId: DEFAULT_PREFS_PANE, options: { isReadOnly: true } })
                 .done(function () {
-                    if (currScheme.rows === 1 && currScheme.columns === 1) {
-                        // Split layout is not active yet. Inititate the
-                        // split view.
-                        MainViewManager.setLayoutScheme(1, 2);
-                    }
 
-                    // Make sure the preference file is going to be opened in the second
-                    // pane
+                    // Make sure the preference file is going to be opened in pane
+                    // specified in the preference.
                     if (MainViewManager.findInWorkingSet(DEFAULT_PREFS_PANE, prefsPath) >= 0) {
 
                         MainViewManager._moveView(DEFAULT_PREFS_PANE, USER_PREFS_PANE, file, 0, true);
