@@ -171,11 +171,11 @@ define(function (require, exports, module) {
             callback = server;
             server = null;
         }
-        // We may or may not have a server for rewriting live CSS docs in <link>s (e.g., 
+        // We may or may not have a server for rewriting live CSS docs in <link>s (e.g.,
         // when we `fs.writeFile()` and generate cached Blob URLs in `handleFile()`).
         // If we don't, use `BlobUtils.getUrl()` instead to read from the fs.
         if(!server) {
-            server = { serveLiveDocPath: BlobUtils.getUrl };
+            server = { serveLiveDocForPath: BlobUtils.getUrl };
         }
 
         var rewriter = new HTMLRewriter(path, html, server);
