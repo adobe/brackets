@@ -5,11 +5,22 @@ define(function (require, exports, module) {
 
     var BaseServer              = brackets.getModule("LiveDevelopment/Servers/BaseServer").BaseServer,
         LiveDevelopmentUtils    = brackets.getModule("LiveDevelopment/LiveDevelopmentUtils"),
+        Content                 = brackets.getModule("filesystem/impls/filer/lib/content"),
         BlobUtils               = brackets.getModule("filesystem/impls/filer/BlobUtils"),
         Filer                   = brackets.getModule("filesystem/impls/filer/BracketsFiler"),
-        Rewriter                = brackets.getModule("filesystem/impls/filer/lib/HTMLRewriter"),
+        Path                    = Filer.Path,
+        HTMLRewriter            = brackets.getModule("filesystem/impls/filer/lib/HTMLRewriter"),
+        CSSRewriter             = brackets.getModule("filesystem/impls/filer/lib/CSSRewriter"),
         Compatibility           = require("lib/compatibility"),
         _shouldUseBlobURL;
+
+    function _isHTML(path) {
+        return LiveDevelopmentUtils.isStaticHtmlFileExt(path);
+    }
+
+    function _isCSS(path) {
+        return Content.isCSS(Path.extname(path));
+    }
 
     function HTMLServer(config) {
         config = config || {};
@@ -72,11 +83,11 @@ define(function (require, exports, module) {
             return true;
         }
 
-        return LiveDevelopmentUtils.isStaticHtmlFileExt(localPath);
+        return _isHTML(localPath);
     };
 
     /**
-     * When a livedocument is added to the server cache, make sure live
+     * When a livedocument is added (CSS or HTML) to the server cache, make sure live
      * instrumentation is enabled
      */
     HTMLServer.prototype.add = function (liveDocument) {
@@ -87,20 +98,51 @@ define(function (require, exports, module) {
         BaseServer.prototype.add.call(this, liveDocument);
     };
 
-    /**
-     * If a livedoc exists, serves the instrumented version of the file.
-     * We either serve raw HTML or a Blob URL depending on browser compatibility.
-     */
-    HTMLServer.prototype.serveLiveDoc = function(url, callback) {
-        var path = BlobUtils.getFilename(url);
-        var liveDocument = this.get(path);
-        Rewriter.rewrite(path, liveDocument.getResponseData().body, function(err, html) {
+    function _serveLiveCSS(path, liveDocument, callback) {
+        CSSRewriter.rewrite(path, liveDocument.getResponseData().body, function(err, css) {
             if(err) {
                 callback(err);
                 return;
             }
+            callback(null, BlobUtils.createURL(path, css, "text/css"));
+        });
+
+    }
+
+    function _serveLiveHTML(path, liveDocument, server, callback) {
+        HTMLRewriter.rewrite(path, liveDocument.getResponseData().body, server, function(err, html) {
+            if(err) {
+                callback(err);
+                return;
+            }
+            // We either serve raw HTML or a Blob URL depending on browser compatibility.
             callback(null, _shouldUseBlobURL ? BlobUtils.createURL(path, html, "text/html") : html);
         });
+    }
+
+    /**
+     * If a livedoc exists (HTML or CSS), serve the instrumented version of the file.
+     */
+    HTMLServer.prototype.serveLiveDocForUrl = function(url, callback) {
+        var path = BlobUtils.getFilename(url);
+        this.serveLiveDocForPath(path, callback);
+    };
+
+    HTMLServer.prototype.serveLiveDocForPath = function(path, callback) {
+        var liveDocument = this.get(path);
+
+        // If we don't have a live doc for this file, use the cached URL
+        if(!liveDocument) {
+            return BlobUtils.getUrl(path, callback);
+        }
+
+        if(_isHTML(path)) {
+            _serveLiveHTML(path, liveDocument, this, callback);
+        } else if (_isCSS(path)) {
+            _serveLiveCSS(path, liveDocument, callback);
+        } else {
+            console.warn("[Brackets HTMLServer] expected .html or .css live doc type", path);
+        }
     };
 
     exports.HTMLServer = HTMLServer;

@@ -19,9 +19,10 @@ define(function (require, exports, module) {
      * Rewrite all external resources (links, scripts, img sources, ...) to
      * blob URL Objects from the fs.
      */
-    function HTMLRewriter(path, html) {
+    function HTMLRewriter(path, html, server) {
         this.path = path;
         this.dir = Path.dirname(path);
+        this.server = server;
 
         // Turn this html into a DOM, process it
         var parser = new DOMParser();
@@ -109,6 +110,38 @@ define(function (require, exports, module) {
         });
     };
 
+    HTMLRewriter.prototype.styleSheetLinks = function(callback) {
+        var dir = this.dir;
+        var server = this.server;
+        // TODO: https://developer.mozilla.org/en-US/docs/Web/CSS/Alternative_style_sheets
+        var elements = this.doc.querySelectorAll('link[rel="stylesheet"');
+
+        Async.eachSeries(elements, function(element, callback) {
+            var path = element.getAttribute("href");
+            if(!Content.isRelativeURL(path)) {
+                callback();
+                return;
+            }
+
+            // If the user has the given CSS file open in an editor,
+            // use that; otherwise, get it from disk.
+            server.serveLiveDocForPath(Path.resolve(dir, path), function(err, cachedUrl) {
+                if(err) {
+                    callback(err);
+                    return;
+                }
+
+                element.href = cachedUrl;
+                callback();
+            });
+        }, function eachSeriesfinished(err) {
+            if(err) {
+                console.error("[HTMLRewriter Error]", err);
+            }
+            callback();
+        });
+    };
+
     HTMLRewriter.prototype.scripts = function(callback) {
         var elements = this.doc.querySelectorAll("script");
 
@@ -133,8 +166,19 @@ define(function (require, exports, module) {
         callback();
     };
 
-    function rewrite(path, html, callback) {
-        var rewriter = new HTMLRewriter(path, html);
+    function rewrite(path, html, server, callback) {
+        if(typeof server === "function") {
+            callback = server;
+            server = null;
+        }
+        // We may or may not have a server for rewriting live CSS docs in <link>s (e.g., 
+        // when we `fs.writeFile()` and generate cached Blob URLs in `handleFile()`).
+        // If we don't, use `BlobUtils.getUrl()` instead to read from the fs.
+        if(!server) {
+            server = { serveLiveDocPath: BlobUtils.getUrl };
+        }
+
+        var rewriter = new HTMLRewriter(path, html, server);
 
         function iterator(functionName) {
             var args = Array.prototype.slice.call(arguments, 1);
@@ -146,13 +190,13 @@ define(function (require, exports, module) {
         Async.series([
             iterator("styles"),
             iterator("styleAttributes"),
-            iterator("elements", "link", "href"),
             iterator("elements", "iframe", "src"),
             iterator("elements", "img", "src"),
             iterator("elements", "script", "src"),
             iterator("elements", "source", "src"),
             iterator("elements", "video", "src"),
             iterator("elements", "audio", "src"),
+            iterator("styleSheetLinks"),
             iterator("scripts")
         ], function finishedRewriteSeries(err) {
             // Return the processed HTML
