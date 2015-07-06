@@ -476,6 +476,7 @@ define(function (require, exports, module) {
                             searchModel.numMatches = rcvd_object.numMatches;
                             searchModel.foundMaximum = rcvd_object.foundMaximum;
                             searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                            searchModel.allResultsAvailable = false;
                             searchDeferred.resolve();
                         });
                     return searchDeferred.promise();
@@ -723,6 +724,9 @@ define(function (require, exports, module) {
 
     function getNextPageofSearchResults() {
         var searchDeferred = $.Deferred();
+        if (searchModel.allResultsAvailable) {
+            return searchDeferred.resolve().promise();
+        }
         searchDomain.exec("nextPage")
             .done(function (rcvd_object) {
                 //console.log("NUMMM "  + filelistnum);
@@ -738,6 +742,9 @@ define(function (require, exports, module) {
                     searchModel.results = rcvd_object.results;
                 }
                 searchModel.numMatches += rcvd_object.numMatches;
+                if (rcvd_object.numMatches === 0) {
+                    searchModel.allResultsAvailable = true;
+                }
                 searchModel.foundMaximum = rcvd_object.foundMaximum;
                 searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                 searchModel.fireChanged();
@@ -748,6 +755,9 @@ define(function (require, exports, module) {
 
     function getAllSearchResults() {
         var searchDeferred = $.Deferred();
+        if (searchModel.allResultsAvailable) {
+            return searchDeferred.resolve().promise();
+        }
         searchDomain.exec("getAllResults")
             .done(function (rcvd_object) {
                 //console.log("NUMMM "  + filelistnum);
@@ -755,6 +765,7 @@ define(function (require, exports, module) {
                 searchModel.numMatches = rcvd_object.numMatches;
                 searchModel.foundMaximum = rcvd_object.foundMaximum;
                 searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                searchModel.allResultsAvailable = true;
                 searchModel.fireChanged();
                 searchDeferred.resolve();
             });
