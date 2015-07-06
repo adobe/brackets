@@ -32,9 +32,9 @@ maxerr: 50, node: true */
     var projectCache = [];
     var files;
     var MAX_DISPLAY_LENGTH = 200,
-        MAX_RESULTS_IN_A_FILE = 100,
-        MAX_RESULTS_TO_RETURN = 120,
-        MAX_TOTAL_RESULTS = 100000; // only 100,000 search results are supported
+        MAX_TOTAL_RESULTS = 100000, // only 100,000 search results are supported
+        MAX_RESULTS_IN_A_FILE = MAX_TOTAL_RESULTS,
+        MAX_RESULTS_TO_RETURN = 120;
     
     var results = {},
         numMatches = 0,
