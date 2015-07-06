@@ -383,6 +383,22 @@ define(function (require, exports, module) {
             })
             .on("close", function () {
                 FindInFiles.clearSearch();
+            })
+            .on("getNextPage", function () {
+                //node search
+                FindInFiles.getNextPageofSearchResults().done(function () {
+                    if (FindInFiles.searchModel.hasResults()) {
+                        _resultsView.showNextPage();
+                    }
+                });
+            })
+            .on("getLastPage", function () {
+                //node search
+                FindInFiles.getAllSearchResults().done(function () {
+                    if (FindInFiles.searchModel.hasResults()) {
+                        _resultsView.showLastPage();
+                    }
+                });
             });
     });
     

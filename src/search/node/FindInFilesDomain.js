@@ -32,13 +32,17 @@ maxerr: 50, node: true */
     var projectCache = [];
     var files;
     var MAX_DISPLAY_LENGTH = 200,
-        MAX_TOTAL_RESULTS = 100;
+        MAX_RESULTS_IN_A_FILE = 100,
+        MAX_RESULTS_TO_RETURN = 120,
+        MAX_TOTAL_RESULTS = 100000; // only 100,000 search results are supported
     
     var results = {},
         numMatches = 0,
         foundMaximum = false,
         exceedsMaximum = false,
-        currentCrawlIndex = 0;
+        currentCrawlIndex = 0,
+        savedSearchObject = null,
+        lastSearchedIndex = 0;
     
     function offsetToLineNum(textOrLines, offset) {
         if (Array.isArray(textOrLines)) {
@@ -132,9 +136,9 @@ maxerr: 50, node: true */
 
             // We have the max hits in just this 1 file. Stop searching this file.
             // This fixed issue #1829 where code hangs on too many hits.
-            // Adds one over MAX_TOTAL_RESULTS in order to know if the search has exceeded
-            // or is equal to MAX_TOTAL_RESULTS. Additional result removed in SearchModel
-            if (matches.length > MAX_TOTAL_RESULTS) {
+            // Adds one over MAX_RESULTS_IN_A_FILE in order to know if the search has exceeded
+            // or is equal to MAX_RESULTS_IN_A_FILE. Additional result removed in SearchModel
+            if (matches.length > MAX_RESULTS_IN_A_FILE) {
                 queryExpr.lastIndex = 0;
                 break;
             }
@@ -156,25 +160,16 @@ maxerr: 50, node: true */
         if (projectCache[filePath]) {
             return projectCache[filePath];
         }
-//        fs.readFile(filePath, function (err, data) {
-//            if (err) {
-//                console.error("Error");
-//            } else {
-//                console.log("File contents" + data);
-//            }
-//        });
         try {
-            //console.log(filePath);
             projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
         } catch (ex) {
             console.log(ex);
-            projectCache[filePath] = "";
+            projectCache[filePath] = null;
         }
         return projectCache[filePath];
-        
     }
     
-    function setResults(fullpath, resultInfo) {
+    function setResults(fullpath, resultInfo, maxResultsToReturn) {
         if (results[fullpath]) {
             numMatches -= results[fullpath].matches.length;
             delete results[fullpath];
@@ -190,11 +185,12 @@ maxerr: 50, node: true */
 
         results[fullpath] = resultInfo;
         numMatches += resultInfo.matches.length;
-        if (numMatches >= MAX_TOTAL_RESULTS) {
+        maxResultsToReturn = maxResultsToReturn || MAX_RESULTS_TO_RETURN;
+        if (numMatches >= maxResultsToReturn || numMatches >= MAX_TOTAL_RESULTS) {
             foundMaximum = true;
 
             // Remove final result if there have been over MAX_TOTAL_RESULTS found
-            if (numMatches > MAX_TOTAL_RESULTS) {
+            if (numMatches > maxResultsToReturn) {
                 results[fullpath].matches.pop();
                 numMatches--;
                 exceedsMaximum = true;
@@ -202,30 +198,23 @@ maxerr: 50, node: true */
         }
     }
     
-    function _doSearchInOneFile(filepath, text, queryExpr) {
+    function _doSearchInOneFile(filepath, text, queryExpr, maxResultsToReturn) {
         var matches = _getSearchMatches(text, queryExpr);
-//        if (matches.length) {
-//            debugger;
-//        }
-        setResults(filepath, {matches: matches});
+        setResults(filepath, {matches: matches}, maxResultsToReturn);
     }
     
-    function doSearchInFiles(fileList, queryExpr) {
+    function doSearchInFiles(fileList, queryExpr, startFileIndex, maxResultsToReturn) {
         var i;
         if (fileList.length === 0) {
             console.log('no files found');
             return;
 
         } else {
-           // var numCompleted = 0;
-           // var hasFailed = false;
-
-            for (i = 0; i < fileList.length && !foundMaximum; i++) {
-                _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
+            startFileIndex = startFileIndex || 0;
+            for (i = startFileIndex; i < fileList.length && !foundMaximum; i++) {
+                _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, maxResultsToReturn);
             }
-//            fileList.forEach(function (filePath, i) {
-//                
-//            });
+            lastSearchedIndex = i;
         }
     }
     
@@ -293,6 +282,7 @@ maxerr: 50, node: true */
     function doSearch(searchObject) {
         console.log("doSearch");
         
+        savedSearchObject = searchObject;
         if (!files) {
             console.log("no file object found");
             return {};
@@ -305,16 +295,46 @@ maxerr: 50, node: true */
         if (searchObject.files) {
             files = searchObject.files;
         }
-        doSearchInFiles(files, queryObject.queryExpr);
+        doSearchInFiles(files, queryObject.queryExpr, searchObject.startFileIndex, searchObject.maxResultsToReturn);
         var send_object = {
             "results":  results,
             "numMatches": numMatches,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
+        console.log("returning " + numMatches + "results");
         return send_object;
     }
     
+    function getNextPage() {
+        var send_object = {
+            "results":  {},
+            "numMatches": 0,
+            "foundMaximum":  false,
+            "exceedsMaximum":  false
+        };
+        if (!savedSearchObject) {
+            return send_object;
+        }
+        savedSearchObject.startFileIndex = lastSearchedIndex;
+        return doSearch(savedSearchObject);
+    }
+
+    function getAllResults() {
+        var send_object = {
+            "results":  {},
+            "numMatches": 0,
+            "foundMaximum":  false,
+            "exceedsMaximum":  false
+        };
+        if (!savedSearchObject) {
+            return send_object;
+        }
+        savedSearchObject.startFileIndex = 0;
+        savedSearchObject.maxResultsToReturn = MAX_TOTAL_RESULTS;
+        return doSearch(savedSearchObject);
+    }
+
     /**
      * Initializes the test domain with several test commands.
      * @param {DomainManager} domainManager The DomainManager for the server
@@ -338,6 +358,32 @@ maxerr: 50, node: true */
         );
         domainManager.registerCommand(
             "FindInFiles",       // domain name
+            "nextPage",    // command name
+            getNextPage,   // command handler function
+            false,          // this command is synchronous in Node
+            "get the next page of reults",
+            [{name: "search_object", // parameters
+                type: "object",
+                description: "Object containing search data"}],
+            [{name: "searchResults", // return values
+                type: "object",
+                description: "Object containing results of the search"}]
+        );
+        domainManager.registerCommand(
+            "FindInFiles",       // domain name
+            "getAllResults",    // command name
+            getAllResults,   // command handler function
+            false,          // this command is synchronous in Node
+            "get the next page of reults",
+            [{name: "search_object", // parameters
+                type: "object",
+                description: "Object containing search data"}],
+            [{name: "searchResults", // return values
+                type: "object",
+                description: "Object containing results of the search"}]
+        );
+        domainManager.registerCommand(
+            "FindInFiles",       // domain name
             "initCache",    // command name
             initCache,   // command handler function
             false,          // this command is synchronous in Node
@@ -349,7 +395,7 @@ maxerr: 50, node: true */
                 type: "boolean",
                 description: "don't know yet"}]
         );
-        setTimeout(fileCrawler, 10000);
+        setTimeout(fileCrawler, 5000);
     }
     
     exports.init = init;

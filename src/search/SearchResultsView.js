@@ -166,13 +166,15 @@ define(function (require, exports, module) {
             })
             // The link to go to the next page
             .on("click.searchResults", ".next-page:not(.disabled)", function () {
-                self._currentStart += RESULTS_PER_PAGE;
-                self._render();
+                //self._currentStart += RESULTS_PER_PAGE;
+                //self._render();
+                self.trigger('getNextPage');  //node search
             })
             // The link to go to the last page
             .on("click.searchResults", ".last-page:not(.disabled)", function () {
-                self._currentStart = self._getLastCurrentStart();
-                self._render();
+                //self._currentStart = self._getLastCurrentStart();
+                //self._render();
+                self.trigger('getLastPage');  //node search
             })
             
             // Add the file to the working set on double click
@@ -523,6 +525,22 @@ define(function (require, exports, module) {
         return Math.min(this._currentStart + RESULTS_PER_PAGE, numMatches);
     };
     
+    /**
+     * Shows the next page of the resultrs view if possible
+     */
+    SearchResultsView.prototype.showNextPage = function () {
+        this._currentStart += RESULTS_PER_PAGE;
+        this._render();
+    };
+
+    /**
+     * Shows the last page of the results view.
+     */
+    SearchResultsView.prototype.showLastPage = function () {
+        this._currentStart = this._getLastCurrentStart();
+        this._render();
+    };
+
     /**
      * @private
      * Returns the last possible current start based on the given number of matches
