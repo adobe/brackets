@@ -34,12 +34,16 @@ maxerr: 50, node: true */
         RESULTS_PER_PAGE = 100,
         MAX_TOTAL_RESULTS = 100;
     
-    var results = {},
+    var resultSet = [],
+        results = {},
         numMatches = 0,
         numFiles = 0,
         foundMaximum = false,
-        fileTopIndex = -1,
-        fileBottomIndex = -1,
+        currentPage,
+        totalPages,
+        evaluatedPages,
+        nextPageStartingFile,
+        offset,
         totalMatches = 0,
         exceedsMaximum = false,
         queryObject;
@@ -138,7 +142,7 @@ maxerr: 50, node: true */
             // This fixed issue #1829 where code hangs on too many hits.
             // Adds one over MAX_TOTAL_RESULTS in order to know if the search has exceeded
             // or is equal to MAX_TOTAL_RESULTS. Additional result removed in SearchModel
-            if (matches.length > MAX_TOTAL_RESULTS) {
+            if (matches.length > 100000) {
                 queryExpr.lastIndex = 0;
                 break;
             }
@@ -162,7 +166,6 @@ maxerr: 50, node: true */
     }
     
     function setResults(fullpath, resultInfo) {
-       // console.log("In setResults");
         if (results[fullpath]) {
             numMatches -= results[fullpath].matches.length;
             delete results[fullpath];
@@ -180,31 +183,21 @@ maxerr: 50, node: true */
         numMatches += resultInfo.matches.length;
         if (numMatches >= MAX_TOTAL_RESULTS) {
             foundMaximum = true;
-
+            offset = 0;
             // Remove final result if there have been over MAX_TOTAL_RESULTS found
             if (numMatches > MAX_TOTAL_RESULTS) {
-                console.log('numMatches more than MAX_Results');
-                fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n numMatches more than MAX_Results', function (err) {});
+                console.log('Page #' + currentPage + ' : numMatches more than MAX_Results');
                 console.log('length for last item of page: ' + results[fullpath].matches.length + ' numMatches: ' + numMatches);
-                fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n length for last item of page: ' + results[fullpath].matches.length + ' numMatches: ' + numMatches, function (err) {});
-                results[fullpath].matches = results[fullpath].matches.slice(0, results[fullpath].matches.length - (numMatches - MAX_TOTAL_RESULTS));
+                offset = results[fullpath].matches.length - (numMatches - MAX_TOTAL_RESULTS);
+                results[fullpath].matches = results[fullpath].matches.slice(0, offset);
                 numMatches -= (numMatches - MAX_TOTAL_RESULTS);
-                
-                
-                //exceedsMaximum = true;
             }
         }
-        //console.log('setResults. Filepath: ' + fullpath + '  :matches: ' + results[fullpath].matches.length + ' numMatches: ' + numMatches);
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n setResults. Filepath: ' + fullpath + '  :matches: ' + results[fullpath].matches.length + ' numMatches: ' + numMatches, function (err) {});
     }
     
     function _doSearchInOneFile(filepath, text, queryExpr, dontSetResults) {
         
         var matches = _getSearchMatches(text, queryExpr);
-        //console.log('doSearchInoncefile' + filepath + '  :matches:' + matches.length + ' numMatches: ' + numMatches);
-        //        if (matches.length) {
-//            debugger;
-//        }
         if (!dontSetResults) {
             setResults(filepath, {matches: matches});
         } else {
@@ -217,35 +210,31 @@ maxerr: 50, node: true */
     
     function doSearchInFiles(fileList, queryExpr) {
         var i;
-        fileTopIndex = 0;
         for (i = 0; i < fileList.length && !foundMaximum; i++) {
             _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
         }
-        fileBottomIndex = i - 1;
+        resultSet[currentPage] = results;
+        evaluatedPages++;
+        console.log("Evaluated page#" + evaluatedPages);
+        if (currentPage !== totalPages - 1) {
+            if (offset) {
+                nextPageStartingFile = i - 1;
+            } else {
+                nextPageStartingFile = i;
+            }
+        }
     }
     
-    function doSearchInFilesNextPage(fileList, queryExpr, offset) {
+    function doSearchInFilesNextPage(fileList, queryExpr) {
         console.log('doSearchInFilesNextPage' + offset);
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n doSearchInFilesNextPage, offset: ' + offset + ' file bottom i: ' + fileBottomIndex, function (err) {});
-//        var i;
-//        fileTopIndex = fileBottomIndex;
-//        for (i = fileTopIndex + 1; i < fileList.length && !foundMaximum; i++) {
-//            _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
-//        }
-//        fileBottomIndex = i - 1;
-        
         var i;
-        fileTopIndex = fileBottomIndex;
         var matchedResults;
-        //var matchedResults = _doSearchInOneFile(fileList[fileTopIndex], getFileContentsForFile(fileList[fileTopIndex]), queryExpr, true);
-        //console.log('1');
-//        var reversedResults = [],
-//            top;
-        //matchedResults.matches = matchedResults.matches.slice(matchedResults.length - offset);
-        //console.log('2');
-        //reversedResults.push(matchedResults);
-        for (i = fileTopIndex; i < fileList.length && !foundMaximum; i++) {
-            if (i === fileTopIndex) {
+        if (resultSet[currentPage]) {
+            return;
+        }
+            
+        for (i = nextPageStartingFile; i < fileList.length && !foundMaximum; i++) {
+            if (i === nextPageStartingFile) {
                 console.log('before');
                 matchedResults = _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, true);
                 console.log('after');
@@ -256,128 +245,22 @@ maxerr: 50, node: true */
             } else {
                 _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
             }
-            
         }
-        fileBottomIndex = i - 1;
+        resultSet[currentPage] = results;
+        evaluatedPages++;
+        console.log("Evaluated page#" + evaluatedPages);
+        if (currentPage !== totalPages - 1) {
+            if (offset) {
+                nextPageStartingFile = i - 1;
+            } else {
+                nextPageStartingFile = i;
+            }
+        }
     }
-    
-    function doSearchInFilesPrevPage(fileList, queryExpr, offset) {
-        console.log('doSearchInFilesPrevPage'+(fileTopIndex) + '$'+  fileList[fileTopIndex] + 'offset:' + offset);
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n doSearchInFilesPrevPage'+(fileTopIndex) + '$'+  fileList[fileTopIndex] + 'offset:' + offset, function (err) {});
-        var i;
-        fileBottomIndex = fileTopIndex;
-//        var matchedResults = _doSearchInOneFile(fileList[fileBottomIndex], getFileContentsForFile(fileList[fileBottomIndex]), queryExpr, true);
-        var matchedResults;
-        console.log('1');
-        var reversedResults = [],
-            top;
-        //matchedResults.matches = matchedResults.matches.slice(0, matchedResults.length - offset);
-        console.log('2');
-       // reversedResults.push(matchedResults);
-        for (i = fileBottomIndex; i >= 0 && !foundMaximum; i--) {
-            matchedResults = _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, true);
-            
-            if (i === fileBottomIndex) {
-                console.log("TOP FILE LENEGTH" + matchedResults.matches.length);
-                matchedResults.matches = matchedResults.matches.slice(0, matchedResults.matches.length - offset);
-            }
-
-            if (foundMaximum || !matchedResults || !matchedResults.matches || !matchedResults.matches.length) {
-                console.log('CONTINUE');
-                console.log(fileList[i] + '$' + matchedResults.matches.length);
-                continue;
-            }
-            matchedResults.collapsed = !!matchedResults.collapsed;
-            numMatches += matchedResults.matches.length;
-            if (numMatches >= MAX_TOTAL_RESULTS) {
-                console.log('in');
-                foundMaximum = true;
-
-                
-                if (numMatches > MAX_TOTAL_RESULTS) {
-                    matchedResults.matches = matchedResults.matches.slice(0, matchedResults.matches.length - (numMatches - MAX_TOTAL_RESULTS));
-                    numMatches -= (numMatches - MAX_TOTAL_RESULTS);
-                    //exceedsMaximum = true;
-                }
-                
-                console.log('out');
-            }
-            //console.log('setResults in PREV. Filepath: ' + fileList[i] + '  :matches: ' + matchedResults.matches.length + ' numMatches: ' + numMatches);
-            fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n setResults in PREV. Filepath: ' + fileList[i] + '  :matches: ' + matchedResults.matches.length + ' numMatches: ' + numMatches, function (err) {});
-            reversedResults.push(matchedResults);
-            
-        }
-        console.log('3');
-        results = {};
-        while(top = reversedResults.pop()) {
-            results[top.filepath] = {
-                matches: top.matches,
-                collapsed: top.collapsed
-            };
-        }
-        fileTopIndex = i;
-    }
-    
+        
     function doSearchInFilesLastPage(fileList, queryExpr, pageLength) {
-        console.log('doSearchInFilesLastPage'+(fileList.length - 1) + '$'+  fileList[fileList.length - 1] + 'pageLength:' + pageLength);
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n doSearchInFilesLastPage'+(fileList.length - 1) + '$'+  fileList[fileList.length - 1] + 'pageLength:' + pageLength, function (err) {});
-        var i;
-        fileBottomIndex = fileList.length - 1;
-//        var matchedResults = _doSearchInOneFile(fileList[fileBottomIndex], getFileContentsForFile(fileList[fileBottomIndex]), queryExpr, true);
-        var matchedResults;
-        console.log('1');
-        var reversedResults = [],
-            top;
-        //matchedResults.matches = matchedResults.matches.slice(0, matchedResults.length - offset);
-        console.log('2');
-       // reversedResults.push(matchedResults);
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n pre for loop', function (err) {});
-        for (i = fileBottomIndex; i >= 0 && !foundMaximum; i--) {
-            matchedResults = _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, true);
-
-            if (foundMaximum || !matchedResults || !matchedResults.matches || !matchedResults.matches.length) {
-                console.log('CONTINUE');
-                fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n CONTINUE', function (err) {});
-                console.log(fileList[i] + '$' + matchedResults.matches.length);
-                fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n ' + fileList[i] + '$' + matchedResults.matches.length, function (err) {});
-                continue;
-            }
-            matchedResults.collapsed = !!matchedResults.collapsed;
-            numMatches += matchedResults.matches.length;
-            if (numMatches >= pageLength) {
-                console.log('in');
-                fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n in', function (err) {});
-                foundMaximum = true;
-
-                
-                if (numMatches > pageLength) {
-                    matchedResults.matches = matchedResults.matches.slice(numMatches - pageLength);
-                    // numMatches = pageLength?
-                    numMatches -= (numMatches - pageLength);
-                    //exceedsMaximum = true;
-                }
-                
-                console.log('out');
-                fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n out', function (err) {});
-            }
-            //console.log('setResults in PREV. Filepath: ' + fileList[i] + '  :matches: ' + matchedResults.matches.length + ' numMatches: ' + numMatches);
-            fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n setResults in PREV. Filepath: ' + fileList[i] + '  :matches: ' + matchedResults.matches.length + ' numMatches: ' + numMatches, function (err) {});
-            reversedResults.push(matchedResults);
-            
-        }
-        console.log('out of for loop');
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n out of loop', function (err) {});
-        results = {};
-        while(top = reversedResults.pop()) {
-            results[top.filepath] = {
-                matches: top.matches,
-                collapsed: top.collapsed
-            };
-        }
-        fileTopIndex = i;
+    
     }
-    
-    
         
     function regexEscape(str) {
         return str.replace(/([.?*+\^$\[\]\\(){}|\-])/g, "\\$1");
@@ -416,14 +299,11 @@ maxerr: 50, node: true */
     
     function initCache(fileList) {
         console.log('Child Log');
-        var i;
         var allFiles = fileList;
-        // Temporarily increase caching time for testing
-        for (i = 0; i < 1; i++) {
-            allFiles.forEach(function (file) {
-                getFileContentsForFile(file);
-            });
-        }
+        
+        allFiles.forEach(function (file) {
+            getFileContentsForFile(file);
+        });
         return true;
     }
     
@@ -431,20 +311,13 @@ maxerr: 50, node: true */
         if (!contents) {
             console.log('NO contents');
             return 0;
-        } 
+        }
         var matches = contents.match(queryExpr);
-        //console.log('countnum1')
         if (matches && isNaN(matches.length)) {
             console.log('contents for nan' + contents);
             console.log(JSON.stringify(matches));
         }
-        //console.log('countnum2')
         return matches ? matches.length : 0;
-//        if (matches) {
-//            return 10;
-//        } else {
-//            return 0;
-//        }
     }
     
     function getNumMatches(fileList, queryExpr) {
@@ -452,16 +325,11 @@ maxerr: 50, node: true */
         var i,
             matches = 0;
         for (i = 0; i < fileList.length; i++) {
-//            _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
-//             if (i%100 === 0) {console.log(i);                 }
             var temp = _countNumMatches(getFileContentsForFile(fileList[i]), queryExpr);
-            matches += temp;
-           
-//            if (isNaN(temp)) {
-//                console.log('typeof' + typeof temp);
-//                console.log("NANANANA");
-//            }
-//            console.log('nummatches in getnummatches' + matches);
+            if (temp) {
+                numFiles++;
+                matches += temp;
+            }
         }
         console.log('for completed' + matches);
         return matches;
@@ -469,12 +337,12 @@ maxerr: 50, node: true */
     
     function doSearch(searchObject) {
         console.log("doSearch");
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', " \n do Search", function (err) {});
         files = searchObject.files;
         if (!files) {
             console.log("no file object found");
             return {};
         }
+        resultSet = [];
         results = {};
         numMatches = 0;
         numFiles = 0;
@@ -483,193 +351,136 @@ maxerr: 50, node: true */
         queryObject = parseQueryInfo(searchObject.queryInfo);
         doSearchInFiles(files, queryObject.queryExpr);
         totalMatches = getNumMatches(files, queryObject.queryExpr);
-        numFiles = files.length;
+        totalPages = Math.ceil(totalMatches / RESULTS_PER_PAGE);
         var send_object = {
-            "results":  results,
+            "results":  resultSet[currentPage],
             "numMatches": totalMatches,
             "numFiles": numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
-        var resultKeys = Object.keys(results);
-        fileTopIndex = files.indexOf(resultKeys[0]);
-        fileBottomIndex = files.indexOf(resultKeys[resultKeys.length-1]);
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n file Botom index" +fileBottomIndex + ' filepath: ' + files[fileBottomIndex], function (err) {});
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n RESULT Keys" + resultKeys.join(), function (err) {});
-        return send_object;
-    }
-    
-    function getFirstPageofSearchResults() {
-        console.log("getFirstPageofSearchResults");
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', '\n getFirstPageofSearchResults', function (err) {});
-        
-        if (!files) {
-            console.log("no file object found");
-            return {};
-        }
-        results = {};
-        numMatches = 0;
-        foundMaximum = false;
-        exceedsMaximum = false;
-        doSearchInFiles(files, queryObject.queryExpr);
-        var send_object = {
-            "results":  results,
-            "numMatches": totalMatches,
-            "numFiles": numFiles,
-            "foundMaximum":  foundMaximum,
-            "exceedsMaximum":  exceedsMaximum
-        };
-        var resultKeys = Object.keys(results);
-        fileTopIndex = files.indexOf(resultKeys[0]);
-        fileBottomIndex = files.indexOf(resultKeys[resultKeys.length -1]);
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n file Botom index" +fileBottomIndex + ' filepath: ' + files[fileBottomIndex], function (err) {});
+        var resultKeys = Object.keys(resultSet[currentPage]);
         return send_object;
     }
     
     function getNextPageofSearchResults() {
-        console.log("getNextPageofSearchResults" +numMatches);
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n getNextPageofSearchResults" +numMatches, function (err) {});
-        
+        console.log("getNextPageofSearchResults" + numMatches);
         if (!files) {
             console.log("no file object found");
             return {};
         }
-
-        //searchResultSlice(RESULTS_PER_PAGE);
-        var resultKeys = Object.keys(results);
-        var    offset = results[resultKeys[resultKeys.length-1]].matches.length;
-        results = {};
-        numMatches = 0;
-        foundMaximum = false;
-        exceedsMaximum = false;
-        doSearchInFilesNextPage(files, queryObject.queryExpr, offset);
+        if (!resultSet[currentPage]) {  //(typeof resultSet[currentPage] === 'undefined') {
+            results = {};
+            numMatches = 0;
+            foundMaximum = false;
+            exceedsMaximum = false;
+            doSearchInFilesNextPage(files, queryObject.queryExpr);
+        }
         var send_object = {
-            "results":  results,
+            "results":  resultSet[currentPage],
             "numMatches": totalMatches,
             "numFiles": numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
-        resultKeys = Object.keys(results);
-        fileTopIndex = files.indexOf(resultKeys[0]);
-        fileBottomIndex = files.indexOf(resultKeys[resultKeys.length-1]);
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n file Botom index" +fileBottomIndex + ' filepath: ' + files[fileBottomIndex], function (err) {});
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n RESULT Keys" + resultKeys.join(), function (err) {});
+        var resultKeys = Object.keys(resultSet[currentPage]);
         return send_object;
     }
     
     function getPrevPageofSearchResults() {
-        console.log("getPrevPageofSearchResults" +numMatches);
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n getPrevPageofSearchResults" +numMatches, function (err) {});
-        
-        if (!files) {
-            console.log("no file object found");
-            return {};
-        }
+        console.log("getPrevPageofSearchResults" + numMatches);
 
-        //searchResultSlice(RESULTS_PER_PAGE);
-        var resultKeys = Object.keys(results);
-        var    offset = results[resultKeys[0]].matches.length;
-        numMatches = 0;
-        foundMaximum = false;
-        exceedsMaximum = false;
-        doSearchInFilesPrevPage(files, queryObject.queryExpr, offset);
         var send_object = {
-            "results":  results,
+            "results":  resultSet[currentPage],
             "numMatches": totalMatches,
             "numFiles": numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
-        resultKeys = Object.keys(results);
-        fileTopIndex = files.indexOf(resultKeys[0]);
-        fileBottomIndex = files.indexOf(resultKeys.pop());
+        var resultKeys = Object.keys(resultSet[currentPage]);
         return send_object;
     }
     
-    function getLastPageofSearchResults() {
-        console.log("getLastPageofSearchResults" +numMatches);
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n getLastPageofSearchResults" +numMatches, function (err) {});
-        
-        if (!files) {
-            console.log("no file object found");
-            return {};
-        }
-        
-        console.log('1');
+    function getFirstPageofSearchResults() {
+        console.log("getFirstPageofSearchResults" + numMatches);
 
-        var pageLength = totalMatches % RESULTS_PER_PAGE;
-        numMatches = 0;
-        foundMaximum = false;
-        exceedsMaximum = false;
-        console.log('2');
-        try {
-        doSearchInFilesLastPage(files, queryObject.queryExpr, pageLength);
-        } catch (err)
-        {
-            console.log(err);
-            fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n ERROR" + err, function (err) {});
-        }
-        console.log('BACKKKKK');
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n BACCKKKK" , function (err) {});
         var send_object = {
-            "results":  results,
+            "results":  resultSet[0],
             "numMatches": totalMatches,
             "numFiles": numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
-        var resultKeys = Object.keys(results);
-        fileTopIndex = files.indexOf(resultKeys[0]);
-        fileBottomIndex = files.indexOf(resultKeys.pop());
-        console.log('SENDDDD');
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', "\n SENDDDD" , function (err) {});
-//        try{
-//        var str = ( ( JSON.stringify( send_object ) ) );
-//            console.log('str' + str);
-//        } catch (err)
-//        {
-//            console.log(err);
-//        }
+        var resultKeys = Object.keys(resultSet[currentPage]);
+        return send_object;
+    }
+
+    function getLastPageofSearchResults() {
+        console.log("getLastPageofSearchResults" + numMatches);
+        if (!files) {
+            console.log("no file object found");
+            return {};
+        }
+        
+        while (evaluatedPages < totalPages){
+            currentPage = evaluatedPages;
+            getNextPageofSearchResults();
+            console.log("Last page click: Evaluated page#" + evaluatedPages);
+        }
+        
+        currentPage = totalPages - 1;
+        var send_object = {
+            "results":  resultSet[currentPage],
+            "numMatches": totalMatches,
+            "numFiles": numFiles,
+            "foundMaximum":  foundMaximum,
+            "exceedsMaximum":  exceedsMaximum
+        };
+        var resultKeys = Object.keys(resultSet[currentPage]);
         return send_object;
     }
     
     function shutDown() {
-        fs.appendFile('/Users/prkumars/Desktop/nodeLog.txt', " In ChildProcess: Child Process is about to exit.. ", function (err) {});
+        console.log("In ChildProcess: Child Process is about to exit.. ");
         process.exit(0);
     }
     
-    process.on('message', function (msg) {
-        fs.appendFile('/Users/prkumars/Desktop//nodeLog.txt', " Received Message " + msg.msg + ".. ", function (err) {});
+    process.on('message', function (command) {
         var data;
-        if (msg.msg === "initCache") {
-            var fileList = msg.fileList;
+        var result;
+        if (command.msg === "initCache") {
+            var fileList = command.fileList;
             var bool = initCache(fileList);
             data = {"msg" : "cacheComplete", "result" : bool};
             process.send(data);
 
-        } else if (msg.msg === "doSearch") {
-            var searchObject = msg.searchObject;
-            var result = doSearch(searchObject);
+        } else if (command.msg === "doSearch") {
+            var searchObject = command.searchObject;
+            currentPage = 0;
+            evaluatedPages = 0;
+            result = doSearch(searchObject);
             data = {"msg" : "searchComplete", "result" : result};
             process.send(data);
-        } else if (msg.msg === "getNextPage") {
-            var result = getNextPageofSearchResults();
+        } else if (command.msg === "getNextPage") {
+            currentPage++;
+            result = getNextPageofSearchResults();
             data = {"msg" : "receivedNextPage", "result" : result};
             process.send(data);
-        } else if (msg.msg === "getFirstPage") {
+        } else if (command.msg === "getPrevPage") {
+            currentPage--;
+            result = getPrevPageofSearchResults();
+            data = {"msg" : "receivedPrevPage", "result" : result};
+            process.send(data);
+        } else if (command.msg === "getFirstPage") {
+            currentPage = 0;
             var result = getFirstPageofSearchResults();
             data = {"msg" : "receivedFirstPage", "result" : result};
             process.send(data);
-        } else if (msg.msg === "getPrevPage") {
-            var result = getPrevPageofSearchResults();
-            data = {"msg" : "receivedPrevPage", "result" : result};
-            process.send(data);
-        } else if (msg.msg === "getLastPage") {
-            var result = getLastPageofSearchResults();
+        } else if (command.msg === "getLastPage") {
+            result = getLastPageofSearchResults();
             data = {"msg" : "receivedLastPage", "result" : result};
             process.send(data);
-        } else if (msg.msg === "shutDown") {
+        } else if (command.msg === "shutDown") {
             shutDown();
         }
         

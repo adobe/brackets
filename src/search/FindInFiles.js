@@ -784,7 +784,7 @@ define(function (require, exports, module) {
     exports.getCandidateFiles    = getCandidateFiles;
     exports.clearSearch          = clearSearch;
     exports.getNextPageofSearchResults          = getNextPageofSearchResults;
-    exports.getFirstPageofSearchResults          = getFirstPageofSearchResults;
+    exports.getFirstPageofSearchResults         = getFirstPageofSearchResults;
     exports.getPrevPageofSearchResults          = getPrevPageofSearchResults;
     exports.getLastPageofSearchResults          = getLastPageofSearchResults;
     exports.ZERO_FILES_TO_SEARCH = ZERO_FILES_TO_SEARCH;
