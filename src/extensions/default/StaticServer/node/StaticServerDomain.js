@@ -112,27 +112,28 @@
      * @private
      * Helper function to create a new server.
      * @param {string} path The absolute path that should be the document root
+     * @param {string} address The IP address of the server that is created
      * @param {function(?string, ?httpServer)} cb Callback function that receives
      *    an error (or null if there was no error) and the server (or null if there
      *    was an error). 
      */
     function _createServer(path, address, port, createCompleteCallback) {
         var server,
+            serverAddress,
             app,
-            address,
             pathKey = getPathKey(path);
 
         // create a new map for this server's requests
         _requests[pathKey] = {};
         
         function requestRoot(server, cb) {
-            address = server.address();
+            serverAddress = server.address();
             
             // Request the root file from the project in order to ensure that the
             // server is actually initialized. If we don't do this, it seems like
             // connect takes time to warm up the server.
             var req = http.get(
-                {host: address.address, port: address.port},
+                {host: serverAddress.address, port: serverAddress.port},
                 function (res) {
                     cb(null, res);
                 }
@@ -196,8 +197,8 @@
                 resume(!resData.body);
             };
 
-            location.hostname = address.address;
-            location.port = address.port;
+            location.hostname = serverAddress.address;
+            location.port = serverAddress.port;
             location.root = path;
 
             var request = {
@@ -393,7 +394,7 @@
                 {
                     name: "address",
                     type: "string",
-                    description: "Address to use for HTTP server. Defaults to 127.0.0.1."
+                    description: "Address to use for HTTP server."
                 },
                 {
                     name: "port",
