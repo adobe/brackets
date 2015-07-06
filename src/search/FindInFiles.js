@@ -721,6 +721,46 @@ define(function (require, exports, module) {
     };
 
 
+    function getNextPageofSearchResults() {
+        var searchDeferred = $.Deferred();
+        searchDomain.exec("nextPage")
+            .done(function (rcvd_object) {
+                //console.log("NUMMM "  + filelistnum);
+                console.log('search completed');
+                if (searchModel.results) {
+                    var resultEntry;
+                    for (resultEntry in rcvd_object.results ) {
+                        if (rcvd_object.results.hasOwnProperty(resultEntry)) {
+                            searchModel.results[resultEntry.toString()] = rcvd_object.results[resultEntry];
+                        }
+                    }
+                } else {
+                    searchModel.results = rcvd_object.results;
+                }
+                searchModel.numMatches += rcvd_object.numMatches;
+                searchModel.foundMaximum = rcvd_object.foundMaximum;
+                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                searchModel.fireChanged();
+                searchDeferred.resolve();
+            });
+        return searchDeferred.promise();
+    }
+
+    function getAllSearchResults() {
+        var searchDeferred = $.Deferred();
+        searchDomain.exec("getAllResults")
+            .done(function (rcvd_object) {
+                //console.log("NUMMM "  + filelistnum);
+                searchModel.results = rcvd_object.results;
+                searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.foundMaximum = rcvd_object.foundMaximum;
+                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                searchModel.fireChanged();
+                searchDeferred.resolve();
+            });
+        return searchDeferred.promise();
+    }
+
     ProjectManager.on("projectOpen", _initCache);
     FindUtils.on(FindUtils.SEARCH_FILE_FILTERS_CHANGED, _fileFilterChanged);
     FindUtils.on(FindUtils.SEARCH_SCOPE_CHANGED, _fileFilterChanged);
@@ -732,6 +772,8 @@ define(function (require, exports, module) {
     exports.getCandidateFiles    = getCandidateFiles;
     exports.clearSearch          = clearSearch;
     exports.ZERO_FILES_TO_SEARCH = ZERO_FILES_TO_SEARCH;
+    exports.getNextPageofSearchResults          = getNextPageofSearchResults;
+    exports.getAllSearchResults  = getAllSearchResults;
     
     // For unit tests only
     exports._documentChangeHandler = _documentChangeHandler;
