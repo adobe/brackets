@@ -88,12 +88,8 @@ define(function (require, exports, module) {
         description: Strings.DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW
     });
     
-    prefs.definePreference("defaultPrefsinFirstPane",   "boolean", true, {
+    prefs.definePreference("alwaysOpenUserPrefsinSecondPane",   "boolean", true, {
         description: Strings.DESCRIPTION_OPEN_DEFULT_PREFS_IN_FIRST_PANE
-    });
-    
-    PreferencesManager.definePreference(DEBUG_OPEN_PREFERENCES_IN_SPLIT_VIEW, "boolean", true, {
-        description: Strings.DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW
     });
 
     PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false, {
@@ -292,7 +288,7 @@ define(function (require, exports, module) {
         
         // Exchange the panes, if default preferences need to be opened
         // in the right pane.
-        if (!prefs.getPreference("defaultPrefsinFirstPane")) {
+        if (!prefs.get("alwaysOpenPrefsinSecondPane")) {
             DEFAULT_PREFS_PANE = "second-pane";
             USER_PREFS_PANE    = "first-pane";
         }
@@ -539,7 +535,6 @@ define(function (require, exports, module) {
         }
 
         var iLevel,
-            property,
             prefItemKeys,
             entireText     = "",
             prefItemDesc   = prefItem.description || "",
@@ -592,7 +587,7 @@ define(function (require, exports, module) {
         // Now iterate through all the keys
         // and generate nested formatted objects.
 
-        for (property in prefItemKeys) {
+        Object.keys(prefItemKeys).sort().forEach(function (property) {
 
             if (prefItemKeys.hasOwnProperty(property)) {
 
@@ -613,7 +608,7 @@ define(function (require, exports, module) {
                     }
                 }
             }
-        }
+        });
 
         // Strip ",\n\n" that got added above, for the last property
         if (entireText.length > 0) {
@@ -627,13 +622,11 @@ define(function (require, exports, module) {
 
     function _getDefaultPreferencesString() {
 
-        var property,
-            allPrefs       = PreferencesManager.getAllPreferences(),
+        var allPrefs       = PreferencesManager.getAllPreferences(),
             headerComment  = Strings.DEFAULT_PREFERENCES_JSON_HEADER_COMMENT + "\n\n{\n",
             entireText     = "";
 
-        for (property in allPrefs) {
-
+        Object.keys(allPrefs).sort().forEach(function (property) {
             if (allPrefs.hasOwnProperty(property)) {
 
                 var pref = allPrefs[property];
@@ -642,7 +635,7 @@ define(function (require, exports, module) {
                     entireText += _formatPref(property, pref, 0) + ",\n\n";
                 }
             }
-        }
+        });
 
         // Strip ",\n\n" that got added above, for the last property
         if (entireText.length > 0) {
@@ -731,7 +724,7 @@ define(function (require, exports, module) {
 
         var fullPath        = PreferencesManager.getUserPrefFile(),
             file            = FileSystem.getFileForPath(fullPath),
-            splitViewPrefOn = prefs.getPreference("openPrefsInSplitView"),
+            splitViewPrefOn = prefs.get("openPrefsInSplitView"),
             result          = new $.Deferred();
 
         if (!splitViewPrefOn) {
