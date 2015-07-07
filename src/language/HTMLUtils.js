@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var CodeMirror = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror = require("thirdparty/CodeMirror/lib/codemirror"),
         TokenUtils = require("utils/TokenUtils");
     
     // Constants

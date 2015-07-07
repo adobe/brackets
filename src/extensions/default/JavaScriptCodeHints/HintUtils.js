@@ -31,7 +31,8 @@ define(function (require, exports, module) {
 
     var LANGUAGE_ID                 = "javascript",
         HTML_LANGUAGE_ID            = "html",
-        SUPPORTED_LANGUAGES         = [LANGUAGE_ID, HTML_LANGUAGE_ID],
+        PHP_LANGUAGE_ID             = "php",
+        SUPPORTED_LANGUAGES         = [LANGUAGE_ID, HTML_LANGUAGE_ID, PHP_LANGUAGE_ID],
         SINGLE_QUOTE                = "'",
         DOUBLE_QUOTE                = "\"";
 

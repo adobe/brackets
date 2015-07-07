@@ -850,7 +850,7 @@ define(function (require, exports, module) {
      * (switching to single line comments because the glob interferes with the multiline comment):
      */
 //    "path": {
-//        "src/thirdparty/CodeMirror2/**/*.js": {
+//        "src/thirdparty/CodeMirror/**/*.js": {
 //            "spaceUnits": 2,
 //            "linting.enabled": false
 //        }
@@ -1066,8 +1066,15 @@ define(function (require, exports, module) {
          * @param {string} id unprefixed identifier of the preference. Generally a dotted name.
          * @param {string} type Data type for the preference (generally, string, boolean, number)
          * @param {Object} initial Default value for the preference
-         * @param {?Object} options Additional options for the pref. Can include name and description
-         *                          that will ultimately be used in UI.
+         * @param {?{name: string=, description: string=, validator: function=, excludeFromHints: boolean=, keys: object=, values: array=, valueType: string=}} options
+         *      Additional options for the pref.
+         *      - `options.name`               Name of the preference that can be used in the UI.
+         *      - `options.description`        A description of the preference.
+         *      - `options.validator`          A function to validate the value of a preference.
+         *      - `options.excludeFromHints`   True if you want to exclude a preference from code hints.
+         *      - `options.keys`               An object that will hold the child preferences in case the preference type is `object`
+         *      - `options.values`             An array of possible values of a preference. It will show up in code hints.
+         *      - `options.valueType`          In case the preference type is `array`, `valueType` should hold data type of its elements.
          * @return {Object} The preference object.
          */
         definePreference: function (id, type, initial, options) {
@@ -1290,8 +1297,15 @@ define(function (require, exports, module) {
          * @param {string} id identifier of the preference. Generally a dotted name.
          * @param {string} type Data type for the preference (generally, string, boolean, number)
          * @param {Object} initial Default value for the preference
-         * @param {?Object} options Additional options for the pref. Can include name and description
-         *                          that will ultimately be used in UI.
+         * @param {?{name: string=, description: string=, validator: function=, excludeFromHints: boolean=, keys: object=, values: array=, valueType: string=}} options
+         *      Additional options for the pref.
+         *      - `options.name`               Name of the preference that can be used in the UI.
+         *      - `options.description`        A description of the preference.
+         *      - `options.validator`          A function to validate the value of a preference.
+         *      - `options.excludeFromHints`   True if you want to exclude a preference from code hints.
+         *      - `options.keys`               An object that will hold the child preferences in case the preference type is `object`
+         *      - `options.values`             An array of possible values of a preference. It will show up in code hints.
+         *      - `options.valueType`          In case the preference type is `array`, `valueType` should hold data type of its elements.
          * @return {Object} The preference object.
          */
         definePreference: function (id, type, initial, options) {
@@ -1304,7 +1318,11 @@ define(function (require, exports, module) {
                 initial: initial,
                 name: options.name,
                 description: options.description,
-                validator: options.validator
+                validator: options.validator,
+                excludeFromHints: options.excludeFromHints,
+                keys: options.keys,
+                values: options.values,
+                valueType: options.valueType
             });
             this.set(id, initial, {
                 location: {
@@ -1321,6 +1339,15 @@ define(function (require, exports, module) {
          */
         getPreference: function (id) {
             return this._knownPrefs[id];
+        },
+
+        /**
+         * Returns a clone of all preferences defined.
+         *
+         * @return {Object}
+         */
+        getAllPreferences: function () {
+            return _.cloneDeep(this._knownPrefs);
         },
 
         /**

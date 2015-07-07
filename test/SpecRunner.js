@@ -55,6 +55,7 @@ define(function (require, exports, module) {
         NativeApp               = require("utils/NativeApp");
 
     // Load modules for later use
+    require("language/CodeInspection");
     require("thirdparty/lodash");
     require("editor/CodeHintManager");
     require("utils/Global");
@@ -83,16 +84,16 @@ define(function (require, exports, module) {
     require("test/thirdparty/jasmine-reporters/jasmine.junit_reporter");
     
     // Load CodeMirror add-ons--these attach themselves to the CodeMirror module    
-    require("thirdparty/CodeMirror2/addon/fold/xml-fold");
-    require("thirdparty/CodeMirror2/addon/edit/matchtags");
-    require("thirdparty/CodeMirror2/addon/edit/matchbrackets");
-    require("thirdparty/CodeMirror2/addon/edit/closebrackets");
-    require("thirdparty/CodeMirror2/addon/edit/closetag");
-    require("thirdparty/CodeMirror2/addon/selection/active-line");
-    require("thirdparty/CodeMirror2/addon/mode/multiplex");
-    require("thirdparty/CodeMirror2/addon/mode/overlay");
-    require("thirdparty/CodeMirror2/addon/search/searchcursor");
-    require("thirdparty/CodeMirror2/keymap/sublime");
+    require("thirdparty/CodeMirror/addon/fold/xml-fold");
+    require("thirdparty/CodeMirror/addon/edit/matchtags");
+    require("thirdparty/CodeMirror/addon/edit/matchbrackets");
+    require("thirdparty/CodeMirror/addon/edit/closebrackets");
+    require("thirdparty/CodeMirror/addon/edit/closetag");
+    require("thirdparty/CodeMirror/addon/selection/active-line");
+    require("thirdparty/CodeMirror/addon/mode/multiplex");
+    require("thirdparty/CodeMirror/addon/mode/overlay");
+    require("thirdparty/CodeMirror/addon/search/searchcursor");
+    require("thirdparty/CodeMirror/keymap/sublime");
 
     var selectedSuites,
         params          = new UrlParams(),

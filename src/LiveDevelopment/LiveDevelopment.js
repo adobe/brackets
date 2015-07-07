@@ -190,6 +190,12 @@ define(function LiveDevelopment(require, exports, module) {
      * @type {BaseServer}
      */
     var _server;
+    
+    /**
+     * @private
+     * Handles of registered servers
+     */
+    var _regServers = [];
 
     function _isPromisePending(promise) {
         return promise && promise.state() === "pending";
@@ -648,7 +654,7 @@ define(function LiveDevelopment(require, exports, module) {
      *  - index.html
      *  - index.htm
      * 
-     * If the project is configured with a custom base url for live developmment, then
+     * If the project is configured with a custom base url for live development, then
      * the list of possible index files is extended to contain these index files too:
      *  - index.php
      *  - index.php3
@@ -865,6 +871,11 @@ define(function LiveDevelopment(require, exports, module) {
             var closeDeferred = (brackets.platform === "mac") ? NativeApp.closeLiveBrowser() : $.Deferred().resolve();
             closeDeferred.done(function () {
                 _setStatus(STATUS_INACTIVE, reason || "explicit_close");
+                // clean-up registered servers
+                _regServers.forEach(function (server) {
+                    LiveDevServerManager.removeServer(server);
+                });
+                _regServers = [];
                 _closeDeferred.resolve();
             }).fail(function (err) {
                 if (err) {
@@ -1288,6 +1299,22 @@ define(function LiveDevelopment(require, exports, module) {
         return deferred.promise();
     }
 
+    function getCurrentProjectServerConfig() {
+        return {
+            baseUrl: ProjectManager.getBaseUrl(),
+            pathResolver: ProjectManager.makeProjectRelativeIfPossible,
+            root: ProjectManager.getProjectRoot().fullPath
+        };
+    }
+    
+    function _createUserServer() {
+        return new UserServer(getCurrentProjectServerConfig());
+    }
+    
+    function _createFileServer() {
+        return new FileServer(getCurrentProjectServerConfig());
+    }
+    
     /**
      * Open the Connection and go live
      *
@@ -1313,6 +1340,10 @@ define(function LiveDevelopment(require, exports, module) {
                 });
             }
         }
+        
+        // Register user defined server provider and keep handlers for further clean-up
+        _regServers.push(LiveDevServerManager.registerServer({ create: _createUserServer }, 99));
+        _regServers.push(LiveDevServerManager.registerServer({ create: _createFileServer }, 0));
         
         // TODO: need to run _onFileChanged() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
@@ -1441,22 +1472,6 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
-    function getCurrentProjectServerConfig() {
-        return {
-            baseUrl: ProjectManager.getBaseUrl(),
-            pathResolver: ProjectManager.makeProjectRelativeIfPossible,
-            root: ProjectManager.getProjectRoot().fullPath
-        };
-    }
-    
-    function _createUserServer() {
-        return new UserServer(getCurrentProjectServerConfig());
-    }
-    
-    function _createFileServer() {
-        return new FileServer(getCurrentProjectServerConfig());
-    }
-
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
@@ -1475,10 +1490,6 @@ define(function LiveDevelopment(require, exports, module) {
             .on("dirtyFlagChange", _onDirtyFlagChange);
         ProjectManager
             .on("beforeProjectClose beforeAppClose", close);
-        
-        // Register user defined server provider
-        LiveDevServerManager.registerServer({ create: _createUserServer }, 99);
-        LiveDevServerManager.registerServer({ create: _createFileServer }, 0);
 
         // Initialize exports.status
         _setStatus(STATUS_INACTIVE);

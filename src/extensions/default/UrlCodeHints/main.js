@@ -28,22 +28,28 @@ define(function (require, exports, module) {
     "use strict";
     
     // Brackets modules
-    var AppInit         = brackets.getModule("utils/AppInit"),
-        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
-        CSSUtils        = brackets.getModule("language/CSSUtils"),
-        FileSystem      = brackets.getModule("filesystem/FileSystem"),
-        FileUtils       = brackets.getModule("file/FileUtils"),
-        HTMLUtils       = brackets.getModule("language/HTMLUtils"),
-        ProjectManager  = brackets.getModule("project/ProjectManager"),
-        StringUtils     = brackets.getModule("utils/StringUtils"),
-
-        Data            = require("text!data.json"),
+    var AppInit             = brackets.getModule("utils/AppInit"),
+        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
+        CSSUtils            = brackets.getModule("language/CSSUtils"),
+        FileSystem          = brackets.getModule("filesystem/FileSystem"),
+        FileUtils           = brackets.getModule("file/FileUtils"),
+        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        ProjectManager      = brackets.getModule("project/ProjectManager"),
+        StringUtils         = brackets.getModule("utils/StringUtils"),
+        Strings             = brackets.getModule("strings"),
+        Data                = require("text!data.json"),
 
         urlHints,
         data,
         htmlAttrs,
         styleModes      = ["css", "text/x-less", "text/x-scss"];
-    
+
+
+    PreferencesManager.definePreference("codehint.UrlCodeHints", "boolean", true, {
+        description: Strings.DESCRIPTION_URL_CODE_HINTS
+    });
+
     /**
      * @constructor
      */
@@ -221,7 +227,7 @@ define(function (require, exports, module) {
      */
     UrlCodeHints.prototype._getUrlHints = function (query) {
         var hints = [],
-            sortFunc = null;
+            sortFunc;
 
         // Do not show hints after "?" in url
         if (query.queryStr.indexOf("?") === -1) {
@@ -398,7 +404,7 @@ define(function (require, exports, module) {
             cursor = this.editor.getCursorPos(),
             filter = "",
             hints = [],
-            sortFunc = null,
+            sortFunc,
             query = { queryStr: "" },
             result = [];
 
