@@ -569,6 +569,29 @@ define(function (require, exports, module) {
         });
     }
     
+    //files added or removed
+    function filesChanged(fileList) {
+        //node search
+        var updateObject = {
+            "fileList": fileList
+        };
+        if (searchModel.filter) {
+            updateObject.filesInSearchScope = FileFilters.getPathsMatchingFilter(searchModel.filter, fileList);
+        }
+        searchDomain.exec("filesChanged", updateObject);
+    }
+
+    function filesRemoved(fileList) {
+        //node search
+        var updateObject = {
+            "fileList": fileList
+        };
+        if (searchModel.filter) {
+            updateObject.filesInSearchScope = FileFilters.getPathsMatchingFilter(searchModel.filter, fileList);
+        }
+        searchDomain.exec("filesRemoved", updateObject);
+    }
+
     /**
      * @private
      * Moves the search results from the previous path to the new one and updates the results list, if required
@@ -582,6 +605,10 @@ define(function (require, exports, module) {
             // Update the search results
         _.forEach(searchModel.results, function (item, fullPath) {
             if (fullPath.indexOf(oldName) === 0) {
+                // node search : inform node about the rename
+                filesRemoved([fullPath]);
+                filesChanged([fullPath.replace(oldName, newName)]);
+
                 searchModel.removeResults(fullPath);
                 searchModel.setResults(fullPath.replace(oldName, newName), item);
                 resultsChanged = true;
@@ -612,6 +639,8 @@ define(function (require, exports, module) {
             Object.keys(searchModel.results).forEach(function (fullPath) {
                 if (fullPath === entry.fullPath ||
                         (entry.isDirectory && fullPath.indexOf(entry.fullPath) === 0)) {
+                    // node search : inform node that the file is removed
+                    filesRemoved([fullPath]);
                     searchModel.removeResults(fullPath);
                     resultsChanged = true;
                 }
@@ -625,6 +654,7 @@ define(function (require, exports, module) {
          */
         function _addSearchResultsForEntry(entry) {
             var addedFiles = [],
+                addedFilePaths = [],
                 deferred = new $.Deferred();
             
             // gather up added files
@@ -635,6 +665,7 @@ define(function (require, exports, module) {
                         // Re-check the filtering that the initial search applied
                         if (_inSearchScope(child)) {
                             addedFiles.push(child);
+                            addedFilePaths.push(child.fullPath);
                         }
                     }
                     return true;
@@ -648,6 +679,9 @@ define(function (require, exports, module) {
                     return;
                 }
                 
+                //node Search : inform node about the file changes
+                filesChanged(addedFilePaths);
+
                 // find additional matches in all added files
                 Async.doInParallel(addedFiles, function (file) {
                     return _doSearchInOneFile(file)

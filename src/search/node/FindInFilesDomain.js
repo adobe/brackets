@@ -306,6 +306,43 @@ maxerr: 50, node: true */
         return send_object;
     }
     
+    function removeFilesFromCache(updateObject) {
+        var fileList = updateObject.fileList || [],
+            filesInSearchScope = updateObject.filesInSearchScope || [],
+            i = 0;
+        for (i = 0; i < fileList.length; i = 1 + 1) {
+            delete projectCache[fileList[i]];
+        }
+        function isNotInRemovedFilesList(path) {
+            return (filesInSearchScope.indexOf(path) === -1) ? true : false;
+        }
+        files = files ? files.filter(isNotInRemovedFilesList) : files;
+    }
+
+    function addFilesToCache(updateObject) {
+        var fileList = updateObject.fileList || [],
+            filesInSearchScope = updateObject.filesInSearchScope || [],
+            i = 0,
+            changedFilesAlreadyInList = [],
+            newFiles = [];
+        for (i = 0; i < fileList.length; i = 1 + 1) {
+            // We just add a null entry indicating the precense of the file in the project list.
+            // The file will be later read when required.
+            projectCache[fileList[i]] = null;
+        }
+
+        //Now update the search scoepe
+        function isInChangedFileList(path) {
+            return (filesInSearchScope.indexOf(path) !== -1) ? true : false;
+        }
+        changedFilesAlreadyInList = files ? files.filter(isInChangedFileList) : [];
+        function isNotAlreadyInList(path) {
+            return (changedFilesAlreadyInList.indexOf(path) === -1) ? true : false;
+        }
+        newFiles = changedFilesAlreadyInList.filter(isNotAlreadyInList);
+        files.push.apply(files, newFiles);
+    }
+
     function getNextPage() {
         var send_object = {
             "results":  {},
@@ -378,6 +415,32 @@ maxerr: 50, node: true */
             [{name: "search_object", // parameters
                 type: "object",
                 description: "Object containing search data"}],
+            [{name: "searchResults", // return values
+                type: "object",
+                description: "Object containing results of the search"}]
+        );
+        domainManager.registerCommand(
+            "FindInFiles",       // domain name
+            "filesChanged",    // command name
+            addFilesToCache,   // command handler function
+            false,          // this command is synchronous in Node
+            "Searches in project files and returns matches",
+            [{name: "updateObject", // parameters
+                type: "object",
+                description: "Object containing list of changed files"}],
+            [{name: "searchResults", // return values
+                type: "object",
+                description: "Object containing results of the search"}]
+        );
+        domainManager.registerCommand(
+            "FindInFiles",       // domain name
+            "filesRemoved",    // command name
+            removeFilesFromCache,   // command handler function
+            false,          // this command is synchronous in Node
+            "Searches in project files and returns matches",
+            [{name: "updateObject", // parameters
+                type: "object",
+                description: "Object containing list of removed files"}],
             [{name: "searchResults", // return values
                 type: "object",
                 description: "Object containing results of the search"}]
