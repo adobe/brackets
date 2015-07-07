@@ -410,20 +410,23 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Disables the installed extension with the given id.
+     * @private
      * 
-     * @param {string} id The id of the extension to disable.
-     * @return {$.Promise} A promise that's resolved when the extenion is disabled or
-     *      rejected with an error that prevented the disabling.
+     * Disables or enables the installed extensions.
+     * 
+     * @param {string} id The id of the extension to disable or enable.
+     * @param {boolean} enable A boolean indicating whether to enable or disable.
+     * @return {$.Promise} A promise that's resolved when the extension action is
+     *      completed or rejected with an error that prevents the action from completion.
      */
-    function disable(id) {
+    function _enableOrDisable(id, enable) {
         var result = new $.Deferred(),
             extension = extensions[id];
         if (extension && extension.installInfo) {
-            Package.disable(extension.installInfo.path)
+            Package[(enable ? "enable" : "disable")](extension.installInfo.path)
                 .done(function () {
-                    extension.installInfo.status = DISABLED;
-                    extension.installInfo.metadata.disabled = true;
+                    extension.installInfo.status = enable ? ENABLED : DISABLED;
+                    extension.installInfo.metadata.disabled = !enable;
                     result.resolve();
                     exports.trigger("statusChange", id);
                 })
@@ -437,6 +440,17 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Disables the installed extension with the given id.
+     * 
+     * @param {string} id The id of the extension to disable.
+     * @return {$.Promise} A promise that's resolved when the extenion is disabled or
+     *      rejected with an error that prevented the disabling.
+     */
+    function disable(id) {
+        return _enableOrDisable(id, false);
+    }
+    
+    /**
      * Enables the installed extension with the given id.
      * 
      * @param {string} id The id of the extension to enable.
@@ -444,23 +458,7 @@ define(function (require, exports, module) {
      *      rejected with an error that prevented the enabling.
      */
     function enable(id) {
-        var result = new $.Deferred(),
-            extension = extensions[id];
-        if (extension && extension.installInfo) {
-            Package.enable(extension.installInfo.path)
-                .done(function () {
-                    extension.installInfo.status = ENABLED;
-                    extension.installInfo.metadata.disabled = false;
-                    result.resolve();
-                    exports.trigger("statusChange", id);
-                })
-                .fail(function (err) {
-                    result.reject(err);
-                });
-        } else {
-            result.reject(StringUtils.format(Strings.EXTENSION_NOT_INSTALLED, id));
-        }
-        return result.promise();
+        return _enableOrDisable(id, true);
     }
 
     /**
