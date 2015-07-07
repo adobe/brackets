@@ -34,15 +34,26 @@ maxerr: 50, node: true */
     var MAX_DISPLAY_LENGTH = 200,
         MAX_TOTAL_RESULTS = 100000, // only 100,000 search results are supported
         MAX_RESULTS_IN_A_FILE = MAX_TOTAL_RESULTS,
+        RESULTS_PER_PAGE = 100,
         MAX_RESULTS_TO_RETURN = 120;
     
-    var results = {},
+    var resultSet = [],
+        results = {},
         numMatches = 0,
+        numFiles = 0,
         foundMaximum = false,
+        currentPage,
+        totalPages,
+        evaluatedPages,
+        nextPageStartingFile,
+        offset,
+        totalMatches = 0,
         exceedsMaximum = false,
         currentCrawlIndex = 0,
+        crawlComplete = false,
         savedSearchObject = null,
-        lastSearchedIndex = 0;
+//        lastSearchedIndex = 0,
+        queryObject;
     
     function offsetToLineNum(textOrLines, offset) {
         if (Array.isArray(textOrLines)) {
@@ -185,38 +196,88 @@ maxerr: 50, node: true */
 
         results[fullpath] = resultInfo;
         numMatches += resultInfo.matches.length;
-        maxResultsToReturn = maxResultsToReturn || MAX_RESULTS_TO_RETURN;
-        if (numMatches >= maxResultsToReturn || numMatches >= MAX_TOTAL_RESULTS) {
+//        maxResultsToReturn = maxResultsToReturn || MAX_RESULTS_TO_RETURN;
+        if (numMatches >= RESULTS_PER_PAGE) {
             foundMaximum = true;
-
+            offset = 0;
             // Remove final result if there have been over MAX_TOTAL_RESULTS found
-            if (numMatches > maxResultsToReturn) {
-                results[fullpath].matches.pop();
-                numMatches--;
-                exceedsMaximum = true;
+            if (numMatches > RESULTS_PER_PAGE) {
+                console.log('Page #' + currentPage + ' : numMatches more than MAX_Results');
+                console.log('length for last item of page: ' + results[fullpath].matches.length + ' numMatches: ' + numMatches);
+                offset = results[fullpath].matches.length - (numMatches - RESULTS_PER_PAGE);
+                results[fullpath].matches = results[fullpath].matches.slice(0, offset);
+                numMatches -= (numMatches - RESULTS_PER_PAGE);
             }
         }
     }
     
-    function _doSearchInOneFile(filepath, text, queryExpr, maxResultsToReturn) {
+    function _doSearchInOneFile(filepath, text, queryExpr, dontSetResults) {
+        
         var matches = _getSearchMatches(text, queryExpr);
-        setResults(filepath, {matches: matches}, maxResultsToReturn);
-    }
-    
-    function doSearchInFiles(fileList, queryExpr, startFileIndex, maxResultsToReturn) {
-        var i;
-        if (fileList.length === 0) {
-            console.log('no files found');
-            return;
-
+        if (!dontSetResults) {
+            setResults(filepath, {matches: matches});
         } else {
-            startFileIndex = startFileIndex || 0;
-            for (i = startFileIndex; i < fileList.length && !foundMaximum; i++) {
-                _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, maxResultsToReturn);
-            }
-            lastSearchedIndex = i;
+            return {
+                'filepath': filepath,
+                'matches' : matches
+            };
         }
     }
+    
+    function doSearchInFiles(fileList, queryExpr) {
+        var i;
+        for (i = 0; i < fileList.length && !foundMaximum; i++) {
+            _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
+        }
+        resultSet[currentPage] = results;
+        evaluatedPages++;
+        
+        console.log("Evaluated page#" + evaluatedPages);
+        if (currentPage !== totalPages - 1) {
+            if (offset) {
+                nextPageStartingFile = i - 1;
+            } else {
+                nextPageStartingFile = i;
+            }
+        }
+    }
+    
+    function doSearchInFilesNextPage(fileList, queryExpr) {
+        console.log('doSearchInFilesNextPage' + offset);
+        var i;
+        var matchedResults;
+        if (resultSet[currentPage]) {
+            return;
+        }
+            
+        for (i = nextPageStartingFile; i < fileList.length && !foundMaximum; i++) {
+            if (i === nextPageStartingFile) {
+                console.log('before');
+                matchedResults = _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, true);
+                console.log('after');
+                matchedResults.matches = matchedResults.matches.slice(offset);
+                console.log('after1.5 ' + matchedResults.matches.length);
+                setResults(fileList[i], {matches: matchedResults.matches});
+                console.log('after2');
+            } else {
+                _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
+            }
+        }
+        resultSet[currentPage] = results;
+        evaluatedPages++;
+        console.log("Evaluated page#" + evaluatedPages);
+        if (currentPage !== totalPages - 1) {
+            if (offset) {
+                nextPageStartingFile = i - 1;
+            } else {
+                nextPageStartingFile = i;
+            }
+        }
+    }
+        
+//    function doSearchInFilesLastPage(fileList, queryExpr, pageLength) {
+//    
+//    }
     
     function regexEscape(str) {
         return str.replace(/([.?*+\^$\[\]\\(){}|\-])/g, "\\$1");
@@ -254,6 +315,7 @@ maxerr: 50, node: true */
     }
     
     function fileCrawler() {
+        crawlComplete = false;
         if (!files || (files && files.length === 0)) {
             setTimeout(fileCrawler, 1000);
             return;
@@ -267,6 +329,7 @@ maxerr: 50, node: true */
             console.log("crawling scheduled");
             setImmediate(fileCrawler);
         } else {
+            crawlComplete = true;
             setTimeout(fileCrawler, 1000);
         }
     }
@@ -279,45 +342,192 @@ maxerr: 50, node: true */
         return true;
     }
     
+    function _countNumMatches(contents, queryExpr) {
+        if (!contents) {
+            console.log('NO contents');
+            return 0;
+        }
+        var matches = contents.match(queryExpr);
+        if (matches && isNaN(matches.length)) {
+            console.log('contents for nan' + contents);
+            console.log(JSON.stringify(matches));
+        }
+        return matches ? matches.length : 0;
+    }
+    
+    function getNumMatches(fileList, queryExpr) {
+        console.log('getNumatches');
+        var i,
+            matches = 0;
+        for (i = 0; i < fileList.length; i++) {
+            var temp = _countNumMatches(getFileContentsForFile(fileList[i]), queryExpr);
+            if (temp) {
+                numFiles++;
+                matches += temp;
+            }
+        }
+        console.log('for completed' + matches);
+        return matches;
+    }
+
     function doSearch(searchObject) {
         console.log("doSearch");
-        
-        savedSearchObject = searchObject;
+        files = searchObject.files;
+        currentPage = 0;
+        evaluatedPages = 0;
         if (!files) {
             console.log("no file object found");
             return {};
         }
+        resultSet = [];
         results = {};
         numMatches = 0;
+        numFiles = 0;
         foundMaximum = false;
         exceedsMaximum = false;
-        var queryObject = parseQueryInfo(searchObject.queryInfo);
-        if (searchObject.files) {
-            files = searchObject.files;
+        queryObject = parseQueryInfo(searchObject.queryInfo);
+        doSearchInFiles(files, queryObject.queryExpr);
+        if (!crawlComplete) {
+            totalMatches = numMatches;
+            numFiles = resultSet[currentPage].length;
+        } else {
+            totalMatches = getNumMatches(files, queryObject.queryExpr);
+            totalPages = Math.ceil(totalMatches / RESULTS_PER_PAGE);
         }
-        doSearchInFiles(files, queryObject.queryExpr, searchObject.startFileIndex, searchObject.maxResultsToReturn);
         var send_object = {
-            "results":  results,
-            "numMatches": numMatches,
+            "results":  resultSet[currentPage],
+            "numMatches": totalMatches,
+            "numFiles": numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
-        console.log("returning " + numMatches + "results");
         return send_object;
+//        var resultKeys = Object.keys(resultSet[currentPage]);
+//        return {"msg" : "searchComplete", "result" : send_object};
     }
     
-    function getNextPage() {
-        var send_object = {
-            "results":  {},
-            "numMatches": 0,
-            "foundMaximum":  false,
-            "exceedsMaximum":  false
-        };
-        if (!savedSearchObject) {
-            return send_object;
+
+//    function doSearch(searchObject) {
+//        console.log("doSearch");
+//        
+//        savedSearchObject = searchObject;
+//        if (!files) {
+//            console.log("no file object found");
+//            return {};
+//        }
+//        results = {};
+//        numMatches = 0;
+//        foundMaximum = false;
+//        exceedsMaximum = false;
+//        var queryObject = parseQueryInfo(searchObject.queryInfo);
+//        if (searchObject.files) {
+//            files = searchObject.files;
+//        }
+//        doSearchInFiles(files, queryObject.queryExpr, searchObject.startFileIndex, searchObject.maxResultsToReturn);
+//        var send_object = {
+//            "results":  results,
+//            "numMatches": numMatches,
+//            "foundMaximum":  foundMaximum,
+//            "exceedsMaximum":  exceedsMaximum
+//        };
+//        console.log("returning " + numMatches + "results");
+//        return send_object;
+//    }
+    
+//    function getNextPage() {
+//        var send_object = {
+//            "results":  {},
+//            "numMatches": 0,
+//            "foundMaximum":  false,
+//            "exceedsMaximum":  false
+//        };
+//        if (!savedSearchObject) {
+//            return send_object;
+//        }
+//        savedSearchObject.startFileIndex = lastSearchedIndex;
+//        return doSearch(savedSearchObject);
+//    }
+
+    function getNextPageofSearchResults() {
+        console.log("getNextPageofSearchResults" + numMatches);
+        if (!files) {
+            console.log("no file object found");
+            return {};
         }
-        savedSearchObject.startFileIndex = lastSearchedIndex;
-        return doSearch(savedSearchObject);
+        currentPage++;
+        if (!resultSet[currentPage]) {  //(typeof resultSet[currentPage] === 'undefined') {
+            results = {};
+            numMatches = 0;
+            foundMaximum = false;
+            exceedsMaximum = false;
+            doSearchInFilesNextPage(files, queryObject.queryExpr);
+        }
+        var send_object = {
+            "results":  resultSet[currentPage],
+            "numMatches": totalMatches,
+            "numFiles": numFiles,
+            "foundMaximum":  foundMaximum,
+            "exceedsMaximum":  exceedsMaximum
+        };
+        return send_object;
+//        var resultKeys = Object.keys(resultSet[currentPage]);
+//        return {"msg" : "receivedNextPage", "result" : send_object};
+    }
+    
+    function getPrevPageofSearchResults() {
+        console.log("getPrevPageofSearchResults" + numMatches);
+        currentPage--;
+        var send_object = {
+            "results":  resultSet[currentPage],
+            "numMatches": totalMatches,
+            "numFiles": numFiles,
+            "foundMaximum":  foundMaximum,
+            "exceedsMaximum":  exceedsMaximum
+        };
+        return send_object;
+//        var resultKeys = Object.keys(resultSet[currentPage]);
+//        return {"msg" : "receivedPrevPage", "result" : send_object};
+    }
+    
+    function getFirstPageofSearchResults() {
+        console.log("getFirstPageofSearchResults" + numMatches);
+        currentPage = 0;
+        var send_object = {
+            "results":  resultSet[0],
+            "numMatches": totalMatches,
+            "numFiles": numFiles,
+            "foundMaximum":  foundMaximum,
+            "exceedsMaximum":  exceedsMaximum
+        };
+        return send_object;
+//        var resultKeys = Object.keys(resultSet[currentPage]);
+//        return {"msg" : "receivedFirstPage", "result" : send_object};
+    }
+
+    function getLastPageofSearchResults() {
+        console.log("getLastPageofSearchResults" + numMatches);
+        if (!files) {
+            console.log("no file object found");
+            return {};
+        }
+        
+        while (evaluatedPages < totalPages) {
+            currentPage = evaluatedPages;
+            getNextPageofSearchResults();
+            console.log("Last page click: Evaluated page#" + evaluatedPages);
+        }
+        
+        currentPage = totalPages - 1;
+        var send_object = {
+            "results":  resultSet[currentPage],
+            "numMatches": totalMatches,
+            "numFiles": numFiles,
+            "foundMaximum":  foundMaximum,
+            "exceedsMaximum":  exceedsMaximum
+        };
+        return send_object;
+//        var resultKeys = Object.keys(resultSet[currentPage]);
+//        return {"msg" : "receivedLastPage", "result" : send_object};
     }
 
     function getAllResults() {
@@ -345,6 +555,19 @@ maxerr: 50, node: true */
         }
         domainManager.registerCommand(
             "FindInFiles",       // domain name
+            "initCache",    // command name
+            initCache,   // command handler function
+            false,          // this command is synchronous in Node
+            "Caches the project for find in files in node",
+            [{name: "fileList", // parameters
+                type: "Array",
+                description: "List of all project files - Path only"}],
+            [{name: "sdf", // return values
+                type: "boolean",
+                description: "don't know yet"}]
+        );
+        domainManager.registerCommand(
+            "FindInFiles",       // domain name
             "doSearch",    // command name
             doSearch,   // command handler function
             false,          // this command is synchronous in Node
@@ -356,17 +579,61 @@ maxerr: 50, node: true */
                 type: "object",
                 description: "Object containing results of the search"}]
         );
+//        domainManager.registerCommand(
+//            "FindInFiles",       // domain name
+//            "nextPage",    // command name
+//            getNextPage,   // command handler function
+//            false,          // this command is synchronous in Node
+//            "get the next page of reults",
+//            [{name: "search_object", // parameters
+//                type: "object",
+//                description: "Object containing search data"}],
+//            [{name: "searchResults", // return values
+//                type: "object",
+//                description: "Object containing results of the search"}]
+//        );
         domainManager.registerCommand(
             "FindInFiles",       // domain name
             "nextPage",    // command name
-            getNextPage,   // command handler function
+            getNextPageofSearchResults,   // command handler function
             false,          // this command is synchronous in Node
-            "get the next page of reults",
-            [{name: "search_object", // parameters
-                type: "object",
-                description: "Object containing search data"}],
+            "Searches in project files and returns matches",
+            [],
             [{name: "searchResults", // return values
                 type: "object",
+                description: "Object containing results of the search"}]
+        );
+        domainManager.registerCommand(
+            "FindInFiles",       // domain name
+            "prevPage",    // command name
+            getPrevPageofSearchResults,   // command handler function
+            false,          // this command is synchronous in Node
+            "Searches in project files and returns matches",
+            [],
+            [{name: "searchResults", // return values
+                type: "object",
+                description: "Object containing results of the search"}]
+        );
+        domainManager.registerCommand(
+            "FindInFiles",       // domain name
+            "firstPage",    // command name
+            getFirstPageofSearchResults,   // command handler function
+            false,          // this command is synchronous in Node
+            "Searches in project files and returns matches",
+            [],
+            [{name: "searchResults", // return values
+                type: "object",
+                description: "Object containing results of the search"}]
+        );
+        domainManager.registerCommand(
+            "FindInFiles",       // domain name
+            "lastPage",    // command name
+            getLastPageofSearchResults,   // command handler function
+            false,          // this command is synchronous in Node
+            "Searches in project files and returns matches",
+            [],
+            [{name: "searchResults", // return values
+                type: "string",
                 description: "Object containing results of the search"}]
         );
         domainManager.registerCommand(
@@ -382,19 +649,7 @@ maxerr: 50, node: true */
                 type: "object",
                 description: "Object containing results of the search"}]
         );
-        domainManager.registerCommand(
-            "FindInFiles",       // domain name
-            "initCache",    // command name
-            initCache,   // command handler function
-            false,          // this command is synchronous in Node
-            "Caches the project for find in files in node",
-            [{name: "fileList", // parameters
-                type: "Array",
-                description: "List of all project files - Path only"}],
-            [{name: "sdf", // return values
-                type: "boolean",
-                description: "don't know yet"}]
-        );
+        
         setTimeout(fileCrawler, 5000);
     }
     

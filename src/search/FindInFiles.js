@@ -33,7 +33,7 @@ define(function (require, exports, module) {
     var _                     = require("thirdparty/lodash"),
         FileFilters           = require("search/FileFilters"),
         Async                 = require("utils/Async"),
-        AppInit               = require("utils/AppInit"),
+//        AppInit               = require("utils/AppInit"),
         StringUtils           = require("utils/StringUtils"),
         ProjectManager        = require("project/ProjectManager"),
         DocumentModule        = require("document/Document"),
@@ -434,59 +434,48 @@ define(function (require, exports, module) {
         return candidateFilesPromise
             .then(function (fileListResult) {
             
-            
-            
 //                fileListResult = FileFilters.filterFileList(filter, fileListResult);
 //                if (fileListResult.length) {
 //                    return Async.doInParallel(fileListResult, _doSearchInOneFile);
-            
-            
-            
+
                 var searchDeferred = new $.Deferred();
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
                 
                 if (fileListResult.length) {
                     var searchObject;
-                    if (fileFilterChanged) {
-                        var files = fileListResult
-                            .filter(function (entry) {
-                                return entry.isFile && _isReadableText(entry.fullPath);
-                            })
-                            .map(function (entry) {
-                                return entry.fullPath;
-                            });
-                        searchObject = {
-                            "files": files,
-                            "queryInfo": queryInfo,
-                            "queryExpr": searchModel.queryExpr
-                        };
-                        fileFilterChanged = false;
-                    } else {
-                        searchObject = {
-                            "queryInfo": queryInfo,
-                            "queryExpr": searchModel.queryExpr
-                        };
-                    }
+                    var files = fileListResult
+                        .filter(function (entry) {
+                            return entry.isFile && _isReadableText(entry.fullPath);
+                        })
+                        .map(function (entry) {
+                            return entry.fullPath;
+                        });
+                    
+                    /* The following line is needed to sort the files for incremental search 
+                     * otherwise the order of matches will be different than in complete one-go search
+                     * where sorting of matched files is done in SearchResultsView.
+                     * Temp- For comparing it with master, comment the following line. */
+                    files = FindUtils.prioritizeOpenFile(files, FindUtils.getOpenFilePath());
+                    
+                    searchObject = {
+                        "files": files,
+                        "queryInfo": queryInfo,
+                        "queryExpr": searchModel.queryExpr
+                    };
                     searchDomain.exec("doSearch", searchObject)
                         .done(function (rcvd_object) {
                             //console.log("NUMMM "  + filelistnum);
                             console.log('search completed');
                             searchModel.results = rcvd_object.results;
                             searchModel.numMatches = rcvd_object.numMatches;
+                            searchModel.numFiles = rcvd_object.numFiles;
                             searchModel.foundMaximum = rcvd_object.foundMaximum;
                             searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                             searchModel.allResultsAvailable = false;
                             searchDeferred.resolve();
                         });
                     return searchDeferred.promise();
-                    
-                    
-                    
-                    
-                    
-                    
-                    
                     
                 } else {
                     return ZERO_FILES_TO_SEARCH;
@@ -716,43 +705,77 @@ define(function (require, exports, module) {
                 searchDomain.exec("initCache", files)
                     .done(function () {
                         console.log('cache created');
+                    }).fail(function (err) {
+                        console.log("Error");
                     });
             });
         _fileFilterChanged();
     };
-
-
+    
     function getNextPageofSearchResults() {
         var searchDeferred = $.Deferred();
-        if (searchModel.allResultsAvailable) {
-            return searchDeferred.resolve().promise();
-        }
         searchDomain.exec("nextPage")
             .done(function (rcvd_object) {
                 //console.log("NUMMM "  + filelistnum);
                 console.log('search completed');
-                if (searchModel.results) {
-                    var resultEntry;
-                    for (resultEntry in rcvd_object.results ) {
-                        if (rcvd_object.results.hasOwnProperty(resultEntry)) {
-                            searchModel.results[resultEntry.toString()] = rcvd_object.results[resultEntry];
-                        }
-                    }
-                } else {
-                    searchModel.results = rcvd_object.results;
-                }
-                searchModel.numMatches += rcvd_object.numMatches;
-                if (rcvd_object.numMatches === 0) {
-                    searchModel.allResultsAvailable = true;
-                }
+                searchModel.results = rcvd_object.results;
+                searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.numFiles = rcvd_object.numFiles;
                 searchModel.foundMaximum = rcvd_object.foundMaximum;
                 searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
-                searchModel.fireChanged();
                 searchDeferred.resolve();
             });
         return searchDeferred.promise();
     }
-
+    
+    function getFirstPageofSearchResults() {
+        var searchDeferred = $.Deferred();
+        searchDomain.exec("firstPage")
+            .done(function (rcvd_object) {
+                //console.log("NUMMM "  + filelistnum);
+                console.log('search completed');
+                searchModel.results = rcvd_object.results;
+                searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.numFiles = rcvd_object.numFiles;
+                searchModel.foundMaximum = rcvd_object.foundMaximum;
+                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                searchDeferred.resolve();
+            });
+        return searchDeferred.promise();
+    }
+    
+    function getPrevPageofSearchResults() {
+        var searchDeferred = $.Deferred();
+        searchDomain.exec("prevPage")
+            .done(function (rcvd_object) {
+                //console.log("NUMMM "  + filelistnum);
+                console.log('search completed');
+                searchModel.results = rcvd_object.results;
+                searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.numFiles = rcvd_object.numFiles;
+                searchModel.foundMaximum = rcvd_object.foundMaximum;
+                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                searchDeferred.resolve();
+            });
+        return searchDeferred.promise();
+    }
+    
+    function getLastPageofSearchResults() {
+        var searchDeferred = $.Deferred();
+        searchDomain.exec("lastPage")
+            .done(function (rcvd_object) {
+            //rcvd_object = JSON.parse( (  ( rcvd_object ) ) )                //console.log("NUMMM "  + filelistnum);
+                console.log('search completed');
+                searchModel.results = rcvd_object.results;
+                searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.numFiles = rcvd_object.numFiles;
+                searchModel.foundMaximum = rcvd_object.foundMaximum;
+                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                searchDeferred.resolve();
+            });
+        return searchDeferred.promise();
+    }
+    
     function getAllSearchResults() {
         var searchDeferred = $.Deferred();
         if (searchModel.allResultsAvailable) {
@@ -782,9 +805,12 @@ define(function (require, exports, module) {
     exports.doReplace            = doReplace;
     exports.getCandidateFiles    = getCandidateFiles;
     exports.clearSearch          = clearSearch;
-    exports.ZERO_FILES_TO_SEARCH = ZERO_FILES_TO_SEARCH;
     exports.getNextPageofSearchResults          = getNextPageofSearchResults;
+    exports.getFirstPageofSearchResults         = getFirstPageofSearchResults;
+    exports.getPrevPageofSearchResults          = getPrevPageofSearchResults;
+    exports.getLastPageofSearchResults          = getLastPageofSearchResults;
     exports.getAllSearchResults  = getAllSearchResults;
+    exports.ZERO_FILES_TO_SEARCH = ZERO_FILES_TO_SEARCH;
     
     // For unit tests only
     exports._documentChangeHandler = _documentChangeHandler;
