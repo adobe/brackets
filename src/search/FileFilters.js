@@ -289,6 +289,24 @@ define(function (require, exports, module) {
         });
     }
     
+    /**
+     * Returns a copy of 'file path' strings that match any of the exclusion globs in the filter.
+     *
+     * @param {?string} compiledFilter  'Compiled' filter object as returned by compile(), or null to no-op
+     * @param {!Array.<string>} An array with a list of full file paths that matches atleast one of the filter.
+     * @return {!Array.<string>}
+     */
+    function getPathsMatchingFilter(compiledFilter, filePaths) {
+        if (!compiledFilter) {
+            return filePaths;
+        }
+
+        var re = new RegExp(compiledFilter);
+        return filePaths.filter(function (f) {
+            return f.match(re);
+        });
+    }
+
     
     /**
      * Opens a dialog box to edit the given filter. When editing is finished, the value of getActiveFilter() changes to
@@ -539,12 +557,13 @@ define(function (require, exports, module) {
     exports.showDropdown       = showDropdown;
     exports.closeDropdown      = closeDropdown;
 
-    exports.createFilterPicker = createFilterPicker;
-    exports.commitPicker       = commitPicker;
-    exports.getActiveFilter      = getActiveFilter;
-    exports.setActiveFilter      = setActiveFilter;
-    exports.editFilter         = editFilter;
-    exports.compile            = compile;
-    exports.filterPath         = filterPath;
-    exports.filterFileList     = filterFileList;
+    exports.createFilterPicker     = createFilterPicker;
+    exports.commitPicker           = commitPicker;
+    exports.getActiveFilter        = getActiveFilter;
+    exports.setActiveFilter        = setActiveFilter;
+    exports.editFilter             = editFilter;
+    exports.compile                = compile;
+    exports.filterPath             = filterPath;
+    exports.filterFileList         = filterFileList;
+    exports.getPathsMatchingFilter = getPathsMatchingFilter;
 });
