@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         MainViewManager = require("view/MainViewManager"),
         FileSystem      = require("filesystem/FileSystem"),
         FileUtils       = require("file/FileUtils"),
+        FileFilters     = require("search/FileFilters"),
         FindBar         = require("search/FindBar").FindBar,
         ProjectManager  = require("project/ProjectManager"),
         EventDispatcher = require("utils/EventDispatcher"),
@@ -355,7 +356,7 @@ define(function (require, exports, module) {
         return {valid: true, queryExpr: queryExpr};
     }
 
-    /**
+     /**
      * Prioritizes the open file to the starting of the list of files
      * @param {Array.<*>} files An array of file paths or file objects to sort
      * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.
@@ -373,6 +374,7 @@ define(function (require, exports, module) {
         files[0] = temp;
         return files;
     }
+
 
     /**
      * Returns the path of the currently open file or null if there isn't one open
