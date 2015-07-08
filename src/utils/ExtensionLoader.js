@@ -242,7 +242,7 @@ define(function (require, exports, module) {
         var promise = new $.Deferred();
 
         // Try to load the package.json to figure out if we are loading a theme.
-        ExtensionUtils.loadPackageJson(config.baseUrl).always(promise.resolve);
+        ExtensionUtils.loadMetadata(config.baseUrl).always(promise.resolve);
 
         return promise
             .then(function (metadata) {
@@ -251,12 +251,20 @@ define(function (require, exports, module) {
                     return;
                 }
 
-                return loadExtensionModule(name, config, entryPoint);
+                if (!metadata.disabled) {
+                    return loadExtensionModule(name, config, entryPoint);
+                } else {
+                    return new $.Deferred().reject("disabled").promise();
+                }
             })
             .then(function () {
                 exports.trigger("load", config.baseUrl);
             }, function (err) {
-                exports.trigger("loadFailed", config.baseUrl);
+                if (err === "disabled") {
+                    exports.trigger("disabled", config.baseUrl);
+                } else {
+                    exports.trigger("loadFailed", config.baseUrl);
+                }
             });
     }
 
