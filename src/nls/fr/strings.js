@@ -389,7 +389,7 @@ define({
 	"CMD_WORKING_SORT_TOGGLE_AUTO": "Tri automatique",
 	"CMD_THEMES": "Thèmes\u2026",
 
-    // Navigate menu Commands
+    // Navigate menu commands
 	"NAVIGATE_MENU": "Naviguer",
 	"CMD_QUICK_OPEN": "Ouverture rapide",
 	"CMD_GOTO_LINE": "Atteindre la ligne",

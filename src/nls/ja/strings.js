@@ -389,7 +389,7 @@ define({
 	"CMD_WORKING_SORT_TOGGLE_AUTO": "自動ソート",
 	"CMD_THEMES": "テーマ\u2026",
 
-    // Navigate menu Commands
+    // Navigate menu commands
 	"NAVIGATE_MENU": "ナビゲート",
 	"CMD_QUICK_OPEN": "クイックオープン",
 	"CMD_GOTO_LINE": "行に移動",
