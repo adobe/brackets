@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         EditorManager      = require("editor/EditorManager"),
         StringUtils        = require("utils/StringUtils"),
         TokenUtils         = require("utils/TokenUtils"),
-        CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+        CodeMirror         = require("thirdparty/CodeMirror/lib/codemirror"),
         _                  = require("thirdparty/lodash");
     
     /**
@@ -55,17 +55,18 @@ define(function (require, exports, module) {
      * @return {RegExp}
      */
     function _createSpecialLineExp(lineSyntax, blockSyntax) {
-        var i, character,
+        var i, character, escapedCharacter,
             subExps   = [],
             prevChars = "";
         
         for (i = lineSyntax.length; i < blockSyntax.length; i++) {
             character = blockSyntax.charAt(i);
-            subExps.push(prevChars + "[^" + StringUtils.regexEscape(character) + "]");
+            escapedCharacter = StringUtils.regexEscape(character);
+            subExps.push(prevChars + "[^" + escapedCharacter + "]");
             if (prevChars) {
                 subExps.push(prevChars + "$");
             }
-            prevChars += character;
+            prevChars += escapedCharacter;
         }
         return new RegExp("^\\s*" + StringUtils.regexEscape(lineSyntax) + "($|" + subExps.join("|") + ")");
     }

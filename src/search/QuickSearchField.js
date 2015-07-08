@@ -46,6 +46,9 @@ define(function (require, exports, module) {
     
     /**
      * Attaches to an existing <input> tag
+     *
+     * @constructor
+     *
      * @param {!jQueryObject} $input
      * @param {!function(string):($.Promise|Array.<*>|{error:?string}} options.resultProvider
      *          Given the current search text, returns an an array of result objects, an error object, or a

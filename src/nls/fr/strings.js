@@ -88,7 +88,7 @@ define({
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "Erreur lors de la lecture des préférences",
 	"ERROR_PREFS_CORRUPT": "Votre fichier de préférences n’est pas un fichier JSON valide, il va donc être ouvert afin que vous puissiez corriger le format. Vous devrez ensuite redémarrer {APP_NAME} pour que les modifications prennent effet.",
-	"ERROR_PROJ_PREFS_CORRUPT": "[8036824] !é=Your project preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to reload the project for the changes to take effect.=!",
+	"ERROR_PROJ_PREFS_CORRUPT": "Votre fichier de préférences de projet n’est pas un fichier JSON valide, il va donc être ouvert afin que vous puissiez corriger le format. Vous devrez ensuite recharger le projet pour que les modifications prennent effet.",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
@@ -416,7 +416,7 @@ define({
 	"CMD_RELEASE_NOTES": "Notes de mise à jour",
 	"CMD_GET_INVOLVED": "Participer",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
-	"CMD_HEALTH_DATA_STATISTICS": "[8033837] !é=Health Report=!",
+	"CMD_HEALTH_DATA_STATISTICS": "Rapport sur l’état de santé",
 	"CMD_HOMEPAGE": "Page d’accueil de {APP_TITLE}",
 	"CMD_TWITTER": "{TWITTER_NAME} sur Twitter",
 	"CMD_ABOUT": "A propos de {APP_TITLE}",
@@ -575,7 +575,7 @@ define({
 	"CMD_REFRESH_WINDOW": "Recharger avec les extensions",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "Recharger sans les extensions",
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
-	"CMD_LAUNCH_SCRIPT_MAC": "[8035458] !é=Install Command Line Shortcut=!",
+	"CMD_LAUNCH_SCRIPT_MAC": "Installer le raccourci de ligne de commande",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
 	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
 	"CMD_SHOW_PERF_DATA": "Afficher les données de performances",
@@ -585,14 +585,14 @@ define({
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
 	"CMD_OPEN_BRACKETS_SOURCE": "Ouvrir la source de {APP_NAME}",
     
-	"CREATING_LAUNCH_SCRIPT_TITLE": "[8035459] !é={APP_NAME} Command Line Shortcut=!",
-	"ERROR_CREATING_LAUNCH_SCRIPT": "[8035465] !é=An error occured while installing the command line shortcut. Please try <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>these troubleshooting suggestions</a>.<br/><br/>Reason: {0}=!",
-	"ERROR_CLTOOLS_RMFAILED": "[8035463] !é=Unable to remove existing <code>/usr/local/bin/brackets</code> symlink.=!",
-	"ERROR_CLTOOLS_MKDIRFAILED": "[8035461] !é=Unable to create <code>/usr/local/bin</code> directory.=!",
-	"ERROR_CLTOOLS_LNFAILED": "[8035460] !é=Unable to create <code>/usr/local/bin/brackets</code> symlink.=!",
+	"CREATING_LAUNCH_SCRIPT_TITLE": "Raccourci de ligne de commande {APP_NAME}",
+	"ERROR_CREATING_LAUNCH_SCRIPT": "Une erreur est survenue lors de l’installation du raccourci de ligne de commande. Essayez d’appliquer <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>ces suggestions pour résoudre le problème</a>.<br/><br/>Motif : {0}",
+	"ERROR_CLTOOLS_RMFAILED": "Impossible de supprimer le lien symbolique existant <code>/usr/local/bin/brackets</code>.",
+	"ERROR_CLTOOLS_MKDIRFAILED": "Impossible de créer le répertoire <code>/usr/local/bin</code>.",
+	"ERROR_CLTOOLS_LNFAILED": "Impossible de créer le lien symbolique <code>/usr/local/bin/brackets</code>.",
 	"ERROR_CLTOOLS_SERVFAILED": "Erreur interne.",
-	"ERROR_CLTOOLS_NOTSUPPORTED": "[8035462] !é=Command line shortcut is not supported on this OS.=!",
-	"LAUNCH_SCRIPT_CREATE_SUCCESS": "[8035467] !é=Success! Now you can easily launch {APP_NAME} from the command line: <code>brackets myFile.txt</code> to open a file or <code>brackets myFolder</code> to switch projects. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Learn more</a> about using {APP_NAME} from the command line.=!",
+	"ERROR_CLTOOLS_NOTSUPPORTED": "Le raccourci de ligne de commande n’est pas pris en charge par ce système d’exploitation.",
+	"LAUNCH_SCRIPT_CREATE_SUCCESS": "Opération réussie ! À présent, vous pouvez facilement lancer {APP_NAME} depuis la ligne de commande : utilisez <code>brackets myFile.txt</code> pour ouvrir un fichier ou <code>brackets myFolder</code> pour changer de projet. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>En savoir plus</a> sur l’utilisation de {APP_NAME} depuis la ligne de commande.",
 
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Langue :",
@@ -601,12 +601,12 @@ define({
 	"LANGUAGE_SYSTEM_DEFAULT": "Langue par défaut du système",
 
     // extensions/default/HealthData
-	"HEALTH_DATA_NOTIFICATION": "[8033839] !é=Health Report Preferences=!",
-	"HEALTH_FIRST_POPUP_TITLE": "Rapport sur l’état de santé de Brackets",
-	"HEALTH_DATA_DO_TRACK": "[8033838] !é=Share anonymous information on how I use Brackets=!",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "[8033840] !é=In order to improve Brackets, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use Brackets. This information helps prioritize features, find bugs, and spot usability issues.<br><br>You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about Brackets Health Report</a>=!",
-	"HEALTH_DATA_PREVIEW": "Rapport sur l’état de santé de Brackets",
-	"HEALTH_DATA_PREVIEW_INTRO": "[8073104] !é=<p>In order to improve Brackets, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use Brackets. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about Brackets Health Report</a> and how it benefits the Brackets community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>=!",
+	"HEALTH_DATA_NOTIFICATION": "Health Report Preferences",
+	"HEALTH_FIRST_POPUP_TITLE": "Rapport sur l’état de santé de {APP_NAME}",
+	"HEALTH_DATA_DO_TRACK": "Partager des informations anonymes sur la façon dont j’utilise {APP_NAME}",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "Afin d’améliorer {APP_NAME}, nous transmettons régulièrement des statistiques limitées et <strong>anonymes</strong> à Adobe sur la manière dont vous utilisez {APP_NAME}. Ces données permettent de hiérarchiser les fonctionnalités à traiter, de détecter les bugs éventuels et d’identifier les problèmes d’utilisation.<br><br>Pour voir les renseignements collectés et choisir ceux que vous ne souhaitez pas partager, cliquez sur <strong>Aide > Rapport sur l’état de santé</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lisez cet article pour en savoir plus concernant le rapport sur l’état de santé de {APP_NAME}</a>",
+	"HEALTH_DATA_PREVIEW": "Rapport sur l’état de santé de {APP_NAME}",
+	"HEALTH_DATA_PREVIEW_INTRO": "<p>Afin d’améliorer {APP_NAME}, nous transmettons régulièrement des statistiques limitées et <strong>anonymes</strong> à Adobe sur la manière dont vous utilisez {APP_NAME}. Ces données permettent de hiérarchiser les fonctionnalités à traiter, de détecter les bugs éventuels et d’identifier les problèmes d’utilisation. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lisez cet article concernant le rapport sur l’état de santé de {APP_NAME}</a> et découvrez en quoi il est utile à la communauté {APP_NAME} tout en préservant votre confidentialité.</p><p>Vous trouverez ci-dessous un résumé des données qui seront envoyées dans le cadre de votre prochain rapport sur l’état de santé <em>si</em> vous décidez d’activer cette option.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "Temps",

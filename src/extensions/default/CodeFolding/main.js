@@ -30,7 +30,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var CodeMirror              = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror              = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         Strings                 = brackets.getModule("strings"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         CommandManager          = brackets.getModule("command/CommandManager"),
@@ -51,14 +51,16 @@ define(function (require, exports, module) {
         collapseKey             = "Ctrl-Alt-[",
         expandKey               = "Ctrl-Alt-]",
         collapseAllKey          = "Alt-1",
-        expandAllKey            = "Shift-Alt-1";
+        expandAllKey            = "Shift-Alt-1",
+        collapseAllKeyMac       = "Cmd-1",
+        expandAllKeyMac         = "Cmd-Shift-1";
 
     ExtensionUtils.loadStyleSheet(module, "main.less");
     
     // Load CodeMirror addons
-    brackets.getModule(["thirdparty/CodeMirror2/addon/fold/brace-fold"]);
-    brackets.getModule(["thirdparty/CodeMirror2/addon/fold/comment-fold"]);
-    brackets.getModule(["thirdparty/CodeMirror2/addon/fold/markdown-fold"]);
+    brackets.getModule(["thirdparty/CodeMirror/addon/fold/brace-fold"]);
+    brackets.getModule(["thirdparty/CodeMirror/addon/fold/comment-fold"]);
+    brackets.getModule(["thirdparty/CodeMirror/addon/fold/markdown-fold"]);
 
     // Still using slightly modified versions of the foldcode.js and foldgutter.js since we
     // need to modify the gutter click handler to take care of some collapse and expand features
@@ -303,6 +305,8 @@ define(function (require, exports, module) {
         KeyBindingManager.removeBinding(expandKey);
         KeyBindingManager.removeBinding(collapseAllKey);
         KeyBindingManager.removeBinding(expandAllKey);
+        KeyBindingManager.removeBinding(collapseAllKeyMac);
+        KeyBindingManager.removeBinding(expandAllKeyMac);
 
         //remove menus
         Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuDivider(codeFoldingMenuDivider.id);
@@ -356,8 +360,8 @@ define(function (require, exports, module) {
         Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
         
         //register keybindings
-        KeyBindingManager.addBinding(COLLAPSE_ALL, collapseAllKey);
-        KeyBindingManager.addBinding(EXPAND_ALL, expandAllKey);
+        KeyBindingManager.addBinding(COLLAPSE_ALL, [ {key: collapseAllKey}, {key: collapseAllKeyMac, platform: "mac"} ]);
+        KeyBindingManager.addBinding(EXPAND_ALL, [ {key: expandAllKey}, {key: expandAllKeyMac, platform: "mac"} ]);
         KeyBindingManager.addBinding(COLLAPSE, collapseKey);
         KeyBindingManager.addBinding(EXPAND, expandKey);
 

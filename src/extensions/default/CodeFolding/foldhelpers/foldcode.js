@@ -6,7 +6,7 @@
 /*global define, brackets, document*/
 define(function (require, exports, module) {
     "use strict";
-    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         prefs               = require("Prefs");
 
     /**
@@ -84,8 +84,9 @@ define(function (require, exports, module) {
             __isFold: true
         });
 
-        CodeMirror.on(widget, "mousedown", function () {
+        CodeMirror.on(widget, "mousedown", function (e) {
             textRange.clear();
+            e.preventDefault();
         });
 
         textRange.on("clear", function (from, to) {

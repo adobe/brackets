@@ -144,16 +144,18 @@ define(function (require, exports, module) {
      * Loads/saves preferences from a JSON file on disk.
      * 
      * @constructor
-     * @param {string} path Path to the preferences file
-     * @param {boolean} createIfMissing True if the file should be created if it doesn't exist.
+     * @param {string}  path        Path to the preferences file
+     * @param {boolean} createIfMissing True if the file should be created if it doesn't exist. 
      *                              If this is not true, an exception will be thrown if the
      *                              file does not exist.
-     * @param {boolean} isStateJson True if the specified preferences file is state.json 
+     * @param {boolean} recreateIfInvalid True if the file needs to be recreated if it is invalid.
+     *                              Invalid- Either unreadable or unparseable.
+     *                              The invalid copy will be sent to trash in case the user wants to refer to it.
      */
-    function FileStorage(path, createIfMissing, isStateJson) {
+    function FileStorage(path, createIfMissing, recreateIfInvalid) {
         this.path = path;
         this.createIfMissing = createIfMissing;
-        this.isStateJson = isStateJson;
+        this.recreateIfInvalid = recreateIfInvalid;
         this._lineEndings = FileUtils.getPlatformLineEndings();
     }
     
@@ -169,7 +171,7 @@ define(function (require, exports, module) {
             var result = new $.Deferred();
             var path = this.path;
             var createIfMissing = this.createIfMissing;
-            var isStateJson = this.isStateJson;
+            var recreateIfInvalid = this.recreateIfInvalid;
             var self = this;
             
             if (path) {
@@ -178,18 +180,18 @@ define(function (require, exports, module) {
                     if (err) {
                         if (createIfMissing) {
                             // Unreadable file is also unwritable -- delete so get recreated
-                            if (isStateJson && (err === FileSystemError.NOT_READABLE || err === FileSystemError.UNSUPPORTED_ENCODING)) {
+                            if (recreateIfInvalid && (err === FileSystemError.NOT_READABLE || err === FileSystemError.UNSUPPORTED_ENCODING)) {
                                 appshell.fs.moveToTrash(path, function (err) {
                                     if (err) {
                                         console.log("Cannot move unreadable preferences file " + path + " to trash!!");
                                     } else {
-                                        console.log("Note: Old Preferences file " + path + " has been moved to trash and recreated. You may refer to the deleted file in trash in case you want to recreate it from the former one!!");
+                                        console.log("Brackets has recreated the unreadable preferences file " + path + ". You may refer to the deleted file in trash in case you need it!!");
                                     }
                                 }.bind(this));
                             }
                             result.resolve({});
                         } else {
-                            result.reject(new Error("Unable to load prefs at " + path + " " + err));
+                            result.reject(new Error("Unable to load preferences at " + path + " " + err));
                         }
                         return;
                     }
@@ -203,9 +205,15 @@ define(function (require, exports, module) {
                         try {
                             result.resolve(JSON.parse(text));
                         } catch (e) {
-                            if (isStateJson && createIfMissing) {
-                                // JSON parsing error -- start from scratch
-                                console.log("Invalid JSON settings at " + path + "(" + e.toString() + ") -- contents reset");
+                            if (recreateIfInvalid) {
+                                // JSON parsing error -- recreate the preferences file
+                                appshell.fs.moveToTrash(path, function (err) {
+                                    if (err) {
+                                        console.log("Cannot move unparseable preferences file " + path + " to trash!!");
+                                    } else {
+                                        console.log("Brackets has recreated the Invalid JSON preferences file " + path + ". You may refer to the deleted file in trash in case you need it!!");
+                                    }
+                                }.bind(this));
                                 result.resolve({});
                             } else {
                                 result.reject(new ParsingError("Invalid JSON settings at " + path + "(" + e.toString() + ")"));
@@ -842,7 +850,7 @@ define(function (require, exports, module) {
      * (switching to single line comments because the glob interferes with the multiline comment):
      */
 //    "path": {
-//        "src/thirdparty/CodeMirror2/**/*.js": {
+//        "src/thirdparty/CodeMirror/**/*.js": {
 //            "spaceUnits": 2,
 //            "linting.enabled": false
 //        }
@@ -1058,8 +1066,15 @@ define(function (require, exports, module) {
          * @param {string} id unprefixed identifier of the preference. Generally a dotted name.
          * @param {string} type Data type for the preference (generally, string, boolean, number)
          * @param {Object} initial Default value for the preference
-         * @param {?Object} options Additional options for the pref. Can include name and description
-         *                          that will ultimately be used in UI.
+         * @param {?{name: string=, description: string=, validator: function=, excludeFromHints: boolean=, keys: object=, values: array=, valueType: string=}} options
+         *      Additional options for the pref.
+         *      - `options.name`               Name of the preference that can be used in the UI.
+         *      - `options.description`        A description of the preference.
+         *      - `options.validator`          A function to validate the value of a preference.
+         *      - `options.excludeFromHints`   True if you want to exclude a preference from code hints.
+         *      - `options.keys`               An object that will hold the child preferences in case the preference type is `object`
+         *      - `options.values`             An array of possible values of a preference. It will show up in code hints.
+         *      - `options.valueType`          In case the preference type is `array`, `valueType` should hold data type of its elements.
          * @return {Object} The preference object.
          */
         definePreference: function (id, type, initial, options) {
@@ -1282,8 +1297,15 @@ define(function (require, exports, module) {
          * @param {string} id identifier of the preference. Generally a dotted name.
          * @param {string} type Data type for the preference (generally, string, boolean, number)
          * @param {Object} initial Default value for the preference
-         * @param {?Object} options Additional options for the pref. Can include name and description
-         *                          that will ultimately be used in UI.
+         * @param {?{name: string=, description: string=, validator: function=, excludeFromHints: boolean=, keys: object=, values: array=, valueType: string=}} options
+         *      Additional options for the pref.
+         *      - `options.name`               Name of the preference that can be used in the UI.
+         *      - `options.description`        A description of the preference.
+         *      - `options.validator`          A function to validate the value of a preference.
+         *      - `options.excludeFromHints`   True if you want to exclude a preference from code hints.
+         *      - `options.keys`               An object that will hold the child preferences in case the preference type is `object`
+         *      - `options.values`             An array of possible values of a preference. It will show up in code hints.
+         *      - `options.valueType`          In case the preference type is `array`, `valueType` should hold data type of its elements.
          * @return {Object} The preference object.
          */
         definePreference: function (id, type, initial, options) {
@@ -1296,7 +1318,11 @@ define(function (require, exports, module) {
                 initial: initial,
                 name: options.name,
                 description: options.description,
-                validator: options.validator
+                validator: options.validator,
+                excludeFromHints: options.excludeFromHints,
+                keys: options.keys,
+                values: options.values,
+                valueType: options.valueType
             });
             this.set(id, initial, {
                 location: {
@@ -1313,6 +1339,15 @@ define(function (require, exports, module) {
          */
         getPreference: function (id) {
             return this._knownPrefs[id];
+        },
+
+        /**
+         * Returns a clone of all preferences defined.
+         *
+         * @return {Object}
+         */
+        getAllPreferences: function () {
+            return _.cloneDeep(this._knownPrefs);
         },
 
         /**

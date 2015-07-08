@@ -88,7 +88,7 @@ define({
     // Application preferences corrupt error strings
 	"ERROR_PREFS_CORRUPT_TITLE": "環境設定を読み込む際にエラーが発生しました。",
 	"ERROR_PREFS_CORRUPT": "環境設定ファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。変更を反映するには、{APP_NAME} を再起動する必要があります。",
-	"ERROR_PROJ_PREFS_CORRUPT": "!能=[8036824] Your project preferences file is not valid JSON. The file will be opened so that you can correct the format. You will need to reload the project for the changes to take effect._=!",
+	"ERROR_PROJ_PREFS_CORRUPT": "プロジェクトの環境設定ファイルが有効な JSON ではありません。ファイルが開かれます。フォーマットを修正してください。変更を反映するには、プロジェクトを再読み込みする必要があります。",
 
     // Application error strings
 	"ERROR_IN_BROWSER_TITLE": "{APP_NAME} は、まだブラウザー上で実行されていません。",
@@ -416,7 +416,7 @@ define({
 	"CMD_RELEASE_NOTES": "リリースノート",
 	"CMD_GET_INVOLVED": "コミュニティに参加",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "拡張機能のフォルダーを開く",
-	"CMD_HEALTH_DATA_STATISTICS": "!能=[8033837] Health Report_=!",
+	"CMD_HEALTH_DATA_STATISTICS": "正常性レポート",
 	"CMD_HOMEPAGE": "{APP_TITLE} ホームページ",
 	"CMD_TWITTER": "Twitter で {TWITTER_NAME} をフォロー",
 	"CMD_ABOUT": "{APP_TITLE} について",
@@ -575,7 +575,7 @@ define({
 	"CMD_REFRESH_WINDOW": "拡張機能付きでリロード",
 	"CMD_RELOAD_WITHOUT_USER_EXTS": "拡張機能なしでリロード",
 	"CMD_NEW_BRACKETS_WINDOW": "新しい {APP_NAME} ウィンドウ",
-	"CMD_LAUNCH_SCRIPT_MAC": "!能=[8035458] Install Command Line Shortcut_=!",
+	"CMD_LAUNCH_SCRIPT_MAC": "コマンドラインショートカットをインストール",
 	"CMD_SWITCH_LANGUAGE": "言語を切り替える",
 	"CMD_RUN_UNIT_TESTS": "テストを実行",
 	"CMD_SHOW_PERF_DATA": "パフォーマンスデータを表示",
@@ -585,14 +585,14 @@ define({
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
 	"CMD_OPEN_BRACKETS_SOURCE": "{APP_NAME} ソースを開く",
     
-	"CREATING_LAUNCH_SCRIPT_TITLE": "!能=[8035459] {APP_NAME} Command Line Shortcut_=!",
-	"ERROR_CREATING_LAUNCH_SCRIPT": "!能=[8035465] An error occured while installing the command line shortcut. Please try <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>these troubleshooting suggestions</a>.<br/><br/>Reason: {0}_=!",
-	"ERROR_CLTOOLS_RMFAILED": "!能=[8035463] Unable to remove existing <code>/usr/local/bin/brackets</code> symlink._=!",
-	"ERROR_CLTOOLS_MKDIRFAILED": "!能=[8035461] Unable to create <code>/usr/local/bin</code> directory._=!",
-	"ERROR_CLTOOLS_LNFAILED": "!能=[8035460] Unable to create <code>/usr/local/bin/brackets</code> symlink._=!",
+	"CREATING_LAUNCH_SCRIPT_TITLE": "{APP_NAME} コマンドラインショートカット",
+	"ERROR_CREATING_LAUNCH_SCRIPT": "コマンドラインショートカットのインストール中にエラーが発生しました。<a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>これらのトラブルシューティングの提案</a>をお試しください。<br/><br/>理由 : {0}",
+	"ERROR_CLTOOLS_RMFAILED": "既存の <code>/usr/local/bin/brackets</code> シンボリックリンクを削除できません。",
+	"ERROR_CLTOOLS_MKDIRFAILED": "<code>/usr/local/bin</code> ディレクトリを作成できません。",
+	"ERROR_CLTOOLS_LNFAILED": "<code>/usr/local/bin/brackets</code> シンボリックリンクを作成できません。",
 	"ERROR_CLTOOLS_SERVFAILED": "内部エラーです。",
-	"ERROR_CLTOOLS_NOTSUPPORTED": "!能=[8035462] Command line shortcut is not supported on this OS._=!",
-	"LAUNCH_SCRIPT_CREATE_SUCCESS": "!能=[8035467] Success! Now you can easily launch {APP_NAME} from the command line: <code>brackets myFile.txt</code> to open a file or <code>brackets myFolder</code> to switch projects. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Learn more</a> about using {APP_NAME} from the command line._=!",
+	"ERROR_CLTOOLS_NOTSUPPORTED": "この OS ではコマンドラインショートカットがサポートされていません。",
+	"LAUNCH_SCRIPT_CREATE_SUCCESS": "成功しました。{APP_NAME} をコマンドラインから簡単に起動できるようになりました (<code>brackets myFile.txt</code> でファイルを開く、<code>brackets myFolder</code> でプロジェクトを切り替えるなど)。<br/><br/>コマンドラインから {APP_NAME} を使用する方法について<a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>詳細</a>をご確認ください。",
 
 	"LANGUAGE_TITLE": "言語を切り替える",
 	"LANGUAGE_MESSAGE": "言語 :",
@@ -601,12 +601,12 @@ define({
 	"LANGUAGE_SYSTEM_DEFAULT": "システムのデフォルト",
 
     // extensions/default/HealthData
-	"HEALTH_DATA_NOTIFICATION": "!能=[8033839] Health Report Preferences_=!",
-	"HEALTH_FIRST_POPUP_TITLE": "Brackets の正常性レポート",
-	"HEALTH_DATA_DO_TRACK": "!能=[8033838] Share anonymous information on how I use Brackets_=!",
-	"HEALTH_DATA_NOTIFICATION_MESSAGE": "!能=[8033840] In order to improve Brackets, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use Brackets. This information helps prioritize features, find bugs, and spot usability issues.<br><br>You can see your data or choose not to share data by selecting <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about Brackets Health Report</a>_=!",
-	"HEALTH_DATA_PREVIEW": "Brackets の正常性レポート",
-	"HEALTH_DATA_PREVIEW_INTRO": "!能=[8073104] <p>In order to improve Brackets, we periodically send limited, <strong>anonymous</strong> statistics to Adobe about how you use Brackets. This information helps prioritize features, find bugs, and spot usability issues. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Learn more about Brackets Health Report</a> and how it benefits the Brackets community while protecting your privacy.</p><p>Below is a preview of the data that will be sent in your next Health Report <em>if</em> it is enabled.</p>_=!",
+	"HEALTH_DATA_NOTIFICATION": "Health Report Preferences",
+	"HEALTH_FIRST_POPUP_TITLE": "{APP_NAME} の正常性レポート",
+	"HEALTH_DATA_DO_TRACK": "{APP_NAME} の使用方法に関する情報を匿名で共有します",
+	"HEALTH_DATA_NOTIFICATION_MESSAGE": "{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>匿名の</strong>統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<br><br>お客様のデータを確認するには、または、データを共有しないように選択するには、<strong>ヘルプ／正常性レポート</strong>を選択してください。<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポートに関する詳細情報</a>",
+	"HEALTH_DATA_PREVIEW": "{APP_NAME} の正常性レポート",
+	"HEALTH_DATA_PREVIEW_INTRO": "<p>{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>匿名の</strong>統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポート</a>やこれが {APP_NAME} コミュニティでのプライバシーの保護にどのように役立つかについて詳細をご確認ください。</p><p>有効にした場合に、次回のお客様の正常性レポートで送信されるデータのプレビューを以下に示します。<em></em></p>",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "時間",

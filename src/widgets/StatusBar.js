@@ -145,7 +145,7 @@ define(function (require, exports, module) {
      * @param {string=} tooltip Sets the attribute "title" of the indicator.
      */
     function updateIndicator(id, visible, style, tooltip) {
-        if (!_init) {
+        if (!_init && !!brackets.test) {
             console.error("StatusBar API invoked before status bar created");
             return;
         }

@@ -139,7 +139,7 @@ define(function (require, exports, module) {
             entry.installInfo.updateAvailable   = true;
             // Calculate updateCompatible to check if there's an update for current version of Brackets
             var lastCompatibleVersionInfo = _.findLast(entry.registryInfo.versions, function (versionInfo) {
-                return semver.satisfies(brackets.metadata.apiVersion, versionInfo.brackets);
+                return !versionInfo.brackets || semver.satisfies(brackets.metadata.apiVersion, versionInfo.brackets);
             });
             if (lastCompatibleVersionInfo && lastCompatibleVersionInfo.version && semver.lt(currentVersion, lastCompatibleVersionInfo.version)) {
                 entry.installInfo.updateCompatible        = true;

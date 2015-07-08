@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         StringMatch          = brackets.getModule("utils/StringMatch"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
+        Strings              = brackets.getModule("strings"),
         ParameterHintManager = require("ParameterHintManager"),
         HintUtils            = require("HintUtils"),
         ScopeManager         = require("ScopeManager"),
@@ -57,16 +58,24 @@ define(function (require, exports, module) {
 
     
     // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
-    PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", []);
+    PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", [], {
+        description: Strings.DESCRIPTION_DETECTED_EXCLUSIONS
+    });
     
     // This preference controls when Tern will time out when trying to understand files
-    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 30000);
+    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 30000, {
+        description: Strings.DESCRIPTION_INFERENCE_TIMEOUT
+    });
     
     // This preference controls whether to prevent hints from being displayed when dot is typed
-    PreferencesManager.definePreference("jscodehints.noHintsOnDot", "boolean", false);
+    PreferencesManager.definePreference("jscodehints.noHintsOnDot", "boolean", false, {
+        description: Strings.DESCRIPTION_NO_HINTS_ON_DOT
+    });
     
     // This preference controls whether to create a session and process all JS files or not.
-    PreferencesManager.definePreference("codehint.JSHints", "boolean", true);
+    PreferencesManager.definePreference("codehint.JSHints", "boolean", true, {
+        description: Strings.DESCRIPTION_JS_HINTS
+    });
 
     /**
      * Check whether any of code hints preferences for JS Code Hints is disabled
