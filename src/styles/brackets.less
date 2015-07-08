@@ -56,10 +56,11 @@ html, body {
     
     &.platform-mac {
         // Use gray scale antialiasing for UI. Code view editor-holder
-        // overrides this to use subpixel antialiasing, which then
+        // overrides this to use subpixel antialiasing on Mac, which then
         // can be overridden by setting "fontSmoothing" preference to
-        // "antialiased". Gray scale AA is used for UI has SourceSansPro
-        // font does not look good with subpixel AA well on low res monitors.
+        // "antialiased". Gray scale AA is used for UI parts which use
+        // SourceSansPro font, which does't look good with subpixel AA,
+        // especially on low resolution monitors.
         -webkit-font-smoothing: antialiased;
     }
 

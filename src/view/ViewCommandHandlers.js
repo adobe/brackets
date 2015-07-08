@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: true, $ */
+/*global define, brackets: false, $ */
 
 /**
  * The ViewCommandHandlers object dispatches the following event(s):
@@ -269,7 +269,7 @@ define(function (require, exports, module) {
 
     /**
      * Font smoothing setter to set the anti-aliasing type for the code area on Mac.
-     * @param {string} aaType The antialiasing type to be set.It can take either "subpixel-antialiased" or "antialiased"
+     * @param {string} aaType The antialiasing type to be set. It can take either "subpixel-antialiased" or "antialiased"
      */
     function setMacFontSmoothingType(aaType) {
         var $editor_holder  = $("#editor-holder");
@@ -278,7 +278,7 @@ define(function (require, exports, module) {
         // default to subpixel AA in case of invalid entries.
         if (aaType === "antialiased") {
             $editor_holder.removeClass("subpixel-aa");
-        } else if (aaType === "subpixel-antialiased" || aaType !== "antialiased") {
+        } else {
             $editor_holder.addClass("subpixel-aa");
         }
     }
