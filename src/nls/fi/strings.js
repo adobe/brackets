@@ -389,7 +389,7 @@ define({
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automaattinen järjestys",
     "CMD_THEMES"                          : "Teemat\u2026",
 
-    // Navigate menu Commands
+    // Navigate menu commands
     "NAVIGATE_MENU"                       : "Siirry",
     "CMD_QUICK_OPEN"                      : "Pika-avaus",
     "CMD_GOTO_LINE"                       : "Siirry riville",
@@ -470,6 +470,8 @@ define({
     "INSTALL"                              : "Asenna",
     "UPDATE"                               : "Päivitä",
     "REMOVE"                               : "Poista",
+    "DISABLE"                              : "Poista käytöstä",
+    "ENABLE"                               : "Ota käyttöön",
     "OVERWRITE"                            : "Korvaa",
     "CANT_REMOVE_DEV"                      : "Kansion ”dev” laajennukset on poistettava käsin.",
     "CANT_UPDATE"                          : "Laajennus ei ole yhteensopiva tämän {APP_NAME}-version kanssa.",
@@ -538,15 +540,20 @@ define({
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Ei voitu poistaa yhtä tai useampaa laajennusta: {0}. {APP_NAME} latautuu silti uudelleen.",
     "EXTENSION_MANAGER_UPDATE"             : "Päivitä laajennus",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "Ei voitu päivittää yhtä tai useampaa laajennusta: {0}. {APP_NAME} latautuu silti uudelleen.",
+    "EXTENSION_MANAGER_DISABLE"            : "Poista laajennus käytöstä",
+    "EXTENSION_MANAGER_DISABLE_ERROR"      : "Ei voitu poistaa käytöstä yhtä tai useampaa laajennusta: {0}. {APP_NAME} latautuu silti uudelleen.",
     "MARKED_FOR_REMOVAL"                   : "Merkitty poistettavaksi",
     "UNDO_REMOVE"                          : "Kumoa",
     "MARKED_FOR_UPDATE"                    : "Merkitty päivitettäväksi",
     "UNDO_UPDATE"                          : "Kumoa",
+    "MARKED_FOR_DISABLING"                 : "Merkitty käytöstä poistettavaksi",
+    "UNDO_DISABLE"                         : "Kumoa",
     "CHANGE_AND_RELOAD_TITLE"              : "Muuta laajennuksia",
-    "CHANGE_AND_RELOAD_MESSAGE"            : "Jotta voit päivittää tai poistaa merkityt laajennukset, pitää {APP_NAME}in latautua uudelleen. Sinua muistutetaan tallentamattomien muutosten tallentamisesta.",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "Jotta voit päivittää, poistaa tai poistaa käytöstä merkityt laajennukset, pitää {APP_NAME}in latautua uudelleen. Sinua muistutetaan tallentamattomien muutosten tallentamisesta.",
     "REMOVE_AND_RELOAD"                    : "Poista laajennukset ja lataa uudelleen",
     "CHANGE_AND_RELOAD"                    : "Muuta laajennuksia ja lataa uudelleen",
     "UPDATE_AND_RELOAD"                    : "Päivitä laajennukset ja lataa uudelleen",
+    "DISABLE_AND_RELOAD"                   : "Poista laajennukset käytöstä ja lataa uudelleen",
     "PROCESSING_EXTENSIONS"                : "Käsitellään laajennusten muutoksia\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Laajennusta {0} ei voida poistaa, koska sitä ei ole asennettu.",
     "NO_EXTENSIONS"                        : "Laajennuksia ei ole vielä asennettu.<br>Aloita napsauttamalla Saatavilla-välilehteä yläpuolelta.",
@@ -750,4 +757,4 @@ define({
     "DESCRIPTION_FONT_SIZE"                          : "Vaihda fonttikokoa, esim. 13px"
 });
 
-/* Last translated for 867eb6afac5a68b47647af7a213dd1b5c4066789 */
+/* Last translated for 25011360b1ab86d893dbd9beca532932dca21e63 */
