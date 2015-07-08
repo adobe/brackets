@@ -356,6 +356,34 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Prioritizes the open file to the starting of the list of files
+     * @param {Array.<*>} files An array of file paths or file objects to sort
+     * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.
+     * @return {Array.<*>}
+     */
+    function prioritizeOpenFile(files, firstFile) {
+        var i, index = files.indexOf(firstFile);
+        if (index === -1) {
+            return files;
+        }
+        var temp = files[index];
+        for (i = index; i > 0; i--) {
+            files[i] = files[i - 1];
+        }
+        files[0] = temp;
+        return files;
+    }
+
+    /**
+     * Returns the path of the currently open file or null if there isn't one open
+     * @return {?string}
+     */
+    function getOpenFilePath() {
+        var currentDoc = DocumentManager.getCurrentDocument();
+        return currentDoc ? currentDoc.file.fullPath : null;
+    }
+
+    /**
      * Raises an event when the file filters applied to a search changes
      */
     function notifyFileFiltersChanged() {
@@ -375,6 +403,8 @@ define(function (require, exports, module) {
     exports.performReplacements             = performReplacements;
     exports.labelForScope                   = labelForScope;
     exports.parseQueryInfo                  = parseQueryInfo;
+    exports.prioritizeOpenFile              = prioritizeOpenFile;
+    exports.getOpenFilePath                 = getOpenFilePath;
     exports.ERROR_FILE_CHANGED              = "fileChanged";
 
     // event notification functions

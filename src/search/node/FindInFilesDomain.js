@@ -38,11 +38,13 @@ maxerr: 50, node: true */
     
     var results = {},
         numMatches = 0,
+        numFiles = 0,
         foundMaximum = false,
         exceedsMaximum = false,
         currentCrawlIndex = 0,
         savedSearchObject = null,
-        lastSearchedIndex = 0;
+        lastSearchedIndex = 0,
+        crawlComplete = false;
     
     function offsetToLineNum(textOrLines, offset) {
         if (Array.isArray(textOrLines)) {
@@ -254,6 +256,7 @@ maxerr: 50, node: true */
     }
     
     function fileCrawler() {
+        crawlComplete = false;
         if (!files || (files && files.length === 0)) {
             setTimeout(fileCrawler, 1000);
             return;
@@ -267,6 +270,7 @@ maxerr: 50, node: true */
             console.log("crawling scheduled");
             setImmediate(fileCrawler);
         } else {
+            crawlComplete = true;
             setTimeout(fileCrawler, 1000);
         }
     }
@@ -279,6 +283,34 @@ maxerr: 50, node: true */
         return true;
     }
     
+    function _countNumMatches(contents, queryExpr) {
+        if (!contents) {
+            console.log('NO contents');
+            return 0;
+        }
+        var matches = contents.match(queryExpr);
+        if (matches && isNaN(matches.length)) {
+            console.log('contents for nan' + contents);
+            console.log(JSON.stringify(matches));
+        }
+        return matches ? matches.length : 0;
+    }
+
+    function getNumMatches(fileList, queryExpr) {
+        console.log('getNumatches');
+        var i,
+            matches = 0;
+        for (i = 0; i < fileList.length; i++) {
+            var temp = _countNumMatches(getFileContentsForFile(fileList[i]), queryExpr);
+            if (temp) {
+                numFiles++;
+                matches += temp;
+            }
+        }
+        console.log('for completed' + matches);
+        return matches;
+    }
+
     function doSearch(searchObject) {
         console.log("doSearch");
         
@@ -289,6 +321,7 @@ maxerr: 50, node: true */
         }
         results = {};
         numMatches = 0;
+        numFiles = 0;
         foundMaximum = false;
         exceedsMaximum = false;
         var queryObject = parseQueryInfo(searchObject.queryInfo);
@@ -296,9 +329,13 @@ maxerr: 50, node: true */
             files = searchObject.files;
         }
         doSearchInFiles(files, queryObject.queryExpr, searchObject.startFileIndex, searchObject.maxResultsToReturn);
+        if (crawlComplete) {
+            numMatches = getNumMatches(files, queryObject.queryExpr);
+        }
         var send_object = {
             "results":  results,
             "numMatches": numMatches,
+            "numFiles" : numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
@@ -347,8 +384,8 @@ maxerr: 50, node: true */
         var send_object = {
             "results":  {},
             "numMatches": 0,
-            "foundMaximum":  false,
-            "exceedsMaximum":  false
+            "foundMaximum":  foundMaximum,
+            "exceedsMaximum":  exceedsMaximum
         };
         if (!savedSearchObject) {
             return send_object;
@@ -361,8 +398,8 @@ maxerr: 50, node: true */
         var send_object = {
             "results":  {},
             "numMatches": 0,
-            "foundMaximum":  false,
-            "exceedsMaximum":  false
+            "foundMaximum":  foundMaximum,
+            "exceedsMaximum":  exceedsMaximum
         };
         if (!savedSearchObject) {
             return send_object;
