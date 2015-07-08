@@ -279,7 +279,6 @@ define(function (require, exports, module) {
             searchModel.fireChanged(true);
         }
     }
-        
 
     /**
      * Checks that the file matches the given subtree scope. To fully check whether the file
@@ -411,6 +410,18 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+     /**
+     * Updates the result set with the files in the working set
+     */
+    function _updateResultsFromWorkingSet() {
+        var files = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES),
+            i = 0,
+            file = null;
+        for (i = 0; i < files.length; i = i + 1) {
+            _doSearchInOneFile(files[i]);
+        }
+    }
+
     /**
      * @private
      * Executes the Find in Files search inside the current scope.
@@ -434,13 +445,12 @@ define(function (require, exports, module) {
         return candidateFilesPromise
             .then(function (fileListResult) {
             
-            
-            
-//                fileListResult = FileFilters.filterFileList(filter, fileListResult);
-//                if (fileListResult.length) {
-//                    return Async.doInParallel(fileListResult, _doSearchInOneFile);
-            
-            
+                if (searchModel.isReplace) { //node Search
+                    fileListResult = FileFilters.filterFileList(filter, fileListResult);
+                    if (fileListResult.length) {
+                        return Async.doInParallel(fileListResult, _doSearchInOneFile);
+                    }
+                }
             
                 var searchDeferred = new $.Deferred();
                 // Filter out files/folders that match user's current exclusion filter
@@ -475,15 +485,21 @@ define(function (require, exports, module) {
                             "queryExpr": searchModel.queryExpr
                         };
                     }
+                    if (searchModel.isReplace) { //node Search
+                        searchObject.getAllResults = true;
+                    }
+
                     searchDomain.exec("doSearch", searchObject)
                         .done(function (rcvd_object) {
                             //console.log("NUMMM "  + filelistnum);
                             console.log('search completed');
                             searchModel.results = rcvd_object.results;
                             searchModel.numMatches = rcvd_object.numMatches;
-                            searchModel.foundMaximum = rcvd_object.foundMaximum;
-                            searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
-                            searchModel.allResultsAvailable = false;
+                            searchModel.numFiles = rcvd_object.numFiles;
+                            //searchModel.foundMaximum = rcvd_object.foundMaximum;
+                            //searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                            searchModel.allResultsAvailable = rcvd_object.allResultsAvailable;
+                            _updateResultsFromWorkingSet();
                             searchDeferred.resolve();
                         });
                     return searchDeferred.promise();
@@ -786,8 +802,8 @@ define(function (require, exports, module) {
                 if (rcvd_object.numMatches === 0) {
                     searchModel.allResultsAvailable = true;
                 }
-                searchModel.foundMaximum = rcvd_object.foundMaximum;
-                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                //searchModel.foundMaximum = rcvd_object.foundMaximum;
+                //searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                 searchModel.numFiles = rcvd_object.numFiles;
                 searchModel.fireChanged();
                 searchDeferred.resolve();
@@ -805,8 +821,9 @@ define(function (require, exports, module) {
                 //console.log("NUMMM "  + filelistnum);
                 searchModel.results = rcvd_object.results;
                 searchModel.numMatches = rcvd_object.numMatches;
-                searchModel.foundMaximum = rcvd_object.foundMaximum;
-                searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                searchModel.numFiles = rcvd_object.numFiles;
+                //searchModel.foundMaximum = rcvd_object.foundMaximum;
+                //searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                 searchModel.allResultsAvailable = true;
                 searchModel.fireChanged();
                 searchDeferred.resolve();

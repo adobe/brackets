@@ -328,6 +328,9 @@ maxerr: 50, node: true */
         if (searchObject.files) {
             files = searchObject.files;
         }
+        if (searchObject.getAllResults) {
+            searchObject.maxResultsToReturn = MAX_TOTAL_RESULTS;
+        }
         doSearchInFiles(files, queryObject.queryExpr, searchObject.startFileIndex, searchObject.maxResultsToReturn);
         if (crawlComplete) {
             numMatches = getNumMatches(files, queryObject.queryExpr);
@@ -339,6 +342,9 @@ maxerr: 50, node: true */
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
+        if (searchObject.getAllResults) {
+            send_object.allResultsAvailable = true;
+        }
         console.log("returning " + numMatches + "results");
         return send_object;
     }
@@ -405,7 +411,7 @@ maxerr: 50, node: true */
             return send_object;
         }
         savedSearchObject.startFileIndex = 0;
-        savedSearchObject.maxResultsToReturn = MAX_TOTAL_RESULTS;
+        savedSearchObject.getAllResults = true;
         return doSearch(savedSearchObject);
     }
 
