@@ -52,8 +52,8 @@ maxerr: 50, node: true */
         currentCrawlIndex = 0,
         crawlComplete = false,
         savedSearchObject = null,
-//        lastSearchedIndex = 0,
-        queryObject;
+        queryObject = {},
+        filesChanged = false;
     
     function offsetToLineNum(textOrLines, offset) {
         if (Array.isArray(textOrLines)) {
@@ -379,6 +379,7 @@ maxerr: 50, node: true */
 
     function doSearch(searchObject) {
         console.log("doSearch");
+        filesChanged = false;// On a fresh search we are starting from scratch anyway
         files = searchObject.files;
         currentPage = 0;
         evaluatedPages = 0;
@@ -414,6 +415,7 @@ maxerr: 50, node: true */
     }
     
     function removeFilesFromCache(updateObject) {
+        filesChanged = true;
         var fileList = updateObject.fileList || [],
             filesInSearchScope = updateObject.filesInSearchScope || [],
             i = 0;
@@ -427,6 +429,7 @@ maxerr: 50, node: true */
     }
 
     function addFilesToCache(updateObject) {
+        filesChanged = true;
         var fileList = updateObject.fileList || [],
             filesInSearchScope = updateObject.filesInSearchScope || [],
             i = 0,

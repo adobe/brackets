@@ -598,8 +598,8 @@ define(function (require, exports, module) {
                 filesRemoved([fullPath]);
                 filesChanged([fullPath.replace(oldName, newName)]);
 
-                searchModel.removeResults(fullPath);
-                searchModel.setResults(fullPath.replace(oldName, newName), item);
+                //searchModel.removeResults(fullPath); // node saerch
+                //searchModel.setResults(fullPath.replace(oldName, newName), item);
                 resultsChanged = true;
             }
         });
@@ -630,8 +630,8 @@ define(function (require, exports, module) {
                         (entry.isDirectory && fullPath.indexOf(entry.fullPath) === 0)) {
                     // node search : inform node that the file is removed
                     filesRemoved([fullPath]);
-                    searchModel.removeResults(fullPath);
-                    resultsChanged = true;
+                    //searchModel.removeResults(fullPath); // node saerch
+                    //resultsChanged = true;
                 }
             });
         }
@@ -671,13 +671,13 @@ define(function (require, exports, module) {
                 //node Search : inform node about the file changes
                 filesChanged(addedFilePaths);
 
-                // find additional matches in all added files
-                Async.doInParallel(addedFiles, function (file) {
-                    return _doSearchInOneFile(file)
-                        .done(function (foundMatches) {
-                            resultsChanged = resultsChanged || foundMatches;
-                        });
-                }).always(deferred.resolve);
+                // find additional matches in all added files :node search
+//                Async.doInParallel(addedFiles, function (file) {
+//                    return _doSearchInOneFile(file)
+//                        .done(function (foundMatches) {
+//                            resultsChanged = resultsChanged || foundMatches;
+//                        });
+//                }).always(deferred.resolve);
             });
     
             return deferred.promise();
