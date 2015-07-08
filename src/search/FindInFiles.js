@@ -456,6 +456,13 @@ define(function (require, exports, module) {
                             .map(function (entry) {
                                 return entry.fullPath;
                             });
+
+                        /* The following line is needed to sort the files for incremental search
+                         * otherwise the order of matches will be different than in complete one-go search
+                         * where sorting of matched files is done in SearchResultsView.
+                         * Temp- For comparing it with master, comment the following line. */
+                        files = FindUtils.prioritizeOpenFile(files, FindUtils.getOpenFilePath());
+
                         searchObject = {
                             "files": files,
                             "queryInfo": queryInfo,
@@ -775,12 +782,13 @@ define(function (require, exports, module) {
                 } else {
                     searchModel.results = rcvd_object.results;
                 }
-                searchModel.numMatches += rcvd_object.numMatches;
+                searchModel.numMatches = rcvd_object.numMatches;
                 if (rcvd_object.numMatches === 0) {
                     searchModel.allResultsAvailable = true;
                 }
                 searchModel.foundMaximum = rcvd_object.foundMaximum;
                 searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                searchModel.numFiles = rcvd_object.numFiles;
                 searchModel.fireChanged();
                 searchDeferred.resolve();
             });
