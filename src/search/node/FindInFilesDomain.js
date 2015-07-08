@@ -207,8 +207,8 @@ maxerr: 50, node: true */
                 offset = results[fullpath].matches.length - (numMatches - RESULTS_PER_PAGE);
                 results[fullpath].matches = results[fullpath].matches.slice(0, offset);
                 if (offset === RESULTS_PER_PAGE) {
-                    var i= currentPage-1; 
-                    while ((i>= 0) && resultSet[i][fullpath]) {
+                    var i = currentPage - 1;
+                    while ((i >= 0) && resultSet[i][fullpath]) {
                         offset += resultSet[i][fullpath].matches.length;
                         i--;
                     }

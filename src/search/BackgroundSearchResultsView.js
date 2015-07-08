@@ -407,9 +407,9 @@ define(function (require, exports, module) {
 //                i = self._currentStart - matchesCounter;
 //                matchesCounter = self._currentStart;
                 
-              } else if (matchesCounter < 0) {
-                    i = 0 - matchesCounter;
-                    matchesCounter = 0;
+            } else if (matchesCounter < 0) {
+                i = -matchesCounter;
+                matchesCounter = 0;
 
             // If we already skipped enough matches to get to the first match to display, we can start
             // displaying from the first match of this item
