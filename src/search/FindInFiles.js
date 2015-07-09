@@ -52,7 +52,9 @@ define(function (require, exports, module) {
         _nodePath       = "node/FindInFilesDomain",
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
         searchDomain     = new NodeDomain("FindInFiles", _domainPath),
-        fileFilterChanged = false;
+        searchScopeChanged = false,
+        findOrReplaceInProgress = false,
+        changedFileList = {};
     
     //var searchDomain = new NodeDomain("FindInFiles", _domainPath);
     
@@ -86,14 +88,12 @@ define(function (require, exports, module) {
     
     /** Add listeners to track events that might change the search result set */
     function _addListeners() {
-        if (searchModel.hasResults()) {
-            // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
-            _removeListeners();
-        
-            DocumentModule.on("documentChange", _documentChangeHandler);
-            FileSystem.on("change", _fileSystemChangeHandler);
-            DocumentManager.on("fileNameChange",  _fileNameChangeHandler);
-        }
+        // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
+        _removeListeners();
+
+        DocumentModule.on("documentChange", _documentChangeHandler);
+        FileSystem.on("change", _fileSystemChangeHandler);
+        DocumentManager.on("fileNameChange",  _fileNameChangeHandler);
     }
     
     /**
@@ -373,8 +373,12 @@ define(function (require, exports, module) {
      *      A change list as described in the Document constructor
      */
     _documentChangeHandler = function (event, document, change) {
-        if (_inSearchScope(document.file)) {
-            _updateResults(document, change);
+        if (!findOrReplaceInProgress) {
+            changedFileList[document.file.fullPath] = true;
+        } else {
+            if (_inSearchScope(document.file)) {
+                _updateResults(document, change);
+            }
         }
     };
     
@@ -410,15 +414,31 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+
+    //files added or removed
+    function updateDocumentInNode(docPath) {
+        //node search
+        DocumentManager.getDocumentForPath(docPath).done(function (doc) {
+            var updateObject = {
+                    "filePath": docPath,
+                    "docContents": doc.getText()
+                };
+            searchDomain.exec("documentChanged", updateObject);
+        });
+    }
+
      /**
      * Updates the result set with the files in the working set
      */
-    function _updateResultsFromWorkingSet() {
+    function _updateChangedDocs() {
         var files = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES),
             i = 0,
-            file = null;
-        for (i = 0; i < files.length; i = i + 1) {
-            _doSearchInOneFile(files[i]);
+            file = null,
+            key = null;
+        for (key in changedFileList) {
+            if (changedFileList.hasOwnProperty(key)) {
+                updateDocumentInNode(key);
+            }
         }
     }
 
@@ -448,6 +468,7 @@ define(function (require, exports, module) {
                 if (searchModel.isReplace) { //node Search
                     fileListResult = FileFilters.filterFileList(filter, fileListResult);
                     if (fileListResult.length) {
+                        searchModel.allResultsAvailable = true;
                         return Async.doInParallel(fileListResult, _doSearchInOneFile);
                     }
                 }
@@ -458,7 +479,7 @@ define(function (require, exports, module) {
                 
                 if (fileListResult.length) {
                     var searchObject;
-                    if (fileFilterChanged) {
+                    if (searchScopeChanged) {
                         var files = fileListResult
                             .filter(function (entry) {
                                 return entry.isFile && _isReadableText(entry.fullPath);
@@ -478,7 +499,7 @@ define(function (require, exports, module) {
                             "queryInfo": queryInfo,
                             "queryExpr": searchModel.queryExpr
                         };
-                        fileFilterChanged = false;
+                        searchScopeChanged = false;
                     } else {
                         searchObject = {
                             "queryInfo": queryInfo,
@@ -489,6 +510,7 @@ define(function (require, exports, module) {
                         searchObject.getAllResults = true;
                     }
 
+                    _updateChangedDocs();
                     searchDomain.exec("doSearch", searchObject)
                         .done(function (rcvd_object) {
                             //console.log("NUMMM "  + filelistnum);
@@ -499,7 +521,6 @@ define(function (require, exports, module) {
                             //searchModel.foundMaximum = rcvd_object.foundMaximum;
                             //searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                             searchModel.allResultsAvailable = rcvd_object.allResultsAvailable;
-                            _updateResultsFromWorkingSet();
                             searchDeferred.resolve();
                         });
                     return searchDeferred.promise();
@@ -519,8 +540,7 @@ define(function (require, exports, module) {
                 exports._searchDone = true; // for unit tests
                 PerfUtils.addMeasurement(perfTimer);
                 
-                // Listen for FS & Document changes to keep results up to date
-                _addListeners();
+                findOrReplaceInProgress = true;
                 
                 if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
                     return zeroFilesToken;
@@ -543,7 +563,7 @@ define(function (require, exports, module) {
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
      */
     function clearSearch() {
-        _removeListeners();
+        findOrReplaceInProgress = false;
         searchModel.clear();
     }
 
@@ -592,6 +612,11 @@ define(function (require, exports, module) {
         });
     }
     
+    var _searchScopeChanged = function () {
+        searchScopeChanged = true;
+    };
+
+
     //files added or removed
     function filesChanged(fileList) {
         //node search
@@ -600,6 +625,7 @@ define(function (require, exports, module) {
         };
         if (searchModel.filter) {
             updateObject.filesInSearchScope = FileFilters.getPathsMatchingFilter(searchModel.filter, fileList);
+            _searchScopeChanged();
         }
         searchDomain.exec("filesChanged", updateObject);
     }
@@ -611,6 +637,7 @@ define(function (require, exports, module) {
         };
         if (searchModel.filter) {
             updateObject.filesInSearchScope = FileFilters.getPathsMatchingFilter(searchModel.filter, fileList);
+            _searchScopeChanged();
         }
         searchDomain.exec("filesRemoved", updateObject);
     }
@@ -632,9 +659,11 @@ define(function (require, exports, module) {
                 filesRemoved([fullPath]);
                 filesChanged([fullPath.replace(oldName, newName)]);
 
-                searchModel.removeResults(fullPath);
-                searchModel.setResults(fullPath.replace(oldName, newName), item);
-                resultsChanged = true;
+                if (findOrReplaceInProgress) {
+                    searchModel.removeResults(fullPath);
+                    searchModel.setResults(fullPath.replace(oldName, newName), item);
+                    resultsChanged = true;
+                }
             }
         });
 
@@ -664,8 +693,10 @@ define(function (require, exports, module) {
                         (entry.isDirectory && fullPath.indexOf(entry.fullPath) === 0)) {
                     // node search : inform node that the file is removed
                     filesRemoved([fullPath]);
-                    searchModel.removeResults(fullPath);
-                    resultsChanged = true;
+                    if (findOrReplaceInProgress) {
+                        searchModel.removeResults(fullPath);
+                        resultsChanged = true;
+                    }
                 }
             });
         }
@@ -705,13 +736,15 @@ define(function (require, exports, module) {
                 //node Search : inform node about the file changes
                 filesChanged(addedFilePaths);
 
-                // find additional matches in all added files
-                Async.doInParallel(addedFiles, function (file) {
-                    return _doSearchInOneFile(file)
-                        .done(function (foundMatches) {
-                            resultsChanged = resultsChanged || foundMatches;
-                        });
-                }).always(deferred.resolve);
+                if (findOrReplaceInProgress) {
+                    // find additional matches in all added files
+                    Async.doInParallel(addedFiles, function (file) {
+                        return _doSearchInOneFile(file)
+                            .done(function (foundMatches) {
+                                resultsChanged = resultsChanged || foundMatches;
+                            });
+                    }).always(deferred.resolve);
+                }
             });
     
             return deferred.promise();
@@ -750,10 +783,6 @@ define(function (require, exports, module) {
             }
         });
     };
-    
-    var _fileFilterChanged = function () {
-        fileFilterChanged = true;
-    };
 
     var _initCache = function () {
         function filter(file) {
@@ -775,7 +804,9 @@ define(function (require, exports, module) {
                         console.log('cache created');
                     });
             });
-        _fileFilterChanged();
+        _searchScopeChanged();
+        //we always listen for filesytem changes.
+        _addListeners();
     };
 
 
@@ -784,6 +815,7 @@ define(function (require, exports, module) {
         if (searchModel.allResultsAvailable) {
             return searchDeferred.resolve().promise();
         }
+        _updateChangedDocs();
         searchDomain.exec("nextPage")
             .done(function (rcvd_object) {
                 //console.log("NUMMM "  + filelistnum);
@@ -816,6 +848,7 @@ define(function (require, exports, module) {
         if (searchModel.allResultsAvailable) {
             return searchDeferred.resolve().promise();
         }
+        _updateChangedDocs();
         searchDomain.exec("getAllResults")
             .done(function (rcvd_object) {
                 //console.log("NUMMM "  + filelistnum);
@@ -832,8 +865,8 @@ define(function (require, exports, module) {
     }
 
     ProjectManager.on("projectOpen", _initCache);
-    FindUtils.on(FindUtils.SEARCH_FILE_FILTERS_CHANGED, _fileFilterChanged);
-    FindUtils.on(FindUtils.SEARCH_SCOPE_CHANGED, _fileFilterChanged);
+    FindUtils.on(FindUtils.SEARCH_FILE_FILTERS_CHANGED, _searchScopeChanged);
+    FindUtils.on(FindUtils.SEARCH_SCOPE_CHANGED, _searchScopeChanged);
     
     // Public exports
     exports.searchModel          = searchModel;

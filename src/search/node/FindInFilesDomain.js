@@ -386,6 +386,10 @@ maxerr: 50, node: true */
         files.push.apply(files, newFiles);
     }
 
+    function documentChanged(updateObject) {
+        projectCache[updateObject.filePath] = updateObject.docContents;
+    }
+
     function getNextPage() {
         var send_object = {
             "results":  {},
@@ -471,6 +475,19 @@ maxerr: 50, node: true */
             [{name: "updateObject", // parameters
                 type: "object",
                 description: "Object containing list of changed files"}],
+            [{name: "searchResults", // return values
+                type: "object",
+                description: "Object containing results of the search"}]
+        );
+        domainManager.registerCommand(
+            "FindInFiles",       // domain name
+            "documentChanged",    // command name
+            documentChanged,   // command handler function
+            false,          // this command is synchronous in Node
+            "informs that the document changed and updates the cache",
+            [{name: "updateObject", // parameters
+                type: "object",
+                description: "with the contents of the object"}],
             [{name: "searchResults", // return values
                 type: "object",
                 description: "Object containing results of the search"}]
