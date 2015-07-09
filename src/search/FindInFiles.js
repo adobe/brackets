@@ -492,10 +492,12 @@ define(function (require, exports, module) {
                             searchModel.results = rcvd_object.results;
                             searchModel.numMatches = rcvd_object.numMatches;
                             searchModel.numFiles = rcvd_object.numFiles;
-                            //searchModel.foundMaximum = rcvd_object.foundMaximum;
-                            //searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+//                            searchModel.foundMaximum = rcvd_object.foundMaximum;
+                            searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                             searchModel.allResultsAvailable = rcvd_object.allResultsAvailable;
-                            _updateResultsFromWorkingSet();
+                            if (0) {
+                                _updateResultsFromWorkingSet();
+                            }
                             searchDeferred.resolve();
                         });
                     return searchDeferred.promise();
@@ -786,13 +788,13 @@ define(function (require, exports, module) {
                 } else {
                     searchModel.results = rcvd_object.results;
                 }
-                searchModel.numMatches = rcvd_object.numMatches;
-                if (rcvd_object.numMatches === 0) {
-                    searchModel.allResultsAvailable = true;
-                }
+//                searchModel.numMatches = rcvd_object.numMatches;
+//                if (rcvd_object.numMatches === 0) {
+//                    searchModel.allResultsAvailable = true;
+//                }
                 //searchModel.foundMaximum = rcvd_object.foundMaximum;
                 //searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
-                searchModel.numFiles = rcvd_object.numFiles;
+//                searchModel.numFiles = rcvd_object.numFiles;
                 searchModel.fireChanged();
                 searchDeferred.resolve();
             });

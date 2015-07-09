@@ -39,6 +39,7 @@ maxerr: 50, node: true */
     var results = {},
         numMatches = 0,
         numFiles = 0,
+        evaluatedMatches,
         foundMaximum = false,
         exceedsMaximum = false,
         currentCrawlIndex = 0,
@@ -187,14 +188,15 @@ maxerr: 50, node: true */
 
         results[fullpath] = resultInfo;
         numMatches += resultInfo.matches.length;
+        evaluatedMatches += resultInfo.matches.length;
         maxResultsToReturn = maxResultsToReturn || MAX_RESULTS_TO_RETURN;
-        if (numMatches >= maxResultsToReturn || numMatches >= MAX_TOTAL_RESULTS) {
+        if (numMatches >= maxResultsToReturn || evaluatedMatches > MAX_TOTAL_RESULTS) {
             foundMaximum = true;
 
             // Remove final result if there have been over MAX_TOTAL_RESULTS found
-            if (numMatches > maxResultsToReturn) {
-                results[fullpath].matches;
-                exceedsMaximum = true;
+            if (evaluatedMatches > MAX_TOTAL_RESULTS) {
+//                results[fullpath].matches;
+//                exceedsMaximum = true;
             }
         }
     }
@@ -305,12 +307,16 @@ maxerr: 50, node: true */
                 numFiles++;
                 matches += temp;
             }
+            if (matches > MAX_TOTAL_RESULTS) {
+                exceedsMaximum = true;
+                break;
+            }
         }
         console.log('for completed' + matches);
         return matches;
     }
 
-    function doSearch(searchObject) {
+    function doSearch(searchObject, nextPages) {
         console.log("doSearch");
         
         savedSearchObject = searchObject;
@@ -322,7 +328,10 @@ maxerr: 50, node: true */
         numMatches = 0;
         numFiles = 0;
         foundMaximum = false;
-        exceedsMaximum = false;
+        if (!nextPages) {
+            exceedsMaximum = false;
+            evaluatedMatches = 0;
+        }
         var queryObject = parseQueryInfo(searchObject.queryInfo);
         if (searchObject.files) {
             files = searchObject.files;
@@ -331,16 +340,22 @@ maxerr: 50, node: true */
             searchObject.maxResultsToReturn = MAX_TOTAL_RESULTS;
         }
         doSearchInFiles(files, queryObject.queryExpr, searchObject.startFileIndex, searchObject.maxResultsToReturn);
-        if (crawlComplete) {
+        if (crawlComplete && !nextPages) {
             numMatches = getNumMatches(files, queryObject.queryExpr);
         }
         var send_object = {
             "results":  results,
-            "numMatches": numMatches,
-            "numFiles" : numFiles,
+//            "numMatches": numMatches,
+//            "numFiles" : numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
+
+        if (!nextPages) {
+            send_object.numMatches = numMatches;
+            send_object.numFiles = numFiles;
+        }
+
         if (searchObject.getAllResults) {
             send_object.allResultsAvailable = true;
         }
@@ -396,7 +411,7 @@ maxerr: 50, node: true */
             return send_object;
         }
         savedSearchObject.startFileIndex = lastSearchedIndex;
-        return doSearch(savedSearchObject);
+        return doSearch(savedSearchObject, true);
     }
 
     function getAllResults() {
