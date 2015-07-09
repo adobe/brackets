@@ -193,8 +193,7 @@ maxerr: 50, node: true */
 
             // Remove final result if there have been over MAX_TOTAL_RESULTS found
             if (numMatches > maxResultsToReturn) {
-                results[fullpath].matches.pop();
-                numMatches--;
+                results[fullpath].matches;
                 exceedsMaximum = true;
             }
         }
