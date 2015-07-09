@@ -33,7 +33,6 @@ define(function (require, exports, module) {
     var _                     = require("thirdparty/lodash"),
         FileFilters           = require("search/FileFilters"),
         Async                 = require("utils/Async"),
-        AppInit               = require("utils/AppInit"),
         StringUtils           = require("utils/StringUtils"),
         ProjectManager        = require("project/ProjectManager"),
         DocumentModule        = require("document/Document"),
@@ -55,9 +54,7 @@ define(function (require, exports, module) {
         searchScopeChanged = false,
         findOrReplaceInProgress = false,
         changedFileList = {};
-    
-    //var searchDomain = new NodeDomain("FindInFiles", _domainPath);
-    
+
     /**
      * Token used to indicate a specific reason for zero search results
      * @const @type {!Object}
@@ -488,10 +485,8 @@ define(function (require, exports, module) {
                                 return entry.fullPath;
                             });
 
-                        /* The following line is needed to sort the files for incremental search
-                         * otherwise the order of matches will be different than in complete one-go search
-                         * where sorting of matched files is done in SearchResultsView.
-                         * Temp- For comparing it with master, comment the following line. */
+                        /* The following line prioritizes the open Document in editor and
+                         * pushes it to the top of the filelist. */
                         files = FindUtils.prioritizeOpenFile(files, FindUtils.getOpenFilePath());
 
                         searchObject = {
@@ -506,6 +501,7 @@ define(function (require, exports, module) {
                             "queryExpr": searchModel.queryExpr
                         };
                     }
+
                     if (searchModel.isReplace) { //node Search
                         searchObject.getAllResults = true;
                     }
@@ -524,14 +520,6 @@ define(function (require, exports, module) {
                             searchDeferred.resolve();
                         });
                     return searchDeferred.promise();
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
                 } else {
                     return ZERO_FILES_TO_SEARCH;
                 }
