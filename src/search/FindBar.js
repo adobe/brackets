@@ -294,7 +294,7 @@ define(function (require, exports, module) {
                     }
                 };
                 if (intervalId === 0) {
-                    intervalId = setInterval(executeSearchIfNeeded, 50);
+                    intervalId = setInterval(executeSearchIfNeeded, 250);
                 }
                 
                 
