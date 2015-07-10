@@ -303,15 +303,9 @@ define(function (require, exports, module) {
                         }
                     }
                 };
-                if (intervalId === 0 && !FindUtils.isInstantSearchDisabled()) { // clear timer and disable instant search
+                if (intervalId === 0) {
                     intervalId = setInterval(executeSearchIfNeeded, 50);
                 }
-//                if (!self._options.replace && !FindUtils.isInstantSearchDisabled() && self._options.multifile && !FindUtils.isNodeSearchInProgress()) {
-//                    if ($(e.target).is("#find-what")) {
-//                        console.log('search exec');
-//                        self.trigger("doFind");
-//                    }
-//                }
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
