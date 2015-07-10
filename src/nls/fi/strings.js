@@ -754,7 +754,6 @@ define({
     "DESCRIPTION_LINTING_COLLAPSED"                  : "True: pienennä tarkistuksen paneeli",
     "DESCRIPTION_FONT_FAMILY"                        : "Vaihda fonttiperhettä",
     "DESCRIPTION_FONT_SIZE"                          : "Vaihda fonttikokoa, esim. 13px",
-    
     "DESCRIPTION_FONT_SMOOTHING"                     : "Vain Mac: ota käyttöön alipikselien reunapehmennys valinnalla ”subpixel-antialiased” tai harmaansävyinen reunapehmennys valinnalla ”antialiased”",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "False: poista asetustiedoston avaaminen käytöstä jaetussa näkymässä",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "False: avaa käyttäjän asetustiedosto vasemmassa tai ylemmässä ruudussa",
