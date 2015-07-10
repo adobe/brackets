@@ -40,6 +40,10 @@ define(function (require, exports, module) {
         StringUtils     = require("utils/StringUtils"),
         _               = require("thirdparty/lodash");
     
+    var nodeSearchDisabled = false,
+        instantSearchDisabled = false,
+        nodeSearchCount = 0;
+
     EventDispatcher.makeEventDispatcher(exports);
 
     /**
@@ -386,6 +390,50 @@ define(function (require, exports, module) {
     }
 
     /**
+     * enable/disable instant search
+     * @param {boolean} disable true to disable node based search
+     */
+    function setInstantSearchDisabled(disable) {
+        instantSearchDisabled = disable;
+    }
+
+    /**
+     * if instant search is disabled, this will return true
+     */
+    function isInstantSearchDisabled() {
+        return instantSearchDisabled;
+    }
+
+    /**
+     * enable/disable node based search
+     * @param {boolean} disable true to disable node based search
+     */
+    function setNodeSearchDisabled(disable) {
+        setInstantSearchDisabled(disable);
+        nodeSearchDisabled = disable;
+    }
+
+    /**
+     * if node search is disabled, this will return true
+     */
+    function isNodeSearchDisabled() {
+        return nodeSearchDisabled;
+    }
+
+    /**
+     * check if a search is progressing in node
+     * @returns {Boolean} true if search is processing in node
+     */
+    function isNodeSearchInProgress() {
+        if (nodeSearchCount === 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+
+    /**
      * Raises an event when the file filters applied to a search changes
      */
     function notifyFileFiltersChanged() {
@@ -399,6 +447,22 @@ define(function (require, exports, module) {
         exports.trigger(exports.SEARCH_SCOPE_CHANGED);
     }
 
+    /**
+     * Notifies that a node search has started so that we FindUtils can figure out
+     * if any outstanding node search requests are pendind
+     */
+    function notifyNodeSearchStarted() {
+        nodeSearchCount++;
+    }
+
+    /**
+     * Notifies that a node search has finished so that we FindUtils can figure out
+     * if any outstanding node search requests are pendind
+     */
+    function notifyNodeSearchFinished() {
+        nodeSearchCount--;
+    }
+
     exports.parseDollars                    = parseDollars;
     exports.getInitialQuery                 = getInitialQuery;
     exports.hasCheckedMatches               = hasCheckedMatches;
@@ -407,11 +471,18 @@ define(function (require, exports, module) {
     exports.parseQueryInfo                  = parseQueryInfo;
     exports.prioritizeOpenFile              = prioritizeOpenFile;
     exports.getOpenFilePath                 = getOpenFilePath;
+    exports.setNodeSearchDisabled           = setNodeSearchDisabled;
+    exports.isNodeSearchDisabled            = isNodeSearchDisabled;
+    exports.setInstantSearchDisabled        = setInstantSearchDisabled;
+    exports.isInstantSearchDisabled         = isInstantSearchDisabled;
+    exports.isNodeSearchInProgress          = isNodeSearchInProgress;
     exports.ERROR_FILE_CHANGED              = "fileChanged";
 
     // event notification functions
     exports.notifyFileFiltersChanged        = notifyFileFiltersChanged;
     exports.notifySearchScopeChanged        = notifySearchScopeChanged;
+    exports.notifyNodeSearchStarted         = notifyNodeSearchStarted;
+    exports.notifyNodeSearchFinished        = notifyNodeSearchFinished;
 
     // events raised by FindUtils
     exports.SEARCH_FILE_FILTERS_CHANGED              = "fileFiltersChanged";
