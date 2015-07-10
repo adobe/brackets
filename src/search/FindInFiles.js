@@ -469,6 +469,8 @@ define(function (require, exports, module) {
                     if (fileListResult.length) {
                         searchModel.allResultsAvailable = true;
                         return Async.doInParallel(fileListResult, _doSearchInOneFile);
+                    } else {
+                        return ZERO_FILES_TO_SEARCH;
                     }
                 }
             
