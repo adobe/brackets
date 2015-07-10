@@ -207,12 +207,12 @@ define({
     "EXCLUDE_FILE_FILTER"               : "Ohita {0}",
     "EDIT_FILE_FILTER"                  : "Muokkaa\u2026",
     "FILE_FILTER_DIALOG"                : "Muokkaa ohitusjoukkoa",
-    "FILE_FILTER_INSTRUCTIONS"          : "Ohita tiedostoja ja kansioita, jotka täsmäävät jonkin kanssa seuraavista merkkijonoista taikka alimerkkijonoista tai <a href='{0}' title='{0}'>jokerimerkeistä</a>. Kirjoita kukin merkkijono uudelle riville.",
+    "FILE_FILTER_INSTRUCTIONS"          : "Ohita tiedostoja ja kansioita, jotka vastaavat mitä tahansa seuraavista merkkijonoista tai alimerkkijonoista. Voit käyttää myös <a href='{0}' title='{0}'>jokerimerkkiä</a>. Syötä kukin merkkijono uudelle riville.",
     "FILTER_NAME_PLACEHOLDER"           : "Tämän ohitusjoukon nimi (valinnainen)",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "ja {0} lisää",
     "FILTER_COUNTING_FILES"             : "Lasketaan tiedostoja\u2026",
-    "FILTER_FILE_COUNT"                 : "Sallii {0} projektin {1} tiedostosta",
-    "FILTER_FILE_COUNT_ALL"             : "Sallii kaikki projektin {0} tiedostoa",
+    "FILTER_FILE_COUNT"                 : "Sallii {0} yhteensä {1} tiedostosta {2}",
+    "FILTER_FILE_COUNT_ALL"             : "Sallii kaikki {0} tiedostoa {1}",
 
     // Quick Edit
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Pikamuokkaus ei ole saatavilla kohdistimen nykyiselle sijainnille",
