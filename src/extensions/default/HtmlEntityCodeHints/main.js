@@ -34,11 +34,14 @@ define(function (require, exports, module) {
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        Strings             = brackets.getModule("strings"),
         HtmlSpecialChars    = require("text!SpecialChars.json"),
         specialChars;
 
 
-    PreferencesManager.definePreference("codehint.SpecialCharHints", "boolean", true);
+    PreferencesManager.definePreference("codehint.SpecialCharHints", "boolean", true, {
+        description: Strings.DESCRIPTION_SPECIAL_CHAR_HINTS
+    });
 
     /**
      * Encodes the special Char value given. 
