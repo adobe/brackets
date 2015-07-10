@@ -244,6 +244,44 @@
     "view.restoreFontSize":  [
         "Ctrl-0"
     ],
+    "view.zoomIn":  [
+        {
+            "key": "Ctrl-Alt-=",
+            "displayKey": "Ctrl-Alt-+"
+        },
+        {
+            "key": "Ctrl-Alt-+",
+            "displayKey": "Ctrl-Alt-+"
+        },
+        {
+            "key": "Alt-=",
+            "displayKey": "Alt-+",
+            "platform": "mac"
+        },
+        {
+            "key": "Alt-+",
+            "platform": "mac"
+        }
+    ],
+    "view.zoomOut":  [
+        {
+            "key": "Ctrl-Alt--",
+            "displayKey": "Ctrl-Alt-−"
+        },
+        {
+            "key": "Alt--",
+            "platform": "mac"
+        }
+    ],
+    "view.resetZoom":  [
+        {
+            "key": "Ctrl-Alt-0"
+        },
+        {
+            "key": "Alt-0",
+            "platform": "mac"
+        }
+    ],
     "view.scrollLineUp":  [
         {
             "key": "Ctrl-Up",
