@@ -28,10 +28,11 @@ maxerr: 50, node: true */
 (function () {
     "use strict";
     
-    var fs = require("fs");
-    var projectCache = [];
-    var files;
-    var MAX_DISPLAY_LENGTH = 200,
+    var fs = require("fs"),
+        projectCache = [],
+        files,
+        _domainManager,
+        MAX_DISPLAY_LENGTH = 200,
         MAX_TOTAL_RESULTS = 100000, // only 100,000 search results are supported
         MAX_RESULTS_IN_A_FILE = MAX_TOTAL_RESULTS,
         MAX_RESULTS_TO_RETURN = 120;
@@ -45,7 +46,8 @@ maxerr: 50, node: true */
         currentCrawlIndex = 0,
         savedSearchObject = null,
         lastSearchedIndex = 0,
-        crawlComplete = false;
+        crawlComplete = false,
+        crawlEventSent = false;
     
     function offsetToLineNum(textOrLines, offset) {
         if (Array.isArray(textOrLines)) {
@@ -251,7 +253,6 @@ maxerr: 50, node: true */
     }
     
     function fileCrawler() {
-        crawlComplete = false;
         if (!files || (files && files.length === 0)) {
             setTimeout(fileCrawler, 1000);
             return;
@@ -263,9 +264,14 @@ maxerr: 50, node: true */
         }
         if (currentCrawlIndex < files.length) {
             console.log("crawling scheduled");
+            crawlComplete = false;
             setImmediate(fileCrawler);
         } else {
             crawlComplete = true;
+            if (!crawlEventSent) {
+                crawlEventSent = true;
+                _domainManager.emitEvent("FindInFiles", "crawlComplete");
+            }
             setTimeout(fileCrawler, 1000);
         }
     }
@@ -275,6 +281,7 @@ maxerr: 50, node: true */
         files = fileList;
         currentCrawlIndex = 0;
         clearProjectCache();
+        crawlEventSent = false;
         return true;
     }
     
@@ -412,6 +419,10 @@ maxerr: 50, node: true */
         return doSearch(savedSearchObject, true);
     }
 
+    /**
+     * Gets all the results for the saved search query if present or empty search results
+     * @returns {Object} The results object
+     */
     function getAllResults() {
         var send_object = {
             "results":  {},
@@ -428,13 +439,14 @@ maxerr: 50, node: true */
     }
 
     /**
-     * Initializes the test domain with several test commands.
-     * @param {DomainManager} domainManager The DomainManager for the server
+     * Initializes the test domain with commands and events related to find in files
+     * @param {DomainManager} domainManager The DomainManager for the find in files domain "FindInFiles"
      */
     function init(domainManager) {
         if (!domainManager.hasDomain("FindInFiles")) {
             domainManager.registerDomain("FindInFiles", {major: 0, minor: 1});
         }
+        _domainManager = domainManager;
         domainManager.registerCommand(
             "FindInFiles",       // domain name
             "doSearch",    // command name
@@ -472,20 +484,18 @@ maxerr: 50, node: true */
                 description: "Object containing search data"}],
             [{name: "searchResults", // return values
                 type: "object",
-                description: "Object containing results of the search"}]
+                description: "Object containing all results of the search"}]
         );
         domainManager.registerCommand(
             "FindInFiles",       // domain name
             "filesChanged",    // command name
             addFilesToCache,   // command handler function
             false,          // this command is synchronous in Node
-            "Searches in project files and returns matches",
+            "files in the project has been changed, update cache",
             [{name: "updateObject", // parameters
                 type: "object",
                 description: "Object containing list of changed files"}],
-            [{name: "searchResults", // return values
-                type: "object",
-                description: "Object containing results of the search"}]
+            []
         );
         domainManager.registerCommand(
             "FindInFiles",       // domain name
@@ -495,10 +505,8 @@ maxerr: 50, node: true */
             "informs that the document changed and updates the cache",
             [{name: "updateObject", // parameters
                 type: "object",
-                description: "with the contents of the object"}],
-            [{name: "searchResults", // return values
-                type: "object",
-                description: "Object containing results of the search"}]
+                description: "update with the contents of the object"}],
+            []
         );
         domainManager.registerCommand(
             "FindInFiles",       // domain name
@@ -509,9 +517,7 @@ maxerr: 50, node: true */
             [{name: "updateObject", // parameters
                 type: "object",
                 description: "Object containing list of removed files"}],
-            [{name: "searchResults", // return values
-                type: "object",
-                description: "Object containing results of the search"}]
+            []
         );
         domainManager.registerCommand(
             "FindInFiles",       // domain name
@@ -522,9 +528,12 @@ maxerr: 50, node: true */
             [{name: "fileList", // parameters
                 type: "Array",
                 description: "List of all project files - Path only"}],
-            [{name: "sdf", // return values
-                type: "boolean",
-                description: "don't know yet"}]
+            []
+        );
+        domainManager.registerEvent(
+            "FindInFiles",     // domain name
+            "crawlComplete",   // event name
+            []
         );
         setTimeout(fileCrawler, 5000);
     }
