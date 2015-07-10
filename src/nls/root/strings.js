@@ -746,7 +746,7 @@ define({
     "DESCRIPTION_FONT_FAMILY"                        : "Change font family",
     "DESCRIPTION_FONT_SIZE"                          : "Change font size; e.g, 13px",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "False to disable opening preferences file in split view",
-    "DESCRIPTION_OPEN_DEFULT_PREFS_IN_FIRST_PANE"     : "False to open preferences in right pane/bottom pane",
-    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported by brackets. \n * Use this as a reference to modify your own preferences file(brackets.json)\n * opened in the right-hand pane. \n * Refer to https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences \n * for more information on how to use preferences inside Brackets.\n */",
+    "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "False to open user preferences file in left/top pane",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported \n * by Brackets. \n * Use this file as a reference to modify your preferences \n * file \"brackets.json\" opened in the other pane. \n * For more information on how to use preferences inside \n * Brackets, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default"
 });

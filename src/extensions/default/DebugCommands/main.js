@@ -88,8 +88,8 @@ define(function (require, exports, module) {
         description: Strings.DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW
     });
     
-    prefs.definePreference("alwaysOpenUserPrefsinSecondPane",   "boolean", true, {
-        description: Strings.DESCRIPTION_OPEN_DEFULT_PREFS_IN_FIRST_PANE
+    prefs.definePreference("openUserPrefsInSecondPane",   "boolean", true, {
+        description: Strings.DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE
     });
 
     PreferencesManager.definePreference(DEBUG_SHOW_ERRORS_IN_STATUS_BAR, "boolean", false, {
@@ -288,7 +288,7 @@ define(function (require, exports, module) {
         
         // Exchange the panes, if default preferences need to be opened
         // in the right pane.
-        if (!prefs.get("alwaysOpenUserPrefsinSecondPane")) {
+        if (!prefs.get("openUserPrefsInSecondPane")) {
             DEFAULT_PREFS_PANE = "second-pane";
             USER_PREFS_PANE    = "first-pane";
         }
