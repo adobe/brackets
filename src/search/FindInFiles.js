@@ -74,7 +74,7 @@ define(function (require, exports, module) {
     var searchModel = new SearchModel();
     
     /* Forward declarations */
-    var _documentChangeHandler, _fileSystemChangeHandler, _fileNameChangeHandler;
+    var _documentChangeHandler, _fileSystemChangeHandler, _fileNameChangeHandler, clearSearch;
     
     /** Remove the listeners that were tracking potential search result changes */
     function _removeListeners() {
@@ -462,8 +462,10 @@ define(function (require, exports, module) {
         return candidateFilesPromise
             .then(function (fileListResult) {
             
-                if (searchModel.isReplace) { //node Search
-                    fileListResult = FileFilters.filterFileList(filter, fileListResult);
+                // Filter out files/folders that match user's current exclusion filter
+                fileListResult = FileFilters.filterFileList(filter, fileListResult);
+
+                if (searchModel.isReplace || FindUtils.isNodeSearchDisabled()) { //node Search
                     if (fileListResult.length) {
                         searchModel.allResultsAvailable = true;
                         return Async.doInParallel(fileListResult, _doSearchInOneFile);
@@ -471,8 +473,6 @@ define(function (require, exports, module) {
                 }
             
                 var searchDeferred = new $.Deferred();
-                // Filter out files/folders that match user's current exclusion filter
-                fileListResult = FileFilters.filterFileList(filter, fileListResult);
                 
                 if (fileListResult.length) {
                     var searchObject;
@@ -507,10 +507,18 @@ define(function (require, exports, module) {
                     }
 
                     _updateChangedDocs();
+                    FindUtils.notifyNodeSearchStarted();
                     searchDomain.exec("doSearch", searchObject)
                         .done(function (rcvd_object) {
-                            //console.log("NUMMM "  + filelistnum);
+                            FindUtils.notifyNodeSearchFinished();
                             console.log('search completed');
+                            if (!rcvd_object || !rcvd_object.results) {
+                                console.log('no node');
+                                FindUtils.setNodeSearchDisabled(true);
+                                searchDeferred.fail();
+                                clearSearch();
+                                return;
+                            }
                             searchModel.results = rcvd_object.results;
                             searchModel.numMatches = rcvd_object.numMatches;
                             searchModel.numFiles = rcvd_object.numFiles;
@@ -518,6 +526,12 @@ define(function (require, exports, module) {
                             //searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                             searchModel.allResultsAvailable = rcvd_object.allResultsAvailable;
                             searchDeferred.resolve();
+                        })
+                        .fail(function () {
+                            FindUtils.notifyNodeSearchFinished();
+                            console.log('node fails');
+                            FindUtils.setNodeSearchDisabled(true);
+                            clearSearch();
                         });
                     return searchDeferred.promise();
                 } else {
@@ -550,10 +564,10 @@ define(function (require, exports, module) {
      * Clears any previous search information, removing update listeners and clearing the model.
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
      */
-    function clearSearch() {
+    clearSearch = function () {
         findOrReplaceInProgress = false;
         searchModel.clear();
-    }
+    };
 
     /**
      * Does a search in the given scope with the given filter. Used when you want to start a search
@@ -804,10 +818,11 @@ define(function (require, exports, module) {
             return searchDeferred.resolve().promise();
         }
         _updateChangedDocs();
+        FindUtils.notifyNodeSearchStarted();
         searchDomain.exec("nextPage")
             .done(function (rcvd_object) {
-                //console.log("NUMMM "  + filelistnum);
                 console.log('search completed');
+                FindUtils.notifyNodeSearchFinished();
                 if (searchModel.results) {
                     var resultEntry;
                     for (resultEntry in rcvd_object.results ) {
@@ -827,6 +842,11 @@ define(function (require, exports, module) {
                 searchModel.numFiles = rcvd_object.numFiles;
                 searchModel.fireChanged();
                 searchDeferred.resolve();
+            })
+            .fail(function () {
+                FindUtils.notifyNodeSearchFinished();
+                console.log('node fails');
+                FindUtils.setNodeSearchDisabled(true);
             });
         return searchDeferred.promise();
     }
@@ -837,9 +857,11 @@ define(function (require, exports, module) {
             return searchDeferred.resolve().promise();
         }
         _updateChangedDocs();
+        FindUtils.notifyNodeSearchStarted();
         searchDomain.exec("getAllResults")
             .done(function (rcvd_object) {
                 //console.log("NUMMM "  + filelistnum);
+                FindUtils.notifyNodeSearchFinished();
                 searchModel.results = rcvd_object.results;
                 searchModel.numMatches = rcvd_object.numMatches;
                 searchModel.numFiles = rcvd_object.numFiles;
@@ -848,6 +870,11 @@ define(function (require, exports, module) {
                 searchModel.allResultsAvailable = true;
                 searchModel.fireChanged();
                 searchDeferred.resolve();
+            })
+            .fail(function () {
+                FindUtils.notifyNodeSearchFinished();
+                console.log('node fails');
+                FindUtils.setNodeSearchDisabled(true);
             });
         return searchDeferred.promise();
     }
@@ -857,14 +884,14 @@ define(function (require, exports, module) {
     FindUtils.on(FindUtils.SEARCH_SCOPE_CHANGED, _searchScopeChanged);
     
     // Public exports
-    exports.searchModel          = searchModel;
-    exports.doSearchInScope      = doSearchInScope;
-    exports.doReplace            = doReplace;
-    exports.getCandidateFiles    = getCandidateFiles;
-    exports.clearSearch          = clearSearch;
-    exports.ZERO_FILES_TO_SEARCH = ZERO_FILES_TO_SEARCH;
+    exports.searchModel            = searchModel;
+    exports.doSearchInScope        = doSearchInScope;
+    exports.doReplace              = doReplace;
+    exports.getCandidateFiles      = getCandidateFiles;
+    exports.clearSearch            = clearSearch;
+    exports.ZERO_FILES_TO_SEARCH   = ZERO_FILES_TO_SEARCH;
     exports.getNextPageofSearchResults          = getNextPageofSearchResults;
-    exports.getAllSearchResults  = getAllSearchResults;
+    exports.getAllSearchResults    = getAllSearchResults;
     
     // For unit tests only
     exports._documentChangeHandler = _documentChangeHandler;

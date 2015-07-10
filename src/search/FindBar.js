@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         PreferencesManager = require("preferences/PreferencesManager"),
         MainViewManager    = require("view/MainViewManager"),
         Strings            = require("strings"),
-        ViewUtils          = require("utils/ViewUtils");
+        ViewUtils          = require("utils/ViewUtils"),
+        FindUtils          = require("search/FindUtils");
     
     /**
      * @private
@@ -275,12 +276,21 @@ define(function (require, exports, module) {
                 var d = new Date();
                 lastTypedTime = d.getTime();
                 var executeSearchIfNeeded = function () {
+                    console.log("instant" + Date());
+                    if (FindUtils.isInstantSearchDisabled()) {
+                        if (intervalId) {
+                            clearInterval(intervalId);
+                            intervalId = 0;
+                        }
+                        return;
+                    }
                     if (self._closed) {
                         return;
                     }
                     d = new Date();
                     currentTime = d.getTime();
-                    if (lastTypedTime && (currentTime - lastTypedTime >= 100) && !hasSearchedForCurrentText) {
+                    if (lastTypedTime && (currentTime - lastTypedTime >= 100) && !hasSearchedForCurrentText &&
+                            !FindUtils.isNodeSearchInProgress()) {
                         // init Search
                         if (self._options.multifile) {
                             if ($(e.target).is("#find-what")) {
@@ -293,11 +303,15 @@ define(function (require, exports, module) {
                         }
                     }
                 };
-                if (intervalId === 0) {
+                if (intervalId === 0 && !FindUtils.isInstantSearchDisabled()) { // clear timer and disable instant search
                     intervalId = setInterval(executeSearchIfNeeded, 50);
                 }
-                
-                
+//                if (!self._options.replace && !FindUtils.isInstantSearchDisabled() && self._options.multifile && !FindUtils.isNodeSearchInProgress()) {
+//                    if ($(e.target).is("#find-what")) {
+//                        console.log('search exec');
+//                        self.trigger("doFind");
+//                    }
+//                }
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
