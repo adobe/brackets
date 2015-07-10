@@ -91,7 +91,6 @@ define(function (require, exports, module) {
                     if (_findBar) {
                         var showMessage = false;
                         _findBar.enable(true);
-                        //_findBar.focusQuery(); if no instant node search
                         if (zeroFilesToken === FindInFiles.ZERO_FILES_TO_SEARCH) {
                             _findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, FindUtils.labelForScope(FindInFiles.searchModel.scope)), true);
                         } else {

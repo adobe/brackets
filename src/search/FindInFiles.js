@@ -93,6 +93,10 @@ define(function (require, exports, module) {
         DocumentManager.on("fileNameChange",  _fileNameChangeHandler);
     }
     
+    function nodeFileCacheComplete() {
+        FindUtils.setInstantSearchDisabled(false);
+    }
+
     /**
      * @private
      * Searches through the contents and returns an array of matches
@@ -792,7 +796,7 @@ define(function (require, exports, module) {
         function filter(file) {
             return _subtreeFilter(file, null) && _isReadableText(file.fullPath);
         }
-        
+        FindUtils.setInstantSearchDisabled(true);
         ProjectManager.getAllFiles(filter, true)
             .done(function (fileListResult) {
                 var files = fileListResult
@@ -884,6 +888,7 @@ define(function (require, exports, module) {
     ProjectManager.on("projectOpen", _initCache);
     FindUtils.on(FindUtils.SEARCH_FILE_FILTERS_CHANGED, _searchScopeChanged);
     FindUtils.on(FindUtils.SEARCH_SCOPE_CHANGED, _searchScopeChanged);
+    searchDomain.on("crawlComplete", nodeFileCacheComplete);
     
     // Public exports
     exports.searchModel            = searchModel;
