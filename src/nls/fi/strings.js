@@ -248,7 +248,7 @@ define({
     "GEAR_MENU_TOOLTIP"         : "Määritä työlista",
 
     "SPLITVIEW_INFO_TITLE"              : "Jo avoinna",
-    "SPLITVIEW_MULTIPANE_WARNING"       : "Tiedosto on jo avattuna toisessa ruudussa. {APP_NAME} tukee pian saman tiedoston avaamista useammassa kuin yhdessä ruudussa. Siihen asti tiedosto näytetään ruudussa, jossa se on jo auki.<br /><br />(Näet tämän viestin vain kerran.)",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Tiedosto on jo auki toisessa ruudussa. {APP_NAME} tukee pian saman tiedoston avaamista useammassa kuin yhdessä ruudussa. Siihen asti tiedosto näytetään ruudussa, jossa se on jo auki.<br /><br />(Näet tämän viestin vain kerran.)",
 
     /**
      * Keyboard modifier names
@@ -402,8 +402,8 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Uusi sääntö",
     "CMD_NEXT_DOC"                        : "Seuraava dokumentti",
     "CMD_PREV_DOC"                        : "Edellinen dokumentti",
-    "CMD_NEXT_DOC_LIST_ORDER"             : "Seuraava dokumentti (listajärjestys)",
-    "CMD_PREV_DOC_LIST_ORDER"             : "Edellinen dokumentti (listajärjestys)",
+    "CMD_NEXT_DOC_LIST_ORDER"             : "Seuraava dokumentti listassa",
+    "CMD_PREV_DOC_LIST_ORDER"             : "Edellinen dokumentti listassa",
     "CMD_SHOW_IN_TREE"                    : "Näytä tiedostopuussa",
     "CMD_SHOW_IN_EXPLORER"                : "Näytä Resurssienhallinnassa",
     "CMD_SHOW_IN_FINDER"                  : "Näytä Finderissä",
@@ -454,7 +454,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei voi sisältää ristikkomerkkejä, kuten ”{0}”.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkkkien, kuten ’{0}’, täytyy olla %-koodattu.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Tuntematon virhe URL-osoitteen jäsentämisessä",
-    "EMPTY_VIEW_HEADER"                    : "<em>Avaa tiedosto tämän näkymän ollessa valittuna</em>",
+    "EMPTY_VIEW_HEADER"                    : "<em>Avaa tiedosto tämän ruudun ollessa valittuna</em>",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Nykyinen teema",
@@ -575,7 +575,6 @@ define({
     /**
      * Unit names
      */
-
     "UNIT_PIXELS"                          : "pikseliä",
 
     // extensions/default/DebugCommands
@@ -754,7 +753,13 @@ define({
     "DESCRIPTION_USE_THEME_SCROLLBARS"               : "True: salli mukautetut vierityspalkit",
     "DESCRIPTION_LINTING_COLLAPSED"                  : "True: pienennä tarkistuksen paneeli",
     "DESCRIPTION_FONT_FAMILY"                        : "Vaihda fonttiperhettä",
-    "DESCRIPTION_FONT_SIZE"                          : "Vaihda fonttikokoa, esim. 13px"
+    "DESCRIPTION_FONT_SIZE"                          : "Vaihda fonttikokoa, esim. 13px",
+    
+    "DESCRIPTION_FONT_SMOOTHING"                     : "Vain Mac: ota käyttöön alipikselien reunapehmennys valinnalla ”subpixel-antialiased” tai harmaansävyinen reunapehmennys valinnalla ”antialiased”",
+    "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "False: poista asetustiedoston avaaminen käytöstä jaetussa näkymässä",
+    "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "False: avaa käyttäjän asetustiedosto vasemmassa tai ylemmässä ruudussa",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Tämä on vain luku -tiedosto Bracketsin tukemista \n * asetuksista. \n * Käytä tätä apuna, kun muutat asetustiedostoasi \n * ”brackets.json”, joka on avattu toiseen ruutuun. \n * Lisätietoa siitä, kuinka käyttää asetuksia Bracketsissa, \n * löydät verkkosivulta osoitteessa https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Oletus"
 });
 
-/* Last translated for 25011360b1ab86d893dbd9beca532932dca21e63 */
+/* Last translated for d1a5c5c01a538b819eb948360e2fb2593990953e */
