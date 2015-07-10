@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, brackets */
 
 define(function (require, exports, module) {
     "use strict";
@@ -369,13 +369,56 @@ define(function (require, exports, module) {
      * @return {Array.<*>}
      */
     function getSortedFiles(files, getPath, firstFile) {
-        return files.sort(function (file1, file2) {
-            if (firstFile === getPath(file1)) {
+        // Map to array with position and sort values so paths are only
+        // split and converted to lower-case once (not on every comparison)
+        var mapped = files.map(function (el, i) {
+            var path = getPath(el),
+                pathParts = path.split("/");
+            pathParts.forEach(function (item) {
+                item = item.toLowerCase();
+            });
+            return {
+                index: i,
+                path: path,
+                pathParts: pathParts,
+                folders: pathParts.length - 1
+            };
+        });
+
+        // Sort the mapped array containing the sort values
+        var lang = brackets.getLocale();
+        mapped.sort(function (a, b) {
+            if (firstFile === a.path) {
                 return -1;
-            } else if (firstFile === getPath(file2)) {
+            } else if (firstFile === b.path) {
                 return 1;
             }
-            return FileUtils.comparePaths(getPath(file1), getPath(file2));
+
+            // Refactored from FileUtils comparePaths(). No need to use compareFilenames()
+            // which does extra processing for Working Set sorting.
+            var entryName1, entryName2,
+                length = Math.min(a.pathParts.length, b.pathParts.length),
+                index  = 0;
+            while (index < length) {
+                entryName1 = a.pathParts[index];
+                entryName2 = b.pathParts[index];
+
+                if (entryName1 !== entryName2) {
+                    if (index < a.folders && index < b.folders) {
+                        return entryName1.localeCompare(entryName2);
+                    } else if (index >= a.folders && index >= b.folders) {
+                        return entryName1.localeCompare(entryName2, lang, {numeric: true});
+                    }
+                    return (index >= a.folders && index < b.folders) ? -1 : 1;
+                }
+                index++;
+            }
+            return 0;
+        });
+
+        // Return the resulting order
+        return mapped.map(function (el) {
+            return files[el.index];
         });
     }
 
