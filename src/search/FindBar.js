@@ -276,7 +276,6 @@ define(function (require, exports, module) {
                 var d = new Date();
                 lastTypedTime = d.getTime();
                 var executeSearchIfNeeded = function () {
-                    console.log("instant" + Date());
                     if (FindUtils.isInstantSearchDisabled()) {
                         if (intervalId) {
                             clearInterval(intervalId);
