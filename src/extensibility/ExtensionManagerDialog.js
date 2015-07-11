@@ -337,6 +337,7 @@ define(function (require, exports, module) {
             $search.val("");
             views.forEach(function (view, index) {
                 view.filter("");
+                $(".modal-body", $dlg).scrollTop(0);
             });
 
             if (!updateSearchDisabled()) {
@@ -456,6 +457,7 @@ define(function (require, exports, module) {
                 var query = $(this).val();
                 views.forEach(function (view) {
                     view.filter(query);
+                    $(".modal-body", $dlg).scrollTop(0);
                 });
             }).on("click", ".search-clear", clearSearch);
             
