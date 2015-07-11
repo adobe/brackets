@@ -463,8 +463,8 @@ define(function (require, exports, module) {
      * @param {boolean} enable Whether to enable or disable the controls.
      */
     FindBar.prototype.enable = function (enable) {
-//        this.$("#find-what, #replace-with, #find-prev, #find-next, #find-case-sensitive, #find-regexp").prop("disabled", !enable);
-//        this._enabled = enable;
+        this.$("#find-what, #replace-with, #find-prev, #find-next, #find-case-sensitive, #find-regexp").prop("disabled", !enable);
+        this._enabled = enable;
     };
     
     FindBar.prototype.focus = function (enable) {

@@ -523,7 +523,7 @@ define(function (require, exports, module) {
                             FindUtils.notifyNodeSearchFinished();
                             console.log('search completed');
                             if (!rcvd_object || !rcvd_object.results) {
-                                console.log('no node');
+                                console.log('no node falling back to brackets search');
                                 FindUtils.setNodeSearchDisabled(true);
                                 searchDeferred.fail();
                                 clearSearch();
