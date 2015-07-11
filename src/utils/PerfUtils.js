@@ -304,39 +304,47 @@ define(function (require, exports, module) {
     }
 
     /**
-     * return single value, or coma separated values for an array or return aggregated values with
+     * return single value, or comma separated values for an array or return aggregated values with
      * <min value, average, max value, standard deviation>
      * @param   {Array}    entry          An array or a single value
      * @param   {Boolean} aggregateStats If set, the returned value will be aggregated in the form -
      *                                   <min(avg)max[standard deviation]>
-     * @returns {String}   a single value, or coma separated values in an array or
+     * @returns {String}   a single value, or comma separated values in an array or
      *                     <min(avg)max[standard deviation]> if aggregateStats is set
      */
     var getValueAsString = function (entry, aggregateStats) {
-        if (!Array.isArray(entry)) {
-            return entry;
-        }
+        if (Array.isArray(entry)) {
+            var i, values = "", min = entry[0], max = entry[0], avg = 0, sum = 0, sd = 0;
 
-        if (aggregateStats) {
-            var sum     = _.sum(entry),
-                avg     = Math.round(sum / entry.length),
-                min     = _.min(entry),
-                max     = _.max(entry),
-                sd,
-                varSum  = 0;
-            
-            entry.forEach(function (value) {
-                varSum += Math.pow(value - avg, 2);
-            });
-            sd = Math.round(Math.sqrt(varSum / entry.length));
-            return min + "(" + avg + ")" + max + "[" + sd + "]";
+            for (i = 0; i < entry.length; i++) {
+                sum = sum + entry[i];
+                values += entry[i];
+                if (i < entry.length - 1) {
+                    values += ", ";
+                }
+            }
+            if (aggregateStats) {
+                avg = Math.round(sum / entry.length);
+                sum = 0;
+                for (i = 0; i < entry.length; i++) {
+                    sum = sum + Math.pow((entry[i] - avg), 2);
+                    if (entry[i] < min) {
+                        min = entry[i];
+                    } else if (entry[i] > max) {
+                        max = entry[i];
+                    }
+                }
+                sd = Math.round(Math.sqrt(sum / entry.length));
+                return min + "(" + avg + ")" + max + "[" + sd + "]";
+            }
+            return values;
         } else {
-            return entry.join(", ");
+            return entry;
         }
     };
 
     /**
-     * Returns the performance data as a tab deliminted string
+     * Returns the performance data as a tab delimited string
      * @return {string}
      */
     function getDelimitedPerfData() {
@@ -376,9 +384,9 @@ define(function (require, exports, module) {
             } else if (StringUtils.startsWith(testName, "brackets module dependencies resolved")) {
                 healthReport.ModuleDepsResolved = getValueAsString(entry);
             } else if (StringUtils.startsWith(testName, "Load Project")) {
-                healthReport.projectLoadTimes = healthReport.projectLoadTimes + ":" + getValueAsString(entry, true);
+                healthReport.projectLoadTimes += ":" + getValueAsString(entry, true);
             } else if (StringUtils.startsWith(testName, "Open File")) {
-                healthReport.fileOpenTimes = healthReport.fileOpenTimes + ":" + getValueAsString(entry, true);
+                healthReport.fileOpenTimes += ":" + getValueAsString(entry, true);
             }
         });
 

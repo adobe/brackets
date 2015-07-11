@@ -22,10 +22,10 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, jQuery*/
+/*global define, $*/
 
 /**
- *  Utilities functions related to Health data loggig
+ *  Utilities functions related to Health Data logging
  */
 define(function (require, exports, module) {
     "use strict";
@@ -47,7 +47,7 @@ define(function (require, exports, module) {
 
     /**
      * All the logging functions should be disabled if this returns false
-     * @returns {Boolean} true if health data can be logged
+     * @returns {boolean} true if health data can be logged
      */
     function shouldLogHealthData() {
         return logHealthData;
@@ -62,21 +62,21 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Return all health data logged till now stored in the state prefs
+     * @returns {Object} Health Data aggregated till now
+     */
+    function getStoredHealthData() {
+        return PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY);
+    }
+
+    /**
      * Return the aggregate of all health data logged till now from all sources
      * @returns {Object} Health Data aggregated till now
      */
     function getAggregatedHealthData() {
-        var healthData = PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY);
-        jQuery.extend(healthData, getPerformanceData());
+        var healthData = getStoredHealthData();
+        $.extend(healthData, getPerformanceData());
         return healthData;
-    }
-
-    /**
-     * Return all health data logged till now stored in the state prefs
-     * @returns {Object} Health Data aggregated till now
-     */
-    function getHealthData() {
-        return PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY);
     }
 
     /**
@@ -95,7 +95,7 @@ define(function (require, exports, module) {
      * @returns {Object} Health Data object for the key or undefined if no health data stored
      */
     function getHealthDataLog(key) {
-        var healthData = getHealthData();
+        var healthData = getStoredHealthData();
         return healthData[key];
     }
 
@@ -104,7 +104,7 @@ define(function (require, exports, module) {
      * @param {Object} dataObject The object to be stored as health data for the key
      */
     function setHealthDataLog(key, dataObject) {
-        var healthData = getHealthData();
+        var healthData = getStoredHealthData();
         healthData[key] = dataObject;
         setHealthData(healthData);
     }
@@ -120,7 +120,7 @@ define(function (require, exports, module) {
 
     /**
      * Enable or disable health data logs
-     * @param {Boolean} enabled true to enable health logs
+     * @param {boolean} enabled true to enable health logs
      */
     function setHealthLogsEnabled(enabled) {
         logHealthData = enabled;
@@ -130,10 +130,10 @@ define(function (require, exports, module) {
     }
 
     /**
-     * When ever a file is opened call this function. The function will record the number of times
+     * Whenever a file is opened call this function. The function will record the number of times
      * the standard file types have been opened. We only log the standard filetypes
      * @param {String} filePath          The path of the file to be registered
-     * @param {Boolean} addedToWorkingSet set to true if extensions of files added to the
+     * @param {boolean} addedToWorkingSet set to true if extensions of files added to the
      *                                    working set needs to be logged
      */
     function fileOpened(filePath, addedToWorkingSet) {
@@ -142,17 +142,18 @@ define(function (require, exports, module) {
         }
         var fileExtension = FileUtils.getFileExtension(filePath),
             language = LanguageManager.getLanguageForPath(filePath),
-            healthData = getHealthData();
+            healthData = getStoredHealthData(),
+            fileExtCountMap = [];
         healthData.fileStats = healthData.fileStats || {
             openedFileExt     : {},
             workingSetFileExt : {}
         };
         if (language.getId() !== "unknown") {
-            if (addedToWorkingSet) {
-                healthData.fileStats.workingSetFileExt[fileExtension] = healthData.fileStats.workingSetFileExt[fileExtension] ? healthData.fileStats.workingSetFileExt[fileExtension] + 1 : 1;
-            } else {
-                healthData.fileStats.openedFileExt[fileExtension] = healthData.fileStats.openedFileExt[fileExtension] ? healthData.fileStats.openedFileExt[fileExtension] + 1 : 1;
+            fileExtCountMap = addedToWorkingSet ? healthData.fileStats.workingSetFileExt : healthData.fileStats.openedFileExt;
+            if (!fileExtCountMap[fileExtension]) {
+                fileExtCountMap[fileExtension] = 0;
             }
+            fileExtCountMap[fileExtension]++;
             setHealthData(healthData);
         }
     }
