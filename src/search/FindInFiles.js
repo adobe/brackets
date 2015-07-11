@@ -95,6 +95,10 @@ define(function (require, exports, module) {
     
     function nodeFileCacheComplete() {
         FindUtils.setInstantSearchDisabled(false);
+        // Node search could be disabled if some error has happened in node. But upon
+        // project change, if we get this message, then it means that node search is working,
+        // we we re enable node search. If a search fails, node search will be switched off eventually.
+        FindUtils.setNodeSearchDisabled(false);
     }
 
     /**

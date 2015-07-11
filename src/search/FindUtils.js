@@ -27,24 +27,49 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Async           = require("utils/Async"),
-        DocumentManager = require("document/DocumentManager"),
-        MainViewManager = require("view/MainViewManager"),
-        FileSystem      = require("filesystem/FileSystem"),
-        FileUtils       = require("file/FileUtils"),
-        FileFilters     = require("search/FileFilters"),
-        FindBar         = require("search/FindBar").FindBar,
-        ProjectManager  = require("project/ProjectManager"),
-        EventDispatcher = require("utils/EventDispatcher"),
-        Strings         = require("strings"),
-        StringUtils     = require("utils/StringUtils"),
-        _               = require("thirdparty/lodash");
+    var Async               = require("utils/Async"),
+        DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
+        FileSystem          = require("filesystem/FileSystem"),
+        FileUtils           = require("file/FileUtils"),
+        FileFilters         = require("search/FileFilters"),
+        FindBar             = require("search/FindBar").FindBar,
+        ProjectManager      = require("project/ProjectManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        EventDispatcher     = require("utils/EventDispatcher"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
+        _                   = require("thirdparty/lodash");
     
     var nodeSearchDisabled = false,
         instantSearchDisabled = false,
         nodeSearchCount = 0;
 
     EventDispatcher.makeEventDispatcher(exports);
+
+    // define preferences for find in files
+    PreferencesManager.definePreference("findInFiles.nodeSearch", "boolean", true, {
+        description: Strings.DESCRIPTION_FIND_IN_FILES_NODE
+    });
+    PreferencesManager.definePreference("findInFiles.instantSearch", "boolean", true, {
+        description: Strings.DESCRIPTION_FIND_IN_FILES_INSTANT
+    });
+
+    /**
+     * returns true if the used disabled node based search in his preferences
+     * @returns {boolean}
+     */
+    function _prefNodeSearchDisabled() {
+        return !PreferencesManager.get("findInFiles.nodeSearch");
+    }
+
+    /**
+     * returns true if the used instant search in his preferences
+     * @returns {boolean}
+     */
+    function _prefInstantSearchDisabled() {
+        return !PreferencesManager.get("findInFiles.instantSearch");
+    }
 
     /**
      * Given a replace string that contains $-expressions, replace them with data from the given
@@ -398,10 +423,11 @@ define(function (require, exports, module) {
     }
 
     /**
-     * if instant search is disabled, this will return true
+     * if instant search is disabled, this will return true we can only do instant search through node
+     * @returns {boolean}
      */
     function isInstantSearchDisabled() {
-        return instantSearchDisabled;
+        return _prefNodeSearchDisabled() || _prefInstantSearchDisabled() || nodeSearchDisabled || instantSearchDisabled;
     }
 
     /**
@@ -409,15 +435,19 @@ define(function (require, exports, module) {
      * @param {boolean} disable true to disable node based search
      */
     function setNodeSearchDisabled(disable) {
-        setInstantSearchDisabled(disable);
+        if (disable) {
+            // only set disable. Enabling node earch doesnt mean we have to enable instant search.
+            setInstantSearchDisabled(disable);
+        }
         nodeSearchDisabled = disable;
     }
 
     /**
      * if node search is disabled, this will return true
+     * @returns {boolean}
      */
     function isNodeSearchDisabled() {
-        return nodeSearchDisabled;
+        return _prefNodeSearchDisabled() || nodeSearchDisabled;
     }
 
     /**

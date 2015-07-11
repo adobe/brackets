@@ -276,11 +276,9 @@ define(function (require, exports, module) {
                 var d = new Date();
                 lastTypedTime = d.getTime();
                 var executeSearchIfNeeded = function () {
-                    if (FindUtils.isInstantSearchDisabled()) {
-                        if (intervalId) {
-                            clearInterval(intervalId);
-                            intervalId = 0;
-                        }
+                    // We only do instant search via node.
+                    if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
+                        // we still keep the intrval timer up as instant search could get enabled/disabled based on node busy state
                         return;
                     }
                     if (self._closed) {

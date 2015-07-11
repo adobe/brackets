@@ -743,5 +743,7 @@ define({
     "DESCRIPTION_USE_THEME_SCROLLBARS"               : "True to allow custom scroll bars",
     "DESCRIPTION_LINTING_COLLAPSED"                  : "True to collapse linting panel",
     "DESCRIPTION_FONT_FAMILY"                        : "Change font family",
-    "DESCRIPTION_FONT_SIZE"                          : "Change font size; e.g, 13px"
+    "DESCRIPTION_FONT_SIZE"                          : "Change font size; e.g, 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "True to enable node based search",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "True to enable instant search"
 });
