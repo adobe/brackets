@@ -166,15 +166,11 @@ define(function (require, exports, module) {
             })
             // The link to go to the next page
             .on("click.searchResults", ".next-page:not(.disabled)", function () {
-                //self._currentStart += RESULTS_PER_PAGE;
-                //self._render();
-                self.trigger('getNextPage');  //node search
+                self.trigger('getNextPage');
             })
             // The link to go to the last page
             .on("click.searchResults", ".last-page:not(.disabled)", function () {
-                //self._currentStart = self._getLastCurrentStart();
-                //self._render();
-                self.trigger('getLastPage');  //node search
+                self.trigger('getLastPage');
             })
             
             // Add the file to the working set on double click

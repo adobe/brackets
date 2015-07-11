@@ -200,7 +200,7 @@ define(function (require, exports, module) {
      * @return {{files: number, matches: number}}
      */
     SearchModel.prototype.countFilesMatches = function () {
-        return {files: (this.numFiles || Object.keys(this.results).length), matches: this.numMatches};  //Node search- this.numFiles
+        return {files: (this.numFiles || Object.keys(this.results).length), matches: this.numMatches};
     };
 
     /**

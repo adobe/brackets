@@ -419,10 +419,12 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-
-    //files added or removed
-    function updateDocumentInNode(docPath) {
-        //node search
+    /**
+     * @private
+     * Inform node that the document has changed [along with its contents]
+     * @param {string} docPath the path of the changed document
+     */
+    function _updateDocumentInNode(docPath) {
         DocumentManager.getDocumentForPath(docPath).done(function (doc) {
             var updateObject = {
                     "filePath": docPath,
@@ -433,7 +435,8 @@ define(function (require, exports, module) {
     }
 
      /**
-     * Updates the result set with the files in the working set
+     * @private
+     * sends all changed documents that we have tracked to node
      */
     function _updateChangedDocs() {
         var files = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES),
@@ -442,7 +445,7 @@ define(function (require, exports, module) {
             key = null;
         for (key in changedFileList) {
             if (changedFileList.hasOwnProperty(key)) {
-                updateDocumentInNode(key);
+                _updateDocumentInNode(key);
             }
         }
     }
@@ -467,13 +470,15 @@ define(function (require, exports, module) {
         var scopeName = searchModel.scope ? searchModel.scope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + queryInfo.query);
         
+        findOrReplaceInProgress = true;
+
         return candidateFilesPromise
             .then(function (fileListResult) {
             
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
 
-                if (searchModel.isReplace || FindUtils.isNodeSearchDisabled()) { //node Search
+                if (searchModel.isReplace || FindUtils.isNodeSearchDisabled()) {
                     if (fileListResult.length) {
                         searchModel.allResultsAvailable = true;
                         return Async.doInParallel(fileListResult, _doSearchInOneFile);
@@ -512,7 +517,7 @@ define(function (require, exports, module) {
                         };
                     }
 
-                    if (searchModel.isReplace) { //node Search
+                    if (searchModel.isReplace) {
                         searchObject.getAllResults = true;
                     }
 
@@ -541,6 +546,7 @@ define(function (require, exports, module) {
                             console.log('node fails');
                             FindUtils.setNodeSearchDisabled(true);
                             clearSearch();
+                            searchDeferred.reject();
                         });
                     return searchDeferred.promise();
                 } else {
@@ -550,9 +556,7 @@ define(function (require, exports, module) {
             .then(function (zeroFilesToken) {
                 exports._searchDone = true; // for unit tests
                 PerfUtils.addMeasurement(perfTimer);
-                
-                findOrReplaceInProgress = true;
-                
+
                 if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
                     return zeroFilesToken;
                 } else {
@@ -623,14 +627,19 @@ define(function (require, exports, module) {
         });
     }
     
+    /**
+     * @private
+     * Flags that the search scope has changed, so that the file list for the following search is recomputed
+     */
     var _searchScopeChanged = function () {
         searchScopeChanged = true;
     };
 
-
-    //files added or removed
+    /**
+     * Inform node that the list of files has changed.
+     * @param {array} fileList The list of files that changed.
+     */
     function filesChanged(fileList) {
-        //node search
         var updateObject = {
             "fileList": fileList
         };
@@ -641,8 +650,11 @@ define(function (require, exports, module) {
         searchDomain.exec("filesChanged", updateObject);
     }
 
+    /**
+     * Inform node that the list of files have been removed.
+     * @param {array} fileList The list of files that was removed.
+     */
     function filesRemoved(fileList) {
-        //node search
         var updateObject = {
             "fileList": fileList
         };
@@ -795,6 +807,10 @@ define(function (require, exports, module) {
         });
     };
 
+    /**
+     * On project change, inform node about the new list of files that needs to be crawled.
+     * Instant search is also disabled for the time being till the crawl is complete in node.
+     */
     var _initCache = function () {
         function filter(file) {
             return _subtreeFilter(file, null) && _isReadableText(file.fullPath);
@@ -821,6 +837,10 @@ define(function (require, exports, module) {
     };
 
 
+    /**
+     * Gets the next page of search recults to append to the result set.
+     * @returns {object} A promise that's resolved with the search results or rejected when the find competes.
+     */
     function getNextPageofSearchResults() {
         var searchDeferred = $.Deferred();
         if (searchModel.allResultsAvailable) {
@@ -842,13 +862,6 @@ define(function (require, exports, module) {
                 } else {
                     searchModel.results = rcvd_object.results;
                 }
-//                searchModel.numMatches = rcvd_object.numMatches;
-//                if (rcvd_object.numMatches === 0) {
-//                    searchModel.allResultsAvailable = true;
-//                }
-                //searchModel.foundMaximum = rcvd_object.foundMaximum;
-                //searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
-//                searchModel.numFiles = rcvd_object.numFiles;
                 searchModel.fireChanged();
                 searchDeferred.resolve();
             })
@@ -856,6 +869,7 @@ define(function (require, exports, module) {
                 FindUtils.notifyNodeSearchFinished();
                 console.log('node fails');
                 FindUtils.setNodeSearchDisabled(true);
+                searchDeferred.reject();
             });
         return searchDeferred.promise();
     }
@@ -869,13 +883,10 @@ define(function (require, exports, module) {
         FindUtils.notifyNodeSearchStarted();
         searchDomain.exec("getAllResults")
             .done(function (rcvd_object) {
-                //console.log("NUMMM "  + filelistnum);
                 FindUtils.notifyNodeSearchFinished();
                 searchModel.results = rcvd_object.results;
                 searchModel.numMatches = rcvd_object.numMatches;
                 searchModel.numFiles = rcvd_object.numFiles;
-                //searchModel.foundMaximum = rcvd_object.foundMaximum;
-                //searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
                 searchModel.allResultsAvailable = true;
                 searchModel.fireChanged();
                 searchDeferred.resolve();
@@ -884,6 +895,7 @@ define(function (require, exports, module) {
                 FindUtils.notifyNodeSearchFinished();
                 console.log('node fails');
                 FindUtils.setNodeSearchDisabled(true);
+                searchDeferred.reject();
             });
         return searchDeferred.promise();
     }

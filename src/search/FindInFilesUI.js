@@ -186,7 +186,7 @@ define(function (require, exports, module) {
             console.log(disableFindBar);
             if (queryInfo && queryInfo.query) {
                 _findBar.enable(!disableFindBar);
-                StatusBar.showBusyIndicator(disableFindBar); //node Search
+                StatusBar.showBusyIndicator(disableFindBar);
 
                 var filter;
                 if (filterPicker) {
@@ -383,7 +383,6 @@ define(function (require, exports, module) {
                 FindInFiles.clearSearch();
             })
             .on("getNextPage", function () {
-                //node search
                 FindInFiles.getNextPageofSearchResults().done(function () {
                     if (FindInFiles.searchModel.hasResults()) {
                         _resultsView.showNextPage();
@@ -391,7 +390,6 @@ define(function (require, exports, module) {
                 });
             })
             .on("getLastPage", function () {
-                //node search
                 FindInFiles.getAllSearchResults().done(function () {
                     if (FindInFiles.searchModel.hasResults()) {
                         _resultsView.showLastPage();
