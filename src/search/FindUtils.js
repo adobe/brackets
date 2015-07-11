@@ -386,22 +386,46 @@ define(function (require, exports, module) {
     }
 
      /**
-     * Prioritizes the open file to the starting of the list of files
+     * Prioritizes the open file and then the working set files to the starting of the list of files
      * @param {Array.<*>} files An array of file paths or file objects to sort
      * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.
      * @return {Array.<*>}
      */
     function prioritizeOpenFile(files, firstFile) {
-        var i, index = files.indexOf(firstFile);
-        if (index === -1) {
-            return files;
+        var workingSetFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES),
+            workingSetFileFound = {},
+            fileSetWithoutWorkingSet = [],
+            startingWorkingFileSet = [],
+            propertyName = "",
+            i = 0;
+        firstFile = firstFile || "";
+
+        // Create a working set path map which indicates if a file in working set is found in file list
+        for (i = 0; i < workingSetFiles.length; i++) {
+            workingSetFileFound[workingSetFiles[i].fullPath] = false;
         }
-        var temp = files[index];
-        for (i = index; i > 0; i--) {
-            files[i] = files[i - 1];
+
+        // Remove all the working set files from the filtration list
+        fileSetWithoutWorkingSet = files.filter(function (key) {
+            if (workingSetFileFound[key] !== undefined) {
+                workingSetFileFound[key] = true;
+                return false;
+            }
+            return true;
+        });
+
+        //push in the first file
+        if (workingSetFileFound[firstFile] === true) {
+            startingWorkingFileSet.push(firstFile);
+            workingSetFileFound[firstFile] = false;
         }
-        files[0] = temp;
-        return files;
+        //push in the rest of working set files already present in file list
+        for (propertyName in workingSetFileFound) {
+            if (workingSetFileFound.hasOwnProperty(propertyName) && workingSetFileFound[propertyName]) {
+                startingWorkingFileSet.push(propertyName);
+            }
+        }
+        return startingWorkingFileSet.concat(fileSetWithoutWorkingSet);
     }
 
 

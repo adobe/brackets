@@ -381,7 +381,7 @@ define(function (require, exports, module) {
     SearchResultsView.prototype._render = function () {
         var searchItems, match, i, item, multiLine,
             count            = this._model.countFilesMatches(),
-            searchFiles      = this._model.getSortedFiles(this._initialFilePath),
+            searchFiles      = this._model.prioritizeOpenFile(this._initialFilePath),
             lastIndex        = this._getLastIndex(count.matches),
             matchesCounter   = 0,
             showMatches      = false,
