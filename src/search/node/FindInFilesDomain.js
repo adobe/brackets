@@ -49,6 +49,21 @@ maxerr: 50, node: true */
         crawlComplete = false,
         crawlEventSent = false;
     
+    /**
+     * Copied from StringUtils.js
+     * Returns a line number corresponding to an offset in some text. The text can
+     * be specified as a single string or as an array of strings that correspond to
+     * the lines of the string.
+     *
+     * Specify the text in lines when repeatedly calling the function on the same
+     * text in a loop. Use getLines() to divide the text into lines, then repeatedly call
+     * this function to compute a line number from the offset.
+     *
+     * @param {string | Array.<string>} textOrLines - string or array of lines from which
+     *      to compute the line number from the offset
+     * @param {number} offset
+     * @return {number} line number
+     */
     function offsetToLineNum(textOrLines, offset) {
         if (Array.isArray(textOrLines)) {
             var lines = textOrLines,
@@ -77,7 +92,13 @@ maxerr: 50, node: true */
         }
     }
     
-    function _getSearchMatches(contents, queryExpr) {
+    /**
+     * Searches through the contents and returns an array of matches
+     * @param {string} contents
+     * @param {RegExp} queryExpr
+     * @return {!Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, line: string}>}
+     */
+    function getSearchMatches(contents, queryExpr) {
         if (!contents) {
             return;
         }
@@ -157,10 +178,18 @@ maxerr: 50, node: true */
         return matches;
     }
     
+    /**
+     * Clears the cached file contents of the project
+     */
     function clearProjectCache() {
         projectCache = [];
     }
 
+    /**
+     * Get the contents of a file given the path
+     * @param   {string} filePath full file path
+     * @returns {string} contents or null if no contents
+     */
     function getFileContentsForFile(filePath) {
         if (projectCache[filePath]) {
             return projectCache[filePath];
@@ -174,6 +203,15 @@ maxerr: 50, node: true */
         return projectCache[filePath];
     }
     
+    /**
+     * Sets the list of matches for the given path, removing the previous match info, if any, and updating
+     * the total match count. Note that for the count to remain accurate, the previous match info must not have
+     * been mutated since it was set.
+     * @param {string} fullpath Full path to the file containing the matches.
+     * @param {!{matches: Object, collapsed: boolean=}} resultInfo Info for the matches to set:
+     *      matches - Array of matches, in the format returned by FindInFiles.getSearchMatches()
+     *      collapsed - Optional: whether the results should be collapsed in the UI (default false).
+     */
     function setResults(fullpath, resultInfo, maxResultsToReturn) {
         if (results[fullpath]) {
             numMatches -= results[fullpath].matches.length;
@@ -197,11 +235,25 @@ maxerr: 50, node: true */
         }
     }
     
-    function _doSearchInOneFile(filepath, text, queryExpr, maxResultsToReturn) {
-        var matches = _getSearchMatches(text, queryExpr);
+    /**
+     * Finds search results in the given file and adds them to 'results'
+     * @param {string} filepath
+     * @param {string} text   contents of the file
+     * @param {Object} queryExpr
+     * @param {number} maxResultsToReturn the maximum of results that should be returned in the current search.
+     */
+    function doSearchInOneFile(filepath, text, queryExpr, maxResultsToReturn) {
+        var matches = getSearchMatches(text, queryExpr);
         setResults(filepath, {matches: matches}, maxResultsToReturn);
     }
     
+    /**
+     * Search in the list of files given and populate the results
+     * @param {array} fileList           array of file paths
+     * @param {Object} queryExpr
+     * @param {number} startFileIndex    the start index of the array from which the search has to be done
+     * @param {number} maxResultsToReturn  the maximum number of results to return in this search
+     */
     function doSearchInFiles(fileList, queryExpr, startFileIndex, maxResultsToReturn) {
         var i;
         if (fileList.length === 0) {
@@ -211,16 +263,26 @@ maxerr: 50, node: true */
         } else {
             startFileIndex = startFileIndex || 0;
             for (i = startFileIndex; i < fileList.length && !foundMaximum; i++) {
-                _doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, maxResultsToReturn);
+                doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, maxResultsToReturn);
             }
             lastSearchedIndex = i;
         }
     }
     
+    // Copied from StringUtils.js
     function regexEscape(str) {
         return str.replace(/([.?*+\^$\[\]\\(){}|\-])/g, "\\$1");
     }
     
+    /**
+     * Parses the given query into a regexp, and returns whether it was valid or not.
+     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo
+     * @return {{queryExpr: RegExp, valid: boolean, empty: boolean, error: string}}
+     *      queryExpr - the regexp representing the query
+     *      valid - set to true if query is a nonempty string or a valid regexp.
+     *      empty - set to true if query was empty.
+     *      error - set to an error string if valid is false and query is nonempty.
+     */
     function parseQueryInfo(queryInfo) {
         var queryExpr;
 
@@ -252,6 +314,10 @@ maxerr: 50, node: true */
         return {valid: true, queryExpr: queryExpr};
     }
     
+    /**
+     * Crawls through the files in the project ans stores them in cache. Since that could take a while
+     * we do it in batches so that node wont be blocked.
+     */
     function fileCrawler() {
         if (!files || (files && files.length === 0)) {
             setTimeout(fileCrawler, 1000);
@@ -276,18 +342,27 @@ maxerr: 50, node: true */
         }
     }
 
+    /**
+     * Init for project, resets the old project cache, and sets the crawler function to
+     * restart the file crawl
+     * @param   {array} fileList an array of files
+     */
     function initCache(fileList) {
         console.log("cache change");
         files = fileList;
         currentCrawlIndex = 0;
         clearProjectCache();
         crawlEventSent = false;
-        return true;
     }
     
-    function _countNumMatches(file, contents, queryExpr) {
+    /**
+     * Counts the number of matches matching the queryExpr in the given contents
+     * @param   {String} contents  The contents to search on
+     * @param   {Object} queryExpr
+     * @returns {number} number of matches
+     */
+    function countNumMatches(contents, queryExpr) {
         if (!contents) {
-            console.log('NO CONTENTS FOR FILE-> ' + file);
             return 0;
         }
         var matches = contents.match(queryExpr);
@@ -298,12 +373,18 @@ maxerr: 50, node: true */
         return matches ? matches.length : 0;
     }
 
+    /**
+     * Get the total number of matches from all the files in fileList
+     * @param   {array} fileList  file path array
+     * @param   {Object} queryExpr
+     * @returns {Number} total number of matches
+     */
     function getNumMatches(fileList, queryExpr) {
         console.log('getNumatches');
         var i,
             matches = 0;
         for (i = 0; i < fileList.length; i++) {
-            var temp = _countNumMatches(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
+            var temp = countNumMatches(getFileContentsForFile(fileList[i]), queryExpr);
             if (temp) {
                 numFiles++;
                 matches += temp;
@@ -317,6 +398,12 @@ maxerr: 50, node: true */
         return matches;
     }
 
+    /**
+     * Do a search with the searchObject context and return the results
+     * @param   {Object}   searchObject
+     * @param   {boolean} nextPages    set to true if to indicate that next page of an existing page is being fetched
+     * @returns {Object}   search results
+     */
     function doSearch(searchObject, nextPages) {
         console.log("doSearch");
         
@@ -346,8 +433,6 @@ maxerr: 50, node: true */
         }
         var send_object = {
             "results":  results,
-//            "numMatches": numMatches,
-//            "numFiles" : numFiles,
             "foundMaximum":  foundMaximum,
             "exceedsMaximum":  exceedsMaximum
         };
@@ -364,6 +449,10 @@ maxerr: 50, node: true */
         return send_object;
     }
     
+    /**
+     * Remove the list of given files from the project cache
+     * @param   {Object}   updateObject
+     */
     function removeFilesFromCache(updateObject) {
         var fileList = updateObject.fileList || [],
             filesInSearchScope = updateObject.filesInSearchScope || [],
@@ -377,6 +466,11 @@ maxerr: 50, node: true */
         files = files ? files.filter(isNotInRemovedFilesList) : files;
     }
 
+    /**
+     * Adds the list of given files to the project cache. However the files will not be
+     * read at this time. We just delete the project cache entry which will trigger a fetch on search.
+     * @param   {Object}   updateObject
+     */
     function addFilesToCache(updateObject) {
         var fileList = updateObject.fileList || [],
             filesInSearchScope = updateObject.filesInSearchScope || [],
@@ -389,7 +483,7 @@ maxerr: 50, node: true */
             projectCache[fileList[i]] = null;
         }
 
-        //Now update the search scoepe
+        //Now update the search scope
         function isInChangedFileList(path) {
             return (filesInSearchScope.indexOf(path) !== -1) ? true : false;
         }
@@ -401,10 +495,18 @@ maxerr: 50, node: true */
         files.push.apply(files, newFiles);
     }
 
+    /**
+     * Notification function on document changed, we update the cache with the contents
+     * @param {Object} updateObject
+     */
     function documentChanged(updateObject) {
         projectCache[updateObject.filePath] = updateObject.docContents;
     }
 
+    /**
+     * Gets the next page of results of the ongoing search
+     * @returns {Object} search results
+     */
     function getNextPage() {
         var send_object = {
             "results":  {},
@@ -439,7 +541,7 @@ maxerr: 50, node: true */
     }
 
     /**
-     * Initializes the test domain with commands and events related to find in files
+     * Initialize the test domain with commands and events related to find in files.
      * @param {DomainManager} domainManager The DomainManager for the find in files domain "FindInFiles"
      */
     function init(domainManager) {
@@ -453,7 +555,7 @@ maxerr: 50, node: true */
             doSearch,   // command handler function
             false,          // this command is synchronous in Node
             "Searches in project files and returns matches",
-            [{name: "search_object", // parameters
+            [{name: "searchObject", // parameters
                 type: "object",
                 description: "Object containing search data"}],
             [{name: "searchResults", // return values
@@ -466,7 +568,7 @@ maxerr: 50, node: true */
             getNextPage,   // command handler function
             false,          // this command is synchronous in Node
             "get the next page of reults",
-            [{name: "search_object", // parameters
+            [{name: "searchObject", // parameters
                 type: "object",
                 description: "Object containing search data"}],
             [{name: "searchResults", // return values
@@ -479,7 +581,7 @@ maxerr: 50, node: true */
             getAllResults,   // command handler function
             false,          // this command is synchronous in Node
             "get the next page of reults",
-            [{name: "search_object", // parameters
+            [{name: "searchObject", // parameters
                 type: "object",
                 description: "Object containing search data"}],
             [{name: "searchResults", // return values
