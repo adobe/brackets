@@ -402,8 +402,8 @@ define({
 	"CMD_CSS_QUICK_EDIT_NEW_RULE": "Nouvelle règle",
 	"CMD_NEXT_DOC": "Document suivant",
 	"CMD_PREV_DOC": "Document précédent",
-	"CMD_NEXT_DOC_LIST_ORDER": "Document suivant (Ordre de la liste)",
-	"CMD_PREV_DOC_LIST_ORDER": "Document précédent (Ordre de la liste)",
+	"CMD_NEXT_DOC_LIST_ORDER": "[8375196] !é=Next Document in List=!",
+	"CMD_PREV_DOC_LIST_ORDER": "[8375197] !é=Previous Document in List=!",
 	"CMD_SHOW_IN_TREE": "Afficher dans l’arborescence de fichiers",
 	"CMD_SHOW_IN_EXPLORER": "Afficher dans l’Explorateur",
 	"CMD_SHOW_IN_FINDER": "Afficher dans le Finder",
@@ -753,5 +753,10 @@ define({
 	"DESCRIPTION_USE_THEME_SCROLLBARS": "Vrai pour autoriser les barres de défilement personnalisées",
 	"DESCRIPTION_LINTING_COLLAPSED": "Vrai pour réduire le panneau d’analyse lint",
 	"DESCRIPTION_FONT_FAMILY": "Changer de famille de polices",
-	"DESCRIPTION_FONT_SIZE": "Modifier la taille de police, par ex. 13px"
+	"DESCRIPTION_FONT_SIZE": "[8375220] !é=Change font size; e.g, 13px=!",
+	"DESCRIPTION_FONT_SMOOTHING": "[8380734] !é=Mac-only: \"subpixel-antialiased\" to enable sub-pixel antialiasing or \"antialiased\" for gray scale antialiasing=!",
+	"DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW": "[8380735] !é=False to disable opening preferences file in split view=!",
+	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "[8380736] !é=False to open user preferences file in left/top pane=!",
+	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "[8380733] !é=/*\n * This is a read-only file with the preferences supported \n * by Brackets. \n * Use this file as a reference to modify your preferences \n * file \"brackets.json\" opened in the other pane. \n * For more information on how to use preferences inside \n * Brackets, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */=!",
+	"DEFAULT_PREFERENCES_JSON_DEFAULT": "Par défaut"
 });
