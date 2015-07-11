@@ -285,9 +285,9 @@ maxerr: 50, node: true */
         return true;
     }
     
-    function _countNumMatches(contents, queryExpr) {
+    function _countNumMatches(file, contents, queryExpr) {
         if (!contents) {
-            console.log('NO contents');
+            console.log('NO CONTENTS FOR FILE-> ' + file);
             return 0;
         }
         var matches = contents.match(queryExpr);
@@ -303,7 +303,7 @@ maxerr: 50, node: true */
         var i,
             matches = 0;
         for (i = 0; i < fileList.length; i++) {
-            var temp = _countNumMatches(getFileContentsForFile(fileList[i]), queryExpr);
+            var temp = _countNumMatches(fileList[i], getFileContentsForFile(fileList[i]), queryExpr);
             if (temp) {
                 numFiles++;
                 matches += temp;
