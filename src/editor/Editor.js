@@ -139,11 +139,13 @@ define(function (require, exports, module) {
             },
             whenOpening: {
                 type: "boolean",
-                description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING
+                description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING,
+                initial: true
             },
             whenClosing: {
                 type: "boolean",
-                description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING
+                description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING,
+                initial: true
             },
             indentTags: {
                 type: "array",
@@ -159,11 +161,13 @@ define(function (require, exports, module) {
         keys: {
             showToken: {
                 type: "boolean",
-                description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN
+                description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN,
+                initial: false
             },
             wordsOnly: {
                 type: "boolean",
-                description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY
+                description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY,
+                initial: false
             }
         }
     });
@@ -278,10 +282,13 @@ define(function (require, exports, module) {
      * @param {!jQueryObject|DomNode} container  Container to add the editor to.
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
+     * @param {!Object} options If specified, contains editor options that can be passed to CodeMirror
      */
-    function Editor(document, makeMasterEditor, container, range) {
+    function Editor(document, makeMasterEditor, container, range, options) {
         var self = this;
-        
+
+        var isReadOnly = options && options.isReadOnly;
+
         _instances.push(this);
         
         // Attach to document: add ref & handlers
@@ -384,7 +391,8 @@ define(function (require, exports, module) {
             showCursorWhenSelecting     : currentOptions[SHOW_CURSOR_SELECT],
             smartIndent                 : currentOptions[SMART_INDENT],
             styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
-            tabSize                     : currentOptions[TAB_SIZE]
+            tabSize                     : currentOptions[TAB_SIZE],
+            readOnly                    : isReadOnly
         });
         
         // Can't get CodeMirror's focused state without searching for

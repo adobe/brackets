@@ -402,8 +402,8 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "New Rule",
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
-    "CMD_NEXT_DOC_LIST_ORDER"             : "Next Document (List Order)",
-    "CMD_PREV_DOC_LIST_ORDER"             : "Previous Document (List Order)",
+    "CMD_NEXT_DOC_LIST_ORDER"             : "Next Document in List",
+    "CMD_PREV_DOC_LIST_ORDER"             : "Previous Document in List",
     "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
     "CMD_SHOW_IN_EXPLORER"                : "Show in Explorer",
     "CMD_SHOW_IN_FINDER"                  : "Show in Finder",
@@ -753,5 +753,10 @@ define({
     "DESCRIPTION_USE_THEME_SCROLLBARS"               : "True to allow custom scroll bars",
     "DESCRIPTION_LINTING_COLLAPSED"                  : "True to collapse linting panel",
     "DESCRIPTION_FONT_FAMILY"                        : "Change font family",
-    "DESCRIPTION_FONT_SIZE"                          : "Change font size; e.g. 13px"
+    "DESCRIPTION_FONT_SIZE"                          : "Change font size; e.g, 13px",
+    "DESCRIPTION_FONT_SMOOTHING"                     : "Mac-only: \"subpixel-antialiased\" to enable sub-pixel antialiasing or \"antialiased\" for gray scale antialiasing",
+    "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "False to disable opening preferences file in split view",
+    "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "False to open user preferences file in left/top pane",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported \n * by Brackets. \n * Use this file as a reference to modify your preferences \n * file \"brackets.json\" opened in the other pane. \n * For more information on how to use preferences inside \n * Brackets, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default"
 });

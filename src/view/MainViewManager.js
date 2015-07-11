@@ -1205,7 +1205,7 @@ define(function (require, exports, module) {
         }
         
         // open document will show the editor if there is one already
-        EditorManager.openDocument(doc, pane);
+        EditorManager.openDocument(doc, pane, options);
         _makeFileMostRecent(paneId, doc.file);
 
         if (!options.noPaneActivate) {
