@@ -312,36 +312,32 @@ define(function (require, exports, module) {
      * @returns {String}   a single value, or comma separated values in an array or
      *                     <min(avg)max[standard deviation]> if aggregateStats is set
      */
-    var getValueAsString = function (entry, aggregateStats) {
-        if (Array.isArray(entry)) {
-            var i, values = "", min = entry[0], max = entry[0], avg = 0, sum = 0, sd = 0;
-
-            for (i = 0; i < entry.length; i++) {
-                sum = sum + entry[i];
-                values += entry[i];
-                if (i < entry.length - 1) {
-                    values += ", ";
-                }
-            }
-            if (aggregateStats) {
-                avg = Math.round(sum / entry.length);
-                sum = 0;
-                for (i = 0; i < entry.length; i++) {
-                    sum = sum + Math.pow((entry[i] - avg), 2);
-                    if (entry[i] < min) {
-                        min = entry[i];
-                    } else if (entry[i] > max) {
-                        max = entry[i];
-                    }
-                }
-                sd = Math.round(Math.sqrt(sum / entry.length));
-                return min + "(" + avg + ")" + max + "[" + sd + "]";
-            }
-            return values;
-        } else {
+    function getValueAsString(entry, aggregateStats) {
+        if (!Array.isArray(entry)) {
             return entry;
         }
-    };
+
+        if (aggregateStats) {
+            var sum = 0,
+                avg,
+                min = _.min(entry),
+                max = _.max(entry),
+                sd,
+                variationSum = 0;
+
+            entry.forEach(function (value) {
+                sum += value;
+            });
+            avg = Math.round(sum / entry.length);
+            entry.forEach(function (value) {
+                variationSum += Math.pow(value - avg, 2);
+            });
+            sd = Math.round(Math.sqrt(variationSum / entry.length));
+            return min + "(" + avg + ")" + max + "[" + sd + "]";
+        } else {
+            return entry.join(", ");
+        }
+    }
 
     /**
      * Returns the performance data as a tab delimited string
@@ -370,7 +366,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the Performance metrics to be logged for health report
-     * @returns {Object} An object with the helath data logs to be send
+     * @returns {Object} An object with the health data logs to be sent
      */
     function getHealthReport() {
         var healthReport = {
