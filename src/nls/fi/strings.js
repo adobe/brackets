@@ -757,8 +757,8 @@ define({
     "DESCRIPTION_FONT_SMOOTHING"                     : "Vain Mac: ota käyttöön alipikselien reunapehmennys valinnalla ”subpixel-antialiased” tai harmaansävyinen reunapehmennys valinnalla ”antialiased”",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "False: poista asetustiedoston avaaminen käytöstä jaetussa näkymässä",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "False: avaa käyttäjän asetustiedosto vasemmassa tai ylemmässä ruudussa",
-    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Tämä on vain luku -tiedosto Bracketsin tukemista \n * asetuksista. \n * Käytä tätä apuna, kun muutat asetustiedostoasi \n * ”brackets.json”, joka on avattu toiseen ruutuun. \n * Lisätietoa siitä, kuinka käyttää asetuksia Bracketsissa, \n * löydät verkkosivulta osoitteessa https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Tämä on vain luku -tiedosto {APP_NAME}in tukemista\n * asetuksista.\n * Käytä tätä apuna, kun muutat asetustiedostoasi\n * ”brackets.json”, joka on avattu toiseen ruutuun.\n * Lisätietoa siitä, kuinka käyttää asetuksia {APP_NAME}issa,\n * löydät verkkosivulta osoitteessa https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Oletus"
 });
 
-/* Last translated for d1a5c5c01a538b819eb948360e2fb2593990953e */
+/* Last translated for 284ee17aa7c8d47c6c55f16f150847ab2ac599e8 */
