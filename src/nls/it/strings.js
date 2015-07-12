@@ -647,7 +647,7 @@ define({
     "COLLAPSE_ALL"                  : "Comprimi tutto",
     "EXPAND_ALL"                    : "Espandi tutto",
     "COLLAPSE_CURRENT"              : "Comprimi attuale",
-    "EXPAND_CURRENT"                : "Espandi attuale"
+    "EXPAND_CURRENT"                : "Espandi attuale",
     
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true per chiudere automaticamente le parentesi tonde, quadre e graffe",
