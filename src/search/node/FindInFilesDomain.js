@@ -191,7 +191,7 @@ maxerr: 50, node: true */
      * @returns {string} contents or null if no contents
      */
     function getFileContentsForFile(filePath) {
-        if (projectCache[filePath]) {
+        if (projectCache[filePath] || projectCache[filePath] === "") {
             return projectCache[filePath];
         }
         try {
