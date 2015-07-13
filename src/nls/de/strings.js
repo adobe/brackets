@@ -389,7 +389,7 @@ define({
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatisch sortieren",
     "CMD_THEMES"                          : "Designs\u2026",
 
-    // Navigate menu Commands
+    // Navigate menu commands
     "NAVIGATE_MENU"                       : "Navigation",
     "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zur Zeile",
@@ -402,6 +402,8 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Neue Regel",
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
     "CMD_PREV_DOC"                        : "Voriges Dokument",
+    "CMD_NEXT_DOC_LIST_ORDER"             : "Nächstes Dokument in der Liste",
+    "CMD_PREV_DOC_LIST_ORDER"             : "Vorheriges Dokument in der Liste",
     "CMD_SHOW_IN_TREE"                    : "Im Dateibaum anzeigen",
     "CMD_SHOW_IN_EXPLORER"                : "Im Explorer anzeigen",
     "CMD_SHOW_IN_FINDER"                  : "Im Finder anzeigen",
@@ -443,7 +445,7 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
     "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier sind einige der neuen Funktionen:",
-    "GET_IT_NOW"                           : "Jetzt updaten!",
+    "GET_IT_NOW"                           : "Jetzt aktualisieren!",
     "PROJECT_SETTINGS_TITLE"               : "Projekt-Einstellungen",
     "PROJECT_SETTING_BASE_URL"             : "Basis-URL für Live-Vorschau",
     "PROJECT_SETTING_BASE_URL_HINT"        : "(URL angeben, um einen lokalen Server zu verwenden)",
@@ -466,14 +468,16 @@ define({
 
     // Extension Management strings
     "INSTALL"                              : "Installieren",
-    "UPDATE"                               : "Updaten",
+    "UPDATE"                               : "Aktualisieren",
     "REMOVE"                               : "Entfernen",
+    "DISABLE"                              : "Deaktivieren",
+    "ENABLE"                               : "Aktivieren",
     "OVERWRITE"                            : "Überschreiben",
     "CANT_REMOVE_DEV"                      : "Erweiterungen im \"dev\"-Ordner müssen manuell gelöscht werden.",
     "CANT_UPDATE"                          : "Das Update ist nicht kompatibel mit dieser Version von {APP_NAME}.",
     "CANT_UPDATE_DEV"                      : "Erweiterungen im \"dev\"-Ordner können nicht automatisch aktualisiert werden.",
     "INSTALL_EXTENSION_TITLE"              : "Erweiterung installieren",
-    "UPDATE_EXTENSION_TITLE"               : "Erweiterung updaten",
+    "UPDATE_EXTENSION_TITLE"               : "Erweiterung aktualisieren",
     "INSTALL_EXTENSION_LABEL"              : "Erweiterungs-URL",
     "INSTALL_EXTENSION_HINT"               : "URL der Erweiterungs-ZIP-Datei oder GitHub-Repo",
     "INSTALLING_FROM"                      : "Erweiterung installieren von {0}\u2026",
@@ -534,17 +538,22 @@ define({
     "BROWSE_EXTENSIONS"                    : "Erweiterungen durchsuchen",
     "EXTENSION_MANAGER_REMOVE"             : "Erweiterung entfernen",
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Fehler beim Entfernen der Erweiterung: {0}. {APP_NAME} wird trotzdem neu geladen.",
-    "EXTENSION_MANAGER_UPDATE"             : "Erweiterung updaten",
+    "EXTENSION_MANAGER_UPDATE"             : "Erweiterung aktualisieren",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "Fehler beim Update einer oder mehrerer Erweiterung(en): {0}. {APP_NAME} wird trotzdem neu geladen.",
+    "EXTENSION_MANAGER_DISABLE"            : "Erweiterung deaktivieren",
+    "EXTENSION_MANAGER_DISABLE_ERROR"      : "Fehler beim Deaktivieren einer oder mehrerer Erweiterung(en): {0}. {APP_NAME} wird trotzdem neu geladen.",
     "MARKED_FOR_REMOVAL"                   : "Zur Entfernung markiert",
     "UNDO_REMOVE"                          : "Rückgängig",
     "MARKED_FOR_UPDATE"                    : "Zum Update markiert",
     "UNDO_UPDATE"                          : "Rückgängig",
+    "MARKED_FOR_DISABLING"                 : "Zum Deaktivieren markiert",
+    "UNDO_DISABLE"                         : "Rückgängig",
     "CHANGE_AND_RELOAD_TITLE"              : "Erweiterungen ändern",
-    "CHANGE_AND_RELOAD_MESSAGE"            : "Um die markierten Erweiterungen zu updaten oder zu entfernen, muss {APP_NAME} neu geladen werden. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
+    "CHANGE_AND_RELOAD_MESSAGE"            : "Um die markierten Erweiterungen zu aktualisieren, entfernen oder deaktivieren, muss {APP_NAME} neu geladen werden. Sie werden gefragt, ob ungespeicherte Änderungen gespeichert werden sollen.",
     "REMOVE_AND_RELOAD"                    : "Erweiterungen entfernen und neu laden",
     "CHANGE_AND_RELOAD"                    : "Erweiterungen ändern und neu laden",
-    "UPDATE_AND_RELOAD"                    : "Erweiterungen updaten und neu laden",
+    "UPDATE_AND_RELOAD"                    : "Erweiterungen aktualisieren und neu laden",
+    "DISABLE_AND_RELOAD"                   : "Erweiterungen deaktivieren und neu laden",
     "PROCESSING_EXTENSIONS"                : "Erweiterungs-Änderungen werden verarbeitet\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Die Erweiterung {0} konnte nicht entfernt werden, weil sie nicht installiert ist.",
     "NO_EXTENSIONS"                        : "Momentan sind keine Erweiterungen installiert.<br>Klicken Sie oben auf den Tab \"Verfügbar\", um zu beginnen.",
@@ -744,7 +753,12 @@ define({
     "DESCRIPTION_USE_THEME_SCROLLBARS"               : "Erlaubt die Verwendung der Scrollbars vom Design",
     "DESCRIPTION_LINTING_COLLAPSED"                  : "Das Linter-Panel einklappen",
     "DESCRIPTION_FONT_FAMILY"                        : "Schriftart ändern",
-    "DESCRIPTION_FONT_SIZE"                          : "Schriftgröße ändern; z.B. 13px"
+    "DESCRIPTION_FONT_SIZE"                          : "Schriftgröße ändern; z.B. 13px",
+    "DESCRIPTION_FONT_SMOOTHING"                     : "Nur Mac: \"subpixel-antialiased\", um Subpixel-Antialiasing zu aktivieren, oder \"antialiased\" für Graustufen-Antialiasing",
+    "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "Aktiviert das Öffnen der Einstellungsdatei in einer geteilten Ansicht",
+    "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "Öffnet die Einstellungsdatei in der rechten bzw. unteren Ansicht",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Dies ist ein schreibgeschütztes Dokument, das alle von\n * Brackets unterstützten Einstellungen auflistet.\n * Nutzen Sie dieses Dokument als Referenz, um die\n * Einstellungsdatei \"brackets.json\", die in der anderen\n * Ansicht geöffnet ist, anzupassen.\n * Besuchen Sie auch https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences,\n * um mehr über den Umgang mit Einstellungen in Brackets\n * zu erfahren.\n */",
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard"
 });
 
-/* Last translated for ded94a21bbebdf81cbf60cf658c883288845ab90 */
+/* Last translated for d1a5c5c01a538b819eb948360e2fb2593990953e */
