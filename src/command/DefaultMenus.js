@@ -244,12 +244,13 @@ define(function (require, exports, module) {
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
         project_cmenu.addMenuItem(Commands.FILE_RENAME);
         project_cmenu.addMenuItem(Commands.FILE_DELETE);
-        project_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
-        project_cmenu.addMenuDivider();
-        project_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
-        project_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
-        project_cmenu.addMenuDivider();
-        project_cmenu.addMenuItem(Commands.FILE_REFRESH);
+// XXXBramble: not something we want to support at the moment/ever
+//        project_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
+//        project_cmenu.addMenuDivider();
+//        project_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
+//        project_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
+//        project_cmenu.addMenuDivider();
+//        project_cmenu.addMenuItem(Commands.FILE_REFRESH);
         
         var editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
         // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
