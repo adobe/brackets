@@ -19,7 +19,7 @@ define(function (require, exports, module) {
      */
 
     // Time in ms to wait after a dirtyFlagChange event before autosaving file
-    var SAVE_DELAY_MS = 30 * 1000;
+    var SAVE_DELAY_MS = 5 * 1000;
 
     // Whether or not to autosave immediately when the user switches away from
     // a dirty editor document.
