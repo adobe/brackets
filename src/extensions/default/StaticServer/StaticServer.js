@@ -46,6 +46,10 @@ define(function (require, exports, module) {
         description: Strings.DESCRIPTION_STATIC_SERVER_PORT
     });
 
+    _prefs.definePreference("address", "string", "127.0.0.1", {
+        description: Strings.DESCRIPTION_STATIC_SERVER_ADDRESS
+    });
+
     /**
      * @constructor
      * @extends {BaseServer}
@@ -135,8 +139,11 @@ define(function (require, exports, module) {
         }
 
         var port = sanitizePort(_prefs.get("port"));
+        var address = _prefs.get("address");
 
-        this._nodeDomain.exec("getServer", self._root, port)
+        console.error('addresssssss', address);
+
+        this._nodeDomain.exec("getServer", self._root, address, port)
             .done(function (address) {
 
                 // If the port returned wasn't what was requested, then the preference has
@@ -144,7 +151,7 @@ define(function (require, exports, module) {
                 if (address.port !== port && port > 0) {
                     return self._nodeDomain.exec("closeServer", self._root)
                         .done(function () {
-                            return self._nodeDomain.exec("getServer", self._root, port)
+                            return self._nodeDomain.exec("getServer", self._root, address, port)
                                 .done(onSuccess)
                                 .fail(onFailure);
                         })
