@@ -33,13 +33,25 @@ define(function (require, exports, module) {
             CommandManager.execute(Commands[command]).always(callback);
         }
 
-        // Make sure the last-focused editor gets focus before executing
-        var editor = EditorManager.getActiveEditor();
-        if (editor && !editor.hasFocus()) {
-            editor.one("focus", executeCommand);
-            editor.focus();
-        } else {
+        // Some commands require focus in the editor
+        switch(command) {
+        case "EDIT_UNDO":
+        case "EDIT_REDO":
+        case "VIEW_INCREASE_FONT_SIZE":
+        case "VIEW_DECREASE_FONT_SIZE":
+        case "VIEW_RESTORE_FONT_SIZE":
+            // Make sure the last-focused editor gets focus before executing
+            var editor = EditorManager.getActiveEditor();
+            if (editor && !editor.hasFocus()) {
+                editor.one("focus", executeCommand);
+                editor.focus();
+            } else {
+                executeCommand();
+            }
+            break;
+        default:
             executeCommand();
+            break;
         }
     }
 
