@@ -525,7 +525,7 @@ define({
 	"EXTENSION_LATEST_INCOMPATIBLE_NEWER": "この拡張機能のバージョン {0} には {APP_NAME} の新しいバージョンが必要です。ただし、以前のバージョン {1} をインストールすることができます。",
 	"EXTENSION_LATEST_INCOMPATIBLE_OLDER": "この拡張機能のバージョン {0} は {APP_NAME} の古いバージョンでのみ動作します。ただし、以前のバージョン {1} をインストールすることができます。",
 	"EXTENSION_NO_DESCRIPTION": "説明なし",
-	"EXTENSION_MORE_INFO": "詳細情報...",
+	"EXTENSION_MORE_INFO": "!能=[6967027] More info\u2026_=!",
 	"EXTENSION_ERROR": "拡張機能のエラー",
 	"EXTENSION_KEYWORDS": "キーワード",
 	"EXTENSION_TRANSLATED_USER_LANG": "ご使用の言語を含む {0} 言語に翻訳されました",
@@ -753,10 +753,10 @@ define({
 	"DESCRIPTION_USE_THEME_SCROLLBARS": "カスタムスクロールバーを許可するには true",
 	"DESCRIPTION_LINTING_COLLAPSED": "構文チェックパネルを閉じるには true",
 	"DESCRIPTION_FONT_FAMILY": "フォントファミリーを変更",
-	"DESCRIPTION_FONT_SIZE": "!能=[8375220] Change font size; e.g, 13px_=!",
+	"DESCRIPTION_FONT_SIZE": "!能=[8375220] Change font size; e.g. 13px_=!",
 	"DESCRIPTION_FONT_SMOOTHING": "!能=[8380734] Mac-only: \"subpixel-antialiased\" to enable sub-pixel antialiasing or \"antialiased\" for gray scale antialiasing_=!",
 	"DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW": "!能=[8380735] False to disable opening preferences file in split view_=!",
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "!能=[8380736] False to open user preferences file in left/top pane_=!",
-	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "!能=[8380733] /*\n * This is a read-only file with the preferences supported \n * by Brackets. \n * Use this file as a reference to modify your preferences \n * file \"brackets.json\" opened in the other pane. \n * For more information on how to use preferences inside \n * Brackets, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */_=!",
+	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "!能=[8380733] /*\n * This is a read-only file with the preferences supported\n * by {APP_NAME}.\n * Use this file as a reference to modify your preferences\n * file \"brackets.json\" opened in the other pane.\n * For more information on how to use preferences inside\n * {APP_NAME}, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */_=!",
 	"DEFAULT_PREFERENCES_JSON_DEFAULT": "デフォルト"
 });

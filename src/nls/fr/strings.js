@@ -525,7 +525,7 @@ define({
 	"EXTENSION_LATEST_INCOMPATIBLE_NEWER": "La version {0} de cette extension nécessite une version plus récente de {APP_NAME}. Mais vous pouvez installer la version antérieure {1}.",
 	"EXTENSION_LATEST_INCOMPATIBLE_OLDER": "La version {0} de cette extension n’est compatible qu’avec les anciennes versions de {APP_NAME}. Mais vous pouvez installer la version antérieure {1}.",
 	"EXTENSION_NO_DESCRIPTION": "Aucune description",
-	"EXTENSION_MORE_INFO": "Plus d’infos...",
+	"EXTENSION_MORE_INFO": "[6967027] !é=More info\u2026=!",
 	"EXTENSION_ERROR": "Erreur d’extension",
 	"EXTENSION_KEYWORDS": "Mots-clés",
 	"EXTENSION_TRANSLATED_USER_LANG": "Traduit en {0} langues, y compris la vôtre",
@@ -753,10 +753,10 @@ define({
 	"DESCRIPTION_USE_THEME_SCROLLBARS": "Vrai pour autoriser les barres de défilement personnalisées",
 	"DESCRIPTION_LINTING_COLLAPSED": "Vrai pour réduire le panneau d’analyse lint",
 	"DESCRIPTION_FONT_FAMILY": "Changer de famille de polices",
-	"DESCRIPTION_FONT_SIZE": "[8375220] !é=Change font size; e.g, 13px=!",
+	"DESCRIPTION_FONT_SIZE": "[8375220] !é=Change font size; e.g. 13px=!",
 	"DESCRIPTION_FONT_SMOOTHING": "[8380734] !é=Mac-only: \"subpixel-antialiased\" to enable sub-pixel antialiasing or \"antialiased\" for gray scale antialiasing=!",
 	"DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW": "[8380735] !é=False to disable opening preferences file in split view=!",
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "[8380736] !é=False to open user preferences file in left/top pane=!",
-	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "[8380733] !é=/*\n * This is a read-only file with the preferences supported \n * by Brackets. \n * Use this file as a reference to modify your preferences \n * file \"brackets.json\" opened in the other pane. \n * For more information on how to use preferences inside \n * Brackets, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */=!",
+	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "[8380733] !é=/*\n * This is a read-only file with the preferences supported\n * by {APP_NAME}.\n * Use this file as a reference to modify your preferences\n * file \"brackets.json\" opened in the other pane.\n * For more information on how to use preferences inside\n * {APP_NAME}, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */=!",
 	"DEFAULT_PREFERENCES_JSON_DEFAULT": "Par défaut"
 });
