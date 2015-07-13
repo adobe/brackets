@@ -753,12 +753,12 @@ define({
     "DESCRIPTION_USE_THEME_SCROLLBARS"               : "Erlaubt die Verwendung der Scrollbars vom Design",
     "DESCRIPTION_LINTING_COLLAPSED"                  : "Das Linter-Panel einklappen",
     "DESCRIPTION_FONT_FAMILY"                        : "Schriftart ändern",
-    "DESCRIPTION_FONT_SIZE"                          : "Schriftgröße ändern; z.B. 13px",
+    "DESCRIPTION_FONT_SIZE"                          : "Schriftgröße ändern; z. B. 13px",
     "DESCRIPTION_FONT_SMOOTHING"                     : "Nur Mac: \"subpixel-antialiased\", um Subpixel-Antialiasing zu aktivieren, oder \"antialiased\" für Graustufen-Antialiasing",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "Aktiviert das Öffnen der Einstellungsdatei in einer geteilten Ansicht",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "Öffnet die Einstellungsdatei in der rechten bzw. unteren Ansicht",
-    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Dies ist ein schreibgeschütztes Dokument, das alle von\n * Brackets unterstützten Einstellungen auflistet.\n * Nutzen Sie dieses Dokument als Referenz, um die\n * Einstellungsdatei \"brackets.json\", die in der anderen\n * Ansicht geöffnet ist, anzupassen.\n * Besuchen Sie auch https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences,\n * um mehr über den Umgang mit Einstellungen in Brackets\n * zu erfahren.\n */",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Dies ist ein schreibgeschütztes Dokument, das alle von\n * {APP_NAME} unterstützten Einstellungen auflistet.\n * Nutzen Sie dieses Dokument als Referenz, um die\n * Einstellungsdatei \"brackets.json\", die in der anderen\n * Ansicht geöffnet ist, anzupassen.\n * Besuchen Sie auch https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences,\n * um mehr über den Umgang mit Einstellungen in {APP_NAME}\n * zu erfahren.\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard"
 });
 
-/* Last translated for d1a5c5c01a538b819eb948360e2fb2593990953e */
+/* Last translated for 284ee17aa7c8d47c6c55f16f150847ab2ac599e8 */
