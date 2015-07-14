@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     
     var nodeSearchDisabled = false,
         instantSearchDisabled = false,
+        indexingInProgress = false,
         nodeSearchCount = 0;
 
     EventDispatcher.makeEventDispatcher(exports);
@@ -517,6 +518,30 @@ define(function (require, exports, module) {
         nodeSearchCount--;
     }
 
+    /**
+     * Notifies that a node has started indexing the files
+     */
+    function notifyIndexingStarted() {
+        indexingInProgress = true;
+        exports.trigger(exports.SEARCH_INDEXING_STARTED);
+    }
+
+    /**
+     * Notifies that a node has finished indexing the files
+     */
+    function notifyIndexingFinished() {
+        indexingInProgress = false;
+        exports.trigger(exports.SEARCH_INDEXING_FINISHED);
+    }
+
+    /**
+     * Return true if indexing is in pregress in node
+     * @returns {boolean} true if files are being indexed in node
+     */
+    function isIndexingInProgress() {
+        return indexingInProgress;
+    }
+
     exports.parseDollars                    = parseDollars;
     exports.getInitialQuery                 = getInitialQuery;
     exports.hasCheckedMatches               = hasCheckedMatches;
@@ -530,6 +555,7 @@ define(function (require, exports, module) {
     exports.setInstantSearchDisabled        = setInstantSearchDisabled;
     exports.isInstantSearchDisabled         = isInstantSearchDisabled;
     exports.isNodeSearchInProgress          = isNodeSearchInProgress;
+    exports.isIndexingInProgress            = isIndexingInProgress;
     exports.ERROR_FILE_CHANGED              = "fileChanged";
 
     // event notification functions
@@ -537,8 +563,12 @@ define(function (require, exports, module) {
     exports.notifySearchScopeChanged        = notifySearchScopeChanged;
     exports.notifyNodeSearchStarted         = notifyNodeSearchStarted;
     exports.notifyNodeSearchFinished        = notifyNodeSearchFinished;
+    exports.notifyIndexingStarted           = notifyIndexingStarted;
+    exports.notifyIndexingFinished          = notifyIndexingFinished;
 
     // events raised by FindUtils
     exports.SEARCH_FILE_FILTERS_CHANGED              = "fileFiltersChanged";
     exports.SEARCH_SCOPE_CHANGED                     = "searchScopeChanged";
+    exports.SEARCH_INDEXING_STARTED                  = "searchIndexingStarted";
+    exports.SEARCH_INDEXING_FINISHED                 = "searchIndexingFinished";
 });

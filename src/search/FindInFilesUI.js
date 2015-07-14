@@ -371,6 +371,24 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * When the search indexing is started, we need to show the indexing status on the find bar if present.
+     */
+    function _searchIndexingStarted() {
+        if (_findBar && _findBar._options.multifile && FindUtils.isIndexingInProgress()) {
+            _findBar.showIndexingSpinner();
+        }
+    }
+
+    /**
+     * Once the indexing has finished, clear the indexing spinner
+     */
+    function _searchIndexingFinished() {
+        if (_findBar) {
+            _findBar.hideIndexingSpinner();
+        }
+    }
+
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var model = FindInFiles.searchModel;
@@ -408,6 +426,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_REPLACE_IN_FILES,    Commands.CMD_REPLACE_IN_FILES,    _showReplaceBar);
     CommandManager.register(Strings.CMD_REPLACE_IN_SUBTREE,  Commands.CMD_REPLACE_IN_SUBTREE,  _showReplaceBarForSubtree);
     
+    FindUtils.on(FindUtils.SEARCH_INDEXING_STARTED, _searchIndexingStarted);
+    FindUtils.on(FindUtils.SEARCH_INDEXING_FINISHED, _searchIndexingFinished);
+
     // Public exports
     exports.searchAndShowResults = searchAndShowResults;
     

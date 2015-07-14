@@ -362,6 +362,10 @@ define(function (require, exports, module) {
                 });
         }
         
+        if (this._options.multifile && FindUtils.isIndexingInProgress()) {
+            this.showIndexingSpinner();
+        }
+
         // Set up the initial UI state.
         this._updateSearchBarFromPrefs();
         this.focusQuery();
@@ -532,6 +536,17 @@ define(function (require, exports, module) {
         this._focus("#replace-with");
     };
     
+    /**
+     * The indexing spinner is usually shown when node is indexing files
+     */
+    FindBar.prototype.showIndexingSpinner = function () {
+        this.$("#indexing-spinner").removeClass("forced-hidden");
+    };
+
+    FindBar.prototype.hideIndexingSpinner = function () {
+        this.$("#indexing-spinner").addClass("forced-hidden");
+    };
+
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
     PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
     PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"}, true);

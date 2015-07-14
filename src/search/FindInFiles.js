@@ -100,6 +100,7 @@ define(function (require, exports, module) {
         // project change, if we get this message, then it means that node search is working,
         // we we re enable node search. If a search fails, node search will be switched off eventually.
         FindUtils.setNodeSearchDisabled(false);
+        FindUtils.notifyIndexingFinished();
     }
 
     /**
@@ -830,6 +831,7 @@ define(function (require, exports, module) {
                         return entry.fullPath;
                     });
                 console.log('Starting cache creation');
+                FindUtils.notifyIndexingStarted();
                 searchDomain.exec("initCache", files)
                     .done(function () {
                         console.log('cache created');
