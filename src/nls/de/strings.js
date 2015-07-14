@@ -452,7 +452,7 @@ define({
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "Das Protokoll {0} wird von der Live-Vorschau nicht unterstützt &ndash; bitte http: oder https: verwenden.",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Die Basis-URL kann keine Such-Parameter wie \"{0}\" enthalten.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
-    "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie  \"{0}\" müssen %-kodiert werden.",
+    "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
     "EMPTY_VIEW_HEADER"                    : "<em>Öffnen Sie eine Datei, während diese Ansicht fokussiert ist</em>",
 
@@ -690,8 +690,8 @@ define({
     "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "Aktiviert das Akzeptieren eines Code Hints mithilfe der Tab-Taste",
     "DESCRIPTION_NO_HINTS_ON_DOT"                    : "Deaktiviert das automatische Anzeigen der JavaScript Code Hints, sobald . eingegeben wird",
     "DESCRIPTION_JSLINT_OPTIONS"                     : "Ein Objekt, das die Standardeinstellungen für JSLint ",
-    "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "Ausdrücke mit Zuweisungen erlauben  True to allow assignment expressions",
-    "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "Bitweise Operatoren erlauben  True to allow bitwise operators",
+    "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "Ausdrücke mit Zuweisungen erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "Bitweise Operatoren erlauben",
     "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "Die Verwendung von globalen Variablen, die im Browser standardmäßig verfügbar sind, erlauben",
     "DESCRIPTION_JSLINT_OPTIONS_CLOSURE"             : "Google Closure-Anmerkungen erlauben",
     "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "\"continue\"-Anweisungen erlauben",
@@ -713,7 +713,7 @@ define({
     "DESCRIPTION_JSLINT_OPTIONS_REGEXP"              : ". und [^...] in regulären Ausdrücken erlauben",
     "DESCRIPTION_JSLINT_OPTIONS_RHINO"               : "Die Verwendung von globalen Variablen, die in Rhino standardmäßig verfügbar sind, erlauben",
     "DESCRIPTION_JSLINT_OPTIONS_SLOPPY"              : "Fehlen von `use strict` erlauben",
-    "DESCRIPTION_JSLINT_OPTIONS_STUPID"              : "Dummheit erlauben",
+    "DESCRIPTION_JSLINT_OPTIONS_STUPID"              : "Die Nutzung blockierender Funktionen ('...Sync') erlauben",
     "DESCRIPTION_JSLINT_OPTIONS_SUB"                 : "Ineffizientes Subscripting erlauben",
     "DESCRIPTION_JSLINT_OPTIONS_TODO"                : "TODO-Kommentare erlauben",
     "DESCRIPTION_JSLINT_OPTIONS_UNPARAM"             : "Unbenutzte Funktionsparameter erlauben",
@@ -761,4 +761,4 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard"
 });
 
-/* Last translated for 284ee17aa7c8d47c6c55f16f150847ab2ac599e8 */
+/* Last translated for 473f8f059728c813073732676de6832d04bc94b8 */
