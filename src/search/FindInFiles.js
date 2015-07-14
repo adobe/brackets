@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         Async                 = require("utils/Async"),
         StringUtils           = require("utils/StringUtils"),
         ProjectManager        = require("project/ProjectManager"),
+        PreferencesManager    = require("preferences/PreferencesManager"),
         DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
         MainViewManager       = require("view/MainViewManager"),
@@ -816,6 +817,9 @@ define(function (require, exports, module) {
             return _subtreeFilter(file, null) && _isReadableText(file.fullPath);
         }
         FindUtils.setInstantSearchDisabled(true);
+        if (!PreferencesManager.get("findInFiles.nodeSearch")) {
+            return;
+        }
         ProjectManager.getAllFiles(filter, true)
             .done(function (fileListResult) {
                 var files = fileListResult
