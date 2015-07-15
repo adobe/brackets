@@ -334,7 +334,7 @@ define(function (require, exports, module) {
         if (scope && scope.isFile) {
             return new $.Deferred().resolve(filter(scope) ? [scope] : []).promise();
         } else {
-            return ProjectManager.getAllFiles(filter, true);
+            return ProjectManager.getAllFiles(filter, true, true);
         }
     }
     
@@ -476,7 +476,6 @@ define(function (require, exports, module) {
 
         return candidateFilesPromise
             .then(function (fileListResult) {
-            
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
 
@@ -522,7 +521,6 @@ define(function (require, exports, module) {
                     if (searchModel.isReplace) {
                         searchObject.getAllResults = true;
                     }
-
                     _updateChangedDocs();
                     FindUtils.notifyNodeSearchStarted();
                     searchDomain.exec("doSearch", searchObject)
@@ -821,7 +819,7 @@ define(function (require, exports, module) {
         if (!PreferencesManager.get("findInFiles.nodeSearch")) {
             return;
         }
-        ProjectManager.getAllFiles(filter, true)
+        ProjectManager.getAllFiles(filter, true, true)
             .done(function (fileListResult) {
                 var files = fileListResult
                     .filter(function (entry) {

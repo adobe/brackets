@@ -49,6 +49,11 @@ define(function (require, exports, module) {
      */
     var _searchBarTemplate = require("text!htmlContent/findreplace-bar.html");
     
+    var lastTypedTime = 0,
+        currentTime = 0,
+        intervalId = 0,
+        lastQueriedText = "";
+
     /**
      * @constructor
      * Find Bar UI component, used for both single- and multi-file find/replace. This doesn't actually
@@ -85,6 +90,7 @@ define(function (require, exports, module) {
         this._options = _.extend(defaults, options);
         this._closed = false;
         this._enabled = true;
+        this.lastQueriedText = "";
     }
     EventDispatcher.makeEventDispatcher(FindBar.prototype);
     
@@ -217,12 +223,7 @@ define(function (require, exports, module) {
             $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey) + ")");
         }
     };
-    
-    var lastTypedTime = 0,
-        currentTime = 0,
-        intervalId = 0,
-        hasSearchedForCurrentText = false;
-    
+
     /**
      * Opens the Find bar, closing any other existing Find bars.
      */
@@ -272,7 +273,6 @@ define(function (require, exports, module) {
                 }
             })
             .on("keydown", "#find-what, #replace-with", function (e) {
-                hasSearchedForCurrentText = false;
                 var d = new Date();
                 lastTypedTime = d.getTime();
                 var executeSearchIfNeeded = function () {
@@ -286,15 +286,15 @@ define(function (require, exports, module) {
                     }
                     d = new Date();
                     currentTime = d.getTime();
-                    if (lastTypedTime && (currentTime - lastTypedTime >= 100) && !hasSearchedForCurrentText &&
-                            !FindUtils.isNodeSearchInProgress()) {
+                    if (lastTypedTime && (currentTime - lastTypedTime >= 100) && self.getQueryInfo().query !==  lastQueriedText &&
+                            !FindUtils.isNodeSearchInProgress() && e.keyCode !== KeyEvent.DOM_VK_CONTROL) {
                         // init Search
                         if (self._options.multifile) {
                             if ($(e.target).is("#find-what")) {
                                 if (!self._options.replace) {
                                     console.log('search exec');
                                     self.trigger("doFind");
-                                    hasSearchedForCurrentText = true;
+                                    lastQueriedText = self.getQueryInfo().query;
                                 }
                             }
                         }
