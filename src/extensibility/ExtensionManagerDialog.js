@@ -63,17 +63,20 @@ define(function (require, exports, module) {
      */
     function _performChanges() {
         // If an extension was removed or updated, prompt the user to quit Brackets.
-        var hasRemovedExtensions = ExtensionManager.hasExtensionsToRemove(),
-            hasUpdatedExtensions = ExtensionManager.hasExtensionsToUpdate();
-        if (!hasRemovedExtensions && !hasUpdatedExtensions) {
+        var hasRemovedExtensions    = ExtensionManager.hasExtensionsToRemove(),
+            hasUpdatedExtensions    = ExtensionManager.hasExtensionsToUpdate(),
+            hasDisabledExtensions   = ExtensionManager.hasExtensionsToDisable();
+        if (!hasRemovedExtensions && !hasUpdatedExtensions && !hasDisabledExtensions) {
             return;
         }
         
         var buttonLabel = Strings.CHANGE_AND_RELOAD;
-        if (hasRemovedExtensions && !hasUpdatedExtensions) {
+        if (hasRemovedExtensions && !hasUpdatedExtensions && !hasDisabledExtensions) {
             buttonLabel = Strings.REMOVE_AND_RELOAD;
-        } else if (hasUpdatedExtensions && !hasRemovedExtensions) {
+        } else if (hasUpdatedExtensions && !hasRemovedExtensions && !hasDisabledExtensions) {
             buttonLabel = Strings.UPDATE_AND_RELOAD;
+        } else if (hasDisabledExtensions && !hasRemovedExtensions && !hasUpdatedExtensions) {
+            buttonLabel = Strings.DISABLE_AND_RELOAD;
         }
         
         var dlg = Dialogs.showModalDialog(
@@ -107,62 +110,101 @@ define(function (require, exports, module) {
                     .text(Strings.PROCESSING_EXTENSIONS)
                     .append("<span class='spinner inline spin'/>");
                 
-                ExtensionManager.removeMarkedExtensions()
-                    .done(function () {
-                        ExtensionManager.updateExtensions()
-                            .done(function () {
-                                dlg.close();
-                                CommandManager.execute(Commands.APP_RELOAD);
-                            })
-                            .fail(function (errorArray) {
-                                dlg.close();
-                                
-                                // This error case should be very uncommon.
-                                // Just let the user know that we couldn't update
-                                // this extension and log the errors to the console.
-                                var ids = [];
-                                errorArray.forEach(function (errorObj) {
-                                    ids.push(errorObj.item);
-                                    if (errorObj.error && errorObj.error.forEach) {
-                                        console.error("Errors for", errorObj.item);
-                                        errorObj.error.forEach(function (error) {
-                                            console.error(Package.formatError(error));
-                                        });
-                                    } else {
-                                        console.error("Error for", errorObj.item, errorObj);
-                                    }
-                                });
-                                Dialogs.showModalDialog(
-                                    DefaultDialogs.DIALOG_ID_ERROR,
-                                    Strings.EXTENSION_MANAGER_UPDATE,
-                                    StringUtils.format(Strings.EXTENSION_MANAGER_UPDATE_ERROR, ids.join(", "))
-                                ).done(function () {
-                                    // We still have to reload even if some of the removals failed.
-                                    CommandManager.execute(Commands.APP_RELOAD);
-                                });
-                            });
-                    })
+                var removeExtensionsPromise,
+                    updateExtensionsPromise,
+                    disableExtensionsPromise,
+                    removeErrors,
+                    updateErrors,
+                    disableErrors;
+
+                removeExtensionsPromise = ExtensionManager.removeMarkedExtensions()
                     .fail(function (errorArray) {
+                        removeErrors = errorArray;
+                    });
+                updateExtensionsPromise = ExtensionManager.updateExtensions()
+                    .fail(function (errorArray) {
+                        updateErrors = errorArray;
+                    });
+                disableExtensionsPromise = ExtensionManager.disableMarkedExtensions()
+                    .fail(function (errorArray) {
+                        disableErrors = errorArray;
+                    });
+
+                Async.waitForAll([removeExtensionsPromise, updateExtensionsPromise, disableExtensionsPromise], true)
+                    .always(function () {
                         dlg.close();
-                        ExtensionManager.cleanupUpdates();
+                    })
+                    .done(function () {
+                        CommandManager.execute(Commands.APP_RELOAD);
+                    })
+                    .fail(function () {
+                        var ids = [],
+                            dialogs = [];
+
+                        function nextDialog() {
+                            var dialog = dialogs.shift();
+                            if (dialog) {
+                                Dialogs.showModalDialog(dialog.dialog, dialog.title, dialog.message)
+                                    .done(nextDialog);
+                            } else {
+                                // Even in case of error condition, we still have to reload
+                                CommandManager.execute(Commands.APP_RELOAD);
+                            }
+                        }
+
+                        if (removeErrors) {
+                            removeErrors.forEach(function (errorObj) {
+                                ids.push(errorObj.item);
+                            });
+                            dialogs.push({
+                                dialog: DefaultDialogs.DIALOG_ID_ERROR,
+                                title: Strings.EXTENSION_MANAGER_REMOVE,
+                                message: StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
+                            });
+                        }
+
+                        if (updateErrors) {
+                            // This error case should be very uncommon.
+                            // Just let the user know that we couldn't update
+                            // this extension and log the errors to the console.
+                            ids.length = 0;
+                            updateErrors.forEach(function (errorObj) {
+                                ids.push(errorObj.item);
+                                if (errorObj.error && errorObj.error.forEach) {
+                                    console.error("Errors for", errorObj.item);
+                                    errorObj.error.forEach(function (error) {
+                                        console.error(Package.formatError(error));
+                                    });
+                                } else {
+                                    console.error("Error for", errorObj.item, errorObj);
+                                }
+                            });
+                            dialogs.push({
+                                dialog: DefaultDialogs.DIALOG_ID_ERROR,
+                                title: Strings.EXTENSION_MANAGER_UPDATE,
+                                message: StringUtils.format(Strings.EXTENSION_MANAGER_UPDATE_ERROR, ids.join(", "))
+                            });
+                        }
+
+                        if (disableErrors) {
+                            ids.length = 0;
+                            disableErrors.forEach(function (errorObj) {
+                                ids.push(errorObj.item);
+                            });
+                            dialogs.push({
+                                dialog: DefaultDialogs.DIALOG_ID_ERROR,
+                                title: Strings.EXTENSION_MANAGER_DISABLE,
+                                message: StringUtils.format(Strings.EXTENSION_MANAGER_DISABLE_ERROR, ids.join(", "))
+                            });
+                        }
                         
-                        var ids = [];
-                        errorArray.forEach(function (errorObj) {
-                            ids.push(errorObj.item);
-                        });
-                        Dialogs.showModalDialog(
-                            DefaultDialogs.DIALOG_ID_ERROR,
-                            Strings.EXTENSION_MANAGER_REMOVE,
-                            StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
-                        ).done(function () {
-                            // We still have to reload even if some of the removals failed.
-                            CommandManager.execute(Commands.APP_RELOAD);
-                        });
+                        nextDialog();
                     });
             } else {
                 dlg.close();
                 ExtensionManager.cleanupUpdates();
                 ExtensionManager.unmarkAllForRemoval();
+                ExtensionManager.unmarkAllForDisabling();
             }
         });
     }

@@ -42,7 +42,7 @@ define(function (require, exports, module) {
         BEZIER_CURVE_GENERAL_REGEX      = /cubic-bezier\((.*)\)/,
         EASE_STRICT_REGEX               = /[: ,]ease(?:-in)?(?:-out)?[ ,;]/,
         EASE_LAX_REGEX                  = /ease(?:-in)?(?:-out)?/,
-        LINEAR_STRICT_REGEX             = /transition.*?[: ,]linear[ ,;]/,
+        LINEAR_STRICT_REGEX             = /(transition|animation).*?[: ,]linear[ ,;]/,
         LINEAR_LAX_REGEX                = /linear/,
         STEPS_VALID_REGEX               = /steps\(\s*(\d+)\s*(?:,\s*(\w+)\s*)?\)/,
         STEPS_GENERAL_REGEX             = /steps\((.*)\)/,
@@ -357,7 +357,7 @@ define(function (require, exports, module) {
             }
         } else {
             // The linear keyword can occur in other values, so for strict parsing we
-            // only detect when it's on same line as "transition"
+            // only detect when it's on same line as "transition" or "animation"
             match = str.match(LINEAR_STRICT_REGEX);
             if (match) {
                 // return exact match to keyword that we need for later replacement

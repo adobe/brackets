@@ -38,11 +38,24 @@ define(function (require, exports, module) {
         JSONUtils           = brackets.getModule("language/JSONUtils"),
         Strings             = brackets.getModule("strings"),
         ThemeManager        = brackets.getModule("view/ThemeManager"),
+        CodeInspection      = brackets.getModule("language/CodeInspection"),
         _                   = brackets.getModule("thirdparty/lodash"),
-        data                = JSON.parse(require("text!data.json")),
+        languages           = LanguageManager.getLanguages(),
         isPrefDocument      = false,
         isPrefHintsEnabled  = false;
     
+    // Stores data of preferences used by Brackets and its core/thirdparty extensions.
+    var data = {
+        language: {
+            type: "object",
+            description: Strings.DESCRIPTION_LANGUAGE
+        },
+        path: {
+            type: "object",
+            description: Strings.DESCRIPTION_PATH
+        }
+    };
+
     var stringMatcherOptions = {
         preferPrefixMatches: true
     };
@@ -85,7 +98,7 @@ define(function (require, exports, module) {
         return (/^\.?brackets\.json$/).test(document.file._name);
     }
     
-    // Set listeners on preference and editor changes.
+    // Set listeners on preference, editor and language changes.
     PreferencesManager.on("change", "showCodeHints", function () {
         isPrefHintsEnabled = _isPrefHintsEnabled();
     });
@@ -97,6 +110,9 @@ define(function (require, exports, module) {
             isPrefDocument = _isPrefDocument(editor.document);
         }
         isPrefHintsEnabled = _isPrefHintsEnabled();
+    });
+    LanguageManager.on("languageAdded", function () {
+        languages = LanguageManager.getLanguages();
     });
     
     /*
@@ -169,11 +185,6 @@ define(function (require, exports, module) {
                 data[pref].keys = _.clone(preference.keys);
             }
         });
-        
-        // Add installed themes to code hints.
-        data["themes.theme"].values = ThemeManager.getAllThemes().map(function (theme) {
-            return theme.name;
-        });
     }
     
     /**
@@ -224,7 +235,7 @@ define(function (require, exports, module) {
                 if (data[ctxInfo.parentKeyName] && data[ctxInfo.parentKeyName].keys) {
                     keys = data[ctxInfo.parentKeyName].keys;
                 } else if (ctxInfo.parentKeyName === "language") {
-                    keys = LanguageManager.getLanguages();
+                    keys = languages;
                     option.type = "object";
                 } else {
                     keys = data;
@@ -235,7 +246,7 @@ define(function (require, exports, module) {
                         var match = StringMatch.stringMatch(key, query, stringMatcherOptions);
                         if (match) {
                             match.type = keys[key].type || option.type;
-                            match.description = keys[key].description || Strings[keys[key].string] || null;
+                            match.description = keys[key].description || null;
                             return match;
                         }
                     }
@@ -257,9 +268,15 @@ define(function (require, exports, module) {
                 } else if (option && option.values && (["number", "string"].indexOf(option.type) !== -1 ||
                                                        (option.type === "array" && ctxInfo.isArray))) {
                     values = option.values;
+                } else if (ctxInfo.isArray && ctxInfo.keyName === "linting.prefer" && languages[ctxInfo.parentKeyName]) {
+                    values = CodeInspection.getProviderIDsForLanguage(ctxInfo.parentKeyName);
+                } else if (ctxInfo.keyName === "themes.theme") {
+                    values = ThemeManager.getAllThemes().map(function (theme) {
+                        return theme.name;
+                    });
                 } else if (ctxInfo.parentKeyName === "language.fileExtensions" ||
                            ctxInfo.parentKeyName === "language.fileNames") {
-                    values = Object.keys(LanguageManager.getLanguages());
+                    values = Object.keys(languages);
                 } else {
                     return null;
                 }
@@ -269,7 +286,7 @@ define(function (require, exports, module) {
                     var match = StringMatch.stringMatch(value, query, stringMatcherOptions);
                     if (match) {
                         match.type = option.valueType || option.type;
-                        match.description = Strings[option.string] || option.description || null;
+                        match.description = option.description || null;
                         return match;
                     }
                 });
