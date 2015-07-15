@@ -114,7 +114,7 @@ define(function (require, exports, module) {
         var dir = this.dir;
         var server = this.server;
         // TODO: https://developer.mozilla.org/en-US/docs/Web/CSS/Alternative_style_sheets
-        var elements = this.doc.querySelectorAll('link[rel="stylesheet"');
+        var elements = this.doc.querySelectorAll("link[rel='stylesheet']");
 
         Async.eachSeries(elements, function(element, callback) {
             var path = element.getAttribute("href");
