@@ -218,6 +218,7 @@ define(function (require, exports, module) {
 
                         //In Expand/Collapse all, reset all search results 'collapsed' flag to same value(true/false).
                         if (e.metaKey || e.ctrlKey) {
+                            FindUtils.setCollapseResults(collapsed);
                             _.forEach(self._model.results, function (item) {
                                 item.collapsed = collapsed;
                             });

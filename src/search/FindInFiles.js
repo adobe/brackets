@@ -636,10 +636,23 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Notify node that the results should be collapsed
+     */
+    function _searchcollapseResults() {
+        if (FindUtils.isNodeSearchDisabled()) {
+            return;
+        }
+        searchDomain.exec("collapseResults", FindUtils.isCollapsedResults());
+    }
+
+    /**
      * Inform node that the list of files has changed.
      * @param {array} fileList The list of files that changed.
      */
     function filesChanged(fileList) {
+        if (FindUtils.isNodeSearchDisabled()) {
+            return;
+        }
         var updateObject = {
             "fileList": fileList
         };
@@ -655,6 +668,9 @@ define(function (require, exports, module) {
      * @param {array} fileList The list of files that was removed.
      */
     function filesRemoved(fileList) {
+        if (FindUtils.isNodeSearchDisabled()) {
+            return;
+        }
         var updateObject = {
             "fileList": fileList
         };
@@ -907,6 +923,7 @@ define(function (require, exports, module) {
     ProjectManager.on("projectOpen", _initCache);
     FindUtils.on(FindUtils.SEARCH_FILE_FILTERS_CHANGED, _searchScopeChanged);
     FindUtils.on(FindUtils.SEARCH_SCOPE_CHANGED, _searchScopeChanged);
+    FindUtils.on(FindUtils.SEARCH_COLLAPSE_RESULTS, _searchcollapseResults);
     searchDomain.on("crawlComplete", nodeFileCacheComplete);
     
     // Public exports

@@ -47,7 +47,8 @@ maxerr: 50, node: true */
         savedSearchObject = null,
         lastSearchedIndex = 0,
         crawlComplete = false,
-        crawlEventSent = false;
+        crawlEventSent = false,
+        collapseResults = false;
     
     /**
      * Copied from StringUtils.js
@@ -224,7 +225,7 @@ maxerr: 50, node: true */
 
         // Make sure that the optional `collapsed` property is explicitly set to either true or false,
         // to avoid logic issues later with comparing values.
-        resultInfo.collapsed = !!resultInfo.collapsed;
+        resultInfo.collapsed = collapseResults;
 
         results[fullpath] = resultInfo;
         numMatches += resultInfo.matches.length;
@@ -541,6 +542,14 @@ maxerr: 50, node: true */
     }
 
     /**
+     * Sets if the results should be collapsed
+     * @param {boolean} collapse true to collapse
+     */
+    function setCollapseResults(collapse) {
+        collapseResults = collapse;
+    }
+
+    /**
      * Initialize the test domain with commands and events related to find in files.
      * @param {DomainManager} domainManager The DomainManager for the find in files domain "FindInFiles"
      */
@@ -568,9 +577,7 @@ maxerr: 50, node: true */
             getNextPage,   // command handler function
             false,          // this command is synchronous in Node
             "get the next page of reults",
-            [{name: "searchObject", // parameters
-                type: "object",
-                description: "Object containing search data"}],
+            [],
             [{name: "searchResults", // return values
                 type: "object",
                 description: "Object containing results of the search"}]
@@ -581,12 +588,21 @@ maxerr: 50, node: true */
             getAllResults,   // command handler function
             false,          // this command is synchronous in Node
             "get the next page of reults",
-            [{name: "searchObject", // parameters
-                type: "object",
-                description: "Object containing search data"}],
+            [],
             [{name: "searchResults", // return values
                 type: "object",
                 description: "Object containing all results of the search"}]
+        );
+        domainManager.registerCommand(
+            "FindInFiles",       // domain name
+            "collapseResults",    // command name
+            setCollapseResults,   // command handler function
+            false,          // this command is synchronous in Node
+            "get the next page of reults",
+            [{name: "collapse", // return values
+                type: "boolean",
+                description: "true to collapse"}],
+            []
         );
         domainManager.registerCommand(
             "FindInFiles",       // domain name

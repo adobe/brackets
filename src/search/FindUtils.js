@@ -44,7 +44,8 @@ define(function (require, exports, module) {
     var nodeSearchDisabled = false,
         instantSearchDisabled = false,
         indexingInProgress = false,
-        nodeSearchCount = 0;
+        nodeSearchCount = 0,
+        collapseResults = false;
 
     EventDispatcher.makeEventDispatcher(exports);
 
@@ -542,6 +543,23 @@ define(function (require, exports, module) {
         return indexingInProgress;
     }
 
+    /**
+     * Set if we need to collapse all results in the results pane
+     * @param {boolean} collapse true to collapse
+     */
+    function setCollapseResults(collapse) {
+        collapseResults = collapse;
+        exports.trigger(exports.SEARCH_COLLAPSE_RESULTS);
+    }
+
+    /**
+     * check if results should be collapsed
+     * @returns {boolean} true if results should be collapsed
+     */
+    function isCollapsedResults() {
+        return collapseResults;
+    }
+
     exports.parseDollars                    = parseDollars;
     exports.getInitialQuery                 = getInitialQuery;
     exports.hasCheckedMatches               = hasCheckedMatches;
@@ -556,6 +574,8 @@ define(function (require, exports, module) {
     exports.isInstantSearchDisabled         = isInstantSearchDisabled;
     exports.isNodeSearchInProgress          = isNodeSearchInProgress;
     exports.isIndexingInProgress            = isIndexingInProgress;
+    exports.setCollapseResults              = setCollapseResults;
+    exports.isCollapsedResults              = isCollapsedResults;
     exports.ERROR_FILE_CHANGED              = "fileChanged";
 
     // event notification functions
@@ -571,4 +591,5 @@ define(function (require, exports, module) {
     exports.SEARCH_SCOPE_CHANGED                     = "searchScopeChanged";
     exports.SEARCH_INDEXING_STARTED                  = "searchIndexingStarted";
     exports.SEARCH_INDEXING_FINISHED                 = "searchIndexingFinished";
+    exports.SEARCH_COLLAPSE_RESULTS                  = "searchCollapseResults";
 });
