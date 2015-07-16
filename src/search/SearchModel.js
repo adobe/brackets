@@ -26,8 +26,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils   = require("file/FileUtils"),
-        EventDispatcher = require("utils/EventDispatcher"),
+    var EventDispatcher = require("utils/EventDispatcher"),
         FindUtils   = require("search/FindUtils"),
         MainViewManager       = require("view/MainViewManager");
 

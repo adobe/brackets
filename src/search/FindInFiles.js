@@ -441,10 +441,7 @@ define(function (require, exports, module) {
      * sends all changed documents that we have tracked to node
      */
     function _updateChangedDocs() {
-        var files = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES),
-            i = 0,
-            file = null,
-            key = null;
+        var key = null;
         for (key in changedFileList) {
             if (changedFileList.hasOwnProperty(key)) {
                 _updateDocumentInNode(key);

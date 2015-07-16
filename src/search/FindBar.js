@@ -248,7 +248,7 @@ define(function (require, exports, module) {
             self.showError(null);
             self._modalBar = null;
             self._closed = true;
-            clearInterval(intervalId);
+            window.clearInterval(intervalId);
             intervalId = 0;
             lastTypedTime = 0;
             FindBar._removeFindBar(self);
@@ -301,7 +301,7 @@ define(function (require, exports, module) {
                     }
                 };
                 if (intervalId === 0) {
-                    intervalId = setInterval(executeSearchIfNeeded, 50);
+                    intervalId = window.setInterval(executeSearchIfNeeded, 50);
                 }
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
