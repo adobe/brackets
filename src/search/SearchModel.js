@@ -205,6 +205,8 @@ define(function (require, exports, module) {
 
     /**
      * Prioritizes the open file and then the working set files to the starting of the list of files
+     * If node search is disabled, we sort the files too- Sorting is computation intensive, and our
+     * ProjectManager.getAllFiles with the sort flag is not working properly : TODO TOFIX
      * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.
      * @return {Array.<string>}
      */
@@ -215,6 +217,18 @@ define(function (require, exports, module) {
             startingWorkingFileSet = [],
             propertyName = "",
             i = 0;
+
+        if (FindUtils.isNodeSearchDisabled()) {
+            return Object.keys(this.results).sort(function (key1, key2) {
+                if (firstFile === key1) {
+                    return -1;
+                } else if (firstFile === key2) {
+                    return 1;
+                }
+                return FileUtils.comparePaths(key1, key2);
+            });
+        }
+
         firstFile = firstFile || "";
 
         // Create a working set path map which indicates if a file in working set is found in file list
