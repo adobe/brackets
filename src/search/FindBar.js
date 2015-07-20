@@ -547,6 +547,13 @@ define(function (require, exports, module) {
         this.$("#indexing-spinner").addClass("forced-hidden");
     };
 
+    /**
+     * Force a search again
+     */
+    FindBar.prototype.redoInstantSearch = function () {
+        this.trigger("doFind");
+    };
+
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
     PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
     PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"}, true);

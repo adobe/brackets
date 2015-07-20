@@ -389,6 +389,25 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Issues a search if find bar is visible and is multi file search and not instant search
+     */
+    function _defferedSearch() {
+        if (_findBar && _findBar._options.multifile && !_findBar._options.replace) {
+            _findBar.redoInstantSearch();
+        }
+    }
+
+    /**
+     * Schedules a search on search scope/filter changes. Have to schedule as when we listen to this event, the file filters
+     * might not have been updated yet.
+     */
+    function _searchIfRequired() {
+        if (!FindUtils.isInstantSearchDisabled() && _findBar && _findBar._options.multifile && !_findBar._options.replace) {
+            setTimeout(_defferedSearch, 100);
+        }
+    }
+
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var model = FindInFiles.searchModel;
@@ -428,6 +447,8 @@ define(function (require, exports, module) {
     
     FindUtils.on(FindUtils.SEARCH_INDEXING_STARTED, _searchIndexingStarted);
     FindUtils.on(FindUtils.SEARCH_INDEXING_FINISHED, _searchIndexingFinished);
+    FindUtils.on(FindUtils.SEARCH_FILE_FILTERS_CHANGED, _searchIfRequired);
+    FindUtils.on(FindUtils.SEARCH_SCOPE_CHANGED, _searchIfRequired);
 
     // Public exports
     exports.searchAndShowResults = searchAndShowResults;
