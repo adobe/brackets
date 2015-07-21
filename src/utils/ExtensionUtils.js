@@ -31,7 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystem = require("filesystem/FileSystem"),
+    var Async      = require("utils/Async"),
+        FileSystem = require("filesystem/FileSystem"),
         FileUtils  = require("file/FileUtils");
 
     /**
@@ -233,26 +234,51 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Loads the package.json file in the given extension folder.
+     * Loads the package.json file in the given extension folder as well as any additional
+     * metadata.
+     *
+     * If there's a .disabled file in the extension directory, then the content of package.json
+     * will be augmented with disabled property set to true. It will override whatever value of
+     * disabled might be set.
      *
      * @param {string} folder The extension folder.
      * @return {$.Promise} A promise object that is resolved with the parsed contents of the package.json file,
-     *     or rejected if there is no package.json or the contents are not valid JSON.
+     *     or rejected if there is no package.json with the boolean indicating whether .disabled file exists.
      */
-    function loadPackageJson(folder) {
-        var file = FileSystem.getFileForPath(folder + "/package.json"),
-            result = new $.Deferred();
-        FileUtils.readAsText(file)
-            .done(function (text) {
+    function loadMetadata(folder) {
+        var packageJSONFile = FileSystem.getFileForPath(folder + "/package.json"),
+            disabledFile = FileSystem.getFileForPath(folder + "/.disabled"),
+            result = new $.Deferred(),
+            jsonPromise = new $.Deferred(),
+            disabledPromise = new $.Deferred(),
+            json,
+            disabled;
+        FileUtils.readAsText(packageJSONFile)
+            .then(function (text) {
                 try {
-                    var json = JSON.parse(text);
-                    result.resolve(json);
+                    json = JSON.parse(text);
+                    jsonPromise.resolve();
                 } catch (e) {
-                    result.reject();
+                    jsonPromise.reject();
                 }
             })
-            .fail(function () {
-                result.reject();
+            .fail(jsonPromise.reject);
+        disabledFile.exists(function (err, exists) {
+            if (err) {
+                disabled = false;
+            } else {
+                disabled = exists;
+            }
+            disabledPromise.resolve();
+        });
+        Async.waitForAll([jsonPromise, disabledPromise])
+            .always(function () {
+                if (!json) {
+                    result.reject(disabled);
+                } else {
+                    json.disabled = disabled;
+                    result.resolve(json);
+                }
             });
         return result.promise();
     }
@@ -264,5 +290,5 @@ define(function (require, exports, module) {
     exports.getModuleUrl          = getModuleUrl;
     exports.loadFile              = loadFile;
     exports.loadStyleSheet        = loadStyleSheet;
-    exports.loadPackageJson       = loadPackageJson;
+    exports.loadMetadata          = loadMetadata;
 });

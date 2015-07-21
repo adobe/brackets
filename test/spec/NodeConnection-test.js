@@ -192,6 +192,42 @@ define(function (require, exports, module) {
             });
         });
         
+        it("should receive progress events from asynchronous commands", function () {
+            var connection = createConnection();
+            var commandDeferred = null;
+            var result = null;
+            var progressMessage = null;
+            runConnectAndWait(connection, false);
+            runLoadDomainsAndWait(connection, ["TestCommandsTwo"], false);
+            runs(function () {
+                commandDeferred = connection.domains.test.reverseAsyncWithProgress("asdf");
+                commandDeferred.progress(function (message) {
+                    progressMessage = message;
+                });
+                commandDeferred.done(function (response) {
+                    result = response;
+                });
+            });
+            waitsFor(
+                function () {
+                    return commandDeferred && progressMessage !== null;
+                },
+                CONNECTION_TIMEOUT
+            );
+            waitsFor(
+                function () {
+                    return commandDeferred &&
+                        commandDeferred.state() === "resolved" &&
+                        result;
+                },
+                CONNECTION_TIMEOUT
+            );
+            runs(function () {
+                expect(progressMessage).toBe("progress");
+                expect(result).toBe("fdsa");
+            });
+        });
+
         it("should receive events", function () {
             var connection = createConnection();
             var spy = jasmine.createSpy();

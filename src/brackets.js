@@ -52,6 +52,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror/addon/fold/xml-fold");
     require("thirdparty/CodeMirror/addon/mode/multiplex");
     require("thirdparty/CodeMirror/addon/mode/overlay");
+    require("thirdparty/CodeMirror/addon/mode/simple");
     require("thirdparty/CodeMirror/addon/scroll/scrollpastend");
     require("thirdparty/CodeMirror/addon/search/match-highlighter");
     require("thirdparty/CodeMirror/addon/search/searchcursor");
@@ -358,8 +359,8 @@ define(function (require, exports, module) {
         }
         
         // Localize MainViewHTML and inject into <BODY> tag
-        $("body").html(Mustache.render(MainViewHTML, Strings));
-        
+        $("body").html(Mustache.render(MainViewHTML, { shouldAddAA: (brackets.platform === "mac"), Strings: Strings }));
+
         // Update title
         $("title").text(brackets.config.app_title);
         

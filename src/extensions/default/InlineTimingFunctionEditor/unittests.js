@@ -135,6 +135,37 @@ define(function (require, exports, module) {
             });
             
             // Valid other functions
+            it("should match linear animation function in declaration in strict mode", function () {
+                match = TimingFunctionUtils.timingFunctionMatch("animation-timing-function: linear;", false);
+                expect(match.length).toEqual(1);
+                expect(match[0]).toEqual("linear");
+                expect(match.originalString).toBeFalsy();
+            });
+            it("should match ease animation function in declaration in strict mode", function () {
+                match = TimingFunctionUtils.timingFunctionMatch("animation-timing-function: ease;", false);
+                expect(match.length).toEqual(1);
+                expect(match[0]).toEqual("ease");
+                expect(match.originalString).toBeFalsy();
+            });
+            it("should match ease-in animation function in declaration in strict mode", function () {
+                match = TimingFunctionUtils.timingFunctionMatch("animation-timing-function: ease-in;", false);
+                expect(match.length).toEqual(1);
+                expect(match[0]).toEqual("ease-in");
+                expect(match.originalString).toBeFalsy();
+            });
+            it("should match ease-out animation function in declaration in strict mode", function () {
+                match = TimingFunctionUtils.timingFunctionMatch("animation-timing-function: ease-out;", false);
+                expect(match.length).toEqual(1);
+                expect(match[0]).toEqual("ease-out");
+                expect(match.originalString).toBeFalsy();
+            });
+            it("should match ease-in-out animation function in declaration in strict mode", function () {
+                match = TimingFunctionUtils.timingFunctionMatch("animation-timing-function: ease-in-out;", false);
+                expect(match.length).toEqual(1);
+                expect(match[0]).toEqual("ease-in-out");
+                expect(match.originalString).toBeFalsy();
+            });
+
             it("should match linear function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("transition-timing-function: linear;", false);
                 expect(match.length).toEqual(1);
