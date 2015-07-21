@@ -74,16 +74,21 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
      */
     function searchAndShowResults(queryInfo, scope, filter, replaceText, candidateFilesPromise) {
-        return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
+        var progressFirstPage, progressFirstUpdate,
+            progressCount = 0,
+            searchAndShowDeferred = new $.Deferred(),
+            searchInScopePromise = FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, searchAndShowDeferred.promise());
+        
+        searchInScopePromise
             .done(function (zeroFilesToken) {
                 // Done searching all files: show results
                 if (FindInFiles.searchModel.hasResults()) {
-                    _resultsView.open();
-
-                    if (_findBar) {
-                        _findBar.close();
+                    if (!progressFirstUpdate) {
+                        _resultsView.open();
+                        if (_findBar) {
+                            _findBar.close();
+                        }
                     }
-
                 } else {
                     _resultsView.close();
 
@@ -102,10 +107,45 @@ define(function (require, exports, module) {
 
                 StatusBar.hideBusyIndicator();
             })
+            .progress(function (results) {
+                // Update first page of panel (100 matches) for every file with matches,
+                // then only update the summary for every page (100 matches)
+                if (results.matches && results.matches.length) {
+                    progressCount += results.matches.length;
+                    if (!progressFirstUpdate) {
+                        // First update
+                        _resultsView.open();
+                        if (_findBar) {
+                            _findBar.close();
+                        }
+                        progressFirstUpdate = true;
+                    } else if (!progressFirstPage) {
+                        // First page
+                        if (progressCount >= 100) {
+                            progressCount -= 100;
+                            progressFirstPage = true;
+                        }
+                        _resultsView._updateResults();
+                    } else {
+                        // Subsequent full pages
+                        if (progressCount >= 100) {
+                            progressCount -= 100;
+                            _resultsView._showSummary();
+                        }
+                    }
+                }
+            })
             .fail(function (err) {
                 console.log("find in files failed: ", err);
                 StatusBar.hideBusyIndicator();
             });
+
+        // candidateFilesPromise is usually already resolved due to file caching, so if
+        // it's passed to FindInFiles.doSearchInScope() the notify() calls are made synchronously
+        // and only 1 promise() call is made. Instead, pass in our own deferred and resolve it here.
+        candidateFilesPromise.done(searchAndShowDeferred.resolve);
+        
+        return searchInScopePromise;
     }
     
     /**

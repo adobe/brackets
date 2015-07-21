@@ -386,14 +386,15 @@ define(function (require, exports, module) {
             .done(function (text, timestamp) {
                 // Note that we don't fire a model change here, since this is always called by some outer batch
                 // operation that will fire it once it's done.
-                var matches = _getSearchMatches(text, searchModel.queryExpr);
-                searchModel.setResults(file.fullPath, {matches: matches, timestamp: timestamp});
-                result.resolve(!!matches.length);
+                var matches = _getSearchMatches(text, searchModel.queryExpr),
+                    searchResults = {matches: matches, timestamp: timestamp};
+                searchModel.setResults(file.fullPath, searchResults);
+                result.resolve(searchResults);
             })
             .fail(function () {
                 // Always resolve. If there is an error, this file
                 // is skipped and we move on to the next file.
-                result.resolve(false);
+                result.resolve({});
             });
         
         return result.promise();
@@ -417,15 +418,26 @@ define(function (require, exports, module) {
         }
         
         var scopeName = searchModel.scope ? searchModel.scope.fullPath : ProjectManager.getProjectRoot().fullPath,
-            perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + queryInfo.query);
+            perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + queryInfo.query),
+            searchDeferred = new $.Deferred();
         
-        return candidateFilesPromise
+        candidateFilesPromise
             .then(function (fileListResult) {
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
+                fileListResult = FindUtils.getSortedFiles(fileListResult, function (file) { return file.fullPath; }, FindUtils.getOpenFilePath());
+                
+                function _doSearchInOneFileWithNotify(item) {
+                    return _doSearchInOneFile(item)
+                        .done(function (searchResults) {
+                            searchDeferred.notify(searchResults);
+                        });
+                }
                 
                 if (fileListResult.length) {
-                    return Async.doInParallel(fileListResult, _doSearchInOneFile);
+                    // search sequentially to allow incremental updating of panel,
+                    // but in batches so search is not too slow
+                    return Async.doInSequentialBatches(fileListResult, _doSearchInOneFileWithNotify, false, 50);
                 } else {
                     return ZERO_FILES_TO_SEARCH;
                 }
@@ -438,9 +450,9 @@ define(function (require, exports, module) {
                 _addListeners();
                 
                 if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
-                    return zeroFilesToken;
+                    searchDeferred.resolve(zeroFilesToken);
                 } else {
-                    return searchModel.results;
+                    searchDeferred.resolve(searchModel.results);
                 }
             }, function (err) {
                 console.log("find in files failed: ", err);
@@ -448,8 +460,10 @@ define(function (require, exports, module) {
                 
                 // In jQuery promises, returning the error here propagates the rejection,
                 // unlike in Promises/A, where we would need to re-throw it to do so.
-                return err;
+                searchDeferred.reject(err);
             });
+        
+        return searchDeferred.promise();
     }
     
     /**
@@ -589,7 +603,8 @@ define(function (require, exports, module) {
                 // find additional matches in all added files
                 Async.doInParallel(addedFiles, function (file) {
                     return _doSearchInOneFile(file)
-                        .done(function (foundMatches) {
+                        .done(function (searchResults) {
+                            var foundMatches = searchResults.matches && !!searchResults.matches.length;
                             resultsChanged = resultsChanged || foundMatches;
                         });
                 }).always(deferred.resolve);
