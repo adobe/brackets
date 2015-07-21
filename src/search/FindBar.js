@@ -249,7 +249,7 @@ define(function (require, exports, module) {
             self.showError(null);
             self._modalBar = null;
             self._closed = true;
-            clearInterval(intervalId);
+            window.clearInterval(intervalId);
             intervalId = 0;
             lastTypedTime = 0;
             FindBar._removeFindBar(self);
@@ -273,8 +273,7 @@ define(function (require, exports, module) {
                 }
             })
             .on("keydown", "#find-what, #replace-with", function (e) {
-                var d = new Date();
-                lastTypedTime = d.getTime();
+                lastTypedTime = new Date().getTime();
                 var executeSearchIfNeeded = function () {
                     // We only do instant search via node.
                     if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
@@ -284,8 +283,7 @@ define(function (require, exports, module) {
                     if (self._closed) {
                         return;
                     }
-                    d = new Date();
-                    currentTime = d.getTime();
+                    currentTime = new Date().getTime();
                     if (lastTypedTime && (currentTime - lastTypedTime >= 100) && self.getQueryInfo().query !==  lastQueriedText &&
                             !FindUtils.isNodeSearchInProgress() && e.keyCode !== KeyEvent.DOM_VK_CONTROL) {
                         // init Search
@@ -301,7 +299,7 @@ define(function (require, exports, module) {
                     }
                 };
                 if (intervalId === 0) {
-                    intervalId = setInterval(executeSearchIfNeeded, 50);
+                    intervalId = window.setInterval(executeSearchIfNeeded, 50);
                 }
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();

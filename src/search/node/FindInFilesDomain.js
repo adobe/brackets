@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -325,7 +325,7 @@ maxerr: 50, node: true */
             return;
         }
         var i = 0;
-        for (i = 0; i < 10 && currentCrawlIndex < files.length; i = i + 1) {
+        for (i = 0; i < 10 && currentCrawlIndex < files.length; i++) {
             getFileContentsForFile(files[currentCrawlIndex]);
             currentCrawlIndex++;
         }
@@ -367,10 +367,6 @@ maxerr: 50, node: true */
             return 0;
         }
         var matches = contents.match(queryExpr);
-        if (matches && isNaN(matches.length)) {
-            console.log('contents for nan' + contents);
-            console.log(JSON.stringify(matches));
-        }
         return matches ? matches.length : 0;
     }
 
@@ -458,7 +454,7 @@ maxerr: 50, node: true */
         var fileList = updateObject.fileList || [],
             filesInSearchScope = updateObject.filesInSearchScope || [],
             i = 0;
-        for (i = 0; i < fileList.length; i = 1 + 1) {
+        for (i = 0; i < fileList.length; i++) {
             delete projectCache[fileList[i]];
         }
         function isNotInRemovedFilesList(path) {
@@ -478,7 +474,7 @@ maxerr: 50, node: true */
             i = 0,
             changedFilesAlreadyInList = [],
             newFiles = [];
-        for (i = 0; i < fileList.length; i = 1 + 1) {
+        for (i = 0; i < fileList.length; i++) {
             // We just add a null entry indicating the precense of the file in the project list.
             // The file will be later read when required.
             projectCache[fileList[i]] = null;

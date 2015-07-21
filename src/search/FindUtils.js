@@ -32,7 +32,6 @@ define(function (require, exports, module) {
         MainViewManager     = require("view/MainViewManager"),
         FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils"),
-        FileFilters         = require("search/FileFilters"),
         FindBar             = require("search/FindBar").FindBar,
         ProjectManager      = require("project/ProjectManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),

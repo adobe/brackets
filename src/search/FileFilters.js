@@ -37,9 +37,9 @@ define(function (require, exports, module) {
         StringUtils        = require("utils/StringUtils"),
         Strings            = require("strings"),
         PreferencesManager = require("preferences/PreferencesManager"),
+        FindUtils          = require("search/FindUtils"),
         EditFilterTemplate = require("text!htmlContent/edit-filter-dialog.html"),
-        FilterNameTemplate = require("text!htmlContent/filter-name.html"),
-        FindUtils          = require("search/FindUtils");
+        FilterNameTemplate = require("text!htmlContent/filter-name.html");
   
     /**
      * Constant: first filter index in the filter dropdown list

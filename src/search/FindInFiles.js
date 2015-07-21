@@ -43,8 +43,8 @@ define(function (require, exports, module) {
         LanguageManager       = require("language/LanguageManager"),
         SearchModel           = require("search/SearchModel").SearchModel,
         PerfUtils             = require("utils/PerfUtils"),
-		NodeDomain            = require("utils/NodeDomain"),
-		FileUtils			  = require("file/FileUtils"),
+        NodeDomain            = require("utils/NodeDomain"),
+        FileUtils			  = require("file/FileUtils"),
         FindUtils             = require("search/FindUtils");
     
     var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
@@ -98,7 +98,7 @@ define(function (require, exports, module) {
         FindUtils.setInstantSearchDisabled(false);
         // Node search could be disabled if some error has happened in node. But upon
         // project change, if we get this message, then it means that node search is working,
-        // we we re enable node search. If a search fails, node search will be switched off eventually.
+        // we re-enable node search. If a search fails, node search will be switched off eventually.
         FindUtils.setNodeSearchDisabled(false);
         FindUtils.notifyIndexingFinished();
     }
@@ -441,10 +441,7 @@ define(function (require, exports, module) {
      * sends all changed documents that we have tracked to node
      */
     function _updateChangedDocs() {
-        var files = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES),
-            i = 0,
-            file = null,
-            key = null;
+        var key = null;
         for (key in changedFileList) {
             if (changedFileList.hasOwnProperty(key)) {
                 _updateDocumentInNode(key);
