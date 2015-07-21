@@ -832,6 +832,10 @@ define(function (require, exports, module) {
             return _subtreeFilter(file, null) && _isReadableText(file.fullPath);
         }
         FindUtils.setInstantSearchDisabled(true);
+
+        //we always listen for filesytem changes.
+        _addListeners();
+
         if (!PreferencesManager.get("findInFiles.nodeSearch")) {
             return;
         }
@@ -852,8 +856,6 @@ define(function (require, exports, module) {
                     });
             });
         _searchScopeChanged();
-        //we always listen for filesytem changes.
-        _addListeners();
     };
 
 
