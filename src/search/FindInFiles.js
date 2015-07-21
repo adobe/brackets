@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         SearchModel           = require("search/SearchModel").SearchModel,
         PerfUtils             = require("utils/PerfUtils"),
         NodeDomain            = require("utils/NodeDomain"),
-        FileUtils			  = require("file/FileUtils"),
+        FileUtils             = require("file/FileUtils"),
         FindUtils             = require("search/FindUtils");
     
     var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
