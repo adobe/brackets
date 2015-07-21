@@ -249,7 +249,7 @@ define(function (require, exports, module) {
 
         // Check if extension metadata contains localized content.
         var lang            = brackets.getLocale(),
-            shortLang       = lang.split("-")[0];
+            shortLang       = LocalizationUtils.shortLang(lang);
         if (info.metadata["package-i18n"]) {
             [shortLang, lang].forEach(function (locale) {
                 if (info.metadata["package-i18n"].hasOwnProperty(locale)) {

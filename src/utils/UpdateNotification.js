@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         ExtensionManager     = require("extensibility/ExtensionManager"),
         PreferencesManager   = require("preferences/PreferencesManager"),
+        LocalizationUtils    = require("utils/LocalizationUtils"),
         NativeApp            = require("utils/NativeApp"),
         Strings              = require("strings"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
@@ -95,17 +96,9 @@ define(function (require, exports, module) {
     /**
      * Construct a new version update url with the given locale.
      *
-     * @param {string=} locale - optional locale, defaults to 'brackets.getLocale()' when omitted.
-     * @param {boolean=} removeCountryPartOfLocale - optional, remove existing country information from locale 'en-gb' => 'en'
      * return {string} the new version update url
      */
-    function _getVersionInfoUrl(locale, removeCountryPartOfLocale) {
-        locale = locale || brackets.getLocale();
-
-        if (removeCountryPartOfLocale) {
-            locale = locale.substring(0, 2);
-        }
-
+    function _getVersionInfoUrl(locale) {
         return brackets.config.update_info_url + locale + ".json";
     }
 
@@ -122,6 +115,48 @@ define(function (require, exports, module) {
      * _versionInfoUrl is used for unit testing.
      */
     function _getUpdateInformation(force, dontCache, _versionInfoUrl) {
+
+        // If the current locale isn't "en" or "en-US", check whether we actually have a
+        //   locale-specific update notification, and fall back to "en" if not.
+        // Note: we check for both "en" and "en-US" to watch for the general case or
+        //    country-specific English locale.  The former appears default on Mac, while
+        //    the latter appears default on Windows.
+        function loadLocalizedContent(langIndex, languages, lookupPromise) {
+            langIndex = langIndex || 0;
+            languages = languages || LocalizationUtils.languages();
+            lookupPromise = lookupPromise || new $.Deferred();
+            var lang = languages[langIndex],
+                localVersionInfoUrl;
+
+            if (lang) {
+                lang = lang.toLowerCase();
+            } else {
+                lookupPromise.reject();
+            }
+
+            if (langIndex === 0 && _versionInfoUrl) { // for unit tests
+                localVersionInfoUrl = _versionInfoUrl;
+            }
+            if (lang === "en" || lang === "en-us") {
+                localVersionInfoUrl = localVersionInfoUrl || _getVersionInfoUrl("en");
+                lookupPromise.resolve(localVersionInfoUrl);
+            } else {
+                localVersionInfoUrl = localVersionInfoUrl || _getVersionInfoUrl(lang);
+                $.ajax({
+                    url: localVersionInfoUrl,
+                    cache: false,
+                    type: "HEAD"
+                })
+                    .done(function () {
+                        lookupPromise.resolve(localVersionInfoUrl);
+                    })
+                    .fail(function () {
+                        loadLocalizedContent(langIndex + 1, languages, lookupPromise);
+                    });
+            }
+            return lookupPromise.promise();
+        }
+
         // Last time the versionInfoURL was fetched
         var lastInfoURLFetchTime = PreferencesManager.getViewState("lastInfoURLFetchTime");
 
@@ -146,79 +181,41 @@ define(function (require, exports, module) {
         }
         
         if (fetchData) {
-            var lookupPromise = new $.Deferred(),
-                localVersionInfoUrl;
+            loadLocalizedContent()
+                .done(function (localVersionInfoUrl) {
+                    $.ajax({
+                        url: localVersionInfoUrl,
+                        dataType: "json",
+                        cache: false
+                    }).done(function (updateInfo, textStatus, jqXHR) {
+                        if (!dontCache) {
+                            lastInfoURLFetchTime = (new Date()).getTime();
+                            PreferencesManager.setViewState("lastInfoURLFetchTime", lastInfoURLFetchTime);
+                            PreferencesManager.setViewState("updateInfo", updateInfo);
+                        }
+                        result.resolve(updateInfo);
+                    }).fail(function (jqXHR, status, error) {
+                        // When loading data for unit tests, the error handler is
+                        // called but the responseText is valid. Try to use it here,
+                        // but *don't* save the results in prefs.
 
-            // If the current locale isn't "en" or "en-US", check whether we actually have a
-            //   locale-specific update notification, and fall back to "en" if not.
-            // Note: we check for both "en" and "en-US" to watch for the general case or
-            //    country-specific English locale.  The former appears default on Mac, while
-            //    the latter appears default on Windows.
-            var locale = brackets.getLocale().toLowerCase();
-            if (locale !== "en" && locale !== "en-us") {
-                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl();
-                $.ajax({
-                    url: localVersionInfoUrl,
-                    cache: false,
-                    type: "HEAD"
-                }).fail(function (jqXHR, status, error) {
-                    // get rid of any country information from locale and try again
-                    var tmpUrl = _getVersionInfoUrl(brackets.getLocale(), true);
-                    if (tmpUrl !== localVersionInfoUrl) {
-                        $.ajax({
-                            url: tmpUrl,
-                            cache: false,
-                            type: "HEAD"
-                        }).fail(function (jqXHR, status, error) {
-                            localVersionInfoUrl = _getVersionInfoUrl("en");
-                        }).done(function (jqXHR, status, error) {
-                            localVersionInfoUrl = tmpUrl;
-                        }).always(function (jqXHR, status, error) {
-                            lookupPromise.resolve();
-                        });
-                    } else {
-                        localVersionInfoUrl = _getVersionInfoUrl("en");
-                        lookupPromise.resolve();
-                    }
-                }).done(function (jqXHR, status, error) {
-                    lookupPromise.resolve();
+                        if (!jqXHR.responseText) {
+                            // Text is NULL or empty string, reject().
+                            result.reject();
+                            return;
+                        }
+
+                        try {
+                            data = JSON.parse(jqXHR.responseText);
+                            result.resolve(data);
+                        } catch (e) {
+                            result.reject();
+                        }
+                    });
+                })
+                .fail(function () {
+                    result.reject();
                 });
-            } else {
-                localVersionInfoUrl = _versionInfoUrl || _getVersionInfoUrl("en");
-                lookupPromise.resolve();
-            }
-
-            lookupPromise.done(function () {
-                $.ajax({
-                    url: localVersionInfoUrl,
-                    dataType: "json",
-                    cache: false
-                }).done(function (updateInfo, textStatus, jqXHR) {
-                    if (!dontCache) {
-                        lastInfoURLFetchTime = (new Date()).getTime();
-                        PreferencesManager.setViewState("lastInfoURLFetchTime", lastInfoURLFetchTime);
-                        PreferencesManager.setViewState("updateInfo", updateInfo);
-                    }
-                    result.resolve(updateInfo);
-                }).fail(function (jqXHR, status, error) {
-                    // When loading data for unit tests, the error handler is
-                    // called but the responseText is valid. Try to use it here,
-                    // but *don't* save the results in prefs.
-
-                    if (!jqXHR.responseText) {
-                        // Text is NULL or empty string, reject().
-                        result.reject();
-                        return;
-                    }
-
-                    try {
-                        data = JSON.parse(jqXHR.responseText);
-                        result.resolve(data);
-                    } catch (e) {
-                        result.reject();
-                    }
-                });
-            });
         } else {
             result.resolve(data);
         }
