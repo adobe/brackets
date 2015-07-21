@@ -523,7 +523,6 @@ define(function (require, exports, module) {
                     searchDomain.exec("doSearch", searchObject)
                         .done(function (rcvd_object) {
                             FindUtils.notifyNodeSearchFinished();
-                            console.log('search completed');
                             if (!rcvd_object || !rcvd_object.results) {
                                 console.log('no node falling back to brackets search');
                                 FindUtils.setNodeSearchDisabled(true);
@@ -845,12 +844,8 @@ define(function (require, exports, module) {
                     .map(function (entry) {
                         return entry.fullPath;
                     });
-                console.log('Starting cache creation');
                 FindUtils.notifyIndexingStarted();
-                searchDomain.exec("initCache", files)
-                    .done(function () {
-                        console.log('cache created');
-                    });
+                searchDomain.exec("initCache", files);
             });
         _searchScopeChanged();
     };
@@ -869,7 +864,6 @@ define(function (require, exports, module) {
         FindUtils.notifyNodeSearchStarted();
         searchDomain.exec("nextPage")
             .done(function (rcvd_object) {
-                console.log('search completed');
                 FindUtils.notifyNodeSearchFinished();
                 if (searchModel.results) {
                     var resultEntry;

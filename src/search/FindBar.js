@@ -290,7 +290,6 @@ define(function (require, exports, module) {
                         if (self._options.multifile) {
                             if ($(e.target).is("#find-what")) {
                                 if (!self._options.replace) {
-                                    console.log('search exec');
                                     self.trigger("doFind");
                                     lastQueriedText = self.getQueryInfo().query;
                                 }

@@ -330,7 +330,6 @@ maxerr: 50, node: true */
             currentCrawlIndex++;
         }
         if (currentCrawlIndex < files.length) {
-            console.log("crawling scheduled");
             crawlComplete = false;
             setImmediate(fileCrawler);
         } else {
@@ -349,7 +348,6 @@ maxerr: 50, node: true */
      * @param   {array} fileList an array of files
      */
     function initCache(fileList) {
-        console.log("cache change");
         files = fileList;
         currentCrawlIndex = 0;
         clearProjectCache();
@@ -377,7 +375,6 @@ maxerr: 50, node: true */
      * @returns {Number} total number of matches
      */
     function getNumMatches(fileList, queryExpr) {
-        console.log('getNumatches');
         var i,
             matches = 0;
         for (i = 0; i < fileList.length; i++) {
@@ -391,7 +388,6 @@ maxerr: 50, node: true */
                 break;
             }
         }
-        console.log('for completed' + matches);
         return matches;
     }
 
@@ -402,7 +398,6 @@ maxerr: 50, node: true */
      * @returns {Object}   search results
      */
     function doSearch(searchObject, nextPages) {
-        console.log("doSearch");
         
         savedSearchObject = searchObject;
         if (!files) {
@@ -442,7 +437,6 @@ maxerr: 50, node: true */
         if (searchObject.getAllResults) {
             send_object.allResultsAvailable = true;
         }
-        console.log("returning " + numMatches + "results");
         return send_object;
     }
     
