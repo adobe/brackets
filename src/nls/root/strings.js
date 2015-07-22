@@ -194,7 +194,7 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click to expand/collapse all",
-    "FIND_IN_FILES_INDEXING"            : "Indexing for Instant Search...",
+    "FIND_IN_FILES_INDEXING"            : "Indexing for Instant Search\u2026",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Replace Errors",
     "REPLACE_IN_FILES_ERRORS"           : "The following files weren't modified because they changed after the search or couldn't be written.",
 
@@ -754,9 +754,9 @@ define({
     "DESCRIPTION_USE_THEME_SCROLLBARS"               : "true to allow custom scroll bars",
     "DESCRIPTION_LINTING_COLLAPSED"                  : "true to collapse linting panel",
     "DESCRIPTION_FONT_FAMILY"                        : "Change font family",
-    "DESCRIPTION_FONT_SIZE"                          : "Change font size; e.g, 13px",
-    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "True to enable node based search",
-    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "True to enable instant search",
+    "DESCRIPTION_FONT_SIZE"                          : "Change font size; e.g. 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "true to enable node based search",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "true to enable instant search",
     "DESCRIPTION_FONT_SMOOTHING"                     : "Mac-only: \"subpixel-antialiased\" to enable sub-pixel antialiasing or \"antialiased\" for gray scale antialiasing",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false to disable opening preferences file in split view",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false to open user preferences file in left/top pane",
