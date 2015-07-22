@@ -120,7 +120,7 @@ define(function (require, exports, module) {
      * Returns true if the given string starts with the given prefix.
      * @param   {String} str
      * @param   {String} prefix
-     * @returns {Boolean}
+     * @return {Boolean}
      */
     function startsWith(str, prefix) {
         return str.slice(0, prefix.length) === prefix;
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
      * Taken from http://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
      * @CC wiki attribution: esmiralha
      * @param   {string}   str The string for which hash is to be computed
-     * @returns {number} The 32-bit hash
+     * @return {number} The 32-bit hash
      */
     function hashCode(str) {
         var hash = 0, i, chr, len;

@@ -49,7 +49,7 @@ define(function (require, exports, module) {
 
     /**
      * All the logging functions should be disabled if this returns false
-     * @returns {boolean} true if health data can be logged
+     * @return {boolean} true if health data can be logged
      */
     function shouldLogHealthData() {
         return logHealthData;
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
 
     /**
      * Return all health data logged till now stored in the state prefs
-     * @returns {Object} Health Data aggregated till now
+     * @return {Object} Health Data aggregated till now
      */
     function getStoredHealthData() {
         return PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY);
@@ -65,7 +65,7 @@ define(function (require, exports, module) {
 
     /**
      * Return the aggregate of all health data logged till now from all sources
-     * @returns {Object} Health Data aggregated till now
+     * @return {Object} Health Data aggregated till now
      */
     function getAggregatedHealthData() {
         var healthData = getStoredHealthData();
@@ -87,7 +87,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns health data logged for the given key
-     * @returns {Object} Health Data object for the key or undefined if no health data stored
+     * @return {Object} Health Data object for the key or undefined if no health data stored
      */
     function getHealthDataLog(key) {
         var healthData = getStoredHealthData();

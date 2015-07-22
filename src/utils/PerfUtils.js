@@ -309,7 +309,7 @@ define(function (require, exports, module) {
      * @param   {Array}    entry          An array or a single value
      * @param   {Boolean} aggregateStats If set, the returned value will be aggregated in the form -
      *                                   <min(avg)max[standard deviation]>
-     * @returns {String}   a single value, or comma separated values in an array or
+     * @return {String}   a single value, or comma separated values in an array or
      *                     <min(avg)max[standard deviation]> if aggregateStats is set
      */
     function getValueAsString(entry, aggregateStats) {
@@ -366,7 +366,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the Performance metrics to be logged for health report
-     * @returns {Object} An object with the health data logs to be sent
+     * @return {Object} An object with the health data logs to be sent
      */
     function getHealthReport() {
         var healthReport = {
