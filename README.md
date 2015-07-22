@@ -72,6 +72,8 @@ A standard set of default extensions are always turned on:
 * QuickView
 * UrlCodeHints
 * brackets-paste-and-indent
+* BrambleUrlCodeHints
+* Autosave
 
 You could disable QuickView and CSSCodeHints by loading Bramble with `?disableExtensions=QuickView,CSSCodeHints`
 on the URL.
@@ -89,7 +91,6 @@ In addition, you can enable other extra extensions:
 * QuickOpenCSS
 * RecentProjects
 * brackets-cdn-suggestions
-* ImageUrlCodeHints
 * HTMLHinter
 * MdnDocs
 * SVGasXML

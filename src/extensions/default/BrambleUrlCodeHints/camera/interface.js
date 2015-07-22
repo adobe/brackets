@@ -8,7 +8,7 @@ define(function (require, exports, module) {
 
     var selfieWidgetHTML = require("text!camera/selfieWidget.html");
     var base64ToBuffer = require("camera/utils").base64ToBuffer;
-    var shutter = new Audio("./extensions/extra/ImageUrlCodeHints/camera/camera-shutter-click-08.mp3");
+    var shutter;
 
     // We hardcode the width of the video interface for now
     var _width = 320;
@@ -46,6 +46,11 @@ define(function (require, exports, module) {
         this.snapButton = document.getElementById("selfie-snap");
         this.saveButton = document.getElementById("selfie-use");
         this.saveButton.style.display = "initial";
+
+        // Lazy-load shutter sound
+        if(!shutter) {
+            shutter = new Audio("./extensions/default/BrambleUrlCodeHints/camera/camera-shutter-click-08.mp3");
+        }
     };
 
     // Set the video height

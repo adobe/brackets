@@ -25,12 +25,12 @@ define(function (require, exports, module) {
         "QuickOpenHTML",
         "QuickOpenJavaScript",
         "QuickView",
-        "UrlCodeHints",
 
         // Custom extensions we want loaded by default
         "bramble",
         "Autosave",
-        "brackets-paste-and-indent"
+        "brackets-paste-and-indent",
+        "BrambleUrlCodeHints"
     ];
 
     /**
@@ -49,7 +49,8 @@ define(function (require, exports, module) {
         "CodeFolding",
         "JSLint",
         "QuickOpenCSS",
-        "RecentProjects"
+        "RecentProjects",
+        "UrlCodeHints"
     ];
 
     /**
@@ -60,7 +61,6 @@ define(function (require, exports, module) {
      */
     var extraExtensions = [
         "brackets-cdn-suggestions",    // https://github.com/szdc/brackets-cdn-suggestions
-        "ImageUrlCodeHints",
         "HTMLHinter",
         "MDNDocs",
         "SVGasXML"
