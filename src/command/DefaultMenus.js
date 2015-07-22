@@ -150,6 +150,8 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC);
         menu.addMenuItem(Commands.NAVIGATE_PREV_DOC);
+        menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC_LIST_ORDER);
+        menu.addMenuItem(Commands.NAVIGATE_PREV_DOC_LIST_ORDER);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
         menu.addMenuDivider();

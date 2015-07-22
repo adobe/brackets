@@ -1,0 +1,29 @@
+.brackets-pref-hints .matched-hint {
+    font-weight: 500;
+}
+.dark .brackets-pref-hints .matched-hint {
+    color: #ccc;
+}
+
+.brackets-pref-hints .hint-obj {
+    display: inline-block;
+    min-width: 250px;
+}
+
+.brackets-pref-hints .hint-description {
+    line-height: 1.3;
+    display: none;
+    width: 250px;
+    padding-bottom: 3px;
+    padding-left: 14px;
+    white-space: pre-wrap;
+    color: #6e6e64;
+}
+
+.dark .brackets-pref-hints .hint-description {
+    color: #ccc;
+}
+
+.highlight .brackets-pref-hints .hint-description {
+    display: block;
+}

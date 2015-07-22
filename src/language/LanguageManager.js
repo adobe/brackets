@@ -136,6 +136,7 @@ define(function (require, exports, module) {
         EventDispatcher       = require("utils/EventDispatcher"),
         Async                 = require("utils/Async"),
         FileUtils             = require("file/FileUtils"),
+        Strings               = require("strings"),
         _defaultLanguagesJSON = require("text!language/languages.json"),
         _                     = require("thirdparty/lodash"),
         
@@ -1144,10 +1145,14 @@ define(function (require, exports, module) {
         // depends on FileUtils) here. Using the async form of require fixes this.
         require(["preferences/PreferencesManager"], function (pm) {
             PreferencesManager = pm;
-            pm.definePreference(_EXTENSION_MAP_PREF, "object", {}).on("change", function () {
+            pm.definePreference(_EXTENSION_MAP_PREF, "object", {}, {
+                description: Strings.DESCRIPTION_LANGUAGE_FILE_EXTENSIONS
+            }).on("change", function () {
                 _updateFromPrefs(_EXTENSION_MAP_PREF);
             });
-            pm.definePreference(_NAME_MAP_PREF, "object", {}).on("change", function () {
+            pm.definePreference(_NAME_MAP_PREF, "object", {}, {
+                description: Strings.DESCRIPTION_LANGUAGE_FILE_NAMES
+            }).on("change", function () {
                 _updateFromPrefs(_NAME_MAP_PREF);
             });
             _updateFromPrefs(_EXTENSION_MAP_PREF);

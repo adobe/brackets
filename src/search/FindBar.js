@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         PreferencesManager = require("preferences/PreferencesManager"),
         MainViewManager    = require("view/MainViewManager"),
         Strings            = require("strings"),
-        ViewUtils          = require("utils/ViewUtils");
+        ViewUtils          = require("utils/ViewUtils"),
+        FindUtils          = require("search/FindUtils");
     
     /**
      * @private
@@ -48,6 +49,11 @@ define(function (require, exports, module) {
      */
     var _searchBarTemplate = require("text!htmlContent/findreplace-bar.html");
     
+    var lastTypedTime = 0,
+        currentTime = 0,
+        intervalId = 0,
+        lastQueriedText = "";
+
     /**
      * @constructor
      * Find Bar UI component, used for both single- and multi-file find/replace. This doesn't actually
@@ -84,6 +90,7 @@ define(function (require, exports, module) {
         this._options = _.extend(defaults, options);
         this._closed = false;
         this._enabled = true;
+        this.lastQueriedText = "";
     }
     EventDispatcher.makeEventDispatcher(FindBar.prototype);
     
@@ -216,7 +223,7 @@ define(function (require, exports, module) {
             $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey) + ")");
         }
     };
-    
+
     /**
      * Opens the Find bar, closing any other existing Find bars.
      */
@@ -242,6 +249,9 @@ define(function (require, exports, module) {
             self.showError(null);
             self._modalBar = null;
             self._closed = true;
+            window.clearInterval(intervalId);
+            intervalId = 0;
+            lastTypedTime = 0;
             FindBar._removeFindBar(self);
             MainViewManager.focusActivePane();
             self.trigger("close");
@@ -258,8 +268,38 @@ define(function (require, exports, module) {
                 $(e.currentTarget).toggleClass("active");
                 self._updatePrefsFromSearchBar();
                 self.trigger("queryChange");
+                if (self._options.multifile) {  //instant search
+                    self.trigger("doFind");
+                }
             })
             .on("keydown", "#find-what, #replace-with", function (e) {
+                lastTypedTime = new Date().getTime();
+                var executeSearchIfNeeded = function () {
+                    // We only do instant search via node.
+                    if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
+                        // we still keep the intrval timer up as instant search could get enabled/disabled based on node busy state
+                        return;
+                    }
+                    if (self._closed) {
+                        return;
+                    }
+                    currentTime = new Date().getTime();
+                    if (lastTypedTime && (currentTime - lastTypedTime >= 100) && self.getQueryInfo().query !==  lastQueriedText &&
+                            !FindUtils.isNodeSearchInProgress() && e.keyCode !== KeyEvent.DOM_VK_CONTROL) {
+                        // init Search
+                        if (self._options.multifile) {
+                            if ($(e.target).is("#find-what")) {
+                                if (!self._options.replace) {
+                                    self.trigger("doFind");
+                                    lastQueriedText = self.getQueryInfo().query;
+                                }
+                            }
+                        }
+                    }
+                };
+                if (intervalId === 0) {
+                    intervalId = window.setInterval(executeSearchIfNeeded, 50);
+                }
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -319,6 +359,10 @@ define(function (require, exports, module) {
                 });
         }
         
+        if (this._options.multifile && FindUtils.isIndexingInProgress()) {
+            this.showIndexingSpinner();
+        }
+
         // Set up the initial UI state.
         this._updateSearchBarFromPrefs();
         this.focusQuery();
@@ -424,6 +468,10 @@ define(function (require, exports, module) {
         this._enabled = enable;
     };
     
+    FindBar.prototype.focus = function (enable) {
+        this.$("#find-what").focus();
+    };
+    
     /**
      * @return {boolean} true if the FindBar is enabled.
      */
@@ -485,6 +533,24 @@ define(function (require, exports, module) {
         this._focus("#replace-with");
     };
     
+    /**
+     * The indexing spinner is usually shown when node is indexing files
+     */
+    FindBar.prototype.showIndexingSpinner = function () {
+        this.$("#indexing-spinner").removeClass("forced-hidden");
+    };
+
+    FindBar.prototype.hideIndexingSpinner = function () {
+        this.$("#indexing-spinner").addClass("forced-hidden");
+    };
+
+    /**
+     * Force a search again
+     */
+    FindBar.prototype.redoInstantSearch = function () {
+        this.trigger("doFind");
+    };
+
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
     PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
     PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"}, true);

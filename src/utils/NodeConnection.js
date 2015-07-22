@@ -486,6 +486,12 @@ define(function (require, exports, module) {
                 delete this._pendingCommandDeferreds[m.message.id];
             }
             break;
+        case "commandProgress":
+            responseDeferred = this._pendingCommandDeferreds[m.message.id];
+            if (responseDeferred) {
+                responseDeferred.notifyWith(this, [m.message.message]);
+            }
+            break;
         case "commandError":
             responseDeferred = this._pendingCommandDeferreds[m.message.id];
             if (responseDeferred) {

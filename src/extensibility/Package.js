@@ -41,7 +41,9 @@ define(function (require, exports, module) {
         NodeConnection       = require("utils/NodeConnection"),
         PreferencesManager   = require("preferences/PreferencesManager");
     
-    PreferencesManager.definePreference("proxy", "string", undefined);
+    PreferencesManager.definePreference("proxy", "string", undefined, {
+        description: Strings.DESCRIPTION_PROXY
+    });
     
     var Errors = {
         ERROR_LOADING: "ERROR_LOADING",
@@ -431,6 +433,48 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Disables the extension at the given path.
+     *
+     * @param {string} path The absolute path to the extension to disable.
+     * @return {$.Promise} A promise that's resolved when the extenion is disabled, or
+     *      rejected if there was an error.
+     */
+    function disable(path) {
+        var result = new $.Deferred(),
+            file = FileSystem.getFileForPath(path + "/.disabled");
+        file.write("", function (err) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve();
+            }
+        });
+        return result.promise();
+    }
+
+    /**
+     * Enables the extension at the given path.
+     *
+     * @param {string} path The absolute path to the extension to enable.
+     * @return {$.Promise} A promise that's resolved when the extenion is enable, or
+     *      rejected if there was an error.
+     */
+    function enable(path) {
+        var result = new $.Deferred(),
+            file = FileSystem.getFileForPath(path + "/.disabled");
+        file.unlink(function (err) {
+            if (err) {
+                result.reject(err);
+                return;
+            }
+            ExtensionLoader.loadExtension(FileUtils.getBaseName(path), { baseUrl: path }, "main")
+                .done(result.resolve)
+                .fail(result.reject);
+        });
+        return result.promise();
+    }
+
+    /**
      * Install an extension update located at path.
      * This assumes that the installation was previously attempted
      * and an installationStatus of "ALREADY_INSTALLED", "NEEDS_UPDATE", "SAME_VERSION",
@@ -498,12 +542,14 @@ define(function (require, exports, module) {
     // For unit tests only
     exports._getNodeConnectionDeferred = _getNodeConnectionDeferred;
 
-    exports.installFromURL = installFromURL;
-    exports.installFromPath = installFromPath;
-    exports.validate = validate;
-    exports.install = install;
-    exports.remove = remove;
-    exports.installUpdate = installUpdate;
-    exports.formatError = formatError;
-    exports.InstallationStatuses = InstallationStatuses;
+    exports.installFromURL          = installFromURL;
+    exports.installFromPath         = installFromPath;
+    exports.validate                = validate;
+    exports.install                 = install;
+    exports.remove                  = remove;
+    exports.disable                 = disable;
+    exports.enable                  = enable;
+    exports.installUpdate           = installUpdate;
+    exports.formatError             = formatError;
+    exports.InstallationStatuses    = InstallationStatuses;
 });
