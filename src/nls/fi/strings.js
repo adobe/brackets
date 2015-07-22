@@ -194,6 +194,7 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&ndash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Laajenna tai pienennä kaikki painamalla Ctrl/Cmd",
+    "FIND_IN_FILES_INDEXING"            : "Indeksoidaan pikahakua varten\u2026",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Korvausvirheet",
     "REPLACE_IN_FILES_ERRORS"           : "Seuraavia tiedostoja ei muokattu, koska ne muuttuivat haun jälkeen tai niihin ei voitu kirjoittaa.",
 
@@ -761,4 +762,4 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Oletus"
 });
 
-/* Last translated for 473f8f059728c813073732676de6832d04bc94b8 */
+/* Last translated for 1e5ba8f612dcf983d3cbffbbf1bfe455a90788c8 */
