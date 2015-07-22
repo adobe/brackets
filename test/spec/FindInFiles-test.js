@@ -118,7 +118,6 @@ define(function (require, exports, module) {
         }
 
         function openSearchBar(scope, showReplace) {
-            waitForSearchBarClose();
             runs(function () {
                 FindInFiles._searchDone = false;
                 FindInFilesUI._showFindBar(scope, showReplace);
