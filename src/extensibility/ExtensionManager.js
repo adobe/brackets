@@ -276,7 +276,7 @@ define(function (require, exports, module) {
             loadTheme(id);
             exports.trigger("statusChange", id);
         }
-        
+
         function deduceMetadata() {
             var match = path.match(/\/([^\/]+)$/),
                 name = (match && match[1]) || path,
@@ -408,12 +408,12 @@ define(function (require, exports, module) {
         }
         return result.promise();
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Disables or enables the installed extensions.
-     * 
+     *
      * @param {string} id The id of the extension to disable or enable.
      * @param {boolean} enable A boolean indicating whether to enable or disable.
      * @return {$.Promise} A promise that's resolved when the extension action is
@@ -438,10 +438,10 @@ define(function (require, exports, module) {
         }
         return result.promise();
     }
-    
+
     /**
      * Disables the installed extension with the given id.
-     * 
+     *
      * @param {string} id The id of the extension to disable.
      * @return {$.Promise} A promise that's resolved when the extenion is disabled or
      *      rejected with an error that prevented the disabling.
@@ -449,10 +449,10 @@ define(function (require, exports, module) {
     function disable(id) {
         return _enableOrDisable(id, false);
     }
-    
+
     /**
      * Enables the installed extension with the given id.
-     * 
+     *
      * @param {string} id The id of the extension to enable.
      * @return {$.Promise} A promise that's resolved when the extenion is enabled or
      *      rejected with an error that prevented the enabling.
@@ -514,7 +514,7 @@ define(function (require, exports, module) {
         }
         exports.trigger("statusChange", id);
     }
-    
+
     /**
      * Returns true if an extension is marked for removal.
      * @param {string} id The id of the extension to check.
@@ -523,7 +523,7 @@ define(function (require, exports, module) {
     function isMarkedForRemoval(id) {
         return !!(_idsToRemove[id]);
     }
-    
+
     /**
      * Returns true if there are any extensions marked for removal.
      * @return {boolean} true if there are extensions to remove
@@ -534,7 +534,7 @@ define(function (require, exports, module) {
 
     /**
      * Marks an extension for disabling later, or unmarks an extension previously marked.
-     * 
+     *
      * @param {string} id The id of the extension
      * @param {boolean} mark Whether to mark or unmark the extension.
      */
@@ -549,7 +549,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns true if an extension is mark for disabling.
-     * 
+     *
      * @param {string} id The id of the extension to check.
      * @return {boolean} true if it's been mark for disabling, false otherwise.
      */
@@ -564,7 +564,7 @@ define(function (require, exports, module) {
     function hasExtensionsToDisable() {
         return Object.keys(_idsToDisable).length > 0;
     }
-    
+
     /**
      * Unmarks all the extensions that have been marked for disabling.
      */
@@ -644,14 +644,14 @@ define(function (require, exports, module) {
             }
         );
     }
-    
+
     /**
      * Disables extensions marked for disabling.
-     * 
+     *
      * If the return promise is rejected, the argument will contain an array of objects. Each
      * element is an object identifying the extension failed with "item" property set to the
      * extension id which has failed to be disabled and "error" property set to the error.
-     * 
+     *
      * @return {$.Promise} A promise that's resolved when all extensions marked for disabling are
      *      disabled or rejected if one or more extensions can't be disabled.
      */

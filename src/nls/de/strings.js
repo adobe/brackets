@@ -657,7 +657,7 @@ define({
     "EXPAND_ALL"                    : "Alle ausklappen",
     "COLLAPSE_CURRENT"              : "Aktuelle einklappen",
     "EXPAND_CURRENT"                : "Aktuelle ausklappen",
-    
+
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "Aktiviert das automatische Schließen von runden, eckigen und geschweiften Klammern",
     "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "Aktiviert den Eintrag \"Alle darüber schließen\" im Kontextmenü der Offenen Dateien",

@@ -657,7 +657,7 @@ define({
     "EXPAND_ALL"                    : "Zobrazit vše",
     "COLLAPSE_CURRENT"              : "Skrýt aktuální",
     "EXPAND_CURRENT"                : "Zobrazit aktuální",
-    
+
     // Popis základních preferencí
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true k automatickému uzavírání závorek",
     "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "false k odebrání \"Zavřít ostatní výše\" z kontextového menu pracovních souborů",

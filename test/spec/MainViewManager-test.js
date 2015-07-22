@@ -969,7 +969,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("Traversing Files", function () {
             beforeEach(function () {
                 runs(function () {
@@ -996,7 +996,7 @@ define(function (require, exports, module) {
                     MainViewManager.addToWorkingSet("second-pane", getFileObject("test.html"));
                 });
             });
-            
+
             it("should traverse in list order", function () {
                 runs(function () {
                     // Make test.js the active file
@@ -1010,21 +1010,21 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
-                    
+
                     expect(traverseResult.file).toEqual(getFileObject("test.css"));
                     expect(traverseResult.pane).toEqual("first-pane");
                 });
             });
-            
+
             it("should traverse between panes in list order", function () {
                 runs(function () {
                     var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
-                    
+
                     expect(traverseResult.file).toEqual(getFileObject("test.js"));
                     expect(traverseResult.pane).toEqual("first-pane");
                 });
             });
-            
+
             it("should traverse to the first Working Set item if a file not in the Working Set is being viewed", function () {
                 runs(function () {
                     // Close test.js to then reopen it without being in the Working Set
@@ -1035,9 +1035,9 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     MainViewManager.setActivePaneId("first-pane");
-                    
+
                     var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
-                    
+
                     expect(traverseResult.file).toEqual(getFileObject("test.css"));
                     expect(traverseResult.pane).toEqual("first-pane");
                 });

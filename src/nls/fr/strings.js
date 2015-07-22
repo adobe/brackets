@@ -657,7 +657,7 @@ define({
 	"EXPAND_ALL": "Développer tout",
 	"COLLAPSE_CURRENT": "Réduire l’élément actif",
 	"EXPAND_CURRENT": "Développer l’élément actif",
-    
+
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "vrai pour fermer automatiquement les accolades, les crochets et les parenthèses",
 	"DESCRIPTION_CLOSE_OTHERS_ABOVE": "faux pour supprimer l’option « Fermer les autres au-dessus » du menu contextuel Fichiers de travail",

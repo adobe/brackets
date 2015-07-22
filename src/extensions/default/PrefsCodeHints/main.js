@@ -55,7 +55,7 @@ define(function (require, exports, module) {
             description: Strings.DESCRIPTION_PATH
         }
     };
-    
+
     var stringMatcherOptions = {
         preferPrefixMatches: true
     };

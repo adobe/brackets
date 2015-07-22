@@ -89,7 +89,7 @@ define({
     "ERROR_PREFS_CORRUPT_TITLE"         : "Errore nella lettura delle preferenze",
     "ERROR_PREFS_CORRUPT"               : "Le tue preferenze non sono in un file JSON valido. Il file verrà aperto in modo da poter correggere il formato. Dovrai riavviare {APP_NAME} affinché le modifiche abbiano effetto.",
     "ERROR_PROJ_PREFS_CORRUPT"          : "Le preferenze del progetto non sono in un file JSON valido. Il file verrà aperto in modo da poter correggere il formato. Dovrai riavviare {APP_NAME} affinché le modifiche abbiano effetto.",
-    
+
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} non può essere ancora eseguita nel browser.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} è scritta in HTML, ma al momento viene eseguita come applicazione desktop per avere la possibilità di modificare file locali. Puoi usare la shell dal repository <b>github.com/adobe/brackets-shell</b> per eseguire {APP_NAME}.",
@@ -294,7 +294,7 @@ define({
     "NOTHING_TO_LINT"                       : "Niente dal Lint",
     "LINTER_TIMED_OUT"                      : "{0} è scaduto dopo aver atteso per {1} ms",
     "LINTER_FAILED"                         : "{0} terminato con errore: {1}",
-    
+
     /**
      * Command Name Constants
      */
@@ -584,7 +584,7 @@ define({
     "CMD_RESTART_NODE"                          : "Riavvia Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostra errori nella barra di stato",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Apri {APP_NAME} sorgente",
-    
+
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "Scorciatoia da riga di comando di {APP_NAME}",
     "ERROR_CREATING_LAUNCH_SCRIPT"              : "Si è verificato un errore durante la creazione della scorciatoia da riga di comando. Per favore, leggi la <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>guida della linea di comando</a> per la risoluzione dei problemi.<br/><br/>Motivo: ",
     "ERROR_CLTOOLS_RMFAILED"                    : "Impossibile rimuovere collegamento simbolico esistente {APP_NAME} a <code>/usr/local/bin.</code>",
@@ -648,7 +648,7 @@ define({
     "EXPAND_ALL"                    : "Espandi tutto",
     "COLLAPSE_CURRENT"              : "Comprimi attuale",
     "EXPAND_CURRENT"                : "Espandi attuale",
-    
+
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true per chiudere automaticamente le parentesi tonde, quadre e graffe",
     "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "false per rimuovere le 'Chiudi tutto al di sopra' dal menu dello spazio di lavoro",

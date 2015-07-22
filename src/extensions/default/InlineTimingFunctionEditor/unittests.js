@@ -165,7 +165,7 @@ define(function (require, exports, module) {
                 expect(match[0]).toEqual("ease-in-out");
                 expect(match.originalString).toBeFalsy();
             });
-            
+
             it("should match linear function in declaration in strict mode", function () {
                 match = TimingFunctionUtils.timingFunctionMatch("transition-timing-function: linear;", false);
                 expect(match.length).toEqual(1);

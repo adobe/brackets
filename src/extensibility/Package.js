@@ -434,7 +434,7 @@ define(function (require, exports, module) {
     
     /**
      * Disables the extension at the given path.
-     * 
+     *
      * @param {string} path The absolute path to the extension to disable.
      * @return {$.Promise} A promise that's resolved when the extenion is disabled, or
      *      rejected if there was an error.
@@ -451,10 +451,10 @@ define(function (require, exports, module) {
         });
         return result.promise();
     }
-    
+
     /**
      * Enables the extension at the given path.
-     * 
+     *
      * @param {string} path The absolute path to the extension to enable.
      * @return {$.Promise} A promise that's resolved when the extenion is enable, or
      *      rejected if there was an error.
@@ -473,7 +473,7 @@ define(function (require, exports, module) {
         });
         return result.promise();
     }
-    
+
     /**
      * Install an extension update located at path.
      * This assumes that the installation was previously attempted

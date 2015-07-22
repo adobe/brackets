@@ -657,7 +657,7 @@ define({
 	"EXPAND_ALL": "すべて展開",
 	"COLLAPSE_CURRENT": "現在のコードをたたむ",
 	"EXPAND_CURRENT": "現在のコードを展開",
-    
+
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "中括弧、角括弧、丸括弧を自動的に閉じるには true",
 	"DESCRIPTION_CLOSE_OTHERS_ABOVE": "「作業中ファイル」コンテキストメニューから「上をすべて閉じる」を削除するには false",

@@ -236,7 +236,7 @@ define(function (require, exports, module) {
     /**
      * Loads the package.json file in the given extension folder as well as any additional
      * metadata.
-     * 
+     *
      * If there's a .disabled file in the extension directory, then the content of package.json
      * will be augmented with disabled property set to true. It will override whatever value of
      * disabled might be set.

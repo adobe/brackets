@@ -53,7 +53,7 @@ html, body {
 
     /* And make sure we get a pointer cursor even over text */
     cursor: default;
-    
+
     &.platform-mac {
         // Use gray scale antialiasing for UI. Code view editor-holder
         // overrides this to use subpixel antialiasing on Mac, which then
@@ -1507,6 +1507,17 @@ a, img {
     .scope-group {
         display: inline-block;
         margin-left: 10px;
+    }
+
+    .indexing-group {
+        display: inline-block;
+        margin-left: 10px;
+    }
+
+    .indexing-message {
+        display: inline-block;
+        font-style: italic;
+        margin-left: 5px;
     }
 
     .message, .no-results-message {
