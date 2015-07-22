@@ -1924,7 +1924,7 @@ define(function (require, exports, module) {
 
                     it("should do a regexp search/replace from find bar", function () {
                         openTestProjectCopy(defaultSourcePath);
-//                        openSearchBar(null, true);
+                        openSearchBar(null, true);
                         runs(function () {
                             $("#find-regexp").click();
                         });
