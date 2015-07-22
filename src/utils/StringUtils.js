@@ -113,6 +113,16 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns true if the given string starts with the given prefix.
+     * @param   {String} str
+     * @param   {String} prefix
+     * @returns {Boolean}
+     */
+    function startsWith(str, prefix) {
+        return str.slice(0, prefix.length) === prefix;
+    }
+
+    /**
      * Returns true if the given string ends with the given suffix.
      *
      * @param {string} str
@@ -219,6 +229,7 @@ define(function (require, exports, module) {
     exports.offsetToLineNum     = offsetToLineNum;
     exports.urlSort             = urlSort;
     exports.breakableUrl        = breakableUrl;
+    exports.startsWith          = startsWith;
     exports.endsWith            = endsWith;
     exports.prettyPrintBytes    = prettyPrintBytes;
     exports.truncate            = truncate;

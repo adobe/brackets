@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror          = require("thirdparty/CodeMirror/lib/codemirror"),
         EventDispatcher     = require("utils/EventDispatcher"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),

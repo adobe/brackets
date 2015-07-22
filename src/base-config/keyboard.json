@@ -1,4 +1,4 @@
-﻿{
+{
     "file.newDoc":  [
         "Ctrl-N"
     ],
@@ -317,6 +317,16 @@
         {
             "key": "Cmd-Shift-[",
             "platform": "mac"
+        }
+    ],
+    "navigate.nextDocListOrder":  [
+        {
+            "key": "Ctrl-PageDown"
+        }
+    ],
+    "navigate.prevDocListOrder":  [
+        {
+            "key": "Ctrl-PageUp"
         }
     ],
     "navigate.toggleQuickEdit":  [

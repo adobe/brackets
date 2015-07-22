@@ -440,12 +440,13 @@ define(function (require, exports, module) {
      * @param {function(FileSystemEntry): boolean} visitor - A visitor function, which is
      *      applied to descendent FileSystemEntry objects. If the function returns false for
      *      a particular Directory entry, that directory's descendents will not be visited.
-     * @param {{maxDepth: number, maxEntriesCounter: {value: number}}} options
+     * @param {{maxDepth: number, maxEntriesCounter: {value: number}, sortList: boolean}} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
     FileSystemEntry.prototype._visitHelper = function (stats, visitedPaths, visitor, options, callback) {
         var maxDepth = options.maxDepth,
-            maxEntriesCounter = options.maxEntriesCounter;
+            maxEntriesCounter = options.maxEntriesCounter,
+            sortList = options.sortList;
         
         if (maxEntriesCounter.value-- <= 0 || maxDepth-- < 0) {
             // The outer FileSystemEntry.visit call is responsible for applying
@@ -491,13 +492,30 @@ define(function (require, exports, module) {
             
             var nextOptions = {
                 maxDepth: maxDepth,
-                maxEntriesCounter: maxEntriesCounter
+                maxEntriesCounter: maxEntriesCounter,
+                sortList : sortList
             };
             
-            entries.forEach(function (entry, index) {
-                var stats = entriesStats[index];
-                entry._visitHelper(stats, visitedPaths, visitor, nextOptions, helperCallback);
-            });
+            //sort entries if required
+            function compareFilesWithIndices(index1, index2) {
+                return entries[index1]._name.toLocaleLowerCase().localeCompare(entries[index2]._name.toLocaleLowerCase());
+            }
+            if (sortList) {
+                var fileIndexes = [], i = 0;
+                for (i = 0; i < entries.length; i++) {
+                    fileIndexes[i] = i;
+                }
+                fileIndexes.sort(compareFilesWithIndices);
+                fileIndexes.forEach(function (fileIndex) {
+                    var stats = entriesStats[fileIndexes[fileIndex]];
+                    entries[fileIndexes[fileIndex]]._visitHelper(stats, visitedPaths, visitor, nextOptions, helperCallback);
+                });
+            } else {
+                entries.forEach(function (entry, index) {
+                    var stats = entriesStats[index];
+                    entry._visitHelper(stats, visitedPaths, visitor, nextOptions, helperCallback);
+                });
+            }
         }.bind(this));
     };
     

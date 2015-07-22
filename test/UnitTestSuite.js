@@ -60,6 +60,7 @@ define(function (require, exports, module) {
     require("spec/HTMLTokenizer-test");
     require("spec/InlineEditorProviders-test");
     require("spec/InstallExtensionDialog-test");
+    require("spec/JSONUtils-test");
     require("spec/KeyBindingManager-test");
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");

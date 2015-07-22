@@ -1284,7 +1284,9 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH,          refreshFileTree);
 
     // Define the preference to decide how to sort the Project Tree files
-    PreferencesManager.definePreference(SORT_DIRECTORIES_FIRST, "boolean", brackets.platform !== "mac")
+    PreferencesManager.definePreference(SORT_DIRECTORIES_FIRST, "boolean", brackets.platform !== "mac", {
+        description: Strings.DESCRIPTION_SORT_DIRECTORIES_FIRST
+    })
         .on("change", function () {
             actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
         });
@@ -1337,16 +1339,17 @@ define(function (require, exports, module) {
      * Returns an Array of all files for this project, optionally including
      * files in the working set that are *not* under the project root. Files are
      * filtered first by ProjectModel.shouldShow(), then by the custom filter
-     * argument (if one was provided). The list is unsorted.
+     * argument (if one was provided).
      *
      * @param {function (File, number):boolean=} filter Optional function to filter
      *          the file list (does not filter directory traversal). API matches Array.filter().
      * @param {boolean=} includeWorkingSet If true, include files in the working set
      *          that are not under the project root (*except* for untitled documents).
+     * @param {boolean=} sort If true, The files will be sorted by their paths
      *
      * @return {$.Promise} Promise that is resolved with an Array of File objects.
      */
-    function getAllFiles(filter, includeWorkingSet) {
+    function getAllFiles(filter, includeWorkingSet, sort) {
         var viewFiles, deferred;
 
         // The filter and includeWorkingSet params are both optional.
@@ -1362,7 +1365,7 @@ define(function (require, exports, module) {
         }
 
         deferred = new $.Deferred();
-        model.getAllFiles(filter, viewFiles)
+        model.getAllFiles(filter, viewFiles, sort)
             .done(function (fileList) {
                 deferred.resolve(fileList);
             })

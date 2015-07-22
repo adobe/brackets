@@ -1,4 +1,5 @@
 language: node_js
+sudo: false # use container-based Travis infrastructure
 node_js:
   - "0.10"
 before_script:

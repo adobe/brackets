@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         FileUtils           = brackets.getModule("file/FileUtils"),
         Menus               = brackets.getModule("command/Menus"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        LanguageManager     = brackets.getModule("language/LanguageManager"),
         Strings             = brackets.getModule("strings"),
         ViewUtils           = brackets.getModule("utils/ViewUtils"),
         TokenUtils          = brackets.getModule("utils/TokenUtils");
@@ -48,7 +49,8 @@ define(function (require, exports, module) {
         $previewContainer,                   // Preview container
         $previewContent,                     // Preview content holder
         lastMousePos,                        // Last mouse position
-        animationRequest;                    // Request for animation frame
+        animationRequest,                    // Request for animation frame
+        extensionlessImagePreview;           // Whether to try and preview extensionless URLs
     
     // Constants
     var CMD_ENABLE_QUICK_VIEW       = "view.enableQuickView",
@@ -56,11 +58,19 @@ define(function (require, exports, module) {
         POINTER_HEIGHT              = 15,   // Pointer height, used to shift popover above pointer (plus a little bit of space)
         POPOVER_HORZ_MARGIN         =  5;   // Horizontal margin
     
-    var styleLanguages = ["css", "text/x-less", "sass", "text/x-scss"];
+    var styleLanguages = ["css", "text/x-less", "sass", "text/x-scss", "stylus"];
 
     prefs = PreferencesManager.getExtensionPrefs("quickview");
-    prefs.definePreference("enabled", "boolean", true);
-
+    prefs.definePreference("enabled", "boolean", true, {
+        description: Strings.DESCRIPTION_QUICK_VIEW_ENABLED
+    });
+    
+    // Whether or not to try and show image previews for URLs missing extensions
+    // (e.g., https://avatars2.githubusercontent.com/u/476009?v=3&s=200)
+    prefs.definePreference("extensionlessImagePreview", "boolean", true, {
+        description: Strings.DESCRIPTION_EXTENSION_LESS_IMAGE_PREVIEW
+    });
+    
     /**
      * There are three states for this var:
      * 1. If null, there is no provider result for the given mouse position.
@@ -168,7 +178,7 @@ define(function (require, exports, module) {
         // nested 2 levels. Other gradients can only nest 1 level.
         var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
             colorRegEx    = new RegExp(ColorUtils.COLOR_REGEX),
-            mode          = TokenUtils.getModeAt(editor._codeMirror, pos),
+            mode          = TokenUtils.getModeAt(editor._codeMirror, pos, false),
             isStyleSheet  = (styleLanguages.indexOf(mode) !== -1);
 
         function areParensBalanced(str) {
@@ -200,9 +210,9 @@ define(function (require, exports, module) {
             return (nestLevel === 0);
         }
         
-        function execGradientMatch(line) {
+        function execGradientMatch(line, parensBalanced) {
             // Unbalanced parens cause infinite loop (see issue #4650)
-            var gradientMatch = (areParensBalanced(line) ? gradientRegEx.exec(line) : null),
+            var gradientMatch = (parensBalanced ? gradientRegEx.exec(line) : null),
                 prefix = "",
                 colorValue;
             
@@ -272,7 +282,7 @@ define(function (require, exports, module) {
                     break;
                 }
                 if (ignoreNamedColors === undefined) {
-                    var mode = TokenUtils.getModeAt(editor._codeMirror, pos).name;
+                    var mode = TokenUtils.getModeAt(editor._codeMirror, pos, false).name;
                     ignoreNamedColors = styleLanguages.indexOf(mode) === -1;
                 }
             } while (hyphenOnMatchBoundary(colorMatch, line) ||
@@ -370,7 +380,8 @@ define(function (require, exports, module) {
             return expression;
         }
 
-        var gradientMatch = execGradientMatch(line),
+        var parensBalanced = areParensBalanced(line),
+            gradientMatch = execGradientMatch(line, parensBalanced),
             match = gradientMatch.match || execColorMatch(editor, line, pos),
             cm = editor._codeMirror;
 
@@ -415,7 +426,7 @@ define(function (require, exports, module) {
 
             // Get next match
             if (gradientMatch.match) {
-                gradientMatch = execGradientMatch(line);
+                gradientMatch = execGradientMatch(line, parensBalanced);
             }
             match = gradientMatch.match || execColorMatch(editor, line, pos);
         }
@@ -450,67 +461,83 @@ define(function (require, exports, module) {
             }
         }
         
-        if (tokenString) {
-            // Strip leading/trailing quotes, if present
-            tokenString = tokenString.replace(/(^['"])|(['"]$)/g, "");
-            
-            if (/^(data\:image)|(\.gif|\.png|\.jpg|\.jpeg|\.svg)$/i.test(tokenString)) {
-                var sPos, ePos;
-                var docPath = editor.document.file.fullPath;
-                var imgPath;
-                
-                if (PathUtils.isAbsoluteUrl(tokenString)) {
-                    imgPath = tokenString;
-                } else {
-                    imgPath = "file:///" + FileUtils.getDirectoryPath(docPath) + tokenString;
-                }
-                
-                if (urlMatch) {
-                    sPos = {line: pos.line, ch: urlMatch.index};
-                    ePos = {line: pos.line, ch: urlMatch.index + urlMatch[0].length};
-                } else {
-                    sPos = {line: pos.line, ch: token.start};
-                    ePos = {line: pos.line, ch: token.end};
-                }
-                
-                if (imgPath) {
-                    var imgPreview = "<div class='image-preview'>"          +
-                                     "    <img src=\"" + imgPath + "\">"    +
-                                     "</div>";
-                    var coord = cm.charCoords(sPos);
-                    var xpos = (cm.charCoords(ePos).left - coord.left) / 2 + coord.left;
-                    
-                    var showHandler = function () {
-                        // Hide the preview container until the image is loaded.
-                        $previewContainer.hide();
-                                                    
-                        
-                        $previewContainer.find(".image-preview > img").on("load", function () {
-                            $previewContent
-                                .append("<div class='img-size'>" +
-                                            this.naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS +
-                                        "</div>"
-                                    );
-                            $previewContainer.show();
-                            positionPreview(editor, popoverState.xpos, popoverState.ytop, popoverState.ybot);
-                        });
-                    };
-                    
-                    return {
-                        start: sPos,
-                        end: ePos,
-                        content: imgPreview,
-                        onShow: showHandler,
-                        xpos: xpos,
-                        ytop: coord.top,
-                        ybot: coord.bottom,
-                        _imgPath: imgPath
-                    };
-                }
-            }
+        if (!tokenString) {
+            return null;
         }
-        
-        return null;
+
+        // Strip leading/trailing quotes, if present
+        tokenString = tokenString.replace(/(^['"])|(['"]$)/g, "");
+
+        var sPos, ePos;
+        var docPath = editor.document.file.fullPath;
+        var imgPath;
+
+        // Determine whether or not this URL/path is likely to be an image.
+        var parsed = PathUtils.parseUrl(tokenString);
+        var hasProtocol = parsed.protocol !== "";
+        var ext = parsed.filenameExtension.replace(/^\./, '');
+        var language = LanguageManager.getLanguageForExtension(ext);
+        var id = language && language.getId();
+        var isImage = id === "image" || id === "svg";
+
+        // Use this URL if this is an absolute URL and either points to a
+        // filename with a known image extension, or lacks an extension (e.g.,
+        // a web service that returns an image). Honour the extensionlessImagePreview
+        // preference as well in the latter case.
+        if (hasProtocol && (isImage || (!ext && extensionlessImagePreview))) {
+            imgPath = tokenString;
+        }
+        // Use this filename if this is a path with a known image extension.
+        else if (!hasProtocol && isImage) {
+            imgPath = "file:///" + FileUtils.getDirectoryPath(docPath) + tokenString;
+        }
+
+        if (!imgPath) {
+            return null;
+        }
+
+        if (urlMatch) {
+            sPos = {line: pos.line, ch: urlMatch.index};
+            ePos = {line: pos.line, ch: urlMatch.index + urlMatch[0].length};
+        } else {
+            sPos = {line: pos.line, ch: token.start};
+            ePos = {line: pos.line, ch: token.end};
+        }
+
+        var imgPreview = "<div class='image-preview'>"          +
+                         "    <img src=\"" + imgPath + "\">"    +
+                         "</div>";
+        var coord = cm.charCoords(sPos);
+        var xpos = (cm.charCoords(ePos).left - coord.left) / 2 + coord.left;
+
+        var showHandler = function () {
+            // Hide the preview container until the image is loaded.
+            $previewContainer.hide();
+
+            $previewContainer.find(".image-preview > img").on("load", function () {
+                $previewContent
+                    .append("<div class='img-size'>" +
+                                this.naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS +
+                            "</div>"
+                        );
+                $previewContainer.show();
+                positionPreview(editor, popoverState.xpos, popoverState.ytop, popoverState.ybot);
+            }).on("error", function (e) {
+                e.preventDefault();
+                hidePreview();
+            });
+        };
+
+        return {
+            start: sPos,
+            end: ePos,
+            content: imgPreview,
+            onShow: showHandler,
+            xpos: xpos,
+            ytop: coord.top,
+            ybot: coord.bottom,
+            _imgPath: imgPath
+        };
     }
     
 
@@ -522,7 +549,6 @@ define(function (require, exports, module) {
      * Lacks only hoverTimer (supplied by handleMouseMove()) and marker (supplied by showPreview()).
      */
     function queryPreviewProviders(editor, pos, token) {
-        
         var line = editor.document.getLine(pos.line);
         
         // FUTURE: Support plugin providers. For now we just hard-code...
@@ -606,7 +632,7 @@ define(function (require, exports, module) {
             popoverState = popover;
         } else {
             // Query providers and append to popoverState
-            token = cm.getTokenAt(pos, true);
+            token = TokenUtils.getTokenAt(cm, pos);
             popoverState = $.extend({}, popoverState, queryPreviewProviders(editor, pos, token));
         }
         
@@ -719,6 +745,16 @@ define(function (require, exports, module) {
         CommandManager.get(CMD_ENABLE_QUICK_VIEW).setChecked(enabled);
     }
 
+    function setExtensionlessImagePreview(_extensionlessImagePreview, doNotSave) {
+        if(extensionlessImagePreview !== _extensionlessImagePreview) {
+            extensionlessImagePreview = _extensionlessImagePreview;
+            if (!doNotSave) {
+                prefs.set("extensionlessImagePreview", enabled);
+                prefs.save();
+            }
+        }
+    }
+
     function setEnabled(_enabled, doNotSave) {
         if (enabled !== _enabled) {
             enabled = _enabled;
@@ -786,9 +822,14 @@ define(function (require, exports, module) {
 
     // Setup initial UI state
     setEnabled(prefs.get("enabled"), true);
+    setExtensionlessImagePreview(prefs.get("extensionlessImagePreview"), true);
     
     prefs.on("change", "enabled", function () {
         setEnabled(prefs.get("enabled"), true);
+    });
+
+    prefs.on("change", "extensionlessImagePreview", function () {
+        setExtensionlessImagePreview(prefs.get("extensionlessImagePreview"));
     });
     
     // For unit testing
