@@ -500,13 +500,15 @@ define(function (require, exports, module) {
                     expect($firstHit.hasClass("file-section")).toBeFalsy();
                     $firstHit.click();
 
-                    // Verify current document
-                    editor = EditorManager.getActiveEditor();
-                    expect(editor.document.file.fullPath).toEqual(filePath);
+                    setTimeout(function () {
+                        // Verify current document
+                        editor = EditorManager.getActiveEditor();
+                        expect(editor.document.file.fullPath).toEqual(filePath);
 
-                    // Verify selection
-                    expect(editor.getSelectedText().toLowerCase() === "foo");
-                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
+                        // Verify selection
+                        expect(editor.getSelectedText().toLowerCase() === "foo");
+                        waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
+                    }, 500);
                 });
             });
 
