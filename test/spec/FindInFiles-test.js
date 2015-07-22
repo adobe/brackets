@@ -425,22 +425,19 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should dismiss dialog and show panel when there are results", function () {
+            it("should keep dialog and show panel when there are results", function () {
                 var filePath = testPath + "/foo.js",
                     fileEntry = FileSystem.getFileForPath(filePath);
 
                 openSearchBar(fileEntry);
                 executeSearch("callFoo");
 
-                waitsFor(function () {
-                    return ($(".modal-bar").length === 0);
-                }, "search bar close");
-
+                // With instant search, the Search Bar should not close on a search
                 runs(function () {
                     var fileResults = FindInFiles.searchModel.results[filePath];
                     expect(fileResults).toBeTruthy();
                     expect($("#find-in-files-results").is(":visible")).toBeTruthy();
-                    expect($(".modal-bar").length).toBe(0);
+                    expect($(".modal-bar").length).toBe(1);
                 });
             });
 
