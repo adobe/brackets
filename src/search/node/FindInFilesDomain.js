@@ -48,7 +48,8 @@ maxerr: 50, node: true */
         lastSearchedIndex = 0,
         crawlComplete = false,
         crawlEventSent = false,
-        collapseResults = false;
+        collapseResults = false,
+        cacheSize = 0;
     
     /**
      * Copied from StringUtils.js
@@ -324,9 +325,13 @@ maxerr: 50, node: true */
             setTimeout(fileCrawler, 1000);
             return;
         }
-        var i = 0;
+        var i = 0,
+            contents = "";
         for (i = 0; i < 10 && currentCrawlIndex < files.length; i++) {
-            getFileContentsForFile(files[currentCrawlIndex]);
+            contents = getFileContentsForFile(files[currentCrawlIndex]);
+            if (contents) {
+                cacheSize += contents.length;
+            }
             currentCrawlIndex++;
         }
         if (currentCrawlIndex < files.length) {
@@ -336,7 +341,7 @@ maxerr: 50, node: true */
             crawlComplete = true;
             if (!crawlEventSent) {
                 crawlEventSent = true;
-                _domainManager.emitEvent("FindInFiles", "crawlComplete");
+                _domainManager.emitEvent("FindInFiles", "crawlComplete", [files.length, cacheSize]);
             }
             setTimeout(fileCrawler, 1000);
         }
@@ -350,6 +355,7 @@ maxerr: 50, node: true */
     function initCache(fileList) {
         files = fileList;
         currentCrawlIndex = 0;
+        cacheSize = 0;
         clearProjectCache();
         crawlEventSent = false;
     }
@@ -641,7 +647,18 @@ maxerr: 50, node: true */
         domainManager.registerEvent(
             "FindInFiles",     // domain name
             "crawlComplete",   // event name
-            []
+            [
+                {
+                    name: "numFiles",
+                    type: "number",
+                    description: "number of files cached"
+                },
+                {
+                    name: "cacheSize",
+                    type: "number",
+                    description: "The size of the file cache epressesd as string length of files"
+                }
+            ]
         );
         setTimeout(fileCrawler, 5000);
     }
