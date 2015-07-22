@@ -745,7 +745,6 @@ define(function (require, exports, module) {
             
             it("should jump to last page, then page backward, displaying correct contents at each step", function () {
                 openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
-                openSearchBar();
                 
                 executeSearch("find this");
 
@@ -1925,7 +1924,7 @@ define(function (require, exports, module) {
 
                     it("should do a regexp search/replace from find bar", function () {
                         openTestProjectCopy(defaultSourcePath);
-                        openSearchBar(null, true);
+//                        openSearchBar(null, true);
                         runs(function () {
                             $("#find-regexp").click();
                         });
