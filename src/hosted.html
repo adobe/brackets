@@ -70,27 +70,40 @@ This page is a helper for local development.
                 }
 
                 // Default filesystem content
-                var html = "<html>\n"                     +
-                           "  <head>\n"                   +
-                           "    <title>Bramble</title>\n" +
-                           "  </head>\n"                  +
-                           "  <body>\n"                   +
-                           "    <p>Hello World</p>\n"     +
-                           "  </body>\n"                  +
-                           "</html>";
-                var css = "p {\n"                         +
-                          "  color: purple;\n"            +
+                var index = "<html>\n"                                  +
+                            "  <head>\n"                                +
+                            "    <title>Bramble</title>\n"              +
+                            "  </head>\n"                               +
+                            "  <body>\n"                                +
+                            "    <p>This is the main page.</p>\n"       +
+                            "  </body>\n"                               +
+                            "</html>";
+
+                var tutorial = "<html>\n"                               +
+                               "  <head>\n"                             +
+                               "    <title>Tutorial</title>\n"          +
+                               "  </head>\n"                            +
+                               "  <body>\n"                             +
+                               "    <p>This is the tutorial.</p>\n"     +
+                               "  </body>\n"                            +
+                               "</html>";
+
+                var css = "p {\n"                                       +
+                          "  color: purple;\n"                          +
                           "}";
-                var script = "function add(a, b) {\n"     +
-                             "  return a|0 + b|0;\n"      +
+
+                var script = "function add(a, b) {\n"                   +
+                             "  return a|0 + b|0;\n"                    +
                              "}";
 
                 writeFile("/7/projects/30/script.js", script, function() {
                     writeFile("/7/projects/30/style.css", css, function() {
-                        writeFile("/7/projects/30/index.html", html, function() {
-                            // Now that fs is setup, tell Bramble which root dir to mount
-                            // and which file within that root to open on startup.
-                            Bramble.mount("/7/projects/30");
+                        writeFile("/7/projects/30/index.html", index, function() {
+                            writeFile("/7/projects/30/tutorial.html", tutorial, function() {
+                                // Now that fs is setup, tell Bramble which root dir to mount
+                                // and which file within that root to open on startup.
+                                Bramble.mount("/7/projects/30");
+                            });
                         });
                     });
                 });

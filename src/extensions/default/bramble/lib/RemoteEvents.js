@@ -91,6 +91,14 @@ define(function (require, exports, module) {
             });
         });
 
+        // Listen for changes to Tutorial visibility
+        BrambleEvents.on("bramble:tutorialVisibilityChange", function(e, visible) {
+            sendEvent({
+                type: "bramble:tutorialVisibilityChange",
+                visible: visible
+            });
+        });
+
         // Listen for changes to the font size
         ViewCommandHandlers.on("fontSizeChange", function(e, fontSize) {
             sendEvent({

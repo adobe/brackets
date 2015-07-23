@@ -36,6 +36,9 @@ define([
     // PROD URL for Bramble, which can be changed below
     var PROD_BRAMBLE_URL = "https://mozillathimblelivepreview.net/bramble/dist/index.html";
 
+    // We treat tutorial.html as a special file
+    var TUTORIAL_FILENAME = "tutorial.html";
+
     var FilerBuffer = Filer.Buffer;
     var Path = Filer.Path;
     var UUID = ChannelUtils.UUID;
@@ -139,6 +142,12 @@ define([
         // The iframe that will host Bramble
         var _iframe;
 
+        // Whether or not a tutorial.html file exists in the project root
+        var _tutorialExists;
+
+        // Whether or not a tutorial.html is being used vs. file preview
+        var _tutorialVisible;
+
         // Long-running callbacks for fs watch events
         var _watches = {};
 
@@ -167,6 +176,8 @@ define([
         self.getFontSize = function() { return _state.fontSize; };
         self.getSidebarVisible = function() { return _state.sidebarVisible; };
         self.getWordWrap = function() { return _state.wordWrap; };
+        self.getTutorialExists = function() { return _tutorialExists; };
+        self.getTutorialVisible = function() { return _tutorialVisible; };
         self.getLayout = function() {
             return {
                 sidebarWidth: _state.sidebarWidth,
@@ -258,6 +269,8 @@ define([
                         _state.sidebarVisible = data.visible;
                     } else if (eventName === "wordWrapChange") {
                         _state.wordWrap = data.wordWrap;
+                    } else if (eventName === "tutorialVisibilityChange") {
+                        _tutorialVisible = data.visible;
                     }
 
                     debug("triggering remote event", eventName, data);
@@ -350,24 +363,32 @@ define([
                     if (!stats.isDirectory()) {
                         setReadyState(Bramble.ERROR, new Error("mount path is not a directory: " + root));
                     } else {
-                        var initMessage = {
-                            type: "bramble:init",
-                            mount: {
-                                root: root,
-                                filename: filename
-                            },
-                            state: {
-                                fontSize: _state.fontSize,
-                                theme: _state.theme,
-                                sidebarVisible: _state.sidebarVisible,
-                                sidebarWidth: _state.sidebarWidth,
-                                firstPaneWidth: _state.firstPaneWidth,
-                                secondPaneWidth: _state.secondPaneWidth,
-                                previewMode: _state.previewMode,
-                                wordWrap: _state.wordWrap
-                            }
-                        };
-                        _brambleWindow.postMessage(JSON.stringify(initMessage), _iframe.src);
+                        self.root = root;
+                        self.tutorialPath = Path.join(root, TUTORIAL_FILENAME);
+
+                        // Check to see if we have a tutorial or not
+                        _fs.exists(self.tutorialPath, function(exists) {
+                            _tutorialExists = exists;
+
+                            var initMessage = {
+                                type: "bramble:init",
+                                mount: {
+                                    root: root,
+                                    filename: filename
+                                },
+                                state: {
+                                    fontSize: _state.fontSize,
+                                    theme: _state.theme,
+                                    sidebarVisible: _state.sidebarVisible,
+                                    sidebarWidth: _state.sidebarWidth,
+                                    firstPaneWidth: _state.firstPaneWidth,
+                                    secondPaneWidth: _state.secondPaneWidth,
+                                    previewMode: _state.previewMode,
+                                    wordWrap: _state.wordWrap
+                                }
+                            };
+                            _brambleWindow.postMessage(JSON.stringify(initMessage), _iframe.src);
+                        });
                     }
                 });
             }
@@ -434,6 +455,7 @@ define([
             var callback = getCallbackFn(callbackId);
             var wrappedCallback;
             var args = data.args;
+            var path;
 
             // With successful fs operations that create, update, delete, or rename files,
             // we also trigger events on the bramble instance.
@@ -457,22 +479,50 @@ define([
 
             // Most fs methods can just get run normally, but we have to deal with
             // ArrayBuffer vs. Filer.Buffer for readFile and writeFile, and persist
-            // watch callbacks.
+            // watch callbacks. We also deal with the special case of `tutorial.html`.
             switch(method) {
             case "writeFile":
                 // Convert the passed ArrayBuffer back to a FilerBuffer
                 args[1] = new FilerBuffer(args[1]);
-                wrappedCallback = genericFileEventFn("fileChange", args[0], callback);
-                _fs.writeFile.apply(_fs, args.concat(wrappedCallback));
+                path = args[0];
+                wrappedCallback = genericFileEventFn("fileChange", path, callback);
+                _fs.writeFile.apply(_fs, args.concat(function(err) {
+                    // If the file written was tutorial.html, also fire an event for that
+                    if(!err && path === self.tutorialPath) {
+                        wrappedCallback = genericFileEventFn("tutorialAdded", path, wrappedCallback);
+                        _tutorialExists = true;
+                    }
+                    wrappedCallback(err);
+                }));
                 break;
             case "rename":
-                console.log("rename", args);
                 wrappedCallback = renameFileEventFn("fileRename", args[0], args[1], callback);
-                _fs.rename.apply(_fs, args.concat(wrappedCallback));
+                _fs.rename.apply(_fs, args.concat(function(err) {
+                    if(!err) {
+                        // If we rename tutorial.html to something else, we're removing it
+                        if(args[0] === self.tutorialPath) {
+                            wrappedCallback = genericFileEventFn("tutorialRemoved", args[0], wrappedCallback);
+                            _tutorialExists = false;
+                        }
+                        // If we rename something to tutorial.html, we're adding a tutorial
+                        else if(args[1] === self.tutorialPath) {
+                            wrappedCallback = genericFileEventFn("tutorialAdded", args[1], wrappedCallback);
+                            _tutorialExists = true;
+                        }
+                    }
+                    wrappedCallback(err);
+                }));
                 break;
             case "unlink":
+                path = args[0];
                 wrappedCallback = genericFileEventFn("fileDelete", args[0], callback);
-                _fs.unlink.apply(_fs, args.concat(wrappedCallback));
+                _fs.unlink.apply(_fs, args.concat(function(err) {
+                    if(!err && path === self.tutorialPath) {
+                        wrappedCallback = genericFileEventFn("tutorialRemoved", path, wrappedCallback);
+                        _tutorialExists = false;
+                    }
+                    wrappedCallback(err);
+                }));
                 break;
             case "readFile":
                 _fs.readFile.apply(_fs, args.concat(function(err, data) {
@@ -613,6 +663,14 @@ define([
 
     BrambleProxy.prototype.disableWordWrap = function(callback) {
         this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DISABLE_WORD_WRAP"}, callback);
+    };
+
+    BrambleProxy.prototype.showTutorial = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_SHOW_TUTORIAL"}, callback);
+    };
+
+    BrambleProxy.prototype.hideTutorial = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_HIDE_TUTORIAL"}, callback);
     };
 
     return Bramble;

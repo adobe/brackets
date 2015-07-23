@@ -57,4 +57,9 @@ define(function (require, exports, module) {
     exports.triggerFileRemoved = function(filename) {
         exports.trigger("fileRemoved", filename);
     };
+
+    // turning tutorial view on/off
+    exports.triggerTutorialVisibilityChange = function(visible) {
+        exports.trigger("bramble:tutorialVisibilityChange", visible);
+    };
 });

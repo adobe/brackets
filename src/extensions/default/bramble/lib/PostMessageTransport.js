@@ -20,6 +20,7 @@ define(function (require, exports, module) {
 
     // The script that will be injected into the previewed HTML to handle the other side of the post message connection.
     var PostMessageTransportRemote = require("text!lib/PostMessageTransportRemote.js");
+    var Tutorial = require("lib/Tutorial");
 
     // An XHR shim will be injected as well to allow XHR to the file system
     var XHRShim = require("text!lib/xhr/XHRShim.js");
@@ -145,7 +146,7 @@ define(function (require, exports, module) {
 
         win.postMessage(msgStr, "*");
 
-        if(detachedPreview) {
+        if(detachedPreview && Tutorial.shouldPostMessage()) {
             detachedPreview.postMessage(msgStr, "*");
         }
     }

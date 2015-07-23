@@ -15,6 +15,7 @@ define(function (require, exports, module) {
     var PreferencesManager = brackets.getModule("preferences/PreferencesManager");
 
     var PostMessageTransport = require("lib/PostMessageTransport");
+    var Tutorial = require("lib/Tutorial");
     var Theme = require("lib/Theme");
     var UI = require("lib/UI");
 
@@ -101,6 +102,12 @@ define(function (require, exports, module) {
             break;
         case "BRAMBLE_DISABLE_WORD_WRAP":
             PreferencesManager.set("wordWrap", false);
+            break;
+        case "BRAMBLE_SHOW_TUTORIAL":
+            Tutorial.setOverride(true);
+            break;
+        case "BRAMBLE_HIDE_TUTORIAL":
+            Tutorial.setOverride(false);
             break;
         case "RESIZE":
             // The host window was resized, update all panes
