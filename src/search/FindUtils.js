@@ -58,7 +58,7 @@ define(function (require, exports, module) {
 
     /**
      * returns true if the used disabled node based search in his preferences
-     * @returns {boolean}
+     * @return {boolean}
      */
     function _prefNodeSearchDisabled() {
         return !PreferencesManager.get("findInFiles.nodeSearch");
@@ -66,7 +66,7 @@ define(function (require, exports, module) {
 
     /**
      * returns true if the used instant search in his preferences
-     * @returns {boolean}
+     * @return {boolean}
      */
     function _prefInstantSearchDisabled() {
         return !PreferencesManager.get("findInFiles.instantSearch");
@@ -449,7 +449,7 @@ define(function (require, exports, module) {
 
     /**
      * if instant search is disabled, this will return true we can only do instant search through node
-     * @returns {boolean}
+     * @return {boolean}
      */
     function isInstantSearchDisabled() {
         return _prefNodeSearchDisabled() || _prefInstantSearchDisabled() || nodeSearchDisabled || instantSearchDisabled;
@@ -469,7 +469,7 @@ define(function (require, exports, module) {
 
     /**
      * if node search is disabled, this will return true
-     * @returns {boolean}
+     * @return {boolean}
      */
     function isNodeSearchDisabled() {
         return _prefNodeSearchDisabled() || nodeSearchDisabled;
@@ -477,7 +477,7 @@ define(function (require, exports, module) {
 
     /**
      * check if a search is progressing in node
-     * @returns {Boolean} true if search is processing in node
+     * @return {Boolean} true if search is processing in node
      */
     function isNodeSearchInProgress() {
         if (nodeSearchCount === 0) {
@@ -536,7 +536,7 @@ define(function (require, exports, module) {
 
     /**
      * Return true if indexing is in pregress in node
-     * @returns {boolean} true if files are being indexed in node
+     * @return {boolean} true if files are being indexed in node
      */
     function isIndexingInProgress() {
         return indexingInProgress;
@@ -553,7 +553,7 @@ define(function (require, exports, module) {
 
     /**
      * check if results should be collapsed
-     * @returns {boolean} true if results should be collapsed
+     * @return {boolean} true if results should be collapsed
      */
     function isCollapsedResults() {
         return collapseResults;

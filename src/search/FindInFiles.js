@@ -856,7 +856,7 @@ define(function (require, exports, module) {
 
     /**
      * Gets the next page of search recults to append to the result set.
-     * @returns {object} A promise that's resolved with the search results or rejected when the find competes.
+     * @return {object} A promise that's resolved with the search results or rejected when the find competes.
      */
     function getNextPageofSearchResults() {
         var searchDeferred = $.Deferred();
