@@ -36,31 +36,27 @@ define(function (require, exports, module) {
         HTMLUtils       = brackets.getModule("language/HTMLUtils"),
         ProjectManager  = brackets.getModule("project/ProjectManager"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
-        LanguageManager = brackets.getModule("language/LanguageManager"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
         StartupState    = brackets.getModule("bramble/StartupState"),
         Path            = brackets.getModule("filesystem/impls/filer/FilerUtils").Path,
+        Content         = brackets.getModule("filesystem/impls/filer/lib/content"),
         Camera          = require("camera/index"),
         CameraDialog    = require("camera-dialog"),
 
         Data            = require("text!data.json"),
 
-        imageUrlHints,
+        brambleUrlHints,
         data,
         htmlAttrs,
         styleModes      = ["css", "text/x-less", "text/x-scss"];
 
     ExtensionUtils.loadStyleSheet(module, "style.less");
 
-
-    var selfieLabel = "Take a Selfie...";
-    var selfieFileName;
-
     /**
      * @constructor
      */
-    function ImageUrlCodeHints() {}
+    function BrambleUrlCodeHints() {}
 
     /**
      * Helper function to create a list of urls to existing files based on the query.
@@ -68,7 +64,7 @@ define(function (require, exports, module) {
      *
      * @return {Array.<string>|$.Deferred} The (possibly deferred) hints.
      */
-    ImageUrlCodeHints.prototype._getUrlList = function (query) {
+    BrambleUrlCodeHints.prototype._getUrlList = function (query) {
         var directory,
             doc,
             docDir,
@@ -148,50 +144,54 @@ define(function (require, exports, module) {
             self.cachedHints = {};
             self.cachedHints.deferred = $.Deferred();
             self.cachedHints.unfiltered = [];
+            self.cachedHints.imageUrl = self.imageUrl;
 
             directory.getContents(function (err, contents) {
                 var currentDeferred, entryStr, syncResults;
+                if(err) {
+                    return;
+                }
 
-                if (!err) {
-                    contents.forEach(function (entry) {
-                        if (ProjectManager.shouldShow(entry)) {
-                            // convert to doc relative path
-                            entryStr = queryDir + entry._name;
-                            if (entry._isDirectory) {
-                                entryStr += "/";
-                            }
+                contents.forEach(function (entry) {
+                    if (!ProjectManager.shouldShow(entry)) {
+                        return;
+                    }
 
-                            // code hints show the unencoded string so the
-                            // choices are easier to read.  The encoded string
-                            // will still be inserted into the editor.
-                            unfiltered.push(entryStr);
+                    // convert to doc relative path
+                    entryStr = queryDir + entry._name;
+                    if (entry._isDirectory) {
+                        entryStr += "/";
+                    }
+
+                    // code hints show the unencoded string so the
+                    // choices are easier to read.  The encoded string
+                    // will still be inserted into the editor.
+                    unfiltered.push(entryStr);
+                });
+
+                self.cachedHints.unfiltered = unfiltered;
+                self.cachedHints.query      = query;
+                self.cachedHints.queryDir   = queryDir;
+                self.cachedHints.docDir     = docDir;
+
+                if (self.cachedHints.deferred.state() !== "rejected") {
+                    currentDeferred = self.cachedHints.deferred;
+
+                    // Since we've cached the results, the next call to _getUrlList should be synchronous.
+                    // If it isn't, we've got a problem and should reject both the current deferred
+                    // and any new deferred that got created on the call.
+                    syncResults = self._getUrlList(query);
+                    if (syncResults instanceof Array) {
+                        currentDeferred.resolveWith(self, [syncResults]);
+                    } else {
+                        if (currentDeferred && currentDeferred.state() === "pending") {
+                            currentDeferred.reject();
                         }
-                    });
 
-                    self.cachedHints.unfiltered = unfiltered;
-                    self.cachedHints.query      = query;
-                    self.cachedHints.queryDir   = queryDir;
-                    self.cachedHints.docDir     = docDir;
-
-                    if (self.cachedHints.deferred.state() !== "rejected") {
-                        currentDeferred = self.cachedHints.deferred;
-
-                        // Since we've cached the results, the next call to _getUrlList should be synchronous.
-                        // If it isn't, we've got a problem and should reject both the current deferred
-                        // and any new deferred that got created on the call.
-                        syncResults = self._getUrlList(query);
-                        if (syncResults instanceof Array) {
-                            currentDeferred.resolveWith(self, [syncResults]);
-                        } else {
-                            if (currentDeferred && currentDeferred.state() === "pending") {
-                                currentDeferred.reject();
-                            }
-
-                            if (self.cachedHints.deferred &&
-                                    self.cachedHints.deferred.state() === "pending") {
-                                self.cachedHints.deferred.reject();
-                                self.cachedHints.deferred = null;
-                            }
+                        if (self.cachedHints.deferred &&
+                                self.cachedHints.deferred.state() === "pending") {
+                            self.cachedHints.deferred.reject();
+                            self.cachedHints.deferred = null;
                         }
                     }
                 }
@@ -207,9 +207,16 @@ define(function (require, exports, module) {
             result.push(queryDir + "..");
         }
 
+        // Filter for images if this is an image url request
+        var isImage = this.imageUrl;
+
         // add file/folder entries
         unfiltered.forEach(function (item) {
-            if(LanguageManager.getLanguageForPath(item).getId() === "image") {
+            if(isImage) {
+                if(Content.isImage(Path.extname(item))) {
+                    result.push(item);
+                }
+            } else {
                 result.push(item);
             }
         });
@@ -233,8 +240,8 @@ define(function (require, exports, module) {
 
         // Adding the label to the bottom of results which allows user to take a selfie
         if(Camera.isSupported) {
-            result.push(selfieLabel);
-            selfieFileName = "selfie" + (highestNumber + 1) + ".png";
+            result.push(Camera.selfieLabel);
+            this.selfieFileName = "selfie" + (highestNumber + 1) + ".png";
         }
 
         return result;
@@ -249,7 +256,7 @@ define(function (require, exports, module) {
      * @return {{hints: (Array.<string>|$.Deferred), sortFunc: ?function(string, string): number}}
      * The (possibly deferred) hints and the sort function to use on thise hints.
      */
-    ImageUrlCodeHints.prototype._getUrlHints = function (query) {
+    BrambleUrlCodeHints.prototype._getUrlHints = function (query) {
         var hints = [],
             sortFunc = null;
 
@@ -282,7 +289,7 @@ define(function (require, exports, module) {
      * the given editor context and, in case implicitChar is non-null,
      * whether it is appropriate to do so.
      */
-    ImageUrlCodeHints.prototype.hasHints = function (editor, implicitChar) {
+    BrambleUrlCodeHints.prototype.hasHints = function (editor, implicitChar) {
         var mode = editor.getModeForSelection();
         if (mode === "html") {
             return this.hasHtmlHints(editor, implicitChar);
@@ -309,21 +316,25 @@ define(function (require, exports, module) {
      * the given editor context and, in case implicitChar is non-null,
      * whether it is appropriate to do so.
      */
-    ImageUrlCodeHints.prototype.hasCssHints = function (editor, implicitChar) {
+    BrambleUrlCodeHints.prototype.hasCssHints = function (editor, implicitChar) {
         this.editor = editor;
         var cursor = this.editor.getCursorPos();
 
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
+        var name = this.info.name;
 
         // If this isn't a CSS property value we abort
         if (this.info.context !== CSSUtils.PROP_VALUE) {
             return false;
         }
 
-        // We're only interested in these properties
-        if (this.info.name !== "background" && this.info.name !== "background-image" && this.info.name !== "list-style-image") {
-            return false;
+        // We'll only offer to take a selfie for these properties
+        if (name === "background" || name === "background-image" || name === "list-style-image") {
+            this.imageUrl = true;
+        } else {
+            this.imageUrl = false;
         }
+        _maybeClearCachedHints();
 
         var i;
         var val = "";
@@ -360,7 +371,7 @@ define(function (require, exports, module) {
      * the given editor context and, in case implicitChar is non-null,
      * whether it is appropriate to do so.
      */
-    ImageUrlCodeHints.prototype.hasHtmlHints = function (editor, implicitChar) {
+    BrambleUrlCodeHints.prototype.hasHtmlHints = function (editor, implicitChar) {
         var tagInfo,
             query,
             tokenType;
@@ -371,10 +382,13 @@ define(function (require, exports, module) {
         query = null;
         tokenType = tagInfo.position.tokenType;
 
-        // Bail out if this isn't an image tag
-        if (tagInfo.tagName !== "img") {
-            return false;
+        // Treat <img> differently, so we can offer to take a selfie
+        if (tagInfo.tagName === "img") {
+            this.imageUrl = true;
+        } else {
+            this.imageUrl = false;
         }
+        _maybeClearCachedHints();
 
         if (tokenType === HTMLUtils.ATTR_VALUE) {
 
@@ -433,7 +447,7 @@ define(function (require, exports, module) {
      * 4. handleWideResults, a boolean (or undefined) that indicates whether
      *    to allow result string to stretch width of display.
      */
-    ImageUrlCodeHints.prototype.getHints = function (key) {
+    BrambleUrlCodeHints.prototype.getHints = function (key) {
         var mode = this.editor.getModeForSelection(),
             cursor = this.editor.getCursorPos(),
             filter = "",
@@ -563,9 +577,10 @@ define(function (require, exports, module) {
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
-    ImageUrlCodeHints.prototype.insertHint = function (completion) {
+    BrambleUrlCodeHints.prototype.insertHint = function (completion) {
         var that = this;
         var cameraDialog;
+        var projectRoot;
         var savePath;
 
         function insert(text) {
@@ -583,12 +598,18 @@ define(function (require, exports, module) {
             return false;
         }
 
-        if (completion === selfieLabel) {
-            savePath = Path.join(StartupState.project("root"), selfieFileName);
+        if (completion === Camera.selfieLabel) {
+            // NOTE: we need to deal with Brackets expecting a trailing / on dir names.
+            projectRoot = StartupState.project("root").replace(/\/?$/, "/");
+            savePath = Path.join(projectRoot, this.selfieFileName);
+
             cameraDialog = new CameraDialog(savePath);
             cameraDialog.show()
                 .done(function(selfieFilePath){
                     if(selfieFilePath) {
+                        // Give back a path relative to the project's mount root.
+                        selfieFilePath = FileUtils.getRelativeFilename(projectRoot,
+                                                                       selfieFilePath);
                         insert(selfieFilePath);
                     }
                     EditorManager.getActiveEditor().focus();
@@ -620,7 +641,7 @@ define(function (require, exports, module) {
      * @return {number}
      * Number of characters between 2 positions
      */
-    ImageUrlCodeHints.prototype.getCharOffset = function (array, pos1, pos2) {
+    BrambleUrlCodeHints.prototype.getCharOffset = function (array, pos1, pos2) {
         var i, count = 0;
 
         if (pos1.index === pos2.index) {
@@ -657,7 +678,7 @@ define(function (require, exports, module) {
      * @return {{index: number, offset: number}}
      * Index of array, and offset in string where char found.
      */
-    ImageUrlCodeHints.prototype.findNextPosInArray = function (array, ch, pos) {
+    BrambleUrlCodeHints.prototype.findNextPosInArray = function (array, ch, pos) {
         var i, o, searchOffset;
         for (i = pos.index; i < array.length; i++) {
             // Only use offset on index, then offset of 0 after that
@@ -681,7 +702,7 @@ define(function (require, exports, module) {
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
-    ImageUrlCodeHints.prototype.insertCssHint = function (completion) {
+    BrambleUrlCodeHints.prototype.insertCssHint = function (completion) {
         var cursor = this.editor.getCursorPos(),
             start  = { line: cursor.line, ch: cursor.ch },
             end    = { line: cursor.line, ch: cursor.ch };
@@ -785,7 +806,7 @@ define(function (require, exports, module) {
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
-    ImageUrlCodeHints.prototype.insertHtmlHint = function (completion) {
+    BrambleUrlCodeHints.prototype.insertHtmlHint = function (completion) {
         var cursor = this.editor.getCursorPos(),
             start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
@@ -853,15 +874,26 @@ define(function (require, exports, module) {
         return false;
     };
 
+    // In the case that we have cached results for an image type url
+    // and now we need something else, clear the cache
+    function _maybeClearCachedHints() {
+        if(!(brambleUrlHints && brambleUrlHints.cachedHints)) {
+            return;
+        }
+
+        if(brambleUrlHints.imageUrl !== brambleUrlHints.cachedHints.imageUrl) {
+            brambleUrlHints.cachedHints = null;
+        }
+    }
+
     function _clearCachedHints() {
         // Verify cache exists and is not deferred
-        if (imageUrlHints && imageUrlHints.cachedHints && imageUrlHints.cachedHints.deferred &&
-                imageUrlHints.cachedHints.deferred.state() !== "pending") {
+        if (brambleUrlHints && brambleUrlHints.cachedHints && brambleUrlHints.cachedHints.deferred &&brambleUrlHints.cachedHints.deferred.state() !== "pending") {
 
             // Cache may or may not be stale. Main benefit of cache is to limit async lookups
             // during typing. File tree updates cannot happen during typing, so it's probably
             // not worth determining whether cache may still be valid. Just delete it.
-            imageUrlHints.cachedHints = null;
+            brambleUrlHints.cachedHints = null;
         }
     }
 
@@ -869,8 +901,8 @@ define(function (require, exports, module) {
         data            = JSON.parse(Data);
         htmlAttrs       = data.htmlAttrs;
 
-        imageUrlHints        = new ImageUrlCodeHints();
-        CodeHintManager.registerHintProvider(imageUrlHints, ["css", "html", "less", "scss"], 100);
+        brambleUrlHints = new BrambleUrlCodeHints();
+        CodeHintManager.registerHintProvider(brambleUrlHints, ["css", "html", "less", "scss"], 100);
 
         FileSystem.on("change", _clearCachedHints);
         FileSystem.on("rename", _clearCachedHints);
