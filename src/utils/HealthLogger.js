@@ -60,7 +60,8 @@ define(function (require, exports, module) {
      * @return {Object} Health Data aggregated till now
      */
     function getStoredHealthData() {
-        return PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY);
+        var storedData = PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY) || {};
+        return storedData;
     }
 
     /**
