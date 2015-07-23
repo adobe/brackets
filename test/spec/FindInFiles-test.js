@@ -38,7 +38,9 @@ define(function (require, exports, module) {
         StringUtils     = require("utils/StringUtils"),
         Strings         = require("strings"),
         _               = require("thirdparty/lodash");
-
+    
+    var PreferencesManager;
+    
     var promisify = Async.promisify; // for convenience
 
     describe("FindInFiles", function () {
@@ -70,32 +72,36 @@ define(function (require, exports, module) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
-                CommandManager  = testWindow.brackets.test.CommandManager;
-                DocumentManager = testWindow.brackets.test.DocumentManager;
-                EditorManager   = testWindow.brackets.test.EditorManager;
-                FileFilters     = testWindow.brackets.test.FileFilters;
-                FileSystem      = testWindow.brackets.test.FileSystem;
-                File            = testWindow.brackets.test.File;
-                FindInFiles     = testWindow.brackets.test.FindInFiles;
-                FindInFilesUI   = testWindow.brackets.test.FindInFilesUI;
-                ProjectManager  = testWindow.brackets.test.ProjectManager;
-                MainViewManager = testWindow.brackets.test.MainViewManager;
-                $               = testWindow.$;
+                CommandManager      = testWindow.brackets.test.CommandManager;
+                DocumentManager     = testWindow.brackets.test.DocumentManager;
+                EditorManager       = testWindow.brackets.test.EditorManager;
+                FileFilters         = testWindow.brackets.test.FileFilters;
+                FileSystem          = testWindow.brackets.test.FileSystem;
+                File                = testWindow.brackets.test.File;
+                FindInFiles         = testWindow.brackets.test.FindInFiles;
+                FindInFilesUI       = testWindow.brackets.test.FindInFilesUI;
+                ProjectManager      = testWindow.brackets.test.ProjectManager;
+                MainViewManager     = testWindow.brackets.test.MainViewManager;
+                $                   = testWindow.$;
+                PreferencesManager  = testWindow.brackets.test.PreferencesManager;
+                PreferencesManager.set("findInFiles.nodeSearch", false);
+                PreferencesManager.set("findInFiles.instantSearch", false);
             });
         });
         
         afterLast(function () {
-            CommandManager  = null;
-            DocumentManager = null;
-            EditorManager   = null;
-            FileSystem      = null;
-            File            = null;
-            FindInFiles     = null;
-            FindInFilesUI   = null;
-            ProjectManager  = null;
-            MainViewManager = null;
-            $               = null;
-            testWindow      = null;
+            CommandManager      = null;
+            DocumentManager     = null;
+            EditorManager       = null;
+            FileSystem          = null;
+            File                = null;
+            FindInFiles         = null;
+            FindInFilesUI       = null;
+            ProjectManager      = null;
+            MainViewManager     = null;
+            $                   = null;
+            testWindow          = null;
+            PreferencesManager  = null;
             SpecRunnerUtils.closeTestWindow();
             SpecRunnerUtils.removeTempDirectory();
         });

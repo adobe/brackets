@@ -49,10 +49,10 @@ define(function (require, exports, module) {
     EventDispatcher.makeEventDispatcher(exports);
 
     // define preferences for find in files
-    PreferencesManager.definePreference("findInFiles.nodeSearch", "boolean", false, {
+    PreferencesManager.definePreference("findInFiles.nodeSearch", "boolean", true, {
         description: Strings.DESCRIPTION_FIND_IN_FILES_NODE
     });
-    PreferencesManager.definePreference("findInFiles.instantSearch", "boolean", false, {
+    PreferencesManager.definePreference("findInFiles.instantSearch", "boolean", true, {
         description: Strings.DESCRIPTION_FIND_IN_FILES_INSTANT
     });
 
