@@ -194,6 +194,7 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&ndash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Strg/Cmd + Klick, um alle aus-/einzuklappen",
+    "FIND_IN_FILES_INDEXING"            : "Index für Sofortsuche wird erstellt\u2026",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Fehler beim Ersetzen",
     "REPLACE_IN_FILES_ERRORS"           : "Die folgenden Dateien wurden nicht verändert, weil sie nach der Suche geändert wurden oder nicht geschrieben werden konnten.",
 
@@ -689,7 +690,7 @@ define({
     "DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY"       : "Nur hervorheben, wenn die Auswahl ein komplettes Wort umfasst",
     "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "Aktiviert das Akzeptieren eines Code Hints mithilfe der Tab-Taste",
     "DESCRIPTION_NO_HINTS_ON_DOT"                    : "Deaktiviert das automatische Anzeigen der JavaScript Code Hints, sobald . eingegeben wird",
-    "DESCRIPTION_JSLINT_OPTIONS"                     : "Ein Objekt, das die Standardeinstellungen für JSLint ",
+    "DESCRIPTION_JSLINT_OPTIONS"                     : "Ein Objekt, das die Standardeinstellungen für JSLint festlegt",
     "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "Ausdrücke mit Zuweisungen erlauben",
     "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "Bitweise Operatoren erlauben",
     "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "Die Verwendung von globalen Variablen, die im Browser standardmäßig verfügbar sind, erlauben",
@@ -754,6 +755,8 @@ define({
     "DESCRIPTION_LINTING_COLLAPSED"                  : "Das Linter-Panel einklappen",
     "DESCRIPTION_FONT_FAMILY"                        : "Schriftart ändern",
     "DESCRIPTION_FONT_SIZE"                          : "Schriftgröße ändern; z. B. 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "Aktiviert die Node-basierte Suche",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "Aktiviert die Sofortsuche",
     "DESCRIPTION_FONT_SMOOTHING"                     : "Nur Mac: \"subpixel-antialiased\", um Subpixel-Antialiasing zu aktivieren, oder \"antialiased\" für Graustufen-Antialiasing",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "Aktiviert das Öffnen der Einstellungsdatei in einer geteilten Ansicht",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "Öffnet die Einstellungsdatei in der rechten bzw. unteren Ansicht",
@@ -761,4 +764,4 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard"
 });
 
-/* Last translated for 473f8f059728c813073732676de6832d04bc94b8 */
+/* Last translated for 1e5ba8f612dcf983d3cbffbbf1bfe455a90788c8 */
