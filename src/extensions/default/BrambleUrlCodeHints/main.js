@@ -35,7 +35,6 @@ define(function (require, exports, module) {
         FileUtils       = brackets.getModule("file/FileUtils"),
         HTMLUtils       = brackets.getModule("language/HTMLUtils"),
         ProjectManager  = brackets.getModule("project/ProjectManager"),
-        StringUtils     = brackets.getModule("utils/StringUtils"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
         StartupState    = brackets.getModule("bramble/StartupState"),
@@ -159,8 +158,9 @@ define(function (require, exports, module) {
 
                     // convert to doc relative path
                     entryStr = queryDir + entry._name;
+                    // TODO: should do a recursive walk of the files
                     if (entry._isDirectory) {
-                        entryStr += "/";
+                        return;
                     }
 
                     // code hints show the unencoded string so the
@@ -238,8 +238,8 @@ define(function (require, exports, module) {
 
         result.sort();
 
-        // Adding the label to the bottom of results which allows user to take a selfie
-        if(Camera.isSupported) {
+        // Possibly adding the "Take Selfie" label to the bottom of results
+        if(isImage && Camera.isSupported) {
             result.push(Camera.selfieLabel);
             this.selfieFileName = "selfie" + (highestNumber + 1) + ".png";
         }
@@ -253,12 +253,11 @@ define(function (require, exports, module) {
      * @param {{queryStr: string}} query
      * The current query
      *
-     * @return {{hints: (Array.<string>|$.Deferred), sortFunc: ?function(string, string): number}}
+     * @return (Array.<string>|$.Deferred)
      * The (possibly deferred) hints and the sort function to use on thise hints.
      */
     BrambleUrlCodeHints.prototype._getUrlHints = function (query) {
-        var hints = [],
-            sortFunc = null;
+        var hints = [];
 
         // Do not show hints after "?" in url
         if (query.queryStr.indexOf("?") === -1) {
@@ -266,10 +265,9 @@ define(function (require, exports, module) {
             // Default behavior for url hints is do not close on select.
             this.closeOnSelect = false;
             hints = this._getUrlList(query);
-            sortFunc = StringUtils.urlSort;
         }
 
-        return { hints: hints, sortFunc: sortFunc };
+        return hints;
     };
 
     /**
@@ -404,9 +402,7 @@ define(function (require, exports, module) {
                     query = "";
                 }
 
-                var hintsAndSortFunc = this._getUrlHints({queryStr: query}),
-                    hints = hintsAndSortFunc.hints;
-
+                var hints = this._getUrlHints({queryStr: query});
                 if (hints instanceof Array) {
                     // If we got synchronous hints, check if we have something we'll actually use
                     var i, foundPrefix = false;
@@ -452,7 +448,6 @@ define(function (require, exports, module) {
             cursor = this.editor.getCursorPos(),
             filter = "",
             hints = [],
-            sortFunc = null,
             query = { queryStr: "" },
             result = [];
 
@@ -519,9 +514,7 @@ define(function (require, exports, module) {
 
         if (query.queryStr !== null) {
             filter = query.queryStr;
-            var hintsAndSortFunc = this._getUrlHints(query);
-            hints = hintsAndSortFunc.hints;
-            sortFunc = hintsAndSortFunc.sortFunc;
+            hints = this._getUrlHints(query);
         }
         this.info.filter = filter;
 
@@ -533,7 +526,7 @@ define(function (require, exports, module) {
                 if (item.toLowerCase().indexOf(lowerCaseFilter) === 0) {
                     return item;
                 }
-            }).sort(sortFunc);
+            });
 
             return {
                 hints: result,
@@ -551,7 +544,7 @@ define(function (require, exports, module) {
                     if (item.toLowerCase().indexOf(lowerCaseFilter) === 0) {
                         return item;
                     }
-                }).sort(sortFunc);
+                });
 
                 deferred.resolveWith(this, [{
                     hints: result,
