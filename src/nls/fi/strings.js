@@ -460,8 +460,8 @@ define({
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Nykyinen teema",
     "USE_THEME_SCROLLBARS"                 : "Käytä teeman vierityspalkkeja",
-    "FONT_SIZE"                            : "Kirjasinkoko",
-    "FONT_FAMILY"                          : "Kirjasinperhe",
+    "FONT_SIZE"                            : "Fonttikoko",
+    "FONT_FAMILY"                          : "Fonttiperhe",
     "THEMES_SETTINGS"                      : "Teema-asetukset",
 
     // CSS Quick Edit
