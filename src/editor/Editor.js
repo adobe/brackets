@@ -68,13 +68,14 @@ define(function (require, exports, module) {
     
     var AnimationUtils     = require("utils/AnimationUtils"),
         Async              = require("utils/Async"),
-        CodeMirror         = require("thirdparty/CodeMirror2/lib/codemirror"),
+        CodeMirror         = require("thirdparty/CodeMirror/lib/codemirror"),
         LanguageManager    = require("language/LanguageManager"),
         EventDispatcher    = require("utils/EventDispatcher"),
         Menus              = require("command/Menus"),
         PerfUtils          = require("utils/PerfUtils"),
         PopUpManager       = require("widgets/PopUpManager"),
         PreferencesManager = require("preferences/PreferencesManager"),
+        Strings            = require("strings"),
         TextRange          = require("document/TextRange").TextRange,
         TokenUtils         = require("utils/TokenUtils"),
         ValidationUtils    = require("utils/ValidationUtils"),
@@ -126,25 +127,85 @@ define(function (require, exports, module) {
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
     
-    PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", false);
-    PreferencesManager.definePreference(CLOSE_TAGS,         "Object", { whenOpening: true, whenClosing: true, indentTags: [] });
-    PreferencesManager.definePreference(DRAG_DROP,          "boolean", false);
-    PreferencesManager.definePreference(HIGHLIGHT_MATCHES,  "boolean", false);
-    PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false);
-    PreferencesManager.definePreference(SHOW_CURSOR_SELECT, "boolean", false);
-    PreferencesManager.definePreference(SHOW_LINE_NUMBERS,  "boolean", true);
-    PreferencesManager.definePreference(SMART_INDENT,       "boolean", true);
-    PreferencesManager.definePreference(SOFT_TABS,          "boolean", true);
+    PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", false, {
+        description: Strings.DESCRIPTION_CLOSE_BRACKETS
+    });
+    PreferencesManager.definePreference(CLOSE_TAGS,         "object", { whenOpening: true, whenClosing: true, indentTags: [] }, {
+        description: Strings.DESCRIPTION_CLOSE_TAGS,
+        keys: {
+            dontCloseTags: {
+                type: "array",
+                description: Strings.DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS
+            },
+            whenOpening: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_OPENING,
+                initial: true
+            },
+            whenClosing: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING,
+                initial: true
+            },
+            indentTags: {
+                type: "array",
+                description: Strings.DESCRIPTION_CLOSE_TAGS_INDENT_TAGS
+            }
+        }
+    });
+    PreferencesManager.definePreference(DRAG_DROP,          "boolean", false, {
+        description: Strings.DESCRIPTION_DRAG_DROP_TEXT
+    });
+    PreferencesManager.definePreference(HIGHLIGHT_MATCHES,  "boolean", false, {
+        description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES,
+        keys: {
+            showToken: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN,
+                initial: false
+            },
+            wordsOnly: {
+                type: "boolean",
+                description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY,
+                initial: false
+            }
+        }
+    });
+    PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false, {
+        description: Strings.DESCRIPTION_SCROLL_PAST_END
+    });
+    PreferencesManager.definePreference(SHOW_CURSOR_SELECT, "boolean", false, {
+        description: Strings.DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING
+    });
+    PreferencesManager.definePreference(SHOW_LINE_NUMBERS,  "boolean", true, {
+        description: Strings.DESCRIPTION_SHOW_LINE_NUMBERS
+    });
+    PreferencesManager.definePreference(SMART_INDENT,       "boolean", true, {
+        description: Strings.DESCRIPTION_SMART_INDENT
+    });
+    PreferencesManager.definePreference(SOFT_TABS,          "boolean", true, {
+        description: Strings.DESCRIPTION_SOFT_TABS
+    });
     PreferencesManager.definePreference(SPACE_UNITS,        "number", DEFAULT_SPACE_UNITS, {
-        validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_SPACE_UNITS, MAX_SPACE_UNITS)
+        validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_SPACE_UNITS, MAX_SPACE_UNITS),
+        description: Strings.DESCRIPTION_SPACE_UNITS
     });
-    PreferencesManager.definePreference(STYLE_ACTIVE_LINE,  "boolean", false);
+    PreferencesManager.definePreference(STYLE_ACTIVE_LINE,  "boolean", false, {
+        description: Strings.DESCRIPTION_STYLE_ACTIVE_LINE
+    });
     PreferencesManager.definePreference(TAB_SIZE,           "number", DEFAULT_TAB_SIZE, {
-        validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE)
+        validator: _.partialRight(ValidationUtils.isIntegerInRange, MIN_TAB_SIZE, MAX_TAB_SIZE),
+        description: Strings.DESCRIPTION_TAB_SIZE
     });
-    PreferencesManager.definePreference(UPPERCASE_COLORS,   "boolean", false);
-    PreferencesManager.definePreference(USE_TAB_CHAR,       "boolean", false);
-    PreferencesManager.definePreference(WORD_WRAP,          "boolean", true);
+    PreferencesManager.definePreference(UPPERCASE_COLORS,   "boolean", false, {
+        description: Strings.DESCRIPTION_UPPERCASE_COLORS
+    });
+    PreferencesManager.definePreference(USE_TAB_CHAR,       "boolean", false, {
+        description: Strings.DESCRIPTION_USE_TAB_CHAR
+    });
+    PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
+        description: Strings.DESCRIPTION_WORD_WRAP
+    });
     
     var editorOptions = Object.keys(cmOptions);
 
@@ -221,10 +282,13 @@ define(function (require, exports, module) {
      * @param {!jQueryObject|DomNode} container  Container to add the editor to.
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
+     * @param {!Object} options If specified, contains editor options that can be passed to CodeMirror
      */
-    function Editor(document, makeMasterEditor, container, range) {
+    function Editor(document, makeMasterEditor, container, range, options) {
         var self = this;
-        
+
+        var isReadOnly = options && options.isReadOnly;
+
         _instances.push(this);
         
         // Attach to document: add ref & handlers
@@ -313,20 +377,22 @@ define(function (require, exports, module) {
             coverGutterNextToScrollbar  : true,
             cursorScrollMargin          : 3,
             dragDrop                    : currentOptions[DRAG_DROP],
-            electricChars               : false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
+            electricChars               : true,
             extraKeys                   : codeMirrorKeyMap,
             highlightSelectionMatches   : currentOptions[HIGHLIGHT_MATCHES],
             indentUnit                  : currentOptions[USE_TAB_CHAR] ? currentOptions[TAB_SIZE] : currentOptions[SPACE_UNITS],
             indentWithTabs              : currentOptions[USE_TAB_CHAR],
+            inputStyle                  : "textarea", // the "contenteditable" mode used on mobiles could cause issues
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
             lineWrapping                : currentOptions[WORD_WRAP],
             matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
             matchTags                   : { bothTags: true },
-            showCursorWhenSelecting     : currentOptions[SHOW_CURSOR_SELECT],
             scrollPastEnd               : !range && currentOptions[SCROLL_PAST_END],
+            showCursorWhenSelecting     : currentOptions[SHOW_CURSOR_SELECT],
             smartIndent                 : currentOptions[SMART_INDENT],
             styleActiveLine             : currentOptions[STYLE_ACTIVE_LINE],
-            tabSize                     : currentOptions[TAB_SIZE]
+            tabSize                     : currentOptions[TAB_SIZE],
+            readOnly                    : isReadOnly
         });
         
         // Can't get CodeMirror's focused state without searching for
@@ -422,53 +488,48 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Checks if the user just typed a closing brace/bracket/paren, and considers automatically
-     * back-indenting it if so.
-     */
-    Editor.prototype._checkElectricChars = function (event) {
-        var instance = this._codeMirror,
-            keyStr = String.fromCharCode(event.which || event.keyCode);
-
-        if (/[\]\{\}\)]/.test(keyStr)) {
-            // If all text before the cursor is whitespace, auto-indent it
-            var cursor = this.getCursorPos();
-            var lineStr = instance.getLine(cursor.line);
-            var nonWS = lineStr.search(/\S/);
-
-            if (nonWS === -1 || nonWS >= cursor.ch) {
-                if (nonWS === -1) {
-                    // if the line is all whitespace, move the cursor to the end of the line
-                    // before indenting so that embedded whitespace such as indents are not
-                    // orphaned to the right of the electric char being inserted
-                    this.setCursorPos(cursor.line, this.document.getLine(cursor.line).length);
-                }
-                // Need to do the auto-indent on a timeout to ensure
-                // the keypress is handled before auto-indenting.
-                // This is the same timeout value used by the
-                // electricChars feature in CodeMirror.
-                window.setTimeout(function () {
-                    instance.indentLine(cursor.line);
-                }, 75);
-            }
-        }
-    };
-    
-    /**
-     * @private
      * Handle any cursor movement in editor, including selecting and unselecting text.
      * @param {!Event} event
      */
     Editor.prototype._handleCursorActivity = function (event) {
         this._updateStyleActiveLine();
     };
-    
+
+    /**
+     * @private
+     * Removes any whitespace after one of ]{}) to prevent trailing whitespace when auto-indenting
+     */
+    Editor.prototype._handleWhitespaceForElectricChars = function () {
+        var self        = this,
+            instance    = this._codeMirror,
+            selections,
+            lineStr;
+
+        selections = this.getSelections().map(function (sel) {
+            lineStr = instance.getLine(sel.end.line);
+
+            if (lineStr && !/\S/.test(lineStr)) {
+                // if the line is all whitespace, move the cursor to the end of the line
+                // before indenting so that embedded whitespace such as indents are not
+                // orphaned to the right of the electric char being inserted
+                sel.end.ch = self.document.getLine(sel.end.line).length;
+            }
+            return sel;
+        });
+        this.setSelections(selections);
+    };
+
     /**
      * @private
      * Handle CodeMirror key events.
      * @param {!Event} event
      */
     Editor.prototype._handleKeypressEvents = function (event) {
-        this._checkElectricChars(event);
+        var keyStr = String.fromCharCode(event.which || event.keyCode);
+
+        if (/[\]\{\}\)]/.test(keyStr)) {
+            this._handleWhitespaceForElectricChars();
+        }
     };
 
     /**
@@ -936,6 +997,7 @@ define(function (require, exports, module) {
         
         // This *will* fire a change event, but we clear the undo immediately afterward
         this._codeMirror.setValue(text);
+        this._codeMirror.refresh();
         
         // Make sure we can't undo back to the empty state before setValue(), and mark
         // the document clean.
@@ -2407,6 +2469,14 @@ define(function (require, exports, module) {
      */
     Editor.getWordWrap = function (fullPath) {
         return PreferencesManager.get(WORD_WRAP, _buildPreferencesContext(fullPath));
+    };
+    
+    /**
+     * Runs callback for every Editor instance that currently exists
+     * @param {!function(!Editor)} callback
+     */
+    Editor.forEveryEditor = function (callback) {
+        _instances.forEach(callback);
     };
     
     /**

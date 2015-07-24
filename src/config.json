@@ -3,7 +3,7 @@
         "app_title": "Brackets",
         "app_name_about": "Brackets",
         "about_icon": "styles/images/brackets_icon.svg",
-        "update_info_url": "http://s3.amazonaws.com/files.brackets.io/updates/stable/",
+        "update_info_url": "https://getupdates.brackets.io/getupdates/",
         "how_to_use_url": "https://github.com/adobe/brackets/wiki/How-to-Use-Brackets",
         "support_url": "https://github.com/adobe/brackets/wiki/Troubleshooting",
         "suggest_feature_url": "https://github.com/adobe/brackets/wiki/Suggest-a-Feature",
@@ -20,11 +20,11 @@
         "extension_url": "https://s3.amazonaws.com/extend.brackets/{0}/{0}-{1}.zip",
         "linting.enabled_by_default": true,
         "build_timestamp": "",
-        "healthDataServerURL" : "http://54.186.151.46/healthDataLog"
+        "healthDataServerURL" : "https://healthdev.brackets.io/healthDataLog"
     },
     "name": "Brackets",
-    "version": "1.3.0-0",
-    "apiVersion": "1.3.0",
+    "version": "1.5.0-0",
+    "apiVersion": "1.5.0",
     "homepage": "http://brackets.io",
     "issues": {
         "url": "http://github.com/adobe/brackets/issues"

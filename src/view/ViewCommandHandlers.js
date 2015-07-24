@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, brackets: false, $ */
 
 /**
  * The ViewCommandHandlers object dispatches the following event(s):
@@ -48,6 +48,21 @@ define(function (require, exports, module) {
         _                   = require("thirdparty/lodash");
 
     var prefs = PreferencesManager.getExtensionPrefs("fonts");
+
+
+    /**
+     * @private
+     * The currently present font size. Used to detect no-op changes.
+     * @type {string}
+     */
+    var currFontSize;
+
+    /**
+     * @private
+     * The currently present font family. Used to detect no-op changes.
+     * @type {string}
+     */
+    var currFontFamily;
 
     /**
      * @const
@@ -194,9 +209,7 @@ define(function (require, exports, module) {
      * @param {string} fontSize The font size with size unit as 'px' or 'em'
      */
     function setFontSize(fontSize) {
-        var oldValue = prefs.get("fontSize");
-
-        if (oldValue === fontSize) {
+        if (currFontSize === fontSize) {
             return;
         }
 
@@ -214,7 +227,8 @@ define(function (require, exports, module) {
             }
         });
 
-        exports.trigger("fontSizeChange", fontSize, oldValue);
+        exports.trigger("fontSizeChange", fontSize, currFontSize);
+        currFontSize = fontSize;
         prefs.set("fontSize", fontSize);
     }
 
@@ -232,10 +246,9 @@ define(function (require, exports, module) {
      * @param {string} fontFamily The font family to be set.  It can be a string with multiple comma separated fonts
      */
     function setFontFamily(fontFamily) {
-        var editor = EditorManager.getCurrentFullEditor(),
-            oldValue = prefs.get("fontFamily");
+        var editor = EditorManager.getCurrentFullEditor();
 
-        if (oldValue === fontFamily) {
+        if (currFontFamily === fontFamily) {
             return;
         }
 
@@ -244,11 +257,29 @@ define(function (require, exports, module) {
             _addDynamicFontFamily(fontFamily);
         }
 
-        exports.trigger("fontFamilyChange", fontFamily, oldValue);
+        exports.trigger("fontFamilyChange", fontFamily, currFontFamily);
+        currFontFamily = fontFamily;
         prefs.set("fontFamily", fontFamily);
 
         if (editor) {
             editor.refreshAll();
+        }
+    }
+
+
+    /**
+     * Font smoothing setter to set the anti-aliasing type for the code area on Mac.
+     * @param {string} aaType The antialiasing type to be set. It can take either "subpixel-antialiased" or "antialiased"
+     */
+    function setMacFontSmoothingType(aaType) {
+        var $editor_holder  = $("#editor-holder");
+
+        // Add/Remove the class based on the preference. Also
+        // default to subpixel AA in case of invalid entries.
+        if (aaType === "antialiased") {
+            $editor_holder.removeClass("subpixel-aa");
+        } else {
+            $editor_holder.addClass("subpixel-aa");
         }
     }
 
@@ -333,8 +364,10 @@ define(function (require, exports, module) {
      * Initializes the different settings that need to loaded
      */
     function init() {
-        _addDynamicFontFamily(prefs.get("fontFamily"));
-        _addDynamicFontSize(prefs.get("fontSize"));
+        currFontFamily = prefs.get("fontFamily");
+        _addDynamicFontFamily(currFontFamily);
+        currFontSize = prefs.get("fontSize");
+        _addDynamicFontSize(currFontSize);
         _updateUI();
     }
 
@@ -488,8 +521,30 @@ define(function (require, exports, module) {
 
     PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
 
-    prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px");
-    prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY);
+    prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px", {
+        description: Strings.DESCRIPTION_FONT_SIZE
+    }).on("change", function () {
+        setFontSize(prefs.get("fontSize"));
+    });
+    prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY, {
+        description: Strings.DESCRIPTION_FONT_FAMILY
+    }).on("change", function () {
+        setFontFamily(prefs.get("fontFamily"));
+    });
+
+    // Define a preference for font smoothing mode on Mac.
+    // By default fontSmoothing is set to "subpixel-antialiased"
+    // for the text inside code editor. It can be overridden
+    // to "antialiased", that would set text rendering AA to use
+    // gray scale antialiasing.
+    if (brackets.platform === "mac") {
+        prefs.definePreference("fontSmoothing", "string", "subpixel-antialiased", {
+            description: Strings.DESCRIPTION_FONT_SMOOTHING,
+            values: ["subpixel-antialiased", "antialiased"]
+        }).on("change", function () {
+            setMacFontSmoothingType(prefs.get("fontSmoothing"));
+        });
+    }
 
     // Update UI when opening or closing a document
     MainViewManager.on("currentFileChange", _updateUI);

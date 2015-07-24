@@ -199,6 +199,21 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Returns an array of the IDs of providers registered for a specific language
+     *
+     * @param {!string} languageId
+     * @return {Array.<string>} Names of registered providers.
+     */
+    function getProviderIDsForLanguage(languageId) {
+        if (!_providers[languageId]) {
+            return [];
+        }
+        return _providers[languageId].map(function (provider) {
+            return provider.name;
+        });
+    }
+
+    /**
      * Runs a file inspection over passed file. Uses the given list of providers if specified, otherwise uses
      * the set of providers that are registered for the file's language.
      * This method doesn't update the Brackets UI, just provides inspection results.
@@ -594,18 +609,33 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
     
     // Register preferences
-    prefs.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"])
+    prefs.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"], {
+        description: Strings.DESCRIPTION_LINTING_ENABLED
+    })
         .on("change", function (e, data) {
             toggleEnabled(prefs.get(PREF_ENABLED), true);
         });
     
-    prefs.definePreference(PREF_COLLAPSED, "boolean", false)
+    prefs.definePreference(PREF_COLLAPSED, "boolean", false, {
+        description: Strings.DESCRIPTION_LINTING_COLLAPSED
+    })
         .on("change", function (e, data) {
             toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
         });
     
-    prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000);
-        
+    prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000, {
+        description: Strings.DESCRIPTION_ASYNC_TIMEOUT
+    });
+
+    prefs.definePreference(PREF_PREFER_PROVIDERS, "array", [], {
+        description: Strings.DESCRIPTION_LINTING_PREFER,
+        valueType: "string"
+    });
+
+    prefs.definePreference(PREF_PREFERRED_ONLY, "boolean", false, {
+        description: Strings.DESCRIPTION_USE_PREFERED_ONLY
+    });
+
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         // Create bottom panel to list error details
@@ -673,10 +703,11 @@ define(function (require, exports, module) {
     exports._PREF_PREFERRED_ONLY    = PREF_PREFERRED_ONLY;
 
     // Public API
-    exports.register            = register;
-    exports.Type                = Type;
-    exports.toggleEnabled       = toggleEnabled;
-    exports.inspectFile         = inspectFile;
-    exports.requestRun          = run;
-    exports.getProvidersForPath = getProvidersForPath;
+    exports.register                    = register;
+    exports.Type                        = Type;
+    exports.toggleEnabled               = toggleEnabled;
+    exports.inspectFile                 = inspectFile;
+    exports.requestRun                  = run;
+    exports.getProvidersForPath         = getProvidersForPath;
+    exports.getProviderIDsForLanguage   = getProviderIDsForLanguage;
 });

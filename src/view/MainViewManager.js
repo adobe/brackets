@@ -25,12 +25,12 @@
 /*global define, $ */
 
 /**
- * MainViewManager Manages the arrangement of all open panes as well as provides the controller
+ * MainViewManager manages the arrangement of all open panes as well as provides the controller
  * logic behind all views in the MainView (e.g. ensuring that a file doesn't appear in 2 lists)
  *
  * Each pane contains one or more views wich are created by a view factory and inserted into a pane list. 
- * There may be several panes managed  by the MainViewManager with each pane containing a list of views.  
- * The panes are always visible and  the layout is determined by the MainViewManager and the user.  
+ * There may be several panes managed by the MainViewManager with each pane containing a list of views.
+ * The panes are always visible and the layout is determined by the MainViewManager and the user.
  *
  * Currently we support only 2 panes.
  *
@@ -354,7 +354,7 @@ define(function (require, exports, module) {
 
     /**
      * Makes the Pane's current file the most recent
-     * @param {!string} paneId - id of the pane to mae th file most recent or ACTIVE_PANE
+     * @param {!string} paneId - id of the pane to make the file most recent, or ACTIVE_PANE
      * @param {!File} file - File object to make most recent
      * @private
      */
@@ -367,7 +367,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Switch active pane to the specified pane Id (or ACTIVE_PANE/ALL_PANES, in which case this
+     * Switch active pane to the specified pane id (or ACTIVE_PANE/ALL_PANES, in which case this
      * call does nothing).
      * @param {!string} paneId - the id of the pane to activate
      */
@@ -515,7 +515,7 @@ define(function (require, exports, module) {
         
     
     /**
-     * Retrieves the WorkingSet for the given PaneId not including temporary views
+     * Retrieves the WorkingSet for the given paneId not including temporary views
      * @param {!string} paneId - id of the pane in which to get the view list, ALL_PANES or ACTIVE_PANE
      * @return {Array.<File>}
      */
@@ -532,7 +532,7 @@ define(function (require, exports, module) {
     
     
     /**
-     * Retrieves the list of all open files inlcuding temporary views
+     * Retrieves the list of all open files including temporary views
      * @return {array.<File>} the list of all open files in all open panes
      */
     function getAllOpenFiles() {
@@ -916,8 +916,8 @@ define(function (require, exports, module) {
     /**
      * Get the next or previous file in the MRU list.
      * @param {!number} direction - Must be 1 or -1 to traverse forward or backward
-     * @return {?{file:File, paneId:string}} The File object of the next item in the travesal order or null if there aren't any files to traverse.
-     *                                        may return current file if there are no other files to traverse.
+     * @return {?{file:File, paneId:string}} The File object of the next item in the traversal order or null if there aren't any files to traverse.
+     *                                       May return current file if there are no other files to traverse.
      */
     function traverseToNextViewByMRU(direction) {
         var file = getCurrentlyViewedFile(),
@@ -929,6 +929,32 @@ define(function (require, exports, module) {
         return ViewUtils.traverseViewArray(_mruList, index, direction);
     }
     
+    /**
+     * Get the next or previous file in list order.
+     * @param {!number} direction - Must be 1 or -1 to traverse forward or backward
+     * @return {?{file:File, paneId:string}} The File object of the next item in the traversal order or null if there aren't any files to traverse.
+     *                                       May return current file if there are no other files to traverse.
+     */
+    function traverseToNextViewInListOrder(direction) {
+        var file = getCurrentlyViewedFile(),
+            curPaneId = getActivePaneId(),
+            allFiles = [],
+            index;
+
+        getPaneIdList().forEach(function (paneId) {
+            var paneFiles = getWorkingSet(paneId).map(function (file) {
+                return { file: file, pane: paneId };
+            });
+            allFiles = allFiles.concat(paneFiles);
+        });
+
+        index = _.findIndex(allFiles, function (record) {
+            return (record.file === file && record.pane === curPaneId);
+        });
+
+        return ViewUtils.traverseViewArray(allFiles, index, direction);
+    }
+
     /**
      * Indicates that traversal has begun. 
      * Can be called any number of times.
@@ -1179,7 +1205,7 @@ define(function (require, exports, module) {
         }
         
         // open document will show the editor if there is one already
-        EditorManager.openDocument(doc, pane);
+        EditorManager.openDocument(doc, pane, options);
         _makeFileMostRecent(paneId, doc.file);
 
         if (!options.noPaneActivate) {
@@ -1726,6 +1752,7 @@ define(function (require, exports, module) {
     exports.beginTraversal                = beginTraversal;
     exports.endTraversal                  = endTraversal;
     exports.traverseToNextViewByMRU       = traverseToNextViewByMRU;
+    exports.traverseToNextViewInListOrder = traverseToNextViewInListOrder;
     
     // PaneView Attributes
     exports.getActivePaneId               = getActivePaneId;

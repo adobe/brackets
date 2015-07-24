@@ -8,28 +8,35 @@
 /*global define, brackets*/
 define(function (require, exports, module) {
     "use strict";
-    var PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
-        prefs                   = PreferencesManager.getExtensionPrefs("code-folding"),
-        strings                 = brackets.getModule("strings"),
-        store                   = {},
-        foldsKey                = "folds";
+    
+    var ProjectManager              = brackets.getModule("project/ProjectManager"),
+        PreferencesManager          = brackets.getModule("preferences/PreferencesManager"),
+        Strings                     = brackets.getModule("strings"),
+        prefs                       = PreferencesManager.getExtensionPrefs("code-folding"),
+        FOLDS_PREF_KEY              = "code-folding.folds",
+        // preference key strings are here for now since they are not used in any UI
+        ENABLE_CODE_FOLDING         = "Enable code folding",
+        MIN_FOLD_SIZE               = "Minimum fold size",
+        SAVE_FOLD_STATES            = "Save fold states",
+        ALWAYS_USE_INDENT_FOLD      = "Always use indent fold",
+        HIDE_FOLD_BUTTONS           = "Hide fold triangles",
+        MAX_FOLD_LEVEL              = "Max fold level";
 
     //default preference values
     prefs.definePreference("enabled", "boolean", true,
-                           {name: strings.ENABLE_CODE_FOLDING, description: strings.ENABLE_CODE_FOLDING});
+                           {name: ENABLE_CODE_FOLDING, description: Strings.DESCRIPTION_CODE_FOLDING_ENABLED});
     prefs.definePreference("minFoldSize", "number", 2,
-                           {name: strings.MIN_FOLD_SIZE, description: strings.MIN_FOLD_SIZE_HELP});
+                           {name: MIN_FOLD_SIZE, description: Strings.DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE});
     prefs.definePreference("saveFoldStates", "boolean", true,
-                           {name: strings.SAVE_FOLD_STATES, description: strings.SAVE_FOLD_STATES_HELP});
-    prefs.definePreference("alwaysUseIndentFold", "boolean", true,
-                           {name: strings.ALWAYS_USE_INDENT_FOLD, description: strings.ALWAYS_USE_INDENT_FOLD_HELP});
-    prefs.definePreference("enableRegionFolding", "boolean", true,
-                           {name: strings.ENABLE_REGION_FOLDING, description: strings.ENABLE_REGION_FOLDING});
-    prefs.definePreference("fadeFoldButtons", "boolean", false,
-                           {name: strings.FADE_FOLD_BUTTONS, description: strings.FADE_FOLD_BUTTONS_HELP});
+                           {name: SAVE_FOLD_STATES, description: Strings.DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES});
+    prefs.definePreference("alwaysUseIndentFold", "boolean", false,
+                           {name: ALWAYS_USE_INDENT_FOLD, description: Strings.DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD});
+    prefs.definePreference("hideUntilMouseover", "boolean", false,
+                           {name: HIDE_FOLD_BUTTONS, description: Strings.DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER});
     prefs.definePreference("maxFoldLevel", "number", 2,
-                           {name: strings.MAX_FOLD_LEVEL, description: strings.MAX_FOLD_LEVEL_HELP});
-    prefs.definePreference("folds", "object", {});
+                           {name: MAX_FOLD_LEVEL, description: Strings.DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL});
+    
+    PreferencesManager.stateManager.definePreference(FOLDS_PREF_KEY, "object", {});
 
     /**
       * Simplifies the fold ranges into an array of pairs of numbers.
@@ -68,6 +75,17 @@ define(function (require, exports, module) {
 
         return ranges;
     }
+    
+    /**
+     * Returns a 'context' object for getting/setting project-specific view state preferences.
+     * Similar to code in MultiRangeInlineEditor._getPrefsContext()...
+     */
+    function getViewStateContext() {
+        var projectRoot = ProjectManager.getProjectRoot();  // note: null during unit tests!
+        return { location : { scope: "user",
+                              layer: "project",
+                              layerID: projectRoot && projectRoot.fullPath } };
+    }
 
     /**
       * Gets the line folds saved for the specified path.
@@ -75,8 +93,9 @@ define(function (require, exports, module) {
       * @return {Object} the line folds for the document at the specified path
       */
     function getFolds(path) {
-        store = (prefs.get(foldsKey) || {});
-        return inflate(store[path]);
+        var context = getViewStateContext();
+        var folds = PreferencesManager.getViewState(FOLDS_PREF_KEY, context);
+        return inflate(folds[path]);
     }
 
     /**
@@ -85,8 +104,10 @@ define(function (require, exports, module) {
       * @param {Object} folds the fold ranges to save for the current document
       */
     function setFolds(path, folds) {
-        store[path] = simplify(folds);
-        prefs.set(foldsKey, store);
+        var context = getViewStateContext();
+        var allFolds = PreferencesManager.getViewState(FOLDS_PREF_KEY, context);
+        allFolds[path] = simplify(folds);
+        PreferencesManager.setViewState(FOLDS_PREF_KEY, allFolds, context);
     }
 
     /**
@@ -102,15 +123,12 @@ define(function (require, exports, module) {
       * Clears all the saved line folds for all documents.
       */
     function clearAllFolds() {
-        prefs.set(foldsKey, {});
+        PreferencesManager.setViewState(FOLDS_PREF_KEY, {});
     }
 
     module.exports.getFolds = getFolds;
-
     module.exports.setFolds = setFolds;
-
     module.exports.getSetting = getSetting;
-
     module.exports.clearAllFolds = clearAllFolds;
-
+    module.exports.prefsObject = prefs;
 });

@@ -1,14 +1,12 @@
-/**
- * Based on http://codemirror.net/addon/fold/foldcode.js
- * @author Patrick Oladimeji
- * @date 10/28/13 8:41:46 AM
- * @last modified 20 April 2014
- */
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: http://codemirror.net/LICENSE
+// Based on http://codemirror.net/addon/fold/foldcode.js
+// Modified by Patrick Oladimeji for Brackets
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, brackets, document*/
 define(function (require, exports, module) {
     "use strict";
-    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         prefs               = require("Prefs");
 
     /**
@@ -22,15 +20,15 @@ define(function (require, exports, module) {
         if (typeof pos === "number") {
             pos = CodeMirror.Pos(pos, 0);
         }
+
         var finder = options.rangeFinder || CodeMirror.fold.auto,
-            minSize = options.minFoldSize || prefs.getSetting("minFoldSize"),
             range,
             widget,
             textRange;
 
         function getRange(allowFolded) {
             var range = options.range || finder(cm, pos);
-            if (!range || range.to.line - range.from.line < minSize) {
+            if (!range || range.to.line - range.from.line < prefs.getSetting("minFoldSize")) {
                 return null;
             }
             var marks = cm.findMarksAt(range.from),
@@ -74,7 +72,7 @@ define(function (require, exports, module) {
                 range = getRange(false);
             }
         }
-        if (!range || range.cleared || force === "unfold" || range.to.line - range.from.line < minSize) {
+        if (!range || range.cleared || force === "unfold" || range.to.line - range.from.line < prefs.getSetting("minFoldSize")) {
             if (range) { range.cleared = false; }
             return;
         }
@@ -86,8 +84,9 @@ define(function (require, exports, module) {
             __isFold: true
         });
 
-        CodeMirror.on(widget, "mousedown", function () {
+        CodeMirror.on(widget, "mousedown", function (e) {
             textRange.clear();
+            e.preventDefault();
         });
 
         textRange.on("clear", function (from, to) {
@@ -119,7 +118,7 @@ define(function (require, exports, module) {
         });
 
         CodeMirror.defineExtension("isFolded", function (line) {
-            return this._lineFolds[line];
+            return this._lineFolds && this._lineFolds[line];
         });
 
         /**
@@ -203,7 +202,7 @@ define(function (require, exports, module) {
           * @param {?number} end the line number for the end of the region to fold
           */
         CodeMirror.commands.foldToLevel = function (cm, start, end) {
-            var rf = CodeMirror.fold.auto, level = prefs.getSetting("maxFoldLevel");
+            var rf = CodeMirror.fold.auto;
             function foldLevel(n, from, to) {
                 if (n > 0) {
                     var i = from, range;
@@ -223,7 +222,7 @@ define(function (require, exports, module) {
             cm.operation(function () {
                 start = start === undefined ? cm.firstLine() : start;
                 end = end || cm.lastLine();
-                foldLevel(level, start, end);
+                foldLevel(prefs.getSetting("maxFoldLevel"), start, end);
             });
         };
 

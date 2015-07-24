@@ -33,7 +33,7 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
     
     // Load brackets modules
-    var CodeMirror              = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror              = require("thirdparty/CodeMirror/lib/codemirror"),
         Async                   = require("utils/Async"),
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),

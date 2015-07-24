@@ -93,13 +93,13 @@ module.exports = function (grunt) {
                             '!extensions/default/*/thirdparty/**/*.htm{,l}',
                             'extensions/dev/*',
                             'extensions/samples/**/*',
-                            'thirdparty/CodeMirror2/addon/{,*/}*',
-                            'thirdparty/CodeMirror2/keymap/{,*/}*',
-                            'thirdparty/CodeMirror2/lib/{,*/}*',
-                            'thirdparty/CodeMirror2/mode/{,*/}*',
-                            '!thirdparty/CodeMirror2/mode/**/*.html',
-                            '!thirdparty/CodeMirror2/**/*test.js',
-                            'thirdparty/CodeMirror2/theme/{,*/}*',
+                            'thirdparty/CodeMirror/addon/{,*/}*',
+                            'thirdparty/CodeMirror/keymap/{,*/}*',
+                            'thirdparty/CodeMirror/lib/{,*/}*',
+                            'thirdparty/CodeMirror/mode/{,*/}*',
+                            '!thirdparty/CodeMirror/mode/**/*.html',
+                            '!thirdparty/CodeMirror/**/*test.js',
+                            'thirdparty/CodeMirror/theme/{,*/}*',
                             'thirdparty/i18n/*.js',
                             'thirdparty/text/*.js'
                         ]
@@ -268,11 +268,11 @@ module.exports = function (grunt) {
                 vendor : [
                     'test/polyfills.js', /* For reference to why this polyfill is needed see Issue #7951. The need for this should go away once the version of phantomjs gets upgraded to 2.0 */
                     'src/thirdparty/jquery-2.1.3.min.js',
-                    'src/thirdparty/CodeMirror2/lib/codemirror.js',
-                    'src/thirdparty/CodeMirror2/lib/util/dialog.js',
-                    'src/thirdparty/CodeMirror2/lib/util/searchcursor.js',
-                    'src/thirdparty/CodeMirror2/addon/edit/closetag.js',
-                    'src/thirdparty/CodeMirror2/addon/selection/active-line.js',
+                    'src/thirdparty/CodeMirror/lib/codemirror.js',
+                    'src/thirdparty/CodeMirror/lib/util/dialog.js',
+                    'src/thirdparty/CodeMirror/lib/util/searchcursor.js',
+                    'src/thirdparty/CodeMirror/addon/edit/closetag.js',
+                    'src/thirdparty/CodeMirror/addon/selection/active-line.js',
                     'src/thirdparty/mustache/mustache.js',
                     'src/thirdparty/path-utils/path-utils.min',
                     'src/thirdparty/less-1.7.5.min.js'

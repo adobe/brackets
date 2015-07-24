@@ -229,7 +229,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * If autoClose is set, handles the RETURN/ESC keys in the input field.
+     * If autoClose is set, close the bar when Escape is pressed
      */
     ModalBar.prototype._handleKeydown = function (e) {
         if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
