@@ -27,8 +27,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var ExtensionManager    = brackets.getModule("extensibility/ExtensionManager"),
-        _                   = brackets.getModule("thirdparty/lodash"),
+    var _                   = brackets.getModule("thirdparty/lodash"),
+        ExtensionManager    = brackets.getModule("extensibility/ExtensionManager"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
     
     var themesPref          = PreferencesManager.getExtensionPrefs("themes");
