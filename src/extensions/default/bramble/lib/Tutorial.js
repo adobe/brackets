@@ -16,10 +16,10 @@ define(function (require, exports, module) {
     // tutorial to show, we need to force a reload for the preview.
     var _forceReload;
 
-    // Define public API
     function setOverride(val) {
         _tutorialOverride = !!val;
         _forceReload = true;
+
         PostMessageTransport.reload();
         BrambleEvents.triggerTutorialVisibilityChange(_tutorialOverride);
     }

@@ -41,17 +41,15 @@ define(function (require, exports, module) {
         var server = _launcherInstance.server;
         var browser = _launcherInstance.browser;
 
+        callback = callback || function(){};
+
         server.serveLiveDocForUrl(url, function(err, urlOrHTML) {
             if(err) {
-                // TODO: how to deal with this error?                
                 console.error("[Launcher Error]", err);
-                return;
+                return callback();
             }
             browser.update(urlOrHTML);
-
-            if(typeof callback === "function") {
-                callback();
-            }
+            callback();
         });
     }
 
@@ -64,7 +62,8 @@ define(function (require, exports, module) {
         Tutorial.exists(function(tutorialExists) {
             if(!tutorialExists) {
                 console.error("[Launcher Error] expected tutorial.html to exist");
-                // Fallback to normal loading so we show something
+                // Reset the tutorial override, and fallback to normal loading. so we show something
+                Tutorial.setOverride(false);
                 _launch(url, callback);
             } else {
                 // Swap out the tutorial url and reload if necessary. We try hard
