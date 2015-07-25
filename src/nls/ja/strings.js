@@ -194,6 +194,7 @@ define({
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Ctrl / Command キーをクリックしてすべて展開 / 折りたたみ",
+	"FIND_IN_FILES_INDEXING": "Indexing for Instant Search\u2026",
 	"REPLACE_IN_FILES_ERRORS_TITLE": "置換エラー",
 	"REPLACE_IN_FILES_ERRORS": "次のファイルは検索の後で変更されているか、書き込むことができないため、変更されていません。",
 
@@ -402,8 +403,8 @@ define({
 	"CMD_CSS_QUICK_EDIT_NEW_RULE": "新規ルール",
 	"CMD_NEXT_DOC": "次の文書",
 	"CMD_PREV_DOC": "前の文書",
-	"CMD_NEXT_DOC_LIST_ORDER": "リストの次のドキュメント",
-	"CMD_PREV_DOC_LIST_ORDER": "リストの前のドキュメント",
+	"CMD_NEXT_DOC_LIST_ORDER": "リストの次の文書",
+	"CMD_PREV_DOC_LIST_ORDER": "リストの前の文書",
 	"CMD_SHOW_IN_TREE": "ファイルツリー内で表示",
 	"CMD_SHOW_IN_EXPLORER": "エクスプローラーで表示",
 	"CMD_SHOW_IN_FINDER": "Finder で表示",
@@ -657,7 +658,7 @@ define({
 	"EXPAND_ALL": "すべて展開",
 	"COLLAPSE_CURRENT": "現在のコードをたたむ",
 	"EXPAND_CURRENT": "現在のコードを展開",
-
+    
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "中括弧、角括弧、丸括弧を自動的に閉じるには true",
 	"DESCRIPTION_CLOSE_OTHERS_ABOVE": "「作業中ファイル」コンテキストメニューから「上をすべて閉じる」を削除するには false",
@@ -753,7 +754,9 @@ define({
 	"DESCRIPTION_USE_THEME_SCROLLBARS": "カスタムスクロールバーを許可するには true",
 	"DESCRIPTION_LINTING_COLLAPSED": "構文チェックパネルを閉じるには true",
 	"DESCRIPTION_FONT_FAMILY": "フォントファミリーを変更",
-	"DESCRIPTION_FONT_SIZE": "フォントサイズを変更 (例 : 13 px)",
+	"DESCRIPTION_FONT_SIZE": "Change font size; e.g. 13px",
+	"DESCRIPTION_FIND_IN_FILES_NODE": "true to enable node based search",
+	"DESCRIPTION_FIND_IN_FILES_INSTANT": "true to enable instant search",
 	"DESCRIPTION_FONT_SMOOTHING": "Mac のみ : サブピクセルアンチエイリアスを有効にするには subpixel-antialiased、グレースケールアンチエイリアスの場合は antialiased",
 	"DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW": "分割ビューで環境設定ファイルを開けないようにするには false",
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "左側/上部のペインでユーザーの環境設定ファイルを開くには false",

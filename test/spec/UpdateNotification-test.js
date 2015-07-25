@@ -234,7 +234,7 @@ define(function (require, exports, module) {
             }
 
             it("should fall back to de.json when de-ch.json is not available", function () {
-                var defaultUpdateUrl = testWindow.brackets.config.update_info_url + "de.json";
+                var defaultUpdateUrl = testWindow.brackets.config.update_info_url + "?locale=de";
 
                 setupAjaxSpy(defaultUpdateUrl);
 
@@ -243,7 +243,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var promise = UpdateNotification.checkForUpdate(true, updateInfo);
-                    waitsForDone(promise, "Check for updates");
+                    waitsForDone(promise, "Check for updates", 10000);
                 });
 
                 runs(function () {
@@ -253,7 +253,7 @@ define(function (require, exports, module) {
             });
 
             it("should fall back to en.json when it.json is not available", function () {
-                var defaultUpdateUrl = testWindow.brackets.config.update_info_url + "en.json";
+                var defaultUpdateUrl = testWindow.brackets.config.update_info_url + "?locale=en";
 
                 setupAjaxSpy(defaultUpdateUrl);
 
@@ -262,7 +262,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var promise = UpdateNotification.checkForUpdate(true, updateInfo);
-                    waitsForDone(promise, "Check for updates");
+                    waitsForDone(promise, "Check for updates", 10000);
                 });
 
                 runs(function () {

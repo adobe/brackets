@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         MainViewManager    = require("view/MainViewManager"),
         Strings            = require("strings"),
         ViewUtils          = require("utils/ViewUtils"),
-        FindUtils          = require("search/FindUtils");
+        FindUtils          = require("search/FindUtils"),
+        HealthLogger       = require("utils/HealthLogger");
     
     /**
      * @private
@@ -236,6 +237,9 @@ define(function (require, exports, module) {
         // close the old Find bar (with no animation) before creating a new one. 
         // TODO: see note above - this will move to ModalBar eventually.
         FindBar._closeFindBars();
+        if (this._options.multifile) {
+            HealthLogger.searchDone(HealthLogger.SEARCH_NEW);
+        }
         
         var templateVars = _.clone(this._options);
         templateVars.Strings = Strings;
@@ -290,6 +294,7 @@ define(function (require, exports, module) {
                         if (self._options.multifile) {
                             if ($(e.target).is("#find-what")) {
                                 if (!self._options.replace) {
+                                    HealthLogger.searchDone(HealthLogger.SEARCH_INSTANT);
                                     self.trigger("doFind");
                                     lastQueriedText = self.getQueryInfo().query;
                                 }
@@ -309,10 +314,12 @@ define(function (require, exports, module) {
                                 // Just set focus to the Replace field.
                                 self.focusReplace();
                             } else {
+                                HealthLogger.searchDone(HealthLogger.SEARCH_ON_RETURN_KEY);
                                 // Trigger a Find (which really means "Find All" in this context).
                                 self.trigger("doFind");
                             }
                         } else {
+                            HealthLogger.searchDone(HealthLogger.SEARCH_REPLACE_ALL);
                             self.trigger("doReplaceAll");
                         }
                     } else {

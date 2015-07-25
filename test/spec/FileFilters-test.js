@@ -533,12 +533,6 @@ define(function (require, exports, module) {
             // it's just these few functions it's probably okay to just keep them in sync manually,
             // but if this gets more complicated we should probably figure out how to break them out.
             function openSearchBar(scope) {
-                // Make sure search bar from previous test has animated out fully
-                runs(function () {
-                    waitsFor(function () {
-                        return $(".modal-bar").length === 0;
-                    }, "search bar close");
-                });
                 runs(function () {
                     FindInFiles._searchDone = false;
                     FindInFilesUI._showFindBar(scope);

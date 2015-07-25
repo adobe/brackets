@@ -48,7 +48,8 @@ maxerr: 50, node: true */
         lastSearchedIndex = 0,
         crawlComplete = false,
         crawlEventSent = false,
-        collapseResults = false;
+        collapseResults = false,
+        cacheSize = 0;
     
     /**
      * Copied from StringUtils.js
@@ -189,7 +190,7 @@ maxerr: 50, node: true */
     /**
      * Get the contents of a file given the path
      * @param   {string} filePath full file path
-     * @returns {string} contents or null if no contents
+     * @return {string} contents or null if no contents
      */
     function getFileContentsForFile(filePath) {
         if (projectCache[filePath] || projectCache[filePath] === "") {
@@ -324,9 +325,13 @@ maxerr: 50, node: true */
             setTimeout(fileCrawler, 1000);
             return;
         }
-        var i = 0;
+        var i = 0,
+            contents = "";
         for (i = 0; i < 10 && currentCrawlIndex < files.length; i++) {
-            getFileContentsForFile(files[currentCrawlIndex]);
+            contents = getFileContentsForFile(files[currentCrawlIndex]);
+            if (contents) {
+                cacheSize += contents.length;
+            }
             currentCrawlIndex++;
         }
         if (currentCrawlIndex < files.length) {
@@ -336,7 +341,7 @@ maxerr: 50, node: true */
             crawlComplete = true;
             if (!crawlEventSent) {
                 crawlEventSent = true;
-                _domainManager.emitEvent("FindInFiles", "crawlComplete");
+                _domainManager.emitEvent("FindInFiles", "crawlComplete", [files.length, cacheSize]);
             }
             setTimeout(fileCrawler, 1000);
         }
@@ -350,6 +355,7 @@ maxerr: 50, node: true */
     function initCache(fileList) {
         files = fileList;
         currentCrawlIndex = 0;
+        cacheSize = 0;
         clearProjectCache();
         crawlEventSent = false;
     }
@@ -358,7 +364,7 @@ maxerr: 50, node: true */
      * Counts the number of matches matching the queryExpr in the given contents
      * @param   {String} contents  The contents to search on
      * @param   {Object} queryExpr
-     * @returns {number} number of matches
+     * @return {number} number of matches
      */
     function countNumMatches(contents, queryExpr) {
         if (!contents) {
@@ -372,7 +378,7 @@ maxerr: 50, node: true */
      * Get the total number of matches from all the files in fileList
      * @param   {array} fileList  file path array
      * @param   {Object} queryExpr
-     * @returns {Number} total number of matches
+     * @return {Number} total number of matches
      */
     function getNumMatches(fileList, queryExpr) {
         var i,
@@ -395,7 +401,7 @@ maxerr: 50, node: true */
      * Do a search with the searchObject context and return the results
      * @param   {Object}   searchObject
      * @param   {boolean} nextPages    set to true if to indicate that next page of an existing page is being fetched
-     * @returns {Object}   search results
+     * @return {Object}   search results
      */
     function doSearch(searchObject, nextPages) {
         
@@ -496,7 +502,7 @@ maxerr: 50, node: true */
 
     /**
      * Gets the next page of results of the ongoing search
-     * @returns {Object} search results
+     * @return {Object} search results
      */
     function getNextPage() {
         var send_object = {
@@ -514,7 +520,7 @@ maxerr: 50, node: true */
 
     /**
      * Gets all the results for the saved search query if present or empty search results
-     * @returns {Object} The results object
+     * @return {Object} The results object
      */
     function getAllResults() {
         var send_object = {
@@ -641,7 +647,18 @@ maxerr: 50, node: true */
         domainManager.registerEvent(
             "FindInFiles",     // domain name
             "crawlComplete",   // event name
-            []
+            [
+                {
+                    name: "numFiles",
+                    type: "number",
+                    description: "number of files cached"
+                },
+                {
+                    name: "cacheSize",
+                    type: "number",
+                    description: "The size of the file cache epressesd as string length of files"
+                }
+            ]
         );
         setTimeout(fileCrawler, 5000);
     }
