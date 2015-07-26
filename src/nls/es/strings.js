@@ -105,13 +105,13 @@ define({
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Error en la Vista previa dinámica",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectando con el navegador",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Vista previa dinámica, Chrome debe ser iniciado habilitando la depuración remota.<br /><br />¿Quieres reiniciar Chrome y habilitar la depuración remota?<br /><br />",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Vista previa dinámica, Chrome debe ser iniciado habilitando la depuración remota.<br><br>¿Quieres reiniciar Chrome y habilitar la depuración remota?<br><br>",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "No se pudo cargar la página para la Vista previa dinámica.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abra un archivo HTML o asegúrate de que haya un index.html en tu proyecto para poder iniciar el modo de Vista previa dinámica.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar la Vista previa dinámica con archivos de servidor.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para la Vista previa dinámica. Vuelve a intentarlo, por favor.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a la Vista previa dinámica!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista previa dinámica conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, el modo de Vista previa dinámica sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista previa dinámica conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br><br>En esta versión preliminar de {APP_NAME}, el modo de Vista previa dinámica sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br><br>(No volverás a ver este mensaje.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para más información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Vista previa dinámica</a>.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Vista previa dinámica",
@@ -133,9 +133,9 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmar eliminación",
     "CONFIRM_FOLDER_DELETE"             : "¿Estás seguro que deseas eliminar el directorio <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Archivo eliminado",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> ha sido modificado en el disco fuera de {APP_NAME}.<br /><br />¿Deseas guardar el archivo y sobrescribir esos cambios?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> ha sido modificado en el disco fuera de {APP_NAME}, pero también tiene cambios en {APP_NAME}.<br /><br />¿Qué versión quieres conservar?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ha sido eliminado en el disco fuera de {APP_NAME}, pero tiene cambios sin guardar en {APP_NAME}.<br /><br />¿Quieres conservar tus cambios?",
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> ha sido modificado en el disco fuera de {APP_NAME}.<br><br>¿Deseas guardar el archivo y sobrescribir esos cambios?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> ha sido modificado en el disco fuera de {APP_NAME}, pero también tiene cambios en {APP_NAME}.<br><br>¿Qué versión quieres conservar?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ha sido eliminado en el disco fuera de {APP_NAME}, pero tiene cambios sin guardar en {APP_NAME}.<br><br>¿Quieres conservar tus cambios?",
     
     // Generic dialog/button labels
     "DONE"                              : "Aceptar",
@@ -164,7 +164,7 @@ define({
     "BUTTON_CASESENSITIVE_HINT"         : "Sensible a mayúsculas",
     "BUTTON_REGEXP_HINT"                : "Expresión regular",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Reemplazar sin deshacer",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "Dado que hay más de {0} archivos que necesitan ser modificados, {APP_NAME} modificará los archivos no abiertos en el disco.<br />Por lo tanto, no será posible deshacer los reemplazos en esos archivos.",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Dado que hay más de {0} archivos que necesitan ser modificados, {APP_NAME} modificará los archivos no abiertos en el disco.<br>Por lo tanto, no será posible deshacer los reemplazos en esos archivos.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Reemplazar sin deshacer",
     
     "OPEN_FILE"                         : "Abrir archivo",
@@ -193,7 +193,7 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Más de ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
-    "FIND_IN_FILES_INDEXING"            : "Indexando archivos para la Búsqueda instantánea...",
+    "FIND_IN_FILES_INDEXING"            : "Indexando archivos para la Búsqueda instantánea\u2026",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd clic para expandir/colapsar todo",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Errores al reemplazar",
     "REPLACE_IN_FILES_ERRORS"           : "Los siguientes archivos no fueron modificados porque cambiaron después de realizar la búsqueda o no pueden ser escritos.",
@@ -249,7 +249,7 @@ define({
     "GEAR_MENU_TOOLTIP"         : "Configurar el área de trabajo",
     
     "SPLITVIEW_INFO_TITLE"              : "Ya está abierto",
-    "SPLITVIEW_MULTIPANE_WARNING"       : "El archivo ya está abierto en otro panel. Próximamente {APP_NAME} soportará abrir el mismo archivo en más de un panel. Hasta entonces, el archivo se mostrará en el panel en el cual ya está abierto.<br /><br />(Sólo verá este mensaje una vez.)",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "El archivo ya está abierto en otro panel. Próximamente {APP_NAME} soportará abrir el mismo archivo en más de un panel. Hasta entonces, el archivo se mostrará en el panel en el cual ya está abierto.<br><br>(Sólo verá este mensaje una vez.)",
     
     /**
      * Keyboard modifier names
@@ -319,7 +319,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Guardar todo",
     "CMD_FILE_SAVE_AS"                    : "Guardar como\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Vista previa dinámica",
-    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Habilitar la ista previa dinámica experimental",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Habilitar la Vista previa dinámica experimental",
     "CMD_RELOAD_LIVE_PREVIEW"             : "Recargar la Vista previa dinámica",
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
@@ -596,13 +596,13 @@ define({
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Abrir el código fuente de {APP_NAME}",
     
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "Acceso directo a {APP_NAME} por línea de comandos",
-    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Ocurrió un error al instalar el acceso directo por línea de comandos. Por favor probá <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>estas sugerencias de solución de problemas</a>.<br/><br/>Razón: {0}",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Ocurrió un error al instalar el acceso directo por línea de comandos. Por favor probá <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>estas sugerencias de solución de problemas</a>.<br><br>Razón: {0}",
     "ERROR_CLTOOLS_RMFAILED"                    : "No se pudó eliminar el enlace simbólico existente <code>/usr/local/bin/brackets</code>.",
     "ERROR_CLTOOLS_MKDIRFAILED"                 : "No se pudó crear el directorio <code>/usr/local/bin</code>.",
     "ERROR_CLTOOLS_LNFAILED"                    : "No se pudó crear elenlace simbólico <code>/usr/local/bin/brackets</code>.",
     "ERROR_CLTOOLS_SERVFAILED"                  : "Error interno.",
     "ERROR_CLTOOLS_NOTSUPPORTED"                : "El acceso directo por línea de comandos no es compatible con este sistema operativo.",
-    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "¡Éxito! Ahora puedes abrir fácilmente {APP_NAME} desde la línea de comandos: <code>brackets myFile.txt</code> para abrir un archivo o <code>brackets myFolder</code> para cambiar de proyecto. <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Aprende más</a> acerca de como usar {APP_NAME} desde la línea de comandos.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "¡Éxito! Ahora puedes abrir fácilmente {APP_NAME} desde la línea de comandos: <code>brackets myFile.txt</code> para abrir un archivo o <code>brackets myFolder</code> para cambiar de proyecto.<br><br><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Aprende más</a> acerca de como usar {APP_NAME} desde la línea de comandos.",
     
     "LANGUAGE_TITLE"                            : "Cambiar idioma",
     "LANGUAGE_MESSAGE"                          : "Idioma:",
@@ -616,7 +616,7 @@ define({
     "HEALTH_DATA_DO_TRACK"                      : "Compartir información anónima sobre cómo utilizo {APP_NAME}",
     "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Para poder mejorar {APP_NAME}, enviamos periódicamente limitadas estadísticas <strong>anónimas</strong> a Adobe acerca de cómo se utiliza {APP_NAME}. Esta información ayuda a priorizar características a desarrollar, encontrar errores y problemas de usabilidad.<br><br>Puedes ver tus datos o elegir no compartir datos seleccionando <strong>Ayuda > Reporte de estadísticas</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Aprende más sobre el reporte de estadísticas de {APP_NAME}</a>",
     "HEALTH_DATA_PREVIEW"                       : "Reporte de estadísticas de {APP_NAME}",
-    "HEALTH_DATA_PREVIEW_INTRO"                 : "<pPara poder mejorar {APP_NAME},  enviamos periódicamente limitadas estadísticas <strong>anónimas</strong> a Adobe acerca de cómo se utiliza {APP_NAME}. Esta información ayuda a priorizar características a desarrollar, encontrar errores y problemas de usabilidad. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Aprende más sobre el Reporte de estadísticas de {APP_NAME}</a> y como beneficia a la comunidad de {APP_NAME} mientras protege tu privacidad.</p><p>A continuación hay una vista previa de la información que será enviada en el siguiente Reporte de estadísticas <em>si</em> está habilitado.</p>",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Para poder mejorar {APP_NAME}, enviamos periódicamente limitadas estadísticas <strong>anónimas</strong> a Adobe acerca de cómo se utiliza {APP_NAME}. Esta información ayuda a priorizar características a desarrollar, encontrar errores y problemas de usabilidad. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Aprende más sobre el Reporte de estadísticas de {APP_NAME}</a> y cómo beneficia a la comunidad de {APP_NAME} mientras protege tu privacidad.</p><p>A continuación hay una vista previa de la información que será enviada en el siguiente Reporte de estadísticas <em>si</em> está habilitado.</p>",
     
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tiempo",
@@ -754,7 +754,7 @@ define({
     "DESCRIPTION_USE_THEME_SCROLLBARS"               : "true para habilitar la barra de desplazamiento customizada",
     "DESCRIPTION_LINTING_COLLAPSED"                  : "true para colapsar el panel de inspección de código",
     "DESCRIPTION_FONT_FAMILY"                        : "Cambiar la fuente",
-    "DESCRIPTION_FONT_SIZE"                          : "Cambiar el tamaño de la fuente; e.j, 13px",
+    "DESCRIPTION_FONT_SIZE"                          : "Cambiar el tamaño de la fuente; ej., 13px",
     "DESCRIPTION_FIND_IN_FILES_NODE"                 : "True to para habilitar búsquedas basadas en node",
     "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "True to para habilitar la búsqueda instantánea",
     "DESCRIPTION_FONT_SMOOTHING"                     : "Sólo para Mac: \"subpixel-antialiased\" para habilitar sub-pixel antialiasing o \"antialiased\" para antialiasing en escala de grises",
