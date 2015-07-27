@@ -75,7 +75,8 @@ module.exports = function (grunt) {
                             '!extensibility/node/node_modules/**/{test,tst}/**/*',
                             '!extensibility/node/node_modules/**/examples/**/*',
                             'filesystem/impls/appshell/node/**',
-                            '!filesystem/impls/appshell/node/spec/**'
+                            '!filesystem/impls/appshell/node/spec/**',
+                            'search/node/**'
                         ]
                     },
                     /* extensions and CodeMirror modes */

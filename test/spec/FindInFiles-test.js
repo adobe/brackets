@@ -38,7 +38,9 @@ define(function (require, exports, module) {
         StringUtils     = require("utils/StringUtils"),
         Strings         = require("strings"),
         _               = require("thirdparty/lodash");
-
+    
+    var PreferencesManager;
+    
     var promisify = Async.promisify; // for convenience
 
     describe("FindInFiles", function () {
@@ -70,32 +72,36 @@ define(function (require, exports, module) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
-                CommandManager  = testWindow.brackets.test.CommandManager;
-                DocumentManager = testWindow.brackets.test.DocumentManager;
-                EditorManager   = testWindow.brackets.test.EditorManager;
-                FileFilters     = testWindow.brackets.test.FileFilters;
-                FileSystem      = testWindow.brackets.test.FileSystem;
-                File            = testWindow.brackets.test.File;
-                FindInFiles     = testWindow.brackets.test.FindInFiles;
-                FindInFilesUI   = testWindow.brackets.test.FindInFilesUI;
-                ProjectManager  = testWindow.brackets.test.ProjectManager;
-                MainViewManager = testWindow.brackets.test.MainViewManager;
-                $               = testWindow.$;
+                CommandManager      = testWindow.brackets.test.CommandManager;
+                DocumentManager     = testWindow.brackets.test.DocumentManager;
+                EditorManager       = testWindow.brackets.test.EditorManager;
+                FileFilters         = testWindow.brackets.test.FileFilters;
+                FileSystem          = testWindow.brackets.test.FileSystem;
+                File                = testWindow.brackets.test.File;
+                FindInFiles         = testWindow.brackets.test.FindInFiles;
+                FindInFilesUI       = testWindow.brackets.test.FindInFilesUI;
+                ProjectManager      = testWindow.brackets.test.ProjectManager;
+                MainViewManager     = testWindow.brackets.test.MainViewManager;
+                $                   = testWindow.$;
+                PreferencesManager  = testWindow.brackets.test.PreferencesManager;
+                PreferencesManager.set("findInFiles.nodeSearch", false);
+                PreferencesManager.set("findInFiles.instantSearch", false);
             });
         });
         
         afterLast(function () {
-            CommandManager  = null;
-            DocumentManager = null;
-            EditorManager   = null;
-            FileSystem      = null;
-            File            = null;
-            FindInFiles     = null;
-            FindInFilesUI   = null;
-            ProjectManager  = null;
-            MainViewManager = null;
-            $               = null;
-            testWindow      = null;
+            CommandManager      = null;
+            DocumentManager     = null;
+            EditorManager       = null;
+            FileSystem          = null;
+            File                = null;
+            FindInFiles         = null;
+            FindInFilesUI       = null;
+            ProjectManager      = null;
+            MainViewManager     = null;
+            $                   = null;
+            testWindow          = null;
+            PreferencesManager  = null;
             SpecRunnerUtils.closeTestWindow();
             SpecRunnerUtils.removeTempDirectory();
         });
@@ -118,7 +124,6 @@ define(function (require, exports, module) {
         }
 
         function openSearchBar(scope, showReplace) {
-            waitForSearchBarClose();
             runs(function () {
                 FindInFiles._searchDone = false;
                 FindInFilesUI._showFindBar(scope, showReplace);
@@ -425,22 +430,19 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should dismiss dialog and show panel when there are results", function () {
+            it("should keep dialog and show panel when there are results", function () {
                 var filePath = testPath + "/foo.js",
                     fileEntry = FileSystem.getFileForPath(filePath);
 
                 openSearchBar(fileEntry);
                 executeSearch("callFoo");
 
-                waitsFor(function () {
-                    return ($(".modal-bar").length === 0);
-                }, "search bar close");
-
+                // With instant search, the Search Bar should not close on a search
                 runs(function () {
                     var fileResults = FindInFiles.searchModel.results[filePath];
                     expect(fileResults).toBeTruthy();
                     expect($("#find-in-files-results").is(":visible")).toBeTruthy();
-                    expect($(".modal-bar").length).toBe(0);
+                    expect($(".modal-bar").length).toBe(1);
                 });
             });
 
@@ -503,13 +505,15 @@ define(function (require, exports, module) {
                     expect($firstHit.hasClass("file-section")).toBeFalsy();
                     $firstHit.click();
 
-                    // Verify current document
-                    editor = EditorManager.getActiveEditor();
-                    expect(editor.document.file.fullPath).toEqual(filePath);
+                    setTimeout(function () {
+                        // Verify current document
+                        editor = EditorManager.getActiveEditor();
+                        expect(editor.document.file.fullPath).toEqual(filePath);
 
-                    // Verify selection
-                    expect(editor.getSelectedText().toLowerCase() === "foo");
-                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
+                        // Verify selection
+                        expect(editor.getSelectedText().toLowerCase() === "foo");
+                        waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
+                    }, 500);
                 });
             });
 
@@ -746,7 +750,6 @@ define(function (require, exports, module) {
             
             it("should jump to last page, then page backward, displaying correct contents at each step", function () {
                 openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
-                openSearchBar();
                 
                 executeSearch("find this");
 
