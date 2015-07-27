@@ -64,7 +64,6 @@ define(function (require, exports, module) {
                 console.error("[Launcher Error] expected tutorial.html to exist");
                 // Reset the tutorial override, and fallback to normal loading. so we show something
                 Tutorial.setOverride(false);
-                _launch(url, callback);
             } else {
                 // Swap out the tutorial url and reload if necessary. We try hard
                 // not to reload unless we have to, so the tutorial doesn't flicker.

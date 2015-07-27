@@ -1,26 +1,37 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var StartupState  = brackets.getModule("bramble/StartupState");
-    var EditorManager = brackets.getModule("editor/EditorManager");
-    var BrambleEvents = brackets.getModule("bramble/BrambleEvents");
-    var Filer         = brackets.getModule("filesystem/impls/filer/BracketsFiler");
-    var Path          = Filer.Path;
+    var LiveDevelopment = brackets.getModule("LiveDevelopment/LiveDevMultiBrowser");
+    var StartupState    = brackets.getModule("bramble/StartupState");
+    var EditorManager   = brackets.getModule("editor/EditorManager");
+    var BrambleEvents   = brackets.getModule("bramble/BrambleEvents");
+    var Filer           = brackets.getModule("filesystem/impls/filer/BracketsFiler");
+    var Path            = Filer.Path;
 
     var PostMessageTransport = require("lib/PostMessageTransport");
 
     // Whether or not we're overriding the preview with a tutorial
     var _tutorialOverride;
 
-    // After we change the override value, and in order to get the
-    // tutorial to show, we need to force a reload for the preview.
+    // When we want to override, in order to get the tutorial to
+    // show, we need to force a reload for the preview.
     var _forceReload;
 
     function setOverride(val) {
         _tutorialOverride = !!val;
-        _forceReload = true;
 
-        PostMessageTransport.reload();
+        // We need to reload the browser preview. If we're going to override,
+        // we can simply reload the current live dev instance.  If not, we
+        // need to properly reset live dev so it points at the project's main file.
+        if(_tutorialOverride) {
+            _forceReload = true;
+            PostMessageTransport.reload();
+        } else {
+            // If we're turning off the override, we need to open the project's
+            // "main" web file, and the easiest way is to close/re-open live dev.
+            LiveDevelopment.close().done(LiveDevelopment.open);
+        }
+
         BrambleEvents.triggerTutorialVisibilityChange(_tutorialOverride);
     }
 
