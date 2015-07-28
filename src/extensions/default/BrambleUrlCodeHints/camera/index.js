@@ -31,9 +31,6 @@ define(function (require, exports, module) {
     // do not support this functionality of HTML5
     Camera.isSupported = !!getUserMedia;
 
-    // TODO: l10n
-    Camera.selfieLabel = "Take a Selfie...";
-
     // Initiate the camera by requesting access to the user's webcam
     Camera.prototype.start = function() {
         var self = this;

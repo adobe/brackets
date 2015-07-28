@@ -30,7 +30,8 @@ define(function (require, exports, module) {
         "bramble",
         "Autosave",
         "brackets-paste-and-indent",
-        "BrambleUrlCodeHints"
+        "BrambleUrlCodeHints",
+        "UploadFiles"
     ];
 
     /**

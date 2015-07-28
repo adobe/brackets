@@ -673,5 +673,9 @@ define([
         this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_HIDE_TUTORIAL"}, callback);
     };
 
+    BrambleProxy.prototype.showUploadFilesDialog = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "SHOW_UPLOAD_FILES_DIALOG"}, callback);
+    };
+
     return Bramble;
 });

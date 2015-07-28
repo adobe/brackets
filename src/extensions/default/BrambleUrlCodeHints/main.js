@@ -37,11 +37,10 @@ define(function (require, exports, module) {
         ProjectManager  = brackets.getModule("project/ProjectManager"),
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         EditorManager   = brackets.getModule("editor/EditorManager"),
-        StartupState    = brackets.getModule("bramble/StartupState"),
         Path            = brackets.getModule("filesystem/impls/filer/FilerUtils").Path,
         Content         = brackets.getModule("filesystem/impls/filer/lib/content"),
         Camera          = require("camera/index"),
-        CameraDialog    = require("camera-dialog"),
+        Selfie          = require("selfie"),
 
         Data            = require("text!data.json"),
 
@@ -221,27 +220,11 @@ define(function (require, exports, module) {
             }
         });
 
-        var highestNumber = 0;
-        result.forEach(function (item){
-            item = item.split("/");
-            item = item[item.length-1];
-            if(item.indexOf("selfie") === 0) {
-                // Removes extension from filename
-                var fileNameParts = /selfie(\d*)\.png/.exec(item);
-
-                var currentNumber = fileNameParts && fileNameParts[1] ? Number(fileNameParts[1]) : 0;
-                if(currentNumber > highestNumber) {
-                    highestNumber = currentNumber;
-                }
-            }
-        });
-
         result.sort();
 
         // Possibly adding the "Take Selfie" label to the bottom of results
         if(isImage && Camera.isSupported) {
-            result.push(Camera.selfieLabel);
-            this.selfieFileName = "selfie" + (highestNumber + 1) + ".png";
+            result.push(Selfie.label);
         }
 
         return result;
@@ -572,9 +555,6 @@ define(function (require, exports, module) {
      */
     BrambleUrlCodeHints.prototype.insertHint = function (completion) {
         var that = this;
-        var cameraDialog;
-        var projectRoot;
-        var savePath;
 
         function insert(text) {
             var mode = that.editor.getModeForSelection();
@@ -591,18 +571,10 @@ define(function (require, exports, module) {
             return false;
         }
 
-        if (completion === Camera.selfieLabel) {
-            // NOTE: we need to deal with Brackets expecting a trailing / on dir names.
-            projectRoot = StartupState.project("root").replace(/\/?$/, "/");
-            savePath = Path.join(projectRoot, this.selfieFileName);
-
-            cameraDialog = new CameraDialog(savePath);
-            cameraDialog.show()
-                .done(function(selfieFilePath){
+        if (completion === Selfie.label) {
+            Selfie.takeSelfie()
+                .done(function(selfieFilePath) {
                     if(selfieFilePath) {
-                        // Give back a path relative to the project's mount root.
-                        selfieFilePath = FileUtils.getRelativeFilename(projectRoot,
-                                                                       selfieFilePath);
                         insert(selfieFilePath);
                     }
                     EditorManager.getActiveEditor().focus();
@@ -610,9 +582,6 @@ define(function (require, exports, module) {
                 .fail(function(err) {
                     EditorManager.getActiveEditor().focus();
                     console.error("[Selfie error] ", err);
-                })
-                .always(function() {
-                    cameraDialog.close();
                 });
             return false;
         }
@@ -900,4 +869,6 @@ define(function (require, exports, module) {
         FileSystem.on("change", _clearCachedHints);
         FileSystem.on("rename", _clearCachedHints);
     });
+
+    Selfie.addSelfieCommand();
 });

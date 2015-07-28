@@ -74,6 +74,7 @@ A standard set of default extensions are always turned on:
 * brackets-paste-and-indent
 * BrambleUrlCodeHints
 * Autosave
+* UploadFiles
 
 You could disable QuickView and CSSCodeHints by loading Bramble with `?disableExtensions=QuickView,CSSCodeHints`
 on the URL.
@@ -302,6 +303,7 @@ to be notified when the action completes:
 * `disableWordWrap([callback])` - turns off word wrap for the editor
 * `showTutorial([callback])` - shows tutorial (i.e., tutorial.html) vs editor contents in preview
 * `hideTutorial([callback])` - stops showing tutorial (i.e., tutorial.html) and uses editor contents in preview
+* `showUploadFilesDialog([callback])` - shows the Upload Files dialog, allowing users to drag-and-drop, upload a file, or take a selfie.
 
 ## Bramble Instance Events
 

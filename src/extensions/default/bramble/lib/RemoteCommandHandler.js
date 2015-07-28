@@ -109,6 +109,11 @@ define(function (require, exports, module) {
         case "BRAMBLE_HIDE_TUTORIAL":
             Tutorial.setOverride(false);
             break;
+        case "SHOW_UPLOAD_FILES_DIALOG":
+            // Show dialog, see extensions/default/UploadFiles
+            skipCallback = true;
+            CommandManager.execute("bramble.showUploadFiles").always(callback);
+            break;
         case "RESIZE":
             // The host window was resized, update all panes
             WorkspaceManager.recomputeLayout(true);

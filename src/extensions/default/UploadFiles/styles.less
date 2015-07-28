@@ -1,0 +1,113 @@
+@extpath: "extensions/default/UploadFiles/images";
+
+.animation (@name, @duration: 300ms, @ease: ease, @count: 1, @delay: 0) {
+    -webkit-animation: @name @duration @ease @count @delay ;
+    -moz-animation: @name @duration @ease @count @delay ;
+    -ms-animation: @name @duration @ease @count @delay ;
+    animation: @name @duration @ease @count @delay ;
+}
+
+.drag-files-area {
+    height: 290px;
+    border: dashed 2px #AEAEAE;
+    color: #969696;
+    position: relative;
+
+    .drop-zone {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+    }
+
+   .drop-instructions {
+        display: none;
+    }
+
+    &.drag-over {
+        border: dashed 2px #5EBF7C;
+        background-color: rgba(94,191,124,.1);
+
+        .drop-instructions {
+            display: block;
+            color: #26723D;
+            background-image: ~"url(@{extpath}/upload-cloud-green.svg)";
+        }
+
+        .drag-instructions {
+            display: none;
+        }
+    }
+
+    .drag-instructions, .drop-instructions {
+        position: absolute;
+        padding-top: 60px;
+        width: 200px;
+        top: 100px;
+        text-align: center;
+        width: 100%;
+        background-image: ~"url(@{extpath}/upload-cloud.svg)";
+        background-repeat: no-repeat;
+        background-position: center 0;
+        background-size: 70px;
+    }
+}
+
+.uploading-files {
+    height: 290px;
+
+    .upload-indicator {
+        text-align: center;
+        position: relative;
+        top: 95px;
+
+        .title {
+            color: #BCBCBC;
+            font-size: 16px;
+            margin: 0 0 10px 0;
+        }
+    }
+
+    .upload-spinner {
+        height:75px;
+        width: 75px;
+        position: relative;
+        background-image: ~"url(@{extpath}/upload-cloud.svg)";
+        background-position: center;
+        background-repeat: no-repeat;
+        overflow: hidden;
+        margin-bottom: 15px;
+        display: block;
+        margin: 0 auto 15px auto;
+
+        .circle {
+            position: absolute;
+            box-sizing: border-box;
+            border-radius: 50%;
+            border: solid 2px rgba(0,0,0,.1);
+            width: 100%;
+            height: 100%;
+        }
+
+        .mask {
+            height: 54%;
+            left: 30%;
+            width: 40%;
+            top: -5%;
+            border-top: solid 10px rgb(223, 226, 226); /* match Brackets dialog background */
+            position: absolute;
+            box-sizing: border-box;
+            transform-origin: bottom;
+            animation: uploadSpinner 2s linear infinite;
+        }
+
+    }
+}
+
+@keyframes uploadSpinner {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
