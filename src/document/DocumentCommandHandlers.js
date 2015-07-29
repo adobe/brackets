@@ -1634,8 +1634,11 @@ define(function (require, exports, module) {
                 if (fragment !== -1) {
                     href = href.substr(0, fragment);
                 }
-
-                window.location.href = href;
+                // Defer for a more successful reload.
+                setTimeout(function(){
+                    window.location.href = href;    
+                },1000)
+                
             });
         }).fail(function () {
             _isReloading = false;
