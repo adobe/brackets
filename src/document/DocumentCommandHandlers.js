@@ -1637,7 +1637,7 @@ define(function (require, exports, module) {
                 // Defer for a more successful reload.
                 setTimeout(function(){
                     window.location.href = href;    
-                },1000)
+                },1000);
                 
             });
         }).fail(function () {
