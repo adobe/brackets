@@ -356,6 +356,8 @@ define(function (require, exports, module) {
                 cm.off("gutterClick", old.onGutterClick);
                 cm.off("change", onChange);
                 cm.off("viewportChange", onViewportChange);
+                cm.off("cursorActivity", onViewportChange);
+
                 cm.off("fold", onFold);
                 cm.off("unfold", onUnFold);
                 cm.off("swapDoc", updateInViewport);
@@ -366,6 +368,7 @@ define(function (require, exports, module) {
                 cm.on("gutterClick", val.onGutterClick);
                 cm.on("change", onChange);
                 cm.on("viewportChange", onViewportChange);
+                cm.on("cursorActivity", onViewportChange);
                 cm.on("fold", onFold);
                 cm.on("unfold", onUnFold);
                 cm.on("swapDoc", updateInViewport);

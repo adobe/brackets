@@ -227,7 +227,9 @@ define(function (require, exports, module) {
         };
 
         /**
-          * Helper to combine an array of fold range finders into one
+          * Helper to combine an array of fold range finders into one. This goes through the
+          * list of fold helpers in the parameter arguments and returns the first non-null
+          * range found from calling the fold helpers in order.
           */
         CodeMirror.registerHelper("fold", "combine", function () {
             var funcs = Array.prototype.slice.call(arguments, 0);
