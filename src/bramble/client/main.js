@@ -674,8 +674,19 @@ define([
     };
 
     BrambleProxy.prototype.showUploadFilesDialog = function(callback) {
-        this._executeRemoteCommand({commandCategory: "bramble", command: "SHOW_UPLOAD_FILES_DIALOG"}, callback);
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_SHOW_UPLOAD_FILES_DIALOG"}, callback);
     };
 
+    BrambleProxy.prototype.addNewFile = function(ext, callback) {
+        if(ext) {
+            this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_ADD_NEW_FILE", args: ext}, callback);
+        } else {
+            this._executeRemoteCommand({commandCategory: "brackets", command: "FILE_NEW"}, callback);
+        }
+    };
+
+    BrambleProxy.prototype.addNewFolder = function(callback) {
+        this._executeRemoteCommand({commandCategory: "brackets", command: "FILE_FOLDER"}, callback);
+    };
     return Bramble;
 });

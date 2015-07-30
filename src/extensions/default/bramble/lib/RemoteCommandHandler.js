@@ -4,15 +4,16 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var CommandManager = brackets.getModule("command/CommandManager");
-    var EditorManager  = brackets.getModule("editor/EditorManager");
-    var Commands       = brackets.getModule("command/Commands");
-    var HTMLRewriter   = brackets.getModule("filesystem/impls/filer/lib/HTMLRewriter");
-    var SidebarView    = brackets.getModule("project/SidebarView");
-    var StatusBar      = brackets.getModule("widgets/StatusBar");
-    var WorkspaceManager = brackets.getModule("view/WorkspaceManager");
-    var BrambleEvents = brackets.getModule("bramble/BrambleEvents");
+    var CommandManager     = brackets.getModule("command/CommandManager");
+    var EditorManager      = brackets.getModule("editor/EditorManager");
+    var Commands           = brackets.getModule("command/Commands");
+    var HTMLRewriter       = brackets.getModule("filesystem/impls/filer/lib/HTMLRewriter");
+    var SidebarView        = brackets.getModule("project/SidebarView");
+    var StatusBar          = brackets.getModule("widgets/StatusBar");
+    var WorkspaceManager   = brackets.getModule("view/WorkspaceManager");
+    var BrambleEvents      = brackets.getModule("bramble/BrambleEvents");
     var PreferencesManager = brackets.getModule("preferences/PreferencesManager");
+    var _                  = brackets.getModule("thirdparty/lodash");
 
     var PostMessageTransport = require("lib/PostMessageTransport");
     var Tutorial = require("lib/Tutorial");
@@ -30,9 +31,10 @@ define(function (require, exports, module) {
     }
 
     // Built-in Brackets Commands
-    function _bracketsCommand(command, callback) {
+    function _bracketsCommand(command, args, callback) {
         function executeCommand() {
-            CommandManager.execute(Commands[command]).always(callback);
+            args.unshift(Commands[command]);
+            CommandManager.execute.apply(null, args).always(callback);
         }
 
         // Some commands require focus in the editor
@@ -58,7 +60,7 @@ define(function (require, exports, module) {
     }
 
     // Custom Bramble commands
-    function _brambleCommand(command, callback) {
+    function _brambleCommand(command, args, callback) {
         var skipCallback = false;
 
         switch(command) {
@@ -109,10 +111,14 @@ define(function (require, exports, module) {
         case "BRAMBLE_HIDE_TUTORIAL":
             Tutorial.setOverride(false);
             break;
-        case "SHOW_UPLOAD_FILES_DIALOG":
+        case "BRAMBLE_SHOW_UPLOAD_FILES_DIALOG":
             // Show dialog, see extensions/default/UploadFiles
             skipCallback = true;
             CommandManager.execute("bramble.showUploadFiles").always(callback);
+            break;
+        case "BRAMBLE_ADD_NEW_FILE":
+            skipCallback = true;
+            CommandManager.execute("bramble.addFileWithType", args[0]).always(callback);
             break;
         case "RESIZE":
             // The host window was resized, update all panes
@@ -143,12 +149,18 @@ define(function (require, exports, module) {
             return;
         }
 
+        // If arguments are sent, we make sure they are in the form of an array
+        var args = remoteRequest.args;
+        if(!_.isArray(args)) {
+            args = [args];
+        }
+
         switch(remoteRequest.commandCategory) {
         case "brackets":
-            _bracketsCommand(remoteRequest.command, _remoteCallbackFn(remoteRequest.callback));
+            _bracketsCommand(remoteRequest.command, args, _remoteCallbackFn(remoteRequest.callback));
             break;
         case "bramble":
-            _brambleCommand(remoteRequest.command, _remoteCallbackFn(remoteRequest.callback));
+            _brambleCommand(remoteRequest.command, args, _remoteCallbackFn(remoteRequest.callback));
             break;
         default:
             console.error('[Bramble] unknown remote command request:', remoteRequest);

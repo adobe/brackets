@@ -610,8 +610,12 @@ define(function (require, exports, module) {
      * Bottleneck function for creating new files and folders in the project tree.
      * @private
      * @param {boolean} isFolder - true if creating a new folder, false if creating a new file
+     * @param {?string} optionalExtension - an optional extension to use when naming the file. Should be of the form ".ext" (note the leading '.').
      */
-    function _handleNewItemInProject(isFolder) {
+    function _handleNewItemInProject(isFolder, optionalExtension) {
+        // XXXBramble: allow specifying an extension.
+        optionalExtension = optionalExtension || "";
+
         if (fileNewInProgress) {
             ProjectManager.forceFinishRename();
             return;
@@ -639,6 +643,7 @@ define(function (require, exports, module) {
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
         function createWithSuggestedName(suggestedName) {
+            suggestedName = suggestedName + optionalExtension;
             return ProjectManager.createNewItem(baseDirEntry, suggestedName, false, isFolder)
                 .always(function () { fileNewInProgress = false; });
         }
@@ -669,6 +674,15 @@ define(function (require, exports, module) {
      */
     function handleFileNewInProject() {
         _handleNewItemInProject(false);
+    }
+
+    /**
+     * XXXBramble: create "Untitled.js" or "Untitled.html", etc
+     */
+    function handleNewFileWithType(ext) {
+        // Support both ".foo" and "foo", but make sure we have a .
+        ext = ext.replace(/^\.?/, ".");
+        _handleNewItemInProject(false, ext);
     }
 
     /**
@@ -1734,6 +1748,9 @@ define(function (require, exports, module) {
     CommandManager.registerInternal(Commands.FILE_CLOSE_WINDOW,         handleFileCloseWindow);
     CommandManager.registerInternal(Commands.APP_RELOAD,                handleReload);
     CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReloadWithoutExts);
+
+    // XXXBramble: support adding a new file with a given type
+    CommandManager.registerInternal("bramble.addFileWithType",          handleNewFileWithType);
 
     // Listen for changes that require updating the editor titlebar
     ProjectManager.on("projectOpen", _updateTitle);
