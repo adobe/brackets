@@ -219,16 +219,7 @@ define(function (require, exports, module) {
         }
 
         // trim leading and trailing string literal delimiters from the query
-        if (query.indexOf(HintUtils.SINGLE_QUOTE) === 0 ||
-                query.indexOf(HintUtils.DOUBLE_QUOTE) === 0) {
-            trimmedQuery = query.substring(1);
-            if (trimmedQuery.lastIndexOf(HintUtils.DOUBLE_QUOTE) === trimmedQuery.length - 1 ||
-                    trimmedQuery.lastIndexOf(HintUtils.SINGLE_QUOTE) === trimmedQuery.length - 1) {
-                trimmedQuery = trimmedQuery.substring(0, trimmedQuery.length - 1);
-            }
-        } else {
-            trimmedQuery = query;
-        }
+        trimmedQuery = _.trim(query, HintUtils.SINGLE_QUOTE + HintUtils.DOUBLE_QUOTE);
 
         if (hints) {
             formattedHints = formatHints(hints, trimmedQuery);

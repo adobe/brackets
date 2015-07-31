@@ -422,7 +422,7 @@ define(function (require, exports, module) {
                                     (error.pos.line + 1) > 0 &&
                                     (error.codeSnippet = currentDoc.getLine(error.pos.line)) !== undefined) {
                                 error.friendlyLine = error.pos.line + 1;
-                                error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
+                                error.codeSnippet = error.codeSnippet.substr(0, 175);  // limit snippet width
                             }
                             
                             if (error.type !== Type.META) {

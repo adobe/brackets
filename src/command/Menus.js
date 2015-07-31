@@ -957,7 +957,7 @@ define(function (require, exports, module) {
         menu = getMenu(id);
         
         _.forEach(menuItemMap, function (value, key) {
-            if (key.substring(0, id.length) === id) {
+            if (_.startsWith(key, id)) {
                 if (value.isDivider) {
                     menu.removeMenuDivider(key);
                 } else {
