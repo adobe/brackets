@@ -57,7 +57,7 @@
         //traverse @import rules
         var traverseRules = function _traverseRules(sheet, base) {
             var i,
-                href = sheet.href,
+                href = sheet ? sheet.href : null,
                 cssRules;
 
             // Deal with Firefox's SecurityError when accessing sheets
