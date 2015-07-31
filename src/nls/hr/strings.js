@@ -576,7 +576,7 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedavni projekti",
     
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Pročitaj više"
+    "DOCS_MORE_LINK"                            : "Pročitaj više",
     
     // extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "Skupi Sve",
