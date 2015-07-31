@@ -56,6 +56,8 @@ define(function (require, exports, module) {
         noHintsOnDot   = false, // preference setting to prevent hints on dot
         ignoreChange;           // can ignore next "change" event if true;
 
+    // Languages that support inline JavaScript
+    var _inlineScriptLanguages = ["html", "php"];
     
     // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
     PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", [], {
@@ -217,16 +219,7 @@ define(function (require, exports, module) {
         }
 
         // trim leading and trailing string literal delimiters from the query
-        if (query.indexOf(HintUtils.SINGLE_QUOTE) === 0 ||
-                query.indexOf(HintUtils.DOUBLE_QUOTE) === 0) {
-            trimmedQuery = query.substring(1);
-            if (trimmedQuery.lastIndexOf(HintUtils.DOUBLE_QUOTE) === trimmedQuery.length - 1 ||
-                    trimmedQuery.lastIndexOf(HintUtils.SINGLE_QUOTE) === trimmedQuery.length - 1) {
-                trimmedQuery = trimmedQuery.substring(0, trimmedQuery.length - 1);
-            }
-        } else {
-            trimmedQuery = query;
-        }
+        trimmedQuery = _.trim(query, HintUtils.SINGLE_QUOTE + HintUtils.DOUBLE_QUOTE);
 
         if (hints) {
             formattedHints = formatHints(hints, trimmedQuery);
@@ -341,10 +334,11 @@ define(function (require, exports, module) {
     };
 
     /**
-     * @return {boolean} - true if the document is a html file
+     * @return {boolean} - true if the document supports inline JavaScript
      */
-    function isHTMLFile(document) {
-        return LanguageManager.getLanguageForPath(document.file.fullPath).getId() === "html";
+    function isInlineScriptSupported(document) {
+        var language = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
+        return _inlineScriptLanguages.indexOf(language) !== -1;
     }
     
     function isInlineScript(editor) {
@@ -442,7 +436,7 @@ define(function (require, exports, module) {
     JSHints.prototype.hasHints = function (editor, key) {
         if (session && HintUtils.hintableKey(key, !noHintsOnDot)) {
             
-            if (isHTMLFile(session.editor.document)) {
+            if (isInlineScriptSupported(session.editor.document)) {
                 if (!isInlineScript(session.editor)) {
                     return false;
                 }

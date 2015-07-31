@@ -359,8 +359,8 @@ define(function (require, exports, module) {
         }
         
         // Localize MainViewHTML and inject into <BODY> tag
-        $("body").html(Mustache.render(MainViewHTML, Strings));
-        
+        $("body").html(Mustache.render(MainViewHTML, { shouldAddAA: (brackets.platform === "mac"), Strings: Strings }));
+
         // Update title
         $("title").text(brackets.config.app_title);
         

@@ -55,7 +55,7 @@ define(function (require, exports, module) {
             description: Strings.DESCRIPTION_PATH
         }
     };
-    
+
     var stringMatcherOptions = {
         preferPrefixMatches: true
     };
@@ -281,6 +281,13 @@ define(function (require, exports, module) {
                     return null;
                 }
                 
+                // Convert integers to strings, so StringMatch.stringMatch can match it.
+                if (option.type === "number" || option.valueType === "number") {
+                    values = values.map(function (val) {
+                        return val.toString();
+                    });
+                }
+
                 // filter through the values.
                 hints = $.map(values, function (value) {
                     var match = StringMatch.stringMatch(value, query, stringMatcherOptions);
@@ -332,8 +339,7 @@ define(function (require, exports, module) {
             }
             
             // Put quotes around completion.
-            completion = quoteChar + completion;
-            completion = completion + quoteChar;
+            completion = quoteChar + completion + quoteChar;
             
             // Append colon and braces, brackets and quotes.
             if (!ctxInfo.shouldReplace) {

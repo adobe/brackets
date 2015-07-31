@@ -1140,7 +1140,7 @@ define(function (require, exports, module) {
                 prefix = this.prefix;
             
             var onlyWithPrefix = function (id) {
-                if (id.substr(0, prefix.length) === prefix) {
+                if (_.startsWith(id, prefix)) {
                     return true;
                 }
                 return false;

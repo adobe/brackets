@@ -826,10 +826,12 @@ define(function (require, exports, module) {
                 this._handleDirectoryChange(entry, function (added, removed) {
                     entry._stat = stat;
                     
-                    // We send a change even if added & removed are both zero-length. Something may still have changed,
-                    // e.g. a file may have been quickly removed & re-added before we got a chance to reread the directory
-                    // listing.
-                    this._fireChangeEvent(entry, added, removed);
+                    if (entry._isWatched()) {
+                        // We send a change even if added & removed are both zero-length. Something may still have changed,
+                        // e.g. a file may have been quickly removed & re-added before we got a chance to reread the directory
+                        // listing.
+                        this._fireChangeEvent(entry, added, removed);
+                    }
                 }.bind(this));
             }
         }
