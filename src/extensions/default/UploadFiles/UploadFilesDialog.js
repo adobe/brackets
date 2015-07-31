@@ -14,6 +14,14 @@ define(function (require, exports, module) {
 
     var dialogHTML     = require("text!htmlContent/upload-files-dialog.html");
 
+    // Not all browsers support access to camera
+    var isCameraSupported = (function(navigator) {
+        return !!(navigator.getUserMedia       ||
+                  navigator.webkitGetUserMedia ||
+                  navigator.mozGetUserMedia    ||
+                  navigator.msGetUserMedia);
+    }(window.navigator));
+
     function FileInput() {
         $(document.body)
             .append($('<input class="upload-files-input-elem" type="file" multiple />'));
@@ -48,6 +56,11 @@ define(function (require, exports, module) {
         var $takeSelfieButton = $dlg.find(".dialog-button[data-button-id='take-selfie']");
         var $cancelButton = $dlg.find(".dialog-button[data-button-id='cancel']");
         var $dropZoneDiv = $dlg.find(".drop-zone");
+
+        // Disable selfie button if not supported by browser
+        if(!isCameraSupported) {
+            $takeSelfieButton.attr("disabled", true);
+        }
 
         // Hide the uploadingFiles div until a drop event
         $uploadFilesDiv.hide();
