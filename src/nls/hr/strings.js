@@ -428,6 +428,8 @@ define({
     "INSTALL"                              : "Instaliraj",
     "UPDATE"                               : "Obnovi",
     "REMOVE"                               : "Makni",
+    "DISABLE"                              : "Onemogući",
+    "ENABLE"                               : "Omogući",
     "OVERWRITE"                            : "Piši preko",
     "CANT_REMOVE_DEV"                      : "Extenzije u \"dev\" mapi moraju biti ručno obrisane.",
     "CANT_UPDATE"                          : "Novija verzija nije kompatibilna sa trenutnom verzijom aplikacije {APP_NAME}.",
