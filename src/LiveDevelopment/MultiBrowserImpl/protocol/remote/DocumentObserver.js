@@ -57,8 +57,14 @@
         //traverse @import rules
         var traverseRules = function _traverseRules(sheet, base) {
             var i,
-                href = sheet ? sheet.href : null,
+                href,
                 cssRules;
+
+            // Deal with cases where we have not sheet, don't crash.
+            if(!sheet) {
+                return;
+            }
+            href = sheet.href;
 
             // Deal with Firefox's SecurityError when accessing sheets
             // from other domains. Chrome will safely return `undefined`.
