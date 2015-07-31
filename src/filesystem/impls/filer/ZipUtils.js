@@ -84,10 +84,29 @@ define(function (require, exports, module) {
             });
 
             function decompress(path, callback) {
+                var basedir = Path.dirname(path.absPath);
+
                 if(path.isDirectory) {
                     fs.mkdirp(path.absPath, callback);
                 } else {
-                    fs.writeFile(path.absPath, path.data, callback);
+                    // XXX: some zip files don't seem to be structured such that dirs
+                    // get created before files. Create base dir if not there yet.
+                    fs.stat(basedir, function(err, stats) {
+                        if(err) {
+                            if(err.code !== "ENOENT") {
+                                return callback(err);
+                            }
+
+                            fs.mkdirp(basedir, function(err) {
+                                if(err) {
+                                    return callback(err);
+                                }
+                                fs.writeFile(path.absPath, path.data, callback);
+                            });
+                        } else {
+                            fs.writeFile(path.absPath, path.data, callback);
+                        }
+                    });
                 }
             }
 
@@ -104,10 +123,9 @@ define(function (require, exports, module) {
                     }
 
                     // Update the file tree to show the new files
-                    CommandManager.execute(Commands.FILE_REFRESH);
-                    callback();
+                    CommandManager.execute(Commands.FILE_REFRESH).always(callback);
                 });
-            });            
+            });
         }
 
         if(typeof zipfile === "string") {

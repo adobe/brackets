@@ -277,6 +277,7 @@ define(function (require, exports, module) {
         function handleRegularFile(deferred, file, filename, buffer, encoding) {
             file.write(buffer, {encoding: encoding}, function(err) {
                 if (err) {
+                    errorList.push({path: filename, error: "unable to write file: " + err.message || ""});
                     deferred.reject(err);
                     return;
                 }
@@ -295,6 +296,7 @@ define(function (require, exports, module) {
 
             unzip(buffer, function(err) {
                 if (err) {
+                    errorList.push({path: filename, error: "unable to unzip file: " + err.message || ""});
                     deferred.reject(err);
                     return;
                 }
