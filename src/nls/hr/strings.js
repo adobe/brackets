@@ -483,7 +483,7 @@ define({
     "EXTENSION_ERROR"                      : "Greška u extenziji",
     "EXTENSION_KEYWORDS"                   : "Ključne riječi",
     "EXTENSION_INSTALLED"                  : "Instalirano",
-    "EXTENSION_UPDATE_INSTALLED"           : "Ova verzija extenzije već je preuzeta i biti će instalirana nakon što se {APP_NAME} ponovo učita.",
+    "EXTENSION_UPDATE_INSTALLED"           : "Ova verzija extenzije već je preuzeta i bit će instalirana nakon što se {APP_NAME} ponovo učita.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Traži",
     "EXTENSION_MORE_INFO_LINK"             : "Više",
     "BROWSE_EXTENSIONS"                    : "Pretraži Extenzije",
