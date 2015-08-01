@@ -252,11 +252,17 @@ define({
     "SPLITVIEW_MULTIPANE_WARNING"       : "Tiedosto on jo auki toisessa ruudussa. {APP_NAME} tukee pian saman tiedoston avaamista useammassa kuin yhdessä ruudussa. Siihen asti tiedosto näytetään ruudussa, jossa se on jo auki.<br /><br />(Näet tämän viestin vain kerran.)",
 
     /**
-     * Keyboard modifier names
+     * Keyboard modifiers and special key names
      */
-    "KEYBOARD_CTRL"   : "Ctrl",
-    "KEYBOARD_SHIFT"  : "Vaihto",
-    "KEYBOARD_SPACE"  : "Välilyönti",
+    "KEYBOARD_CTRL"         : "Ctrl",
+    "KEYBOARD_SHIFT"        : "Vaihto",
+    "KEYBOARD_SPACE"        : "Välilyönti",
+    "KEYBOARD_PAGE_UP"      : "Page Up",
+    "KEYBOARD_PAGE_DOWN"    : "Page Down",
+    "KEYBOARD_HOME"         : "Home",
+    "KEYBOARD_END"          : "End",
+    "KEYBOARD_INSERT"       : "Insert",
+    "KEYBOARD_DELETE"       : "Delete",
 
     /**
      * StatusBar strings
@@ -755,6 +761,8 @@ define({
     "DESCRIPTION_LINTING_COLLAPSED"                  : "true: pienennä tarkistuksen paneeli",
     "DESCRIPTION_FONT_FAMILY"                        : "Vaihda fonttiperhettä",
     "DESCRIPTION_FONT_SIZE"                          : "Vaihda fonttikokoa, esim. 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "true: ota Node-pohjainen haku käyttöön",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "true: ota pikahaku käyttöön",
     "DESCRIPTION_FONT_SMOOTHING"                     : "Vain Mac: ota käyttöön alipikselien reunapehmennys valinnalla ”subpixel-antialiased” tai harmaansävyinen reunapehmennys valinnalla ”antialiased”",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false: poista asetustiedoston avaaminen käytöstä jaetussa näkymässä",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false: avaa käyttäjän asetustiedosto vasemmassa tai ylemmässä ruudussa",
@@ -762,4 +770,4 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Oletus"
 });
 
-/* Last translated for 1e5ba8f612dcf983d3cbffbbf1bfe455a90788c8 */
+/* Last translated for a45f7216d86dc77007346e51eb19aecabebe7e1e */
