@@ -17,10 +17,12 @@ define(function (require, exports, module) {
             cm,
             gutterName = "CodeMirror-foldgutter",
             foldMarkerOpen = gutterName + "-open",
-            foldMarkerClosed = gutterName + "-close";
+            foldMarkerClosed = gutterName + "-folded";
         var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
             testDocPath = extensionPath + "/unittest-files/",
             testFilePath = testDocPath + "test.js";
+
+        var open = "open", folded = "folded";
 
         /**
          * Utility to temporarily set preference values in the session scope
@@ -56,19 +58,9 @@ define(function (require, exports, module) {
             });
 
             runs(function () {
-                setPreference("saveFoldStates", false);
+                //setPreference("saveFoldStates", false);
                 SpecRunnerUtils.loadProjectInTestWindow(testDocPath);
             });
-
-            runs(function () {
-                openTestFile(testFilePath);
-            });
-
-            runs(function () {
-                testEditor = EditorManager.getActiveEditor();
-                cm = testEditor._codeMirror;
-            });
-
         }
 
         function tearDown() {
@@ -92,6 +84,9 @@ define(function (require, exports, module) {
         }
 
         function getEditorFoldMarks() {
+            testEditor = EditorManager.getCurrentFullEditor();
+            cm = testEditor._codeMirror;
+
             var marks = cm.getAllMarks().filter(function (m) {
                 return m.__isFold;
             });
@@ -101,14 +96,20 @@ define(function (require, exports, module) {
         function gutterMarkState(lineInfo) {
             var classes = lineInfo.gutterMarkers[gutterName].classList;
             if (classes && classes.contains(foldMarkerClosed)) {
-                return "close";
+                return {line: lineInfo.line, type: folded};
             } else if (classes && classes.contains(foldMarkerOpen)) {
-                return "open";
+                return {line: lineInfo.line, type: open};
             }
             return;
         }
-
+        /**
+         * Helper function to return the fold markers on the current codeMirror instance
+         *
+         * @returns {[[Type]]} [[Description]]
+         */
         function getGutterFoldMarks() {
+            testEditor = EditorManager.getCurrentFullEditor();
+            cm = testEditor._codeMirror;
             var marks = [];
             cm.eachLine(function (lineHandle) {
                 var lineInfo = cm.lineInfo(lineHandle);
@@ -118,100 +119,172 @@ define(function (require, exports, module) {
             return marks.filter(function (m) { return m; });
         }
 
-        beforeEach(setup);
-        afterEach(tearDown);
+        function filterOpen(m) {
+            return m.type === open;
+        }
 
-        it("gutter fold marks are rendered on startup", function () {
-            var marks = getGutterFoldMarks();
-            expect(marks.length).toBeGreaterThan(0);
+        function filterFolded(m) {
+            return m.type === folded;
+        }
+
+        function getLineNumbers(m) {
+            return m.line;
+        }
+
+        function toZeroIndex(lines) {
+            return lines.map(function (l) {
+                return l - 1;
+            });
+        }
+
+        beforeEach(function () {
+            setup();
+            runs(function () {
+                openTestFile(testFilePath);
+            });
+            runs(function () {
+                openTestFile(testFilePath);
+            });
+
+            runs(function () {
+                testEditor = EditorManager.getCurrentFullEditor();
+                cm = testEditor._codeMirror;
+            });
+
         });
 
-        it("Folding code creates a folded region in editor", function () {
-            runs(function () {
-                foldCodeOnLine(1);
-            });
-
-            runs(function () {
-                var marks = getEditorFoldMarks();
-                expect(marks.length).toEqual(1);
-            });
+        afterEach(function () {
+            testWindow.closeAllFiles();
+            tearDown();
         });
 
-        it("Expanding code clears the folded region in editor", function () {
-            runs(function () {
-                foldCodeOnLine(1);
-            });
-            runs(function () {
-                expandCodeOnLine(1);
+
+        describe("", function () {
+            it("gutter fold marks are rendered on startup", function () {
+                var marks = getGutterFoldMarks();
+                expect(marks.length).toBeGreaterThan(0);
             });
 
-            runs(function () {
-                var marks = getEditorFoldMarks();
-                expect(marks.length).toEqual(0);
-            });
-        });
-
-        describe("Preferences work as expected", function () {
-            afterEach(function () {
-                testEditor = null;
-                cm = null;
-            });
-            it("Persistence of fold states works as expected", function () {
-                setPreference("saveFoldStates", true);
+            it("Folding code creates a folded region in editor", function () {
+                var lineNumber = 1;
                 runs(function () {
-                    foldCodeOnLine(1);
-                });
-                runs(function () {
-                    testWindow.closeAllFiles();
+                    foldCodeOnLine(lineNumber);
                 });
 
                 runs(function () {
-                    openTestFile(testFilePath);
-                });
-
-                runs(function () {
-                    //expect line 1 to be folded
                     var marks = getEditorFoldMarks();
                     expect(marks.length).toEqual(1);
+                    expect(marks[0].lines[0].lineNo()).toEqual(lineNumber - 1);
                 });
             });
 
-            it("Persistence of fold states can be disabled", function () {
-                setPreference("saveFoldStates", false);
+            it("Expanding code clears the folded region in editor", function () {
                 runs(function () {
                     foldCodeOnLine(1);
                 });
                 runs(function () {
-                    testWindow.closeAllFiles();
+                    expandCodeOnLine(1);
                 });
 
                 runs(function () {
-                    openTestFile(testFilePath);
-                });
-
-                runs(function () {
-                    //expect line 1 to be folded
                     var marks = getEditorFoldMarks();
                     expect(marks.length).toEqual(0);
                 });
             });
 
-            it("Minimum fold size is obeyed", function () {
-                setPreference("minFoldSize", 20000);
+            it("folded lines have a folded marker in the gutter", function () {
+                var lineNumbers = [1, 9];
                 runs(function () {
-                    testWindow.closeAllFiles();
+                    lineNumbers.forEach(function (l) {
+                        foldCodeOnLine(l);
+                    });
                 });
 
                 runs(function () {
-                    openTestFile(testFilePath);
-                });
+                    var marks = getGutterFoldMarks().filter(filterFolded);
+                    expect(marks.length).toEqual(lineNumbers.length);
 
-                runs(function () {
-                    var marks = getGutterFoldMarks();
-                    expect(marks.length).toEqual(0);
+                    var gutterNumbers = marks
+                        .map(getLineNumbers);
+                    expect(gutterNumbers).toEqual(toZeroIndex(lineNumbers));
                 });
             });
-        });
 
+            it("foldable lines have a foldable maker in the gutter", function () {
+                var lineNumbers = [1, 9, 14, 18, 22, 24, 27];
+                var marks = getGutterFoldMarks();
+                var gutterNumbers = marks.filter(filterOpen)
+                    .map(getLineNumbers);
+                expect(gutterNumbers).toEqual(toZeroIndex(lineNumbers));
+            });
+
+            describe("Preferences work as expected", function () {
+                it("Persistence of fold states works as expected", function () {
+                    runs(function () {
+                        foldCodeOnLine(1);
+                        foldCodeOnLine(14);
+                        foldCodeOnLine(18);
+                    });
+                    runs(function () {
+                        testWindow.closeAllFiles();
+                    });
+
+                    runs(function () {
+                        openTestFile(testFilePath);
+                    });
+
+                    runs(function () {
+                        //expect line 1 to be folded
+                        var marks = getEditorFoldMarks();
+                        expect(marks.length).toEqual(3);
+                    });
+                });
+
+                it("Persistence of fold states can be disabled", function () {
+                    setPreference("saveFoldStates", false);
+                    runs(function () {
+                        foldCodeOnLine(1);
+                    });
+                    runs(function () {
+                        testWindow.closeAllFiles();
+                    });
+
+                    runs(function () {
+                        openTestFile(testFilePath);
+                    });
+
+                    runs(function () {
+                        //expect line 1 to be folded
+                        var marks = getEditorFoldMarks();
+                        expect(marks.length).toEqual(0);
+                    });
+                });
+
+                it("Minimum fold size is obeyed", function () {
+                    setPreference("minFoldSize", 20000);
+                    runs(function () {
+                        testWindow.closeAllFiles();
+                    });
+
+                    runs(function () {
+                        openTestFile(testFilePath);
+                    });
+
+                    runs(function () {
+                        var marks = getGutterFoldMarks();
+                        expect(marks.length).toEqual(0);
+                    });
+                });
+
+                it("Code folding can be disabled", function () {
+                    setPreference("enabled", false);
+                    runs(function () {
+                        var marks = getEditorFoldMarks();
+                        expect(marks.length).toEqual(0);
+                    });
+                });
+
+            });
+        });
     });
 });
