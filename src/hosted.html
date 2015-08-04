@@ -29,8 +29,8 @@ This page is a helper for local development.
         require.config({
             baseUrl: './'
         });
-        
-        require(["bramble/client/main"], function(Bramble) {
+
+        function load(Bramble) {
             Bramble.load("#bramble",{
                 url: "index.html",
                 useLocationSearch: true
@@ -107,6 +107,16 @@ This page is a helper for local development.
                         });
                     });
                 });
+            });
+        }
+
+        // Support loading from src/ or dist/ to make local dev easier
+        require(["bramble/client/main"], function(Bramble) {
+            load(Bramble);
+        }, function(err) {
+            console.log("Unable to load Bramble from src/, trying from dist/");
+            require(["bramble"], function(Bramble) {
+                load(Bramble);
             });
         });
     </script>
