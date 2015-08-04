@@ -244,13 +244,16 @@ define(function (require, exports, module) {
 
         if(typeof options === 'function') {
             callback = options;
+            options = null;
         }
         options = options || {};
         options.encoding = options.encoding === null ? null : "utf8";
 
+        // We rewrite and create a BLOB URL in Bramble, then run the
+        // remote FS operation, such that resources are ready when needed later.
         function _finishWrite(created) {
-            // We run the remote FS operation in parallel to rewriting and creating
-            // a BLOB URL in Bramble, such that resources are ready when needed later.
+            var result = {};
+
             function runStep(fn) {
                 var result = new $.Deferred();
 
@@ -265,10 +268,19 @@ define(function (require, exports, module) {
                 return result.promise();
             }
 
-            var result = {};
-
-            Async.doInParallel([
-                function doRemoteWriteFile(callback) {
+            Async.doSequentially([
+                // We need to rewrite and cache first, before we transfer ownership of the data
+                function step1RewriteAndCache(callback) {
+                    // Add a BLOB cache record for this filename
+                    // only if it's not an HTML file
+                    if(Content.isHTML(Path.extname(path))) {
+                        callback();
+                    } else {
+                        Handlers.handleFile(path, data, callback);
+                    }
+                },
+                // Once this runs, data is no longer owned by this window
+                function step2RemoteWriteFile(callback) {
                     fs.writeFile(path, data, options.encoding, function (err) {
                         if (err) {
                             callback(err);
@@ -281,15 +293,6 @@ define(function (require, exports, module) {
                             callback(err);
                         });
                     });
-                },
-                function doRewriteAndCache(callback) {
-                    // Add a BLOB cache record for this filename
-                    // only if it's not an HTML file
-                    if(Content.isHTML(Path.extname(path))) {
-                        callback();
-                    }
-
-                    Handlers.handleFile(path, data, callback);
                 }
             ], runStep, true).then(function(err) {
                 if(err) {

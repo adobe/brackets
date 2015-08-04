@@ -21,9 +21,9 @@ define(function (require, exports, module) {
         return new Buffer(bytes.buffer);
     }
 
-    // Save the photo into the filesystem
+    // Save the photo into the filesystem as a binary file
     function persist(path, data, callback) {
-        fs.writeFile(path, data, callback);
+        fs.writeFile(path, data, {encoding: null}, callback);
     }
 
     exports.base64ToBuffer = base64ToBuffer;
