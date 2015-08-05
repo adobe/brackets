@@ -1,7 +1,7 @@
 /**
  *
  */
-/*global define, brackets, describe, beforeEach, afterEach, it, expect, runs, waitsForDone*/
+/*global define, brackets, describe, beforeEach, afterEach, it, expect, runs, waitsForDone, waitsFor*/
 define(function (require, exports, module) {
     "use strict";
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
@@ -35,6 +35,10 @@ define(function (require, exports, module) {
             });
         }
 
+        /**
+         * Open a test file
+         * @param {String} path The path to the file to open
+         */
         function openTestFile(path) {
             var promise = SpecRunnerUtils.openProjectFiles([path]);
             promise.then(function () {
@@ -71,12 +75,20 @@ define(function (require, exports, module) {
             return CommandManager.execute(command);
         }
 
+        /**
+         * Folds the code on the given line number
+         * @param {Number} line The line number to fold
+         */
         function foldCodeOnLine(line) {
             cm.setCursor(line);
             var promise = runCommand("codefolding.collapse");
             waitsForDone(promise, "Collapse code", 2000);
         }
 
+        /**
+         * Expands the code on the given line number
+         * @param {Number} line The line number to fold
+         */
         function expandCodeOnLine(line) {
             cm.setCursor(line);
             var promise = runCommand("codefolding.expand");
@@ -93,6 +105,11 @@ define(function (require, exports, module) {
             return marks;
         }
 
+        /**
+         * Gets information about the mark in the gutter specifically whether it is folded or open.
+         * @param   {Object} lineInfo The CodeMirror lineInfo object
+         * @returns {Object} an object with line and type property
+         */
         function gutterMarkState(lineInfo) {
             var classes = lineInfo.gutterMarkers[gutterName].classList;
             if (classes && classes.contains(foldMarkerClosed)) {
@@ -192,6 +209,35 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("Clearing text marker on folded region in editor expands it and updates the fold gutter", function () {
+                var lineNumber = 1;
+                runs(function () {
+                    foldCodeOnLine(lineNumber);
+                });
+                runs(function () {
+                    var marks = getEditorFoldMarks().filter(function (m) {
+                        var range = m.find();
+                        return range ? range.from.line === lineNumber - 1 : false;
+                    });
+                    //marks[0].widgetNode.click();
+                    marks[0].clear();
+                });
+
+                waitsFor(function () {
+                    return true;
+                }, "The fold mark should have been clicked", 500);
+
+                runs(function () {
+                    var marks = getEditorFoldMarks();
+                    var gutterMark = getGutterFoldMarks().filter(function (m) {
+                        return m.line === lineNumber - 1 && m.type === open;
+                    });
+                    expect(marks.length).toEqual(0);
+                    expect(gutterMark.length).toEqual(1);
+
+                });
+            });
+
             it("folded lines have a folded marker in the gutter", function () {
                 var lineNumbers = [1, 9];
                 runs(function () {
@@ -283,6 +329,10 @@ define(function (require, exports, module) {
                         expect(marks.length).toEqual(0);
                     });
                 });
+
+            });
+
+            describe("Line folds cache works as expected", function () {
 
             });
         });
