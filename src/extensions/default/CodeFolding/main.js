@@ -369,6 +369,7 @@ define(function (require, exports, module) {
         KeyBindingManager.addBinding(COLLAPSE, collapseKey);
         KeyBindingManager.addBinding(EXPAND, expandKey);
 
+
         // Add gutters & restore saved expand/collapse state in all currently open editors
         Editor.forEveryEditor(function (editor) {
             enableFoldingInEditor(editor);

@@ -37,7 +37,7 @@ define(function (require, exports, module) {
     prefs.definePreference("maxFoldLevel", "number", 2,
                            {name: MAX_FOLD_LEVEL, description: Strings.DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL});
     prefs.definePreference("makeSelectionsFoldable", "boolean", true,
-                           {name: MAKE_SELECTIONS_FOLDABLE, description: MAKE_SELECTIONS_FOLDABLE});
+                           {name: MAKE_SELECTIONS_FOLDABLE, description: Strings.DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE});
 
     PreferencesManager.stateManager.definePreference(FOLDS_PREF_KEY, "object", {});
 

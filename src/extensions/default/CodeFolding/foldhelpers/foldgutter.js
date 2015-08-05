@@ -318,6 +318,21 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Triggered when the cursor moves in the editor and used to detect text selection changes
+     * in the editor.
+     * @param {!CodeMirror} cm the CodeMirror instance for the active editor
+     */
+    function onCursorActivity(cm) {
+        var state = cm.state.foldGutter;
+        window.clearTimeout(state.changeUpdate);
+        state.changeUpdate = window.setTimeout(function () {
+            var from = cm.getCursor("from"),
+                to = cm.getCursor("to");
+            updateInViewport(cm, from.line, to.line);
+        }, 400);
+    }
+
+    /**
       * Triggered when a code segment is folded.
       * @param {!CodeMirror} cm the CodeMirror instance for the active editor
       * @param {!Object} from  the ch and line position that designates the start of the region
@@ -356,7 +371,7 @@ define(function (require, exports, module) {
                 cm.off("gutterClick", old.onGutterClick);
                 cm.off("change", onChange);
                 cm.off("viewportChange", onViewportChange);
-                cm.off("cursorActivity", onViewportChange);
+                cm.off("cursorActivity", onCursorActivity);
 
                 cm.off("fold", onFold);
                 cm.off("unfold", onUnFold);
@@ -368,7 +383,7 @@ define(function (require, exports, module) {
                 cm.on("gutterClick", val.onGutterClick);
                 cm.on("change", onChange);
                 cm.on("viewportChange", onViewportChange);
-                cm.on("cursorActivity", onViewportChange);
+                cm.on("cursorActivity", onCursorActivity);
                 cm.on("fold", onFold);
                 cm.on("unfold", onUnFold);
                 cm.on("swapDoc", updateInViewport);
