@@ -260,6 +260,7 @@ a number of read-only getters are available in order to access state information
 * `getPreviewMode()` - returns one of `"mobile"` or `"desktop"`, depending on current preview mode
 * `getSidebarVisible()` - returns `true` or `false` depending on whether the sidebar (file tree) is visible
 * `getLayout()` - returns an `Object` with three integer properties: `sidebarWidth`, `firstPaneWidth`, `secondPaneWidth`.  The `firstPaneWidth` refers to the editor, where `secondPaneWidth` is the preview.
+* `getRootDir()` - returns the project root directory to which Bramble is mounted
 * `getTheme()` - returns the name of the current theme.
 * `getFontSize()` - returns the current font size as a string (e.g., `"12px"`).
 * `getWordWrap()` - returns the current word wrap setting as a `Boolean` (i.e., enabled or disabled).

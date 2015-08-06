@@ -163,6 +163,9 @@ define([
         // State info for UI
         var _state = new StateManager(options.disableUIState);
 
+        // The project root dir that Bramble mounted
+        var _root;
+
         // Callback functions waiting for a postMessage from Bramble
         var _callbacks = {};
 
@@ -175,6 +178,7 @@ define([
         self.getTheme = function() { return _state.theme; };
         self.getFontSize = function() { return _state.fontSize; };
         self.getSidebarVisible = function() { return _state.sidebarVisible; };
+        self.getRootDir = function() { return _root; };
         self.getWordWrap = function() { return _state.wordWrap; };
         self.getTutorialExists = function() { return _tutorialExists; };
         self.getTutorialVisible = function() { return _tutorialVisible; };
@@ -363,7 +367,7 @@ define([
                     if (!stats.isDirectory()) {
                         setReadyState(Bramble.ERROR, new Error("mount path is not a directory: " + root));
                     } else {
-                        self.root = root;
+                        _root = root;
                         self.tutorialPath = Path.join(root, TUTORIAL_FILENAME);
 
                         // Check to see if we have a tutorial or not
