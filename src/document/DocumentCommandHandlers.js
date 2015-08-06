@@ -1403,6 +1403,7 @@ define(function (require, exports, module) {
         } catch (e) {
             curEditor.shouldNotify = true;
         }
+        curEditor.shouldNotify = true;
     }
 
     /**
@@ -1771,7 +1772,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,                Commands.NAVIGATE_SHOW_IN_FILE_TREE,     handleShowInTree);
 
     // These commands have no UI representation and are only used internally
-    CommandManager.registerInternal(Commands.APP_RECEIVE_MESSAGE,       handleReceiveMessage);
+    //CommandManager.registerInternal(Commands.APP_RECEIVE_MESSAGE,       handleReceiveMessage);
     CommandManager.registerInternal(Commands.APP_ABORT_QUIT,            handleAbortQuit);
     CommandManager.registerInternal(Commands.APP_BEFORE_MENUPOPUP,      handleBeforeMenuPopup);
     CommandManager.registerInternal(Commands.FILE_CLOSE_WINDOW,         handleFileCloseWindow);

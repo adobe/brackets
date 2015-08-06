@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window, Mustache*/
+/*global define, $, brackets, window, Mustache, appshell*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -47,7 +47,9 @@ define(function (require, exports, module) {
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),
-        LanguageDialogTemplate = require("text!htmlContent/language-dialog.html");
+        LanguageDialogTemplate = require("text!htmlContent/language-dialog.html"),
+        Document               = brackets.getModule("document/Document"),
+        EditorManager          = brackets.getModule("editor/EditorManager");
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
@@ -753,7 +755,34 @@ define(function (require, exports, module) {
         // Need to recompute the default prefs.
         recomputeDefaultPrefs = true;
     });
-
+    
+    var isInsideProcessMessageReceived = false;
+    
+    function handleReceiveMessage(messageChangelist) {
+        isInsideProcessMessageReceived = true;
+        var changes = JSON.parse(messageChangelist);
+        //changes.shouldNotify = false;
+        var curEditor = EditorManager.getCurrentFullEditor();
+        try {
+            curEditor._applyChanges(changes);
+        } catch (e) {
+            curEditor.shouldNotify = true;
+            isInsideProcessMessageReceived  = false;
+        }
+        curEditor.shouldNotify = true;
+        isInsideProcessMessageReceived  = false;
+    }
+    
+    function _documentChangeHandler(event, document, change) {
+        if (!isInsideProcessMessageReceived) {
+            appshell.app.sendMessageToAllBrowsers(JSON.stringify(change), function () {});
+        }
+    }
+    
+    Document.on("documentChange", _documentChangeHandler);
+    
+    CommandManager.register("Synchronize Command", Commands.APP_RECEIVE_MESSAGE, handleReceiveMessage);
+    
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
