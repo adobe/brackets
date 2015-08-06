@@ -284,6 +284,7 @@ define(function (require, exports, module) {
      * @param {Object} changeList Changelist in CodeMirror format
      */
     Document.prototype._notifyDocumentChange = function (changeList) {
+        appshell.app.sendMessageToAllBrowsers(JSON.stringify(changeList), function() {});
         this.trigger("change", this, changeList);
         exports.trigger("documentChange", this, changeList);
     };

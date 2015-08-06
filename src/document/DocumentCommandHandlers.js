@@ -1393,6 +1393,17 @@ define(function (require, exports, module) {
     function handleAbortQuit() {
         _windowGoingAway = false;
     }
+    
+    function handleReceiveMessage(messageChangelist) {
+        var changes = JSON.parse(messageChangelist);
+        changes.shouldNotify = false;
+        var curEditor = EditorManager.getCurrentFullEditor();
+        try {
+            curEditor._applyChanges(changes);
+        } catch (e) {
+            curEditor.shouldNotify = true;
+        }
+    }
 
     /**
      * @private
@@ -1760,6 +1771,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SHOW_IN_TREE,                Commands.NAVIGATE_SHOW_IN_FILE_TREE,     handleShowInTree);
 
     // These commands have no UI representation and are only used internally
+    CommandManager.registerInternal(Commands.APP_RECEIVE_MESSAGE,       handleReceiveMessage);
     CommandManager.registerInternal(Commands.APP_ABORT_QUIT,            handleAbortQuit);
     CommandManager.registerInternal(Commands.APP_BEFORE_MENUPOPUP,      handleBeforeMenuPopup);
     CommandManager.registerInternal(Commands.FILE_CLOSE_WINDOW,         handleFileCloseWindow);

@@ -289,6 +289,9 @@ define(function (require, exports, module) {
 
         var isReadOnly = options && options.isReadOnly;
 
+        
+        this.shouldNotify = true;
+        
         _instances.push(this);
         
         // Attach to document: add ref & handlers
@@ -792,6 +795,12 @@ define(function (require, exports, module) {
     };
     
     Editor.prototype._applyChanges = function (changeList) {
+        
+        if (typeof changeList.shouldNotify !== "undefined") {
+            this.shouldNotify = true;
+        } else {
+            this.shouldNotify = changeList.shouldNotify;
+        }
         // _visibleRange has already updated via its own Document listener. See if this change caused
         // it to lose sync. If so, our whole view is stale - signal our owner to close us.
         if (this._visibleRange) {
@@ -867,7 +876,9 @@ define(function (require, exports, module) {
         // whereas the "change" event should be listened to on the document. Also the
         // Editor dispatches a change event before this event is dispatched, because
         // CodeHintManager needs to hook in here when other things are already done.
-        this.trigger("editorChange", this, changeList);
+        if (this.shouldNotify) {
+            this.trigger("editorChange", this, changeList);
+        }
     };
     
     /**
