@@ -207,7 +207,7 @@ function legacyPackageCheck(legacyDirectory) {
  * @param {function} callback (err, result)
  * @param {boolean} _doUpdate  private argument to signal that an update should be performed
  */
-function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUpdate) {
+function _cmdInstall(packagePath, destinationDirectory, options, callback, pCallback, _doUpdate) {
     if (!options || !options.disabledDirectory || !options.apiVersion || !options.systemExtensionDirectory) {
         callback(new Error(Errors.MISSING_REQUIRED_OPTIONS), null);
         return;
@@ -272,7 +272,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
         // If the extension is already there, we signal to the front end that it's already installed
         // unless the front end has signaled an intent to update.
         if (hasLegacyPackage || fs.existsSync(installDirectory) || fs.existsSync(systemInstallDirectory)) {
-            if (_doUpdate) {
+            if (_doUpdate === true) {
                 if (hasLegacyPackage) {
                     // When there's a legacy installed extension, remove it first,
                     // then also remove any new-style directory the user may have.
@@ -334,8 +334,8 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, _doUp
  *      systemExtensionDirectory: !string}} additional settings to control the installation
  * @param {function} callback (err, result)
  */
-function _cmdUpdate(packagePath, destinationDirectory, options, callback) {
-    _cmdInstall(packagePath, destinationDirectory, options, callback, true);
+function _cmdUpdate(packagePath, destinationDirectory, options, callback, pCallback) {
+    _cmdInstall(packagePath, destinationDirectory, options, callback, pCallback, true);
 }
 
 /**
@@ -375,7 +375,7 @@ function _endDownload(downloadId, error) {
 /**
  * Implements "downloadFile" command, asynchronously.
  */
-function _cmdDownloadFile(downloadId, url, proxy, callback) {
+function _cmdDownloadFile(downloadId, url, proxy, callback, pCallback) {
     // Backwards compatibility check, added in 0.37
     if (typeof proxy === "function") {
         callback = proxy;
@@ -436,7 +436,7 @@ function _cmdAbortDownload(downloadId) {
 /**
  * Implements the remove extension command.
  */
-function _cmdRemove(extensionDir, callback) {
+function _cmdRemove(extensionDir, callback, pCallback) {
     fs.remove(extensionDir, function (err) {
         if (err) {
             callback(err);
