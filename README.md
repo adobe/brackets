@@ -306,6 +306,7 @@ to be notified when the action completes:
 * `hideTutorial([callback])` - stops showing tutorial (i.e., tutorial.html) and uses editor contents in preview
 * `showUploadFilesDialog([callback])` - shows the Upload Files dialog, allowing users to drag-and-drop, upload a file, or take a selfie.
 * `addNewFile([ext, callback])` - adds a new file, using the optional `ext` as an extension if provided.
+* `addNewFileWithContents(filename, contents[, callback])` - adds a new file to the mounted project's root dir with the given `filename` and `contents` (`Filer.Buffer` or `String`).
 * `addNewFolder([callback])` - adds a new folder.
 
 ## Bramble Instance Events

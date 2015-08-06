@@ -689,8 +689,25 @@ define([
         }
     };
 
+    BrambleProxy.prototype.addNewFileWithContents = function(filename, contents, callback) {
+        // Always send a buffer
+        if(typeof(contents) === "string") {
+            contents = new FilerBuffer(contents, "utf8");
+        }
+
+        // Serialize to a regular array
+        contents = contents.toJSON().data;
+
+        this._executeRemoteCommand({
+            commandCategory: "bramble",
+            command: "BRAMBLE_ADD_NEW_FILE_WITH_CONTENTS",
+            args: [filename, contents]
+        }, callback);
+    };
+
     BrambleProxy.prototype.addNewFolder = function(callback) {
         this._executeRemoteCommand({commandCategory: "brackets", command: "FILE_FOLDER"}, callback);
     };
+
     return Bramble;
 });
