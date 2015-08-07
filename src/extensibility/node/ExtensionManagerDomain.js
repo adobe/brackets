@@ -205,6 +205,7 @@ function legacyPackageCheck(legacyDirectory) {
  * @param {{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, 
  *      systemExtensionDirectory: !string}} additional settings to control the installation
  * @param {function} callback (err, result)
+ * @param {function} pCallback (msg) callback for notifications about operation progress
  * @param {boolean} _doUpdate  private argument to signal that an update should be performed
  */
 function _cmdInstall(packagePath, destinationDirectory, options, callback, pCallback, _doUpdate) {
@@ -333,6 +334,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, pCall
  * @param {{disabledDirectory: !string, apiVersion: !string, nameHint: ?string, 
  *      systemExtensionDirectory: !string}} additional settings to control the installation
  * @param {function} callback (err, result)
+ * @param {function} pCallback (msg) callback for notifications about operation progress
  */
 function _cmdUpdate(packagePath, destinationDirectory, options, callback, pCallback) {
     _cmdInstall(packagePath, destinationDirectory, options, callback, pCallback, true);
