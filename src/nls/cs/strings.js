@@ -288,7 +288,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "Klikněte pro změnu typu souboru",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klikněte pro zapnutí panelu zpráv.",
     "STATUSBAR_DEFAULT_LANG"                : "(výchozí)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "Nastavit jako výchozí pro .{0} soubory",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Nastavit jako výchozí pro {0} soubory",
 
     // CodeInspection: chyby/varování
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} chyb",

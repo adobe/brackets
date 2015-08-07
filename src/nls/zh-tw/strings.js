@@ -287,7 +287,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "按一下可以變更檔案類型",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}。按一下可以開啟或關閉報告面板。",
     "STATUSBAR_DEFAULT_LANG"                : "(預設)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "設定成 .{0} 檔的預設值",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "設定成 {0} 檔的預設值",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} 項問題",

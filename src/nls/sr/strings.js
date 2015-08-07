@@ -280,7 +280,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "Кликни за измену типа датотеке",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Кликни за приказ/скривање панела са извештајима.",
     "STATUSBAR_DEFAULT_LANG"                : "(подразумевано)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "Подеси као \"подразумевано\" за .{0} датотеке",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Подеси као \"подразумевано\" за {0} датотеке",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} грешака",

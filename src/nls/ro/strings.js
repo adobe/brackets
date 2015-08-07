@@ -280,7 +280,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "Clic pentru a modifica tipul fișierului",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Clic pentru a arăta / ascunde panoul de rapoarte.",
     "STATUSBAR_DEFAULT_LANG"                : "(implicit)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "Setează ca implicit pentru fișierele .{0}",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Setează ca implicit pentru fișierele {0}",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} probleme",

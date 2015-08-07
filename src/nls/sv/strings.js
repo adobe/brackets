@@ -281,7 +281,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "Klicka för att byta filtyp",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klicka för att visa rapportpanel.",
     "STATUSBAR_DEFAULT_LANG"                : "(standard)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "Ställ in som standard för .{0}-filer",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Ställ in som standard för {0}-filer",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} fel",

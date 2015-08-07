@@ -288,7 +288,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "Vaihda tiedostotyyppiä napsauttamalla",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Näytä tai piilota raporttipaneeli napsauttamalla.",
     "STATUSBAR_DEFAULT_LANG"                : "(oletus)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "Aseta oletukseksi .{0}-tiedostoille",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Aseta oletukseksi {0}-tiedostoille",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} ongelmaa",

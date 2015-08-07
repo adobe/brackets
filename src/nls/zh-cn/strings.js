@@ -288,7 +288,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "点击更改文件类型",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}。点击打开关闭报告面板",
     "STATUSBAR_DEFAULT_LANG"                : "(默认)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "设置为 .{0} 的缺省",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "设置为 {0} 的缺省",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} 问题",

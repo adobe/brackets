@@ -325,10 +325,16 @@ define(function (require, exports, module) {
         
         languageSelect      = new DropdownButton("", [], function (item, index) {
             var document = EditorManager.getActiveEditor().document,
-                defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath, true);
+                defaultLang = LanguageManager.getLanguageForPath(document.file.fullPath, true),
+                fileExtension = LanguageManager.getCompoundFileExtension(document.file.fullPath),
+                fileName = null;
+
+            if (fileExtension === "") {
+                fileName = document.file._name;
+            }
             
             if (item === LANGUAGE_SET_AS_DEFAULT) {
-                var label = _.escape(StringUtils.format(Strings.STATUSBAR_SET_DEFAULT_LANG, LanguageManager.getCompoundFileExtension(document.file.fullPath)));
+                var label = _.escape(StringUtils.format(Strings.STATUSBAR_SET_DEFAULT_LANG, fileName || "." + fileExtension));
                 return { html: label, enabled: document.getLanguage() !== defaultLang };
             }
             
@@ -379,14 +385,21 @@ define(function (require, exports, module) {
         // Language select change handler
         languageSelect.on("select", function (e, lang) {
             var document = EditorManager.getActiveEditor().document,
-                fullPath = document.file.fullPath;
+                fullPath = document.file.fullPath,
+                fileExtension = LanguageManager.getCompoundFileExtension(fullPath);
             
             if (lang === LANGUAGE_SET_AS_DEFAULT) {
-                // Set file's current language in preferences as a file extension override (only enabled if not default already)
-                var fileExtensionMap = PreferencesManager.get("language.fileExtensions");
-                fileExtensionMap[LanguageManager.getCompoundFileExtension(fullPath)] = document.getLanguage().getId();
-                PreferencesManager.set("language.fileExtensions", fileExtensionMap);
-                
+                if (fileExtension === "") {
+                    var fileNameMap = PreferencesManager.get("language.fileNames"),
+                        fileName = document.file._name;
+                    fileNameMap[fileName] = document.getLanguage().getId();
+                    PreferencesManager.set("language.fileNames", fileNameMap);
+                } else {
+                    // Set file's current language in preferences as a file extension override (only enabled if not default already)
+                    var fileExtensionMap = PreferencesManager.get("language.fileExtensions");
+                    fileExtensionMap[fileExtension] = document.getLanguage().getId();
+                    PreferencesManager.set("language.fileExtensions", fileExtensionMap);
+                }
             } else {
                 // Set selected language as a path override for just this one file (not persisted)
                 var defaultLang = LanguageManager.getLanguageForPath(fullPath, true);

@@ -280,7 +280,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "جهت تغییر نوع پرونده، کلیک کنید.",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. باز و بسته کردن پنل گزارشات.",
     "STATUSBAR_DEFAULT_LANG"                : "(پیش فرض)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : " اعمال بعنوان پیش فرض برای .{0} پرونده ها",
+    "STATUSBAR_SET_DEFAULT_LANG"            : " اعمال بعنوان پیش فرض برای {0} پرونده ها",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : " {0} خطا",
