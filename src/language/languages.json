@@ -258,6 +258,7 @@
         "name": "Bash",
         "mode": ["shell", "text/x-sh"],
         "fileExtensions": ["sh", "command", "bash"],
+        "fileNames": [".bash_login", ".bash_logout", ".bash_profile", ".bashrc", ".profile"],
         "lineComment": ["#"]
     },
   
