@@ -15,6 +15,7 @@ define(function (require, exports, module) {
     var PreferencesManager = brackets.getModule("preferences/PreferencesManager");
     var _                  = brackets.getModule("thirdparty/lodash");
     var BracketsFiler      = brackets.getModule("filesystem/impls/filer/BracketsFiler");
+    var ArchiveUtils       = brackets.getModule("filesystem/impls/filer/ArchiveUtils");
     var Path               = BracketsFiler.Path;
     var FilerBuffer        = BracketsFiler.Buffer;
     var StartupState       = brackets.getModule("bramble/StartupState");
@@ -146,6 +147,10 @@ define(function (require, exports, module) {
                         });
                 }
             );
+            break;
+        case "BRAMBLE_EXPORT":
+            skipCallback = true;
+            ArchiveUtils.archive(callback);
             break;
         case "RESIZE":
             // The host window was resized, update all panes

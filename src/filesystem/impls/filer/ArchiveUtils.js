@@ -1,6 +1,6 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, Worker */
+/*global define, Blob, Worker */
 
 define(function (require, exports, module) {
     "use strict";
@@ -12,6 +12,7 @@ define(function (require, exports, module) {
     var JSZip          = require("thirdparty/jszip/dist/jszip.min");
     var BlobUtils      = require("filesystem/impls/filer/BlobUtils");
     var Filer          = require("filesystem/impls/filer/BracketsFiler");
+    var saveAs         = require("thirdparty/FileSaver");
     var Buffer         = Filer.Buffer;
     var Path           = Filer.Path;
     var fs             = Filer.fs();
@@ -141,39 +142,26 @@ define(function (require, exports, module) {
         }
     }
 
-    function zip(zipfile, paths, options, callback) {
-        if(typeof options === 'function') {
-            callback = options;
-            options = {};
-        }
-        options = options || {};
-        callback = callback || function(){};
-
-        if(!zipfile) {
-            return callback(new Error("missing zipfile argument"));
-        }
-        if(!paths) {
-            return callback(new Error("missing paths argument"));
-        }
-        if(typeof paths === "string") {
-            paths = [paths];
-        }
-
+    // Zip the entire project, starting at the project root.
+    function archive(callback) {
         var root = StartupState.project("root");
-        zipfile = Path.resolve(root, zipfile);
+        var rootRegex = new RegExp("^" + root + "\/?");
 
-        function toRelPath(path) {
-            // Make path relative within the zip
-            return path.replace(/^\//, '');
+        // TODO: we should try to move this to a worker
+        var jszip = new JSZip();
+
+        function toRelProjectPath(path) {
+            // Make path relative within the zip, rooted in a `project/` dir
+            return path.replace(rootRegex, "project/");
         }
 
         function addFile(path, callback) {
-            fs.readFile(path, function(err, data) {
+            fs.readFile(path, {encoding: null}, function(err, data) {
                 if(err) {
                     return callback(err);
                 }
 
-                archive.file(toRelPath(path), data.buffer, {binary: true});
+                jszip.file(toRelProjectPath(path), data.buffer, {binary: true});
                 callback();
             });
         }
@@ -181,11 +169,7 @@ define(function (require, exports, module) {
         function addDir(path, callback) {
             fs.readdir(path, function(err, list) {
                 // Add the directory itself
-                archive.folder(toRelPath(path));
-
-                if(!options.recursive) {
-                    return callback();
-                }
+                jszip.folder(toRelProjectPath(path));
 
                 // Add all children of this dir, too
                 async.eachSeries(list, function(entry, callback) {
@@ -210,22 +194,15 @@ define(function (require, exports, module) {
             });
         }
 
-        var archive = new JSZip();
-
-        // Make sure the zipfile doesn't already exist.
-        fs.exists(zipfile, function(exists) {
-            if(exists) {
-                return callback(new Error('zipfile already exists', zipfile));
+        add(root, function(err) {
+            if(err) {
+                return callback(err);
             }
 
-            async.eachSeries(paths, add, function(err) {
-                if(err) {
-                    return callback(err);
-                }
-
-                var compressed = archive.generate({type: 'arraybuffer'});
-                fs.writeFile(zipfile, compressed, callback);
-            });
+            var compressed = jszip.generate({type: 'arraybuffer'});
+            var blob = new Blob([compressed], {type: "application/zip"});
+            saveAs(blob, "project.zip");
+            callback();
         });
     }
 
@@ -285,7 +262,7 @@ define(function (require, exports, module) {
         untarWorker.postMessage({file: tarArchive.buffer});
     }
 
-    exports.zip = zip;
+    exports.archive = archive;
     exports.unzip = unzip;
     exports.untar = untar;
 });

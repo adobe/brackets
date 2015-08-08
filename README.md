@@ -316,6 +316,7 @@ to be notified when the action completes:
 * `addNewFile([ext, callback])` - adds a new file, using the optional `ext` as an extension if provided.
 * `addNewFileWithContents(filename, contents[, callback])` - adds a new file to the mounted project's root dir with the given `filename` and `contents` (`Filer.Buffer` or `String`).
 * `addNewFolder([callback])` - adds a new folder.
+* `export([callback])` - creates an archive `.zip` file of the entire project's filesystem, and downloads it to the browser.
 
 ## Bramble Instance Events
 

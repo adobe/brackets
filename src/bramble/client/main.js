@@ -709,5 +709,9 @@ define([
         this._executeRemoteCommand({commandCategory: "brackets", command: "FILE_FOLDER"}, callback);
     };
 
+    BrambleProxy.prototype.export = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_EXPORT"}, callback);
+    };
+
     return Bramble;
 });
