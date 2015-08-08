@@ -327,7 +327,7 @@ define({
     "CMD_INSTALL_EXTENSION"               : "Instalar extensão\u2026",
     "CMD_EXTENSION_MANAGER"               : "Gerenciador de extensões\u2026",
     "CMD_FILE_REFRESH"                    : "Atualizar árvore de arquivos",
-    "CMD_QUIT"                            : "Sair",
+    "CMD_QUIT"                            : "Fechar",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Sair",
 
