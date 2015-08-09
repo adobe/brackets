@@ -41,7 +41,7 @@ define(function (require, exports, module) {
         HintUtils            = require("HintUtils"),
         ScopeManager         = require("ScopeManager"),
         Session              = require("Session"),
-        Acorn                = require("thirdparty/acorn/acorn");
+        Acorn                = require("thirdparty/acorn/dist/acorn");
 
     var session            = null,  // object that encapsulates the current session state
         cachedCursor       = null,  // last cursor of the current hinting session
