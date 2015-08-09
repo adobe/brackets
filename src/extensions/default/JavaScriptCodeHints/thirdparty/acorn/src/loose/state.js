@@ -49,6 +49,12 @@ export class LooseParser{
     return this.finishNode(dummy, "Identifier")
   }
 
+  dummyString() {
+    let dummy = this.startNode()
+    dummy.value = dummy.raw = "✖"
+    return this.finishNode(dummy, "Literal")
+  }
+
   eat(type) {
     if (this.tok.type === type) {
       this.next()

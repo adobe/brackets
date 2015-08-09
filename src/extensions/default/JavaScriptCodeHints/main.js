@@ -590,8 +590,8 @@ define(function (require, exports, module) {
             // to check this, run the hint through Acorns tokenizer
             // it should result in one token, and that token should either be
             // a 'name' or a 'keyword', as javascript allows keywords as property names
-            var tokenizer = Acorn.tokenize(completion);
-            var currentToken = tokenizer();
+            var tokenizer = Acorn.tokenizer(completion);
+            var currentToken = tokenizer.getToken();
 
             // the name is invalid if the hint is not a 'name' or 'keyword' token
             if (currentToken.type !== Acorn.tokTypes.name && !currentToken.type.keyword) {
@@ -599,7 +599,7 @@ define(function (require, exports, module) {
             } else {
                 // check for a second token - if there is one (other than 'eof')
                 // then the hint isn't a valid property name either
-                currentToken = tokenizer();
+                currentToken = tokenizer.getToken();
                 if (currentToken.type !== Acorn.tokTypes.eof) {
                     invalidPropertyName = true;
                 }

@@ -921,7 +921,7 @@ var _whitespace = require("./whitespace");
 exports.isNewLine = _whitespace.isNewLine;
 exports.lineBreak = _whitespace.lineBreak;
 exports.lineBreakG = _whitespace.lineBreakG;
-var version = "2.2.1";
+var version = "2.3.1";
 
 exports.version = version;
 // The main exported interface (under `self.acorn` when in the
@@ -1697,6 +1697,12 @@ var LooseParser = (function () {
     return this.finishNode(dummy, "Identifier");
   };
 
+  LooseParser.prototype.dummyString = function dummyString() {
+    var dummy = this.startNode();
+    dummy.value = dummy.raw = "✖";
+    return this.finishNode(dummy, "Literal");
+  };
+
   LooseParser.prototype.eat = function eat(type) {
     if (this.tok.type === type) {
       this.next();
@@ -2138,7 +2144,7 @@ lp.parseImport = function () {
       this.eat(_.tokTypes.comma);
     }
     node.specifiers = this.parseImportSpecifierList();
-    node.source = this.eatContextual("from") ? this.parseExprAtom() : null;
+    node.source = this.eatContextual("from") ? this.parseExprAtom() : this.dummyString();
     if (elt) node.specifiers.unshift(elt);
   }
   this.semicolon();

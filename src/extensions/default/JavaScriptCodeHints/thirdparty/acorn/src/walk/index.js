@@ -78,9 +78,9 @@ export function findNodeAt(node, start, end, test, base, state) {
       if ((start == null || node.start <= start) &&
           (end == null || node.end >= end))
         base[type](node, st, c)
-      if (test(type, node) &&
-          (start == null || node.start == start) &&
-          (end == null || node.end == end))
+      if ((start == null || node.start == start) &&
+          (end == null || node.end == end) &&
+          test(type, node))
         throw new Found(node, st)
     })(node, state)
   } catch (e) {
@@ -220,14 +220,16 @@ base.DebuggerStatement = ignore
 
 base.FunctionDeclaration = (node, st, c) => c(node, st, "Function")
 base.VariableDeclaration = (node, st, c) => {
-  for (let i = 0; i < node.declarations.length; ++i) {
-    let decl = node.declarations[i]
-    c(decl.id, st, "Pattern")
-    if (decl.init) c(decl.init, st, "Expression")
-  }
+  for (let i = 0; i < node.declarations.length; ++i)
+    c(node.declarations[i], st)
+}
+base.VariableDeclarator = (node, st, c) => {
+  c(node.id, st, "Pattern")
+  if (node.init) c(node.init, st, "Expression")
 }
 
 base.Function = (node, st, c) => {
+  if (node.id) c(node.id, st, "Pattern")
   for (let i = 0; i < node.params.length; i++)
     c(node.params[i], st, "Pattern")
   c(node.body, st, node.expression ? "ScopeExpression" : "ScopeBody")
@@ -303,10 +305,15 @@ base.MemberExpression = (node, st, c) => {
 }
 base.ExportNamedDeclaration = base.ExportDefaultDeclaration = (node, st, c) => {
   if (node.declaration) c(node.declaration, st)
+  if (node.source) c(node.source, st, "Expression")
+}
+base.ExportAllDeclaration = (node, st, c) => {
+  c(node.source, st, "Expression")
 }
 base.ImportDeclaration = (node, st, c) => {
   for (let i = 0; i < node.specifiers.length; i++)
     c(node.specifiers[i], st)
+  c(node.source, st, "Expression")
 }
 base.ImportSpecifier = base.ImportDefaultSpecifier = base.ImportNamespaceSpecifier = base.Identifier = base.Literal = ignore
 

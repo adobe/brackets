@@ -95,7 +95,7 @@ function findNodeAt(node, start, end, test, base, state) {
     ;(function c(node, st, override) {
       var type = override || node.type;
       if ((start == null || node.start <= start) && (end == null || node.end >= end)) base[type](node, st, c);
-      if (test(type, node) && (start == null || node.start == start) && (end == null || node.end == end)) throw new Found(node, st);
+      if ((start == null || node.start == start) && (end == null || node.end == end) && test(type, node)) throw new Found(node, st);
     })(node, state);
   } catch (e) {
     if (e instanceof Found) return e;
@@ -247,13 +247,16 @@ base.FunctionDeclaration = function (node, st, c) {
 };
 base.VariableDeclaration = function (node, st, c) {
   for (var i = 0; i < node.declarations.length; ++i) {
-    var decl = node.declarations[i];
-    c(decl.id, st, "Pattern");
-    if (decl.init) c(decl.init, st, "Expression");
+    c(node.declarations[i], st);
   }
+};
+base.VariableDeclarator = function (node, st, c) {
+  c(node.id, st, "Pattern");
+  if (node.init) c(node.init, st, "Expression");
 };
 
 base.Function = function (node, st, c) {
+  if (node.id) c(node.id, st, "Pattern");
   for (var i = 0; i < node.params.length; i++) {
     c(node.params[i], st, "Pattern");
   }c(node.body, st, node.expression ? "ScopeExpression" : "ScopeBody");
@@ -334,11 +337,15 @@ base.MemberExpression = function (node, st, c) {
 };
 base.ExportNamedDeclaration = base.ExportDefaultDeclaration = function (node, st, c) {
   if (node.declaration) c(node.declaration, st);
+  if (node.source) c(node.source, st, "Expression");
+};
+base.ExportAllDeclaration = function (node, st, c) {
+  c(node.source, st, "Expression");
 };
 base.ImportDeclaration = function (node, st, c) {
   for (var i = 0; i < node.specifiers.length; i++) {
     c(node.specifiers[i], st);
-  }
+  }c(node.source, st, "Expression");
 };
 base.ImportSpecifier = base.ImportDefaultSpecifier = base.ImportNamespaceSpecifier = base.Identifier = base.Literal = ignore;
 

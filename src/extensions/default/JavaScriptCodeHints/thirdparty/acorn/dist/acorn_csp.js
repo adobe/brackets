@@ -902,7 +902,7 @@ var _whitespace = require("./whitespace");
 exports.isNewLine = _whitespace.isNewLine;
 exports.lineBreak = _whitespace.lineBreak;
 exports.lineBreakG = _whitespace.lineBreakG;
-var version = "2.2.1";
+var version = "2.3.1";
 
 exports.version = version;
 // The main exported interface (under `self.acorn` when in the

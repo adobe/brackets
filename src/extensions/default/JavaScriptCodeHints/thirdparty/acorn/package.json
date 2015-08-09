@@ -3,7 +3,7 @@
   "description": "ECMAScript parser",
   "homepage": "https://github.com/marijnh/acorn",
   "main": "dist/acorn.js",
-  "version": "2.2.1",
+  "version": "2.3.1",
   "engines": {
     "node": ">=0.4.0"
   },

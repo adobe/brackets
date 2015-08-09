@@ -359,7 +359,7 @@ lp.parseImport = function() {
       this.eat(tt.comma)
     }
     node.specifiers = this.parseImportSpecifierList()
-    node.source = this.eatContextual("from") ? this.parseExprAtom() : null
+    node.source = this.eatContextual("from") ? this.parseExprAtom() : this.dummyString()
     if (elt) node.specifiers.unshift(elt)
   }
   this.semicolon()
