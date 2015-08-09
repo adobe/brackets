@@ -137,7 +137,6 @@ define(function (require, exports, module) {
                         cachedRange = folds[lineNumber];
                         if (range && cachedRange && range.from.line === cachedRange.from.line &&
                                 range.to.line === cachedRange.to.line) {
-                            cm.foldCode(lineNumber, {range: folds[lineNumber]}, "fold");
                             result[lineNumber] = folds[lineNumber];
                         }
                     }
