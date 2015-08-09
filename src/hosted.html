@@ -18,107 +18,10 @@ This page is a helper for local development.
             height: 100vh;
             overflow: hidden;
         }
-        
     </style>
 </head>
 <body>
     <div id="bramble" class="full"></div>
-
-    <script src="thirdparty/require.min.js"></script>
-    <script>
-        require.config({
-            baseUrl: './'
-        });
-
-        function load(Bramble) {
-            Bramble.load("#bramble",{
-                url: "index.html",
-                useLocationSearch: true
-            });
-
-            // Event listeners
-            Bramble.on("ready", function(bramble) {
-                console.log("Bramble ready");
-                // For debugging, attach to window.
-                window.bramble = bramble;
-            });
-
-            Bramble.on("error", function(e, err) {
-                console.log("Bramble error", err);
-            })
-
-            Bramble.on("readyStateChange", function(previous, current) {
-                console.log("Bramble readyStateChange", previous, current);
-            });
-
-            function writeFile(path, data, callback) {
-                fs.writeFile(path, data, function(err) {
-                    if(err) throw err;
-                    callback();
-                });
-            }
-
-            // Setup the filesystem while Bramble is loading
-            var fs = Bramble.getFileSystem();
-            sh = new fs.Shell();
-
-            // Simulate a more complex root, like Thimble does
-            sh.mkdirp("/7/projects/30", function(err) {
-                // If we run this multiple times, the dir will exist
-                if (err && err.code !== "EEXIST") {
-                    throw err;
-                }
-
-                // Default filesystem content
-                var index = "<html>\n"                                  +
-                            "  <head>\n"                                +
-                            "    <title>Bramble</title>\n"              +
-                            "  </head>\n"                               +
-                            "  <body>\n"                                +
-                            "    <p>This is the main page.</p>\n"       +
-                            "  </body>\n"                               +
-                            "</html>";
-
-                var tutorial = "<html>\n"                               +
-                               "  <head>\n"                             +
-                               "    <title>Tutorial</title>\n"          +
-                               "  </head>\n"                            +
-                               "  <body>\n"                             +
-                               "    <p>This is the tutorial.</p>\n"     +
-                               "  </body>\n"                            +
-                               "</html>";
-
-                var css = "p {\n"                                       +
-                          "  color: purple;\n"                          +
-                          "}";
-
-                var script = "function add(a, b) {\n"                   +
-                             "  return a|0 + b|0;\n"                    +
-                             "}";
-
-                writeFile("/7/projects/30/script.js", script, function() {
-                    writeFile("/7/projects/30/style.css", css, function() {
-                        writeFile("/7/projects/30/index.html", index, function() {
-                            writeFile("/7/projects/30/tutorial.html", tutorial, function() {
-                                // Now that fs is setup, tell Bramble which root dir to mount
-                                // and which file within that root to open on startup.
-                                Bramble.mount("/7/projects/30");
-                            });
-                        });
-                    });
-                });
-            });
-        }
-
-        // Support loading from src/ or dist/ to make local dev easier
-        require(["bramble/client/main"], function(Bramble) {
-            load(Bramble);
-        }, function(err) {
-            console.log("Unable to load Bramble from src/, trying from dist/");
-            require(["bramble"], function(Bramble) {
-                load(Bramble);
-            });
-        });
-    </script>
+    <script src="thirdparty/require.min.js" data-main="hosted.js"></script>
 </body>
 </html>
