@@ -428,12 +428,9 @@ define(function (require, exports, module) {
     /**
      * @private
      * OS-specific helper for `compareFilenames()`
-     * @param {string} filename1
-     * @param {string} filename2
-     * @param {string} lang Locale
-     * @return {number} The result of the compare function
+     * @return {Function} The OS-specific compare function
      */
-    var _cmpNames = (function (filename1, filename2, lang) {
+    var _cmpNames = (function () {
         if (brackets.platform === "win") {
             // Use this function on Windows
             return function (filename1, filename2, lang) {
