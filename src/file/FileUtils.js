@@ -436,24 +436,27 @@ define(function (require, exports, module) {
     function compareFilenames(filename1, filename2, extFirst) {
         var lang = brackets.getLocale();
         
+        filename1 = filename1.toLocaleLowerCase();
+        filename2 = filename2.toLocaleLowerCase();
+        
         function cmpExt() {
             var ext1 = getFileExtension(filename1),
                 ext2 = getFileExtension(filename2);
-            return ext1.toLocaleLowerCase().localeCompare(ext2.toLocaleLowerCase(), lang, {numeric: true});
+            return ext1.localeCompare(ext2, lang, {numeric: true});
         }
         
         function cmpNames() {
             if (brackets.platform === "win") {
                 var f1 = getFilenameWithoutExtension(filename1),
                     f2 = getFilenameWithoutExtension(filename2);
-                return f1.toLocaleLowerCase().localeCompare(f2.toLocaleLowerCase(), lang, {numeric: true});
+                return f1.localeCompare(f2, lang, {numeric: true});
             }
-            return filename1.toLocaleLowerCase().localeCompare(filename2.toLocaleLowerCase(), lang, {numeric: true});
+            return filename1.localeCompare(filename2, lang, {numeric: true});
         }
         
         return extFirst ? (cmpExt() || cmpNames()) : (cmpNames() || cmpExt());
     }
-    
+
     /**
      * Compares two paths segment-by-segment, used for sorting. When two files share a path prefix,
      * the less deeply nested one is sorted earlier in the list. Sorts files within the same parent
