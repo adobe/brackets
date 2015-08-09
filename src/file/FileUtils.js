@@ -426,12 +426,36 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * OS-specific helper for `compareFilenames()`
+     * @param {string} filename1
+     * @param {string} filename2
+     * @param {string} lang Locale
+     * @return {number} The result of the compare function
+     */
+    var _cmpNames = (function (filename1, filename2, lang) {
+        if (brackets.platform === "win") {
+            // Use this function on Windows
+            return function (filename1, filename2, lang) {
+                var f1 = getFilenameWithoutExtension(filename1),
+                    f2 = getFilenameWithoutExtension(filename2);
+                return f1.localeCompare(f2, lang, {numeric: true});
+            };
+        }
+        
+        // Use this function other OSes
+        return function (filename1, filename2, lang) {
+            return filename1.localeCompare(filename2, lang, {numeric: true});
+        };
+    }());
+    
+    /**
      * Compares 2 filenames in lowercases. In Windows it compares the names without the
      * extension first and then the extensions to fix issue #4409
      * @param {string} filename1
      * @param {string} filename2
      * @param {boolean} extFirst If true it compares the extensions first and then the file names.
-     * @return {number} The result of the local compare function
+     * @return {number} The result of the compare function
      */
     function compareFilenames(filename1, filename2, extFirst) {
         var lang = brackets.getLocale();
@@ -446,12 +470,7 @@ define(function (require, exports, module) {
         }
         
         function cmpNames() {
-            if (brackets.platform === "win") {
-                var f1 = getFilenameWithoutExtension(filename1),
-                    f2 = getFilenameWithoutExtension(filename2);
-                return f1.localeCompare(f2, lang, {numeric: true});
-            }
-            return filename1.localeCompare(filename2, lang, {numeric: true});
+            return _cmpNames(filename1, filename2, lang);
         }
         
         return extFirst ? (cmpExt() || cmpNames()) : (cmpNames() || cmpExt());
