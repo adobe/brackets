@@ -51,14 +51,14 @@ The easiest way to run Bramble is to simply use:
 $ npm start
 ```
 
-This starts an `http-server` session on port 8080 for you to work with.
+This starts an `http-server` session on port 8000 for you to work with.
 
 However, if you wish to run your own static server, there are several options available:
 * [Apache Webserver](http://www.apache.org/)
 * Host on [github pages](https://help.github.com/articles/what-are-github-pages)
 * [Python WebServer](https://docs.python.org/2/library/simplehttpserver.html)
 
-Assuming you have Bramble running on port `8080`. Now you can visit [http://localhost:8080/src](http://localhost:8080/src).
+Assuming you have Bramble running on port `8000`. Now you can visit [http://localhost:8000/src](http://localhost:8000/src).
 
 NOTE: Bramble expects to be run in an iframe, which hosts its filesystem. For local
 development, use `src/hosted.html` instead of `src/index.html`.  To see how the remote end
@@ -115,7 +115,7 @@ extension lists.
 
 ## After installation
 
-After you have everything setup, you can now run the server you chose in the root of your local Bramble directory and see it in action by visiting [http://localhost:8080/src](http://localhost:8080/src).
+After you have everything setup, you can now run the server you chose in the root of your local Bramble directory and see it in action by visiting [http://localhost:8000/src](http://localhost:8000/src).
 
 # Bramble IFrame API
 
