@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         Content         = require("filesystem/impls/filer/lib/content"),
         LanguageManager = require("language/LanguageManager"),
         StartupState    = require("bramble/StartupState"),
-        unzip           = require("filesystem/impls/filer/ZipUtils").unzip;
+        ArchiveUtils    = require("filesystem/impls/filer/ArchiveUtils");
 
     // 3M size limit for imported files
     var byteLimit = 3 * 1024 * 1000;
@@ -294,7 +294,7 @@ define(function (require, exports, module) {
         function handleZipFile(deferred, file, filename, buffer, encoding) {
             var basename = Path.basename(filename);
 
-            unzip(buffer, function(err) {
+            ArchiveUtils.unzip(buffer, function(err) {
                 if (err) {
                     errorList.push({path: filename, error: "unable to unzip file: " + err.message || ""});
                     deferred.reject(err);
@@ -305,6 +305,24 @@ define(function (require, exports, module) {
                     DefaultDialogs.DIALOG_ID_INFO,
                     "Unzip Completed Successfully",
                     "Successfully unzipped <b>" + basename + "</b>."
+                ).getPromise().then(deferred.resolve, deferred.reject);
+            });
+        }
+
+        function handleTarFile(deferred, file, filename, buffer, encoding) {
+            var basename = Path.basename(filename);
+
+            ArchiveUtils.untar(buffer, function(err) {
+                if (err) {
+                    errorList.push({path: filename, error: "unable to untar file: " + err.message || ""});
+                    deferred.reject(err);
+                    return;
+                }
+
+                Dialogs.showModalDialog(
+                    DefaultDialogs.DIALOG_ID_INFO,
+                    "Untar Completed Successfully",
+                    "Successfully untarred <b>" + basename + "</b>."
                 ).getPromise().then(deferred.resolve, deferred.reject);
             });
         }
@@ -398,6 +416,8 @@ define(function (require, exports, module) {
                 // Special-case .zip files, so we can offer to extract the contents
                 if(Path.extname(filename) === ".zip") {
                     handleZipFile(deferred, file, filename, buffer, encoding);
+                } else if(Path.extname(filename) === ".tar") {
+                    handleTarFile(deferred, file, filename, buffer, encoding);
                 } else {
                     handleRegularFile(deferred, file, filename, buffer, encoding);
                 }

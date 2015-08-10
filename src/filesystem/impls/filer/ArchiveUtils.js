@@ -1,6 +1,6 @@
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, Worker */
 
 define(function (require, exports, module) {
     "use strict";
@@ -15,6 +15,46 @@ define(function (require, exports, module) {
     var Buffer         = Filer.Buffer;
     var Path           = Filer.Path;
     var fs             = Filer.fs();
+
+    // Mac and Windows clutter zip files with extra files/folders we don't need
+    function _skipFile(filename) {
+        var basename = Path.basename(filename);
+
+        // Skip OS X additions we don't care about in the browser fs
+        if(/^__MACOSX\//.test(filename)) {
+            // http://superuser.com/questions/104500/what-is-macosx-folder
+            return true;
+        }
+        if(basename === ".DS_Store") {
+            // https://en.wikipedia.org/wiki/.DS_Store
+            return true;
+        }
+        if(/^\._/.test(basename)) {
+            // http://apple.stackexchange.com/questions/14980/why-are-dot-underscore-files-created-and-how-can-i-avoid-them
+            return true;
+        }
+
+        // Skip Windows additions we don't care about in the browser fs
+        if(/(Tt)humbs\.db/.test(basename)) {
+            // https://en.wikipedia.org/wiki/Windows_thumbnail_cache
+            return true;
+        }
+        if(basename === "desktop.ini") {
+            // http://www.computerhope.com/issues/ch001060.htm
+            return true;
+        }
+
+        // Include this file, don't skip.
+        return false;
+    }
+
+    function _refreshFilesystem(callback) {
+        // Update the file tree to show the new files
+        CommandManager.execute(Commands.FILE_REFRESH).always(function() {
+            // Generate Blob URLs for all the files we imported
+            BlobUtils.preload(StartupState.project("root"), callback);
+        });
+    }
 
     // zipfile can be a path (string) to a zipfile, or raw binary data.
     function unzip(zipfile, options, callback) {
@@ -33,45 +73,13 @@ define(function (require, exports, module) {
         var root = StartupState.project("root");
         var destination = Path.resolve(options.destination || root);
 
-        // Mac and Windows clutter zip files with extra files/folders we don't need
-        function skipFile(filename) {
-            var basename = Path.basename(filename);
-
-            // Skip OS X additions we don't care about in the browser fs
-            if(/^__MACOSX\//.test(filename)) {
-                // http://superuser.com/questions/104500/what-is-macosx-folder
-                return true;
-            }
-            if(basename === ".DS_Store") {
-                // https://en.wikipedia.org/wiki/.DS_Store
-                return true;
-            }
-            if(/^\._/.test(basename)) {
-                // http://apple.stackexchange.com/questions/14980/why-are-dot-underscore-files-created-and-how-can-i-avoid-them
-                return true;
-            }
-
-            // Skip Windows additiosn we don't care about in the browser fs
-            if(/(Tt)humbs\.db/.test(basename)) {
-                // https://en.wikipedia.org/wiki/Windows_thumbnail_cache
-                return true;
-            }
-            if(basename === "desktop.ini") {
-                // http://www.computerhope.com/issues/ch001060.htm
-                return true;
-            }
-
-            // Include this file, don't skip.
-            return false;
-        }
-
         function _unzip(data){
             // TODO: it would be great to move this bit to a worker.
             var archive = new JSZip(data);
             var filenames = [];
 
             archive.filter(function(relPath, file) {
-                if(skipFile(file.name)) {
+                if(_skipFile(file.name)) {
                     return;
                 }
 
@@ -115,16 +123,7 @@ define(function (require, exports, module) {
                     return callback(err);
                 }
 
-                // Generate Blob URLs for all the files we imported so they work
-                // in the preview. 
-                BlobUtils.preload(root, function(err) {
-                    if(err) {
-                        return callback(err);
-                    }
-
-                    // Update the file tree to show the new files
-                    CommandManager.execute(Commands.FILE_REFRESH).always(callback);
-                });
+                _refreshFilesystem(callback);
             });
         }
 
@@ -230,6 +229,63 @@ define(function (require, exports, module) {
         });
     }
 
+    function untar(tarArchive, callback) {
+        var untarWorker = new Worker("thirdparty/bitjs/bitjs-untar.min.js");
+        var root = StartupState.project("root");
+        var pending = null;
+
+        function extract(path, data, callback) {
+            path = Path.resolve(root, path);
+            var basedir = Path.dirname(path);
+
+            if(_skipFile(path)) {
+                return callback();
+            }
+
+            fs.mkdirp(basedir, function(err) {
+                if(err && err.code !== "EEXIST") {
+                    return callback(err);
+                }
+
+                fs.writeFile(path, new Buffer(data), {encoding: null}, callback);
+            });
+        }
+
+        function finish(err) {
+            untarWorker.terminate();
+            untarWorker = null;
+
+            callback(err); 
+        }
+
+        function writeCallback(err) {
+            if(err) {
+                console.error("[Bramble untar] couldn't extract file", err);
+            }
+
+            pending--;
+            if(pending === 0) {
+                _refreshFilesystem(finish);
+            }
+        }
+
+        untarWorker.addEventListener("message", function(e) {
+            var data = e.data;
+
+            if(data.type === "progress" && pending === null) {
+                // Set the total number of files we need to deal with so we know when we're done
+                pending = data.totalFilesInArchive;
+            } else if(data.type === "extract") {
+                extract(data.unarchivedFile.filename, data.unarchivedFile.fileData, writeCallback);
+            } else if(data.type === "error") {
+                finish(new Error("[Bramble untar]: " + data.msg));
+            }
+        });
+
+        untarWorker.postMessage({file: tarArchive.buffer});
+    }
+
     exports.zip = zip;
     exports.unzip = unzip;
+    exports.untar = untar;
 });
