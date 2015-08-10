@@ -213,7 +213,7 @@ define(function (require, exports, module) {
         if (containsNotLineComment) {
             // Comment out - prepend the first prefix to each line
             for (i = startLine; i <= endLine; i++) {
-                if (PreferencesManager.get("indentLineComment")) {
+                if (PreferencesManager.get("lineComment.indent")) {
                     line = doc.getLine(i);
                     commentI = Math.max(line.search(/\S/), 0);
                 } else {
