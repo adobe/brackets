@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         Strings            = require("strings"),
         CommandManager     = require("command/CommandManager"),
         EditorManager      = require("editor/EditorManager"),
+        PreferencesManager = require("preferences/PreferencesManager"),
         StringUtils        = require("utils/StringUtils"),
         TokenUtils         = require("utils/TokenUtils"),
         CodeMirror         = require("thirdparty/CodeMirror/lib/codemirror"),
@@ -46,6 +47,10 @@ define(function (require, exports, module) {
      */
     var DIRECTION_UP    = -1;
     var DIRECTION_DOWN  = +1;
+    
+    PreferencesManager.definePreference("lineComment.indent", "boolean", true, {
+        description: Strings.DESCRIPTION_LINE_COMMENT_INDENT
+    });
         
     /**
      * @private
@@ -202,18 +207,26 @@ define(function (require, exports, module) {
         // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
         // some editors like Sublime don't comment them out)
         var i, line, prefix, commentI,
+            lineIndentation = [],
             containsNotLineComment = _containsNotLineComment(editor, startLine, endLine, lineExp);
-        
+
         if (containsNotLineComment) {
             // Comment out - prepend the first prefix to each line
             for (i = startLine; i <= endLine; i++) {
-                editGroup.push({text: prefixes[0], start: {line: i, ch: 0}});
+                if (PreferencesManager.get("indentLineComment")) {
+                    line = doc.getLine(i);
+                    commentI = Math.max(line.search(/\S/), 0);
+                } else {
+                    commentI = 0;
+                }
+                lineIndentation[i] = commentI;
+                editGroup.push({text: prefixes[0], start: {line: i, ch: commentI}});
             }
 
             // Make sure tracked selections include the prefix that was added at start of range
             _.each(trackedSels, function (trackedSel) {
-                if (trackedSel.start.ch === 0 && CodeMirror.cmpPos(trackedSel.start, trackedSel.end) !== 0) {
-                    trackedSel.start = {line: trackedSel.start.line, ch: 0};
+                if (trackedSel.start.ch <= lineIndentation[trackedSel.start.line] && CodeMirror.cmpPos(trackedSel.start, trackedSel.end) !== 0) {
+                    trackedSel.start = {line: trackedSel.start.line, ch: trackedSel.start.ch};
                     trackedSel.end = {line: trackedSel.end.line, ch: (trackedSel.end.line === endLine ? trackedSel.end.ch + prefixes[0].length : 0)};
                 } else {
                     trackedSel.isBeforeEdit = true;
