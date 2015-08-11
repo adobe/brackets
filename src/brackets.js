@@ -62,16 +62,9 @@ define(function (require, exports, module) {
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
         LanguageManager     = require("language/LanguageManager"),
-        ProjectManager      = require("project/ProjectManager"),
-        FileViewController  = require("project/FileViewController"),
         FileSyncManager     = require("project/FileSyncManager"),
-        Commands            = require("command/Commands"),
-        CommandManager      = require("command/CommandManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        FileSystem          = require("filesystem/FileSystem"),
         Strings             = require("strings"),
-        Dialogs             = require("widgets/Dialogs"),
-        DefaultDialogs      = require("widgets/DefaultDialogs"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         Async               = require("utils/Async"),
         UrlParams           = require("utils/UrlParams").UrlParams,
@@ -79,11 +72,7 @@ define(function (require, exports, module) {
         DragAndDrop         = require("utils/DragAndDrop"),
         NativeApp           = require("utils/NativeApp"),
         DeprecationWarning  = require("utils/DeprecationWarning"),
-        ViewCommandHandlers = require("view/ViewCommandHandlers"),
-        MainViewManager     = require("view/MainViewManager");
-
-    // XXXBramble
-    var BrambleStartupState = require("bramble/StartupState");
+        ViewCommandHandlers = require("view/ViewCommandHandlers");
 
     var MainViewHTML        = require("text!htmlContent/main-view.html");
 
@@ -187,55 +176,8 @@ define(function (require, exports, module) {
                 // Finish UI initialization
                 ViewCommandHandlers.restoreFontSize();
 
-                // XXXBramble: get path passed into iframe from hosting app
-                ProjectManager.openProject(BrambleStartupState.project("root")).always(function () {
-                    var deferred = new $.Deferred();
-                    FileSystem.resolve(BrambleStartupState.project("filename"), function (err, file) {
-                        if (!err) {
-                            var promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: file.fullPath });
-                            promise.then(deferred.resolve, deferred.reject);
-                        } else {
-                            deferred.reject();
-                        }
-                    });
-
-                    deferred.always(function () {
-                        // Signal that Brackets is loaded
-                        AppInit._dispatchReady(AppInit.APP_READY);
-
-                        PerfUtils.addMeasurement("Application Startup");
-
-                        if (PreferencesManager._isUserScopeCorrupt()) {
-                            var userPrefFullPath = PreferencesManager.getUserPrefFile();
-                            // user scope can get corrupt only if the file exists, is readable,
-                            // but malformed. no need to check for its existance.
-                            var info = MainViewManager.findInAllWorkingSets(userPrefFullPath);
-                            var paneId;
-                            if (info.length) {
-                                paneId = info[0].paneId;
-                            }
-                            FileViewController.openFileAndAddToWorkingSet(userPrefFullPath, paneId)
-                                .done(function () {
-                                    Dialogs.showModalDialog(
-                                        DefaultDialogs.DIALOG_ID_ERROR,
-                                        Strings.ERROR_PREFS_CORRUPT_TITLE,
-                                        Strings.ERROR_PREFS_CORRUPT
-                                    ).done(function () {
-                                        // give the focus back to the editor with the pref file
-                                        MainViewManager.focusActivePane();
-                                    });
-                                });
-                        }
-                        
-                    });
-                    
-                    // See if any startup files were passed to the application
-                    if (brackets.app.getPendingFilesToOpen) {
-                        brackets.app.getPendingFilesToOpen(function (err, paths) {
-                            DragAndDrop.openDroppedFiles(paths);
-                        });
-                    }
-                });
+                // XXXBramble: the project loading logic happens based on a message
+                // from the hosting app.  See extensions/default/bramble/main.js
             });
         });
     }

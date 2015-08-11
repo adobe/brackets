@@ -15,6 +15,10 @@ define(function (require, exports, module) {
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         LiveDevelopment      = brackets.getModule("LiveDevelopment/LiveDevMultiBrowser"),
         BrambleStartupState  = brackets.getModule("bramble/StartupState"),
+        ProjectManager       = brackets.getModule("project/ProjectManager"),
+        CommandManager       = brackets.getModule("command/CommandManager"),
+        Commands             = brackets.getModule("command/Commands"),
+        FileSystem           = brackets.getModule("filesystem/FileSystem"),
         Browser              = require("lib/iframe-browser"),
         UI                   = require("lib/UI"),
         Launcher             = require("lib/launcher"),
@@ -31,7 +35,7 @@ define(function (require, exports, module) {
     ExtensionUtils.loadStyleSheet(module, "stylesheets/style.css");
     ExtensionUtils.loadStyleSheet(module, "stylesheets/sidebarTheme.css");
 
-    function parseData(data, deferred) {
+    function parseData(data) {
         var dataReceived = data;
 
         try {
@@ -45,10 +49,6 @@ define(function (require, exports, module) {
             }
 
             console.error("Parsing message from thimble failed: ", err);
-
-            if(deferred) {
-                deferred.reject();
-            }
 
             return false;
         }
@@ -146,58 +146,75 @@ define(function (require, exports, module) {
         // load the initial document into the preview.
         startLiveDev();
 
-        // Preload BlobURLs for all assets in the filesystem
-        BlobUtils.preload(BrambleStartupState.project("root"), function(err) {
-            if(err) {
-                // Possibly non-critical error, warn at least, but keep going.
-                console.warn("[Bramble] unable to preload all filesystem Blob URLs", err);
-            }
-
-            UI.initUI(finishStartup);
-        });
+        UI.initUI(finishStartup);
     });
 
-    // We expect the hosting app to setup the filesystem, and give us a
-    // path as a mount point for the project we open.  We block loading of the rest of the
-    // app on the filesystem being setup and mounted.
-    exports.initExtension = function() {
-        var deferred = new $.Deferred();
+    // Normally, in Brackets proper, this happens in src/brackets.js. We've moved it here
+    // so that we can wait on the hosting app to tell us when to open the project.
+    function loadProject() {
+        var root = BrambleStartupState.project("root");
+        var filename = BrambleStartupState.project("filename");
 
-        function init(e) {
-            var data = parseData(e.data, deferred);
-            if (!(data && data.type === "bramble:init")) {
-                return;
-            }
-
-            window.removeEventListener("message", init, false);
-            window.addEventListener("message", RemoteCommandHandler.handleRequest, false);
-
-            // Set the mount point for the project we want to open and signal
-            // to Brackets that it can keep going, which will pick this up.
-            BrambleStartupState.project.init({
-                root: data.mount.root,
-                filename: data.mount.filename
+        ProjectManager.openProject(root).always(function () {
+            var deferred = new $.Deferred();
+            FileSystem.resolve(filename, function (err, file) {
+                if (!err) {
+                    var promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: file.fullPath });
+                    promise.then(deferred.resolve, deferred.reject);
+                } else {
+                    deferred.reject();
+                }
             });
 
-            // Set initial UI state values (if present)
-            BrambleStartupState.ui.init({
-                fontSize: data.state.fontSize,
-                theme: data.state.theme,
-                sidebarVisible: data.state.sidebarVisible,
-                sidebarWidth: data.state.sidebarWidth,
-                firstPaneWidth: data.state.firstPaneWidth,
-                secondPaneWidth: data.state.secondPaneWidth,
-                previewMode: data.state.previewMode,
-                wordWrap: data.state.wordWrap
-            });
+            deferred.always(function() {
+                // Preload BlobURLs for all assets in the filesystem
+                BlobUtils.preload(root, function(err) {
+                    if(err) {
+                        // Possibly non-critical error, warn at least, but keep going.
+                        console.warn("[Bramble] unable to preload all filesystem Blob URLs", err);
+                    }
 
-            deferred.resolve();
+                    // Signal that Brackets is loaded
+                    AppInit._dispatchReady(AppInit.APP_READY);
+                });
+            });
+        });
+    }
+
+    function init(e) {
+        var data = parseData(e.data);
+        if (!(data && data.type === "bramble:init")) {
+            return;
         }
 
-        window.addEventListener("message", init, false);
+        window.removeEventListener("message", init, false);
+        window.addEventListener("message", RemoteCommandHandler.handleRequest, false);
+
+        // Set the mount point for the project we want to open and signal
+        // to Brackets that it can keep going, which will pick this up.
+        BrambleStartupState.project.init({
+            root: data.mount.root,
+            filename: data.mount.filename
+        });
+
+        // Set initial UI state values (if present)
+        BrambleStartupState.ui.init({
+            fontSize: data.state.fontSize,
+            theme: data.state.theme,
+            sidebarVisible: data.state.sidebarVisible,
+            sidebarWidth: data.state.sidebarWidth,
+            firstPaneWidth: data.state.firstPaneWidth,
+            secondPaneWidth: data.state.secondPaneWidth,
+            previewMode: data.state.previewMode,
+            wordWrap: data.state.wordWrap
+        });
 
         RemoteEvents.start();
+        loadProject();
+    }
 
-        return deferred.promise();
-    };
+    // Signal to the hosting app that we're ready to mount a filesystem, and listen for
+    // a mount request.
+    window.addEventListener("message", init, false);
+    parent.postMessage(JSON.stringify({type: "bramble:readyToMount"}), "*");
 });
