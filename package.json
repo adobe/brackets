@@ -50,9 +50,13 @@
         "xmldoc": "^0.1.2",
         "grunt-cleanempty": "1.0.3"
     },
+    "devDependencies": {
+        "http-server": "^0.8.0"
+    },
     "scripts": {
         "postinstall": "grunt install",
-        "test": "grunt test && grunt build-browser-compressed"
+        "test": "grunt test && grunt build-browser-compressed",
+        "start": "http-server --port=8000"
     },
     "licenses": [
         {
