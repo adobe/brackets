@@ -56,7 +56,7 @@
     "scripts": {
         "postinstall": "grunt install",
         "test": "grunt test && grunt build-browser-compressed",
-        "start": "http-server --port=8000 src"
+        "start": "http-server --port=8000"
     },
     "licenses": [
         {
