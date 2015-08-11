@@ -9,7 +9,7 @@ clean:
 
 run-tests:
 	@./node_modules/.bin/mocha \
-		-t 2000 \
+		-t 5000 \
 		-s 2400 \
 		$(TESTFLAGS) \
 		$(TESTS)

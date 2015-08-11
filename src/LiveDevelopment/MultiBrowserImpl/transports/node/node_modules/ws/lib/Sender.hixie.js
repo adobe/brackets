@@ -13,6 +13,8 @@ var events = require('events')
  */
 
 function Sender(socket) {
+  events.EventEmitter.call(this);
+
   this.socket = socket;
   this.continuationFrame = false;
   this.isClosed = false;

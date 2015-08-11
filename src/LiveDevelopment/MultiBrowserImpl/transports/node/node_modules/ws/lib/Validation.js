@@ -1,3 +1,5 @@
+'use strict';
+
 /*!
  * ws: a node.js websocket client
  * Copyright(c) 2011 Einar Otto Stangvik <einaros@gmail.com>
@@ -5,12 +7,7 @@
  */
 
 try {
-  module.exports = require('../build/Release/validation');
-} catch (e) { try {
-  module.exports = require('../build/default/validation');
-} catch (e) { try {
-  module.exports = require('./Validation.fallback');
+  module.exports = require('utf-8-validate');
 } catch (e) {
-  console.error('validation.node seems to not have been built. Run npm install.');
-  throw e;
-}}}
+  module.exports = require('./Validation.fallback');
+}

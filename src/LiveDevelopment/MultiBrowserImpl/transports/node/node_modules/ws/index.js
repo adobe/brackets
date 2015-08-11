@@ -1,26 +1,49 @@
+'use strict';
+
 /*!
  * ws: a node.js websocket client
  * Copyright(c) 2011 Einar Otto Stangvik <einaros@gmail.com>
  * MIT Licensed
  */
 
-module.exports = require('./lib/WebSocket');
-module.exports.Server = require('./lib/WebSocketServer');
-module.exports.Sender = require('./lib/Sender');
-module.exports.Receiver = require('./lib/Receiver');
+var WS = module.exports = require('./lib/WebSocket');
 
-module.exports.createServer = function (options, connectionListener) {
-  var server = new module.exports.Server(options);
-  if (typeof connectionListener === 'function') {
-    server.on('connection', connectionListener);
+WS.Server = require('./lib/WebSocketServer');
+WS.Sender = require('./lib/Sender');
+WS.Receiver = require('./lib/Receiver');
+
+/**
+ * Create a new WebSocket server.
+ *
+ * @param {Object} options Server options
+ * @param {Function} fn Optional connection listener.
+ * @returns {WS.Server}
+ * @api public
+ */
+WS.createServer = function createServer(options, fn) {
+  var server = new WS.Server(options);
+
+  if (typeof fn === 'function') {
+    server.on('connection', fn);
   }
+
   return server;
 };
 
-module.exports.connect = module.exports.createConnection = function (address, openListener) {
-  var client = new module.exports(address);
-  if (typeof openListener === 'function') {
-    client.on('open', openListener);
+/**
+ * Create a new WebSocket connection.
+ *
+ * @param {String} address The URL/address we need to connect to.
+ * @param {Function} fn Open listener.
+ * @returns {WS}
+ * @api public
+ */
+WS.connect = WS.createConnection = function connect(address, fn) {
+  var client = new WS(address);
+
+  if (typeof fn === 'function') {
+    client.on('open', fn);
   }
+
   return client;
 };
