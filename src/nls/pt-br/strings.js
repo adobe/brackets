@@ -707,7 +707,7 @@ define({
     "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "verdadeiro (true) para permitir a declaração  \"continue\"",
     "DESCRIPTION_JSLINT_OPTIONS_COUCH"               : "verdadeiro (true) se os padrões/variáveis globais do CouchDB devem ser predefinidos",
     "DESCRIPTION_JSLINT_OPTIONS_DEBUG"               : "verdadeiro (true) para permitir as declarações do debugger",
-    "DESCRIPTION_JSLINT_OPTIONS_DEVEL"               : "true if browser globals useful in development should be predefined",
+    "DESCRIPTION_JSLINT_OPTIONS_DEVEL"               : "verdadeiro (true) se os funções/variáveis globais de desenvolvimento no navegador devem ser predefinidos",
     "DESCRIPTION_JSLINT_OPTIONS_EQEQ"                : "verdadeiro (true) para permitir == e !=",
     "DESCRIPTION_JSLINT_OPTIONS_ES6"                 : "verdadeiro (true) se os funções/variáveis globais ES6 devem ser predefinidos",
     "DESCRIPTION_JSLINT_OPTIONS_EVIL"                : "verdadeiro (true) para permitir eval",
