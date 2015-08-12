@@ -485,6 +485,14 @@ define(function (require, exports, module) {
     Language.prototype._lineCommentSyntax = null;
     
     /**
+     * Whether or not the language requires indented line comments
+     * True if line comments must be indented, false if line comments must not
+     * be indented, or null to respect the preference
+     * @type {?boolean}
+     */
+    Language.prototype._indentLineComment = null;
+    
+    /**
      * Which language to use for what CodeMirror mode
      * @type {Object.<string,Language>}
      */
@@ -798,6 +806,22 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Returns whether the line comments should start at the code indentation for this language.
+     * @return {?boolean} Whether indent line comments are required
+     */
+    Language.prototype.hasIndentLineComments = function () {
+        return this._indentLineComments;
+    };
+    
+    /**
+     * Sets or removes the requirement of indent or unindent line comments in this language.
+     * @param {?boolean} indentLineComments
+     */
+    Language.prototype.setIndentLineComments = function (indentLineComments) {
+        this._indentLineComments = indentLineComments;
+    };
+    
+    /**
      * Returns whether the block comment syntax is defined for this language.
      * @return {boolean} Whether block comments are supported
      */
@@ -967,6 +991,7 @@ define(function (require, exports, module) {
             result.reject();
             return result.promise();
         }
+        language.setIndentLineComments(definition.indentLineComments);
 
         
         if (definition.isBinary) {
