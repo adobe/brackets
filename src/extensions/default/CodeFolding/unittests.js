@@ -1,11 +1,14 @@
 /**
- *
+ * Codefolding unit test files
+ * @author Patrick Oladimeji
+ * @date 01/08/2015 18:34
  */
 /*global define, brackets, describe, beforeEach, afterEach, it, expect, runs, waitsForDone, waitsFor*/
 define(function (require, exports, module) {
     "use strict";
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         FileUtils = brackets.getModule("file/FileUtils");
+
     describe("Code Folding", function () {
         var testWindow,
             testEditor,
@@ -48,6 +51,9 @@ define(function (require, exports, module) {
             waitsForDone(promise, "Test file opened", 3000);
         }
 
+        /**
+         * Sets up the test window and loads the test project
+         */
         function setup() {
             runs(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -67,10 +73,18 @@ define(function (require, exports, module) {
             });
         }
 
+        /**
+         * Closes the test window
+         */
         function tearDown() {
             SpecRunnerUtils.closeTestWindow();
         }
 
+        /**
+         * Runs the specified command
+         * @param   {String}  command The command to run
+         * @returns {Promise} A promise that resolves after command execution is completed or failed
+         */
         function runCommand(command) {
             return CommandManager.execute(command);
         }
@@ -95,6 +109,10 @@ define(function (require, exports, module) {
             waitsForDone(promise, "Expand code", 2000);
         }
 
+        /**
+         * Returns all the fold marks currently inside the editor
+         * @returns {Array<TextMark>} The fold marks currently inside the editor
+         */
         function getEditorFoldMarks() {
             testEditor = EditorManager.getCurrentFullEditor();
             cm = testEditor._codeMirror;
@@ -119,6 +137,7 @@ define(function (require, exports, module) {
             }
             return;
         }
+
         /**
          * Helper function to return the fold markers on the current codeMirror instance
          *
@@ -136,38 +155,66 @@ define(function (require, exports, module) {
             return marks.filter(function (m) { return m; });
         }
 
+        /**
+         * Helper function to filter out all open gutter markers
+         * @param   {Object}  m the marker to filter
+         * @returns {boolean} true if the marker is open or false otherwise
+         */
         function filterOpen(m) {
             return m.type === open;
         }
 
+        /**
+         * Helper function to filter out all closed gutter markers.
+         * @param   {Object}  m the marker to to filter
+         * @returns {boolean} true if the marker is closed or false otherwise
+         */
         function filterFolded(m) {
             return m.type === folded;
         }
 
-        function getLineNumbers(m) {
+        /*
+         * Helper function to return the line number on a marker
+         * @param   {Object} m the maker whose line number we want to retrieve
+         * @returns {Number} the line number of the marker
+         */
+        function getLineNumber(m) {
             return m.line;
         }
 
+        /**
+         * Helper function to change the lines to zero-based index
+         * @param   {Array<number>} lines the line numbers to change to zero base index
+         * @returns {Array<number>} the zero-based index of the lines passed in
+         */
         function toZeroIndex(lines) {
             return lines.map(function (l) {
                 return l - 1;
             });
         }
 
+        /**
+         * Helper function to select a range of text in the editor
+         * @param   {CodeMirror.Pos} start the start position of the selection
+         * @param   {CodeMirror.Pos} end   the end position of the selection
+         */
+        function selectTextInEditor(start, end) {
+            var marksVisible = false;
+            runs(function () {
+                cm.setSelection(start, end);
+                setTimeout(function () {
+                    //wait for foldmarks to be rendered
+                    marksVisible = true;
+                }, 410);
+            });
+
+            waitsFor(function () {
+                return marksVisible;
+            }, "Fold markers now visible in gutter", 500);
+        }
+
         beforeEach(function () {
             setup();
-            runs(function () {
-                openTestFile(testFilePath);
-            });
-            runs(function () {
-                openTestFile(testFilePath);
-            });
-
-            runs(function () {
-                testEditor = EditorManager.getCurrentFullEditor();
-                cm = testEditor._codeMirror;
-            });
-
         });
 
         afterEach(function () {
@@ -176,8 +223,23 @@ define(function (require, exports, module) {
         });
 
 
-        describe("", function () {
-            it("gutter fold marks are rendered on startup", function () {
+        describe("Rendering folded regions and gutter markers", function () {
+            beforeEach(function () {
+                runs(function () {
+                    openTestFile(testFilePath);
+                });
+
+                runs(function () {
+                    testEditor = EditorManager.getCurrentFullEditor();
+                    cm = testEditor._codeMirror;
+                });
+            });
+
+            afterEach(function () {
+                testWindow.closeAllFiles();
+            });
+
+            it("Gutter fold marks are rendered on startup", function () {
                 var marks = getGutterFoldMarks();
                 expect(marks.length).toBeGreaterThan(0);
             });
@@ -219,13 +281,8 @@ define(function (require, exports, module) {
                         var range = m.find();
                         return range ? range.from.line === lineNumber - 1 : false;
                     });
-                    //marks[0].widgetNode.click();
                     marks[0].clear();
                 });
-
-                waitsFor(function () {
-                    return true;
-                }, "The fold mark should have been clicked", 500);
 
                 runs(function () {
                     var marks = getEditorFoldMarks();
@@ -238,7 +295,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("folded lines have a folded marker in the gutter", function () {
+            it("Folded lines have a folded marker in the gutter", function () {
                 var lineNumbers = [1, 9];
                 runs(function () {
                     lineNumbers.forEach(function (l) {
@@ -251,16 +308,16 @@ define(function (require, exports, module) {
                     expect(marks.length).toEqual(lineNumbers.length);
 
                     var gutterNumbers = marks
-                        .map(getLineNumbers);
+                        .map(getLineNumber);
                     expect(gutterNumbers).toEqual(toZeroIndex(lineNumbers));
                 });
             });
 
-            it("foldable lines have a foldable maker in the gutter", function () {
+            it("Foldable lines have a foldable maker in the gutter", function () {
                 var lineNumbers = [1, 9, 14, 18, 22, 24, 27];
                 var marks = getGutterFoldMarks();
                 var gutterNumbers = marks.filter(filterOpen)
-                    .map(getLineNumbers);
+                    .map(getLineNumber);
                 expect(gutterNumbers).toEqual(toZeroIndex(lineNumbers));
             });
 
@@ -330,10 +387,47 @@ define(function (require, exports, module) {
                     });
                 });
 
-            });
+                it("Selecting text triggers fold marks when `makeSelectionsFoldable' is enabled", function () {
+                    var start = {line: 2, ch: 0}, end = {line: 6, ch: 0};
+                    setPreference("makeSelectionsFoldable", true);
 
-            describe("Line folds cache works as expected", function () {
+                    selectTextInEditor(start, end);
 
+                    runs(function () {
+                        var marks = getGutterFoldMarks().filter(filterOpen).map(getLineNumber);
+                        expect(marks).toContain(start.line);
+                    });
+                });
+
+                it("Selecting text does not trigger fold marks when `makeSelectionsFoldable' is disabled", function () {
+                    setPreference("makeSelectionsFoldable", false);
+                    var start = {line: 2, ch: 0}, end = {line: 6, ch: 0};
+                    selectTextInEditor(start, end);
+
+                    runs(function () {
+                        var marks = getGutterFoldMarks().filter(filterOpen)
+                            .map(getLineNumber).filter(function (d) {
+                                return d === start.line;
+                            });
+                        expect(marks.length).toEqual(0);
+                    });
+                });
+
+                it("Successively selecting text only triggers fold region for the last selection", function () {
+                    var firstSel = {start: {line: 1, ch: 0}, end: {line: 10, ch: 0}},
+                        secondSel = {start: {line: 3, ch: 0}, end: {line: 8, ch: 4}};
+
+                    selectTextInEditor(firstSel.start, firstSel.end);
+
+                    selectTextInEditor(secondSel.start, secondSel.end);
+
+                    runs(function () {
+                        var marks = getGutterFoldMarks().filter(filterOpen)
+                            .map(getLineNumber);
+                        expect(marks).toContain(secondSel.start.line);
+                        expect(marks).not.toContain(firstSel.start.line);
+                    });
+                });
             });
         });
     });
