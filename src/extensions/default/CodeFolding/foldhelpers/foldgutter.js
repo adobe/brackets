@@ -342,11 +342,11 @@ define(function (require, exports, module) {
      */
     function onCursorActivity(cm) {
         var state = cm.state.foldGutter;
+        var vp = cm.getViewport();
         window.clearTimeout(state.changeUpdate);
         state.changeUpdate = window.setTimeout(function () {
-            var from = cm.getCursor("from"),
-                to = cm.getCursor("to");
-            updateInViewport(cm, from.line, to.line);
+            //need to render the entire visible viewport to remove fold marks rendered from previous selections if any
+            updateInViewport(cm, vp.from, vp.to);
         }, 400);
     }
 
