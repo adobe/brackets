@@ -86,31 +86,9 @@ define(function (require, exports, module) {
       * @param {Editor} editor  the editor whose saved line folds should be restored
       */
     function restoreLineFolds(editor) {
-        /**
-         * Checks if the range from and to Pos is the same as the selection start and end Pos
-         * @param   {Object}  range     {from, to} where from and to are CodeMirror.Pos objects
-         * @param   {Object}  selection {start, end} where start and end are CodeMirror.Pos objects
-         * @returns {Boolean} true if the range and selection span the same region and false otherwise
-         */
-        function rangeEqualsSelection(range, selection) {
+        function isInViewStateSelection(range, selection) {
             return range.from.line === selection.start.line && range.from.ch === selection.start.ch &&
                 range.to.line === selection.end.line && range.to.ch === selection.end.ch;
-        }
-
-        /**
-         * Checks if the range is equal to one of the selections in the viewState
-         * @param   {Object}  range     {from, to} where from and to are CodeMirror.Pos objects.
-         * @param   {Object}  viewState The current editor's ViewState object
-         * @returns {Boolean} true if the range is found in the list of selections or false if not.
-         */
-        function isInViewStateSelection(range, viewState) {
-            if (!viewState || !viewState.selections) {
-                return false;
-            }
-
-            return viewState.selections.some(function (selection) {
-                return rangeEqualsSelection(range, selection);
-            });
         }
 
         var saveFolds = prefs.getSetting("saveFoldStates");
@@ -125,7 +103,9 @@ define(function (require, exports, module) {
         var nonSelectionFolds = {}, selectionFolds = {}, range;
         Object.keys(folds).forEach(function (line) {
             range = folds[line];
-            if (isInViewStateSelection(range, viewState)) {
+            if (viewState.selections && viewState.selections.some(function (selection) {
+                    return isInViewStateSelection(range, selection);
+                })) {
                 selectionFolds[line] = range;
             } else {
                 nonSelectionFolds[line] = range;
