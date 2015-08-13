@@ -85,6 +85,15 @@ define(function (require, exports, module) {
                 return 'audio/mpeg';
             case '.wav':
                 return 'audio/vnd.wave';
+            // Web Fonts
+            case '.eot':
+                return 'application/vnd.ms-fontobject';
+            case '.otf':
+                return 'application/x-font-opentype';
+            case '.ttf':
+                return 'application/x-font-ttf';
+            case '.woff':
+                return 'application/font-woff';
             }
 
             return 'application/octet-stream';

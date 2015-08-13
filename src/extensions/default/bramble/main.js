@@ -79,6 +79,13 @@ define(function (require, exports, module) {
         // Turn preview iFrame On
         Browser.init();
 
+        // Flip livedev.multibrowser to true
+        var prefs = PreferencesManager.getExtensionPrefs("livedev");
+        prefs.set("multibrowser", true);
+
+        // Register servers
+        NoHost.init();
+
         // Set up our transport and plug it into live-dev
         PostMessageTransport.setIframe(Browser.getBrowserIframe());
         LiveDevelopment.setTransport(PostMessageTransport);
@@ -96,6 +103,14 @@ define(function (require, exports, module) {
         if(err) {
             console.warn("Unable to preload filesystem URLs", err);
         }
+
+        // Load the two theme extensions outside of
+        // the ExtensionLoader logic (avoids circular dependencies)
+        Theme.init();
+
+        // Setup the iframe browser and Blob URL live dev servers and
+        // load the initial document into the preview.
+        startLiveDev();
 
         // Below are methods to change the preferences of brackets, more available at:
         // https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#list-of-supported-preferences
@@ -128,27 +143,6 @@ define(function (require, exports, module) {
         RemoteEvents.loaded();
     }
 
-    AppInit.extensionsLoaded(function () {
-        // Flip livedev.multibrowser to true
-        var prefs = PreferencesManager.getExtensionPrefs("livedev");
-        prefs.set("multibrowser", true);
-
-        // Register servers
-        NoHost.init();
-    });
-
-    AppInit.appReady(function() {
-        // Load the two theme extensions outside of
-        // the ExtensionLoader logic (avoids circular dependencies)
-        Theme.init();
-
-        // Setup the iframe browser and Blob URL live dev servers and
-        // load the initial document into the preview.
-        startLiveDev();
-
-        UI.initUI(finishStartup);
-    });
-
     // Normally, in Brackets proper, this happens in src/brackets.js. We've moved it here
     // so that we can wait on the hosting app to tell us when to open the project.
     function loadProject() {
@@ -176,6 +170,8 @@ define(function (require, exports, module) {
 
                     // Signal that Brackets is loaded
                     AppInit._dispatchReady(AppInit.APP_READY);
+
+                    UI.initUI(finishStartup);
                 });
             });
         });

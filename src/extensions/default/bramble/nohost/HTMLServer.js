@@ -11,7 +11,9 @@ define(function (require, exports, module) {
         Path                    = Filer.Path,
         HTMLRewriter            = brackets.getModule("filesystem/impls/filer/lib/HTMLRewriter"),
         CSSRewriter             = brackets.getModule("filesystem/impls/filer/lib/CSSRewriter"),
-        Compatibility           = require("lib/compatibility"),
+        Compatibility           = require("lib/compatibility");
+
+    var fs = Filer.fs(),
         _shouldUseBlobURL;
 
     function _isHTML(path) {
@@ -37,14 +39,6 @@ define(function (require, exports, module) {
     //Returns a path based on blob url
     HTMLServer.prototype.urlToPath = function(url) {
         return BlobUtils.getFilename(url);
-    };
-
-    HTMLServer.prototype.start = function() {
-        this.fs = Filer.fs();
-    };
-
-    HTMLServer.prototype.stop = function() {
-        this.fs = null;
     };
 
     HTMLServer.prototype.readyToServe = function () {
@@ -98,28 +92,6 @@ define(function (require, exports, module) {
         BaseServer.prototype.add.call(this, liveDocument);
     };
 
-    function _serveLiveCSS(path, liveDocument, callback) {
-        CSSRewriter.rewrite(path, liveDocument.getResponseData().body, function(err, css) {
-            if(err) {
-                callback(err);
-                return;
-            }
-            callback(null, BlobUtils.createURL(path, css, "text/css"));
-        });
-
-    }
-
-    function _serveLiveHTML(path, liveDocument, server, callback) {
-        HTMLRewriter.rewrite(path, liveDocument.getResponseData().body, server, function(err, html) {
-            if(err) {
-                callback(err);
-                return;
-            }
-            // We either serve raw HTML or a Blob URL depending on browser compatibility.
-            callback(null, _shouldUseBlobURL ? BlobUtils.createURL(path, html, "text/html") : html);
-        });
-    }
-
     /**
      * If a livedoc exists (HTML or CSS), serve the instrumented version of the file.
      */
@@ -129,19 +101,52 @@ define(function (require, exports, module) {
     };
 
     HTMLServer.prototype.serveLiveDocForPath = function(path, callback) {
+        var server = this;
         var liveDocument = this.get(path);
 
-        // If we don't have a live doc for this file, use the cached URL
-        if(!liveDocument) {
-            return BlobUtils.getUrl(path, callback);
+        function serveCSS(path, css, callback) {
+            CSSRewriter.rewrite(path, css, function(err, css) {
+                if(err) {
+                    callback(err);
+                    return;
+                }
+                callback(null, BlobUtils.createURL(path, css, "text/css"));
+            });
+
         }
 
-        if(_isHTML(path)) {
-            _serveLiveHTML(path, liveDocument, this, callback);
-        } else if (_isCSS(path)) {
-            _serveLiveCSS(path, liveDocument, callback);
+        function serveHTML(path, html, server, callback) {
+            HTMLRewriter.rewrite(path, html, server, function(err, html) {
+                if(err) {
+                    callback(err);
+                    return;
+                }
+                // We either serve raw HTML or a Blob URL depending on browser compatibility.
+                callback(null, _shouldUseBlobURL ? BlobUtils.createURL(path, html, "text/html") : html);
+            });
+        }
+
+        function serve(body) {
+            if(_isHTML(path)) {
+                serveHTML(path, body, server, callback);
+            } else if (_isCSS(path)) {
+                serveCSS(path, body, callback);
+            } else {
+                callback(new Error("[Brackets HTMLServer] expected .html or .css live doc type:" + path));
+            }
+        }
+
+        // Prefer the LiveDoc, but use what's on disk if we have to
+        if(liveDocument) {
+            serve(liveDocument.getResponseData().body);
         } else {
-            console.warn("[Brackets HTMLServer] expected .html or .css live doc type", path);
+            fs.readFile(path, "utf8", function(err, body) {
+                if(err) {
+                    return callback(err);
+                }
+
+                serve(body);
+            });
         }
     };
 

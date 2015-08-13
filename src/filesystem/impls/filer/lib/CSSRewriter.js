@@ -29,6 +29,7 @@ define(function (require, exports, module) {
             var urlRegex = new RegExp('url\\([\\\'\\"]?([^\\\'\\"\\)]+)[\\\'\\"]?\\)', 'g');
             var periodRegex = new RegExp('\\.', 'g');
             var forwardSlashRegex = new RegExp('\\/', 'g');
+            var dashRegex = new RegExp('\\-', 'g');
 
             function fetch(input, replacements, next) {
                 if(input.length === 0) {
@@ -36,16 +37,15 @@ define(function (require, exports, module) {
                 }
 
                 var filename = input.splice(0,1)[0];
-                filename = Path.resolve(dir, filename);
-
-                BlobUtils.getUrl(filename, function(err, cachedUrl) {
+                BlobUtils.getUrl(Path.resolve(dir, filename), function(err, cachedUrl) {
                     if(err) {
                         return next("failed on " + path, replacements);
                     }
 
                     // Swap the filename with the blob url
                     var filenameCleaned = filename.replace(periodRegex, '\\.')
-                                                  .replace(forwardSlashRegex, '\\/');
+                                                  .replace(forwardSlashRegex, '\\/')
+                                                  .replace(dashRegex, '\\-');
                     var regex = new RegExp(filenameCleaned, 'gm');
 
                     // Queue a function to do the replacement in the second pass

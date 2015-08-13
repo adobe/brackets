@@ -125,13 +125,13 @@ define(function (require, exports, module) {
 
             // If the user has the given CSS file open in an editor,
             // use that; otherwise, get it from disk.
-            server.serveLiveDocForPath(Path.resolve(dir, path), function(err, cachedUrl) {
+            server.serveLiveDocForPath(Path.resolve(dir, path), function(err, url) {
                 if(err) {
                     callback(err);
                     return;
                 }
 
-                element.href = cachedUrl;
+                element.href = url;
                 callback();
             });
         }, function eachSeriesfinished(err) {
