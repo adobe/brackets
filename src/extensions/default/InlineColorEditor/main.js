@@ -107,7 +107,8 @@ define(function (require, exports, module) {
     
     
     // Initialize extension
-    ExtensionUtils.loadStyleSheet(module, "css/main.less");
+    // XXXBramble: use css vs less
+    ExtensionUtils.loadStyleSheet(module, "css/main.css");
     
     EditorManager.registerInlineEditProvider(inlineColorEditorProvider);
     

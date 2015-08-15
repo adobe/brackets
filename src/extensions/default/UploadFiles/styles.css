@@ -1,0 +1,92 @@
+.drag-files-area {
+  height: 290px;
+  border: dashed 2px #AEAEAE;
+  color: #969696;
+  position: relative;
+}
+.drag-files-area .drop-zone {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+.drag-files-area .drop-instructions {
+  display: none;
+}
+.drag-files-area.drag-over {
+  border: dashed 2px #5EBF7C;
+  background-color: rgba(94, 191, 124, 0.1);
+}
+.drag-files-area.drag-over .drop-instructions {
+  display: block;
+  color: #26723D;
+  background-image: url(images/upload-cloud-green.svg);
+}
+.drag-files-area.drag-over .drag-instructions {
+  display: none;
+}
+.drag-files-area .drag-instructions,
+.drag-files-area .drop-instructions {
+  position: absolute;
+  padding-top: 60px;
+  width: 200px;
+  top: 100px;
+  text-align: center;
+  width: 100%;
+  background-image: url(images/upload-cloud.svg);
+  background-repeat: no-repeat;
+  background-position: center 0;
+  background-size: 70px;
+}
+.uploading-files {
+  height: 290px;
+}
+.uploading-files .upload-indicator {
+  text-align: center;
+  position: relative;
+  top: 95px;
+}
+.uploading-files .upload-indicator .title {
+  color: #BCBCBC;
+  font-size: 16px;
+  margin: 0 0 10px 0;
+}
+.uploading-files .upload-spinner {
+  height: 75px;
+  width: 75px;
+  position: relative;
+  background-image: url(images/upload-cloud.svg);
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+  margin-bottom: 15px;
+  display: block;
+  margin: 0 auto 15px auto;
+}
+.uploading-files .upload-spinner .circle {
+  position: absolute;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: solid 2px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  height: 100%;
+}
+.uploading-files .upload-spinner .mask {
+  height: 54%;
+  left: 30%;
+  width: 40%;
+  top: -5%;
+  border-top: solid 10px #dfe2e2;
+  /* match Brackets dialog background */
+  position: absolute;
+  box-sizing: border-box;
+  transform-origin: bottom;
+  animation: uploadSpinner 2s linear infinite;
+}
+@keyframes uploadSpinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -1,67 +1,41 @@
-//Tags
-@tag : #5ba87e;
-@tagBrackets : #5ba87e;
-@tagContent : rgba(255,255,255,.85);
-
-//Tag Highlight
-@matchingTag: rgba(56,174,113,.2);    // Highlight behind set of matched tags
-
-//Attributes
-@attribute : #a0779f;
-@attributeValue : #4f8eb2;
-
-//Main Background
-@codeBackground : #222;
-@lineBackground : #222;
-
-
 .cm-string {
-    color: @attributeValue;
+  color: #4f8eb2;
 }
-
 .cm-error {
-    color: #ED488B !important;
+  color: #ED488B !important;
 }
-
 .cm-meta,
 .cm-comment {
-    color: rgba(255,255,255,.3);
+  color: rgba(255, 255, 255, 0.3);
 }
-
 .cm-atom,
 .cm-number,
 .cm-link {
-    color: #AE81FF;
+  color: #AE81FF;
 }
-
 .cm-property,
 .cm-attribute,
 .cm-keyword {
-    color: @attribute;
+  color: #a0779f;
 }
-
 .cm-string.cm-property,
 .cm-variable,
 .cm-variable-2 {
-    color: @tagContent;
+  color: rgba(255, 255, 255, 0.85);
 }
-
 .cm-variable-3,
 .cm-qualifier,
 .cm-builtin {
-    color: #A6E22E;
+  color: #A6E22E;
 }
-
 .cm-operator,
 .cm-tag {
-    color: @tag;
+  color: #5ba87e;
 }
-
 .cm-bracket,
 .cm-def {
-    color: @tagBrackets;
+  color: #5ba87e;
 }
-
 /**
  * User Interface
  * ==============
@@ -70,98 +44,80 @@
  * @TODO Scrollbars
  * @TODO Find highlights
  */
-
 .CodeMirror-gutter:after {
-    content:"";
-    position: absolute;
-    height: 100%;
-    width: 0;
-    right: 0;
-    border-right: solid 1px rgba(255,255,255,.1);
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 0;
+  right: 0;
+  border-right: solid 1px rgba(255, 255, 255, 0.1);
 }
-
 .CodeMirror,
 .CodeMirror .CodeMirror-scroll {
-    background: @codeBackground;
-    color: @tagContent;
+  background: #222222;
+  color: rgba(255, 255, 255, 0.85);
 }
-
 #not-editor,
 #image-holder {
-    background-color: #222;
-    color: #F8F8F2;
-    transition: background-color 0.3s ease-out;
+  background-color: #222;
+  color: #F8F8F2;
+  transition: background-color 0.3s ease-out;
 }
-
 .CodeMirror {
-    border-left-color: #1B1B1B;
+  border-left-color: #1B1B1B;
 }
-
 div.CodeMirror-selected {
-    background: #444 !important;
+  background: #444 !important;
 }
-
 .CodeMirror-gutters {
-    background: @lineBackground;
+  background: #222222;
 }
-
 .CodeMirror-linenumbers {
-    background: @lineBackground;
+  background: #222222;
 }
-
 .CodeMirror-guttermarker {
-    color: #F8F8F2;
+  color: #F8F8F2;
 }
-
 .CodeMirror-guttermarker-subtle {
-    color: #272822;
+  color: #272822;
 }
-
 .CodeMirror-linenumber {
-    color: rgba(255,255,255,.3);
+  color: rgba(255, 255, 255, 0.3);
 }
-
 .CodeMirror-cursor {
-    border-left: 1px solid #f8f8f0 !important;
+  border-left: 1px solid #f8f8f0 !important;
 }
-
 .CodeMirror-activeline-background,
 .CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
-    background: #373831 !important;
+  background: #373831 !important;
 }
-
 .CodeMirror-focused .CodeMirror-activeline .CodeMirror-gutter-elt {
-    color: #F8F8F2;
+  color: #F8F8F2;
 }
-
 .CodeMirror-focused .CodeMirror-activeline .inline-widget .CodeMirror-gutter-elt {
-    color: #767676;
+  color: #767676;
 }
-
 .CodeMirror-matchingbracket {
-    background-color: transparent !important;
-    border-bottom: 1px solid; /* text-decoration: underline does not look that well with large font sizes */
-    color: #FFF !important;
-    padding-bottom: 0.166em;
+  background-color: transparent !important;
+  border-bottom: 1px solid;
+  /* text-decoration: underline does not look that well with large font sizes */
+  color: #FFF !important;
+  padding-bottom: 0.166em;
 }
-
 .CodeMirror-matchingtag {
-    background-color: @matchingTag;
+  background-color: rgba(56, 174, 113, 0.2);
 }
-
 /**
  * Extensions
  * ==========
  */
-
 /*
  * Brackets-Vim (https://github.com/megalord/brackets-vim)
  * -------------------------------------------------------
  */
 .CodeMirror.cm-keymap-fat-cursor div.CodeMirror-cursor {
-    background: rgba(248, 248, 242, 0.5) !important;
+  background: rgba(248, 248, 242, 0.5) !important;
 }
-
 /**
  * Show Whitespace (https://github.com/DennisKehrig/brackets-show-whitespace)
  * --------------------------------------------------------------------------
@@ -172,9 +128,8 @@ div.CodeMirror-selected {
 .CodeMirror .cm-dk-whitespace-leading-tab::before,
 .CodeMirror .cm-dk-whitespace-trailing-space::before,
 .CodeMirror .cm-dk-whitespace-trailing-tab::before {
-    background-color: #75715E !important;
+  background-color: #75715E !important;
 }
-
 /**
  * Code Folding (https://github.com/thehogfather/brackets-code-folding)
  * --------------------------------------------------------------------
@@ -184,16 +139,14 @@ div.CodeMirror-selected {
 .CodeMirror-foldgutter-blank,
 .CodeMirror-foldgutter-folded,
 .CodeMirror-foldgutter-open {
-    color: #75715E;
+  color: #75715E;
 }
-
 .CodeMirror-foldgutter-open::after {
-    content: "\25bd";
+  content: "\25bd";
 }
-
 .CodeMirror-foldmarker {
-    background-color: #333;
-    border-color: #555;
-    color: #555;
-    padding: 0 10px;
+  background-color: #333;
+  border-color: #555;
+  color: #555;
+  padding: 0 10px;
 }

@@ -17,6 +17,6 @@ define(function (require, exports, module) {
         CommandManager.register(CMD_UPLOAD_FILES_TEXT, CMD_UPLOAD_FILES_ID, showUploadFiles);
     }
 
-    ExtensionUtils.loadStyleSheet(module, "styles.less");
+    ExtensionUtils.loadStyleSheet(module, "styles.css");
     addCommand();
 });

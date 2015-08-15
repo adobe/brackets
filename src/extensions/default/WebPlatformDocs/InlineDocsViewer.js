@@ -44,7 +44,8 @@ define(function (require, exports, module) {
     var SCROLL_LINE_HEIGHT = 40;
     
     // Load CSS
-    ExtensionUtils.loadStyleSheet(module, "WebPlatformDocs.less");
+    // XXXBramble: use CSS vs. LESS
+    ExtensionUtils.loadStyleSheet(module, "WebPlatformDocs.css");
     
     
     /**

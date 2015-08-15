@@ -49,7 +49,7 @@ define(function (require, exports, module) {
         htmlAttrs,
         styleModes      = ["css", "text/x-less", "text/x-scss"];
 
-    ExtensionUtils.loadStyleSheet(module, "style.less");
+    ExtensionUtils.loadStyleSheet(module, "style.css");
 
     /**
      * @constructor

@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     function init(theme) {
         var lightFile = {
             name: "main.less",
-            _path: Path.join(themePath, "lightTheme.less")
+            _path: Path.join(themePath, "lightTheme.css")
         };
         var lightOptions = {
             name: "light-theme"
@@ -40,7 +40,7 @@ define(function (require, exports, module) {
 
         var darkFile = {
             name: "main.less",
-            _path: Path.join(themePath, "darkTheme.less")
+            _path: Path.join(themePath, "darkTheme.css")
         };
         var darkOptions = {
             name: "dark-theme",
