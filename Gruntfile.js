@@ -113,7 +113,8 @@ module.exports = function (grunt) {
                             'thirdparty/slowparse/locale/*',
                             'LiveDevelopment/launch.html',
                             'LiveDevelopment/MultiBrowserImpl/transports/**',
-                            'LiveDevelopment/MultiBrowserImpl/launchers/**'
+                            'LiveDevelopment/MultiBrowserImpl/launchers/**',
+                            'hosted.*'
                         ]
                     },
                     /* extensions and CodeMirror modes */
@@ -140,8 +141,8 @@ module.exports = function (grunt) {
                             '!extensions/extra/{*/thirdparty,**/node_modules}/**/doc/**/*',
                             '!extensions/extra/{*/thirdparty,**/node_modules}/**/examples/**/*',
                             '!extensions/extra/*/thirdparty/**/*.htm{,l}',
-                            'extensions/dev/*',
-                            'extensions/samples/**/*',
+                            '!extensions/dev/*',
+                            '!extensions/samples/**/*',
                             'thirdparty/CodeMirror/addon/{,*/}*',
                             'thirdparty/CodeMirror/keymap/{,*/}*',
                             'thirdparty/CodeMirror/lib/{,*/}*',
