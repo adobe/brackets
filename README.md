@@ -183,6 +183,29 @@ var fs = Bramble.getFileSystem();
 This `fs` instance can be used to setup the filesystem for the Bramble editor prior to
 loading.  You can access things like `Path` and `Buffer` via `Bramble.Filer.*`.
 
+## Bramble.formatFileSystem(callback)
+
+WARNING: this **will** destroy data, and is meant to be used in the case that
+the filesystem is corrupted (`err.code === "EFILESYSTEMERROR"`), or for when an
+app wants to allow a user to wipe their disk.
+
+```js
+Bramble.on("error", function(err) {
+  if(err.code === "EFILESYSTEMERROR") {
+    Bramble.formatFileSystem(function(err) {
+      if(err) {
+        // Unable to create filesystem, fatal (and highly unlikely) error
+      } else {
+        // filesystem is now clean and empty, use Bramble.getFileSystem() to obtain instance
+      }
+    });
+  }
+});
+```
+
+NOTE: you can turn this recovery behaviour on automatically by passing `autoRecoverFileSystem: true`
+in the options to `Bramble.load()`.
+
 ## Bramble.load(elem[, options])
 
 Once you have a reference to the `Bramble` object, you use it to starting loading the editor:
@@ -210,6 +233,7 @@ The `options` object allows you to configure Bramble:
      * `disable`: `<Array(String)>` a list of extensions to disable
  * `hideUntilReady`: `<Boolean>` whether to hide Bramble until it's fully loaded.
  * `disableUIState`: `<Boolean>` by default, UI state is kept between sessions.  This disables it (and clears old values), and uses the defaults from Bramble.
+ * `autoRecoverFileSystem`: `<Boolean>` whether to try and autorecover the filesystem on failure (see `Bramble.formatFileSystem` above).
  * `debug`: `<Boolean>` whether to log debug info.
 
 ## Bramble.mount(root[, filename])

@@ -86,7 +86,24 @@ define([
         }
         // When we go into the ERROR state, also trigger an event and pass err
         else if (_readyState === Bramble.ERROR) {
-            Bramble.trigger("error", [err]);
+            // Treat filesystem corruption as a special case
+            if(err && err.code === "EFILESYSTEMERROR") {
+                if(_instance._autoRecoverFileSystem) {
+                    Bramble.formatFileSystem(function(err) {
+                        if(err) {
+                            console.error("[Bramble] unable to recover filesystem", err);
+                        } else {
+                            err = new Error("filesystem auto-recovered, refresh page.");
+                        }
+                        Bramble.trigger("error", [err]);
+                    });
+                } else {
+                    console.error("[Bramble] filesystem needs to be re-formatted");
+                    Bramble.trigger("error", [err]);
+                }
+            } else {
+                Bramble.trigger("error", [err]);
+            }
         }
     }
     Bramble.getReadyState = function() { return _readyState; };
@@ -96,6 +113,10 @@ define([
     var _fs = new Filer.FileSystem();
     Bramble.getFileSystem = function() {
         return _fs;
+    };
+    // NOTE: THIS WILL DESTROY DATA! For error cases only, or to wipe the disk.
+    Bramble.formatFileSystem = function(callback) {
+        _fs = new Filer.FileSystem({flags: ["FORMAT"]}, callback);
     };
 
     // Start loading Bramble's resources, setup communication with iframe
@@ -168,6 +189,9 @@ define([
 
         // Callback functions waiting for a postMessage from Bramble
         var _callbacks = {};
+
+        // Whether or not we want to try and auto-recover a corrupted filesystem on error
+        self._autoRecoverFileSystem = options.autoRecoverFileSystem;
 
         // Public getters for state. Most of these aren't useful until bramble.ready()
         self.getID = function() { return _id; };
