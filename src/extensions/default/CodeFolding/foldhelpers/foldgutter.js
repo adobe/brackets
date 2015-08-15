@@ -322,9 +322,11 @@ define(function (require, exports, module) {
       * @param {!CodeMirror} cm the CodeMirror instance for the active editor
       * @param {!Object} from  the ch and line position that designates the start of the region
       * @param {!Object} to the ch and line position that designates the end of the region
+      * @param {?Number} gutterLineNumber the gutter line number that was clicked to signal the fold event
       */
-    function onFold(cm, from, to) {
-        var state = cm.state.foldGutter, line = from.line;
+    function onFold(cm, from, to, gutterLineNumber) {
+        var state = cm.state.foldGutter,
+            line = isNaN(gutterLineNumber) ? from.line : gutterLineNumber;
         if (line >= state.from && line < state.to) {
             updateFoldInfo(cm, line, line + 1);
         }
@@ -335,9 +337,12 @@ define(function (require, exports, module) {
       * @param {!CodeMirror} cm the CodeMirror instance for the active editor
       * @param {!{line:number, ch:number}} from  the ch and line position that designates the start of the region
       * @param {!{line:number, ch:number}} to the ch and line position that designates the end of the region
+      * @param {?Number} gutterLineNumber the gutter line number that was clicked to signal the unfold event
+      *                                   or null if the event was not triggered by interaction with the gutter
       */
-    function onUnFold(cm, from, to) {
-        var state = cm.state.foldGutter, line = from.line;
+    function onUnFold(cm, from, to, gutterLineNumber) {
+        var state = cm.state.foldGutter,
+            line = isNaN(gutterLineNumber) ? from.line : gutterLineNumber;
         var vp = cm.getViewport();
         if (line >= state.from && line < state.to) {
             updateFoldInfo(cm, line, Math.min(vp.to, to.line));
@@ -356,6 +361,8 @@ define(function (require, exports, module) {
                 cm.off("gutterClick", old.onGutterClick);
                 cm.off("change", onChange);
                 cm.off("viewportChange", onViewportChange);
+                cm.off("cursorActivity", onViewportChange);
+
                 cm.off("fold", onFold);
                 cm.off("unfold", onUnFold);
                 cm.off("swapDoc", updateInViewport);
@@ -366,6 +373,7 @@ define(function (require, exports, module) {
                 cm.on("gutterClick", val.onGutterClick);
                 cm.on("change", onChange);
                 cm.on("viewportChange", onViewportChange);
+                cm.on("cursorActivity", onViewportChange);
                 cm.on("fold", onFold);
                 cm.on("unfold", onUnFold);
                 cm.on("swapDoc", updateInViewport);

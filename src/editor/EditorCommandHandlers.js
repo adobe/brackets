@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, Promise */
 
 
 /**
@@ -1074,16 +1074,16 @@ define(function (require, exports, module) {
 
     function handleUndoRedo(operation) {
         var editor = EditorManager.getFocusedEditor();
-        var result = new $.Deferred();
         
-        if (editor) {
-            editor[operation]();
-            result.resolve();
-        } else {
-            result.reject();
-        }
-        
-        return result.promise();
+        return new Promise(function (resolve, reject) {
+
+            if (editor) {
+                editor[operation]();
+                resolve();
+            } else {
+                reject();
+            }
+        });
     }
 
     function handleUndo() {
@@ -1101,21 +1101,22 @@ define(function (require, exports, module) {
      */
     function ignoreCommand() {
         // Do nothing. The shell will call the native handler for the command.
-        return (new $.Deferred()).reject().promise();
+        return new Promise(function (resolve, reject) {
+            reject();
+        });
     }
 	
 	function _handleSelectAll() {
-        var result = new $.Deferred(),
-            editor = EditorManager.getFocusedEditor();
+        return new Promise(function (resolve, reject) {
+            var editor = EditorManager.getFocusedEditor();
 
-        if (editor) {
-            editor.selectAllNoScroll();
-            result.resolve();
-        } else {
-            result.reject();    // command not handled
-        }
-
-        return result.promise();
+            if (editor) {
+                editor.selectAllNoScroll();
+                resolve();
+            } else {
+                reject();    // command not handled
+            }
+        });
     }
         
     // Register commands

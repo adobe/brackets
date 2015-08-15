@@ -174,6 +174,7 @@ define(function (require, exports, module) {
      * the runs() that generates the promise.
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
+     * @param {number=} timeout Timeout in milliseconds. Default is 1000.
      */
     window.waitsForDone = function (promise, operationName, timeout) {
         timeout = timeout || 1000;
@@ -192,6 +193,7 @@ define(function (require, exports, module) {
      * the runs() that generates the promise.
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
+     * @param {number=} timeout Timeout in milliseconds. Default is 1000.
      */
     window.waitsForFail = function (promise, operationName, timeout) {
         timeout = timeout || 1000;
@@ -201,6 +203,50 @@ define(function (require, exports, module) {
         });
         waitsFor(function () {
             return promise.state() === "rejected";
+        }, "failure " + operationName, timeout);
+    };
+    
+    /**
+     * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
+     * similarly to the standard Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * the runs() that generates the promise.
+     * @param {Promise} promise ES6 Promise
+     * @param {string} operationName  Name used for timeout error message
+     * @param {number=} timeout Timeout in milliseconds. Default is 1000.
+     */
+    window.waitsForFulfillment = function (promise, operationName, timeout) {
+        var success = false;
+        timeout = timeout || 1000;
+        expect(promise).toBeTruthy();
+        promise.then(function () {
+            success = true;
+        }, function (err) {
+            expect("[" + operationName + "] promise rejected with: " + err).toBe("(expected resolved instead)");
+        });
+        waitsFor(function () {
+            return (success === true);
+        }, "success [" + operationName + "]", timeout);
+    };
+
+    /**
+     * Utility for tests that waits on a Promise to fail. Placed in the global namespace so it can be used
+     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * the runs() that generates the promise.
+     * @param {Promise} promise ES6 Promise
+     * @param {string} operationName  Name used for timeout error message
+     * @param {number=} timeout Timeout in milliseconds. Default is 1000.
+     */
+    window.waitsForRejection = function (promise, operationName, timeout) {
+        var fail = false;
+        timeout = timeout || 1000;
+        expect(promise).toBeTruthy();
+        promise.then(function (result) {
+            expect("[" + operationName + "] promise resolved with: " + result).toBe("(expected rejected instead)");
+        }, function () {
+            fail = true;
+        });
+        waitsFor(function () {
+            return (fail === true);
         }, "failure " + operationName, timeout);
     };
     

@@ -90,8 +90,8 @@ define(function (require, exports, module) {
         });
 
         textRange.on("clear", function (from, to) {
-            delete cm._lineFolds[from.line];
-            CodeMirror.signal(cm, "unfold", cm, from, to);
+            delete cm._lineFolds[pos.line];
+            CodeMirror.signal(cm, "unfold", cm, from, to, pos.line);
         });
 
         if (force === "fold") {
@@ -101,7 +101,7 @@ define(function (require, exports, module) {
             delete cm._lineFolds[pos.line];
         }
 
-        CodeMirror.signal(cm, force, cm, range.from, range.to);
+        CodeMirror.signal(cm, force, cm, range.from, range.to, pos.line);
         return range;
     }
 
@@ -227,7 +227,9 @@ define(function (require, exports, module) {
         };
 
         /**
-          * Helper to combine an array of fold range finders into one
+          * Helper to combine an array of fold range finders into one. This goes through the
+          * list of fold helpers in the parameter arguments and returns the first non-null
+          * range found from calling the fold helpers in order.
           */
         CodeMirror.registerHelper("fold", "combine", function () {
             var funcs = Array.prototype.slice.call(arguments, 0);
