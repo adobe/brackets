@@ -666,7 +666,7 @@ define({
     "COLLAPSE_ALL"                  : "Dobrar Tudo",
     "EXPAND_ALL"                    : "Expandir Tudo",
     "COLLAPSE_CURRENT"              : "Dobrar Posição Atual",
-    "EXPAND_CURRENT"                : "Expandir Posição Atual"
+    "EXPAND_CURRENT"                : "Expandir Posição Atual",
 
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "verdadeiro (true) para fechar chaves, colchetes e parênteses automáticamente",
@@ -680,7 +680,7 @@ define({
     "DESCRIPTION_CLOSE_TAGS_INDENT_TAGS"             : "Um vetor de tags terá uma linha em branco entre as tags quando for aberta",
     "DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD" : "verdadeiro (true) para sempre gerar marcadores de agrupamento quando o nível de identação mudar",
     "DESCRIPTION_CODE_FOLDING_ENABLED"               : "verdadeiro (true) para habilitar o agrupamento de código",
-    "DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER"  : "verdadeiro (true) para fazer que os marcadores de agrupamento de seção visíveis somente quando o cursor sai da área de edição pelo painel da esquerda"
+    "DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER"  : "verdadeiro (true) para fazer que os marcadores de agrupamento de seção visíveis somente quando o cursor sai da área de edição pelo painel da esquerda",
     "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limite de quantos níveis de Agrupar Todos pode agrupar",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Mínimo de linhas antes de um ícone agrupamento de seção surgir",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "verdadeiro (true) para lembrar o estado de uma seção agrupada caso você feche e reabra um arquivo ou projeto",
