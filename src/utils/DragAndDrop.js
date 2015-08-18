@@ -266,12 +266,7 @@ define(function (require, exports, module) {
         }
 
         function shouldOpenFile(filename, encoding) {
-            var ext = Path.extname(filename).replace(/^\./, "");
-            var language = LanguageManager.getLanguageForExtension(ext);
-            var id = language && language.getId();
-            var isImage = id === "image" || id === "svg";
-
-            return isImage || encoding === "utf8";
+            return Content.isImage(Path.extname(filename)) || encoding === "utf8";
         }
 
         function handleRegularFile(deferred, file, filename, buffer, encoding) {
@@ -338,7 +333,7 @@ define(function (require, exports, module) {
 
             // If we don't know about this language type, or the OS doesn't think
             // it's text, reject it.
-            var ext = Path.extname(item.name).replace(/^\./, "");
+            var ext = Path.extname(item.name).replace(/^\./, "").toLowerCase();
             var languageIsSupported = !!LanguageManager.getLanguageForExtension(ext);
             var typeIsText = Content.isTextType(item.type);
 
@@ -402,11 +397,12 @@ define(function (require, exports, module) {
 
                 var filename = Path.join(StartupState.project("root"), item.name);
                 var file = FileSystem.getFileForPath(filename);
+                var ext = Path.extname(filename).toLowerCase();
 
                 // Create a Filer Buffer, and determine the proper encoding. We
                 // use the extension, and also the OS provided mime type for clues.
                 var buffer = new Filer.Buffer(e.target.result);
-                var utf8FromExt = Content.isUTF8Encoded(Path.extname(filename));
+                var utf8FromExt = Content.isUTF8Encoded(ext);
                 var utf8FromOS = Content.isTextType(item.type);
                 var encoding =  utf8FromExt || utf8FromOS ? 'utf8' : null;
                 if(encoding === 'utf8') {
@@ -414,9 +410,9 @@ define(function (require, exports, module) {
                 }
 
                 // Special-case .zip files, so we can offer to extract the contents
-                if(Path.extname(filename) === ".zip") {
+                if(ext === ".zip") {
                     handleZipFile(deferred, file, filename, buffer, encoding);
-                } else if(Path.extname(filename) === ".tar") {
+                } else if(ext === ".tar") {
                     handleTarFile(deferred, file, filename, buffer, encoding);
                 } else {
                     handleRegularFile(deferred, file, filename, buffer, encoding);

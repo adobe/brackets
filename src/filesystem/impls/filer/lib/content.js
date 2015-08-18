@@ -6,7 +6,7 @@ define(function (require, exports, module) {
     var LanguageManager = require('language/LanguageManager');
 
     function _getLanguageId(ext) {
-        ext = ext.replace(/^\./, "");
+        ext = ext.replace(/^\./, "").toLowerCase();
         var language = LanguageManager.getLanguageForExtension(ext);
         return language ? language.getId() : "";
     }
@@ -33,6 +33,8 @@ define(function (require, exports, module) {
         },
 
         mimeFromExt: function(ext) {
+            ext = ext.toLowerCase();
+
             switch(ext) {
             case '.html':
             case '.htmls':
