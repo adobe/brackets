@@ -14,3 +14,8 @@
 li.jstree-leaf > a {
 	cursor: pointer !important;
 }
+
+/* Add extra space to the left of the cursor in order that it will show at pos 0 */
+.CodeMirror-sizer {
+	margin-left: 75px !important;
+}
