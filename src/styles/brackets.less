@@ -1568,18 +1568,19 @@ a, img {
     }
 
     // Make button pairs snug
-    #find-prev, #replace-yes, #find-case-sensitive {
+    #find-prev, #replace-yes, #replace-batch, #find-case-sensitive {
         border-right: none;
         margin-right: 0;
     }
-    #find-next, #replace-all, #find-regexp {
+    #find-next, #replace-batch, #replace-all, #find-regexp {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
         margin-left: 0;
     }
-    #replace-all.solo {
+    #replace-batch.solo {
         border-left: none;
         margin-left: 0px;
+        border-right: 1px solid #b2b5b5;
     }
 
     // Make find field snug with options buttons
