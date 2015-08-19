@@ -8,18 +8,31 @@ before_script:
 branches:
   only:
   - bramble
+  - production
 notifications:
   irc: "irc.mozilla.org#thimble"
 deploy:
-  provider: s3
-  access_key_id: AKIAJZZYAKJA33TQEHLA
-  secret_access_key:
-    secure: PUmptcr3naHfuC1FU8q7F3OEbnbCzfKaTYleJDpYjz7lSt24zoXD5epaTcusva4SafMS3I5NeKZ79YmDrn2ONEyLdyPCLKNScOFEClhjFNeuMOrf63fK3MO1RwNtJ2Rvjwwi2k+/pVaVUXKcr287JWywDZUZfYp7DjxJdNU6JZ0=
-  bucket: mozillathimblelivepreview.net
-  local-dir: dist
-  upload-dir: bramble/dist
-  skip_cleanup: true
-  detect_encoding: true
-  on:
-    repo: humphd/brackets
-    branch: bramble
+  - provider: s3
+    access_key_id: AKIAJZZYAKJA33TQEHLA
+    secret_access_key:
+      secure: PUmptcr3naHfuC1FU8q7F3OEbnbCzfKaTYleJDpYjz7lSt24zoXD5epaTcusva4SafMS3I5NeKZ79YmDrn2ONEyLdyPCLKNScOFEClhjFNeuMOrf63fK3MO1RwNtJ2Rvjwwi2k+/pVaVUXKcr287JWywDZUZfYp7DjxJdNU6JZ0=
+    bucket: mozillathimblelivepreview.net
+    local-dir: dist
+    upload-dir: bramble/staging/dist
+    skip_cleanup: true
+    detect_encoding: true
+    on:
+      repo: humphd/brackets
+      branch: bramble
+  - provider: s3
+    access_key_id: AKIAJZZYAKJA33TQEHLA
+    secret_access_key:
+      secure: PUmptcr3naHfuC1FU8q7F3OEbnbCzfKaTYleJDpYjz7lSt24zoXD5epaTcusva4SafMS3I5NeKZ79YmDrn2ONEyLdyPCLKNScOFEClhjFNeuMOrf63fK3MO1RwNtJ2Rvjwwi2k+/pVaVUXKcr287JWywDZUZfYp7DjxJdNU6JZ0=
+    bucket: mozillathimblelivepreview.net
+    local-dir: dist
+    upload-dir: bramble/production/dist
+    skip_cleanup: true
+    detect_encoding: true
+    on:
+      repo: humphd/brackets
+      branch: production

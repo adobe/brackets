@@ -1,3 +1,9 @@
+# Bramble
+
+### Deployment
+
+Anything merged into the branch `bramble` will be automatically deployed to staging. To deploy to production, push changes to the `production` branch.
+
 # The Basics
 
 ### Filing a bug
