@@ -1,3 +1,6 @@
+/* FILE AUTO-GENERATED. DO NOT EDIT! */
+/* See samples/main.css */
+
 html {
     background-color: #e6e9e9;
     background-image: -webkit-linear-gradient(270deg,rgb(230,233,233) 0%,rgb(216,221,221) 100%);
@@ -9,7 +12,7 @@ body {
     margin: 0 auto;
     padding: 2em 2em 4em;
     max-width: 800px;
-    font-family: "Heiti TC", "LiHei Pro", "Microsoft JhengHei", "WenQuanYi Micro Hei", "Droid Sans Fallback", "Arial Unicode MS", sans-serif;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 16px;
     line-height: 1.5em;
     color: #545454;
@@ -19,7 +22,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
     color: #222;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.3em;
 }
 
@@ -28,11 +31,11 @@ h2 {
 }
 
 a {
-    color: #0083e8; 
+    color: #0083e8;
 }
 
 b, strong {
-    font-weight: 700;
+    font-weight: 600;
 }
 
 samp {
@@ -48,11 +51,6 @@ img {
     display: block;
     margin: 1.3em auto;
     max-width: 95%;
-}
-
-em {
-    font-style: normal;
-    font-weight: 700;
 }
 
 @-webkit-keyframes colorize {
@@ -72,5 +70,3 @@ em {
         filter: grayscale(0%);
     }
 }
-
-/* Last localized for a77e108a2950fb3676b20224f50cef0e3cb2e58a */

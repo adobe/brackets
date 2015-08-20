@@ -1,8 +1,5 @@
-
-/*
-This is the CSS rules for the Farsi|فارسیlanguage, which is written right to left.
-by pooya parsa dadashi || datamweb.
-*/
+/* FILE AUTO-GENERATED. DO NOT EDIT! */
+/* See samples/main.css */
 
 html {
     background-color: #e6e9e9;
@@ -15,15 +12,16 @@ body {
     margin: 0 auto;
     padding: 2em 2em 4em;
     max-width: 800px;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 16px;
     line-height: 1.5em;
     color: #545454;
-    background-color: #fff;
+    background-color: #ffffff;
     box-shadow: 0 0 2px rgba(0, 0, 0, 0.06);
 }
 
 h1, h2, h3, h4, h5, h6 {
-    color: #000;
+    color: #222;
     font-weight: 600;
     line-height: 1.3em;
 }
@@ -71,11 +69,4 @@ img {
     100% {
         filter: grayscale(0%);
     }
-}
-
-/* Starting custom rules */
-.rtl {
-    direction: rtl;
-    text-align: right;
-    font-family: "tahoma", Helvetica, Arial, sans-serif;
 }

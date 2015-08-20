@@ -1,0 +1,17 @@
+/*
+This is the CSS rules specific for the Farsi|فارسیlanguage, which is written right to left.
+by pooya parsa dadashi || datamweb.
+*/
+
+body {
+    font-family: "tahoma", Helvetica, Arial, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #000;
+}
+
+.rtl {
+    direction: rtl;
+    text-align: right;
+}
