@@ -1,19 +1,31 @@
-/*
- * Color Scheme
- * ============
- */
+//Tags
+@tag : #5ba87e;
+@tagBrackets : #5ba87e;
+@tagContent : rgba(255,255,255,.85);
+
+//Tag Highlight
+@matchingTag: rgba(56,174,113,.2);    // Highlight behind set of matched tags
+
+//Attributes
+@attribute : #a0779f;
+@attributeValue : #4f8eb2;
+
+//Main Background
+@codeBackground : #222;
+@lineBackground : #222;
+
+
 .cm-string {
-    color: #E6DB74;
+    color: @attributeValue;
 }
 
 .cm-error {
-    background: #F92672;
-    color: #F8F8F2 !important;
+    color: #ED488B !important;
 }
 
 .cm-meta,
 .cm-comment {
-    color: #75715E;
+    color: rgba(255,255,255,.3);
 }
 
 .cm-atom,
@@ -25,13 +37,13 @@
 .cm-property,
 .cm-attribute,
 .cm-keyword {
-    color: #66D9EF;
+    color: @attribute;
 }
 
 .cm-string.cm-property,
 .cm-variable,
 .cm-variable-2 {
-    color: #F8F8F2;
+    color: @tagContent;
 }
 
 .cm-variable-3,
@@ -42,12 +54,12 @@
 
 .cm-operator,
 .cm-tag {
-    color: #F92672;
+    color: @tag;
 }
 
 .cm-bracket,
 .cm-def {
-    color: #F8F8F2;
+    color: @tagBrackets;
 }
 
 /**
@@ -58,10 +70,20 @@
  * @TODO Scrollbars
  * @TODO Find highlights
  */
+
+.CodeMirror-gutter:after {
+    content:"";
+    position: absolute;
+    height: 100%;
+    width: 0;
+    right: 0;
+    border-right: solid 1px rgba(255,255,255,.1);
+}
+
 .CodeMirror,
 .CodeMirror .CodeMirror-scroll {
-    background: #222;
-    color: #F8F8F2;
+    background: @codeBackground;
+    color: @tagContent;
 }
 
 #not-editor,
@@ -80,8 +102,11 @@ div.CodeMirror-selected {
 }
 
 .CodeMirror-gutters {
-    background: #272822;
-    border-right: 0px;
+    background: @lineBackground;
+}
+
+.CodeMirror-linenumbers {
+    background: @lineBackground;
 }
 
 .CodeMirror-guttermarker {
@@ -93,7 +118,7 @@ div.CodeMirror-selected {
 }
 
 .CodeMirror-linenumber {
-    color: #8D8D8A;
+    color: rgba(255,255,255,.3);
 }
 
 .CodeMirror-cursor {
@@ -121,9 +146,7 @@ div.CodeMirror-selected {
 }
 
 .CodeMirror-matchingtag {
-    background-color: transparent;
-    border-bottom: 1px solid #F8F8F2; /* text-decoration: underline does not look that well with large font sizes */
-    padding-bottom: 0.166em;
+    background-color: @matchingTag;
 }
 
 /**
