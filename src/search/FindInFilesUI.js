@@ -198,6 +198,11 @@ define(function (require, exports, module) {
                     // Single-file scope: don't use any file filters
                     filter = null;
                 }
+
+                if (queryInfo.isRegexp) {
+                    replaceText = FindUtils.parseString(replaceText);
+                }
+
                 searchAndShowResults(queryInfo, scope, filter, replaceText, candidateFilesPromise);
             }
             return null;

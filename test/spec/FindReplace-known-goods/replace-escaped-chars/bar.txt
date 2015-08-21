@@ -1,0 +1,3 @@
+\r\n\t.txt file
+
+This file should *not* show up in certain searches

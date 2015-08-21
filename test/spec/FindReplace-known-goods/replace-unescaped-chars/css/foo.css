@@ -1,0 +1,13 @@
+/* foo.css */	
+body {	
+    margin: 0;	
+}	
+h1, footer {	
+    padding: 2px auto;	
+}	
+ul.foo {	
+    list-style: none;	
+}	
+.bar {	
+    font-size: large;	
+}	

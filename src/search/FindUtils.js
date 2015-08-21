@@ -103,6 +103,43 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Parses a string and replace the \r, \n and \t sequences of characters
+     * with a character based on the regex meaning of these sequences.
+     * \n => Line Feed
+     * \r => Carriage Return
+     * \t => Tab
+     *
+     * @param {string} string - The string to parse.
+     * @return {string} The replaced text.
+     */
+    function parseString(string) {
+        return string.replace(/\\(.)/g, function (match, ch) {
+            if (ch === "n") {
+                return "\n";
+            }
+            if (ch === "r") {
+                return "\r";
+            }
+            if (ch === "t") {
+                return "\t";
+            }
+            return ch;
+        });
+    }
+
+    /**
+     * Parses a string through parseDollars and parseString functions.
+     *
+     * @param {string} string - The string to parse.
+     * @param {Object} match - The match data from the regexp.
+     * @return {string} The replaced text.
+     */
+    function parseRegexp(string, match) {
+        var str = parseDollars(string, match);
+        return parseString(str);
+    }
+
+    /**
      * Does a set of replacements in a single document in memory.
      * @param {!Document} doc The document to do the replacements in.
      * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`. Might be mutated.
@@ -126,7 +163,7 @@ define(function (require, exports, module) {
         doc.batchOperation(function () {
             matchInfo.matches.reverse().forEach(function (match) {
                 if (match.isChecked) {
-                    doc.replaceRange(isRegexp ? parseDollars(replaceText, match.result) : replaceText, match.start, match.end);
+                    doc.replaceRange(isRegexp ? parseRegexp(replaceText, match.result) : replaceText, match.start, match.end);
                 }
             });
         });
@@ -158,7 +195,7 @@ define(function (require, exports, module) {
             matchInfo.matches.forEach(function (match) {
                 if (match.isChecked) {
                     result.push(contents.slice(lastIndex, match.startOffset));
-                    result.push(isRegexp ? parseDollars(replaceText, match.result) : replaceText);
+                    result.push(isRegexp ? parseRegexp(replaceText, match.result) : replaceText);
                     lastIndex = match.endOffset;
                 }
             });
@@ -518,6 +555,8 @@ define(function (require, exports, module) {
     }
 
     exports.parseDollars                    = parseDollars;
+    exports.parseString                     = parseString;
+    exports.parseRegexp                     = parseRegexp;
     exports.hasCheckedMatches               = hasCheckedMatches;
     exports.performReplacements             = performReplacements;
     exports.labelForScope                   = labelForScope;

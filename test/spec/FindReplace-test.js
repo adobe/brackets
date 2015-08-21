@@ -1483,6 +1483,70 @@ define(function (require, exports, module) {
                     expect(/_modules\/Foo-Foo\$&/i.test(myEditor.getSelectedText())).toBe(true);
                 });
             });
+
+            it("should replace a string with \\r\\n\\t chars", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.CMD_REPLACE);
+                    enterSearchText("Foo");
+                    enterReplaceText("\\r\\n\\t");
+
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}};
+
+                    expectSelection(expectedMatch);
+                    expect(/Foo/.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
+                    tw$("#replace-yes").click();
+
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: 8}, {line: LINE_FIRST_REQUIRE, ch: 14});
+                    expect(myEditor.getSelectedText()).toEqual("\\r\\n\\t");
+                });
+            });
+
+            it("should replace a string with \\r\\n\\t chars in regex mode", function () {
+                runs(function () {
+                    twCommandManager.execute(Commands.CMD_REPLACE);
+                    toggleRegexp(true);
+                    enterSearchText("Foo");
+                    enterReplaceText("\\\\r\\\\n\\\\t");
+
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}};
+
+                    expectSelection(expectedMatch);
+                    expect(/Foo/.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
+                    tw$("#replace-yes").click();
+
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: 8}, {line: LINE_FIRST_REQUIRE, ch: 14});
+                    expect(myEditor.getSelectedText()).toEqual("\\r\\n\\t");
+                });
+            });
+
+            it("should replace a string with a new line and a tab in regex mode", function () {
+                runs(function () {
+                    var oldLineSeparator = myEditor._codeMirror.getOption("lineSeparator");
+                    myEditor._codeMirror.setOption("lineSeparator", "\r\n");
+
+                    twCommandManager.execute(Commands.CMD_REPLACE);
+                    toggleRegexp(true);
+                    enterSearchText("Foo");
+                    enterReplaceText("\\r\\n\\t");
+
+                    var expectedMatch = {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}};
+
+                    expectSelection(expectedMatch);
+                    expect(/Foo/.test(myEditor.getSelectedText())).toBe(true);
+
+                    expect(tw$("#replace-yes").is(":enabled")).toBe(true);
+                    tw$("#replace-yes").click();
+
+                    myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: 4}, {line: LINE_FIRST_REQUIRE + 1, ch: 3});
+                    expect(myEditor.getSelectedText()).toEqual("var \r\n\t =");
+
+                    myEditor._codeMirror.setOption("lineSeparator", oldLineSeparator);
+                });
+            });
         });
 
 

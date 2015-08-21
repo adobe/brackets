@@ -1308,6 +1308,37 @@ define(function (require, exports, module) {
                     });
                 });
 
+                it("should replace instances of a string in a project with escaped chars", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doBasicTest({
+                        queryInfo:       {query: "bar"},
+                        numMatches:      7,
+                        replaceText:     "\\r\\n\\t",
+                        knownGoodFolder: "replace-escaped-chars"
+                    });
+                });
+
+                it("should replace instances of a string in a project with escaped chars in regex mode", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doBasicTest({
+                        queryInfo:       {query: "bar", isRegexp: true},
+                        numMatches:      7,
+                        replaceText:     "\\\\r\\\\n\\\\t",
+                        knownGoodFolder: "replace-escaped-chars"
+                    });
+                });
+
+                it("should replace instances of a regexp in a project with unescaped chars in regex mode", function () {
+                    openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_LF);
+                    doBasicTest({
+                        queryInfo:       {query: "\n", isRegexp: true},
+                        numMatches:      51,
+                        replaceText:     "\\t\\r\\n",
+                        knownGoodFolder: "replace-unescaped-chars",
+                        lineEndings:     FileUtils.LINE_ENDINGS_CRLF
+                    });
+                });
+
                 it("should replace instances of a string in a project respecting CRLF line endings", function () {
                     openTestProjectCopy(defaultSourcePath, FileUtils.LINE_ENDINGS_CRLF);
                     doBasicTest({
