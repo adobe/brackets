@@ -569,6 +569,28 @@ define(function (require, exports, module) {
         };
     }
 
+    /**
+     * Parses a string and replace the \r, \n and \t sequences of characters
+     * with a character based on the regex meaning of these sequences.
+     * \n => Line Feed
+     * \r => Carriage Return
+     * \t => Tab
+     */
+    function parseString(string) {
+        return string.replace(/\\(.)/g, function (match, ch) {
+            if (ch === "n") {
+                return "\n";
+            }
+            if (ch === "r") {
+                return "\r";
+            }
+            if (ch === "t") {
+                return "\t";
+            }
+            return ch;
+        });
+    }
+
     exports.parseDollars                    = parseDollars;
     exports.getInitialQuery                 = getInitialQuery;
     exports.hasCheckedMatches               = hasCheckedMatches;
@@ -586,6 +608,7 @@ define(function (require, exports, module) {
     exports.setCollapseResults              = setCollapseResults;
     exports.isCollapsedResults              = isCollapsedResults;
     exports.getHealthReport                 = getHealthReport;
+    exports.parseString                     = parseString;
     exports.ERROR_FILE_CHANGED              = "fileChanged";
 
     // event notification functions

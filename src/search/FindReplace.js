@@ -680,6 +680,10 @@ define(function (require, exports, module) {
             state = getSearchState(cm),
             replaceText = findBar.getReplaceText();
 
+        if (state.queryInfo.isRegexp) {
+            replaceText = FindUtils.parseString(replaceText);
+        }
+
         if (all) {
             findBar.close();
             // Delegate to Replace in Files.
