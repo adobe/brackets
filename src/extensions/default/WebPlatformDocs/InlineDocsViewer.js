@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window, Mustache */
+/*global define, brackets, $, window */
 
 /**
  * Inline widget to display WebPlatformDocs JSON data nicely formatted
@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         InlineWidget    = brackets.getModule("editor/InlineWidget").InlineWidget,
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
-        Strings         = brackets.getModule("strings");
+        Strings         = brackets.getModule("strings"),
+        Mustache        = brackets.getModule("thirdparty/mustache/mustache");
 
     // Load template
     var inlineEditorTemplate = require("text!InlineDocsViewer.html");

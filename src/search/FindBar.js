@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, Mustache */
+/*global define, $ */
 
 /*
  * UI for the Find/Replace and Find in Files modal bar.
@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                  = require("thirdparty/lodash"),
+        Mustache           = require("thirdparty/mustache/mustache"),
         EventDispatcher    = require("utils/EventDispatcher"),
         Commands           = require("command/Commands"),
         KeyBindingManager  = require("command/KeyBindingManager"),

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: true, $, window, navigator, Mustache, jQuery */
+/*global define, brackets: true, $, window, navigator, jQuery */
 
 // TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
 
@@ -112,6 +112,18 @@ define(function (require, exports, module) {
         get: function () {
             DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/CodeMirror/lib/codemirror") instead of global CodeMirror.', true);
             return CodeMirror;
+        }
+    });
+
+    // DEPRECATED: In future we want to remove the global Mustache, but for now we
+    // expose our required Mustache globally so as to avoid breaking extensions in the
+    // interim.
+    var Mustache = require("thirdparty/mustache/mustache");
+
+    Object.defineProperty(window, "Mustache", {
+        get: function () {
+            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/mustache/mustache") instead of global Mustache.', true);
+            return Mustache;
         }
     });
 
