@@ -80,6 +80,12 @@ define(function (require, exports, module) {
      * Constant indicating that this model/view should initialize from the list of locally installed extensions.
      */
     ExtensionManagerViewModel.prototype.SOURCE_INSTALLED = "installed";
+
+    /**
+     * @type {string}
+     * Constant indicating that this model/view should initialize from the list of default installed extensions.
+     */
+    ExtensionManagerViewModel.prototype.SOURCE_INSTALLED_DEFAULT = "installed-default";
     
     /**
      * @type {Object}
@@ -361,19 +367,9 @@ define(function (require, exports, module) {
         }
         return entry;
     };
-    
-    /**
-     * The model for the ExtensionManagerView that is responsible for handling previously-installed extensions. 
-     * This extends ExtensionManagerViewModel.
-     * Must be disposed with dispose() when done.
-     *
-     * Events:
-     * - change - triggered when the data for a given extension changes. Second parameter is the extension id.
-     * - filter - triggered whenever the filtered set changes (including on initialize).
-     *
-     * @constructor
-     */
-    function InstalledViewModel() {
+
+
+    function AbstractInstalledViewModel() {
         ExtensionManagerViewModel.call(this);
 
         // when registry is downloaded, sort extensions again - those with updates will be before others
@@ -383,43 +379,17 @@ define(function (require, exports, module) {
             self._setInitialFilter();
         });
     }
-    
-    InstalledViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
-    InstalledViewModel.prototype.constructor = InstalledViewModel;
-    
+
+    AbstractInstalledViewModel.prototype = Object.create(ExtensionManagerViewModel.prototype);
+    AbstractInstalledViewModel.prototype.constructor = AbstractInstalledViewModel;
+
     /**
-     * @type {string}
-     * InstalledViewModels always have a source of SOURCE_INSTALLED.
-     */
-    InstalledViewModel.prototype.source = ExtensionManagerViewModel.prototype.SOURCE_INSTALLED;
-    
-    /**
-     * Initializes the model from the set of locally installed extensions, sorted
-     * alphabetically by id (or name of the extension folder for legacy extensions).
-     * @return {$.Promise} a promise that's resolved when we're done initializing.
-     */
-    InstalledViewModel.prototype._initializeFromSource = function () {
-        var self = this;
-        this.extensions = ExtensionManager.extensions;
-        this.sortedFullSet = Object.keys(this.extensions)
-            .filter(function (key) {
-                return self.extensions[key].installInfo &&
-                    self.extensions[key].installInfo.locationType !== ExtensionManager.LOCATION_DEFAULT;
-            });
-        this._sortFullSet();
-        this._setInitialFilter();
-        this._countUpdates();
-        
-        return new $.Deferred().resolve().promise();
-    };
-    
-    /**
-     * @private
+     * @protected
      * Re-sorts the current full set
      */
-    InstalledViewModel.prototype._sortFullSet = function () {
+    AbstractInstalledViewModel.prototype._sortFullSet = function () {
         var self = this;
-        
+
         this.sortedFullSet = this.sortedFullSet.sort(function (key1, key2) {
             // before sorting by name, put first extensions that have updates
             var ua1 = self.extensions[key1].installInfo.updateAvailable,
@@ -439,7 +409,66 @@ define(function (require, exports, module) {
             return id1.localeCompare(id2);
         });
     };
-    
+
+    /**
+     * @protected
+     * Finds the extension metadata by id. If there is no extension matching the given id,
+     * this returns `null`.
+     * @param {string} id of the extension
+     * @return {Object?} extension metadata or null if there's no matching extension
+     */
+    AbstractInstalledViewModel.prototype._getEntry = function (id) {
+        var entry = this.extensions[id];
+        if (entry) {
+            return entry.installInfo;
+        }
+        return entry;
+    };
+
+    /**
+     * The model for the ExtensionManagerView that is responsible for handling previously-installed extensions.
+     * This extends ExtensionManagerViewModel.
+     * Must be disposed with dispose() when done.
+     *
+     * Events:
+     * - change - triggered when the data for a given extension changes. Second parameter is the extension id.
+     * - filter - triggered whenever the filtered set changes (including on initialize).
+     *
+     * @constructor
+     */
+    function InstalledViewModel() {
+        AbstractInstalledViewModel.call(this);
+    }
+
+    InstalledViewModel.prototype = Object.create(AbstractInstalledViewModel.prototype);
+    InstalledViewModel.prototype.constructor = InstalledViewModel;
+
+    /**
+     * @type {string}
+     * InstalledViewModels always have a source of SOURCE_INSTALLED.
+     */
+    InstalledViewModel.prototype.source = ExtensionManagerViewModel.prototype.SOURCE_INSTALLED;
+
+    /**
+     * Initializes the model from the set of locally installed extensions, sorted
+     * alphabetically by id (or name of the extension folder for legacy extensions).
+     * @return {$.Promise} a promise that's resolved when we're done initializing.
+     */
+    InstalledViewModel.prototype._initializeFromSource = function () {
+        var self = this;
+        this.extensions = ExtensionManager.extensions;
+        this.sortedFullSet = Object.keys(this.extensions)
+            .filter(function (key) {
+                return self.extensions[key].installInfo &&
+                    self.extensions[key].installInfo.locationType !== ExtensionManager.LOCATION_DEFAULT;
+            });
+        this._sortFullSet();
+        this._setInitialFilter();
+        this._countUpdates();
+
+        return new $.Deferred().resolve().promise();
+    };
+
     /**
      * @private
      * Updates notifyCount based on number of extensions with an update available
@@ -453,7 +482,7 @@ define(function (require, exports, module) {
             }
         });
     };
-    
+
     /**
      * @private
      * Updates the initial set and filter as necessary when the status of an extension changes,
@@ -478,28 +507,57 @@ define(function (require, exports, module) {
         if (refilter) {
             this.filter(this._lastQuery || "", true);
         }
-        
+
         if (this.extensions[id].installInfo) {
             // If our count of available updates may have been affected, re-count
             this._countUpdates();
         }
-        
+
         ExtensionManagerViewModel.prototype._handleStatusChange.call(this, e, id);
     };
-    
+
     /**
-     * @private
-     * Finds the extension metadata by id. If there is no extension matching the given id,
-     * this returns `null`.
-     * @param {string} id of the extension
-     * @return {Object?} extension metadata or null if there's no matching extension
+     * The model for the ExtensionManagerView that is responsible for handling default installed extensions.
+     * This extends InstalledViewModel.
+     * Must be disposed with dispose() when done.
+     *
+     * Events:
+     * - change - triggered when the data for a given extension changes. Second parameter is the extension id.
+     * - filter - triggered whenever the filtered set changes (including on initialize).
+     *
+     * @constructor
      */
-    InstalledViewModel.prototype._getEntry = function (id) {
-        var entry = this.extensions[id];
-        if (entry) {
-            return entry.installInfo;
-        }
-        return entry;
+    function InstalledDefaultViewModel() {
+        AbstractInstalledViewModel.call(this);
+    }
+
+    InstalledDefaultViewModel.prototype = Object.create(AbstractInstalledViewModel.prototype);
+    InstalledDefaultViewModel.prototype.constructor = InstalledDefaultViewModel;
+
+    /**
+     * @type {string}
+     * InstalledDefaultViewModel always have a source of SOURCE_INSTALLED_DEFAULT.
+     */
+    InstalledDefaultViewModel.prototype.source = ExtensionManagerViewModel.prototype.SOURCE_INSTALLED_DEFAULT;
+
+    /**
+     * Initializes the model from the set of default installed extensions, sorted
+     * alphabetically by id (or name of the extension folder for legacy extensions).
+     * @return {$.Promise} a promise that's resolved when we're done initializing.
+     */
+    InstalledDefaultViewModel.prototype._initializeFromSource = function () {
+        var self = this;
+        this.extensions = ExtensionManager.extensions;
+        this.sortedFullSet = Object.keys(this.extensions)
+            .filter(function (key) {
+                return self.extensions[key].installInfo &&
+                    self.extensions[key].installInfo.locationType === ExtensionManager.LOCATION_DEFAULT &&
+                    _.isEmpty(self.extensions[key].installInfo.metadata.theme);
+            });
+        this._sortFullSet();
+        this._setInitialFilter();
+
+        return new $.Deferred().resolve().promise();
     };
 
     /**
@@ -572,4 +630,5 @@ define(function (require, exports, module) {
     exports.RegistryViewModel = RegistryViewModel;
     exports.ThemesViewModel = ThemesViewModel;
     exports.InstalledViewModel = InstalledViewModel;
+    exports.InstalledDefaultViewModel = InstalledDefaultViewModel;
 });
