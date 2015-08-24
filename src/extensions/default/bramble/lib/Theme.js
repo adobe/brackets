@@ -6,7 +6,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var ThemeManager     = brackets.getModule("view/ThemeManager");
-    var ThemePreferences = brackets
+    var prefs            = brackets
                             .getModule("preferences/PreferencesManager")
                             .getExtensionPrefs("themes");
 
@@ -15,23 +15,18 @@ define(function (require, exports, module) {
     var themePath        = Path.join(basePath, 'extensions/default/bramble/stylesheets');
     var BrambleEvents    = brackets.getModule("bramble/BrambleEvents");
 
-    // Store the current theme, and load defaults as if
-    // they were third party themes
-    var currentTheme = 'light-theme';
-
     function toggle(data) {
-        var theme = data.theme || currentTheme;
+        var theme = data.theme || getTheme();
         setTheme(theme === "light-theme" ? "dark-theme" : "light-theme");
     }
 
     function setTheme(theme) {
-        currentTheme = theme;
-        ThemePreferences.set("theme", theme);
+        prefs.set("theme", theme);
         BrambleEvents.triggerThemeChange(theme);
     }
 
     function getTheme() {
-        return currentTheme;
+        return prefs.get("theme");
     }
 
     function init(theme) {
@@ -57,8 +52,12 @@ define(function (require, exports, module) {
         ThemeManager.addTheme(lightFile, lightOptions);
         ThemeManager.addTheme(darkFile, darkOptions);
 
-        currentTheme = theme === 'light-theme' ? "dark-theme" : "light-theme";
-        ThemePreferences.set("theme", currentTheme);
+        // We support only light-theme and dark-theme, with a default of dark-theme
+        if(!(theme === "light-theme" || theme === "dark-theme")) {
+            theme = "dark-theme";
+        }
+
+        prefs.set("theme", theme);
     }
 
     module.exports.toggle = toggle;

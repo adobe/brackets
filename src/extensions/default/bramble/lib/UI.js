@@ -50,6 +50,7 @@ define(function (require, exports, module) {
                     }
                 }
 
+                // Restore any UI defaults cached in the client
                 restoreState();
 
                 // Show the editor, remove spinner
@@ -65,26 +66,18 @@ define(function (require, exports, module) {
      * Restores user state sent from the hosting app
      */
     function restoreState() {
-        var theme = BrambleStartupState.ui("theme");
-        if(theme) {
-            switch(theme) {
-            case "light-theme":
-            case "dark-theme":
-                Theme.setTheme(theme);
-                break;
-            default:
-                console.warn("[Bramble] unknown theme: `" + theme + "`");
-            }
-        }
+        // Load the two theme extensions outside of
+        // the ExtensionLoader logic (avoids circular dependencies)
+        Theme.init(BrambleStartupState.ui("theme"));
 
         var previewMode = BrambleStartupState.ui("previewMode");
         if(previewMode) {
             switch(previewMode) {
             case "desktop":
-                showDesktopView();
+                showDesktopView(true);
                 break;
             case "mobile":
-                showMobileView();
+                showMobileView(true);
                 break;
             default:
                 console.warn("[Bramble] unknown preview mode: `" + previewMode + "`");
@@ -202,7 +195,7 @@ define(function (require, exports, module) {
         MainViewManager.setActivePaneId("first-pane");
     }
 
-    function showDesktopView() {
+    function showDesktopView(preventReload) {
         if(!isMobileViewOpen) {
             return;
         }
@@ -221,10 +214,13 @@ define(function (require, exports, module) {
 
         isMobileViewOpen = false;
         BrambleEvents.triggerPreviewModeChange("desktop");
-        PostMessageTransport.reload();
+
+        if(!preventReload) {
+            PostMessageTransport.reload();
+        }
     }
 
-    function showMobileView() {
+    function showMobileView(preventReload) {
         if(isMobileViewOpen) {
             return;
         }
@@ -247,7 +243,10 @@ define(function (require, exports, module) {
 
         isMobileViewOpen = true;
         BrambleEvents.triggerPreviewModeChange("mobile");
-        PostMessageTransport.reload();
+
+        if(!preventReload) {
+            PostMessageTransport.reload();
+        }
     }
 
     /**

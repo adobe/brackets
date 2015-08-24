@@ -175,7 +175,14 @@ define(function (require, exports, module) {
     function reload() {
         var launcher = Launcher.getCurrentInstance();
         var liveDoc = LiveDevMultiBrowser._getCurrentLiveDoc();
-        var url = BlobUtils.getUrl(liveDoc.doc.file.fullPath);
+        var url;
+
+        // Don't go any further if we don't have a live doc yet (nothing to reload)
+        if(!liveDoc) {
+            return;
+        }
+
+        url = BlobUtils.getUrl(liveDoc.doc.file.fullPath);
 
         // Don't start rewriting a URL if it's already in process (prevents infinite loop)
         if(_pendingReloadUrl === url) {

@@ -104,14 +104,6 @@ define(function (require, exports, module) {
             console.warn("Unable to preload filesystem URLs", err);
         }
 
-        // Load the two theme extensions outside of
-        // the ExtensionLoader logic (avoids circular dependencies)
-        Theme.init();
-
-        // Setup the iframe browser and Blob URL live dev servers and
-        // load the initial document into the preview.
-        startLiveDev();
-
         // Below are methods to change the preferences of brackets, more available at:
         // https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#list-of-supported-preferences
         PreferencesManager.set("insertHintOnTab", true);
@@ -170,6 +162,10 @@ define(function (require, exports, module) {
 
                     // Signal that Brackets is loaded
                     AppInit._dispatchReady(AppInit.APP_READY);
+
+                    // Setup the iframe browser and Blob URL live dev servers and
+                    // load the initial document into the preview.
+                    startLiveDev();
 
                     UI.initUI(finishStartup);
                 });
