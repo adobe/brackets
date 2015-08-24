@@ -43,12 +43,15 @@
 /* Statusbar buttons end */
 
 /* Mobile view start */
+.phone-wrapper {
+    background: #eaeaea;
+    padding: 30px 0;
+}
+
 .phone-container {
     margin: 0px auto;
-    margin-top: 30px;
     position: relative;
     z-index: 1;
-    border: 2px solid #555;
     width: 330px;
     border-radius: 20px;
     background: #222 none repeat scroll 0% 0%;

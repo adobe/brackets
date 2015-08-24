@@ -215,7 +215,7 @@ define(function (require, exports, module) {
                                   "Click to open preview in a mobile view");
 
         $("#bramble-iframe-browser").appendTo("#second-pane");
-        $(".phone-container").detach();
+        $(".phone-wrapper").detach();
         $("#second-pane").removeClass("second-pane-scroll");
         $("#second-pane").off("click", stealFocus);
 
