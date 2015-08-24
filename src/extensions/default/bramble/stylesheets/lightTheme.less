@@ -1,41 +1,54 @@
 /* SWATCHES ---------------------------------------------------------------------- */
 
 span.cm-builtin     { color: #00294a; }
-span.cm-def			{ color: #00294a; }
+span.cm-def         { color: #00294a; }
 span.cm-header      { color: #00294a; }
-span.cm-meta		{ color: #00294a; }
-span.cm-operator	{ color: #00294a; }
-span.cm-qualifier	{ color: #00294a; }
+span.cm-meta        { color: #00294a; }
+span.cm-operator    { color: #00294a; }
+span.cm-qualifier   { color: #00294a; }
 
-span.cm-atom		{ color: #008fff; }
-span.cm-link		{ color: #008fff; }
-span.cm-number		{ color: #008fff; }
-span.cm-string		{ color: #008fff; }
+span.cm-atom        { color: #008fff; }
+span.cm-link        { color: #008fff; }
+span.cm-number      { color: #008fff; }
+span.cm-string      { color: #008fff; }
 span.cm-string-2    { color: #008fff; }
-span.cm-variable-2	{ color: #008fff; }
-span.cm-variable-3	{ color: #008fff; }
+span.cm-variable-2  { color: #008fff; }
+span.cm-variable-3  { color: #008fff; }
 
-span.cm-bracket		{ color: #002cb8; }
-span.cm-tag			{ color: #002cb8; }
+span.cm-bracket     { color: #002cb8; }
+span.cm-tag         { color: #002cb8; }
 
-span.cm-attribute	{ color: #008d5c; }
-span.cm-property	{ color: #008d5c; } /* property after string */
+span.cm-attribute   { color: #008d5c; }
+span.cm-property    { color: #008d5c; } /* property after string */
 
-span.cm-comment		{ color: #779cac; }
-span.cm-error		{ color: #ff3da5; }
-span.cm-keyword		{ color: #002ea3; }
-span.cm-variable	{ color: #0056ba; }
+span.cm-comment     { color: #B1B1B1; }
+span.cm-error       { color: #ff3da5; }
+span.cm-keyword     { color: #002ea3; }
+span.cm-variable    { color: #0056ba; }
 
 
 /* MISC ---------------------------------------------------------------------- */
 
+.CodeMirror-linenumber {
+  color: #CCC;
+}
+
+.CodeMirror-gutter:after {
+    content:"";
+    position: absolute;
+    height: 100%;
+    width: 0;
+    right: 0;
+    border-right: 1px solid #e6eff4;
+}
+
 .CodeMirror-scroll {
-	background: #fff;
-	color: #4d6071;
+    background: #fff;
+    color: #324a5b;
 }
 
 .CodeMirror-cursor {
-	border-left: 1px solid #000 !important;
+    border-left: 1px solid #000 !important;
 }
 
 .CodeMirror-overwrite .CodeMirror-cursor {
@@ -44,13 +57,9 @@ span.cm-variable	{ color: #0056ba; }
 }
 
 .CodeMirror-gutters {
-	background: #fff;
-	border-right: 1px solid #e6eff4;
+  background: #fff;
 }
 
-.CodeMirror-linenumber {
-	color: #a5bdc7;
-}
 
 .CodeMirror-selected {}
 
