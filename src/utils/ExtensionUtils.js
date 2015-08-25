@@ -34,6 +34,9 @@ define(function (require, exports, module) {
     var FileSystem = require("filesystem/FileSystem"),
         FileUtils  = require("file/FileUtils");
 
+    // XXXBramble specific bits
+    var Path = require("filesystem/impls/filer/BracketsFiler").Path;
+
     /**
      * Appends a <style> tag to the document's head.
      *
@@ -195,6 +198,14 @@ define(function (require, exports, module) {
      */
     function loadStyleSheet(module, path) {
         var result = new $.Deferred();
+        var url;
+
+        // XXXBramble: don't double-load a CSS file, just link it
+        if(Path.extname(path) === ".css") {
+            url = PathUtils.isAbsoluteUrl(path) ? path : getModuleUrl(module, path);
+            addLinkedStyleSheet(url, result);
+            return result.promise();
+        }
 
         loadFile(module, path)
             .done(function (content) {
