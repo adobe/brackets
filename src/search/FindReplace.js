@@ -88,37 +88,33 @@ define(function (require, exports, module) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
         return cm.getSearchCursor(state.parsedQuery, pos, !state.queryInfo.isCaseSensitive);
     }
-    
+
     function parseQuery(queryInfo) {
         if (findBar) {
             findBar.showError(null);
         }
-        
-        if (!queryInfo || !queryInfo.query) {
+
+        var queryResult = FindUtils.parseQueryInfo(queryInfo);
+
+        if (queryResult.empty) {
             return "";
         }
-    
-        // Is it a (non-blank) regex?
-        if (queryInfo.isRegexp) {
-            try {
-                return new RegExp(queryInfo.query, queryInfo.isCaseSensitive ? "" : "i");
-            } catch (e) {
-                if (findBar) {
-                    findBar.showError(e.message);
-                }
-                return "";
+
+        if (!queryResult.valid) {
+            if (findBar) {
+                findBar.showError(queryResult.error);
             }
-        
-        } else {
-            return queryInfo.query;
+            return "";
         }
+
+        return queryResult.queryExpr;
     }
 
     /**
      * @private
      * Determine the query from the given info and store it in the state.
      * @param {SearchState} state The state to store the parsed query in
-     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo 
+     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo 
      *      The query info object as returned by FindBar.getQueryInfo()
      */
     function setQueryInfo(state, queryInfo) {
@@ -317,7 +313,7 @@ define(function (require, exports, module) {
             // We store this as a query in the state so that if the user next does a "Find Next",
             // it will use the same query (but throw away the existing selection).
             var state = getSearchState(editor._codeMirror);
-            setQueryInfo(state, { query: searchText, isCaseSensitive: false, isRegexp: false });
+            setQueryInfo(state, { query: searchText, isCaseSensitive: false, isRegexp: false, isWholeWord: false });
             
             // Skip over matches that are already in the selection.
             var searchStart = primarySel.end,
@@ -383,7 +379,7 @@ define(function (require, exports, module) {
             var searchStart = {line: 0, ch: 0},
                 state = getSearchState(editor._codeMirror),
                 nextMatch;
-            setQueryInfo(state, { query: editor.document.getRange(sel.start, sel.end), isCaseSensitive: false, isRegexp: false });
+            setQueryInfo(state, { query: editor.document.getRange(sel.start, sel.end), isCaseSensitive: false, isRegexp: false, isWholeWord: false });
             
             while ((nextMatch = _getNextMatch(editor, false, searchStart, false)) !== null) {
                 if (_selEq(sel, nextMatch)) {
@@ -679,6 +675,10 @@ define(function (require, exports, module) {
         var cm = editor._codeMirror,
             state = getSearchState(cm),
             replaceText = findBar.getReplaceText();
+
+        if (state.queryInfo.isRegexp) {
+            replaceText = FindUtils.parseString(replaceText);
+        }
 
         if (all) {
             findBar.close();

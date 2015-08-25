@@ -348,7 +348,7 @@ define(function (require, exports, module) {
 
     /**
      * Parses the given query into a regexp, and returns whether it was valid or not.
-     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo
+     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo
      * @return {{queryExpr: RegExp, valid: boolean, empty: boolean, error: string}}
      *      queryExpr - the regexp representing the query
      *      valid - set to true if query is a nonempty string or a valid regexp.
@@ -358,8 +358,6 @@ define(function (require, exports, module) {
     function parseQueryInfo(queryInfo) {
         var queryExpr;
 
-        // TODO: only major difference between this one and the one in FindReplace is that
-        // this always returns a regexp even for simple strings. Reconcile.
         if (!queryInfo || !queryInfo.query) {
             return {empty: true};
         }
@@ -372,16 +370,25 @@ define(function (require, exports, module) {
             flags += "i";
         }
 
+        var query = queryInfo.query;
+
         // Is it a (non-blank) regex?
         if (queryInfo.isRegexp) {
             try {
-                queryExpr = new RegExp(queryInfo.query, flags);
+                if (queryInfo.isWholeWord) {
+                    query = "\\b" + query + "\\b";
+                }
+                queryExpr = new RegExp(query, flags);
             } catch (e) {
                 return {valid: false, error: e.message};
             }
         } else {
+            query = StringUtils.regexEscape(query);
+            if (queryInfo.isWholeWord) {
+                query = "\\b" + query + "\\b";
+            }
             // Query is a plain string. Turn it into a regexp
-            queryExpr = new RegExp(StringUtils.regexEscape(queryInfo.query), flags);
+            queryExpr = new RegExp(query, flags);
         }
         return {valid: true, queryExpr: queryExpr};
     }
@@ -569,6 +576,28 @@ define(function (require, exports, module) {
         };
     }
 
+    /**
+     * Parses a string and replace the \r, \n and \t sequences of characters
+     * with a character based on the regex meaning of these sequences.
+     * \n => Line Feed
+     * \r => Carriage Return
+     * \t => Tab
+     */
+    function parseString(string) {
+        return string.replace(/\\(.)/g, function (match, ch) {
+            if (ch === "n") {
+                return "\n";
+            }
+            if (ch === "r") {
+                return "\r";
+            }
+            if (ch === "t") {
+                return "\t";
+            }
+            return ch;
+        });
+    }
+
     exports.parseDollars                    = parseDollars;
     exports.getInitialQuery                 = getInitialQuery;
     exports.hasCheckedMatches               = hasCheckedMatches;
@@ -586,6 +615,7 @@ define(function (require, exports, module) {
     exports.setCollapseResults              = setCollapseResults;
     exports.isCollapsedResults              = isCollapsedResults;
     exports.getHealthReport                 = getHealthReport;
+    exports.parseString                     = parseString;
     exports.ERROR_FILE_CHANGED              = "fileChanged";
 
     // event notification functions
