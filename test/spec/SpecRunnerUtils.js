@@ -140,6 +140,14 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Rename a directory or file.
+     * @return {$.Promise} Resolved when the path is rename, rejected if there was a problem
+     */
+    function rename(src, dest) {
+        return testDomain().rename(src, dest);
+    }
+    
+    /**
      * Resolves a path string to a File or Directory
      * @param {!string} path Path to a file or directory
      * @return {$.Promise} A promise resolved when the file/directory is found or
@@ -296,7 +304,7 @@ define(function (require, exports, module) {
                 console.log("boo");
             });
         
-            waitsForDone(deferred.promise(), "removeTempDirectory", 1000);
+            waitsForDone(deferred.promise(), "removeTempDirectory", 2000);
         });
     }
     
@@ -526,10 +534,23 @@ define(function (require, exports, module) {
             
             // signals that main.js should configure RequireJS for tests
             params.put("testEnvironment", true);
+
+            if (options) {
+                // option to set the params
+                if (options.hasOwnProperty("params")) {
+                    var paramObject = options.params || {};
+                    var obj;
+                    for (obj in paramObject) {
+                        if (paramObject.hasOwnProperty(obj)) {
+                            params.put(obj, paramObject[obj]);
+                        }
+                    }
+                }
             
-            // option to launch test window with either native or HTML menus
-            if (options && options.hasOwnProperty("hasNativeMenus")) {
-                params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
+                // option to launch test window with either native or HTML menus
+                if (options.hasOwnProperty("hasNativeMenus")) {
+                    params.put("hasNativeMenus", (options.hasNativeMenus ? "true" : "false"));
+                }
             }
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
@@ -1337,6 +1358,7 @@ define(function (require, exports, module) {
     exports.chmod                           = chmod;
     exports.remove                          = remove;
     exports.copy                            = copy;
+    exports.rename                          = rename;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;

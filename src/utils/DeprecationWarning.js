@@ -66,8 +66,10 @@ define(function (require, exports, module) {
      *     Note that setting this to true can cause a slight performance hit (because it has to generate
      *     a stack trace), so don't set this for functions that you expect to be called from performance-
      *     sensitive code (e.g. tight loops).
+     * @param {number=} callerStackPos Only used if oncePerCaller=true. Overrides the `Error().stack` depth
+     *     where the client-code caller can be found. Only needed if extra shim layers are involved.
      */
-    function deprecationWarning(message, oncePerCaller) {
+    function deprecationWarning(message, oncePerCaller, callerStackPos) {
         // If oncePerCaller isn't set, then only show the message once no matter who calls it. 
         if (!message || (!oncePerCaller && displayedWarnings[message])) {
             return;
@@ -80,7 +82,7 @@ define(function (require, exports, module) {
         // * 2 is the caller of this function (the one throwing the deprecation warning)
         // * 3 is the actual caller of the deprecated function.
         var stack = new Error().stack,
-            callerLocation = stack.split("\n")[3];
+            callerLocation = stack.split("\n")[callerStackPos || 3];
         if (oncePerCaller && displayedWarnings[message] && displayedWarnings[message][callerLocation]) {
             return;
         }

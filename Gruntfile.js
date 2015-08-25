@@ -25,7 +25,7 @@ module.exports = function (grunt) {
     'use strict';
 
     // load dependencies
-    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin']});
+    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty']});
     grunt.loadTasks('tasks');
 
     // Project configuration.
@@ -72,8 +72,11 @@ module.exports = function (grunt) {
                         src: [
                             'extensibility/node/**',
                             '!extensibility/node/spec/**',
+                            '!extensibility/node/node_modules/**/{test,tst}/**/*',
+                            '!extensibility/node/node_modules/**/examples/**/*',
                             'filesystem/impls/appshell/node/**',
-                            '!filesystem/impls/appshell/node/spec/**'
+                            '!filesystem/impls/appshell/node/spec/**',
+                            'search/node/**'
                         ]
                     },
                     /* extensions and CodeMirror modes */
@@ -82,16 +85,22 @@ module.exports = function (grunt) {
                         dest: 'dist/',
                         cwd: 'src/',
                         src: [
+                            'extensions/default/**/*',
                             '!extensions/default/*/unittest-files/**/*',
                             '!extensions/default/*/unittests.js',
-                            'extensions/default/*/**/*',
+                            '!extensions/default/{*/thirdparty,**/node_modules}/**/test/**/*',
+                            '!extensions/default/{*/thirdparty,**/node_modules}/**/doc/**/*',
+                            '!extensions/default/{*/thirdparty,**/node_modules}/**/examples/**/*',
+                            '!extensions/default/*/thirdparty/**/*.htm{,l}',
                             'extensions/dev/*',
                             'extensions/samples/**/*',
-                            'thirdparty/CodeMirror2/addon/{,*/}*',
-                            'thirdparty/CodeMirror2/keymap/{,*/}*',
-                            'thirdparty/CodeMirror2/lib/{,*/}*',
-                            'thirdparty/CodeMirror2/mode/{,*/}*',
-                            'thirdparty/CodeMirror2/theme/{,*/}*',
+                            'thirdparty/CodeMirror/addon/{,*/}*',
+                            'thirdparty/CodeMirror/keymap/{,*/}*',
+                            'thirdparty/CodeMirror/lib/{,*/}*',
+                            'thirdparty/CodeMirror/mode/{,*/}*',
+                            '!thirdparty/CodeMirror/mode/**/*.html',
+                            '!thirdparty/CodeMirror/**/*test.js',
+                            'thirdparty/CodeMirror/theme/{,*/}*',
                             'thirdparty/i18n/*.js',
                             'thirdparty/text/*.js'
                         ]
@@ -105,6 +114,13 @@ module.exports = function (grunt) {
                     }
                 ]
             }
+        },
+        cleanempty: {
+            options: {
+                force: true,
+                files: false
+            },
+            src: ['dist/**/*'],
         },
         less: {
             dist: {
@@ -252,12 +268,12 @@ module.exports = function (grunt) {
                 /* Keep in sync with test/SpecRunner.html dependencies */
                 vendor : [
                     'test/polyfills.js', /* For reference to why this polyfill is needed see Issue #7951. The need for this should go away once the version of phantomjs gets upgraded to 2.0 */
-                    'src/thirdparty/jquery-2.1.1.min.js',
-                    'src/thirdparty/CodeMirror2/lib/codemirror.js',
-                    'src/thirdparty/CodeMirror2/lib/util/dialog.js',
-                    'src/thirdparty/CodeMirror2/lib/util/searchcursor.js',
-                    'src/thirdparty/CodeMirror2/addon/edit/closetag.js',
-                    'src/thirdparty/CodeMirror2/addon/selection/active-line.js',
+                    'src/thirdparty/jquery-2.1.3.min.js',
+                    'src/thirdparty/CodeMirror/lib/codemirror.js',
+                    'src/thirdparty/CodeMirror/lib/util/dialog.js',
+                    'src/thirdparty/CodeMirror/lib/util/searchcursor.js',
+                    'src/thirdparty/CodeMirror/addon/edit/closetag.js',
+                    'src/thirdparty/CodeMirror/addon/selection/active-line.js',
                     'src/thirdparty/mustache/mustache.js',
                     'src/thirdparty/path-utils/path-utils.min',
                     'src/thirdparty/less-1.7.5.min.js'
@@ -330,6 +346,7 @@ module.exports = function (grunt) {
         /*'cssmin',*/
         /*'uglify',*/
         'copy',
+        'cleanempty',
         'usemin',
         'build-config'
     ]);

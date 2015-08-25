@@ -32,10 +32,20 @@ define(function (require, exports, module) {
     var AppInit             = brackets.getModule("utils/AppInit"),
         CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        Strings             = brackets.getModule("strings"),
         HTMLTags            = require("text!HtmlTags.json"),
         HTMLAttributes      = require("text!HtmlAttributes.json"),
         tags,
         attributes;
+
+    PreferencesManager.definePreference("codehint.TagHints", "boolean", true, {
+        description: Strings.DESCRIPTION_HTML_TAG_HINTS
+    });
+
+    PreferencesManager.definePreference("codehint.AttrHints", "boolean", true, {
+        description: Strings.DESCRIPTION_ATTR_HINTS
+    });
 
     /**
      * @constructor
@@ -222,8 +232,8 @@ define(function (require, exports, module) {
      * @param {string} attrName 
      * HTML attribute name
      *
-     * @return {{hints: Array.<string>|$.Deferred, sortFunc: ?Function}} 
-     * The (possibly deferred) hints and the sort function to use on thise hints.
+     * @return {!Array.<string>|$.Deferred}
+     * The (possibly deferred) hints.
      */
     AttrHints.prototype._getValueHintsForAttr = function (query, tagName, attrName) {
         // We look up attribute values with tagName plus a slash and attrName first.  
@@ -231,8 +241,7 @@ define(function (require, exports, module) {
         // of the attributes in JSON are using attribute name only as their properties, 
         // but in some cases like "type" attribute, we have different properties like 
         // "script/type", "link/type" and "button/type".
-        var hints = [],
-            sortFunc = null;
+        var hints = [];
         
         var tagPlusAttr = tagName + "/" + attrName,
             attrInfo = attributes[tagPlusAttr] || attributes[attrName];
@@ -245,7 +254,7 @@ define(function (require, exports, module) {
             }
         }
         
-        return { hints: hints, sortFunc: sortFunc };
+        return hints;
     };
     
     /**
@@ -319,10 +328,9 @@ define(function (require, exports, module) {
                 
                 // If we're at an attribute value, check if it's an attribute name that has hintable values.
                 if (this.tagInfo.attr.name) {
-                    var hintsAndSortFunc = this._getValueHintsForAttr({queryStr: query},
-                                                                      this.tagInfo.tagName,
-                                                                      this.tagInfo.attr.name);
-                    var hints = hintsAndSortFunc.hints;
+                    var hints = this._getValueHintsForAttr({queryStr: query},
+                                                           this.tagInfo.tagName,
+                                                           this.tagInfo.attr.name);
                     if (hints instanceof Array) {
                         // If we got synchronous hints, check if we have something we'll actually use
                         var i, foundPrefix = false;
@@ -416,14 +424,10 @@ define(function (require, exports, module) {
                 attrName = query.attrName,
                 filter = query.queryStr,
                 unfiltered = [],
-                hints = [],
-                sortFunc = null;
+                hints;
 
             if (attrName) {
-                var hintsAndSortFunc = this._getValueHintsForAttr(query, tagName, attrName);
-                hints = hintsAndSortFunc.hints;
-                sortFunc = hintsAndSortFunc.sortFunc;
-                
+                hints = this._getValueHintsForAttr(query, tagName, attrName);
             } else if (tags && tags[tagName] && tags[tagName].attributes) {
                 unfiltered = tags[tagName].attributes.concat(this.globalAttributes);
                 hints = $.grep(unfiltered, function (attr, i) {
@@ -437,7 +441,7 @@ define(function (require, exports, module) {
                     if (item.indexOf(filter) === 0) {
                         return item;
                     }
-                }).sort(sortFunc);
+                }).sort();
                 return {
                     hints: result,
                     match: query.queryStr,

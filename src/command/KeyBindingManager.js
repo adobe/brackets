@@ -406,13 +406,13 @@ define(function (require, exports, module) {
         // Ensure that the first letter of the key name is in upper case and the rest are
         // in lower case. i.e. 'a' => 'A' and 'up' => 'Up'
         if (/^[a-z]/i.test(key)) {
-            key = key.charAt(0).toUpperCase() + key.substr(1).toLowerCase();
+            key = _.capitalize(key.toLowerCase());
         }
         
         // Also make sure that the second word of PageUp/PageDown has the first letter in upper case.
         if (/^Page/.test(key)) {
             key = key.replace(/(up|down)$/, function (match, p1) {
-                return p1.charAt(0).toUpperCase() + p1.substr(1);
+                return _.capitalize(p1);
             });
         }
         
@@ -536,11 +536,20 @@ define(function (require, exports, module) {
             displayStr = displayStr.replace("Shift", "\u21E7"); // Shift > shift symbol
             displayStr = displayStr.replace("Alt", "\u2325");   // Alt > option symbol
         } else {
-            displayStr = descriptor.replace("Ctrl", Strings.KEYBOARD_CTRL);   // Ctrl
-            displayStr = displayStr.replace("Shift", Strings.KEYBOARD_SHIFT); // Shift > shift symbol
-            displayStr = displayStr.replace("Space", Strings.KEYBOARD_SPACE); // Alt > option symbol
+            displayStr = descriptor.replace("Ctrl", Strings.KEYBOARD_CTRL);
+            displayStr = displayStr.replace("Shift", Strings.KEYBOARD_SHIFT);
             displayStr = displayStr.replace(/-(?!$)/g, "+");
         }
+
+        displayStr = displayStr.replace("Space", Strings.KEYBOARD_SPACE);
+
+        displayStr = displayStr.replace("PageUp", Strings.KEYBOARD_PAGE_UP);
+        displayStr = displayStr.replace("PageDown", Strings.KEYBOARD_PAGE_DOWN);
+        displayStr = displayStr.replace("Home", Strings.KEYBOARD_HOME);
+        displayStr = displayStr.replace("End", Strings.KEYBOARD_END);
+
+        displayStr = displayStr.replace("Ins", Strings.KEYBOARD_INSERT);
+        displayStr = displayStr.replace("Del", Strings.KEYBOARD_DELETE);
 
         return displayStr;
     }

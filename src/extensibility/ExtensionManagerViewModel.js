@@ -378,7 +378,7 @@ define(function (require, exports, module) {
 
         // when registry is downloaded, sort extensions again - those with updates will be before others
         var self = this;
-        ExtensionManager.on("registryDownload", function () {
+        ExtensionManager.on("registryDownload." + this.source, function () {
             self._sortFullSet();
             self._setInitialFilter();
         });

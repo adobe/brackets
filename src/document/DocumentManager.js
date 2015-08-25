@@ -157,7 +157,7 @@ define(function (require, exports, module) {
      * @return {Array.<File>}
      */
     function getWorkingSet() {
-        DeprecationWarning.deprecationWarning("Use MainViewManager.getViews() instead of DocumentManager.getWorkingSet()", true);
+        DeprecationWarning.deprecationWarning("Use MainViewManager.getWorkingSet() instead of DocumentManager.getWorkingSet()", true);
         return MainViewManager.getWorkingSet(MainViewManager.ALL_PANES)
             .filter(function (file) {
                 // Legacy didn't allow for files with custom viewers
@@ -454,6 +454,8 @@ define(function (require, exports, module) {
             now = new Date(),
             file = new InMemoryFile(fullPath, FileSystem);
         
+        FileSystem.addEntryForPathIfRequired(file, fullPath);
+
         return new DocumentModule.Document(file, now, "");
     }
     

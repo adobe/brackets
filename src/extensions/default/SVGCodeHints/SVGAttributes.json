@@ -11,6 +11,18 @@
     "animate/fill": {
         "attribOptions": ["freeze", "remove"]
     },
+    "animateColor/fill": {
+        "attribOptions": ["freeze", "remove"]
+    },
+    "animateMotion/fill": {
+        "attribOptions": ["freeze", "remove"]
+    },
+    "animateMotion/rotate": {
+        "attribOptions": ["auto", "auto-reverse"]
+    },
+    "animateTransform/fill": {
+        "attribOptions": ["freeze", "remove"]
+    },
     "animateTransform/type": {
         "attribOptions": ["rotate", "scale", "skewX", "skewY", "translate"]
     },
@@ -37,6 +49,9 @@
     },
     "clipPathUnits": {
         "attribOptions": ["objectBoundingBox", "userSpaceOnUse"]
+    },
+    "color": {
+        "type": "color"
     },
     "color-interpolation": {
         "attribOptions": ["auto", "inherit", "linearRGB", "sRGB"]
@@ -104,6 +119,9 @@
     "feTurbulence/type": {
         "attribOptions": ["fractalNoise", "turbulence"]
     },
+    "fill": {
+        "type": "color"
+    },
     "fill-opacity": {
         "attribOptions": ["inherit"]
     },
@@ -115,6 +133,9 @@
     },
     "filterUnits": {
         "attribOptions": ["objectBoundingBox", "userSpaceOnUse"]
+    },
+    "flood-color": {
+        "type": "color"
     },
     "flood-opacity": {
         "attribOptions": ["inherit"]
@@ -146,6 +167,10 @@
     "glyph-orientation-vertical": {
         "attribOptions": ["auto", "inherit"]
     },
+    "gradientTransform": {
+        "attribOptions": ["matrix()", "rotate()", "scale()", "skewX()", "skewY()", "translate()"],
+        "multiple": true
+    },
     "gradientUnits": {
         "attribOptions": ["objectBoundingBox", "userSpaceOnUse"]
     },
@@ -169,6 +194,9 @@
     },
     "letter-spacing": {
         "attribOptions": ["inherit", "normal"]
+    },
+    "lighting-color": {
+        "type": "color"
     },
     "marker-end": {
         "attribOptions": ["inherit", "none"]
@@ -256,11 +284,11 @@
     "restart": {
         "attribOptions": ["always", "never", "whenNotActive"]
     },
-    "rotate": {
-        "attribOptions": ["auto", "auto-reverse"]
-    },
     "script/type": {
         "attribOptions": ["application/ecmascript", "application/javascript", "application/x-ecmascript", "application/x-javascript", "text/ecmascript", "text/javascript", "text/jscript", "text/livescript", "text/tcl", "text/x-ecmascript", "text/x-javascript"]
+    },
+    "set/fill": {
+        "attribOptions": ["freeze", "remove"]
     },
     "shape-rendering": {
         "attribOptions": ["auto", "crispEdges", "geometricPrecision", "inherit", "optimizeSpeed"]
@@ -274,8 +302,14 @@
     "stitchTiles": {
         "attribOptions": ["noStitch", "stitch"]
     },
+    "stop-color": {
+        "type": "color"
+    },
     "stop-opacity": {
         "attribOptions": ["inherit"]
+    },
+    "stroke": {
+        "type": "color"
     },
     "stroke-dasharray": {
         "attribOptions": ["inherit", "none"]

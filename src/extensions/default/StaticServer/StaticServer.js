@@ -30,8 +30,9 @@ define(function (require, exports, module) {
     "use strict";
 
     var BaseServer           = brackets.getModule("LiveDevelopment/Servers/BaseServer").BaseServer,
-        FileUtils            = brackets.getModule("file/FileUtils"),
-        PreferencesManager   = brackets.getModule("preferences/PreferencesManager");
+        LiveDevelopmentUtils = brackets.getModule("LiveDevelopment/LiveDevelopmentUtils"),
+        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
+        Strings              = brackets.getModule("strings");
 
     
     /**
@@ -40,6 +41,10 @@ define(function (require, exports, module) {
      * Prefences manager for this extension
      */
     var _prefs = PreferencesManager.getExtensionPrefs("staticserver");
+
+    _prefs.definePreference("port", "number", 0, {
+        description: Strings.DESCRIPTION_STATIC_SERVER_PORT
+    });
 
     /**
      * @constructor
@@ -87,7 +92,7 @@ define(function (require, exports, module) {
         }
 
         // FUTURE: do a MIME Type lookup on file extension
-        return FileUtils.isStaticHtmlFileExt(localPath);
+        return LiveDevelopmentUtils.isStaticHtmlFileExt(localPath);
     };
 
     /**

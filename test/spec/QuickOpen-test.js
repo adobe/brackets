@@ -80,6 +80,7 @@ define(function (require, exports, module) {
             
             testWindow.setTimeout(function () {
                 getSearchField().val(str);
+                getSearchField().trigger("input");
             }, timeoutLength);
         }
         
@@ -88,7 +89,7 @@ define(function (require, exports, module) {
             
             // Using keyup here because of inside knowledge of how the events are processed
             // on the QuickOpen input.
-            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keyup", getSearchField()[0]);
+            SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_RETURN, "keydown", getSearchField()[0]);
         }
         
         /**

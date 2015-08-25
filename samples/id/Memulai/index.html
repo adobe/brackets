@@ -3,7 +3,7 @@
 
     <head>
         <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>MEMULAI DENGAN BRACKETS</title>
         <meta name="description" content="An interactive getting started guide for Brackets.">
         <link rel="stylesheet" href="main.css">
@@ -11,16 +11,16 @@
     <body>
 
         <h1>MEMULAI DENGAN BRACKETS</h1>
-        <h2>Inilah panduan anda!</h2>
+        <h2>Inilah panduan Anda!</h2>
         
         <!--
             DIBUAT DENGAN <3 DAN JAVASCRIPT
         -->
         
         <p>
-            Selamat datang di versi preview awal dari Brackets, sebuah editor baru dan open-source yang didesain 
-            untuk generasi baru web. Kami sangat menyukai standar, dan kami ingin membangun perangkat yang lebih baik
-            untuk JavaScript, HTML dan CSS serta teknologi web lainnya. Inilah permulaan kami.
+            Selamat datang di Brackets, sebuah editor modern dan open-source yang dirancang untuk mendesain web.
+            Ringan namun bertenaga, editor ini memadukan perangkat visual ke dalamnya sehingga Anda memiliki
+            perangkat yang tepat ketika Anda membutuhkannya.
         </p>
         
         <!--
@@ -28,40 +28,56 @@
         -->
         <p>
             <em>Brackets berbeda dari editor lainnya.</em>
-            Perbedaan utama adalah editor ini dibuat dengan JavaScript, HTML dan CSS.
-            Ini berarti para pengguna Brackets mempunyai skill yang cukup untuk memodifikasi dan memperluas
-            editor ini.
-            Bahkan, kami selalu menggunakan Brackets dalam pengembangan Brackets. Brackets juga memiliki
-            fitur unik seperti Edit Cepat, Preview Langsung masih banyak lagi yang mungkin anda tidak temukan
-            di editor lainnya.
-            Untuk mengetahui lebih lanjut mengenai bagaimana cara menggunakan fitur-fitur tersebut, bacalah
-            lebih lanjut.
+            Brackets memiliki fitur-fitur yang unik seperti Edit Cepat, Tinjauan Langsung dan berbagai macam fitur
+            yang mungkin tidak Anda temui di editor lain. Brackets dikembangkan dengan JavaScript, HTML and CSS.
+            Ini berarti Anda, para pengguna Brackets sudah memiliki kemampuan untuk memodifikasi dan memperluas editor
+            ini. Bahkan, kami menggunakan Brackets setiap hari dalam pengembangan Brackets. Untuk mempelajari cara
+            penggunaan fitur-fitur utama yang ada di dalam Brackets, baca lebih lanjut.
         </p>
         
+        <!--
+            MEMULAI DENGAN PEKERJAAN ANDA SENDIRI
+        -->
         
-        <h2>Kami mencoba fitur-fitur baru</h2>
+        <h3>Proyek di dalam Brackets</h3>
+        <p>
+            Untuk mengedit kode Anda sendiri dengan menggunakan Brackets, Anda bisa langsung membuka folder yang
+            berisi file-file Anda. Brackets memperlakukan folder yang sedang dibuka sebagai "proyek"; fitur-fitur
+            seperti Petunjuk Kode, Tinjauan Langsung and Edit Cepat hanya menggunakan file-file yang ada di dalam
+            folder yang sedang dibuka.
+        </p>
+        
+        <samp>
+            Saat Anda siap untuk keluar dari proyek contoh ini dan mengedit kode Anda sendiri, Anda dapat menggunakan
+            dropdown yang ada di sisi kiri sidebar untuk mengganti folder. Saat ini, dropdown Anda menunjukkan
+            "Memulai"- itu adalah folder yang berisi file yang Anda lihat saat ini. Klik pada dropdown dan
+            pilih "Buka Folder…" untuk membuka folder Anda sendiri.
+            Anda juga bisa menggunakan dropdown nanti untuk berpindah ke folder yang telah Anda buka sebelumnya,
+            termasuk proyek contoh ini.
+        </samp>
         
         <!--
             HTML, CSS DAN JAVASCRIPT SALING BERHUBUNGAN
         -->
         <h3>Edit Cepat untuk CSS dan JavaScript</h3>
         <p>
-            Tidak perlu lagi repot-repot berpindah dari satu dokumen ke dokumen lainnya. Ketika meng-edit
-            HTML, gunakan shortcut <kbd>Cmd/Ctrl + E</kbd> untuk membuka ketak Edit Cepat yang menampilkan
-            semua CSS yang sesuai.
-            Ubah CSS anda, kemudian tekan <kbd>ESC</kbd> dan anda kembali lagi meng-edit HTML, atau tetap
-            dibuka dan kotak tersebut akan menjadi satu dengan editor anda. Jika anda menekan
-            <kbd>ESC</kbd> diluar kotak Edit Cepat, semuanya akan langsung di-collapse.
+            Tidak perlu lagi repot-repot berpindah dari satu dokumen ke dokumen lainnya. Ketika mengedit HTML,
+            gunakan pintasan <kbd>Cmd/Ctrl + E</kbd> untuk membuka Edit Cepat yang menampilkan semua CSS yang sesuai.
+            Ubah CSS Anda, kemudian tekan <kbd>ESC</kbd> dan Anda kembali lagi mengedit HTML, atau tetap buka CSS Anda
+            dan kotak tersebut akan menjadi satu dengan editor Anda. Jika Anda menekan <kbd>ESC</kbd> diluar kotak Edit
+            Cepat, semuanya akan langsung disembunyikan. Edit Cepat juga akan menemukan aturan dalam file LESS dan
+            SCSS, termasuk aturan bersarang.
         </p>
         
         <samp>
-            Mau lihat cara kerjanya? Tempatkan kursor anda di tag <!-- <samp> --> di atas kemudian tekan
-            <kbd>Cmd/Ctrl + E</kbd>. Anda akan melihat editor CSS muncul, menunjukkan atribut CSS yang
-            relevan. Edit Cepat juga bisa dipakai untuk atribut class dan id.
+            Mau lihat cara kerjanya? Tempatkan kursor Anda di tag <!-- <samp> --> di atas kemudian tekan
+            <kbd>Cmd/Ctrl + E</kbd>. Anda akan melihat editor cepat CSS muncul, menunjukkan aturan CSS yang sesuai.
+            Edit Cepat juga dapat digunakan untuk atribut class dan id. Anda juga bisa menggunakannya dengan file LESS
+            dan SCSS.
             
-            Anda juga bisa membuat atribut baru dengan cara yang sama. Klik salah satu tag <!-- <p> -->
-            di atas dan tekan <kbd>Cmd/Ctrl + E</kbd>. Saat ini tidak ada atribut yang di-set, namun
-            anda bisa klik tombol Atribut Baru untuk menambahkan atribut untuk <!-- <p> -->.
+            Anda bisa membuat aturan baru dengan cara yang sama. Klik salah satu tag <!-- <p> -->
+            di atas dan tekan <kbd>Cmd/Ctrl + E</kbd>. Saat ini tidak ada aturan untuk tag itu, namun
+            Anda bisa klik tombol Aturan Baru untuk menambahkan aturan untuk <!-- <p> -->.
         </samp>
         
         <a href="screenshots/quick-edit.png">
@@ -69,84 +85,83 @@
         </a>
         
         <p>
-            Anda juga bisa menggunakan shortcut yang sama untuk meng-edit hal-hal lainnya--seperti
-            function di JavaScript, warna, dan fungsi animasi--dan kami terus menambahkan fitur
-            lain setiap saat.
-            Saat ini Edit Cepat tidak dapat di-nest, jadi anda hanya bisa menggunakan Edit Cepat
-            ketika kursor berada dalam editor "full size".
+            Anda juga bisa menggunakan pintasan yang sama untuk mengedit hal-hal lainnya - seperti fungsi di
+            JavaScript, warna, dan fungsi animasi - dan kami terus menambahkan fitur lain setiap saat.
+        </p>
+
+        <p>
+            Saat ini, editor inline tidak dapat disarangkan, sehingga Anda hanya dapat menggunakan Edit Cepat ketika
+            berada dalam mode "ukuran penuh".
         </p>
         
         <!--
             PREVIEW LANGSUNG
         -->
-        <h3>Preview perubahan HTML dan CSS secara langsung di dalam browser</h3>
+        <h3>Tinjau perubahan HTML dan CSS secara langsung di peramban</h3>
         <p>
-            Anda tahu kan mengenai teknik "save/reload dance" yang sering kita lakukan? Dimana kita merubah
-            file, kemudian kita save, lalu pindah ke browser kemudian refresh page-nya lalu baru kita bisa
-            lihat hasilnya? Dengan Brackets, tidak perlu lagi.
+            Anda tahu mengenai teknik "simpan/muat ulang" yang sering kita lakukan? Dimana kita mengubah file,
+            kemudian kita simpan, lalu pindah ke peramban dan memuat ulang halaman untuk melihat hasilnya? Dengan
+            Brackets, Anda tidak perlu melakukannya lagi.
         </p>
         <p>
-            Brackets akan membuka <em>koneksi langsung</em> ke browser anda dan merubah HTML dan CSS secara
-            langsung, bahkan ketika anda mengetik! Mungkin anda sudah pernah melakukan hal yang sama dengan
-            perangkat dari browser, namun di Brackets tidak perlu lagi meng-copy dan paste kode yang diubah
-            kembali ke editor. Kode anda dijalankan di browser, namun tetap hidup di editor anda!
+            Brackets akan membuka <em>sambungan langsung</em> ke peramban Anda dan memperbarui HTML dan CSS secara
+            langsung, bahkan ketika Anda mengetik! Mungkin Anda sudah pernah melakukan hal ini dengan perangkat dari
+            peramban, namun dengan Brackets, Anda tidak perlu lagi menyalin kode kembali ke editor. Kode Anda berjalan
+            di peramban, namun tetap berada di editor Anda!
         </p>
         
-        <h3>Highlight langsung elemen HTML dan atribut CSS</h3>
+        <h3>Soroti langsung elemen HTML dan aturan CSS</h3>
         <p>
-            Dengan Brackets, menganalisa dampak perubahan HTML dan CSS terhadap halaman lebih mudah. Ketika
-            kursor anda berada dalam atribut CSS, Brackets akan meng-highlight semua elemen yang berefek di
-            dalam browser. Sama juga ketika meng-edit file HTML, Brackets akan meng-highlight elemen HTML
-            yang sesuai dalam browser.
+            Brackets mempermudah Anda melihat bagaimana perubahan pada HTML dan CSS yang Anda buat akan mempengaruhi
+            halaman. Ketika kursor Anda berada pada aturan CSS, Brackets akan menyoroti semua elemen yang dipengaruhi
+            pada peramban. Hal yang sama ketika mengedit file HTML, Brackets akan menyoroti elemen HTML yang sesuai
+            pada peramban.
         </p>
         
         <samp>
-            Jika anda menggunakan Google Chrome, anda bisa mencoba ini sendiri. Klik pada ikon petir di
-            sebelah kanan atas pada jendela Brackets anda atau tekan <kbd>Cmd/Ctrl + Alt + P</kbd>.
-            Ketika Preview Langsung dijalankan di dokumen HTML, semua CSS yang berhubungan bisa di-edit
-            secara langsung. Ikon petir akan berubah warna dari abu-abu menjadi emas ketika Brackets
-            menjalankan koneksi ke browser anda.
+            Jika Anda menggunakan Google Chrome, Anda bisa mencoba ini sendiri. Klik pada ikon petir di
+            sebelah kanan atas pada jendela Brackets Anda atau tekan <kbd>Cmd/Ctrl + Alt + P</kbd>.
+            Ketika Tinjauan Langsung dijalankan di dokumen HTML, semua dokumen CSS yang terhubung bisa diedit secara
+            langsung. Ikon petir akan berubah warna dari abu-abu menjadi emas ketika Brackets mendapatkan sambungan
+            ke peramban Anda.
             
-            Sekarang, tempatkan kursor anda di tag <!-- <img> --> di atas. Perhatikan highlight warna biru yang
-            muncul di sekeliling gambar pada Chrome. Lalu, tekan <kbd>Cmd/Ctrl + E</kbd> untuk membuka atribut
-            CSS yang ada. Cobalah merubah ukuran border dari 10px ke 20px atau ubah warna background dari
-            "transparent" ke "hotpink". Jika Brackets dan browser berjalan berdampingan, anda akan dapat melihat
-            perubahannya secara langsung di browser anda. Keren, kan?
+            Sekarang, tempatkan kursor Anda di tag <!-- <img> --> di atas. Perhatikan sorotan warna biru yang muncul
+            di sekeliling gambar pada Chrome. Lalu, tekan <kbd>Cmd/Ctrl + E</kbd> untuk membuka aturan CSS yang ada.
+            Cobalah ubah ukuran border dari 10px ke 20px atau ubah warna background dari "transparent" ke "hotpink".
+            Jika Brackets dan peramban berjalan berdampingan, Anda akan dapat melihat perubahannya secara langsung
+            di peramban Anda. Keren, kan?
         </samp>
-                
+        
         <p class="note">
-            Saat ini, Brackets hanya mendukung Preview Langsung untuk HTML dan CSS. Namun di versi ini,
-            perubahan terhadap JavaScript akan di-load ulang ketika anda melakukan save. Saat ini kami
-            berusaha menambahkan support Preview Langsung untuk JavaScript. Preview langsung juga hanya bisa
-            dijalankan di browser Google Chrome, namun kita berharap agar kita bisa membawa fitur ini ke
-            browser lainnya di masa yang akan datang.
+            Saat ini, Brackets hanya mendukung Tinjauan Langsung untuk HTML dan CSS. Namun di versi ini, perubahan
+            terhadap JavaScript akan dimuat ulang ketika Anda menyimpan. Saat ini kami berusaha menambahkan
+            dukungan Tinjauan Langsung untuk JavaScript. Tinjauan Langsung juga hanya bisa dijalankan di peramban
+            Google Chrome, namun kami berharap untuk memberikan fitur ini ke semua peramban di masa depan.
         </p>
-                
-        <h3>Quick View</h3>
+        
+        <h3>Tampilan Cepat</h3>
         <p>
-            Buat yang belum hafal nilai RGB dan HEX sebuah warna, dengan Brackets mengetahui warna apa yang
-            benar-benar dipakai semakin mudah. Di CSS atau HTML, tempatkan kursor di atas nilai warna atau gradien
-            dan Brackets akan menampilkan preview warna/gradien tersebut secara otomatis. Sama halnya dengan gambar:
-            taruh kursor di atas link gambar pada editor Brackets dan preview thumbnail dari gambar tersebut akan
-            ditampilkan.
+            Bagi Anda yang belum hafal nilai RGB dan HEX sebuah warna, dengan Brackets, Anda dapat dengan mudah dan
+            cepat untuk melihat warna apa saja yang sedang digunakan. Di CSS atau HTML, tempatkan kursor di atas nilai
+            warna atau gradien dan Brackets akan menampilkan warna/gradien tersebut secara otomatis. Sama halnya dengan
+            gambar: taruh kursor di atas link gambar pada editor Brackets dan menampilkan thumbnail dari gambar tersebut.
         </p>
         
         <samp>
-            Untuk mencobanya sendiri, tempatkan kursor anda pada tag <!-- <body> --> di atas dokumen ini dan tekan
-            <kbd>Cmd/Ctrl + E</kbd> untuk membuka editor cepat CSS. Setelah itu, tempatkan kursor di atas nilai
-            warna apapun di dalam CSS tersebut. Anda juga bisa mencoba sendiri untuk gradien dengan membuka editor
-            cepat CSS pada tag <!-- <html> --> dan menempatkan kursor pada nilai background image manapun. 
-            Untuk mencoba preview gambar, tempatkan kursor anda di atas gambar screenshot yang ada di dokumen ini.
+            Untuk mencobanya sendiri, tempatkan kursor Anda pada tag <!-- <body> --> di atas dokumen ini dan tekan
+            <kbd>Cmd/Ctrl + E</kbd> untuk membuka editor cepat CSS. Setelah itu, tempatkan kursor di atas nilai warna
+            apapun di dalam CSS tersebut. Anda juga bisa mencoba sendiri untuk gradien dengan membuka editor cepat
+            CSS pada tag <!-- <html> --> dan menempatkan kursor pada nilai <i>background image</i> manapun. Untuk
+            mencoba tinjauan gambar, tempatkan kursor Anda di atas gambar screenshot yang ada di dokumen ini.
         </samp>
         
-        <h3>Mau fitur lain? Tambahkan ekstensi!</h3>
+        <h3>Ingin fitur lain? Tambahkan ekstensi!</h3>
         <p>
             Selain semua fitur-fitur keren yang ada di dalam Brackets, kami mempunyai komunitas pengembang ekstensi
-            yang terus berkembang jumlahnya dan sudah membuat ratusan ekstensi yang menambah fitur berguna lainnya.
-            Apabila anda mau menambahkan fitur yang belum ada di Brackets, mungkin seseorang sudah membuat ekstensi
-            untuk fitur tersebut. Untuk melihat daftar ekstensi yang tersedia, klik <strong>Berkas &gt; Pengaturan
-            Ekstensi</strong> lalu klik di tab "Tersedia". Ketika anda menemukan ekstensi yang anda inginkan,
-            tinggal klik tombol "Instal" di sebelahnya.
+            yang terus tumbuh jumlahnya dan sudah membuat ratusan ekstensi yang sangat berguna. Apabila Anda
+            membutuhkan fitur yang tidak ada dalam Brackets, kemungkinan besar seseorang telah membuat ekstensi untuk
+            itu. Untuk melihat daftar ekstensi yang tersedia, klik <strong>File > Pengelola Ekstensi</strong> lalu
+            klik di tab "Tersedia". Ketika Anda menemukan ekstensi yang Anda inginkan, klik tombol "Instal" di sebelahnya.
         </p>
         
         <!--
@@ -154,10 +169,9 @@
         -->
         <h2>Ikut terlibat</h2>
         <p>
-            Brackets adalah proyek open-source. Developer web dari seluruh dunia berkontribusi untuk membangun editor
-            yang lebih baik. Dan juga ada banyak orang yang menembangkan ekstensi yang meningkatkan kemampuan Brackets.
-            Kami ingin mendengar pendapat anda, ide dan saran-saran dari anda atau berkontribusilah secara langsung
-            kepada kode Brackets.
+            Brackets adalah proyek open-source. Pengembang web dari seluruh dunia berkontribusi untuk membangun editor
+            yang lebih baik. Dan juga ada banyak orang yang menembangkan ekstensi untuk meningkatkan kemampuan Brackets.
+            Beri kami saran, ide, atau berkontribusilah secara langsung untuk Brackets.
         </p>
         <ul>
             <li><a href="http://brackets.io">Brackets.io</a></li>
@@ -165,32 +179,34 @@
             <li><a href="http://github.com/adobe/brackets">Brackets di GitHub</a></li>
             <li><a href="https://brackets-registry.aboutweb.com">Daftar Ekstensi Brackets</a></li>
             <li><a href="http://github.com/adobe/brackets/wiki">Wiki Brackets</a></li>
-            <li><a href="http://groups.google.com/group/brackets-dev">Mailing List Developer Brackets</a></li>
-            <li><a href="https://twitter.com/#!/brackets">@brackets di Twitter</a></li>
-            <li>Mengobrol dengan developer Brackets di IRC dalam channel #brackets di Freenode</li>
+            <li><a href="http://groups.google.com/group/brackets-dev">Milis Pengembang Brackets</a></li>
+            <li><a href="https://twitter.com/brackets">@brackets di Twitter</a></li>
+            <li>Mengobrol dengan pengembang Brackets di IRC dalam <a href="http://webchat.freenode.net/?channels=brackets&uio=d4">channel #brackets di Freenode</a></li>
         </ul>
 
     </body>
 </html>
 <!--
 
-    [[[[[[[[[[[[[[[     ]]]]]]]]]]]]]]]
-    [::::::::::::::     ::::::::::::::]
-    [::::::::::::::     ::::::::::::::]
-    [::::::[[[[[[[:     :]]]]]]]::::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[    CODE THE WEB     ]:::::]
-    [:::::[  http://brackets.io ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [::::::[[[[[[[:     :]]]]]]]::::::]
-    [::::::::::::::     ::::::::::::::]
-    [::::::::::::::     ::::::::::::::]
-    [[[[[[[[[[[[[[[     ]]]]]]]]]]]]]]]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[  http://brackets.io  ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
 
 -->
+
+<!-- Last translated for 3066a8c164995790b58a9ea739e9a5450edcc963 -->

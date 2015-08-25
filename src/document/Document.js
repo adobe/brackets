@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         InMemoryFile        = require("document/InMemoryFile"),
         PerfUtils           = require("utils/PerfUtils"),
         LanguageManager     = require("language/LanguageManager"),
-        CodeMirror          = require("thirdparty/CodeMirror2/lib/codemirror"),
+        CodeMirror          = require("thirdparty/CodeMirror/lib/codemirror"),
         _                   = require("thirdparty/lodash");
     
     /**

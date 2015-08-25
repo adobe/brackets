@@ -392,6 +392,15 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Checks whether colorVal is a valid color
+     * @param {!string} colorVal
+     * @return {boolean} Whether colorVal is valid
+     */
+    ColorEditor.prototype.isValidColor = function (colorVal) {
+        return tinycolor(colorVal).isValid();
+    };
+
+    /**
      * Sets _hsv and _color based on an HSV input, and updates the UI. Attempts to preserve
      * the previous color format.
      * @param {!{h:number=, s:number=, v:number=}} hsv  Any missing values use the previous color's values.
@@ -518,7 +527,7 @@ define(function (require, exports, module) {
     
     /**
      * Handles undo gestures while color picker has focus. We don't want to let CodeMirror's
-     * usual undo logic run since it will destroy our bookmarks.
+     * usual undo logic run since it will destroy our marker.
      */
     ColorEditor.prototype.undo = function () {
         if (this._originalColor.toString() !== this._color.toString()) {
