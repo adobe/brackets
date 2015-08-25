@@ -163,6 +163,7 @@ define({
     "BUTTON_PREV_HINT"                  : "Previous Match",
     "BUTTON_CASESENSITIVE_HINT"         : "Match Case",
     "BUTTON_REGEXP_HINT"                : "Regular Expression",
+    "BUTTON_WHOLE_WORD_HINT"            : "Whole Word",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Replace Without Undo",
     "REPLACE_WITHOUT_UNDO_WARNING"      : "Because more than {0} files need to be changed, {APP_NAME} will modify unopened files on disk.<br />You won't be able to undo replacements in those files.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Replace Without Undo",

@@ -1524,7 +1524,7 @@ a, img {
         display: inline-block;
     }
 
-    #find-case-sensitive, #find-regexp {
+    #find-case-sensitive, #find-regexp, #find-whole-word {
         padding: 1px 5px;
     }
     .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
@@ -1544,10 +1544,18 @@ a, img {
     #find-case-sensitive.active .button-icon {
         .sprite-swap(0, 72px);
     }
+    #find-case-whole-word .button-icon {
+        .sprite-swap(0, 96px);
+    }
+    #find-case-whole-word.active .button-icon {
+        .sprite-swap(0, 120px);
+    }
     #find-regexp.active,
     #find-regexp:active,
     #find-case-sensitive.active,
-    #find-case-sensitive:active { // Make the toggle buttons' down states the same color as 'on' state to prevent a flash of different color.
+    #find-case-sensitive:active,
+    #find-case-whole-word.active,
+    #find-case-whole-word:active { // Make the toggle buttons' down states the same color as 'on' state to prevent a flash of different color.
         background-color: @bc-bg-highlight;
         
         .dark & {
@@ -1568,11 +1576,11 @@ a, img {
     }
 
     // Make button pairs snug
-    #find-prev, #replace-yes, #find-case-sensitive {
+    #find-prev, #replace-yes, #find-case-sensitive, #find-regexp {
         border-right: none;
         margin-right: 0;
     }
-    #find-next, #replace-all, #find-regexp {
+    #find-next, #replace-all, #find-whole-word {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
         margin-left: 0;
@@ -1591,6 +1599,10 @@ a, img {
     }
     #find-case-sensitive, #replace-yes {
         border-left: none;
+        margin-left: 0px;
+        border-radius: 0;
+    }
+    #find-regexp {
         margin-left: 0px;
         border-radius: 0;
     }

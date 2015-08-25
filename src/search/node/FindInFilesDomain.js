@@ -288,8 +288,6 @@ maxerr: 50, node: true */
     function parseQueryInfo(queryInfo) {
         var queryExpr;
 
-        // TODO: only major difference between this one and the one in FindReplace is that
-        // this always returns a regexp even for simple strings. Reconcile.
         if (!queryInfo || !queryInfo.query) {
             return {empty: true};
         }
@@ -302,20 +300,29 @@ maxerr: 50, node: true */
             flags += "i";
         }
 
+        var query = queryInfo.query;
+
         // Is it a (non-blank) regex?
         if (queryInfo.isRegexp) {
             try {
-                queryExpr = new RegExp(queryInfo.query, flags);
+                if (queryInfo.isWholeWord) {
+                    query = "\\b" + query + "\\b";
+                }
+                queryExpr = new RegExp(query, flags);
             } catch (e) {
                 return {valid: false, error: e.message};
             }
         } else {
+            query = regexEscape(query);
+            if (queryInfo.isWholeWord) {
+                query = "\\b" + query + "\\b";
+            }
             // Query is a plain string. Turn it into a regexp
-            queryExpr = new RegExp(regexEscape(queryInfo.query), flags);
+            queryExpr = new RegExp(query, flags);
         }
         return {valid: true, queryExpr: queryExpr};
     }
-    
+
     /**
      * Crawls through the files in the project ans stores them in cache. Since that could take a while
      * we do it in batches so that node wont be blocked.
