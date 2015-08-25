@@ -738,11 +738,15 @@ define(function (require, exports, module) {
                     StringUtils.breakableUrl(docToSave.file.fullPath)
                 ),
                 [
+                    /**
+                     XXXBramble: we don't currently ship File > Save As... dialog, so remove for now.
+                     If you need dialogs, see https://github.com/ScottDowne/filer-dialogs
                     {
                         className : Dialogs.DIALOG_BTN_CLASS_LEFT,
                         id        : Dialogs.DIALOG_BTN_SAVE_AS,
                         text      : Strings.SAVE_AS
                     },
+                    **/
                     {
                         className : Dialogs.DIALOG_BTN_CLASS_NORMAL,
                         id        : Dialogs.DIALOG_BTN_CANCEL,
