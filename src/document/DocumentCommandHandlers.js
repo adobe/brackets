@@ -58,6 +58,12 @@ define(function (require, exports, module) {
         WorkspaceManager    = require("view/WorkspaceManager"),
         _                   = require("thirdparty/lodash");
 
+    // XXXBramble specific
+    var BracketsFiler      = require("filesystem/impls/filer/BracketsFiler");
+    var Path               = BracketsFiler.Path;
+    var FilerBuffer        = BracketsFiler.Buffer;
+    var StartupState       = require("bramble/StartupState");
+
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
      */
@@ -612,10 +618,7 @@ define(function (require, exports, module) {
      * @param {boolean} isFolder - true if creating a new folder, false if creating a new file
      * @param {?string} optionalExtension - an optional extension to use when naming the file. Should be of the form ".ext" (note the leading '.').
      */
-    function _handleNewItemInProject(isFolder, optionalExtension) {
-        // XXXBramble: allow specifying an extension.
-        optionalExtension = optionalExtension || "";
-
+    function _handleNewItemInProject(isFolder) {
         if (fileNewInProgress) {
             ProjectManager.forceFinishRename();
             return;
@@ -643,7 +646,6 @@ define(function (require, exports, module) {
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
         function createWithSuggestedName(suggestedName) {
-            suggestedName = suggestedName + optionalExtension;
             return ProjectManager.createNewItem(baseDirEntry, suggestedName, false, isFolder)
                 .always(function () { fileNewInProgress = false; });
         }
@@ -677,12 +679,54 @@ define(function (require, exports, module) {
     }
 
     /**
-     * XXXBramble: create "Untitled.js" or "Untitled.html", etc
+     * XXXBramble: we allow passing extra file info to use when creating the file,
+     * including a basenamePrefix (or we'll use the default "Untitled"), an extension,
+     * and the file's initial contents.
      */
-    function handleNewFileWithType(ext) {
-        // Support both ".foo" and "foo", but make sure we have a .
-        ext = ext.replace(/^\.?/, ".");
-        _handleNewItemInProject(false, ext);
+    function handleBrambleNewFile(options) {
+        var deferred = new $.Deferred();
+        var root = StartupState.project("root");
+        var fs = BracketsFiler.fs();
+
+        function writeContents(path, data) {
+            // Add the new file to the project root, refresh the file tree, and open.
+            path = Path.join(root, path);
+            fs.writeFile(
+                path,
+                new FilerBuffer(data),
+                {encoding: null},
+                function(err) {
+                    if(err) {
+                        return deferred.reject(err);
+                    }
+
+                    CommandManager.execute(Commands.FILE_REFRESH)
+                        .always(function() {
+                            CommandManager.execute(
+                                Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,
+                                {fullPath: path}
+                            ).always(deferred.resolve);
+                        });
+                }
+            );
+        }
+
+        // If we were given a filename, use it, otherwise generate one
+        if(options.filename) {
+            writeContents(options.filename, options.contents);
+        } else {
+            // Support both ".foo" and "foo", but make sure we have a .
+            options.ext = options.ext ? options.ext.replace(/^\.?/, ".") : "";
+            options.basenamePrefix = options.basenamePrefix || Strings.UNTITLED;
+
+            _getUntitledFileSuggestion({fullPath: root + "/"}, options.basenamePrefix, false)
+                .then(function(filename) {
+                    filename = filename + options.ext;
+                    writeContents(filename, options.contents);
+                });
+        }
+
+        return deferred.promise();
     }
 
     /**
@@ -1750,8 +1794,8 @@ define(function (require, exports, module) {
     CommandManager.registerInternal(Commands.APP_RELOAD,                handleReload);
     CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReloadWithoutExts);
 
-    // XXXBramble: support adding a new file with a given type
-    CommandManager.registerInternal("bramble.addFileWithType",          handleNewFileWithType);
+    // XXXBramble: support adding a new file with options
+    CommandManager.registerInternal("bramble.addFile",                  handleBrambleNewFile);
 
     // Listen for changes that require updating the editor titlebar
     ProjectManager.on("projectOpen", _updateTitle);

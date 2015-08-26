@@ -14,11 +14,7 @@ define(function (require, exports, module) {
     var BrambleEvents      = brackets.getModule("bramble/BrambleEvents");
     var PreferencesManager = brackets.getModule("preferences/PreferencesManager");
     var _                  = brackets.getModule("thirdparty/lodash");
-    var BracketsFiler      = brackets.getModule("filesystem/impls/filer/BracketsFiler");
     var ArchiveUtils       = brackets.getModule("filesystem/impls/filer/ArchiveUtils");
-    var Path               = BracketsFiler.Path;
-    var FilerBuffer        = BracketsFiler.Buffer;
-    var StartupState       = brackets.getModule("bramble/StartupState");
 
     var PostMessageTransport = require("lib/PostMessageTransport");
     var Tutorial = require("lib/Tutorial");
@@ -123,30 +119,7 @@ define(function (require, exports, module) {
             break;
         case "BRAMBLE_ADD_NEW_FILE":
             skipCallback = true;
-            CommandManager.execute("bramble.addFileWithType", args[0]).always(callback);
-            break;
-        case "BRAMBLE_ADD_NEW_FILE_WITH_CONTENTS":
-            skipCallback = true;
-            // Add the new file to the project root, refresh the file tree, and open.
-            args[0] = Path.join(StartupState.project("root"), args[0]);
-            BracketsFiler.fs().writeFile(
-                args[0],
-                new FilerBuffer(args[1]),
-                {encoding: null},
-                function(err) {
-                    if(err) {
-                        return callback(err);
-                    }
-
-                    CommandManager.execute(Commands.FILE_REFRESH)
-                        .always(function() {
-                            CommandManager.execute(
-                                Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,
-                                {fullPath: args[0]}
-                            ).always(callback);
-                        });
-                }
-            );
+            CommandManager.execute("bramble.addFile", args[0]).always(callback);
             break;
         case "BRAMBLE_EXPORT":
             skipCallback = true;
