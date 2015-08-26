@@ -8,6 +8,7 @@ define(function (require, exports, module) {
     var CSSRewriter = require("filesystem/impls/filer/lib/CSSRewriter");
     var BlobUtils = require("filesystem/impls/filer/BlobUtils");
     var Path = require("filesystem/impls/filer/FilerUtils").Path;
+    var decodePath = require("filesystem/impls/filer/FilerUtils").decodePath;
 
     /**
      * This variable controls whether or not we want scripts to be run in the preview window or not
@@ -35,27 +36,23 @@ define(function (require, exports, module) {
 
         Async.eachSeries(elements, function(element, callback) {
             // Skip any links for protocols (we only want relative paths)
-            var path = element.getAttribute(urlType);
+            var path = decodePath(element.getAttribute(urlType));
+            var fullPath = Path.resolve(dir, path);
+
             if(!Content.isRelativeURL(path)) {
                 callback();
                 return;
             }
 
-            BlobUtils.getUrl(Path.resolve(dir, path), function(err, cachedUrl) {
+            BlobUtils.getUrl(fullPath, function(err, url) {
                 if(err) {
-                    callback(err);
-                    return;
+                    console.log("[HTMLRewriter warning] couldn't get URL for `" + fullPath + "`", err);
+                } else {
+                    element[urlType] = url;
                 }
-
-                element[urlType] = cachedUrl;
                 callback();
             });
-        }, function eachSeriesfinished(err) {
-            if(err) {
-                console.error("[HTMLRewriter Error]", err);
-            }
-            callback();
-        });
+        }, callback);
     };
 
     HTMLRewriter.prototype.styles = function(callback) {
@@ -70,18 +67,13 @@ define(function (require, exports, module) {
 
             CSSRewriter.rewrite(path, content, function(err, css) {
                 if(err) {
-                    callback(err);
-                    return;
+                    console.log("[HTMLRewriter warning] couldn't rewrite CSS `" + path + "`", err);
+                } else {
+                    element.innerHTML = css;
                 }
-                element.innerHTML = css;
                 callback();
             });
-        }, function(err) {
-            if(err) {
-                console.error("HTMLRewriter Error]", err);
-            }
-            callback();
-        });
+        }, callback);
     };
 
     HTMLRewriter.prototype.styleAttributes = function(callback) {
@@ -96,18 +88,13 @@ define(function (require, exports, module) {
 
             CSSRewriter.rewrite(path, content, function(err, css) {
                 if(err) {
-                    callback(err);
-                    return;
+                    console.log("[HTMLRewriter warning] couldn't rewrite CSS `" + path + "`", err);
+                } else {
+                    element.setAttribute("style", css);
                 }
-                element.setAttribute("style", css);
                 callback();
             });
-        }, function(err) {
-            if(err) {
-                console.error("HTMLRewriter Error]", err);
-            }
-            callback();
-        });
+        }, callback);
     };
 
     HTMLRewriter.prototype.styleSheetLinks = function(callback) {
@@ -117,7 +104,9 @@ define(function (require, exports, module) {
         var elements = this.doc.querySelectorAll("link[rel='stylesheet']");
 
         Async.eachSeries(elements, function(element, callback) {
-            var path = element.getAttribute("href");
+            var path = decodePath(element.getAttribute("href"));
+            var fullPath = Path.resolve(dir, path);
+
             if(!Content.isRelativeURL(path)) {
                 callback();
                 return;
@@ -125,21 +114,15 @@ define(function (require, exports, module) {
 
             // If the user has the given CSS file open in an editor,
             // use that; otherwise, get it from disk.
-            server.serveLiveDocForPath(Path.resolve(dir, path), function(err, url) {
+            server.serveLiveDocForPath(fullPath, function(err, url) {
                 if(err) {
-                    callback(err);
-                    return;
+                    console.log("[HTMLRewriter warning] couldn't get URL for `" + fullPath + "`", err);
+                } else {
+                    element.href = url;
                 }
-
-                element.href = url;
                 callback();
             });
-        }, function eachSeriesfinished(err) {
-            if(err) {
-                console.error("[HTMLRewriter Error]", err);
-            }
-            callback();
-        });
+        }, callback);
     };
 
     HTMLRewriter.prototype.scripts = function(callback) {
@@ -196,6 +179,8 @@ define(function (require, exports, module) {
             iterator("elements", "source", "src"),
             iterator("elements", "video", "src"),
             iterator("elements", "audio", "src"),
+            // NOTE: we don't rewrite <a href=...> in order to avoid circular rewrite loops
+            // with pages that link to themselves, or pages that link to pages that link back.
             iterator("styleSheetLinks"),
             iterator("scripts")
         ], function finishedRewriteSeries(err) {

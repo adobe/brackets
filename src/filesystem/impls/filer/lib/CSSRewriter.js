@@ -6,6 +6,7 @@ define(function (require, exports, module) {
     var Content = require("filesystem/impls/filer/lib/content");
     var Path = require("filesystem/impls/filer/FilerUtils").Path;
     var BlobUtils = require("filesystem/impls/filer/BlobUtils");
+    var decodePath = require("filesystem/impls/filer/FilerUtils").decodePath;
 
     /**
      * Rewrite all url(...) references to blob URL Objects from the fs.
@@ -37,7 +38,7 @@ define(function (require, exports, module) {
                 }
 
                 var filename = input.splice(0,1)[0];
-                BlobUtils.getUrl(Path.resolve(dir, filename), function(err, cachedUrl) {
+                BlobUtils.getUrl(Path.resolve(dir, decodePath(filename)), function(err, cachedUrl) {
                     if(err) {
                         return next("failed on " + path, replacements);
                     }

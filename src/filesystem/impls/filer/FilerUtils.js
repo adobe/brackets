@@ -10,6 +10,16 @@ define(function (require, exports, module) {
 
     // Deal with Brackets encoding filepath URIs
     exports.decodePath = function(path) {
-        return decodeURI(path);
+        // Deal with empty/null/undefined URI
+        if(!path) {
+            return path;
+        }
+
+        try {
+            return decodeURI(path);
+        } catch(e) {
+            console.error("[Brackets] couldn't decode malformed path URI", path);
+            return path;
+        }
     };
 });
