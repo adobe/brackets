@@ -83,6 +83,20 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Returns state of a token
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @return {{tokenize:function, state:string, stateArg:string, context:Object}}
+     */
+    function _getState(ctx) {
+        var state = ctx.token.state.localState || ctx.token.state;
+        if (!state.context && ctx.token.state.html.localState) {
+            state = ctx.token.state.html.localState;
+        }
+        return state;
+    }
+
+    /**
+     * @private
      * Checks if the current cursor position is inside the property name context
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @return {boolean} true if the context is in property name
@@ -94,8 +108,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        state = ctx.token.state.localState || ctx.token.state;
-        
+        state = _getState(ctx);
         if (!state.context) {
             return false;
         }
@@ -129,8 +142,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        state = ctx.token.state.localState || ctx.token.state;
-        
+        state = _getState(ctx);
         if (!state.context || !state.context.prev) {
             return false;
         }
@@ -151,8 +163,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        state = ctx.token.state.localState || ctx.token.state;
-        
+        state = _getState(ctx);
         if (!state.context) {
             return false;
         }
@@ -1566,12 +1577,13 @@ define(function (require, exports, module) {
             return selector;
         }
 
-        var skipPrevSibling = false;
+        var skipPrevSibling = false,
+            state           = _getState(ctx);
         
         // If the cursor is inside a non-whitespace token with "block" or "top" state, then it is inside a 
         // selector. The only exception is when it is immediately after the '{'.
         if (isPreprocessorDoc && _hasNonWhitespace(ctx.token.string) && ctx.token.string !== "{" &&
-                (ctx.token.state.state === "block" || ctx.token.state.state === "top")) {
+                (state.state === "block" || state.state === "top")) {
             foundChars = true;
         }
         
@@ -1580,7 +1592,7 @@ define(function (require, exports, module) {
             if (ctx.token.type !== "comment") {
                 if (ctx.token.string === "}") {
                     if (isPreprocessorDoc) {
-                        if (ctx.token.state.state === "top") {
+                        if (state.state === "top") {
                             break;
                         }
                         skipPrevSibling = true;
