@@ -253,7 +253,9 @@ define(function (require, exports, module) {
                 try {
                     callback(null, stat);
                 } finally {
-                    this._fileSystem._fireChangeEvent(parent, added, removed);
+                    if (parent._isWatched()) {
+                        this._fileSystem._fireChangeEvent(parent, added, removed);
+                    }
                     // Unblock external change events
                     this._fileSystem._endChange();
                 }

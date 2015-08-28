@@ -45,7 +45,8 @@ define(function (require, exports, module) {
         PerfUtils             = require("utils/PerfUtils"),
         NodeDomain            = require("utils/NodeDomain"),
         FileUtils             = require("file/FileUtils"),
-        FindUtils             = require("search/FindUtils");
+        FindUtils             = require("search/FindUtils"),
+        HealthLogger          = require("utils/HealthLogger");
     
     var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
         _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
@@ -94,13 +95,15 @@ define(function (require, exports, module) {
         DocumentManager.on("fileNameChange",  _fileNameChangeHandler);
     }
     
-    function nodeFileCacheComplete() {
+    function nodeFileCacheComplete(event, numFiles, cacheSize) {
+        var projectName = ProjectManager.getProjectRoot().name || "noName00";
         FindUtils.setInstantSearchDisabled(false);
         // Node search could be disabled if some error has happened in node. But upon
         // project change, if we get this message, then it means that node search is working,
         // we re-enable node search. If a search fails, node search will be switched off eventually.
         FindUtils.setNodeSearchDisabled(false);
         FindUtils.notifyIndexingFinished();
+        HealthLogger.setProjectDetail(projectName, numFiles, cacheSize);
     }
 
     /**
@@ -135,7 +138,7 @@ define(function (require, exports, module) {
             
             if (highlightEndCh <= MAX_DISPLAY_LENGTH) {
                 // Don't store more than 200 chars per line
-                line = line.substr(0, Math.min(MAX_DISPLAY_LENGTH, line.length));
+                line = line.substr(0, MAX_DISPLAY_LENGTH);
             } else if (totalMatchLength > MAX_DISPLAY_LENGTH) {
                 // impossible to display the whole match
                 line = line.substr(ch, ch + MAX_DISPLAY_LENGTH);
@@ -853,7 +856,7 @@ define(function (require, exports, module) {
 
     /**
      * Gets the next page of search recults to append to the result set.
-     * @returns {object} A promise that's resolved with the search results or rejected when the find competes.
+     * @return {object} A promise that's resolved with the search results or rejected when the find competes.
      */
     function getNextPageofSearchResults() {
         var searchDeferred = $.Deferred();

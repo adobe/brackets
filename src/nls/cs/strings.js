@@ -194,6 +194,7 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor <span class='dialog-filename'>{0}</span> ve složce <span class='dialog-path'>{1}</span>",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik pro rozbalení/sbalení všeho",
+    "FIND_IN_FILES_INDEXING"            : "Indexování pro okamžité vyhledávání\u2026",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Nahradit chyby",
     "REPLACE_IN_FILES_ERRORS"           : "Následující soubory nebyly změněny, protože se změnily po hledání nebo do nich nelze zapisovat.",
 
@@ -741,7 +742,7 @@ define({
     "DESCRIPTION_STATIC_SERVER_PORT"                 : "Síťový port, který by zabudovaný server měl použít pro živý náhled",
     "DESCRIPTION_STYLE_ACTIVE_LINE"                  : "true ke zvýraznění řádku, na kterém se nachází kurzor, barvou na pozadí",
     "DESCRIPTION_TAB_SIZE"                           : "Počet zobrazených mezer místo tabulátoru",
-    "DESCRIPTION_USE_TAB_CHAR"                       : "true k použití tabulátorů místo mezer",
+    "DESCRIPTION_USE_TAB_CHAR"                       : "true k používání tabulátorů místo mezer",
     "DESCRIPTION_UPPERCASE_COLORS"                   : "true k vygenerování hex barev velkými písmeny v Inline Color Editor",
     "DESCRIPTION_WORD_WRAP"                          : "Zalomit řádky přesahující šířku viewportu",
     "DESCRIPTION_DETECTED_EXCLUSIONS"                : "Seznam souborů, u kterých bylo zjištěno, že způsobují, že se Tern vymkne kontrole",
@@ -754,6 +755,8 @@ define({
     "DESCRIPTION_LINTING_COLLAPSED"                  : "true ke skrytí panelu linteru",
     "DESCRIPTION_FONT_FAMILY"                        : "Změnit písmo",
     "DESCRIPTION_FONT_SIZE"                          : "Změnit velikost písma, např. 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "true k povolení vyhledávání založeného na Node",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "true k povolení okamžitého vyhledávání",
     "DESCRIPTION_FONT_SMOOTHING"                     : "Pouze pro Mac: \"subpixel-antialiased\" k povolení sub-pixel vyhlazování nebo \"antialiased\" k vyhlazování v odstínech šedi",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false k zamezení otevírání souboru s preferencemi v rozděleném editoru",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false k otevření souboru s preferencemi v levém/horním panelu",
@@ -761,4 +764,4 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Výchozí"
 });
 
-/* Last translated for 473f8f059728c813073732676de6832d04bc94b8 */
+/* Last translated for ed57a2cfd8132224ebee91365ba50f8f718f165f */

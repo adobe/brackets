@@ -168,13 +168,13 @@ define(function (require, exports, module) {
      * Cached copy of this entry's watched root
      * @type {entry: File|Directory, filter: function(FileSystemEntry):boolean, active: boolean}
      */
-    FileSystemEntry.prototype._watchedRoot = null;
+    FileSystemEntry.prototype._watchedRoot = undefined;
 
     /**
      * Cached result of _watchedRoot.filter(this.name, this.parentPath).
      * @type {boolean}
      */
-    FileSystemEntry.prototype._watchedRootFilterResult = false;
+    FileSystemEntry.prototype._watchedRootFilterResult = undefined;
     
     /**
      * Determines whether or not the entry is watched.
@@ -192,7 +192,16 @@ define(function (require, exports, module) {
             
             if (watchedRoot) {
                 this._watchedRoot = watchedRoot;
-                filterResult = watchedRoot.filter(this._name, this._parentPath);
+                if (watchedRoot.entry !== this) { // avoid creating entries for root's parent
+                    var parentEntry = this._fileSystem.getDirectoryForPath(this._parentPath);
+                    if (parentEntry._isWatched() === false) {
+                        filterResult = false;
+                    } else {
+                        filterResult = watchedRoot.filter(this._name, this._parentPath);
+                    }
+                } else { // root itself is watched
+                    filterResult = true;
+                }
                 this._watchedRootFilterResult = filterResult;
             }
         }
@@ -383,8 +392,10 @@ define(function (require, exports, module) {
                     // Notify the caller 
                     callback(err);
                 } finally {
-                    // Notify change listeners
-                    this._fileSystem._fireChangeEvent(parent, added, removed);
+                    if (parent._isWatched()) {
+                        // Notify change listeners
+                        this._fileSystem._fireChangeEvent(parent, added, removed);
+                    }
                     
                     // Unblock external change events
                     this._fileSystem._endChange();
@@ -421,8 +432,10 @@ define(function (require, exports, module) {
                     // Notify the caller
                     callback(err);
                 } finally {
-                    // Notify change listeners
-                    this._fileSystem._fireChangeEvent(parent, added, removed);
+                    if (parent._isWatched()) {
+                        // Notify change listeners
+                        this._fileSystem._fireChangeEvent(parent, added, removed);
+                    }
                     
                     // Unblock external change events
                     this._fileSystem._endChange();

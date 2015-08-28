@@ -27,8 +27,11 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var ExtensionManager = brackets.getModule("extensibility/ExtensionManager"),
-        _                = brackets.getModule("thirdparty/lodash");
+    var _                   = brackets.getModule("thirdparty/lodash"),
+        ExtensionManager    = brackets.getModule("extensibility/ExtensionManager"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
+    
+    var themesPref          = PreferencesManager.getExtensionPrefs("themes");
    
 
     /**
@@ -67,5 +70,43 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    exports.getUserInstalledExtensions   = getUserInstalledExtensions;
+    /**
+     * Utility function to get the user installed theme which are present in the registry
+     */
+    function getUserInstalledTheme() {
+        var result = new $.Deferred();
+        
+        var installedTheme = themesPref.get("theme"),
+            bracketsTheme;
+        
+        if (installedTheme === "light-theme" || installedTheme === "dark-theme") {
+            return result.resolve(installedTheme);
+        }
+        
+        if (!ExtensionManager.hasDownloadedRegistry) {
+            ExtensionManager.downloadRegistry().done(function () {
+                bracketsTheme = ExtensionManager.extensions[installedTheme];
+                if (bracketsTheme && bracketsTheme.installInfo && bracketsTheme.installInfo.locationType === ExtensionManager.LOCATION_USER && bracketsTheme.registryInfo) {
+                    result.resolve(installedTheme);
+                } else {
+                    result.reject();
+                }
+            })
+                .fail(function () {
+                    result.reject();
+                });
+        } else {
+            bracketsTheme = ExtensionManager.extensions[installedTheme];
+            if (bracketsTheme && bracketsTheme.installInfo && bracketsTheme.installInfo.locationType === ExtensionManager.LOCATION_USER && bracketsTheme.registryInfo) {
+                result.resolve(installedTheme);
+            } else {
+                result.reject();
+            }
+        }
+        
+        return result.promise();
+    }
+    
+    exports.getUserInstalledExtensions      = getUserInstalledExtensions;
+    exports.getUserInstalledTheme           = getUserInstalledTheme;
 });

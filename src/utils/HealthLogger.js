@@ -34,6 +34,8 @@ define(function (require, exports, module) {
         LanguageManager             = require("language/LanguageManager"),
         FileUtils                   = require("file/FileUtils"),
         PerfUtils                   = require("utils/PerfUtils"),
+        FindUtils                   = require("search/FindUtils"),
+        StringUtils                 = require("utils/StringUtils"),
 
         HEALTH_DATA_STATE_KEY       = "HealthData.Logs",
         logHealthData               = true;
@@ -47,35 +49,29 @@ define(function (require, exports, module) {
 
     /**
      * All the logging functions should be disabled if this returns false
-     * @returns {boolean} true if health data can be logged
+     * @return {boolean} true if health data can be logged
      */
     function shouldLogHealthData() {
         return logHealthData;
     }
 
     /**
-     * Return the Performance related data
-     * @returns {Object} Performance Data aggregated till now
-     */
-    function getPerformanceData() {
-        return PerfUtils.getHealthReport();
-    }
-
-    /**
      * Return all health data logged till now stored in the state prefs
-     * @returns {Object} Health Data aggregated till now
+     * @return {Object} Health Data aggregated till now
      */
     function getStoredHealthData() {
-        return PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY);
+        var storedData = PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY) || {};
+        return storedData;
     }
 
     /**
      * Return the aggregate of all health data logged till now from all sources
-     * @returns {Object} Health Data aggregated till now
+     * @return {Object} Health Data aggregated till now
      */
     function getAggregatedHealthData() {
         var healthData = getStoredHealthData();
-        $.extend(healthData, getPerformanceData());
+        $.extend(healthData, PerfUtils.getHealthReport());
+        $.extend(healthData, FindUtils.getHealthReport());
         return healthData;
     }
 
@@ -92,7 +88,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns health data logged for the given key
-     * @returns {Object} Health Data object for the key or undefined if no health data stored
+     * @return {Object} Health Data object for the key or undefined if no health data stored
      */
     function getHealthDataLog(key) {
         var healthData = getStoredHealthData();
@@ -158,12 +154,33 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Sets the project details(a probably unique prjID, number of files in the project and the node cache size) in the health log
+     * The name of the project is never saved into the health data log, only the hash(name) is for privacy requirements.
+     * @param {string} projectName The name of the project
+     * @param {number} numFiles    The number of file in the project
+     * @param {number} cacheSize   The node file cache memory consumed by the project
+     */
+    function setProjectDetail(projectName, numFiles, cacheSize) {
+        var projectNameHash = StringUtils.hashCode(projectName),
+            FIFLog = getHealthDataLog("ProjectDetails");
+        if (!FIFLog) {
+            FIFLog = {};
+        }
+        FIFLog["prj" + projectNameHash] = {
+            numFiles : numFiles,
+            cacheSize : cacheSize
+        };
+        setHealthDataLog("ProjectDetails", FIFLog);
+    }
+
     // Define public API
     exports.getHealthDataLog          = getHealthDataLog;
     exports.setHealthDataLog          = setHealthDataLog;
     exports.getAggregatedHealthData   = getAggregatedHealthData;
     exports.clearHealthData           = clearHealthData;
     exports.fileOpened                = fileOpened;
+    exports.setProjectDetail          = setProjectDetail;
     exports.setHealthLogsEnabled      = setHealthLogsEnabled;
     exports.shouldLogHealthData       = shouldLogHealthData;
     exports.init                      = init;

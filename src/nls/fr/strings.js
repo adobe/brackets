@@ -194,6 +194,7 @@ define({
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Cliquer tout en appuyant sur Ctrl/Cmd pour tout développer/tout réduire",
+	"FIND_IN_FILES_INDEXING": "Indexing for Instant Search\u2026",
 	"REPLACE_IN_FILES_ERRORS_TITLE": "Erreurs de remplacement",
 	"REPLACE_IN_FILES_ERRORS": "Les fichiers suivants n’ont pas été traités car ils ont été modifiés après l’opération de recherche ou ne sont pas accessibles en écriture.",
 
@@ -657,7 +658,7 @@ define({
 	"EXPAND_ALL": "Développer tout",
 	"COLLAPSE_CURRENT": "Réduire l’élément actif",
 	"EXPAND_CURRENT": "Développer l’élément actif",
-
+    
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "vrai pour fermer automatiquement les accolades, les crochets et les parenthèses",
 	"DESCRIPTION_CLOSE_OTHERS_ABOVE": "faux pour supprimer l’option « Fermer les autres au-dessus » du menu contextuel Fichiers de travail",
@@ -753,7 +754,9 @@ define({
 	"DESCRIPTION_USE_THEME_SCROLLBARS": "vrai pour autoriser les barres de défilement personnalisées",
 	"DESCRIPTION_LINTING_COLLAPSED": "vrai pour réduire le panneau d’analyse lint",
 	"DESCRIPTION_FONT_FAMILY": "Changer de famille de polices",
-	"DESCRIPTION_FONT_SIZE": "Modifier la taille de police, par ex. 13px",
+	"DESCRIPTION_FONT_SIZE": "Change font size; e.g. 13px",
+	"DESCRIPTION_FIND_IN_FILES_NODE": "true to enable node based search",
+	"DESCRIPTION_FIND_IN_FILES_INSTANT": "true to enable instant search",
 	"DESCRIPTION_FONT_SMOOTHING": "Mac uniquement : « subpixel-antialiased » pour activer l’anticrénelage (lissage) des sous-pixels ou « antialiased » pour l’anticrénelage des niveaux de gris",
 	"DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW": "faux pour désactiver l’ouverture du fichier de préférences en mode fractionné",
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "faux pour ouvrir le fichier de préférences de l’utilisateur dans le volet gauche/supérieur",
