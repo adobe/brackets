@@ -409,9 +409,10 @@ define(function (require, exports, module) {
      * starting up. The cache is cleared on every filesystem change event, and
      * also on project load and unload.
      *
+     * @param {boolean} true to sort files by their paths
      * @return {$.Promise.<Array.<File>>}
      */
-    ProjectModel.prototype._getAllFilesCache = function _getAllFilesCache() {
+    ProjectModel.prototype._getAllFilesCache = function _getAllFilesCache(sort) {
         if (!this._allFilesCachePromise) {
             var deferred = new $.Deferred(),
                 allFiles = [],
@@ -428,9 +429,12 @@ define(function (require, exports, module) {
             this._allFilesCachePromise = deferred.promise();
             
             var projectIndexTimer = PerfUtils.markStart("Creating project files cache: " +
-                                                        this.projectRoot.fullPath);
+                                                        this.projectRoot.fullPath),
+                options = {
+                    sortList : sort
+                };
 
-            this.projectRoot.visit(allFilesVisitor, function (err) {
+            this.projectRoot.visit(allFilesVisitor, options, function (err) {
                 if (err) {
                     PerfUtils.finalizeMeasurement(projectIndexTimer);
                     deferred.reject(err);
@@ -452,10 +456,11 @@ define(function (require, exports, module) {
      *          the file list (does not filter directory traversal). API matches Array.filter().
      * @param {Array.<File>=} additionalFiles Additional files to include (for example, the WorkingSet)
      *          Only adds files that are *not* under the project root or untitled documents.
+     * @param {boolean} true to sort files by their paths
      *
      * @return {$.Promise} Promise that is resolved with an Array of File objects.
      */
-    ProjectModel.prototype.getAllFiles = function getAllFiles(filter, additionalFiles) {
+    ProjectModel.prototype.getAllFiles = function getAllFiles(filter, additionalFiles, sort) {
         // The filter and includeWorkingSet params are both optional.
         // Handle the case where filter is omitted but includeWorkingSet is
         // specified.
@@ -470,7 +475,7 @@ define(function (require, exports, module) {
         // Note that with proper promises we may be able to fix this so that we're not doing this
         // anti-pattern of creating a separate deferred rather than just chaining off of the promise
         // from _getAllFilesCache
-        this._getAllFilesCache().done(function (result) {
+        this._getAllFilesCache(sort).done(function (result) {
             // Add working set entries, if requested
             if (additionalFiles) {
                 additionalFiles.forEach(function (file) {

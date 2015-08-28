@@ -77,7 +77,7 @@
  *     language.addFileExtension("lhs");
  *
  * Some CodeMirror modes define variations of themselves. They are called MIME modes.
- * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror2/mode
+ * To find existing MIME modes, search for "CodeMirror.defineMIME" in thirdparty/CodeMirror/mode
  * For instance, C++, C# and Java all use the clike (C-like) mode with different settings and a different MIME name.
  * You can refine the mode definition by specifying the MIME mode as well:
  *
@@ -132,10 +132,11 @@ define(function (require, exports, module) {
     
     
     // Dependencies
-    var CodeMirror            = require("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror            = require("thirdparty/CodeMirror/lib/codemirror"),
         EventDispatcher       = require("utils/EventDispatcher"),
         Async                 = require("utils/Async"),
         FileUtils             = require("file/FileUtils"),
+        Strings               = require("strings"),
         _defaultLanguagesJSON = require("text!language/languages.json"),
         _                     = require("thirdparty/lodash"),
         
@@ -563,7 +564,7 @@ define(function (require, exports, module) {
      * Loads a mode and sets it for this language.
      * 
      * @param {(string|Array.<string>)} mode  CodeMirror mode (e.g. "htmlmixed"), optionally paired with a MIME mode defined by
-     *      that mode (e.g. ["clike", "text/x-c++src"]). Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js,
+     *      that mode (e.g. ["clike", "text/x-c++src"]). Unless the mode is located in thirdparty/CodeMirror/mode/<name>/<name>.js,
      *      you need to first load it yourself.
      * @return {$.Promise} A promise object that will be resolved when the mode is loaded and set
      */
@@ -613,7 +614,7 @@ define(function (require, exports, module) {
         if (CodeMirror.modes[mode]) {
             finish();
         } else {
-            require(["thirdparty/CodeMirror2/mode/" + mode + "/" + mode], finish);
+            require(["thirdparty/CodeMirror/mode/" + mode + "/" + mode], finish);
         }
         
         return result.promise();
@@ -916,7 +917,7 @@ define(function (require, exports, module) {
      * @param {Array.<string>}        definition.blockComment   Array with two entries defining the block comment prefix and suffix (e.g. ["<!--", "-->"])
      * @param {(string|Array.<string>)} definition.lineComment  Line comment prefixes (e.g. "//" or ["//", "#"])
      * @param {(string|Array.<string>)} definition.mode         CodeMirror mode (e.g. "htmlmixed"), optionally with a MIME mode defined by that mode ["clike", "text/x-c++src"]
-     *                                                          Unless the mode is located in thirdparty/CodeMirror2/mode/<name>/<name>.js, you need to first load it yourself.
+     *                                                          Unless the mode is located in thirdparty/CodeMirror/mode/<name>/<name>.js, you need to first load it yourself.
      *
      * @return {$.Promise} A promise object that will be resolved with a Language object
      **/
@@ -1144,10 +1145,14 @@ define(function (require, exports, module) {
         // depends on FileUtils) here. Using the async form of require fixes this.
         require(["preferences/PreferencesManager"], function (pm) {
             PreferencesManager = pm;
-            pm.definePreference(_EXTENSION_MAP_PREF, "object", {}).on("change", function () {
+            pm.definePreference(_EXTENSION_MAP_PREF, "object", {}, {
+                description: Strings.DESCRIPTION_LANGUAGE_FILE_EXTENSIONS
+            }).on("change", function () {
                 _updateFromPrefs(_EXTENSION_MAP_PREF);
             });
-            pm.definePreference(_NAME_MAP_PREF, "object", {}).on("change", function () {
+            pm.definePreference(_NAME_MAP_PREF, "object", {}, {
+                description: Strings.DESCRIPTION_LANGUAGE_FILE_NAMES
+            }).on("change", function () {
                 _updateFromPrefs(_NAME_MAP_PREF);
             });
             _updateFromPrefs(_EXTENSION_MAP_PREF);

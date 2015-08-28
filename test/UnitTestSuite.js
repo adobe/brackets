@@ -60,6 +60,7 @@ define(function (require, exports, module) {
     require("spec/HTMLTokenizer-test");
     require("spec/InlineEditorProviders-test");
     require("spec/InstallExtensionDialog-test");
+    require("spec/JSONUtils-test");
     require("spec/KeyBindingManager-test");
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
@@ -77,6 +78,7 @@ define(function (require, exports, module) {
     require("spec/ProjectManager-test");
     require("spec/ProjectModel-test");
     require("spec/QuickOpen-test");
+    require("spec/QuickSearchField-test");
     require("spec/RemoteFunctions-test");
     require("spec/StringMatch-test");
     require("spec/StringUtils-test");

@@ -969,5 +969,98 @@ define(function (require, exports, module) {
                 });
             });
         });
+
+        describe("Traversing Files", function () {
+            beforeEach(function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.css",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.html",
+                                                                            paneId: "second-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    MainViewManager.addToWorkingSet("first-pane", getFileObject("test.js"));
+                    MainViewManager.addToWorkingSet("first-pane", getFileObject("test.css"));
+                    MainViewManager.addToWorkingSet("second-pane", getFileObject("test.html"));
+                });
+            });
+
+            it("should traverse in list order", function () {
+                runs(function () {
+                    // Make test.js the active file
+                    promise = new $.Deferred();
+                    DocumentManager.getDocumentForPath(testPath + "/test.js")
+                        .done(function (doc) {
+                            MainViewManager._edit("first-pane", doc);
+                            promise.resolve();
+                        });
+                    waitsForDone(promise, "MainViewManager._edit");
+                });
+                runs(function () {
+                    var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
+
+                    expect(traverseResult.file).toEqual(getFileObject("test.css"));
+                    expect(traverseResult.pane).toEqual("first-pane");
+                });
+            });
+
+            it("should traverse between panes in list order", function () {
+                runs(function () {
+                    var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
+
+                    expect(traverseResult.file).toEqual(getFileObject("test.js"));
+                    expect(traverseResult.pane).toEqual("first-pane");
+                });
+            });
+
+            it("should traverse to the first Working Set item if a file not in the Working Set is being viewed", function () {
+                runs(function () {
+                    // Close test.js to then reopen it without being in the Working Set
+                    CommandManager.execute(Commands.FILE_CLOSE, { file: getFileObject("test.js") });
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+
+                    var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
+
+                    expect(traverseResult.file).toEqual(getFileObject("test.css"));
+                    expect(traverseResult.pane).toEqual("first-pane");
+                });
+            });
+
+            it("should traverse between panes in reverse list order", function () {
+                runs(function () {
+                    // Make test.js the active file
+                    promise = new $.Deferred();
+                    DocumentManager.getDocumentForPath(testPath + "/test.js")
+                        .done(function (doc) {
+                            MainViewManager._edit("first-pane", doc);
+                            promise.resolve();
+                        });
+                    waitsForDone(promise, "MainViewManager._edit");
+                });
+                runs(function () {
+                    var traverseResult = MainViewManager.traverseToNextViewInListOrder(-1);
+
+                    expect(traverseResult.file).toEqual(getFileObject("test.html"));
+                    expect(traverseResult.pane).toEqual("second-pane");
+                });
+            });
+        });
     });
 });

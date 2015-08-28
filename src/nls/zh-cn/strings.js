@@ -48,7 +48,6 @@ define({
     "FILENAMES_LEDE"                    : "文件名",
     "FILENAME"                          : "文件名",
     "DIRECTORY_NAME"                    : "目录名",
-    
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "无法加载此项目。",
@@ -89,6 +88,7 @@ define({
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "读取配置错误",
     "ERROR_PREFS_CORRUPT"               : "您的配置文件不是有效的 JSON 格式. 即将打开配置文件以便您修正. 为使更改生效, 您需要重启 {APP_NAME}.",
+    "ERROR_PROJ_PREFS_CORRUPT"          : "您的项目配置文件不是有效的 JSON 格式. 即将打开配置文件以便您修正. 为使更改生效, 您需要重新载入项目.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} 暂无法在浏览器中运行。",
@@ -294,7 +294,6 @@ define({
     "NOTHING_TO_LINT"                       : "没有可检查文件",
     "LINTER_TIMED_OUT"                      : "{0} 等待 {1} ms 后超时",
     "LINTER_FAILED"                         : "{0} 已终止，错误：{1}",
-    
 
     /**
      * Command Name Constants
@@ -319,6 +318,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "全部保存",
     "CMD_FILE_SAVE_AS"                    : "另存为\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "实时预览",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "开启实验性实时预览",
     "CMD_RELOAD_LIVE_PREVIEW"             : "强制实时预览重新加载",
     "CMD_PROJECT_SETTINGS"                : "项目设置\u2026",
     "CMD_FILE_RENAME"                     : "重命名",
@@ -364,11 +364,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "将下一项匹配添加至选中内容",
     "CMD_SKIP_CURRENT_MATCH"              : "跳过并添加下一项匹配",
     "CMD_FIND_IN_FILES"                   : "在文件中查找",
-    "CMD_FIND_IN_SELECTED"                : "在选中的文件/文件夹查找",
     "CMD_FIND_IN_SUBTREE"                 : "在该位置查找\u2026",
     "CMD_REPLACE"                         : "替换",
     "CMD_REPLACE_IN_FILES"                : "在文件中替换",
-    "CMD_REPLACE_IN_SELECTED"             : "在选中的文件/文件夹中替换",
     "CMD_REPLACE_IN_SUBTREE"              : "在该位置替换\u2026",
 
     // View menu commands
@@ -418,6 +416,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "发行说明",
     "CMD_GET_INVOLVED"                    : "参与",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "显示扩展目录",
+    "CMD_HEALTH_DATA_STATISTICS"          : "健康报告",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} 主页",
     "CMD_TWITTER"                         : "在 Twitter 上 {TWITTER_NAME}",
     "CMD_ABOUT"                           : "关于 {APP_TITLE}",
@@ -567,7 +566,6 @@ define({
     /**
      * Unit names
      */
-    
     "UNIT_PIXELS"                          : "像素",
 
     // extensions/default/DebugCommands
@@ -577,6 +575,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "以带扩展模式重启",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "以无扩展模式重启",
     "CMD_NEW_BRACKETS_WINDOW"                   : "新建一个 {APP_NAME} 窗口",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "安装命令行快捷方式",
     "CMD_SWITCH_LANGUAGE"                       : "切换语言",
     "CMD_RUN_UNIT_TESTS"                        : "运行测试",
     "CMD_SHOW_PERF_DATA"                        : "显示性能数据",
@@ -585,13 +584,30 @@ define({
     "CMD_RESTART_NODE"                          : "重启 Node.js",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "状态栏显示错误信息",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "打开 Brackets 源码",
-    
+
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} 命令行快捷方式",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "安装命令行快捷方式时发生错误。 请尝试<a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>这些故障排除建议</a>.<br/><br/>原因: {0}",
+    "ERROR_CLTOOLS_RMFAILED"                    : "无法移除已存在的 <code>/usr/local/bin/brackets</code> 符号链接.",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "无法创建 <code>/usr/local/bin</code> 目录.",
+    "ERROR_CLTOOLS_LNFAILED"                    : "无法创建 <code>/usr/local/bin/brackets</code> 符号链接.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "内部错误.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "该系统不支持命令行快捷方式.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "成功! 现在你可以通过这样的命令简单地启动 {APP_NAME} 了: <code>brackets myFile.txt</code> 打开文件, <code>brackets myFolder</code> 切换项目, <br/><br/><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>点击此处</a>了解更多 {APP_NAME} 命令行的使用方法.",
+
     "LANGUAGE_TITLE"                            : "切换语言",
     "LANGUAGE_MESSAGE"                          : "请从列表中选择所需的语言:",
     "LANGUAGE_SUBMIT"                           : "重新加载 {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "取消",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "系统默认",
-    
+
+    // extensions/default/HealthData
+    "HEALTH_DATA_NOTIFICATION"                  : "健康报告首选项",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME} 健康报告",
+    "HEALTH_DATA_DO_TRACK"                      : "共享关于我如何使用 {APP_NAME} 的匿名信息",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "为了改进 {APP_NAME}, 我们会周期性地向 Adobe 发送有限的 <strong>匿名的</strong> 关于你如何使用 {APP_NAME} 的统计信息. 这些信息有助于调整特性的优先顺序, 寻找错误和定位可用性问题. <br><br>你可以通过 <strong>帮助 > 健康报告</strong> 查看你的数据或者选择不共享数据. <br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>了解 {APP_NAME} 健康报告详情</a>",
+    "HEALTH_DATA_PREVIEW"                       : "{APP_NAME} 健康报告",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>为了改进 {APP_NAME}, 我们会周期性地向 Adobe 发送有限的 <strong>匿名的</strong> 关于你如何使用 {APP_NAME} 的统计信息. 这些信息有助于调整特性的优先顺序, 寻找错误和定位可用性问题. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>了解更多 {APP_NAME} 健康报告</a>, 以及它是怎样在保护你的隐私的情况下帮助 {APP_NAME} 社区. </p><p><em>如果</em>你打开它, 下面的数据将被用于下次健康报告的发送. </p>",
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "时间",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "进程",
@@ -625,8 +641,14 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "最近的项目",
     
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "更多信息"
+    "DOCS_MORE_LINK"                            : "更多信息",
+
+    // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "收起所有",
+    "EXPAND_ALL"                    : "展开所有",
+    "COLLAPSE_CURRENT"              : "收起当前",
+    "EXPAND_CURRENT"                : "展开当前"
 });
 
-/* Last translated for 893c065b715c211526dcd010c0294e12a8683995 */
+/* Last translated for 50cbe1b8848786c6be27d4788e4b6a367244abc2 */
 

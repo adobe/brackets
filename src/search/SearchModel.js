@@ -26,9 +26,10 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileUtils   = require("file/FileUtils"),
+    var FileUtils       = require("file/FileUtils"),
         EventDispatcher = require("utils/EventDispatcher"),
-        FindUtils   = require("search/FindUtils");
+        FindUtils       = require("search/FindUtils"),
+        MainViewManager = require("view/MainViewManager");
 
     /**
      * @constructor
@@ -199,23 +200,63 @@ define(function (require, exports, module) {
      * @return {{files: number, matches: number}}
      */
     SearchModel.prototype.countFilesMatches = function () {
-        return {files: Object.keys(this.results).length, matches: this.numMatches};
+        return {files: (this.numFiles || Object.keys(this.results).length), matches: this.numMatches};
     };
 
     /**
-     * Sorts the file keys to show the results from the selected file first and the rest sorted by path
+     * Prioritizes the open file and then the working set files to the starting of the list of files
+     * If node search is disabled, we sort the files too- Sorting is computation intensive, and our
+     * ProjectManager.getAllFiles with the sort flag is not working properly : TODO TOFIX
      * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.
      * @return {Array.<string>}
      */
-    SearchModel.prototype.getSortedFiles = function (firstFile) {
-        return Object.keys(this.results).sort(function (key1, key2) {
-            if (firstFile === key1) {
-                return -1;
-            } else if (firstFile === key2) {
-                return 1;
+    SearchModel.prototype.prioritizeOpenFile = function (firstFile) {
+        var workingSetFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES),
+            workingSetFileFound = {},
+            fileSetWithoutWorkingSet = [],
+            startingWorkingFileSet = [],
+            propertyName = "",
+            i = 0;
+
+        if (FindUtils.isNodeSearchDisabled()) {
+            return Object.keys(this.results).sort(function (key1, key2) {
+                if (firstFile === key1) {
+                    return -1;
+                } else if (firstFile === key2) {
+                    return 1;
+                }
+                return FileUtils.comparePaths(key1, key2);
+            });
+        }
+
+        firstFile = firstFile || "";
+
+        // Create a working set path map which indicates if a file in working set is found in file list
+        for (i = 0; i < workingSetFiles.length; i++) {
+            workingSetFileFound[workingSetFiles[i].fullPath] = false;
+        }
+
+        // Remove all the working set files from the filtration list
+        fileSetWithoutWorkingSet = Object.keys(this.results).filter(function (key) {
+            if (workingSetFileFound[key] !== undefined) {
+                workingSetFileFound[key] = true;
+                return false;
             }
-            return FileUtils.comparePaths(key1, key2);
+            return true;
         });
+
+        //push in the first file
+        if (workingSetFileFound[firstFile] === true) {
+            startingWorkingFileSet.push(firstFile);
+            workingSetFileFound[firstFile] = false;
+        }
+        //push in the rest of working set files already present in file list
+        for (propertyName in workingSetFileFound) {
+            if (workingSetFileFound.hasOwnProperty(propertyName) && workingSetFileFound[propertyName]) {
+                startingWorkingFileSet.push(propertyName);
+            }
+        }
+        return startingWorkingFileSet.concat(fileSetWithoutWorkingSet);
     };
 
     /**

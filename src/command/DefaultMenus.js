@@ -110,11 +110,9 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.CMD_SKIP_CURRENT_MATCH);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.CMD_FIND_IN_FILES);
-        menu.addMenuItem(Commands.CMD_FIND_IN_SELECTED);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.CMD_REPLACE);
         menu.addMenuItem(Commands.CMD_REPLACE_IN_FILES);
-        menu.addMenuItem(Commands.CMD_REPLACE_IN_SELECTED);
         
         /*
          * View menu
@@ -152,6 +150,8 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC);
         menu.addMenuItem(Commands.NAVIGATE_PREV_DOC);
+        menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC_LIST_ORDER);
+        menu.addMenuItem(Commands.NAVIGATE_PREV_DOC_LIST_ORDER);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
         menu.addMenuDivider();
@@ -187,7 +187,6 @@ define(function (require, exports, module) {
 
         menu.addMenuDivider();
         menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
-
 
         var hasAboutItem = (brackets.platform !== "mac" || !brackets.nativeMenus);
         

@@ -166,13 +166,11 @@ define(function (require, exports, module) {
             })
             // The link to go to the next page
             .on("click.searchResults", ".next-page:not(.disabled)", function () {
-                self._currentStart += RESULTS_PER_PAGE;
-                self._render();
+                self.trigger('getNextPage');
             })
             // The link to go to the last page
             .on("click.searchResults", ".last-page:not(.disabled)", function () {
-                self._currentStart = self._getLastCurrentStart();
-                self._render();
+                self.trigger('getLastPage');
             })
             
             // Add the file to the working set on double click
@@ -220,6 +218,7 @@ define(function (require, exports, module) {
 
                         //In Expand/Collapse all, reset all search results 'collapsed' flag to same value(true/false).
                         if (e.metaKey || e.ctrlKey) {
+                            FindUtils.setCollapseResults(collapsed);
                             _.forEach(self._model.results, function (item) {
                                 item.collapsed = collapsed;
                             });
@@ -379,7 +378,7 @@ define(function (require, exports, module) {
     SearchResultsView.prototype._render = function () {
         var searchItems, match, i, item, multiLine,
             count            = this._model.countFilesMatches(),
-            searchFiles      = this._model.getSortedFiles(this._initialFilePath),
+            searchFiles      = this._model.prioritizeOpenFile(this._initialFilePath),
             lastIndex        = this._getLastIndex(count.matches),
             matchesCounter   = 0,
             showMatches      = false,
@@ -523,6 +522,22 @@ define(function (require, exports, module) {
         return Math.min(this._currentStart + RESULTS_PER_PAGE, numMatches);
     };
     
+    /**
+     * Shows the next page of the resultrs view if possible
+     */
+    SearchResultsView.prototype.showNextPage = function () {
+        this._currentStart += RESULTS_PER_PAGE;
+        this._render();
+    };
+
+    /**
+     * Shows the last page of the results view.
+     */
+    SearchResultsView.prototype.showLastPage = function () {
+        this._currentStart = this._getLastCurrentStart();
+        this._render();
+    };
+
     /**
      * @private
      * Returns the last possible current start based on the given number of matches

@@ -1,0 +1,91 @@
+/* Dialog in the Help menu */
+
+.health-data-preview .modal-body {
+    max-height: none;
+}
+
+.health-data-preview .preview-content-container {
+    max-height: 300px;
+    overflow: auto;
+    background-color: #f0f0f0;
+    color: #0f0f0f;
+    border-radius: 3px;
+    padding: 8px;
+    margin-bottom: 0;
+}
+
+.health-data-preview input[type="checkbox"] {
+    vertical-align: bottom;
+}
+
+.health-data-preview .preview-content {
+    -webkit-user-select: text;
+    cursor: text;
+}
+
+
+/* Notification popup seen on first launch */
+
+.healthdata-firstlaunch-container {
+    border-radius: 3px;
+    background: #005f8f;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.24);
+
+    position: absolute;
+    padding: 9px 12px 9px 12px;
+    z-index: 100;
+
+    font-family: "SourceSansPro";
+    color: #eee;
+    line-height: 1.5;
+
+    /* animated properties */
+    opacity: 0;
+    transform: translateY(-50px);
+}
+
+#healthdata-firstlaunch-popup {
+    max-width: 250px;
+    right: 39px;
+}
+
+.healthdata-firstlaunch-container.animateOpen {
+    opacity: 1;
+    transition: transform 500ms, opacity 500ms;
+    transition-delay: 2s;
+    transform: translateY(0);
+}
+
+.healthdata-firstlaunch-container.animateClose {
+    transition: transform 500ms, opacity 500ms;
+}
+
+#healthdata-firstlaunch-popup p {
+    margin-bottom: 5px;
+}
+
+.healthdata-popup-close-button {
+    font-size: 16px;
+    font-weight: 900;
+    position: absolute;
+    top: 0;
+    right: 8px;
+    cursor: pointer;
+}
+.healthdata-popup-close-button:hover {
+    color: white;
+}
+
+.healthdata-dialog-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ddd;
+}
+
+.healthdata-dialog-message strong {
+    color: white;
+}
+
+.healthdata-dialog-message a {
+    color: #00ccff;
+}

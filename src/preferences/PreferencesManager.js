@@ -112,6 +112,8 @@ define(function (require, exports, module) {
     
     /**
      * Retreive the preferences data for the given clientID.
+     * @deprecated
+     *
      * @param {string|{id: string, uri: string}} clientID - A unique identifier or a requireJS module object
      * @param {string=} defaults - Default preferences stored as JSON
      * @param {boolean=} _doNotCreate Do not create the storage if it does not already exist. Used for conversion.
@@ -123,7 +125,8 @@ define(function (require, exports, module) {
         // having _doNotCreate set to true, then the caller is using the old preferences model.
         if (!_doNotCreate) {
             var clientString = typeof clientID === "object" ? clientID.uri : clientID;
-            DeprecationWarning.deprecationWarning("getPreferenceStorage is called with client ID '" + clientString + ",' use PreferencesManager.definePreference instead.");
+            DeprecationWarning.deprecationWarning("PreferencesManager.getPreferenceStorage() called with client id '" +
+                                                  clientString + "' has been deprecated. Use PreferencesManager.definePreference() instead.");
         }
         if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
             console.error("Invalid clientID");
@@ -308,6 +311,7 @@ define(function (require, exports, module) {
      * * `user newkey`: convert to a user-level preference, changing the key to newkey
      * 
      * Once a key has been converted, it will not be converted again.
+     * @deprecated
      * 
      * @param {string|Object} clientID ClientID used in the old preferences
      * @param {Object} rules Rules for conversion (as defined above)
@@ -318,6 +322,9 @@ define(function (require, exports, module) {
      *      examines each preference key for migration.
      */
     function convertPreferences(clientID, rules, isViewState, prefCheckCallback) {
+        DeprecationWarning.deprecationWarning("PreferencesManager.convertPreferences() has been deprecated. " +
+                                              "Please upgrade to the current Preferences system " +
+                                              "(https://github.com/adobe/brackets/wiki/Preferences-System#conversion-from-the-pre-36-preferences-system).");
         PreferencesImpl.smUserScopeLoading.done(function () {
             PreferencesImpl.userScopeLoading.done(function () {
                 if (!clientID || (typeof clientID === "object" && (!clientID.id || !clientID.uri))) {
@@ -400,9 +407,9 @@ define(function (require, exports, module) {
             if (before === -1) {
                 before = scopeOrder.length - 2;
             }
-            newScopeOrder = _.first(scopeOrder, before);
+            newScopeOrder = _.take(scopeOrder, before);
             newScopeOrder.push("project");
-            newScopeOrder.push.apply(newScopeOrder, _.rest(scopeOrder, before));
+            newScopeOrder.push.apply(newScopeOrder, _.drop(scopeOrder, before));
         } else {
             newScopeOrder = _.without(scopeOrder, "project");
         }
@@ -528,7 +535,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if a value was set
      */
     function setValueAndSave(id, value, options) {
-        DeprecationWarning.deprecationWarning("setValueAndSave called for " + id + ". Use set instead.");
+        DeprecationWarning.deprecationWarning("PreferencesManager.setValueAndSave() called for " + id + ". Use PreferencesManager.set() instead.", true);
         var changed = exports.set(id, value, options).stored;
         PreferencesImpl.manager.save();
         return changed;
@@ -590,6 +597,7 @@ define(function (require, exports, module) {
     exports.on                  = PreferencesImpl.manager.on.bind(PreferencesImpl.manager);
     exports.off                 = PreferencesImpl.manager.off.bind(PreferencesImpl.manager);
     exports.getPreference       = PreferencesImpl.manager.getPreference.bind(PreferencesImpl.manager);
+    exports.getAllPreferences   = PreferencesImpl.manager.getAllPreferences.bind(PreferencesImpl.manager);
     exports.getExtensionPrefs   = getExtensionPrefs;
     exports.setValueAndSave     = setValueAndSave;
     exports.getViewState        = getViewState;

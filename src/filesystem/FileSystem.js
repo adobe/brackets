@@ -526,6 +526,22 @@ define(function (require, exports, module) {
     };
 
     /**
+     * This method adds an entry for a file in the file Index. Files on disk are added
+     * to the file index either on load or on open. This method is primarily needed to add
+     * in memory files to the index
+     *
+     * @param {File} The fileEntry which needs to be added
+     * @param {String} The full path to the file
+     */
+    FileSystem.prototype.addEntryForPathIfRequired = function (fileEntry, path) {
+        var entry = this._index.getEntry(path);
+
+        if (!entry) {
+            this._index.addEntry(fileEntry);
+        }
+    };
+
+    /**
      * Return a (strict subclass of a) FileSystemEntry object for the specified
      * path using the provided constuctor. For now, the provided constructor
      * should be either File or Directory.
@@ -810,10 +826,12 @@ define(function (require, exports, module) {
                 this._handleDirectoryChange(entry, function (added, removed) {
                     entry._stat = stat;
                     
-                    // We send a change even if added & removed are both zero-length. Something may still have changed,
-                    // e.g. a file may have been quickly removed & re-added before we got a chance to reread the directory
-                    // listing.
-                    this._fireChangeEvent(entry, added, removed);
+                    if (entry._isWatched()) {
+                        // We send a change even if added & removed are both zero-length. Something may still have changed,
+                        // e.g. a file may have been quickly removed & re-added before we got a chance to reread the directory
+                        // listing.
+                        this._fireChangeEvent(entry, added, removed);
+                    }
                 }.bind(this));
             }
         }
@@ -970,6 +988,7 @@ define(function (require, exports, module) {
     exports.close = _wrap(FileSystem.prototype.close);
     exports.shouldShow = _wrap(FileSystem.prototype.shouldShow);
     exports.getFileForPath = _wrap(FileSystem.prototype.getFileForPath);
+    exports.addEntryForPathIfRequired = _wrap(FileSystem.prototype.addEntryForPathIfRequired);
     exports.getDirectoryForPath = _wrap(FileSystem.prototype.getDirectoryForPath);
     exports.resolve = _wrap(FileSystem.prototype.resolve);
     exports.showOpenDialog = _wrap(FileSystem.prototype.showOpenDialog);

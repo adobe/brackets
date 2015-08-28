@@ -110,7 +110,7 @@ define(function (require, exports, module) {
         }
         
         // Check for valid file extensions
-        if (!/(.png|.jpg|.jpeg|.gif|.svg)$/i.test(fileName)) {
+        if (!/(\.png|\.jpg|\.jpeg|\.gif|\.webp|\.svg)$/i.test(fileName)) {
             return null;
         }
 

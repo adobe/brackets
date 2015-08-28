@@ -33,10 +33,18 @@
         "lineComment": ["//"]
     },
 
+    "stylus": {
+        "name": "Stylus",
+        "mode": ["stylus", "text/x-styl"],
+        "fileExtensions": ["styl"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "ascx", "asp", "master", "cshtml", "vbhtml"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "kit", "jsp", "aspx", "ascx", "asp", "master", "cshtml", "vbhtml"],
         "blockComment": ["<!--", "-->"]
     },
     
@@ -94,7 +102,7 @@
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xbl", "mathml", "config", "plist", "xaml"],
+        "fileExtensions": ["xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xsd", "xbl", "mathml", "config", "plist", "xaml"],
         "blockComment": ["<!--", "-->"]
     },
 
@@ -172,7 +180,7 @@
     "perl": {
         "name": "Perl",
         "mode": "perl",
-        "fileExtensions": ["pl", "pm"],
+        "fileExtensions": ["pl", "pm", "t"],
         "lineComment": ["#"]
     },
 
@@ -255,7 +263,7 @@
   
     "image": {
         "name": "Image",
-        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico", "bmp"],
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico", "bmp", "webp"],
         "isBinary": true
     },
     
@@ -277,5 +285,13 @@
             "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip"
         ],
         "isBinary": true
+    },
+
+    "haskell": {
+        "name": "Haskell",
+        "mode": "haskell",
+        "fileExtensions": ["hs"],
+        "blockComment": ["{-", "-}"],
+        "lineComment": ["--"]
     }
 }

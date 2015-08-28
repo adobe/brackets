@@ -92,7 +92,6 @@ define(function (require, exports, module) {
     // FIND
     exports.CMD_FIND                    = "cmd.find";                   // FindReplace.js               _launchFind()
     exports.CMD_FIND_IN_FILES           = "cmd.findInFiles";            // FindInFilesUI.js             _showFindBar()
-    exports.CMD_FIND_IN_SELECTED        = "cmd.findInSelected";         // FindInFilesUI.js             _showFindBarForSubtree()
     exports.CMD_FIND_IN_SUBTREE         = "cmd.findInSubtree";          // FindInFilesUI.js             _showFindBarForSubtree()
     exports.CMD_FIND_NEXT               = "cmd.findNext";               // FindReplace.js               _findNext()
     exports.CMD_FIND_PREVIOUS           = "cmd.findPrevious";           // FindReplace.js               _findPrevious()
@@ -101,7 +100,6 @@ define(function (require, exports, module) {
     exports.CMD_SKIP_CURRENT_MATCH      = "cmd.skipCurrentMatch";       // FindReplace.js               _skipCurrentMatch()
     exports.CMD_REPLACE                 = "cmd.replace";                // FindReplace.js               _replace()
     exports.CMD_REPLACE_IN_FILES        = "cmd.replaceInFiles";         // FindInFilesUI.js             _showReplaceBar()
-    exports.CMD_REPLACE_IN_SELECTED     = "cmd.replaceInSelected";      // FindInFilesUI.js             _showReplaceBarForSubtree()
     exports.CMD_REPLACE_IN_SUBTREE      = "cmd.replaceInSubtree";       // FindInFilesUI.js             _showReplaceBarForSubtree()
     
     // VIEW
@@ -123,6 +121,8 @@ define(function (require, exports, module) {
     // NAVIGATE
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";           // DocumentCommandHandlers.js   handleGoNextDoc()
     exports.NAVIGATE_PREV_DOC           = "navigate.prevDoc";           // DocumentCommandHandlers.js   handleGoPrevDoc()
+    exports.NAVIGATE_NEXT_DOC_LIST_ORDER    = "navigate.nextDocListOrder";           // DocumentCommandHandlers.js   handleGoNextDocListOrder()
+    exports.NAVIGATE_PREV_DOC_LIST_ORDER    = "navigate.prevDocListOrder";           // DocumentCommandHandlers.js   handleGoPrevDocListOrder()
     exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";    // DocumentCommandHandlers.js   handleShowInTree()
     exports.NAVIGATE_SHOW_IN_OS         = "navigate.showInOS";          // DocumentCommandHandlers.js   handleShowInOS()
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";         // QuickOpen.js                 doFileSearch()

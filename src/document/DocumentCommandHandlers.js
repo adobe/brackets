@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         InMemoryFile        = require("document/InMemoryFile"),
         StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
+        HealthLogger        = require("utils/HealthLogger"),
         Dialogs             = require("widgets/Dialogs"),
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         Strings             = require("strings"),
@@ -132,7 +133,9 @@ define(function (require, exports, module) {
     /** Unique token used to indicate user-driven cancellation of Save As (as opposed to file IO error) */
     var USER_CANCELED = { userCanceled: true };
 
-    PreferencesManager.definePreference("defaultExtension", "string", "");
+    PreferencesManager.definePreference("defaultExtension", "string", "", {
+        excludeFromHints: true
+    });
 
     /**
      * JSLint workaround for circular dependency
@@ -449,6 +452,7 @@ define(function (require, exports, module) {
         
         _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
             .done(function (file) {
+                HealthLogger.fileOpened(fileInfo.path);
                 if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
                     MainViewManager.setActivePaneId(paneId);
                 }
@@ -526,6 +530,7 @@ define(function (require, exports, module) {
         return handleFileOpen(commandData).done(function (file) {
             var paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
             MainViewManager.addToWorkingSet(paneId, file, commandData.index, commandData.forceRedraw);
+            HealthLogger.fileOpened(file.fullPath, true);
         });
     }
 
@@ -1460,9 +1465,19 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Navigate to the next/previous (MRU) document. Don't update MRU order yet */
-    function goNextPrevDoc(inc) {
-        var result = MainViewManager.traverseToNextViewByMRU(inc);
+    /**
+     * Navigate to the next/previous (MRU or list order) document. Don't update MRU order yet
+     * @param {!number} inc Delta indicating in which direction we're going
+     * @param {?boolean} listOrder Whether to navigate using MRU or list order. Defaults to MRU order
+     */
+    function goNextPrevDoc(inc, listOrder) {
+        var result;
+        if (listOrder) {
+            result = MainViewManager.traverseToNextViewInListOrder(inc);
+        } else {
+            result = MainViewManager.traverseToNextViewByMRU(inc);
+        }
+
         if (result) {
             var file = result.file,
                 paneId = result.paneId;
@@ -1479,14 +1494,24 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Next Doc command handler **/
+    /** Next Doc command handler (MRU order) **/
     function handleGoNextDoc() {
         goNextPrevDoc(+1);
-
     }
-    /** Previous Doc command handler **/
+
+    /** Previous Doc command handler (MRU order) **/
     function handleGoPrevDoc() {
         goNextPrevDoc(-1);
+    }
+
+    /** Next Doc command handler (list order) **/
+    function handleGoNextDocListOrder() {
+        goNextPrevDoc(+1, true);
+    }
+
+    /** Previous Doc command handler (list order) **/
+    function handleGoPrevDocListOrder() {
+        goNextPrevDoc(-1, true);
     }
 
     /** Show in File Tree command handler **/
@@ -1610,7 +1635,10 @@ define(function (require, exports, module) {
                     href = href.substr(0, fragment);
                 }
 
-                window.location.href = href;
+                // Defer for a more successful reload - issue #11539
+                setTimeout(function () {
+                    window.location.href = href;
+                }, 1000);
             });
         }).fail(function () {
             _isReloading = false;
@@ -1722,6 +1750,9 @@ define(function (require, exports, module) {
     // Traversal
     CommandManager.register(Strings.CMD_NEXT_DOC,                    Commands.NAVIGATE_NEXT_DOC,              handleGoNextDoc);
     CommandManager.register(Strings.CMD_PREV_DOC,                    Commands.NAVIGATE_PREV_DOC,              handleGoPrevDoc);
+
+    CommandManager.register(Strings.CMD_NEXT_DOC_LIST_ORDER,         Commands.NAVIGATE_NEXT_DOC_LIST_ORDER,   handleGoNextDocListOrder);
+    CommandManager.register(Strings.CMD_PREV_DOC_LIST_ORDER,         Commands.NAVIGATE_PREV_DOC_LIST_ORDER,   handleGoPrevDocListOrder);
 
     // Special Commands
     CommandManager.register(showInOS,                                Commands.NAVIGATE_SHOW_IN_OS,            handleShowInOS);
