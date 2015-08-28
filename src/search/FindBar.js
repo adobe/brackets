@@ -421,14 +421,14 @@ define(function (require, exports, module) {
     
     /**
      * Returns the current query and parameters.
-     * @return {{query: string, isCaseSensitive: boolean, isWholeWord: boolean, isRegexp: boolean}}
+     * @return {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}}
      */
     FindBar.prototype.getQueryInfo = function () {
         return {
             query:           this.$("#find-what").val() || "",
             isCaseSensitive: this.$("#find-case-sensitive").is(".active"),
-            isWholeWord:     PreferencesManager.getViewState("wholeWord"),
-            isRegexp:        PreferencesManager.getViewState("regexp")
+            isRegexp:        PreferencesManager.getViewState("regexp"),
+            isWholeWord:     PreferencesManager.getViewState("wholeWord")
         };
     };
     
