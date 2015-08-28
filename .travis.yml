@@ -13,10 +13,10 @@ notifications:
   irc: "irc.mozilla.org#thimble"
 deploy:
   - provider: s3
-    access_key_id: AKIAJZZYAKJA33TQEHLA
+    access_key_id: AKIAI7XHSZFYVHFRTRIA
     secret_access_key:
-      secure: PUmptcr3naHfuC1FU8q7F3OEbnbCzfKaTYleJDpYjz7lSt24zoXD5epaTcusva4SafMS3I5NeKZ79YmDrn2ONEyLdyPCLKNScOFEClhjFNeuMOrf63fK3MO1RwNtJ2Rvjwwi2k+/pVaVUXKcr287JWywDZUZfYp7DjxJdNU6JZ0=
-    bucket: mozillathimblelivepreview.net
+      secure: XFKkzJRsjVXShcDrTdihLug1CZjr3s/2rSpQrzQnkl2ChM+waydLqd8jHrfkIUl6np2pxO8JU3HWe9AYfuTMdNhWijQS2E1xesUTTK9KQaPdu5mhe98AkCu/rziAv485To4hze0om8GHyREUR1cOxalYVflupZtHIkKzQgbF8AY=
+    bucket: mozillathimblelivepreview-net-s3bucket-l1armm3pssk5
     local-dir: dist
     upload-dir: bramble/staging/dist
     skip_cleanup: true
@@ -25,10 +25,10 @@ deploy:
       repo: humphd/brackets
       branch: bramble
   - provider: s3
-    access_key_id: AKIAJZZYAKJA33TQEHLA
+    access_key_id: AKIAI7XHSZFYVHFRTRIA
     secret_access_key:
-      secure: PUmptcr3naHfuC1FU8q7F3OEbnbCzfKaTYleJDpYjz7lSt24zoXD5epaTcusva4SafMS3I5NeKZ79YmDrn2ONEyLdyPCLKNScOFEClhjFNeuMOrf63fK3MO1RwNtJ2Rvjwwi2k+/pVaVUXKcr287JWywDZUZfYp7DjxJdNU6JZ0=
-    bucket: mozillathimblelivepreview.net
+      secure: XFKkzJRsjVXShcDrTdihLug1CZjr3s/2rSpQrzQnkl2ChM+waydLqd8jHrfkIUl6np2pxO8JU3HWe9AYfuTMdNhWijQS2E1xesUTTK9KQaPdu5mhe98AkCu/rziAv485To4hze0om8GHyREUR1cOxalYVflupZtHIkKzQgbF8AY=
+    bucket: mozillathimblelivepreview-net-s3bucket-l1armm3pssk5
     local-dir: dist
     upload-dir: bramble/production/dist
     skip_cleanup: true
