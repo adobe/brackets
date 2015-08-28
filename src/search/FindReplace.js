@@ -97,11 +97,16 @@ define(function (require, exports, module) {
         if (!queryInfo || !queryInfo.query) {
             return "";
         }
+
+        var query = queryInfo.query;
     
         // Is it a (non-blank) regex?
         if (queryInfo.isRegexp) {
             try {
-                return new RegExp(queryInfo.query, queryInfo.isCaseSensitive ? "" : "i");
+                if (queryInfo.isWholeWord) {
+                    query = "\\b" + query + "\\b";
+                }
+                return new RegExp(query, queryInfo.isCaseSensitive ? "" : "i");
             } catch (e) {
                 if (findBar) {
                     findBar.showError(e.message);
@@ -109,9 +114,9 @@ define(function (require, exports, module) {
                 return "";
             }
         } else if (queryInfo.isWholeWord) {
-            return new RegExp("\\b" + StringUtils.regexEscape(queryInfo.query) + "\\b", queryInfo.isCaseSensitive ? "" : "i");
+            return new RegExp("\\b" + StringUtils.regexEscape(query) + "\\b", queryInfo.isCaseSensitive ? "" : "i");
         } else {
-            return queryInfo.query;
+            return query;
         }
     }
 

@@ -278,7 +278,7 @@ maxerr: 50, node: true */
     
     /**
      * Parses the given query into a regexp, and returns whether it was valid or not.
-     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo
+     * @param {{query: string, caseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo
      * @return {{queryExpr: RegExp, valid: boolean, empty: boolean, error: string}}
      *      queryExpr - the regexp representing the query
      *      valid - set to true if query is a nonempty string or a valid regexp.
@@ -301,19 +301,24 @@ maxerr: 50, node: true */
         if (!queryInfo.isCaseSensitive) {
             flags += "i";
         }
+        
+        var query = queryInfo.query;
 
         // Is it a (non-blank) regex?
         if (queryInfo.isRegexp) {
             try {
-                queryExpr = new RegExp(queryInfo.query, flags);
+                if (queryInfo.isWholeWord) {
+                    query = "\\b" + query + "\\b";
+                }
+                queryExpr = new RegExp(query, flags);
             } catch (e) {
                 return {valid: false, error: e.message};
             }
         } else if (queryInfo.isWholeWord) {
-            queryExpr = new RegExp("\\b" + regexEscape(queryInfo.query) + "\\b", flags);
+            queryExpr = new RegExp("\\b" + regexEscape(query) + "\\b", flags);
         } else {
             // Query is a plain string. Turn it into a regexp
-            queryExpr = new RegExp(regexEscape(queryInfo.query), flags);
+            queryExpr = new RegExp(regexEscape(query), flags);
         }
         return {valid: true, queryExpr: queryExpr};
     }
