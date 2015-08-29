@@ -132,7 +132,7 @@ define(function (require, exports, module) {
         
         // Get initial query/replace text
         var currentEditor = EditorManager.getActiveEditor(),
-            initialQuery = FindUtils.getInitialQuery(_findBar, currentEditor);
+            initialQuery = FindBar.getInitialQuery(_findBar, currentEditor);
 
         // Close our previous find bar, if any. (The open() of the new _findBar will
         // take care of closing any other find bar instances.)

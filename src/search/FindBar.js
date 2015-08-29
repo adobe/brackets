@@ -551,6 +551,53 @@ define(function (require, exports, module) {
         this.trigger("doFind");
     };
 
+    /**
+     * Gets you the right query and replace text to prepopulate the Find Bar.
+     * @static
+     * @param {?FindBar} currentFindBar The currently open Find Bar, if any
+     * @param {?Editor} The active editor, if any
+     * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
+     */
+    FindBar.getInitialQuery = function (currentFindBar, editor) {
+        var query = "",
+            replaceText = "";
+
+        /*
+         * Returns the string used to prepopulate the find bar
+         * @param {!Editor} editor
+         * @return {string} first line of primary selection to populate the find bar
+         */
+        function getInitialQueryFromSelection(editor) {
+            var selectionText = editor.getSelectedText();
+            if (selectionText) {
+                return selectionText
+                    .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
+                    .split("\n")[0];
+            }
+            return "";
+        }
+
+        if (currentFindBar && !currentFindBar.isClosed()) {
+            // The modalBar was already up. When creating the new modalBar, copy the
+            // current query instead of using the passed-in selected text.
+            query = currentFindBar.getQueryInfo().query;
+            replaceText = currentFindBar.getReplaceText();
+        } else {
+            var openedFindBar = FindBar._bars && _.find(FindBar._bars, function (bar) {
+                    return !bar.isClosed();
+                });
+
+            if (openedFindBar) {
+                query = openedFindBar.getQueryInfo().query;
+                replaceText = openedFindBar.getReplaceText();
+            } else if (editor) {
+                query = getInitialQueryFromSelection(editor);
+            }
+        }
+
+        return {query: query, replaceText: replaceText};
+    };
+
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
     PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
     PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"}, true);
