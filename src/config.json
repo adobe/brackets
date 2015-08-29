@@ -60,6 +60,7 @@
         "grunt-contrib-requirejs": "0.4.1",
         "grunt-contrib-uglify": "0.2.0",
         "grunt-contrib-concat": "0.3.0",
+        "grunt-madge": "0.0.6",
         "grunt-targethtml": "0.2.6",
         "grunt-usemin": "0.1.11",
         "load-grunt-tasks": "3.5.0",
