@@ -56,18 +56,18 @@ define({
     "READ_DIRECTORY_ENTRIES_ERROR"      : "An error occurred when reading the contents of the directory <span class='dialog-filename'>{0}</span>. (error {1})",
 
     // File open/save error string
-    "ERROR_OPENING_FILE_TITLE"          : "Error Opening File",
+    "ERROR_OPENING_FILE_TITLE"          : "خطأ في فتح الملف",
     "ERROR_OPENING_FILE"                : "An error occurred when trying to open the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_OPENING_FILES"               : "An error occurred when trying to open the following files:",
     "ERROR_RELOADING_FILE_TITLE"        : "Error Reloading Changes From Disk",
     "ERROR_RELOADING_FILE"              : "An error occurred when trying to reload the file <span class='dialog-filename'>{0}</span>. {1}",
-    "ERROR_SAVING_FILE_TITLE"           : "Error Saving File",
+    "ERROR_SAVING_FILE_TITLE"           : "خطأ في حفظ الملف",
     "ERROR_SAVING_FILE"                 : "An error occurred when trying to save the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Error Renaming {0}",
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the {2} <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"         : "Error Deleting {0}",
     "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the {2} <span class='dialog-filename'>{0}</span>. {1}",
-    "INVALID_FILENAME_TITLE"            : "Invalid {0}",
+    "INVALID_FILENAME_TITLE"            : "غير صالح {0}",
     "INVALID_FILENAME_MESSAGE"          : "{0} cannot use any system reserved words, end with dots (.) or use any of the following characters: <code class='emphasized'>{1}</code>",
     "ENTRY_WITH_SAME_NAME_EXISTS"       : "A file or directory with the name <span class='dialog-filename'>{0}</span> already exists.",
     "ERROR_CREATING_FILE_TITLE"         : "Error Creating {0}",
@@ -99,7 +99,7 @@ define({
     "ERROR_MAX_FILES"                   : "This project contains more than 30,000 files. Features that operate across multiple files may be disabled or behave as if the project is empty. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Read more about working with large projects</a>.",
 
     // Live Preview error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error Launching Browser",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "خطأ في تشغيل المتصفح",
     "ERROR_CANT_FIND_CHROME"            : "The Google Chrome browser could not be found. Please make sure it is installed.",
     "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
 
@@ -114,11 +114,11 @@ define({
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works with <strong>Google Chrome</strong> and updates live as you edit <strong>CSS or HTML files</strong>. Changes to JavaScript files are automatically reloaded when you save.<br /><br />(You'll only see this message once.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For more information, see <a href='{0}' title='{0}'>Troubleshooting Live Preview connection errors</a>.",
 
-    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting\u2026",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing\u2026",
-    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview (save file to refresh)",
+    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "المعاينة المباشرة",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "المعاينة المباشرة:يتم الإتصال\u2026",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "المعاينة المباشرة: تهيئة\u2026",
+    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "قطع الإتصال بالمعاينة المباش",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "المعاينة المباشرة (احفظ الملف للتحديث)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Live Preview (not updating due to syntax error)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Live Preview was canceled because the browser's developer tools were opened",
@@ -176,9 +176,9 @@ define({
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
 
     // Find and Replace
-    "FIND_REPLACE_TITLE_LABEL"          : "Replace",
-    "FIND_REPLACE_TITLE_WITH"           : "with",
-    "FIND_TITLE_LABEL"                  : "Found",
+    "FIND_REPLACE_TITLE_LABEL"          : "استبدال",
+    "FIND_REPLACE_TITLE_WITH"           : "مع",
+    "FIND_TITLE_LABEL"                  : "تم الإيجاد",
     "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} in {3}",
 
     // Find in Files
@@ -344,8 +344,8 @@ define({
     "CMD_CUT"                             : "قص",
     "CMD_COPY"                            : "نسخ",
     "CMD_PASTE"                           : "لصق",
-    "CMD_SELECT_ALL"                      : "Select All",
-    "CMD_SELECT_LINE"                     : "Select Line",
+    "CMD_SELECT_ALL"                      : "تحديد الكل",
+    "CMD_SELECT_LINE"                     : "تحديد السطر",
     "CMD_SPLIT_SEL_INTO_LINES"            : "Split Selection into Lines",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Add Cursor to Next Line",
     "CMD_ADD_CUR_TO_PREV_LINE"            : "Add Cursor to Previous Line",
@@ -359,22 +359,22 @@ define({
     "CMD_LINE_DOWN"                       : "Move Line Down",
     "CMD_OPEN_LINE_ABOVE"                 : "Open Line Above",
     "CMD_OPEN_LINE_BELOW"                 : "Open Line Below",
-    "CMD_TOGGLE_CLOSE_BRACKETS"           : "Auto Close Braces",
+    "CMD_TOGGLE_CLOSE_BRACKETS"           : "غلق تلقائي للأقواس",
     "CMD_SHOW_CODE_HINTS"                 : "Show Code Hints",
 
     // Search menu commands
-    "FIND_MENU"                           : "Find",
-    "CMD_FIND"                            : "Find",
-    "CMD_FIND_NEXT"                       : "Find Next",
-    "CMD_FIND_PREVIOUS"                   : "Find Previous",
-    "CMD_FIND_ALL_AND_SELECT"             : "Find All and Select",
-    "CMD_ADD_NEXT_MATCH"                  : "Add Next Match to Selection",
-    "CMD_SKIP_CURRENT_MATCH"              : "Skip and Add Next Match",
-    "CMD_FIND_IN_FILES"                   : "Find in Files",
-    "CMD_FIND_IN_SUBTREE"                 : "Find in\u2026",
-    "CMD_REPLACE"                         : "Replace",
-    "CMD_REPLACE_IN_FILES"                : "Replace in Files",
-    "CMD_REPLACE_IN_SUBTREE"              : "Replace in\u2026",
+    "FIND_MENU"                           : "بحث",
+    "CMD_FIND"                            : "بحث",
+    "CMD_FIND_NEXT"                       : "البحث عن نص",
+    "CMD_FIND_PREVIOUS"                   : "البحث عن السابق",
+    "CMD_FIND_ALL_AND_SELECT"             : "البحث عن الكل مع التحديد",
+    "CMD_ADD_NEXT_MATCH"                  : "إضافة التوافق التالي إلى التحديد",
+    "CMD_SKIP_CURRENT_MATCH"              : "تجاوز و التوافق التالي",
+    "CMD_FIND_IN_FILES"                   : "البحث في الملفات",
+    "CMD_FIND_IN_SUBTREE"                 : "البحث في\u2026",
+    "CMD_REPLACE"                         : "اسبتدال",
+    "CMD_REPLACE_IN_FILES"                : "إستبدال في الملفات",
+    "CMD_REPLACE_IN_SUBTREE"              : "إستبدال في\u2026",
 
     // View menu commands
     "VIEW_MENU"                           : "View",
@@ -767,5 +767,5 @@ define({
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false to disable opening preferences file in split view",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false to open user preferences file in left/top pane",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported\n * by {APP_NAME}.\n * Use this file as a reference to modify your preferences\n * file \"brackets.json\" opened in the other pane.\n * For more information on how to use preferences inside\n * {APP_NAME}, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
-    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default"
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "افتراضي"
 });
