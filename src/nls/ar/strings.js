@@ -103,8 +103,8 @@ define({
     "ERROR_CANT_FIND_CHROME"            : "The Google Chrome browser could not be found. Please make sure it is installed.",
     "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
 
-    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Preview Error",
-    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connecting to Browser",
+    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "خطأ في المعاينة المباشرة",
+    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "يتم الاتصال بالمتصفح",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?<br /><br />",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Unable to load Live Preview page.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file or make sure there is an index.html file in your project in order to launch live preview.",
@@ -206,7 +206,7 @@ define({
     "CLEAR_FILE_FILTER"                 : "Don't Exclude Files",
     "NO_FILE_FILTER"                    : "No Files Excluded",
     "EXCLUDE_FILE_FILTER"               : "Exclude {0}",
-    "EDIT_FILE_FILTER"                  : "Edit\u2026",
+    "EDIT_FILE_FILTER"                  : "تعديل\u2026",
     "FILE_FILTER_DIALOG"                : "Edit Exclusion Set",
     "FILE_FILTER_INSTRUCTIONS"          : "Exclude files and folders matching any of the following strings / substrings or <a href='{0}' title='{0}'>wildcards</a>. Enter each string on a new line.",
     "FILTER_NAME_PLACEHOLDER"           : "Name this exclusion set (optional)",
@@ -307,11 +307,11 @@ define({
      */
 
     // File menu commands
-    "FILE_MENU"                           : "File",
-    "CMD_FILE_NEW_UNTITLED"               : "New",
-    "CMD_FILE_NEW"                        : "New File",
-    "CMD_FILE_NEW_FOLDER"                 : "New Folder",
-    "CMD_FILE_OPEN"                       : "Open\u2026",
+    "FILE_MENU"                           : "ملف",
+    "CMD_FILE_NEW_UNTITLED"               : "جديد",
+    "CMD_FILE_NEW"                        : "ملف جديد",
+    "CMD_FILE_NEW_FOLDER"                 : "مجلد جديد",
+    "CMD_FILE_OPEN"                       : "فتح\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Open To Working Set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
@@ -333,9 +333,9 @@ define({
     "CMD_INSTALL_EXTENSION"               : "Install Extension\u2026",
     "CMD_EXTENSION_MANAGER"               : "Extension Manager\u2026",
     "CMD_FILE_REFRESH"                    : "Refresh File Tree",
-    "CMD_QUIT"                            : "Quit",
+    "CMD_QUIT"                            : "خروج",
     // Used in native File menu on Windows
-    "CMD_EXIT"                            : "Exit",
+    "CMD_EXIT"                            : "خروج",
 
     // Edit menu commands
     "EDIT_MENU"                           : "تعديل",
@@ -474,11 +474,11 @@ define({
     "BUTTON_NEW_RULE"                      : "New Rule",
 
     // Extension Management strings
-    "INSTALL"                              : "Install",
-    "UPDATE"                               : "Update",
-    "REMOVE"                               : "Remove",
-    "DISABLE"                              : "Disable",
-    "ENABLE"                               : "Enable",
+    "INSTALL"                              : "تثبيت",
+    "UPDATE"                               : "تحديث",
+    "REMOVE"                               : "حذف",
+    "DISABLE"                              : "تعطيل",
+    "ENABLE"                               : "تفعيل",
     "OVERWRITE"                            : "Overwrite",
     "CANT_REMOVE_DEV"                      : "Extensions in the \"dev\" folder must be manually deleted.",
     "CANT_UPDATE"                          : "The update isn't compatible with this version of {APP_NAME}.",
