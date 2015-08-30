@@ -68,7 +68,7 @@ define(function (require, exports, module) {
                 // Swap out the tutorial url and reload if necessary. We try hard
                 // not to reload unless we have to, so the tutorial doesn't flicker.
                 if(Tutorial.shouldReload()) {
-                    _launch(Tutorial.getUrl(), callback);
+                    _launch(Tutorial.getPath(), callback);
                 }
             }
         });

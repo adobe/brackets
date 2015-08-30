@@ -10,8 +10,10 @@ define(function (require, exports, module) {
         Filer                   = brackets.getModule("filesystem/impls/filer/BracketsFiler"),
         Path                    = Filer.Path,
         HTMLRewriter            = brackets.getModule("filesystem/impls/filer/lib/HTMLRewriter"),
-        CSSRewriter             = brackets.getModule("filesystem/impls/filer/lib/CSSRewriter"),
-        Compatibility           = require("lib/compatibility");
+        CSSRewriter             = brackets.getModule("filesystem/impls/filer/lib/CSSRewriter");
+
+    var Compatibility           = require("lib/compatibility"),
+        ScrollManager           = require("lib/ScrollManager");
 
     var fs = Filer.fs(),
         _shouldUseBlobURL;
@@ -145,6 +147,9 @@ define(function (require, exports, module) {
                     return callback(err);
                 }
 
+                // Since we're not instrumenting this doc fully for some reason,
+                // at least inject the scroll manager so we can track scroll position.
+                body = body.replace(/<\/\s*head>/, ScrollManager.getRemoteScript(path) + "$&");
                 serve(body);
             });
         }

@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         return _tutorialOverride;
     }
 
-    function getUrl() {
+    function getPath() {
         return Path.join(StartupState.project("root"), "tutorial.html");
     }
 
@@ -47,7 +47,7 @@ define(function (require, exports, module) {
      * Callback returns `true` or `false`, like fs.exists().
      */
     function exists(callback) {
-        Filer.fs().stat(getUrl(), function(err, stats) {
+        Filer.fs().stat(getPath(), function(err, stats) {
             callback(stats && stats.type === "FILE");
         });
     }
@@ -61,7 +61,7 @@ define(function (require, exports, module) {
             return false;
         }
 
-        return getUrl() === editor.document.file.fullPath;
+        return getPath() === editor.document.file.fullPath;
     }
 
     /**
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
 
     exports.setOverride = setOverride;
     exports.getOverride = getOverride;
-    exports.getUrl = getUrl;
+    exports.getPath = getPath;
     exports.exists = exists;
     exports.shouldReload = shouldReload;
     exports.shouldPostMessage = shouldPostMessage;
