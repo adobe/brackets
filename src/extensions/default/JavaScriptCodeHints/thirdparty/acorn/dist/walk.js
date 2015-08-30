@@ -154,13 +154,19 @@ function findNodeBefore(node, pos, test, base, state) {
   return max;
 }
 
+// Fallback to an Object.create polyfill for older environments.
+var create = Object.create || function (proto) {
+  function Ctor() {}
+  Ctor.prototype = proto;
+  return new Ctor();
+};
+
 // Used to create a custom walker. Will fill in all missing node
 // type properties with the defaults.
 
 function make(funcs, base) {
   if (!base) base = exports.base;
-  var visitor = {};
-  for (var type in base) visitor[type] = base[type];
+  var visitor = create(base);
   for (var type in funcs) visitor[type] = funcs[type];
   return visitor;
 }
@@ -216,11 +222,12 @@ base.ThrowStatement = base.SpreadElement = function (node, st, c) {
 };
 base.TryStatement = function (node, st, c) {
   c(node.block, st, "Statement");
-  if (node.handler) {
-    c(node.handler.param, st, "Pattern");
-    c(node.handler.body, st, "ScopeBody");
-  }
+  if (node.handler) c(node.handler, st);
   if (node.finalizer) c(node.finalizer, st, "Statement");
+};
+base.CatchClause = function (node, st, c) {
+  c(node.param, st, "Pattern");
+  c(node.body, st, "ScopeBody");
 };
 base.WhileStatement = base.DoWhileStatement = function (node, st, c) {
   c(node.test, st, "Expression");
@@ -336,7 +343,7 @@ base.MemberExpression = function (node, st, c) {
   if (node.computed) c(node.property, st, "Expression");
 };
 base.ExportNamedDeclaration = base.ExportDefaultDeclaration = function (node, st, c) {
-  if (node.declaration) c(node.declaration, st);
+  if (node.declaration) c(node.declaration, st, node.type == "ExportNamedDeclaration" || node.declaration.id ? "Statement" : "Expression");
   if (node.source) c(node.source, st, "Expression");
 };
 base.ExportAllDeclaration = function (node, st, c) {
@@ -366,11 +373,6 @@ base.Class = function (node, st, c) {
 base.MethodDefinition = base.Property = function (node, st, c) {
   if (node.computed) c(node.key, st, "Expression");
   c(node.value, st, "Expression");
-};
-base.ComprehensionExpression = function (node, st, c) {
-  for (var i = 0; i < node.blocks.length; i++) {
-    c(node.blocks[i].right, st, "Expression");
-  }c(node.body, st, "Expression");
 };
 
 },{}]},{},[1])(1)

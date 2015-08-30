@@ -1,16 +1,27 @@
 # Acorn
 
-[![Build Status](https://travis-ci.org/marijnh/acorn.svg?branch=master)](https://travis-ci.org/marijnh/acorn)
-[![NPM version](https://img.shields.io/npm/v/acorn.svg)](https://www.npmjs.org/package/acorn)  
+[![Build Status](https://travis-ci.org/ternjs/acorn.svg?branch=master)](https://travis-ci.org/ternjs/acorn)
+[![NPM version](https://img.shields.io/npm/v/acorn.svg)](https://www.npmjs.com/package/acorn)  
 [Author funding status: ![maintainer happiness](https://marijnhaverbeke.nl/fund/status_s.png?force)](https://marijnhaverbeke.nl/fund/)
 
 A tiny, fast JavaScript parser, written completely in JavaScript.
+
+## Community
+
+Acorn is open source software released under an
+[MIT license](https://github.com/ternjs/acorn/blob/master/LICENSE).
+
+You are welcome to
+[report bugs](https://github.com/ternjs/acorn/issues) or create pull
+requests on [github](https://github.com/ternjs/acorn). For questions
+and discussion, please use the
+[Tern discussion forum](https://discuss.ternjs.net).
 
 ## Installation
 
 The easiest way to install acorn is with [`npm`][npm].
 
-[npm]: http://npmjs.org
+[npm]: https://www.npmjs.com/
 
 ```sh
 npm install acorn
@@ -19,7 +30,7 @@ npm install acorn
 Alternately, download the source.
 
 ```sh
-git clone https://github.com/marijnh/acorn.git
+git clone https://github.com/ternjs/acorn.git
 ```
 
 ## Components
@@ -51,8 +62,12 @@ object referring to that same position.
 [estree]: https://github.com/estree/estree
 
 - **ecmaVersion**: Indicates the ECMAScript version to parse. Must be
-  either 3, 5, or 6. This influences support for strict mode, the set
-  of reserved words, and support for new syntax features. Default is 5.
+  either 3, 5, 6, or 7. This influences support for strict mode, the set
+  of reserved words, and support for new syntax features. Default is 6.
+
+  **NOTE**: Only 'stage 4' (finalized) ECMAScript 7 features are being
+  implemented by Acorn. That means that most of the draft standard is
+  not yet being parsed.
 
 - **sourceType**: Indicate the mode the code should be parsed in. Can be
   either `"script"` or `"module"`.
@@ -67,9 +82,10 @@ object referring to that same position.
   commas.
 
 - **allowReserved**: If `false`, using a reserved word will generate
-  an error. Defaults to `true`. When given the value `"never"`,
-  reserved words and keywords can also not be used as property names
-  (as in Internet Explorer's old parser).
+  an error. Defaults to `true` for `ecmaVersion` 3, `false` for higher
+  versions. When given the value `"never"`, reserved words and
+  keywords can also not be used as property names (as in Internet
+  Explorer's old parser).
 
 - **allowReturnOutsideFunction**: By default, a return statement at
   the top level raises an error. Set this to `true` to accept such
@@ -89,7 +105,8 @@ object referring to that same position.
   form. Default is `false`.
 
 - **onToken**: If a function is passed for this option, each found
-  token will be passed in same format as `tokenize()` returns.
+  token will be passed in same format as tokens returned from
+  `tokenizer().getToken()`.
 
   If array is passed, each found token is pushed to it.
 
@@ -117,8 +134,15 @@ object referring to that same position.
   {
     "type": "Line" | "Block",
     "value": "comment text",
-    "range": ...,
-    "loc": ...
+    "start": Number,
+    "end": Number,
+    // If `locations` option is on:
+    "loc": {
+      "start": {line: Number, column: Number}
+      "end": {line: Number, column: Number}
+    },
+    // If `ranges` option is on:
+    "range": [Number, Number]
   }
   ```
 
@@ -145,7 +169,8 @@ object referring to that same position.
   choose.
 
 - **directSourceFile**: Like `sourceFile`, but a `sourceFile` property
-  will be added directly to the nodes, rather than the `loc` object.
+  will be added (regardless of the `location` option) directly to the
+  nodes, rather than the `loc` object.
 
 - **preserveParens**: If this option is `true`, parenthesized expressions
   are represented by (non-standard) `ParenthesizedExpression` nodes
@@ -173,12 +198,12 @@ In ES6 environment, returned result can be used as any other
 protocol-compliant iterable:
 
 ```javascript
-for (let token of acorn.tokenize(str)) {
+for (let token of acorn.tokenizer(str)) {
   // iterate over the tokens
 }
 
 // transform code to array of tokens:
-var tokens = [...acorn.tokenize(str)];
+var tokens = [...acorn.tokenizer(str)];
 ```
 
 **tokTypes** holds an object mapping names to the token type objects
@@ -210,21 +235,7 @@ console.log(escodegen.generate(ast, {comment: true}));
 // > 'var x = 42;    // answer'
 ```
 
-[escodegen]: https://github.com/Constellation/escodegen
-
-#### Using Acorn in an environment with a Content Security Policy
-
-Some contexts, such as Chrome Web Apps, disallow run-time code evaluation.
-Acorn uses `new Function` to generate fast functions that test whether
-a word is in a given set, and will trigger a security error when used
-in a context with such a
-[Content Security Policy](http://www.html5rocks.com/en/tutorials/security/content-security-policy/#eval-too)
-(see [#90](https://github.com/marijnh/acorn/issues/90) and
-[#123](https://github.com/marijnh/acorn/issues/123)).
-
-The `dist/acorn_csp.js` file in the distribution (which is built
-by the `bin/without_eval` script) has the generated code inlined, and
-can thus run without evaluating anything.
+[escodegen]: https://github.com/estools/escodegen
 
 ### dist/acorn_loose.js ###
 
@@ -252,7 +263,7 @@ that will be called with the node object and, if applicable the state
 at that point. The last two arguments are optional. `base` is a walker
 algorithm, and `state` is a start state. The default walker will
 simply visit all statements and expressions and not produce a
-meaningful state. (An example of a use of state it to track scope at
+meaningful state. (An example of a use of state is to track scope at
 each point in the tree.)
 
 **ancestor**`(node, visitors, base, state)` does a 'simple' walk over
@@ -276,7 +287,7 @@ taking defaults from `base`.
 
 **findNodeAt**`(node, start, end, test, base, state)` tries to
 locate a node in a tree at the given start and/or end offsets, which
-satisfies the predicate `test`. `start` end `end` can be either `null`
+satisfies the predicate `test`. `start` and `end` can be either `null`
 (as wildcard) or a number. `test` may be a string (indicating a node
 type) or a function that takes `(nodeType, node)` arguments and
 returns a boolean indicating whether this node is interesting. `base`
@@ -298,8 +309,10 @@ The `bin/acorn` utility can be used to parse a file from the command
 line. It accepts as arguments its input file and the following
 options:
 
-- `--ecma3|--ecma5|--ecma6`: Sets the ECMAScript version to parse. Default is
+- `--ecma3|--ecma5|--ecma6|--ecma7`: Sets the ECMAScript version to parse. Default is
   version 5.
+
+- `--module`: Sets the parsing mode to `"module"`. Is set to `"script"` otherwise.
 
 - `--locations`: Attaches a "loc" object to each node with "start" and
   "end" subobjects, each of which contains the one-based line and
@@ -372,6 +385,17 @@ The `nextMethod` argument passed to `extend`'s second argument is the
 previous value of this method, and should usually be called through to
 whenever the extended method does not handle the call itself.
 
-There is a proof-of-concept JSX plugin in the [`jsx`
-branch](https://github.com/marijnh/acorn/tree/jsx) branch of the
-Github repository.
+Similarly, the loose parser allows plugins to register themselves via
+`acorn.pluginsLoose`.  The extension mechanism is the same as for the
+normal parser:
+
+```javascript
+looseParser.extend("readToken", function(nextMethod) {
+  return function() {
+    console.log("Reading a token in the loose parser!")
+    return nextMethod.call(this)
+  }
+})
+```
+
+There is a proof-of-concept JSX plugin in the [`acorn-jsx`](https://github.com/RReverser/acorn-jsx) project.
