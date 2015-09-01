@@ -251,11 +251,17 @@ define({
     "SPLITVIEW_MULTIPANE_WARNING"       : "檔案已經在另一個窗格中開啟。{APP_NAME} 很快就會支援在多個窗格中開啟相同的檔案。在那之前，檔案還是會在原本已開啟的窗格中顯示。<br /><br />(您只會看到一次這個訊息。)",
 
     /**
-     * Keyboard modifier names
+     * Keyboard modifiers and special key names
      */
-    "KEYBOARD_CTRL"   : "Ctrl",
-    "KEYBOARD_SHIFT"  : "Shift",
-    "KEYBOARD_SPACE"  : "空白鍵",
+    "KEYBOARD_CTRL"         : "Ctrl",
+    "KEYBOARD_SHIFT"        : "Shift",
+    "KEYBOARD_SPACE"        : "空白鍵",
+    "KEYBOARD_PAGE_UP"      : "Page Up",
+    "KEYBOARD_PAGE_DOWN"    : "Page Down",
+    "KEYBOARD_HOME"         : "Home",
+    "KEYBOARD_END"          : "End",
+    "KEYBOARD_INSERT"       : "Insert",
+    "KEYBOARD_DELETE"       : "Delete",
 
     /**
      * StatusBar strings
@@ -694,14 +700,14 @@ define({
     "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "true 代表允許使用位元運算子",
     "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "true 代表標準瀏覽器全域變數應該事先定義",
     "DESCRIPTION_JSLINT_OPTIONS_CLOSURE"             : "true 代表允許使用 Google Closure 慣用語",
-    "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "true 代表允許使用 continue 陳述式",
+    "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "true 代表允許使用 \"continue\" 陳述式",
     "DESCRIPTION_JSLINT_OPTIONS_COUCH"               : "true 代表 CouchDB 全域變數應該事先定義",
     "DESCRIPTION_JSLINT_OPTIONS_DEBUG"               : "true 代表允許使用 debugger 陳述式",
     "DESCRIPTION_JSLINT_OPTIONS_DEVEL"               : "true 代表瀏覽器開發輔助全域應該事先定義",
     "DESCRIPTION_JSLINT_OPTIONS_EQEQ"                : "true 代表允許使用 == 及 !=",
     "DESCRIPTION_JSLINT_OPTIONS_ES6"                 : "true 代表 ES6 全域變數應該事先定義",
     "DESCRIPTION_JSLINT_OPTIONS_EVIL"                : "true 代表允許 eval",
-    "DESCRIPTION_JSLINT_OPTIONS_FORIN"               : "true 代表允許使用不過濾的 for in",
+    "DESCRIPTION_JSLINT_OPTIONS_FORIN"               : "true 代表允許使用不過濾的 \"for in\"",
     "DESCRIPTION_JSLINT_OPTIONS_INDENT"              : "指定 Tab 寬度",
     "DESCRIPTION_JSLINT_OPTIONS_MAXERR"              : "警告回報上限",
     "DESCRIPTION_JSLINT_OPTIONS_MAXLEN"              : "每一行字元數上限",
@@ -713,7 +719,7 @@ define({
     "DESCRIPTION_JSLINT_OPTIONS_REGEXP"              : "true 代表允許在 RegExp 中使用 . 及 [^...].",
     "DESCRIPTION_JSLINT_OPTIONS_RHINO"               : "true 代表 Rhino 全域變數應該事先定義",
     "DESCRIPTION_JSLINT_OPTIONS_SLOPPY"              : "true 代表允許不用 `use strict` 指示詞 (Pragma)",
-    "DESCRIPTION_JSLINT_OPTIONS_STUPID"              : "true 代表允許讓您想不開 (Stupidity)",
+    "DESCRIPTION_JSLINT_OPTIONS_STUPID"              : "true 代表允許使用阻斷式 ('...Sync') 方法",
     "DESCRIPTION_JSLINT_OPTIONS_SUB"                 : "true 代表允許使用效率較差的方括號方式存取屬性值",
     "DESCRIPTION_JSLINT_OPTIONS_TODO"                : "true 代表允許使用 TODO 註解",
     "DESCRIPTION_JSLINT_OPTIONS_UNPARAM"             : "true 代表允許出現沒有使用到的參數",
@@ -754,6 +760,8 @@ define({
     "DESCRIPTION_LINTING_COLLAPSED"                  : "true 代表收合檢查面板",
     "DESCRIPTION_FONT_FAMILY"                        : "變更字族 (Font Family)",
     "DESCRIPTION_FONT_SIZE"                          : "變更字體大小，例如: 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "true 代表啟用節點搜尋",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "true 代表啟用立即搜尋",
     "DESCRIPTION_FONT_SMOOTHING"                     : "只適用 Mac: \"subpixel-antialiased\" 代表啟用子像素鋸齒消除模式，或是設成 \"antialiased\" 使用灰階鋸齒消除模式。",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false 代表不要使用分割窗格開啟喜好設定檔",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false 代表在左窗格或上窗格開啟使用者喜好設定檔",
@@ -761,4 +769,4 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "預設"
 });
 
-/* Last translated for 284ee17aa7c8d47c6c55f16f150847ab2ac599e8 */
+/* Last translated for a45f7216d86dc77007346e51eb19aecabebe7e1e */
