@@ -68,10 +68,11 @@
 
             // Deal with Firefox's SecurityError when accessing sheets
             // from other domains. Chrome will safely return `undefined`.
+            // IE gives an "Access Denied" error (-2147024891), which we also need to catch.
             try {
                 cssRules = sheet.cssRules;
             } catch (e) {
-                if (e.name !== "SecurityError") {
+                if (!(e.name === "SecurityError" || e.number === -2147024891)) {
                     throw e;
                 }
             }
