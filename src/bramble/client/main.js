@@ -89,16 +89,16 @@ define([
             // Treat filesystem corruption as a special case
             if(err && err.code === "EFILESYSTEMERROR") {
                 if(_instance._autoRecoverFileSystem) {
-                    Bramble.formatFileSystem(function(err) {
-                        if(err) {
-                            console.error("[Bramble] unable to recover filesystem", err);
+                    Bramble.formatFileSystem(function(err2) {
+                        if(err2) {
+                            console.error("[Bramble] unable to access browser filesystem:", err2);
                         } else {
-                            err = new Error("filesystem auto-recovered, refresh page.");
+                            console.log("[Bramble] browser filesystem auto-recovered, refresh page.");
                         }
                         Bramble.trigger("error", [err]);
                     });
                 } else {
-                    console.error("[Bramble] filesystem needs to be re-formatted");
+                    console.error("[Bramble] browser filesystem inaccessible (needs to be re-formatted, or permission denied due to private browsing mode.");
                     Bramble.trigger("error", [err]);
                 }
             } else {
@@ -459,6 +459,14 @@ define([
 
             return function callback(err, result) {
                 var transferable;
+
+                // If the filesystem is inaccessbile, or corrupt, we might not get proper
+                // error handling in the filesystem constructor, and it might end up getting
+                // here.  If it does, it's fatal, and we should trigger an error to the hosting app.
+                if(err && err.code === "EFILESYSTEMERROR") {
+                    setReadyState(Bramble.ERROR, err);
+                    return;
+                }
 
                 // If the second arg is a Filer Buffer (i.e., wrapped Uint8Array),
                 // get a reference to the underlying ArrayBuffer for transport.

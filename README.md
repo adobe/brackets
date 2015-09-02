@@ -172,6 +172,11 @@ Bramble.on("readyStateChange", function(previous, current) {
 });
 ```
 
+NOTE: in some browsers (e.g., Firefox) when the user is in "Private Browsing"
+mode, the filesystem (i.e., IndexedDB) will be inaccessible, and an error
+will be sent via the `error` event (i.e., `err.code === "EFILESYSTEMERROR"`).  This
+is the same error that occurs when the filesystem is corrupt (see `autoRecoverFileSystem` below).
+
 ## Bramble.getFileSystem()
 
 The FileSystem is owned by the hosting application, and can be obtained at any time by calling:
