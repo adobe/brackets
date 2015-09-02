@@ -8,4 +8,4 @@ Use the Node script [update-wpd-docs](https://github.com/MarcelGerber/update-wpd
 5. Run
 
         [sudo] node update-wpd-docs css
-        [sudo] node update-wpd-docs brackets
+        [sudo] node update-wpd-docs html
