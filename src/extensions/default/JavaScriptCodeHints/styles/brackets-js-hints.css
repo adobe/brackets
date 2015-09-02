@@ -45,15 +45,15 @@
 
 .brackets-js-hints.literal-hint {
     color: #444; /* dark grey */
-    font-family: "Menlo Regular", Consolas, Inconsolata, "Vera Sans", "Lucida Console", Courier, fixed;
+    font-family: "Menlo Regular", Consolas, Inconsolata, "Vera Sans", "Lucida Console", Courier, monospace, fixed;
 }
 
 .brackets-js-hints.keyword-hint {
-    font-family: "Menlo Regular", Consolas, Inconsolata, "Vera Sans", "Lucida Console", Courier, fixed; 
+    font-family: "Menlo Regular", Consolas, Inconsolata, "Vera Sans", "Lucida Console", Courier, monospace, fixed;
 }
 
 .brackets-js-hints.keyword-hint .matched-hint {
-    font-family: "Menlo Regular", Consolas, Inconsolata, "Vera Sans", "Lucida Console", Courier, fixed;
+    font-family: "Menlo Regular", Consolas, Inconsolata, "Vera Sans", "Lucida Console", Courier, monospace, fixed;
     font-weight: 500; 
 }
 
