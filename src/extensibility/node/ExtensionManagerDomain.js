@@ -44,7 +44,8 @@ var Errors = {
     BAD_HTTP_STATUS: "BAD_HTTP_STATUS",             // {0} is the HTTP status code
     NO_SERVER_RESPONSE: "NO_SERVER_RESPONSE",
     CANNOT_WRITE_TEMP: "CANNOT_WRITE_TEMP",
-    CANCELED: "CANCELED"
+    CANCELED: "CANCELED",
+    CERT_UNTRUSTED: "CERT_UNTRUSTED"
 };
 
 var Statuses = {
@@ -375,7 +376,11 @@ function _endDownload(downloadId, error) {
 /**
  * Implements "downloadFile" command, asynchronously.
  */
-function _cmdDownloadFile(downloadId, url, proxy, callback) {
+function _cmdDownloadFile(downloadId, url, proxy, proxyIgnoreSSL, callback) {
+    if (typeof proxyIgnoreSSL === "function") {
+        callback = proxyIgnoreSSL;
+        proxyIgnoreSSL = false;
+    }
     // Backwards compatibility check, added in 0.37
     if (typeof proxy === "function") {
         callback = proxy;
@@ -390,14 +395,19 @@ function _cmdDownloadFile(downloadId, url, proxy, callback) {
     var req = request.get({
         url: url,
         encoding: null,
-        proxy: proxy
+        proxy: proxy,
+        strictSSL: !proxyIgnoreSSL
     },
         // Note: we could use the traditional "response"/"data"/"end" events too if we wanted to stream data
         // incrementally, limit download size, etc. - but the simple callback is good enough for our needs.
         function (error, response, body) {
             if (error) {
                 // Usually means we never got a response - server is down, no DNS entry, etc.
-                _endDownload(downloadId, Errors.NO_SERVER_RESPONSE);
+                if (error.message === "CERT_UNTRUSTED") {
+                    _endDownload(downloadId, Errors.CERT_UNTRUSTED);
+                } else {
+                    _endDownload(downloadId, Errors.NO_SERVER_RESPONSE);
+                }
                 return;
             }
             if (response.statusCode !== 200) {
@@ -600,6 +610,10 @@ function init(domainManager) {
             name: "proxy",
             type: "string",
             description: "optional proxy URL"
+        }, {
+            name: "proxyIgnoreSSL",
+            type: "boolean",
+            description: "whether to ignore SSL certificate errors"
         }],
         {
             type: "string",
