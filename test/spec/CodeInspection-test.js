@@ -98,7 +98,7 @@ define(function (require, exports, module) {
                 errors: [
                     {
                         pos: { line: 1, ch: 3 },
-                        message: "Some errors here and there",
+                        message: "Some warnings here and there",
                         type: CodeInspection.Type.WARNING
                     }
                 ]
@@ -654,7 +654,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: 1, ch: 3 },
-                            message: "Some errors here and there",
+                            message: "Some warnings here and there",
                             type: CodeInspection.Type.WARNING
                         },
                         {
@@ -831,7 +831,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: 1, ch: 3 },
-                            message: "Some errors here and there",
+                            message: "Some warnings here and there",
                             type: CodeInspection.Type.WARNING
                         },
                         {
@@ -857,6 +857,57 @@ define(function (require, exports, module) {
                     var tooltip = $statusBar.attr("title");
                     var expectedTooltip = buildTooltip(StringUtils.format(Strings.MULTIPLE_ERRORS, "JavaScript Linter", 2), 2);
                     expect(tooltip).toBe(expectedTooltip);
+                });
+            });
+
+            it("should show warning icon in inspector icon when only warnings", function () {
+                var lintResult = {
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some warnings here and there",
+                            type: CodeInspection.Type.WARNING
+                        }
+                    ]
+                };
+
+                var codeInspector = createCodeInspector("javascript linter", lintResult);
+                CodeInspection.register("javascript", codeInspector);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+                    expect($statusBar.attr("class")).toBe('inspection-warnings');
+                });
+            });
+
+            it("should show error icon in inspector icon when has errors", function () {
+                var lintResult = {
+                    errors: [
+                        {
+                            pos: { line: 1, ch: 3 },
+                            message: "Some warnings here and there",
+                            type: CodeInspection.Type.WARNING
+                        },
+                        {
+                            pos: { line: 1, ch: 5 },
+                            message: "Some errors there and there and over there",
+                            type: CodeInspection.Type.ERROR
+                        }
+                    ]
+                };
+                
+                var codeInspector = createCodeInspector("javascript linter", lintResult);
+                CodeInspection.register("javascript", codeInspector);
+
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+
+                runs(function () {
+                    var $statusBar = $("#status-inspection");
+                    expect($statusBar.is(":visible")).toBe(true);
+                    expect($statusBar.attr("class")).toBe('inspection-errors');
                 });
             });
 
@@ -936,7 +987,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: 1, ch: 3 },
-                            message: "Some errors here and there",
+                            message: "Some warnings here and there",
                             type: CodeInspection.Type.WARNING
                         }
                     ]
@@ -945,7 +996,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: 0, ch: 2 },
-                            message: "Different error",
+                            message: "Different warning",
                             type: CodeInspection.Type.WARNING
                         }
                     ]
@@ -968,7 +1019,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: -1, ch: 0 },
-                            message: "Some errors here and there",
+                            message: "Some warnings here and there",
                             type: CodeInspection.Type.WARNING
                         }
                     ]
@@ -978,7 +1029,7 @@ define(function (require, exports, module) {
                     errors: [
                         {
                             pos: { line: "all", ch: 0 },
-                            message: "Some errors here and there",
+                            message: "Some warnings here and there",
                             type: CodeInspection.Type.WARNING
                         }
                     ]
