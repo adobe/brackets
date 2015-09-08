@@ -300,11 +300,6 @@ module.exports = function (grunt) {
             projectRoot: 'src/extensibility/node/spec/'
         },
         jshint: {
-            all: [
-                '<%= meta.grunt %>',
-                '<%= meta.src %>',
-                '<%= meta.test %>'
-            ],
             grunt:  '<%= meta.grunt %>',
             src:    '<%= meta.src %>',
             test:   '<%= meta.test %>',
@@ -325,8 +320,8 @@ module.exports = function (grunt) {
     grunt.registerTask('install', ['write-config', 'less']);
 
     // task: test
-    grunt.registerTask('test', ['jshint:all', 'jasmine']);
-//    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine_node']);
+    grunt.registerTask('test', ['jshint', 'jasmine']);
+//    grunt.registerTask('test', ['jshint', 'jasmine', 'jasmine_node']);
 
     // task: set-release
     // Update version number in package.json and rewrite src/config.json
