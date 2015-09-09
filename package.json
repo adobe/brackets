@@ -56,7 +56,7 @@
     "scripts": {
         "postinstall": "grunt install",
         "test": "grunt test && grunt build-browser-compressed",
-        "start": "http-server -p 8000"
+        "start": "http-server -p 8000 --cors"
     },
     "license": "MIT"
 }
