@@ -30,11 +30,12 @@
 }
 
 #second-pane {
-    background: white !important;
+    background: white;
 }
 
-.second-pane-scroll {
-    overflow: scroll !important;
+#second-pane.second-pane-scroll {
+    overflow: auto;
+    background: #eaeaea;
 }
 
 .expandEditor {
@@ -44,7 +45,6 @@
 
 /* Mobile view start */
 .phone-wrapper {
-    background: #eaeaea;
     padding: 30px 0;
 }
 
