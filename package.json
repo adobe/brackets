@@ -58,10 +58,5 @@
         "test": "grunt test && grunt build-browser-compressed",
         "start": "http-server -p 8000"
     },
-    "licenses": [
-        {
-          "type": "MIT",
-          "url": "https://github.com/adobe/brackets/blob/master/LICENSE"
-        }
-    ]
+    "license": "MIT"
 }
