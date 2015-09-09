@@ -195,14 +195,13 @@ maxerr: 50, node: true */
      * @returns {Number} the file size in bytes
      */
     function getFilesizeInBytes(fileName) {
-        var stats = {};
         try {
-            stats = fs.statSync(fileName);
+            var stats = fs.statSync(fileName);
+            return stats.size || 0;
         } catch (ex) {
             console.log(ex);
             return 0;
         }
-        return stats.size || 0;
     }
 
     /**
@@ -348,23 +347,27 @@ maxerr: 50, node: true */
             setTimeout(fileCrawler, 1000);
             return;
         }
-        var contents = "";
         if (currentCrawlIndex < files.length) {
-            contents = getFileContentsForFile(files[currentCrawlIndex]);
-            if (contents) {
-                cacheSize += contents.length;
-            }
-            currentCrawlIndex++;
-        }
-        if (currentCrawlIndex < files.length) {
-            crawlComplete = false;
-            setImmediate(fileCrawler);
+            var filePath = files[currentCrawlIndex];
+            fs.readFile(filePath, 'utf8', function (err, data) {
+                if (!err) {
+                    projectCache[filePath] = data;
+                    cacheSize += data.length;
+                }
+                currentCrawlIndex++;
+                if (currentCrawlIndex < files.length) {
+                    crawlComplete = false;
+                    setImmediate(fileCrawler);
+                } else {
+                    crawlComplete = true;
+                    if (!crawlEventSent) {
+                        crawlEventSent = true;
+                        _domainManager.emitEvent("FindInFiles", "crawlComplete", [files.length, cacheSize]);
+                    }
+                    setTimeout(fileCrawler, 1000);
+                }
+            });
         } else {
-            crawlComplete = true;
-            if (!crawlEventSent) {
-                crawlEventSent = true;
-                _domainManager.emitEvent("FindInFiles", "crawlComplete", [files.length, cacheSize]);
-            }
             setTimeout(fileCrawler, 1000);
         }
     }
