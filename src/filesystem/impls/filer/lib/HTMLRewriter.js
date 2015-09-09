@@ -81,7 +81,7 @@ define(function (require, exports, module) {
         var elements = this.doc.querySelectorAll("[style]");
 
         Async.eachSeries(elements, function(element, callback) {
-            var content = element.innerHTML;
+            var content = element.getAttribute("style");
             if(!content) {
                 return callback();
             }
