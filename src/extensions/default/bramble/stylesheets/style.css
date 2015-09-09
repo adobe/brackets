@@ -46,7 +46,6 @@
 .phone-wrapper {
     background: #eaeaea;
     padding: 30px 0;
-    height: 100%;
 }
 
 .phone-container {
@@ -89,6 +88,7 @@
     bottom: -26px;
     left: -5px;
     opacity: 0.15;
+    -webkit-transform: scaleY(0.3);
     transform: scaleY(0.3);
 }
 
