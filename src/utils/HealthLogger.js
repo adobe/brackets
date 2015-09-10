@@ -179,7 +179,7 @@ define(function (require, exports, module) {
      * @param {string} searchType The kind of search type that needs to be logged- should be a js var compatible string
      */
     function searchDone(searchType) {
-        var searchDetails = getHealthDataLog("searchDetils");
+        var searchDetails = getHealthDataLog("searchDetails");
         if (!searchDetails) {
             searchDetails = {};
         }
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
             searchDetails[searchType] = 0;
         }
         searchDetails[searchType]++;
-        setHealthDataLog("searchDetils", searchDetails);
+        setHealthDataLog("searchDetails", searchDetails);
     }
 
     // Define public API
@@ -213,6 +213,6 @@ define(function (require, exports, module) {
     exports.SEARCH_FIRST_PAGE         = "searchFirstPage";
     exports.SEARCH_REGEXP             = "searchRegExp";
     exports.SEARCH_CASE_SENSITIVE     = "searchCaseSensitive";
-    // A new search context on serach bar up-Gives an idea of number of times user did a discrete search
+    // A new search context on search bar up-Gives an idea of number of times user did a discrete search
     exports.SEARCH_NEW                = "searchNew";
 });
