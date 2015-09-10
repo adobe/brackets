@@ -843,8 +843,7 @@ define(function (require, exports, module) {
                 var files = fileListResult,
                     filter = FileFilters.getActiveFilter();
                 if (filter && filter.patterns.length > 0) {
-                    filter = new RegExp(FileFilters.compile(filter.patterns));
-                    files = files.filter(function (entry) { return !filter.test(entry); });
+                    files = FileFilters.filterFileList(FileFilters.compile(filter.patterns), files);
                 }
                 files = files.filter(function (entry) {
                     return entry.isFile && _isReadableText(entry.fullPath);
