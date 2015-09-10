@@ -347,27 +347,23 @@ maxerr: 50, node: true */
             setTimeout(fileCrawler, 1000);
             return;
         }
+        var contents = "";
         if (currentCrawlIndex < files.length) {
-            var filePath = files[currentCrawlIndex];
-            fs.readFile(filePath, 'utf8', function (err, data) {
-                if (!err) {
-                    projectCache[filePath] = data;
-                    cacheSize += data.length;
-                }
-                currentCrawlIndex++;
-                if (currentCrawlIndex < files.length) {
-                    crawlComplete = false;
-                    setImmediate(fileCrawler);
-                } else {
-                    crawlComplete = true;
-                    if (!crawlEventSent) {
-                        crawlEventSent = true;
-                        _domainManager.emitEvent("FindInFiles", "crawlComplete", [files.length, cacheSize]);
-                    }
-                    setTimeout(fileCrawler, 1000);
-                }
-            });
+            contents = getFileContentsForFile(files[currentCrawlIndex]);
+            if (contents) {
+                cacheSize += contents.length;
+            }
+            currentCrawlIndex++;
+        }
+        if (currentCrawlIndex < files.length) {
+            crawlComplete = false;
+            setImmediate(fileCrawler);
         } else {
+            crawlComplete = true;
+            if (!crawlEventSent) {
+                crawlEventSent = true;
+                _domainManager.emitEvent("FindInFiles", "crawlComplete", [files.length, cacheSize]);
+            }
             setTimeout(fileCrawler, 1000);
         }
     }
@@ -685,7 +681,7 @@ maxerr: 50, node: true */
                 }
             ]
         );
-        setTimeout(fileCrawler, 10000);
+        setTimeout(fileCrawler, 5000);
     }
     
     exports.init = init;
