@@ -32,7 +32,6 @@ define(function (require, exports, module) {
         MainViewManager     = require("view/MainViewManager"),
         FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils"),
-        FindBar             = require("search/FindBar").FindBar,
         ProjectManager      = require("project/ProjectManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         EventDispatcher     = require("utils/EventDispatcher"),
@@ -104,52 +103,6 @@ define(function (require, exports, module) {
         // replace escaped dollar signs (i.e. $$, $$$$, ...) with single ones (unescaping)
         replaceWith = replaceWith.replace(/\$\$/g, "$");
         return replaceWith;
-    }
-    
-    /**
-     * Gets you the right query and replace text to prepopulate the Find Bar.
-     * @param {?FindBar} currentFindBar The currently open Find Bar, if any
-     * @param {?Editor} The active editor, if any
-     * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
-     */
-    function getInitialQuery(currentFindBar, editor) {
-        var query = "",
-            replaceText = "";
-
-        /*
-         * Returns the string used to prepopulate the find bar
-         * @param {!Editor} editor
-         * @return {string} first line of primary selection to populate the find bar
-         */
-        function getInitialQueryFromSelection(editor) {
-            var selectionText = editor.getSelectedText();
-            if (selectionText) {
-                return selectionText
-                    .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
-                    .split("\n")[0];
-            }
-            return "";
-        }
-
-        if (currentFindBar && !currentFindBar.isClosed()) {
-            // The modalBar was already up. When creating the new modalBar, copy the
-            // current query instead of using the passed-in selected text.
-            query = currentFindBar.getQueryInfo().query;
-            replaceText = currentFindBar.getReplaceText();
-        } else {
-            var openedFindBar = FindBar._bars && _.find(FindBar._bars, function (bar) {
-                    return !bar.isClosed();
-                });
-
-            if (openedFindBar) {
-                query = openedFindBar.getQueryInfo().query;
-                replaceText = openedFindBar.getReplaceText();
-            } else if (editor) {
-                query = getInitialQueryFromSelection(editor);
-            }
-        }
-
-        return {query: query, replaceText: replaceText};
     }
 
     /**
@@ -570,7 +523,6 @@ define(function (require, exports, module) {
     }
 
     exports.parseDollars                    = parseDollars;
-    exports.getInitialQuery                 = getInitialQuery;
     exports.hasCheckedMatches               = hasCheckedMatches;
     exports.performReplacements             = performReplacements;
     exports.labelForScope                   = labelForScope;
