@@ -34,13 +34,16 @@ define(function (require, exports, module) {
 
             function fetch(input, replacements, next) {
                 if(input.length === 0) {
-                    return next(false, replacements);
+                    return next(null, replacements);
                 }
 
                 var filename = input.splice(0,1)[0];
                 BlobUtils.getUrl(Path.resolve(dir, decodePath(filename)), function(err, cachedUrl) {
                     if(err) {
-                        return next("failed on " + path, replacements);
+                        // If there's an error with one of the linked files, warn and skip it.
+                        console.log("[CSSRewriter warning] failed on `" + filename + "`", err.message);
+                        fetch(input, replacements, next);
+                        return;
                     }
 
                     // Swap the filename with the blob url
@@ -54,7 +57,7 @@ define(function (require, exports, module) {
                         return content.replace(regex, cachedUrl);
                     });
 
-                    fetch(input, replacements, next);              
+                    fetch(input, replacements, next);
                 });
             }
 
@@ -74,12 +77,12 @@ define(function (require, exports, module) {
 
         aggregate(css, function(err, replacements) {
             if(err) {
-                callback(err);
-                return;
+                console.log("[CSSRewriter warning] couldn't rewrite CSS for `" + path + "`", err);
+            } else {
+                replacements.forEach(function(replacement) {
+                    css = replacement(css);
+                });
             }
-            replacements.forEach(function(replacement) {
-                css = replacement(css);
-            });
 
             callback(null, css);
         });
