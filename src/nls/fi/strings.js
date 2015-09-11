@@ -681,6 +681,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Rajoittaa sitä, kuinka monta tasoa syvälle Pienennä kaikki \u2011valinta vaikuttaa",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Rivejä vähintään ennen kuin pienennettävän osion kuvake tulee esiin",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true: muista pienennetyt osiot, jos tiedosto tai projekti suljetaan ja avataan sitten uudelleen",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true: ota valitun tekstin koodin laskostus käyttöön editorissa",
     "DESCRIPTION_ATTR_HINTS"                         : "Näytä tai piilota HTML-attribuuttien vihjeet",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Näytä tai piilota CSS/LESS/SCSS-ominaisuuksien vihjeet",
     "DESCRIPTION_JS_HINTS"                           : "Näytä tai piilota JavaScript-koodin vihjeet",
@@ -770,4 +771,4 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Oletus"
 });
 
-/* Last translated for a45f7216d86dc77007346e51eb19aecabebe7e1e */
+/* Last translated for 1eba0ae1cb21e73752c8359132b972ec7e5997ab */
