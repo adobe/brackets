@@ -87,6 +87,7 @@ define(function (require, exports, module) {
             this._autoClose = true;
             this._$root.on("keydown", this._handleKeydown);
             window.document.body.addEventListener("focusin", this._handleFocusChange, true);
+            window.document.body.addEventListener("keydown",this._handleKeydown,true);
                 
             // Set focus to the first input field, or the first button if there is no input field.
             // TODO: remove this logic?
@@ -252,7 +253,7 @@ define(function (require, exports, module) {
         var effectiveElem = $(e.target).data("attached-to") || e.target;
         
         if (!$.contains(this._$root.get(0), effectiveElem)) {
-            this.close(undefined, undefined, ModalBar.CLOSE_BLUR);
+            // this.close(undefined, undefined, ModalBar.CLOSE_BLUR);
         }
     };
     
