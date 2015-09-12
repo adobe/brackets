@@ -250,11 +250,11 @@ define(function (require, exports, module) {
             return;
         }
         
-        var effectiveElem = $(e.target).data("attached-to") || e.target;
+        // var effectiveElem = $(e.target).data("attached-to") || e.target;
         
-        if (!$.contains(this._$root.get(0), effectiveElem)) {
+        // if (!$.contains(this._$root.get(0), effectiveElem)) {
             // this.close(undefined, undefined, ModalBar.CLOSE_BLUR);
-        }
+        // }
     };
     
     /**
