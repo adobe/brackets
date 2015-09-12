@@ -13,7 +13,8 @@ define(function (require, exports, module) {
         CSSRewriter             = brackets.getModule("filesystem/impls/filer/lib/CSSRewriter");
 
     var Compatibility           = require("lib/compatibility"),
-        ScrollManager           = require("lib/ScrollManager");
+        ScrollManager           = require("lib/ScrollManager"),
+        LinkManager             = require("lib/LinkManager");
 
     var fs = Filer.fs(),
         _shouldUseBlobURL;
@@ -149,7 +150,8 @@ define(function (require, exports, module) {
 
                 // Since we're not instrumenting this doc fully for some reason,
                 // at least inject the scroll manager so we can track scroll position.
-                body = body.replace(/<\/\s*head>/, ScrollManager.getRemoteScript(path) + "$&");
+                body = body.replace(/<\/\s*head>/,
+                    ScrollManager.getRemoteScript(path) + LinkManager.getRemoteScript() + "$&");
                 serve(body);
             });
         }

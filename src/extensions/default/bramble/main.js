@@ -36,24 +36,12 @@ define(function (require, exports, module) {
     ExtensionUtils.loadStyleSheet(module, "stylesheets/sidebarTheme.css");
 
     function parseData(data) {
-        var dataReceived = data;
-
         try {
-            data = dataReceived || null;
-            data = JSON.parse(data);
-            data = data || {};
+            data = JSON.parse(data || null);
+            return data || {};
         } catch(err) {
-            // Quick fix: Ignore the 'process-tick' message being sent
-            if(dataReceived === "process-tick") {
-                return false;
-            }
-
-            console.error("Parsing message from thimble failed: ", err);
-
             return false;
         }
-
-        return data;
     }
 
     function handleMessage(message) {

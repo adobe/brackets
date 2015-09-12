@@ -22,6 +22,7 @@ define(function (require, exports, module) {
     var PostMessageTransportRemote = require("text!lib/PostMessageTransportRemote.js");
     var Tutorial = require("lib/Tutorial");
     var ScrollManager = require("lib/ScrollManager");
+    var LinkManager = require("lib/LinkManager");
 
     // An XHR shim will be injected as well to allow XHR to the file system
     var XHRShim = require("text!lib/xhr/XHRShim.js");
@@ -67,7 +68,13 @@ define(function (require, exports, module) {
             return;
         }
 
-        if(msgObj.type === "message"){
+        if(msgObj.type === "message") {
+            // Deal with the case of a user clicking a <a> to navigate to a new file.
+            if(LinkManager.isNavigationRequest(msgObj.message)) {
+                LinkManager.navigate(msgObj.message);
+                return;
+            }
+
             if(msgObj.message) {
                 msgObj.message = resolveLinks(msgObj.message);
             }
@@ -174,7 +181,8 @@ define(function (require, exports, module) {
         return '<base href="' + window.location.href + '">\n' +
             "<script>\n" + PostMessageTransportRemote + "</script>\n" +
             "<script>\n" + XHRShim + "</script>\n" +
-            ScrollManager.getRemoteScript(currentPath);
+            ScrollManager.getRemoteScript(currentPath) +
+            LinkManager.getRemoteScript();
     }
 
     // URL of document being rewritten/launched (if any)
