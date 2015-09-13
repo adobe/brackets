@@ -36,7 +36,7 @@
         "SHA": ""
     },
     "devDependencies": {
-        "grunt": "0.4.1",
+        "grunt": "0.4.5",
         "jasmine-node": "1.11.0",
         "grunt-jasmine-node": "0.1.0",
         "grunt-cli": "0.1.9",
