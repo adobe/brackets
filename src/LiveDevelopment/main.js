@@ -112,12 +112,11 @@ define(function main(require, exports, module) {
     
     /** Load Live Development LESS Style */
     function _loadStyles() {
-        var lessText    = require("text!LiveDevelopment/main.less"),
-            parser      = new less.Parser();
+        var lessText = require("text!LiveDevelopment/main.less");
         
-        parser.parse(lessText, function onParse(err, tree) {
+        less.render(lessText, function onParse(err, tree) {
             console.assert(!err, err);
-            ExtensionUtils.addEmbeddedStyleSheet(tree.toCSS());
+            ExtensionUtils.addEmbeddedStyleSheet(tree.css);
         });
     }
 

@@ -98,12 +98,10 @@ define(function (require, exports, module) {
             options;
         
         if (url) {
-            var dir  = url.slice(0, url.lastIndexOf("/") + 1),
-                file = url.slice(dir.length);
+            var dir = url.slice(0, url.lastIndexOf("/") + 1);
             
             options = {
-                filename: file,
-                paths:    [dir],
+                filename: url,
                 rootpath: dir
             };
 
@@ -118,16 +116,11 @@ define(function (require, exports, module) {
             }
         }
         
-        var parser = new less.Parser(options);
-        parser.parse(code, function onParse(err, tree) {
+        less.render(code, options, function onParse(err, tree) {
             if (err) {
                 result.reject(err);
             } else {
-                try {
-                    result.resolve(tree.toCSS());
-                } catch (toCSSError) {
-                    result.reject(toCSSError);
-                }
+                result.resolve(tree.css);
             }
         });
         
