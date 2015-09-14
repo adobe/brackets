@@ -285,7 +285,7 @@ define(function (require, exports, module) {
         
         var re = new RegExp(compiledFilter);
         return files.filter(function (f) {
-            return !f.fullPath.match(re);
+            return !re.test(f.fullPath);
         });
     }
     

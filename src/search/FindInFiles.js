@@ -840,13 +840,16 @@ define(function (require, exports, module) {
         }
         ProjectManager.getAllFiles(filter, true, true)
             .done(function (fileListResult) {
-                var files = fileListResult
-                    .filter(function (entry) {
-                        return entry.isFile && _isReadableText(entry.fullPath);
-                    })
-                    .map(function (entry) {
-                        return entry.fullPath;
-                    });
+                var files = fileListResult,
+                    filter = FileFilters.getActiveFilter();
+                if (filter && filter.patterns.length > 0) {
+                    files = FileFilters.filterFileList(FileFilters.compile(filter.patterns), files);
+                }
+                files = files.filter(function (entry) {
+                    return entry.isFile && _isReadableText(entry.fullPath);
+                }).map(function (entry) {
+                    return entry.fullPath;
+                });
                 FindUtils.notifyIndexingStarted();
                 searchDomain.exec("initCache", files);
             });

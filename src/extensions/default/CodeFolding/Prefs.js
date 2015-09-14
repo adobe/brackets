@@ -8,7 +8,7 @@
 /*global define, brackets*/
 define(function (require, exports, module) {
     "use strict";
-    
+
     var ProjectManager              = brackets.getModule("project/ProjectManager"),
         PreferencesManager          = brackets.getModule("preferences/PreferencesManager"),
         Strings                     = brackets.getModule("strings"),
@@ -20,7 +20,8 @@ define(function (require, exports, module) {
         SAVE_FOLD_STATES            = "Save fold states",
         ALWAYS_USE_INDENT_FOLD      = "Always use indent fold",
         HIDE_FOLD_BUTTONS           = "Hide fold triangles",
-        MAX_FOLD_LEVEL              = "Max fold level";
+        MAX_FOLD_LEVEL              = "Max fold level",
+        MAKE_SELECTIONS_FOLDABLE     = "Makes selections foldable";
 
     //default preference values
     prefs.definePreference("enabled", "boolean", true,
@@ -35,7 +36,9 @@ define(function (require, exports, module) {
                            {name: HIDE_FOLD_BUTTONS, description: Strings.DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER});
     prefs.definePreference("maxFoldLevel", "number", 2,
                            {name: MAX_FOLD_LEVEL, description: Strings.DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL});
-    
+    prefs.definePreference("makeSelectionsFoldable", "boolean", true,
+                           {name: MAKE_SELECTIONS_FOLDABLE, description: Strings.DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE});
+
     PreferencesManager.stateManager.definePreference(FOLDS_PREF_KEY, "object", {});
 
     /**
@@ -75,7 +78,7 @@ define(function (require, exports, module) {
 
         return ranges;
     }
-    
+
     /**
      * Returns a 'context' object for getting/setting project-specific view state preferences.
      * Similar to code in MultiRangeInlineEditor._getPrefsContext()...
