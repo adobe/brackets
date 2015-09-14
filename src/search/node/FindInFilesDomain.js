@@ -32,6 +32,7 @@ maxerr: 50, node: true */
         projectCache = [],
         files,
         _domainManager,
+        MAX_FILE_SIZE_TO_INDEX = 16777216, //16MB
         MAX_DISPLAY_LENGTH = 200,
         MAX_TOTAL_RESULTS = 100000, // only 100,000 search results are supported
         MAX_RESULTS_IN_A_FILE = MAX_TOTAL_RESULTS,
@@ -187,8 +188,25 @@ maxerr: 50, node: true */
         projectCache = [];
     }
 
+
     /**
-     * Get the contents of a file given the path
+     * Gets the file size in bytes.
+     * @param   {string} fileName The name of the file to get the size
+     * @returns {Number} the file size in bytes
+     */
+    function getFilesizeInBytes(fileName) {
+        try {
+            var stats = fs.statSync(fileName);
+            return stats.size || 0;
+        } catch (ex) {
+            console.log(ex);
+            return 0;
+        }
+    }
+
+    /**
+     * Get the contents of a file from cache given the path. Also adds the file contents to cache from disk if not cached.
+     * Will not read/cache files greater than MAX_FILE_SIZE_TO_INDEX in size.
      * @param   {string} filePath full file path
      * @return {string} contents or null if no contents
      */
@@ -197,7 +215,11 @@ maxerr: 50, node: true */
             return projectCache[filePath];
         }
         try {
-            projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
+            if (getFilesizeInBytes(filePath) <= MAX_FILE_SIZE_TO_INDEX) {
+                projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
+            } else {
+                projectCache[filePath] = "";
+            }
         } catch (ex) {
             console.log(ex);
             projectCache[filePath] = null;
@@ -325,9 +347,8 @@ maxerr: 50, node: true */
             setTimeout(fileCrawler, 1000);
             return;
         }
-        var i = 0,
-            contents = "";
-        for (i = 0; i < 10 && currentCrawlIndex < files.length; i++) {
+        var contents = "";
+        if (currentCrawlIndex < files.length) {
             contents = getFileContentsForFile(files[currentCrawlIndex]);
             if (contents) {
                 cacheSize += contents.length;
