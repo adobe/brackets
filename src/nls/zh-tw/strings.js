@@ -680,6 +680,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "「全部收合」時實際收合的階層上限",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "顯示區塊收合標記的最小行數",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true 代表關閉再重開檔案或專案後還要記住收合狀態",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true 代表在編輯器中啟用選取區塊收合功能",
     "DESCRIPTION_ATTR_HINTS"                         : "啟用或停用 HTML 屬性提示",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "啟用或停用 CSS/LESS/SCSS 屬性提示",
     "DESCRIPTION_JS_HINTS"                           : "啟用或停用 JavaScript 程式碼提示",
@@ -769,4 +770,4 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "預設"
 });
 
-/* Last translated for a45f7216d86dc77007346e51eb19aecabebe7e1e */
+/* Last translated for 1eba0ae1cb21e73752c8359132b972ec7e5997ab */
