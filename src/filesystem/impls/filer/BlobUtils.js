@@ -9,6 +9,7 @@ define(function (require, exports, module) {
     var Content = require("filesystem/impls/filer/lib/content");
     var FilerUtils = require("filesystem/impls/filer/FilerUtils");
     var async = require("filesystem/impls/filer/lib/async");
+    var Transforms = require("filesystem/impls/filer/lib/transforms");
     var Path = FilerUtils.Path;
     var decodePath = FilerUtils.decodePath;
     var fs = require("filesystem/impls/filer/BracketsFiler").fs();
@@ -147,7 +148,14 @@ define(function (require, exports, module) {
                         if(stats.type === 'DIRECTORY') {
                             _preload(name, callback);
                         } else {
-                            getUrl(name, callback);
+                            // If there's a transform needed for this file, do that first.
+                            Transforms.applyTransform(name, function(err) {
+                                if(err) {
+                                    return callback(err);
+                                }
+
+                                getUrl(name, callback);
+                            });
                         }
                     });
                 }

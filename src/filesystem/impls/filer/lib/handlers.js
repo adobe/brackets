@@ -5,10 +5,10 @@ define(function (require, exports, module) {
 
     var Content = require("filesystem/impls/filer/lib/content");
     var HTMLRewriter = require("filesystem/impls/filer/lib/HTMLRewriter");
-    var MarkdownRewriter = require("filesystem/impls/filer/lib/MarkdownRewriter");
     var CSSRewriter = require("filesystem/impls/filer/lib/CSSRewriter");
-    var Path = require("filesystem/impls/filer/FilerUtils").Path;
     var BlobUtils = require("filesystem/impls/filer/BlobUtils");
+    var Transforms = require("filesystem/impls/filer/lib/transforms");
+    var Path = require("filesystem/impls/filer/BracketsFiler").Path;
 
     /**
      * Process known files into Blob URLs, processing known types first
@@ -24,25 +24,33 @@ define(function (require, exports, module) {
             data = data.toString();
         }
 
-        if(Content.isHTML(ext)) {
-            HTMLRewriter.rewrite(path, data, callback);
-        } else if(Content.isMarkdown(ext)) {
-            // Convert Markdown to HTML, then rewrite the resulting HTML
-            HTMLRewriter.rewrite(path, MarkdownRewriter.rewrite(path, data), callback);
-        } else if(Content.isCSS(ext)) {
-            CSSRewriter.rewrite(path, data, function(err, css) {
-                if(err) {
-                    console.error("[Handler.handleFile() Error", path, err);
-                    callback(err);
-                    return;
-                }
-                BlobUtils.createURL(path, css, mimeType);
+        function rewriteUrl() {
+            if(Content.isHTML(ext)) {
+                HTMLRewriter.rewrite(path, data, callback);
+            } else if(Content.isCSS(ext)) {
+                CSSRewriter.rewrite(path, data, function(err, css) {
+                    if(err) {
+                        console.error("[Handler.handleFile() Error", path, err);
+                        callback(err);
+                        return;
+                    }
+                    BlobUtils.createURL(path, css, mimeType);
+                    callback();
+                });
+            } else {
+                BlobUtils.createURL(path, data, mimeType);
                 callback();
-            });
-        } else {
-            BlobUtils.createURL(path, data, mimeType);
-            callback();
-        } 
+            }
+        }
+
+        // If there's a transform needed for this file, do it first
+        Transforms.applyTransform(path, data, function(err) {
+            if(err) {
+                return callback(err);
+            }
+
+            rewriteUrl();
+        });
     }
 
     exports.handleFile = handleFile;
