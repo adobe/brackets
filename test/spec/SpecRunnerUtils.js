@@ -140,6 +140,14 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Rename a directory or file.
+     * @return {$.Promise} Resolved when the path is rename, rejected if there was a problem
+     */
+    function rename(src, dest) {
+        return testDomain().rename(src, dest);
+    }
+    
+    /**
      * Resolves a path string to a File or Directory
      * @param {!string} path Path to a file or directory
      * @return {$.Promise} A promise resolved when the file/directory is found or
@@ -1350,6 +1358,7 @@ define(function (require, exports, module) {
     exports.chmod                           = chmod;
     exports.remove                          = remove;
     exports.copy                            = copy;
+    exports.rename                          = rename;
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;

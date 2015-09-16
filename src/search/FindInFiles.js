@@ -138,7 +138,7 @@ define(function (require, exports, module) {
             
             if (highlightEndCh <= MAX_DISPLAY_LENGTH) {
                 // Don't store more than 200 chars per line
-                line = line.substr(0, Math.min(MAX_DISPLAY_LENGTH, line.length));
+                line = line.substr(0, MAX_DISPLAY_LENGTH);
             } else if (totalMatchLength > MAX_DISPLAY_LENGTH) {
                 // impossible to display the whole match
                 line = line.substr(ch, ch + MAX_DISPLAY_LENGTH);
@@ -840,13 +840,16 @@ define(function (require, exports, module) {
         }
         ProjectManager.getAllFiles(filter, true, true)
             .done(function (fileListResult) {
-                var files = fileListResult
-                    .filter(function (entry) {
-                        return entry.isFile && _isReadableText(entry.fullPath);
-                    })
-                    .map(function (entry) {
-                        return entry.fullPath;
-                    });
+                var files = fileListResult,
+                    filter = FileFilters.getActiveFilter();
+                if (filter && filter.patterns.length > 0) {
+                    files = FileFilters.filterFileList(FileFilters.compile(filter.patterns), files);
+                }
+                files = files.filter(function (entry) {
+                    return entry.isFile && _isReadableText(entry.fullPath);
+                }).map(function (entry) {
+                    return entry.fullPath;
+                });
                 FindUtils.notifyIndexingStarted();
                 searchDomain.exec("initCache", files);
             });

@@ -278,6 +278,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Sačuvaj sve",
     "CMD_FILE_SAVE_AS"                    : "Sačuvaj kao\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Prikaz uživo",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Omogući Experimentalni Prikaz Uživo",
     "CMD_PROJECT_SETTINGS"                : "Postavke Projekta\u2026",
     "CMD_FILE_RENAME"                     : "Preimenuj",
     "CMD_FILE_DELETE"                     : "Obriši",
@@ -382,6 +383,7 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} na Twitteru",
     "CMD_ABOUT"                           : "O programu {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Otvori Preferencije",
+    "CMD_OPEN_KEYMAP"                     : "Otvori Svoje Postavke Tipki*",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentalna verzija",
@@ -400,7 +402,7 @@ define({
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs i Web Platform graphical logo su zaštićeni pod Creative Commons Attribution licencom, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Dostupna je nova verzija aplikacije {APP_NAME}! Kliknite ovdje za detalje.",
     "UPDATE_AVAILABLE_TITLE"               : "Novija verzija je dostupna",
-    "UPDATE_MESSAGE"                       : "Nova verzija aplikacije {APP_NAME} je dostupna. Ovo su neka od najnovijih izmjena:",
+    "UPDATE_MESSAGE"                       : "Nova verzija aplikacije {APP_NAME} je dostupna. Ovo su neke od najnovijih izmjena:",
     "GET_IT_NOW"                           : "Preuzmi sada!",
     "PROJECT_SETTINGS_TITLE"               : "Postavke projekta za: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Osnovna URL adresa za prikaz uživo",
@@ -426,6 +428,8 @@ define({
     "INSTALL"                              : "Instaliraj",
     "UPDATE"                               : "Obnovi",
     "REMOVE"                               : "Makni",
+    "DISABLE"                              : "Onemogući",
+    "ENABLE"                               : "Omogući",
     "OVERWRITE"                            : "Piši preko",
     "CANT_REMOVE_DEV"                      : "Extenzije u \"dev\" mapi moraju biti ručno obrisane.",
     "CANT_UPDATE"                          : "Novija verzija nije kompatibilna sa trenutnom verzijom aplikacije {APP_NAME}.",
@@ -460,14 +464,14 @@ define({
     "CANNOT_WRITE_TEMP"                    : "Nije moguće sačuvati preuzete podatke u privremenu datoteku.",
     "ERROR_LOADING"                        : "Extenzija je naišla na grešku prilikom pokretanja.",
     "MALFORMED_URL"                        : "URL nije valjan. Molimo provjerite da li ste ga unjeli točno.",
-    "UNSUPPORTED_PROTOCOL"                 : "URL mora biti http or https URL.",
+    "UNSUPPORTED_PROTOCOL"                 : "URL mora biti http ili https URL.",
     "UNKNOWN_ERROR"                        : "Nepoznata unutarnja greška.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Manager extenzija",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Pristupanje registru extenzije nije moguće. Pokušajte kasnije.",
     "INSTALL_EXTENSION_DRAG"               : "Dovuci .zip ovdje ili",
     "INSTALL_EXTENSION_DROP"               : "Ispusti .zip da instaliraš",
-    "INSTALL_FROM_URL"                     : "Instaliraj sa linka URL\u2026",
+    "INSTALL_FROM_URL"                     : "Instaliraj sa URL linka\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Ova extenzija zahtjeva noviju verziju aplikacije {APP_NAME}.",
@@ -479,7 +483,7 @@ define({
     "EXTENSION_ERROR"                      : "Greška u extenziji",
     "EXTENSION_KEYWORDS"                   : "Ključne riječi",
     "EXTENSION_INSTALLED"                  : "Instalirano",
-    "EXTENSION_UPDATE_INSTALLED"           : "Ova verzija extenzije već je preuzeta i biti će instalirana nakon što se {APP_NAME} ponovo učita.",
+    "EXTENSION_UPDATE_INSTALLED"           : "Ova verzija extenzije već je preuzeta i bit će instalirana nakon što se {APP_NAME} ponovo učita.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Traži",
     "EXTENSION_MORE_INFO_LINK"             : "Više",
     "BROWSE_EXTENSIONS"                    : "Pretraži Extenzije",
@@ -559,7 +563,7 @@ define({
     
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Skoči na definiciju",
-    "CMD_SHOW_PARAMETER_HINT"                   : "Pokaži naznake (hintove) parametara*",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Pokaži naznake (hintove) parametara",
     "NO_ARGUMENTS"                              : "<bez parametara>",
     
     // extensions/default/JSLint
@@ -572,7 +576,13 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedavni projekti",
     
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Pročitaj više"
+    "DOCS_MORE_LINK"                            : "Pročitaj više",
+    
+    // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Skupi Sve",
+    "EXPAND_ALL"                    : "Proširi Sve",
+    "COLLAPSE_CURRENT"              : "Skupi Trenutno",
+    "EXPAND_CURRENT"                : "Proširi Trenutno",
 });
 
 /* Last translated for a57bd8888da0b44f382e591c64b394b065178277 */

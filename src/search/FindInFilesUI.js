@@ -51,6 +51,7 @@ define(function (require, exports, module) {
         StatusBar         = require("widgets/StatusBar"),
         Strings           = require("strings"),
         StringUtils       = require("utils/StringUtils"),
+        HealthLogger      = require("utils/HealthLogger"),
         _                 = require("thirdparty/lodash");
 
 
@@ -132,7 +133,7 @@ define(function (require, exports, module) {
         
         // Get initial query/replace text
         var currentEditor = EditorManager.getActiveEditor(),
-            initialQuery = FindUtils.getInitialQuery(_findBar, currentEditor);
+            initialQuery = FindBar.getInitialQuery(_findBar, currentEditor);
 
         // Close our previous find bar, if any. (The open() of the new _findBar will
         // take care of closing any other find bar instances.)
@@ -186,6 +187,12 @@ define(function (require, exports, module) {
             if (queryInfo && queryInfo.query) {
                 _findBar.enable(!disableFindBar);
                 StatusBar.showBusyIndicator(disableFindBar);
+                if (queryInfo.isRegexp) {
+                    HealthLogger.searchDone(HealthLogger.SEARCH_REGEXP);
+                }
+                if (queryInfo.isCaseSensitive) {
+                    HealthLogger.searchDone(HealthLogger.SEARCH_CASE_SENSITIVE);
+                }
 
                 var filter;
                 if (filterPicker) {

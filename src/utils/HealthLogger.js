@@ -174,6 +174,22 @@ define(function (require, exports, module) {
         setHealthDataLog("ProjectDetails", FIFLog);
     }
 
+    /**
+     * Increments health log count for a particular kind of search done
+     * @param {string} searchType The kind of search type that needs to be logged- should be a js var compatible string
+     */
+    function searchDone(searchType) {
+        var searchDetails = getHealthDataLog("searchDetails");
+        if (!searchDetails) {
+            searchDetails = {};
+        }
+        if (!searchDetails[searchType]) {
+            searchDetails[searchType] = 0;
+        }
+        searchDetails[searchType]++;
+        setHealthDataLog("searchDetails", searchDetails);
+    }
+
     // Define public API
     exports.getHealthDataLog          = getHealthDataLog;
     exports.setHealthDataLog          = setHealthDataLog;
@@ -181,7 +197,22 @@ define(function (require, exports, module) {
     exports.clearHealthData           = clearHealthData;
     exports.fileOpened                = fileOpened;
     exports.setProjectDetail          = setProjectDetail;
+    exports.searchDone                = searchDone;
     exports.setHealthLogsEnabled      = setHealthLogsEnabled;
     exports.shouldLogHealthData       = shouldLogHealthData;
     exports.init                      = init;
+
+    // constants
+    // searchType for searchDone()
+    exports.SEARCH_INSTANT            = "searchInstant";
+    exports.SEARCH_ON_RETURN_KEY      = "searchOnReturnKey";
+    exports.SEARCH_REPLACE_ALL        = "searchReplaceAll";
+    exports.SEARCH_NEXT_PAGE          = "searchNextPage";
+    exports.SEARCH_PREV_PAGE          = "searchPrevPage";
+    exports.SEARCH_LAST_PAGE          = "searchLastPage";
+    exports.SEARCH_FIRST_PAGE         = "searchFirstPage";
+    exports.SEARCH_REGEXP             = "searchRegExp";
+    exports.SEARCH_CASE_SENSITIVE     = "searchCaseSensitive";
+    // A new search context on search bar up-Gives an idea of number of times user did a discrete search
+    exports.SEARCH_NEW                = "searchNew";
 });

@@ -252,11 +252,17 @@ define({
     "SPLITVIEW_MULTIPANE_WARNING"       : "The file is already open in another pane. {APP_NAME} will soon support opening the same file in more than one pane. Until then, the file will be shown in the pane it's already open in.<br /><br />(You'll only see this message once.)",
 
     /**
-     * Keyboard modifier names
+     * Keyboard modifiers and special key names
      */
-    "KEYBOARD_CTRL"   : "Ctrl",
-    "KEYBOARD_SHIFT"  : "Shift",
-    "KEYBOARD_SPACE"  : "Space",
+    "KEYBOARD_CTRL"         : "Ctrl",
+    "KEYBOARD_SHIFT"        : "Shift",
+    "KEYBOARD_SPACE"        : "Space",
+    "KEYBOARD_PAGE_UP"      : "Page Up",
+    "KEYBOARD_PAGE_DOWN"    : "Page Down",
+    "KEYBOARD_HOME"         : "Home",
+    "KEYBOARD_END"          : "End",
+    "KEYBOARD_INSERT"       : "Insert",
+    "KEYBOARD_DELETE"       : "Delete",
 
     /**
      * StatusBar strings
@@ -594,7 +600,7 @@ define({
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
-    
+
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} Command Line Shortcut",
     "ERROR_CREATING_LAUNCH_SCRIPT"              : "An error occurred while installing the command line shortcut. Please try <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>these troubleshooting suggestions</a>.<br/><br/>Reason: {0}",
     "ERROR_CLTOOLS_RMFAILED"                    : "Unable to remove existing <code>/usr/local/bin/brackets</code> symlink.",
@@ -658,7 +664,7 @@ define({
     "EXPAND_ALL"                    : "Expand All",
     "COLLAPSE_CURRENT"              : "Collapse Current",
     "EXPAND_CURRENT"                : "Expand Current",
-    
+
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true to automatically close braces, brackets and parentheses",
     "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "false to remove the \"Close Others Above\" from the Working Files context menu",
@@ -675,6 +681,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limits how many levels deep Collapse All applies",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Minimum lines before a collapsible section icon appears",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true to remember collapsed sections if you close and reopen a file or project",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true to enable code folding on selected text in the editor",
     "DESCRIPTION_ATTR_HINTS"                         : "Enable/disable HTML attribute hints",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Enable/disable CSS/LESS/SCSS property hints",
     "DESCRIPTION_JS_HINTS"                           : "Enable/disable JavaScript code hints",
