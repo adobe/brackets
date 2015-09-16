@@ -252,11 +252,17 @@ define({
 	"SPLITVIEW_MULTIPANE_WARNING": "ファイルは他のペインで既に開かれています。{APP_NAME} ではまもなく複数のペインで同じファイルを開くことが可能になる予定です。それまでは、ファイルは既に開かれているペインで表示されます。<br /><br />(このメッセージは一度しか表示されません。)",
 
     /**
-     * Keyboard modifier names
+     * Keyboard modifiers and special key names
      */
 	"KEYBOARD_CTRL": "Ctrl",
 	"KEYBOARD_SHIFT": "Shift",
 	"KEYBOARD_SPACE": "Space",
+	"KEYBOARD_PAGE_UP": "Page Up",
+	"KEYBOARD_PAGE_DOWN": "Page Down",
+	"KEYBOARD_HOME": "ホーム",
+	"KEYBOARD_END": "End",
+	"KEYBOARD_INSERT": "挿入",
+	"KEYBOARD_DELETE": "削除",
 
     /**
      * StatusBar strings
@@ -594,7 +600,7 @@ define({
 	"CMD_RESTART_NODE": "Node を再起動",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
 	"CMD_OPEN_BRACKETS_SOURCE": "{APP_NAME} ソースを開く",
-    
+
 	"CREATING_LAUNCH_SCRIPT_TITLE": "{APP_NAME} コマンドラインショートカット",
 	"ERROR_CREATING_LAUNCH_SCRIPT": "コマンドラインショートカットのインストール中にエラーが発生しました。<a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>これらのトラブルシューティングの提案</a>をお試しください。<br/><br/>理由 : {0}",
 	"ERROR_CLTOOLS_RMFAILED": "既存の <code>/usr/local/bin/brackets</code> シンボリックリンクを削除できません。",
@@ -658,7 +664,7 @@ define({
 	"EXPAND_ALL": "すべて展開",
 	"COLLAPSE_CURRENT": "現在のコードをたたむ",
 	"EXPAND_CURRENT": "現在のコードを展開",
-    
+
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "中括弧、角括弧、丸括弧を自動的に閉じるには true",
 	"DESCRIPTION_CLOSE_OTHERS_ABOVE": "「作業中ファイル」コンテキストメニューから「上をすべて閉じる」を削除するには false",
@@ -675,6 +681,7 @@ define({
 	"DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL": "「すべて折りたたむ」を適用するレベル数を制限します",
 	"DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE": "次の行数に達したら折りたたみ可能なセクションのアイコンを表示する",
 	"DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES": "ファイルまたはプロジェクトを閉じて再度開く場合に折りたたまれたセクションを記憶するには true",
+	"DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true to enable code folding on selected text in the editor",
 	"DESCRIPTION_ATTR_HINTS": "HTML 属性ヒントを有効化/無効化",
 	"DESCRIPTION_CSS_PROP_HINTS": "CSS/LESS/SCSS プロパティヒントを有効化/無効化",
 	"DESCRIPTION_JS_HINTS": "JavaScript のコードヒントを有効化/無効化",
