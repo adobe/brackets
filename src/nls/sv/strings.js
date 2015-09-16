@@ -122,7 +122,7 @@ define({
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Förhandsvisning (uppdateras inte på grund av syntaxfel)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Förhandsvisningen avbröts eftersom webbläsarens utvecklarverktyg öppnades.",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Förhandsvisningen avbröst eftersom sidan stängdes i webbläsaren.",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Förhandsvisningen avbröts eftersom sidan stängdes i webbläsaren.",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Förhandsvisningen avbröts eftersom webbläsaren navigerades till en sida som inte är del av det nuvarande projektet.",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Förhandsvisningen avbröts på grund av ett okänt fel. ({0})",
     
