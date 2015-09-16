@@ -9,7 +9,7 @@ body {
     margin: 0 auto;
     padding: 2em 2em 4em;
     max-width: 800px;
-    font-family: "Heiti TC", "LiHei Pro", "Microsoft JhengHei", "WenQuanYi Micro Hei", "Droid Sans Fallback", "Arial Unicode MS", sans-serif;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 16px;
     line-height: 1.5em;
     color: #545454;
@@ -28,7 +28,7 @@ h2 {
 }
 
 a {
-    color: #0083e8; 
+    color: #0083e8;
 }
 
 b, strong {
@@ -73,4 +73,4 @@ em {
     }
 }
 
-/* Last localized for a77e108a2950fb3676b20224f50cef0e3cb2e58a */
+/* Last localized for 3bc8a7afeef40b51a47774a43382af11075132c9 */
