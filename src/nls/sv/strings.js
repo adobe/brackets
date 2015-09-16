@@ -364,11 +364,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Lägg nästa träff till markering",
     "CMD_SKIP_CURRENT_MATCH"              : "Hoppa över och lägg till nästa träff",
     "CMD_FIND_IN_FILES"                   : "Sök i filer",
-    "CMD_FIND_IN_SELECTED"                : "Sök i markerad fil/mapp",
     "CMD_FIND_IN_SUBTREE"                 : "Sök i\u2026",
     "CMD_REPLACE"                         : "Ersätt",
     "CMD_REPLACE_IN_FILES"                : "Ersätt i filer",
-    "CMD_REPLACE_IN_SELECTED"             : "Ersätt i markerad fil/mapp",
     "CMD_REPLACE_IN_SUBTREE"              : "Ersätt i\u2026",
     
     // View menu commands

@@ -61,7 +61,6 @@ define({
     "ERROR_DELETING_FILE"               : "Došlo je do greške prilikom pokušaja da se obriše datoteka <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Ime {0} nije valjano",
     "INVALID_FILENAME_MESSAGE"          : "Imena datoteka ne smiju sadržavati sljedeće znakove: {0} ili riječi rezervirane za sistem.",
-    "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{1}</span> već postoji.",
     "ERROR_CREATING_FILE_TITLE"         : "Greška pri kreiranju {0}",
     "ERROR_CREATING_FILE"               : "Došlo je do greške prilikom pokušaja da se kreira {0} <span class='dialog-filename'>{1}</span>. {2}",
 
@@ -128,9 +127,8 @@ define({
     "BUTTON_NO"                         : "Ne",
         
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} rezultata",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 rezultat",
     "FIND_NO_RESULTS"                   : "Nema rezultata",
+    "FIND_QUERY_PLACEHOLDER"            : "Nađi\u2026",
     "REPLACE_PLACEHOLDER"               : "Zamijeni sa\u2026",
     "BUTTON_REPLACE_ALL"                : "Sve\u2026",
     "BUTTON_REPLACE"                    : "Zamijeni",
@@ -149,15 +147,7 @@ define({
     "NO_UPDATE_TITLE"                   : "Imate aktualnu verziju!",
     "NO_UPDATE_MESSAGE"                 : "Trenutno koristite aktualnu verziju aplikacije {APP_NAME}.",
 
-    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "Zamijeni \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" sa \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
-
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" pronađen",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "u <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "u projektu",
     "FIND_IN_FILES_FILE"                : "datoteci",
@@ -177,7 +167,6 @@ define({
     "EDIT_FILE_FILTER"                  : "Uredi\u2026",
     "FILE_FILTER_DIALOG"                : "Uređivački filter",
     "FILE_FILTER_INSTRUCTIONS"          : "Isključi datoteke i direktorije koji se slažu sa ijednom od sljedećih nizova / podnizova riječi ili <a href='{0}' title='{0}'>globs</a>. Unesi svaki niz u novi red.",
-    "FILE_FILTER_LIST_PREFIX"           : "osim",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "i {0} više",
 
     // Quick Edit
@@ -317,9 +306,7 @@ define({
     // Search menu commands
     "FIND_MENU"                           : "Nađi",
     "CMD_FIND"                            : "Nađi",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Nađi\u2026",
     "CMD_FIND_IN_FILES"                   : "Nađi u datotekama",
-    "CMD_FIND_IN_SELECTED"                : "Nađi u odabranoj Datoteci/Mapi",
     "CMD_FIND_IN_SUBTREE"                 : "Nađi u\u2026",
     "CMD_FIND_NEXT"                       : "Nađi sljedeće",
     "CMD_FIND_PREVIOUS"                   : "Nađi prethodno",
@@ -328,7 +315,6 @@ define({
     "CMD_SKIP_CURRENT_MATCH"              : "Preskoči i dodaj sljedeće slaganje",
     "CMD_REPLACE"                         : "Zamijeni",
     "CMD_REPLACE_IN_FILES"                : "Zamijeni u datotekama",
-    "CMD_REPLACE_IN_SELECTED"             : "Zamijeni u odabranoj datoteci/mapi",
     "CMD_REPLACE_IN_SUBTREE"              : "Zamijeni u\u2026",
     
     // View menu commands
@@ -345,10 +331,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Prijelom teksta",
     "CMD_LIVE_HIGHLIGHT"                  : "Obilježi prikaz uživo",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Prekontroliraj datoteke prilikom spremanja",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortiraj po datumu",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortiraj po imenu",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortiraj po tipu",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatsko sortiranje",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Sortiraj po datumu",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Sortiraj po imenu",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sortiraj po tipu",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatsko sortiranje",
     "CMD_THEMES"                          : "Teme\u2026",
 
     // Navigate menu Commands
@@ -375,10 +361,8 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Kako koristiti {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} Podrška (na engleskom)",
     "CMD_SUGGEST"                         : "Predloži mogućnost / značajku",
-    "CMD_FORUM"                           : "{APP_NAME} Forum",
     "CMD_RELEASE_NOTES"                   : "Bilješke o trenutnoj verziji",
     "CMD_GET_INVOLVED"                    : "Uključi se",
-    "CMD_REPORT_AN_ISSUE"                 : "Prijavi problem",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Prikaži direktorij sa ekstenzijama",
     "CMD_TWITTER"                         : "{TWITTER_NAME} na Twitteru",
     "CMD_ABOUT"                           : "O programu {APP_TITLE}",

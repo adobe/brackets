@@ -54,7 +54,6 @@ define({
     "ERROR_RENAMING_FILE"               : "<span class='dialog-filename'>{0}</span> dosyasının ismi değiştirilirken hata meydana geldi. {1}",
     "INVALID_FILENAME_TITLE"            : "Hatalı dosya ismi",
     "INVALID_FILENAME_MESSAGE"          : "Dosya isimleri yandaki karakterleri bulunduramaz: {0}",
-    "FILE_ALREADY_EXISTS"               : "<span class='dialog-filename'>{0}</span> dosyası zaten bulunmakta",
     "ERROR_CREATING_FILE_TITLE"         : "Dosya yaratılırken hata",
     "ERROR_CREATING_FILE"               : "<span class='dialog-filename'>{0}</span> dosyası yaratılırken hata meydana geldi. {1}",
 
@@ -94,11 +93,8 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> dosyası hafızadan silind ama {APP_NAME} programında kaydetmediğiniz değişiklikler bulunmakta.<br /><br />Değişikliklerin kalmasını istiyor musunuz?",
     
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Regex arama yapmak için /re/ sentaksını kullanın",
-    "WITH"                              : "İle",
     "BUTTON_YES"                        : "Evet",
     "BUTTON_NO"                         : "Hayır",
-    "BUTTON_STOP"                       : "Durdur",
 
     "OPEN_FILE"                         : "Dosya Aç",
     "CHOOSE_FOLDER"                     : "Klasör Seç",
@@ -107,7 +103,6 @@ define({
     "NO_UPDATE_TITLE"                   : "En son versiyon!",
     "NO_UPDATE_MESSAGE"                 : "{APP_NAME} programının en son versiyonunu kullanıyorsunuz.",
     
-    "FIND_IN_FILES_TITLE"               : "- {2} {3} içindeki {0} {1}",
     "FIND_IN_FILES_SCOPED"              : "<span class='dialog-filename'>{0}</span> dosyası içinde",
     "FIND_IN_FILES_NO_SCOPE"            : "proje içinde",
     "FIND_IN_FILES_FILE"                : "dosya",
@@ -115,9 +110,7 @@ define({
     "FIND_IN_FILES_MATCH"               : "eşleşen",
     "FIND_IN_FILES_MATCHES"             : "eşleşenler",
     "FIND_IN_FILES_MORE_THAN"           : "Daha fazla ",
-    "FIND_IN_FILES_MAX"                 : " (ilk {0} eşlemeyi gösteriyor)",
     "FIND_IN_FILES_FILE_PATH"           : "Dosya: <b>{0}</b>",
-    "FIND_IN_FILES_LINE"                : "Satır:&nbsp;{0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Versiyon bilgisi alınırken hata",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Sunucudan yeni versiyon bilgisi alınırken hata oluştu. Lütfen internete bağlı olduğunuzdan emin olun ve tekrar deneyin.",
@@ -147,7 +140,6 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Tab karakter genişliğini değiştirmek için tıklayın",
     "STATUSBAR_SPACES"                      : "Boşluk:",
     "STATUSBAR_TAB_SIZE"                    : "Tab Boyutu:",
-    "STATUSBAR_LINE_COUNT"                  : "{0} Satır",
 
     /**
      * Command Name Constants
@@ -201,7 +193,6 @@ define({
     // Search menu commands
     "FIND_MENU"                           : "Bul",
     "CMD_FIND"                            : "Bul",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Bul\u2026",
     "CMD_FIND_NEXT"                       : "Sonrakini Bul",
     "CMD_FIND_PREVIOUS"                   : "Öncekini Bul",
     "CMD_FIND_ALL_AND_SELECT"             : "Hepsini Bul ve Seç",
@@ -218,10 +209,10 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Font Boyutunu Büyült",
     "CMD_DECREASE_FONT_SIZE"              : "Font Boyutunu Küçült",
     "CMD_RESTORE_FONT_SIZE"               : "Font Boyutunu Sıfırla",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Eklenmeye Göre Sırala",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "İsme Göre Sırala",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Türüne Göre Sırala",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Otomatik Sırala",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Eklenmeye Göre Sırala",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "İsme Göre Sırala",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Türüne Göre Sırala",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Otomatik Sırala",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Git",
@@ -250,16 +241,10 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} Twitter'da...",
     "CMD_CHECK_FOR_UPDATE"                : "Yeni Versiyon Kontrol Et",
     "CMD_ABOUT"                           : "{APP_TITLE} Hakkında",
-    "CMD_FORUM"                           : "{APP_NAME} Forum",
     "CMD_OPEN_PREFERENCES"                : "Ayarlar Dosyasını Aç",
-
-    // Special commands invoked by the native shell
-    "CMD_CLOSE_WINDOW"                    : "Ekranı Kapat",
-    "CMD_ABORT_QUIT"                      : "Çıkışı İptal Et",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Deneysel Sürüm",
-    "SEARCH_RESULTS"                       : "Arama sonuçları",
     "OK"                                   : "Tamam",
     "DONT_SAVE"                            : "Kaydetme",
     "SAVE"                                 : "Kaydet",
@@ -307,14 +292,6 @@ define({
     "LANGUAGE_MESSAGE"                     : "Lütfen aşağıdaki dillerden istediğiniz dili seçin:",
     "LANGUAGE_SUBMIT"                      : "{APP_NAME} Yenile",
     "LANGUAGE_CANCEL"                      : "İptal",
-    
-    // extensions/default/JSLint
-    "CMD_JSLINT"                           : "JSLint Aç",
-    "JSLINT_ERRORS"                        : "JSLint Hataları",
-    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Hatası",
-    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Hatası",
-    "JSLINT_NO_ERRORS"                     : "JSLint hatası bulunamadı - Mükemmel!",
-    "JSLINT_DISABLED"                      : "JSLint kapalı veya şuan ki dosyada kullanılamıyor",
 
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Tanıma Atla",

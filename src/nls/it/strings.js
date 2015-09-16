@@ -305,7 +305,6 @@ define({
     "CMD_FILE_NEW"                        : "Nuovo File",
     "CMD_FILE_NEW_FOLDER"                 : "Nuova cartella",
     "CMD_FILE_OPEN"                       : "Apri\u2026",
-    "CMD_ADD_TO_WORKINGSET_AND_OPEN"      : "Aggiungi uno spazio di lavoro e apri",
     "CMD_OPEN_DROPPED_FILES"              : "Apri un file abbandonato",
     "CMD_OPEN_FOLDER"                     : "Apri cartella\u2026",
     "CMD_FILE_CLOSE"                      : "Chiudi",
