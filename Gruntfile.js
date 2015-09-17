@@ -320,7 +320,7 @@ module.exports = function (grunt) {
     grunt.registerTask('install', ['write-config', 'less']);
 
     // task: test
-    grunt.registerTask('test', ['jshint', 'jasmine']);
+    grunt.registerTask('test', ['jshint', 'jasmine', 'nls-check']);
 //    grunt.registerTask('test', ['jshint', 'jasmine', 'jasmine_node']);
 
     // task: set-release
