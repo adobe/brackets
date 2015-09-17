@@ -144,7 +144,7 @@
 
 /* Iframe start */
 .iframeWidthHeight {
-    /* XXXBramble: Don't allow dark theme to bleed into the iframe */;
+    /* XXXBramble: Don't allow dark theme to bleed into the iframe */
     background-color: white;
     width: 100%;
     height: 100%;
