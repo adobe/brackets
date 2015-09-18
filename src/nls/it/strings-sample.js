@@ -163,7 +163,7 @@ define({
 
     URLNAME_BRACKETS: "Brackets.io",
     URLNAME_BRACKETS_BLOG: "Brackets Team Blog",
-    URLNAME_BRACKETS_GITHUB: ">Brackets su GitHub",
+    URLNAME_BRACKETS_GITHUB: "Brackets su GitHub",
     URLNAME_BRACKETS_EXTENSIONS_REGISTRY: "Brackets Extensions",
     URLNAME_BRACKETS_WIKI: "Brackets Wiki",
     URLNAME_BRACKETS_MAILING_LIST: "Brackets Developer Mailing List",
