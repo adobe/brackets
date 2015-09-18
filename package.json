@@ -38,7 +38,9 @@
         "semver": "^4.1.0",
         "jshint": "2.1.4",
         "xmldoc": "^0.1.2",
-        "grunt-cleanempty": "1.0.3"
+        "grunt-cleanempty": "1.0.3",
+        "amdrequire": "0.0.3",
+        "less": "2.5.1"
     },
     "scripts": {
         "postinstall": "grunt install",
