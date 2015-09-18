@@ -7,7 +7,6 @@ define(function (require, exports, module) {
     var Commands            = brackets.getModule("command/Commands");
     var FileSystem          = brackets.getModule("filesystem/FileSystem");
 
-    var Launcher = require("lib/launcher");
     var LinkManagerRemote = require("text!lib/LinkManagerRemote.js");
 
     function getRemoteScript() {
@@ -40,11 +39,7 @@ define(function (require, exports, module) {
         var currentDir = Path.dirname(currentDoc.doc.file.fullPath);
         path = Path.resolve(currentDir, path);
 
-        // Open it in the preview
-        var launcher = Launcher.getCurrentInstance();
-        launcher.launch(path);
-
-        // Open it in the editor
+        // Open it in the editor, which will also attempt to update the preview to match
         FileSystem.resolve(path, function(err, file) {
             if(err) {
                 console.log("[Bramble Error] unable to open path in editor", path, err);
