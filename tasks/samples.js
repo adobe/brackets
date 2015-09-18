@@ -33,31 +33,11 @@ module.exports = function (grunt) {
         Q = require("q"),
         amdrequire = require("amdrequire");
 
-    Q.longStackSupport = true;
-
-
-    grunt.registerTask("generate-samples", "Generate the samples", function () {
+    grunt.registerTask("samples", "Generate the samples", function () {
         var done = this.async(),
             i;
 
         var SAMPLES_DIR = "samples";
-        var MAIN_CSS_NAME = "main.css";
-
-        function isFile(srcPath) {
-            try {
-                return fs.statSync(srcPath).isFile();
-            } catch (err) {
-                return false;
-            }
-        }
-
-        function isDirectory(srcPath) {
-            try {
-                return fs.statSync(srcPath).isDirectory();
-            } catch (err) {
-                return false;
-            }
-        }
 
         function getDirectories(srcpath) {
             return fs.readdirSync(srcpath).filter(function (file) {
@@ -77,20 +57,6 @@ module.exports = function (grunt) {
             return defines;
         }
 
-        function mkdirSync(path) {
-            try {
-                fs.mkdirSync(path);
-            } catch (e) {
-                if (e.code !== 'EEXIST') {
-                    throw e;
-                }
-            }
-        }
-
-        function copyFile(source, target) {
-            fs.writeFileSync(target, fs.readFileSync(source));
-        }
-
         function warn(msg) {
             grunt.log.writeln(msg["yellow"]);
         }
@@ -101,7 +67,7 @@ module.exports = function (grunt) {
         var NLS_FOLDERS = "src/nls";
         var URLS_NAME = "urls.js";
         var SCREENSHOT_NAME = "screenshot-quick-edit.png";
-        var SAMPLE_STRINGS_NAME = "sample.js";
+        var STRINGS_SAMPLE_NAME = "strings-sample.js";
 
         var promises = [];
         var gettingStarteds = [];
@@ -120,15 +86,15 @@ module.exports = function (grunt) {
                 continue;
             }
 
-            var sampleStringFilePath = path.join(NLS_FOLDERS, nlsFolder, SAMPLE_STRINGS_NAME);
-            var sampleString = getDefines(sampleStringFilePath);
-            if (!sampleString) {
-                warn("No samples strings file entry for " + nlsFolder);
+            var stringsSampleFilePath = path.join(NLS_FOLDERS, nlsFolder, STRINGS_SAMPLE_NAME);
+            var stringsSample = getDefines(stringsSampleFilePath);
+            if (!stringsSample) {
+                warn("No samples strings file for " + nlsFolder);
                 continue;
             }
 
             var screenshotNlsFilePath = path.join(NLS_FOLDERS, nlsFolder, "images", SCREENSHOT_NAME);
-            if (!isFile(screenshotNlsFilePath)) {
+            if (!grunt.file.isFile(screenshotNlsFilePath)) {
                 warn("No screenshot file for " + nlsFolder);
                 continue;
             }
@@ -136,21 +102,16 @@ module.exports = function (grunt) {
             var screenshotsFilePath = path.join(SAMPLES_DIR, urls.GETTING_STARTED, "screenshots");
             var gettingStarted = path.join(SAMPLES_DIR, urls.GETTING_STARTED);
 
-            try {
-                mkdirSync(gettingStarted);
-                mkdirSync(screenshotsFilePath);
-            } catch (e) {
-                grunt.log.error(e);
-                return done(false);
-            }
+            grunt.file.mkdir(gettingStarted);
 
-            copyFile(screenshotNlsFilePath, path.join(screenshotsFilePath, SCREENSHOT_NAME));
+            grunt.file.copy(screenshotNlsFilePath,
+                            path.join(screenshotsFilePath, SCREENSHOT_NAME),
+                            { encoding: null });
 
             var sampleStylesFolder = path.join(NLS_FOLDERS, nlsFolder, "styles");
-            if (isDirectory(sampleStylesFolder)) {
+            if (grunt.file.isDir(sampleStylesFolder)) {
                 varsFolder = sampleStylesFolder;
             }
-            grunt.log.writeln("varsFolder = " + varsFolder);
 
             var deferred = Q.defer();
             less.render(commonFile,
@@ -161,26 +122,55 @@ module.exports = function (grunt) {
                 },
                 deferred.makeNodeResolver());
             promises.push(deferred.promise);
-            gettingStarteds.push(gettingStarted);
+            gettingStarteds.push({path: gettingStarted, strings: stringsSample});
+        }
+
+        var INDEX_HTML_NAME = "index.html";
+        var indexFilePath = path.join(SAMPLES_DIR, INDEX_HTML_NAME);
+        var indexFile = grunt.file.read(indexFilePath);
+
+        function generateIndexHtml(data) {
+            var destFile = path.join(data.path, INDEX_HTML_NAME),
+                indexHtml = indexFile,
+                prop;
+
+            for (prop in data.strings) {
+                if (data.strings.hasOwnProperty(prop)) {
+                    var string = data.strings[prop]
+                        // Awful hack to indent properly the HTML.
+                        .replace(/\n/g, "\n            ");
+                    indexHtml = indexHtml.replace("{{" + prop + "}}", string);
+                }
+            }
+            var header =
+                '<!-- FILE AUTO-GENERATED. DO NOT EDIT! -->\n\n';
+            indexHtml = header + indexHtml;
+            grunt.file.write(destFile, indexHtml);
+        }
+
+        var MAIN_CSS_NAME = "main.css";
+
+        function generateMainCss(data, css) {
+            var destFile = path.join(data.path, MAIN_CSS_NAME);
+            var header =
+                '/* FILE AUTO-GENERATED. DO NOT EDIT! */\n\n';
+            var mainCss = header + css;
+            grunt.file.write(destFile, mainCss);
         }
 
         Q.all(promises)
             .done(
                 function (results) {
-                    var header =
-                        '/* FILE AUTO-GENERATED. DO NOT EDIT! */\r\n';
                     results.forEach(function (output, index) {
-                        var destFile = path.join(gettingStarteds[index], MAIN_CSS_NAME);
-                        var mainCss = header + output.css;
-                        console.log(destFile);
-                        console.log(mainCss);
-                        grunt.file.write(destFile, mainCss);
+                        generateMainCss(gettingStarteds[index], output.css);
+
+                        generateIndexHtml(gettingStarteds[index]);
                     });
-                    grunt.log.writeln(results.length + " samples were created from " + nlsFolders.length + " languages.");
+                    grunt.log.writeln(results.length + " samples were created out of " + nlsFolders.length + " languages.");
                     done();
                 },
                 function (err) {
-                    grunt.log.error(err);
+                    grunt.fatal(err);
                     done(false);
                 }
             );
