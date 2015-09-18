@@ -29,6 +29,8 @@ module.exports = function (grunt) {
 
     var fs = require("fs"),
         path = require("path"),
+        os = require("os"),
+        EOL = os.EOL,
         less = require("less"),
         Q = require("q"),
         amdrequire = require("amdrequire");
@@ -117,7 +119,7 @@ module.exports = function (grunt) {
             less.render(commonFile,
                 {
                     paths: [varsFolder],  // Specify search paths for @import directives
-                    filename: 'samples_variables.less', // Specify a filename, for better error messages
+                    filename: "samples_variables.less", // Specify a filename, for better error messages
                     //compress: true          // Minify CSS output
                 },
                 deferred.makeNodeResolver());
@@ -138,12 +140,12 @@ module.exports = function (grunt) {
                 if (data.strings.hasOwnProperty(prop)) {
                     var string = data.strings[prop]
                         // Awful hack to indent properly the HTML.
-                        .replace(/\n/g, "\n            ");
+                        .replace(/\n/g, EOL + "            ");
                     indexHtml = indexHtml.replace("{{" + prop + "}}", string);
                 }
             }
             var header =
-                '<!-- FILE AUTO-GENERATED. DO NOT EDIT! -->\n\n';
+                "<!-- FILE AUTO-GENERATED. DO NOT EDIT! -->" + EOL + EOL;
             indexHtml = header + indexHtml;
             grunt.file.write(destFile, indexHtml);
         }
@@ -153,7 +155,7 @@ module.exports = function (grunt) {
         function generateMainCss(data, css) {
             var destFile = path.join(data.path, MAIN_CSS_NAME);
             var header =
-                '/* FILE AUTO-GENERATED. DO NOT EDIT! */\n\n';
+                "/* FILE AUTO-GENERATED. DO NOT EDIT! */" + EOL + EOL;
             var mainCss = header + css;
             grunt.file.write(destFile, mainCss);
         }
