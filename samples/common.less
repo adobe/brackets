@@ -17,10 +17,15 @@ body {
     color: #545454;
     background-color: #ffffff;
     box-shadow: 0 0 2px rgba(0, 0, 0, 0.06);
+
+    & when (@is-rtl = true) {
+        direction: rtl;
+        text-align: right;
+    }
 }
 
 h1, h2, h3, h4, h5, h6 {
-    color: #222;
+    color: @color-headers;
     font-weight: 600;
     line-height: 1.3em;
 }
