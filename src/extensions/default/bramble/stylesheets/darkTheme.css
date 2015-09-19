@@ -142,7 +142,7 @@ div.CodeMirror-selected {
   color: #75715E;
 }
 .CodeMirror-foldgutter-open::after {
-  content: "\25bd";
+  content: "\25bc";
 }
 .CodeMirror-foldmarker {
   background-color: #333;

@@ -26,6 +26,7 @@ define(function (require, exports, module) {
         "QuickOpenJavaScript",
         "QuickView",
         "WebPlatformDocs",
+        "CodeFolding",
 
         // Custom extensions we want loaded by default
         "bramble",
@@ -47,7 +48,6 @@ define(function (require, exports, module) {
         "LESSSupport",
         "CloseOthers",
         "InlineTimingFunctionEditor",
-        "CodeFolding",
         "JSLint",
         "QuickOpenCSS",
         "RecentProjects",

@@ -84,6 +84,7 @@ A standard set of default extensions are always turned on:
 * Autosave
 * UploadFiles
 * WebPlatformDocs
+* CodeFolding
 
 You could disable QuickView and CSSCodeHints by loading Bramble with `?disableExtensions=QuickView,CSSCodeHints`
 on the URL.
@@ -95,7 +96,6 @@ In addition, you can enable other extra extensions:
 * LESSSupport
 * CloseOthers
 * InlineTimingFunctionEditor
-* CodeFolding
 * JSLint
 * QuickOpenCSS
 * RecentProjects

@@ -53,7 +53,7 @@ define(function (require, exports, module) {
         collapseAllKey          = "Alt-1",
         expandAllKey            = "Shift-Alt-1";
 
-    ExtensionUtils.loadStyleSheet(module, "main.less");
+    ExtensionUtils.loadStyleSheet(module, "main.css");
     
     // Load CodeMirror addons
     brackets.getModule(["thirdparty/CodeMirror/addon/fold/brace-fold"]);
