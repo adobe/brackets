@@ -68,7 +68,8 @@ module.exports = function (grunt) {
         var commonFile = grunt.file.read(commonFilePath);
         var NLS_FOLDERS = "src/nls";
         var URLS_NAME = "urls.js";
-        var SCREENSHOT_NAME = "screenshot-quick-edit.png";
+        var SCREENSHOT_NAME_FROM = "screenshot-quick-edit.png";
+        var SCREENSHOT_NAME_TO = "quick-edit.png";
         var STRINGS_SAMPLE_NAME = "strings-sample.js";
 
         var promises = [];
@@ -95,7 +96,7 @@ module.exports = function (grunt) {
                 continue;
             }
 
-            var screenshotNlsFilePath = path.join(NLS_FOLDERS, nlsFolder, "images", SCREENSHOT_NAME);
+            var screenshotNlsFilePath = path.join(NLS_FOLDERS, nlsFolder, "images", SCREENSHOT_NAME_FROM);
             if (!grunt.file.isFile(screenshotNlsFilePath)) {
                 warn("No screenshot file for " + nlsFolder);
                 continue;
@@ -107,7 +108,7 @@ module.exports = function (grunt) {
             grunt.file.mkdir(gettingStarted);
 
             grunt.file.copy(screenshotNlsFilePath,
-                            path.join(screenshotsFilePath, SCREENSHOT_NAME),
+                            path.join(screenshotsFilePath, SCREENSHOT_NAME_TO),
                             { encoding: null });
 
             var sampleStylesFolder = path.join(NLS_FOLDERS, nlsFolder, "styles");
