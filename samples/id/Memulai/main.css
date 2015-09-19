@@ -37,6 +37,10 @@ b,
 strong {
   font-weight: 600;
 }
+em {
+  font-style: initial;
+  font-weight: initial;
+}
 samp {
   display: none;
 }
