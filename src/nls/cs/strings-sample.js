@@ -167,7 +167,7 @@ define({
     URLNAME_BRACKETS_TWITTER: "@brackets na Twitteru",
     BRACKETS_CHAT_INFO_BEFORE: "Chatujte s vývojáři Brackets na IRC kanálu",
     BRACKETS_CHAT_FREENODE: "Freenode/#Brackets",
-    BRACKETS_CHAT_INFO_AFTER: "",
+    BRACKETS_CHAT_INFO_AFTER: ""
 });
 
 // Last translated for e3ecc9e7ac7b94f1107a8e3ca7064ac39b345280

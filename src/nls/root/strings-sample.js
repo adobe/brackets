@@ -167,5 +167,5 @@ define({
     URLNAME_BRACKETS_TWITTER: "@brackets on Twitter",
     BRACKETS_CHAT_INFO_BEFORE: "Chat with Brackets developers on IRC in",
     BRACKETS_CHAT_FREENODE: "#brackets on Freenode",
-    BRACKETS_CHAT_INFO_AFTER: "",
+    BRACKETS_CHAT_INFO_AFTER: ""
 });
