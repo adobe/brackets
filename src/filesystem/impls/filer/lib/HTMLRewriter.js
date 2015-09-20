@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, DOMParser */
+/*global define, DOMParser, XMLSerializer */
 define(function (require, exports, module) {
     "use strict";
 
@@ -184,9 +184,18 @@ define(function (require, exports, module) {
             iterator("styleSheetLinks"),
             iterator("scripts")
         ], function finishedRewriteSeries(err) {
-            // Return the processed HTML
-            var html = rewriter.doc.documentElement.outerHTML;
-            callback(err, html);
+            var doc = rewriter.doc;
+
+            // Get processed DOM as HTML string
+            var html = doc.documentElement.outerHTML;
+
+            // Figure out this document's doctype, if present
+            var doctype = "";
+            if(doc.doctype) {
+                doctype = (new XMLSerializer()).serializeToString(doc.doctype);
+            }
+
+            callback(err, doctype + html);
         });
     }
 
