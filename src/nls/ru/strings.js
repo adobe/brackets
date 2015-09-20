@@ -134,8 +134,6 @@ define({
     "BUTTON_NO"                         : "Нет",
 
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} результатов",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 результат",
     "FIND_NO_RESULTS"                   : "Не найдено",
     "FIND_QUERY_PLACEHOLDER"            : "Найти\u2026",
     "REPLACE_PLACEHOLDER"               : "Заменить на\u2026",
@@ -166,9 +164,6 @@ define({
     "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} в {3}",
 
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" найдено",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} в {3} {4}",
     "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "в <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "в проекте",
@@ -195,7 +190,6 @@ define({
     "FILE_FILTER_DIALOG"                : "Редактировать фильтр",
     "FILE_FILTER_INSTRUCTIONS"          : "Исключить файлы и директории содержащие любую из перечисленных строк, возможно использование <a href='{0}' title='{0}'>групповых символов</a>. Указывайте по одной строке на линию.",
     "FILTER_NAME_PLACEHOLDER"           : "Назвать этот фильтр (опционально)",
-    "FILE_FILTER_LIST_PREFIX"           : "кроме",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "и еще {0}",
 
     "FILTER_COUNTING_FILES"             : "Подсчет количества файлов\u2026",
@@ -323,18 +317,15 @@ define({
     // Search menu commands
     "FIND_MENU"                           : "Поиск",
     "CMD_FIND"                            : "Найти",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Найти\u2026",
     "CMD_FIND_NEXT"                       : "Найти след.",
     "CMD_FIND_PREVIOUS"                   : "Найти пред.",
     "CMD_FIND_ALL_AND_SELECT"             : "Найти все и выделить",
     "CMD_ADD_NEXT_MATCH"                  : "Добавить следущее найденное к выделению",
     "CMD_SKIP_CURRENT_MATCH"              : "Пропустить и добавить следующее найденное",
     "CMD_FIND_IN_FILES"                   : "Найти в файлах",
-    "CMD_FIND_IN_SELECTED"                : "Найти в выделенном файле/директории",
     "CMD_FIND_IN_SUBTREE"                 : "Найти в\u2026",
     "CMD_REPLACE"                         : "Заменить",
     "CMD_REPLACE_IN_FILES"                : "Заменить в файлах",
-    "CMD_REPLACE_IN_SELECTED"             : "Заменить в выделенном файле/директории",
     "CMD_REPLACE_IN_SUBTREE"              : "Заменить в\u2026",
 
     // View menu commands
@@ -351,10 +342,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Заворачивать строки",
     "CMD_LIVE_HIGHLIGHT"                  : "Подсвечивать в Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Анализировать при сохранении",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Сортировать по порядку добавления",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Сортировать по имени",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Сортировать по типу",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Автоматическая сортировка",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Сортировать по порядку добавления",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Сортировать по имени",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Сортировать по типу",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Автоматическая сортировка",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Навигация",

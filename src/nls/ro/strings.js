@@ -362,11 +362,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Adaugă următoarea potrivire la selecție",
     "CMD_SKIP_CURRENT_MATCH"              : "Omite și adaugă următoarea potrivire",
     "CMD_FIND_IN_FILES"                   : "Caută în fișiere",
-    "CMD_FIND_IN_SELECTED"                : "Caută în fișierul/directoriul selectat",
     "CMD_FIND_IN_SUBTREE"                 : "Caută în\u2026",
     "CMD_REPLACE"                         : "Înlocuiește",
     "CMD_REPLACE_IN_FILES"                : "Înlocuiește în fișiere",
-    "CMD_REPLACE_IN_SELECTED"             : "Înlocuiește în fișierul/directoriul selecta",
     "CMD_REPLACE_IN_SUBTREE"              : "Înlocuiește în\u2026",
 
     // View menu commands

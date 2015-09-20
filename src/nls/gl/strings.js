@@ -38,7 +38,6 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Os permisos non permiten facer modificacións.",
     "CONTENTS_MODIFIED_ERR"             : "O arquivo foi modificado fóra de {APP_NAME}.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} actualmente só soporta arquivos codificados como UTF-8.",
-    "UNSUPPORTED_FILE_TYPE_ERR"         : "Este tipo de arquivo non é soportado.",
     "FILE_EXISTS_ERR"                   : "O arquivo xa existe.",
     "FILE"                              : "arquivo",
     "FILE_TITLE"                        : "Arquivo",
@@ -354,11 +353,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Agregar a seguinte coincidencia á selección",
     "CMD_SKIP_CURRENT_MATCH"              : "Omitir e agregar a seguinte coincidencia",
     "CMD_FIND_IN_FILES"                   : "Buscar en arquivos",
-    "CMD_FIND_IN_SELECTED"                : "Buscar no arquivo/directorio seleccionado",
     "CMD_FIND_IN_SUBTREE"                 : "Buscar en\u2026",
     "CMD_REPLACE"                         : "Reemplazar",
     "CMD_REPLACE_IN_FILES"                : "Reemplazar en Arquivos",
-    "CMD_REPLACE_IN_SELECTED"             : "Reemplazar no Arquivo/Cartafol seleccionado",
     "CMD_REPLACE_IN_SUBTREE"              : "Reemplazar en\u2026",
     
     // View menu commands
@@ -375,10 +372,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Habilitar axuste de liña",
     "CMD_LIVE_HIGHLIGHT"                  : "Resaltado en Vista Previa en Vivo",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Inspeccionar o código ó gardar",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ordenar por Añadido",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Ordenar por Nome",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ordenar por Tipo",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Ordenación automática",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Ordenar por Añadido",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Ordenar por Nome",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Ordenar por Tipo",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Ordenación automática",
     "CMD_THEMES"                          : "Temas\u2026",
 
     // Navigate menu Commands

@@ -79,7 +79,7 @@ define({
         "<kbd>Cmd/Ctrl + E</kbd>. You should see a CSS quick editor appear above, showing the CSS rule that\n" +
         "applies to it. Quick Edit works in class and id attributes as well. You can use it with your\n" +
         "LESS and SCSS files also.\n" +
-        "\n\n" +
+        "\n" +
         "You can create new rules the same way. Click in one of the <!-- <p> --> tags above and press\n" +
         "<kbd>Cmd/Ctrl + E</kbd>. There are no rules for it right now, but you can click the New Rule\n" +
         "button to add a new rule for <!-- <p> -->.",
@@ -113,7 +113,7 @@ define({
         "icon in the top right corner of your Brackets window or hit <kbd>Cmd/Ctrl + Alt + P</kbd>. When\n" +
         "Live Preview is enabled on an HTML document, all linked CSS documents can be edited in real-time.\n" +
         "The icon will change from gray to gold when Brackets establishes a connection to your browser.\n" +
-        "\n\n" +
+        "\n" +
         "Now, place your cursor on the <!-- <img> --> tag above. Notice the blue highlight that appears\n" +
         "around the image in Chrome. Next, use <kbd>Cmd/Ctrl + E</kbd> to open up the defined CSS rules.\n" +
         "Try changing the size of the border from 10px to 20px or change the background\n" +
