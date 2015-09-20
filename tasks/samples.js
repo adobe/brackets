@@ -63,6 +63,11 @@ module.exports = function (grunt) {
             grunt.log.writeln(msg["yellow"]);
         }
 
+        // Non-fatal error
+        function error(msg) {
+            grunt.log.writeln(msg["magenta"]);
+        }
+
         var COMMON_LESS_NAME = "common.less";
         var commonFilePath = path.join(SAMPLES_DIR, COMMON_LESS_NAME);
         var commonFile = grunt.file.read(commonFilePath);
@@ -85,31 +90,31 @@ module.exports = function (grunt) {
             var urlsFilePath = path.join(NLS_FOLDERS, nlsFolder, URLS_NAME);
             var urls = getDefines(urlsFilePath);
             if (!urls || !urls.GETTING_STARTED) {
-                warn("No urls file or GETTING_STARTED entry for " + nlsFolder);
+                error("No urls file or GETTING_STARTED entry for " + nlsFolder);
                 continue;
             }
 
             var stringsSampleFilePath = path.join(NLS_FOLDERS, nlsFolder, STRINGS_SAMPLE_NAME);
             var stringsSample = getDefines(stringsSampleFilePath);
             if (!stringsSample) {
-                warn("No samples strings file for " + nlsFolder);
+                error("No samples strings file for " + nlsFolder);
                 continue;
             }
 
+            var gettingStarted = path.join(SAMPLES_DIR, urls.GETTING_STARTED);
+            grunt.file.mkdir(gettingStarted);
+
+            // If there is not a screenshot let still generate the sample.
+            // Otherwise, how can be done the screenshot?!
             var screenshotNlsFilePath = path.join(NLS_FOLDERS, nlsFolder, "images", SCREENSHOT_NAME_FROM);
             if (!grunt.file.isFile(screenshotNlsFilePath)) {
                 warn("No screenshot file for " + nlsFolder);
-                continue;
+            } else {
+                var screenshotsFilePath = path.join(gettingStarted, "screenshots");
+                grunt.file.copy(screenshotNlsFilePath,
+                                path.join(screenshotsFilePath, SCREENSHOT_NAME_TO),
+                                { encoding: null });
             }
-
-            var screenshotsFilePath = path.join(SAMPLES_DIR, urls.GETTING_STARTED, "screenshots");
-            var gettingStarted = path.join(SAMPLES_DIR, urls.GETTING_STARTED);
-
-            grunt.file.mkdir(gettingStarted);
-
-            grunt.file.copy(screenshotNlsFilePath,
-                            path.join(screenshotsFilePath, SCREENSHOT_NAME_TO),
-                            { encoding: null });
 
             var sampleStylesFolder = path.join(NLS_FOLDERS, nlsFolder, "styles");
             if (grunt.file.isDir(sampleStylesFolder)) {
