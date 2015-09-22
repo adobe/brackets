@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         StringMatch          = brackets.getModule("utils/StringMatch"),
         ProjectManager       = brackets.getModule("project/ProjectManager"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
+        Strings              = brackets.getModule("strings"),
         ParameterHintManager = require("ParameterHintManager"),
         HintUtils            = require("HintUtils"),
         ScopeManager         = require("ScopeManager"),
@@ -55,18 +56,28 @@ define(function (require, exports, module) {
         noHintsOnDot   = false, // preference setting to prevent hints on dot
         ignoreChange;           // can ignore next "change" event if true;
 
+    // Languages that support inline JavaScript
+    var _inlineScriptLanguages = ["html", "php"];
     
     // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
-    PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", []);
+    PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", [], {
+        description: Strings.DESCRIPTION_DETECTED_EXCLUSIONS
+    });
     
     // This preference controls when Tern will time out when trying to understand files
-    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 30000);
+    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 30000, {
+        description: Strings.DESCRIPTION_INFERENCE_TIMEOUT
+    });
     
     // This preference controls whether to prevent hints from being displayed when dot is typed
-    PreferencesManager.definePreference("jscodehints.noHintsOnDot", "boolean", false);
+    PreferencesManager.definePreference("jscodehints.noHintsOnDot", "boolean", false, {
+        description: Strings.DESCRIPTION_NO_HINTS_ON_DOT
+    });
     
     // This preference controls whether to create a session and process all JS files or not.
-    PreferencesManager.definePreference("codehint.JSHints", "boolean", true);
+    PreferencesManager.definePreference("codehint.JSHints", "boolean", true, {
+        description: Strings.DESCRIPTION_JS_HINTS
+    });
 
     /**
      * Check whether any of code hints preferences for JS Code Hints is disabled
@@ -208,16 +219,7 @@ define(function (require, exports, module) {
         }
 
         // trim leading and trailing string literal delimiters from the query
-        if (query.indexOf(HintUtils.SINGLE_QUOTE) === 0 ||
-                query.indexOf(HintUtils.DOUBLE_QUOTE) === 0) {
-            trimmedQuery = query.substring(1);
-            if (trimmedQuery.lastIndexOf(HintUtils.DOUBLE_QUOTE) === trimmedQuery.length - 1 ||
-                    trimmedQuery.lastIndexOf(HintUtils.SINGLE_QUOTE) === trimmedQuery.length - 1) {
-                trimmedQuery = trimmedQuery.substring(0, trimmedQuery.length - 1);
-            }
-        } else {
-            trimmedQuery = query;
-        }
+        trimmedQuery = _.trim(query, HintUtils.SINGLE_QUOTE + HintUtils.DOUBLE_QUOTE);
 
         if (hints) {
             formattedHints = formatHints(hints, trimmedQuery);
@@ -332,10 +334,11 @@ define(function (require, exports, module) {
     };
 
     /**
-     * @return {boolean} - true if the document is a html file
+     * @return {boolean} - true if the document supports inline JavaScript
      */
-    function isHTMLFile(document) {
-        return LanguageManager.getLanguageForPath(document.file.fullPath).getId() === "html";
+    function isInlineScriptSupported(document) {
+        var language = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
+        return _inlineScriptLanguages.indexOf(language) !== -1;
     }
     
     function isInlineScript(editor) {
@@ -433,7 +436,7 @@ define(function (require, exports, module) {
     JSHints.prototype.hasHints = function (editor, key) {
         if (session && HintUtils.hintableKey(key, !noHintsOnDot)) {
             
-            if (isHTMLFile(session.editor.document)) {
+            if (isInlineScriptSupported(session.editor.document)) {
                 if (!isInlineScript(session.editor)) {
                     return false;
                 }
@@ -614,7 +617,7 @@ define(function (require, exports, module) {
             
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, previousEditor);
-                $(editor)
+                editor
                     .on(HintUtils.eventName("change"), function (event, editor, changeList) {
                         if (!ignoreChange) {
                             ScopeManager.handleFileChange(changeList);
@@ -636,8 +639,7 @@ define(function (require, exports, module) {
          */
         function uninstallEditorListeners(editor) {
             if (editor) {
-                $(editor)
-                    .off(HintUtils.eventName("change"));
+                editor.off(HintUtils.eventName("change"));
             }
         }
 
@@ -653,11 +655,11 @@ define(function (require, exports, module) {
         function handleActiveEditorChange(event, current, previous) {
             // Uninstall "languageChanged" event listeners on previous editor's document & put them on current editor's doc
             if (previous) {
-                $(previous.document)
+                previous.document
                     .off(HintUtils.eventName("languageChanged"));
             }
             if (current) {
-                $(current.document)
+                current.document
                     .on(HintUtils.eventName("languageChanged"), function () {
                         // If current doc's language changed, reset our state by treating it as if the user switched to a
                         // different document altogether
@@ -828,18 +830,17 @@ define(function (require, exports, module) {
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
         
         // uninstall/install change listener as the active editor changes
-        $(EditorManager)
-            .on(HintUtils.eventName("activeEditorChange"),
+        EditorManager.on(HintUtils.eventName("activeEditorChange"),
                 handleActiveEditorChange);
         
-        $(ProjectManager).on("beforeProjectClose", function () {
+        ProjectManager.on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();
         });
 
-        $(ProjectManager).on("projectOpen", function () {
+        ProjectManager.on("projectOpen", function () {
             ScopeManager.handleProjectOpen();
         });
-
+        
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
 

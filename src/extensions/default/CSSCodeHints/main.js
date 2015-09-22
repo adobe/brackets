@@ -27,16 +27,24 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var AppInit         = brackets.getModule("utils/AppInit"),
-        ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
-        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
-        CSSUtils        = brackets.getModule("language/CSSUtils"),
-        HTMLUtils       = brackets.getModule("language/HTMLUtils"),
-        LanguageManager = brackets.getModule("language/LanguageManager"),
-        TokenUtils      = brackets.getModule("utils/TokenUtils"),
-        StringMatch     = brackets.getModule("utils/StringMatch"),
-        CSSProperties   = require("text!CSSProperties.json"),
-        properties      = JSON.parse(CSSProperties);
+    var AppInit             = brackets.getModule("utils/AppInit"),
+        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
+        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
+        CSSUtils            = brackets.getModule("language/CSSUtils"),
+        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
+        LanguageManager     = brackets.getModule("language/LanguageManager"),
+        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
+        TokenUtils          = brackets.getModule("utils/TokenUtils"),
+        StringMatch         = brackets.getModule("utils/StringMatch"),
+        ColorUtils          = brackets.getModule("utils/ColorUtils"),
+        Strings             = brackets.getModule("strings"),
+        CSSProperties       = require("text!CSSProperties.json"),
+        properties          = JSON.parse(CSSProperties);
+
+
+    PreferencesManager.definePreference("codehint.CssPropHints", "boolean", true, {
+        description: Strings.DESCRIPTION_CSS_PROP_HINTS
+    });
     
     // Context of the last request for hints: either CSSUtils.PROP_NAME,
     // CSSUtils.PROP_VALUE or null.
@@ -174,16 +182,20 @@ define(function (require, exports, module) {
         return true;
     };
 
-    /*
+    /**
      * Returns a sorted and formatted list of hints with the query substring
      * highlighted.
      * 
      * @param {Array.<Object>} hints - the list of hints to format
      * @param {string} query - querystring used for highlighting matched
-     *      poritions of each hint
+     *      portions of each hint
      * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
      */
     function formatHints(hints, query) {
+        var hasColorSwatch = hints.some(function (token) {
+            return token.color;
+        });
+
         StringMatch.basicMatchSort(hints);
         return hints.map(function (token) {
             var $hintObj = $("<span>").addClass("brackets-css-hints");
@@ -203,7 +215,9 @@ define(function (require, exports, module) {
                 $hintObj.text(token.value);
             }
 
-            $hintObj.data("token", token);
+            if (hasColorSwatch) {
+                $hintObj = ColorUtils.formatColorHint($hintObj, token.color);
+            }
 
             return $hintObj;
         });
@@ -241,6 +255,7 @@ define(function (require, exports, module) {
             valueNeedle = "",
             context = this.info.context,
             valueArray,
+            type,
             namedFlows,
             result,
             selectInitial = false;
@@ -252,6 +267,12 @@ define(function (require, exports, module) {
             
             // Always select initial value
             selectInitial = true;
+            
+            // We need to end the session and begin a new session if the ( char is typed to 
+            // get arguments into the list when typing too fast
+            if (implicitChar === "(") {
+                return true;
+            }
             
             // When switching from a NAME to a VALUE context, restart the session
             // to give other more specialized providers a chance to intervene.
@@ -272,7 +293,8 @@ define(function (require, exports, module) {
             }
             
             valueArray = properties[needle].values;
-            if (properties[needle].type === "named-flow") {
+            type = properties[needle].type;
+            if (type === "named-flow") {
                 namedFlows = this.getNamedFlows();
                 
                 if (valueNeedle.length === this.info.offset && namedFlows.indexOf(valueNeedle) !== -1) {
@@ -282,11 +304,20 @@ define(function (require, exports, module) {
                 }
                 
                 valueArray = valueArray.concat(namedFlows);
+            } else if (type === "color") {
+                valueArray = valueArray.concat(ColorUtils.COLOR_NAMES.map(function (color) {
+                    return { text: color, color: color };
+                }));
+                valueArray.push("transparent", "currentColor");
             }
             
-            result = $.map(valueArray, function (pvalue, pindex) {
-                var result = StringMatch.stringMatch(pvalue, valueNeedle, stringMatcherOptions);
+            result = $.map(valueArray, function (pvalue) {
+                var result = StringMatch.stringMatch(pvalue.text || pvalue, valueNeedle, stringMatcherOptions);
                 if (result) {
+                    if (pvalue.color) {
+                        result.color = pvalue.color;
+                    }
+
                     return result;
                 }
             });

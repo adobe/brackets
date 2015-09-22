@@ -27,8 +27,10 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        FileUtils       = brackets.getModule("file/FileUtils");
+    var SpecRunnerUtils    = brackets.getModule("spec/SpecRunnerUtils"),
+        FileUtils          = brackets.getModule("file/FileUtils"),
+        PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
+        prefs              = PreferencesManager.getExtensionPrefs("quickview");
 
     describe("Quick View", function () {
         var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/";
@@ -329,7 +331,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("Should should convert gradients arguments from pixel to percent", function () {
+            it("Should convert gradients arguments from pixel to percent", function () {
                 runs(function () {
                     // linear gradient in px
                     checkGradientAtPos("-webkit-linear-gradient(top, rgba(0,0,0,0) 0%, green 50%, red 100%)", 163, 40);
@@ -337,6 +339,14 @@ define(function (require, exports, module) {
                     checkGradientAtPos("repeating-linear-gradient(red, blue 50%, red 100%)", 164, 40);
                     // repeating radial-gradient in pixels (no prefix)
                     checkGradientAtPos("repeating-radial-gradient(red, blue 50%, red 100%)", 165, 40);
+                });
+            });
+            
+            it("Should not go into infinite loop on unbalanced parens", function () {
+                runs(function () {
+                    // no preview, and no infinite loop
+                    expectNoPreviewAtPos(189, 30);
+                    expectNoPreviewAtPos(190, 40);
                 });
             });
         });
@@ -463,6 +473,57 @@ define(function (require, exports, module) {
                 checkImagePathAtPos("img/don't.png", 183, 26);  // url() containing '
                 checkImagePathAtPos("img/don't.png", 184, 26);  // url("") containing '
                 checkImageDataAtPos("data:image/svg+xml;utf8, <svg version='1.1' xmlns='http://www.w3.org/2000/svg'></svg>", 185, 26);  // data url("") containing '
+            });
+
+            it("Should show image preview for URLs with known image extensions", function() {
+                checkImageDataAtPos("http://example.com/image.gif", 194, 20);
+                checkImageDataAtPos("http://example.com/image.png", 195, 20);
+                checkImageDataAtPos("http://example.com/image.jpe", 196, 20);
+                checkImageDataAtPos("http://example.com/image.jpeg", 197, 20);
+                checkImageDataAtPos("http://example.com/image.jpg", 198, 20);
+                checkImageDataAtPos("http://example.com/image.ico", 199, 20);
+                checkImageDataAtPos("http://example.com/image.bmp", 200, 20);
+                checkImageDataAtPos("http://example.com/image.svg", 201, 20);
+            });
+
+            it("Should show image preview for extensionless URLs (with protocol) with pref set", function() {
+                // Flip the pref on and restore when done
+                var original = prefs.get("extensionlessImagePreview");
+                prefs.set("extensionlessImagePreview", true);
+
+                checkImageDataAtPos("https://image.service.com/id/1234513", 203, 20); // https
+                checkImageDataAtPos("http://image.service.com/id/1234513", 204, 20);  // http
+                checkImageDataAtPos("https://image.service.com/id/1234513?w=300&h=400", 205, 20); // qs params
+
+                prefs.set("extensionlessImagePreview", original);
+            });
+
+            it("Should not show image preview for extensionless URLs (with protocol) without pref set", function() {
+                // Flip the pref off and restore when done
+                var original = prefs.get("extensionlessImagePreview");
+                prefs.set("extensionlessImagePreview", false);
+
+                checkImageDataAtPos("https://image.service.com/id/1234513", 203, 20); // https
+                checkImageDataAtPos("http://image.service.com/id/1234513", 204, 20);  // http
+                checkImageDataAtPos("https://image.service.com/id/1234513?w=300&h=400", 205, 20); // qs params
+
+                prefs.set("extensionlessImagePreview", original);
+            });
+
+            it("Should ignore URLs for common non-image extensions", function() {
+                expectNoPreviewAtPos(209, 20); // .html
+                expectNoPreviewAtPos(210, 20); // .css
+                expectNoPreviewAtPos(211, 20); // .js
+                expectNoPreviewAtPos(212, 20); // .json
+                expectNoPreviewAtPos(213, 20); // .md
+                expectNoPreviewAtPos(214, 20); // .xml
+                expectNoPreviewAtPos(215, 20); // .mp3
+                expectNoPreviewAtPos(216, 20); // .ogv
+                expectNoPreviewAtPos(217, 20); // .mp4
+                expectNoPreviewAtPos(218, 20); // .mpeg
+                expectNoPreviewAtPos(219, 20); // .webm
+                expectNoPreviewAtPos(220, 20); // .zip
+                expectNoPreviewAtPos(221, 20); // .tgz
             });
             
             it("Should show image preview for a data URI inside url()", function () {

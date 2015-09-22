@@ -98,6 +98,27 @@ define(function (require, exports, module) {
             it("won't create a relative path to a file outside the project", function () {
                 expect(pm.makeProjectRelativeIfPossible("/some/other/project/README.md")).toBe("/some/other/project/README.md");
             });
+            
+            it("will return a directory within the project", function () {
+                expect(pm.getDirectoryInProject("/foo/bar/project/baz/")).toBe("/foo/bar/project/baz/");
+                expect(pm.getDirectoryInProject("/foo/bar/project/baz")).toBe("/foo/bar/project/baz/");
+                expect(pm.getDirectoryInProject({
+                    fullPath: "/foo/bar/project/foo2/",
+                    isDirectory: true
+                })).toBe("/foo/bar/project/foo2/");
+            });
+            
+            it("will default to project root when getDirectoryInProject", function () {
+                expect(pm.getDirectoryInProject()).toBe("/foo/bar/project/");
+                expect(pm.getDirectoryInProject(null)).toBe("/foo/bar/project/");
+                expect(pm.getDirectoryInProject("")).toBe("/foo/bar/project/");
+                expect(pm.getDirectoryInProject({
+                    isFile: true,
+                    isDirectory: false,
+                    fullPath: "/foo/bar/project/README.txt"
+                })).toBe("/foo/bar/project/");
+                expect(pm.getDirectoryInProject("/other/project/")).toBe("/foo/bar/project/");
+            });
         });
         
         describe("All Files Cache", function () {
@@ -107,7 +128,7 @@ define(function (require, exports, module) {
                 rootPath = rootPath || "/";
                 var root = {
                     fullPath: rootPath,
-                    visit: function (visitor, errorHandler) {
+                    visit: function (visitor, options, errorHandler) {
                         visited = true;
                         if (!filelist && error) {
                             errorHandler(error);
@@ -639,6 +660,13 @@ define(function (require, exports, module) {
                     expect(promise.then).toEqual(jasmine.any(Function));
                 });
                 
+                it("should expand the parent directory if closed", function () {
+                    model.setDirectoryOpen("/foo/subdir1", false);
+                    expect(vm._treeData.getIn(["subdir1", "open"])).toBeUndefined();
+                    model.startRename("/foo/subdir1/afile.js");
+                    expect(vm._treeData.getIn(["subdir1", "open"])).toBe(true);
+                });
+                
                 it("can take a filesystem object or string", function () {
                     model.startRename({
                         fullPath: "/foo/afile.js"
@@ -704,13 +732,41 @@ define(function (require, exports, module) {
                 });
                 
                 it("adjusts the selection if the renamed file was selected", function () {
+                    spyOn(model, "_renameItem").andReturn(new $.Deferred().resolve().promise());
                     model.setSelected("/foo/afile.js");
                     model.startRename("/foo/afile.js");
                     model.setRenameValue("something.js");
                     model.performRename();
                     expect(model._selections.selected).toBe("/foo/something.js");
                 });
+                
+                it("does not adjust the selection if renaming it fails", function () {
+                    spyOn(model, "_renameItem").andReturn(new $.Deferred().reject().promise());
+                    model.setSelected("/foo/afile.js");
+                    model.startRename("/foo/afile.js");
+                    model.setRenameValue("something.js");
+                    model.performRename();
+                    expect(model._selections.selected).toBe("/foo/afile.js");
+                });
 
+                it("adjusts the selection if a parent folder is renamed", function () {
+                    spyOn(model, "_renameItem").andReturn(new $.Deferred().resolve().promise());
+                    model.setSelected("/foo/afile.js");
+                    model.startRename("/foo");
+                    model.setRenameValue("bar");
+                    model.performRename();
+                    expect(model._selections.selected).toBe("/bar/afile.js");
+                });
+                
+                it("does not adjust the selection if renaming a parent folder fails", function () {
+                    spyOn(model, "_renameItem").andReturn(new $.Deferred().reject().promise());
+                    model.setSelected("/foo/afile.js");
+                    model.startRename("/foo");
+                    model.setRenameValue("bar");
+                    model.performRename();
+                    expect(model._selections.selected).toBe("/foo/afile.js");
+                });
+                
                 it("does nothing if setRenameValue is called when there's no rename in progress", function () {
                     model.setRenameValue("/foo/bar/baz");
                     expect(model._selections.rename).toBeUndefined();
@@ -1134,6 +1190,15 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should do nothing for a path that is outside of the project on Windows", function () {
+                model.projectRoot = "c:/foo/";
+                waitsForDone(model.showInTree("c:/bar/baz.js"));
+                runs(function () {
+                    expect(vm._treeData.get("baz.js")).toBeUndefined();
+                    expect(model._selections.selected).toBeUndefined();
+                });
+            });
+            
             it("should select a file at the root", function () {
                 waitsForDone(model.showInTree("/foo/toplevel.txt"));
                 runs(function () {
@@ -1362,14 +1427,25 @@ define(function (require, exports, module) {
                 expect(model._selections.context).toBeNull();
             });
             
-            it("should see events with a directory but no added or removed as an add", function () {
+            it("should see events with a directory but no added or removed as a need to reload the directory", function () {
                 model.handleFSEvent({
                     isFile: false,
                     name: "newdir",
-                    fullPath: "/foo/newdir/"
+                    fullPath: "/foo/newdir/",
+                    getContents: function (callback) {
+                        callback(null, [
+                            {
+                                isFile: true,
+                                name: "newfile",
+                                fullPath: "/foo/newdir/newfile"
+                            }
+                        ]);
+                    }
                 });
                 expect(vm._treeData.get("newdir").toJS()).toEqual({
-                    children: null
+                    children: {
+                        newfile: {}
+                    }
                 });
             });
         });

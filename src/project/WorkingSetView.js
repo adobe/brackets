@@ -57,14 +57,14 @@ define(function (require, exports, module) {
 
     /**
      * Icon Providers
-     * @see {@link WorkingSetView#addIconProvider()}
+     * @see {@link #addIconProvider}
      * @private
      */
     var _iconProviders = [];
     
     /**
      * Class Providers
-     * @see {@link WorkingSetView#addClassProvider()}
+     * @see {@link #addClassProvider}
      * @private
      */
     var _classProviders = [];
@@ -1364,18 +1364,18 @@ define(function (require, exports, module) {
         this.$openFilesList = this.$el.find("ul");
         
         // Register listeners
-        $(MainViewManager).on(this._makeEventName("workingSetAdd"), _.bind(this._handleFileAdded, this));
-        $(MainViewManager).on(this._makeEventName("workingSetAddList"), _.bind(this._handleFileListAdded, this));
-        $(MainViewManager).on(this._makeEventName("workingSetRemove"), _.bind(this._handleFileRemoved, this));
-        $(MainViewManager).on(this._makeEventName("workingSetRemoveList"), _.bind(this._handleRemoveList, this));
-        $(MainViewManager).on(this._makeEventName("workingSetSort"), _.bind(this._handleWorkingSetSort, this));
-        $(MainViewManager).on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
-        $(MainViewManager).on(this._makeEventName("paneLayoutChange"), _.bind(this._handlePaneLayoutChange, this));
-        $(MainViewManager).on(this._makeEventName("workingSetUpdate"), _.bind(this._handleWorkingSetUpdate, this));
+        MainViewManager.on(this._makeEventName("workingSetAdd"), _.bind(this._handleFileAdded, this));
+        MainViewManager.on(this._makeEventName("workingSetAddList"), _.bind(this._handleFileListAdded, this));
+        MainViewManager.on(this._makeEventName("workingSetRemove"), _.bind(this._handleFileRemoved, this));
+        MainViewManager.on(this._makeEventName("workingSetRemoveList"), _.bind(this._handleRemoveList, this));
+        MainViewManager.on(this._makeEventName("workingSetSort"), _.bind(this._handleWorkingSetSort, this));
+        MainViewManager.on(this._makeEventName("activePaneChange"), _.bind(this._handleActivePaneChange, this));
+        MainViewManager.on(this._makeEventName("paneLayoutChange"), _.bind(this._handlePaneLayoutChange, this));
+        MainViewManager.on(this._makeEventName("workingSetUpdate"), _.bind(this._handleWorkingSetUpdate, this));
 
-        $(DocumentManager).on(this._makeEventName("dirtyFlagChange"), _.bind(this._handleDirtyFlagChanged, this));
+        DocumentManager.on(this._makeEventName("dirtyFlagChange"), _.bind(this._handleDirtyFlagChanged, this));
 
-        $(FileViewController).on(this._makeEventName("documentSelectionFocusChange") + " " + this._makeEventName("fileViewFocusChange"), _.bind(this._updateListSelection, this));
+        FileViewController.on(this._makeEventName("documentSelectionFocusChange") + " " + this._makeEventName("fileViewFocusChange"), _.bind(this._updateListSelection, this));
         
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow(this.$openFilesContainer[0], null, true);
@@ -1398,15 +1398,15 @@ define(function (require, exports, module) {
         ViewUtils.removeScrollerShadow(this.$openFilesContainer[0], null);
         this.$openFilesContainer.off(".workingSetView");
         this.$el.remove();
-        $(MainViewManager).off(this._makeEventName(""));
-        $(DocumentManager).off(this._makeEventName(""));
-        $(FileViewController).off(this._makeEventName(""));
+        MainViewManager.off(this._makeEventName(""));
+        DocumentManager.off(this._makeEventName(""));
+        FileViewController.off(this._makeEventName(""));
     };
     
     /**
      * paneDestroy event handler
      */
-    $(MainViewManager).on("paneDestroy", function (e, paneId) {
+    MainViewManager.on("paneDestroy", function (e, paneId) {
         var view = _views[paneId];
         delete _views[view.paneId];
         view.destroy();
@@ -1427,12 +1427,12 @@ define(function (require, exports, module) {
 
     
     /** 
-     * adds an icon provider to the view.  
-     * Icon providers are called when a working set item is created
-     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string|jQuery} callback - the function to call for each item
-     * The callback must return the html to place before the link of each WSV item. 
-     *  The return value can be a string representing the HTML, a jQuery object or undefined.
-     * if a falsy value is returned then nothing is prepended to the list item
+     * Adds an icon provider. The callback is invoked before each working set item is created, and can
+     * return content to prepend to the item.
+     * 
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string|jQuery|DOMNode} callback
+     * Return a string representing the HTML, a jQuery object or DOM node, or undefined. If undefined,
+     * nothing is prepended to the list item.
      */
     function addIconProvider(callback) {
         if (!callback) {
@@ -1445,10 +1445,11 @@ define(function (require, exports, module) {
     }
     
     /** 
-     * adds a list item class provider to the view.  
-     * Class providers are called when a working set item is created
-     * @param {!function(!{fullPath:string, name:string, isFile:boolean}):?string} callback - the function to call for each item
-     * The callback can return a string that contains the class (or classes) to add to the list item
+     * Adds a CSS class provider, invoked before each working set item is created or updated. When called
+     * to update an existing item, all previously applied classes have been cleared.
+     * 
+     * @param {!function(!{name:string, fullPath:string, isFile:boolean}):?string} callback
+     * Return a string containing space-separated CSS class(es) to add, or undefined to leave CSS unchanged.
      */
     function addClassProvider(callback) {
         if (!callback) {

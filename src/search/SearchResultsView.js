@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var CommandManager        = require("command/CommandManager"),
+        EventDispatcher       = require("utils/EventDispatcher"),
         Commands              = require("command/Commands"),
         DocumentManager       = require("document/DocumentManager"),
         EditorManager         = require("editor/EditorManager"),
@@ -40,6 +41,7 @@ define(function (require, exports, module) {
         WorkspaceManager      = require("view/WorkspaceManager"),
         StringUtils           = require("utils/StringUtils"),
         Strings               = require("strings"),
+        HealthLogger          = require("utils/HealthLogger"),
         _                     = require("thirdparty/lodash"),
 
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
@@ -80,6 +82,7 @@ define(function (require, exports, module) {
         this._$table   = this._panel.$panel.find(".table-container");
         this._model    = model;
     }
+    EventDispatcher.makeEventDispatcher(SearchResultsView.prototype);
     
     /** @type {SearchModel} The search results model we're viewing. */
     SearchResultsView.prototype._model = null;
@@ -156,21 +159,23 @@ define(function (require, exports, module) {
             .on("click.searchResults", ".first-page:not(.disabled)", function () {
                 self._currentStart = 0;
                 self._render();
+                HealthLogger.searchDone(HealthLogger.SEARCH_FIRST_PAGE);
             })
             // The link to go the previous page
             .on("click.searchResults", ".prev-page:not(.disabled)", function () {
                 self._currentStart -= RESULTS_PER_PAGE;
                 self._render();
+                HealthLogger.searchDone(HealthLogger.SEARCH_PREV_PAGE);
             })
             // The link to go to the next page
             .on("click.searchResults", ".next-page:not(.disabled)", function () {
-                self._currentStart += RESULTS_PER_PAGE;
-                self._render();
+                self.trigger('getNextPage');
+                HealthLogger.searchDone(HealthLogger.SEARCH_NEXT_PAGE);
             })
             // The link to go to the last page
             .on("click.searchResults", ".last-page:not(.disabled)", function () {
-                self._currentStart = self._getLastCurrentStart();
-                self._render();
+                self.trigger('getLastPage');
+                HealthLogger.searchDone(HealthLogger.SEARCH_LAST_PAGE);
             })
             
             // Add the file to the working set on double click
@@ -218,6 +223,7 @@ define(function (require, exports, module) {
 
                         //In Expand/Collapse all, reset all search results 'collapsed' flag to same value(true/false).
                         if (e.metaKey || e.ctrlKey) {
+                            FindUtils.setCollapseResults(collapsed);
                             _.forEach(self._model.results, function (item) {
                                 item.collapsed = collapsed;
                             });
@@ -323,7 +329,7 @@ define(function (require, exports, module) {
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
-                    $(self).triggerHandler("replaceAll");
+                    self.trigger("replaceAll");
                 });
         }
     };
@@ -377,7 +383,7 @@ define(function (require, exports, module) {
     SearchResultsView.prototype._render = function () {
         var searchItems, match, i, item, multiLine,
             count            = this._model.countFilesMatches(),
-            searchFiles      = this._model.getSortedFiles(this._initialFilePath),
+            searchFiles      = this._model.prioritizeOpenFile(this._initialFilePath),
             lastIndex        = this._getLastIndex(count.matches),
             matchesCounter   = 0,
             showMatches      = false,
@@ -431,9 +437,9 @@ define(function (require, exports, module) {
                         itemIndex:   searchItems.length,
                         matchIndex:  i,
                         line:        match.start.line + 1,
-                        pre:         match.line.substr(0, match.start.ch),
-                        highlight:   match.line.substring(match.start.ch, multiLine ? undefined : match.end.ch),
-                        post:        multiLine ? "\u2026" : match.line.substr(match.end.ch),
+                        pre:         match.line.substr(0, match.start.ch - match.highlightOffset),
+                        highlight:   match.line.substring(match.start.ch - match.highlightOffset, multiLine ? undefined : match.end.ch - match.highlightOffset),
+                        post:        multiLine ? "\u2026" : match.line.substr(match.end.ch - match.highlightOffset),
                         start:       match.start,
                         end:         match.end,
                         isChecked:   match.isChecked,
@@ -522,6 +528,22 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Shows the next page of the resultrs view if possible
+     */
+    SearchResultsView.prototype.showNextPage = function () {
+        this._currentStart += RESULTS_PER_PAGE;
+        this._render();
+    };
+
+    /**
+     * Shows the last page of the results view.
+     */
+    SearchResultsView.prototype.showLastPage = function () {
+        this._currentStart = this._getLastCurrentStart();
+        this._render();
+    };
+
+    /**
      * @private
      * Returns the last possible current start based on the given number of matches
      * @param {number=} numMatches
@@ -549,7 +571,7 @@ define(function (require, exports, module) {
         
         // Listen for user interaction events with the panel and change events from the model.
         this._addPanelListeners();
-        $(this._model).on("change.SearchResultsView", this._handleModelChange.bind(this));
+        this._model.on("change.SearchResultsView", this._handleModelChange.bind(this));
     };
     
     /**
@@ -560,8 +582,8 @@ define(function (require, exports, module) {
             this._$table.empty();
             this._panel.hide();
             this._panel.$panel.off(".searchResults");
-            $(this._model).off("change.SearchResultsView");
-            $(this).triggerHandler("close");
+            this._model.off("change.SearchResultsView");
+            this.trigger("close");
         }
     };
     

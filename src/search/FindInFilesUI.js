@@ -51,6 +51,7 @@ define(function (require, exports, module) {
         StatusBar         = require("widgets/StatusBar"),
         Strings           = require("strings"),
         StringUtils       = require("utils/StringUtils"),
+        HealthLogger      = require("utils/HealthLogger"),
         _                 = require("thirdparty/lodash");
 
 
@@ -81,7 +82,8 @@ define(function (require, exports, module) {
                     _resultsView.open();
 
                     if (_findBar) {
-                        _findBar.close();
+                        _findBar.enable(true);
+                        _findBar.focus();
                     }
 
                 } else {
@@ -90,7 +92,6 @@ define(function (require, exports, module) {
                     if (_findBar) {
                         var showMessage = false;
                         _findBar.enable(true);
-                        _findBar.focusQuery();
                         if (zeroFilesToken === FindInFiles.ZERO_FILES_TO_SEARCH) {
                             _findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES, FindUtils.labelForScope(FindInFiles.searchModel.scope)), true);
                         } else {
@@ -116,6 +117,7 @@ define(function (require, exports, module) {
      * @param {boolean=} showReplace If true, show the Replace controls.
      */
     function _showFindBar(scope, showReplace) {
+        FindUtils.notifySearchScopeChanged();
         // If the scope is a file with a custom viewer, then we
         // don't show find in files dialog.
         if (scope && !EditorManager.canOpenPath(scope.fullPath)) {
@@ -131,7 +133,7 @@ define(function (require, exports, module) {
         
         // Get initial query/replace text
         var currentEditor = EditorManager.getActiveEditor(),
-            initialQuery = FindUtils.getInitialQuery(_findBar, currentEditor);
+            initialQuery = FindBar.getInitialQuery(_findBar, currentEditor);
 
         // Close our previous find bar, if any. (The open() of the new _findBar will
         // take care of closing any other find bar instances.)
@@ -180,10 +182,17 @@ define(function (require, exports, module) {
         }
         
         function startSearch(replaceText) {
-            var queryInfo = _findBar.getQueryInfo();
+            var queryInfo = _findBar.getQueryInfo(),
+                disableFindBar = FindUtils.isNodeSearchDisabled() || (replaceText ? true : false);
             if (queryInfo && queryInfo.query) {
-                _findBar.enable(false);
-                StatusBar.showBusyIndicator(true);
+                _findBar.enable(!disableFindBar);
+                StatusBar.showBusyIndicator(disableFindBar);
+                if (queryInfo.isRegexp) {
+                    HealthLogger.searchDone(HealthLogger.SEARCH_REGEXP);
+                }
+                if (queryInfo.isCaseSensitive) {
+                    HealthLogger.searchDone(HealthLogger.SEARCH_CASE_SENSITIVE);
+                }
 
                 var filter;
                 if (filterPicker) {
@@ -201,7 +210,7 @@ define(function (require, exports, module) {
             startSearch(_findBar.getReplaceText());
         }
         
-        $(_findBar)
+        _findBar
             .on("doFind.FindInFiles", function () {
                 // Subtle issue: we can't just pass startSearch directly as the handler, because
                 // we don't want it to get the event object as an argument.
@@ -209,14 +218,14 @@ define(function (require, exports, module) {
             })
             .on("queryChange.FindInFiles", handleQueryChange)
             .on("close.FindInFiles", function (e) {
-                $(_findBar).off(".FindInFiles");
+                _findBar.off(".FindInFiles");
                 _findBar = null;
             });
         
         if (showReplace) {
             // We shouldn't get a "doReplace" in this case, since the Replace button
             // is hidden when we set options.multifile.
-            $(_findBar).on("doReplaceAll.FindInFiles", startReplace);
+            _findBar.on("doReplaceAll.FindInFiles", startReplace);
         }
         
         var oldModalBarHeight = _findBar._modalBar.height();
@@ -334,6 +343,7 @@ define(function (require, exports, module) {
      * Bring up the Find in Files UI with the replace options.
      */
     function _showReplaceBar() {
+        FindUtils.notifySearchScopeChanged();
         _showFindBar(null, true);
     }
     
@@ -342,6 +352,7 @@ define(function (require, exports, module) {
      * Search within the file/subtree defined by the sidebar selection
      */
     function _showFindBarForSubtree() {
+        FindUtils.notifySearchScopeChanged();
         var selectedEntry = ProjectManager.getSelectedItem();
         _showFindBar(selectedEntry);
     }
@@ -351,6 +362,7 @@ define(function (require, exports, module) {
      * Search within the file/subtree defined by the sidebar selection
      */
     function _showReplaceBarForSubtree() {
+        FindUtils.notifySearchScopeChanged();
         var selectedEntry = ProjectManager.getSelectedItem();
         _showFindBar(selectedEntry, true);
     }
@@ -365,31 +377,85 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * When the search indexing is started, we need to show the indexing status on the find bar if present.
+     */
+    function _searchIndexingStarted() {
+        if (_findBar && _findBar._options.multifile && FindUtils.isIndexingInProgress()) {
+            _findBar.showIndexingSpinner();
+        }
+    }
+
+    /**
+     * Once the indexing has finished, clear the indexing spinner
+     */
+    function _searchIndexingFinished() {
+        if (_findBar) {
+            _findBar.hideIndexingSpinner();
+        }
+    }
+
+    /**
+     * Issues a search if find bar is visible and is multi file search and not instant search
+     */
+    function _defferedSearch() {
+        if (_findBar && _findBar._options.multifile && !_findBar._options.replace) {
+            _findBar.redoInstantSearch();
+        }
+    }
+
+    /**
+     * Schedules a search on search scope/filter changes. Have to schedule as when we listen to this event, the file filters
+     * might not have been updated yet.
+     */
+    function _searchIfRequired() {
+        if (!FindUtils.isInstantSearchDisabled() && _findBar && _findBar._options.multifile && !_findBar._options.replace) {
+            setTimeout(_defferedSearch, 100);
+        }
+    }
+
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         var model = FindInFiles.searchModel;
         _resultsView = new SearchResultsView(model, "find-in-files-results", "find-in-files.results");
-        $(_resultsView)
+        _resultsView
             .on("replaceAll", function () {
                 _finishReplaceAll(model);
             })
             .on("close", function () {
                 FindInFiles.clearSearch();
+            })
+            .on("getNextPage", function () {
+                FindInFiles.getNextPageofSearchResults().done(function () {
+                    if (FindInFiles.searchModel.hasResults()) {
+                        _resultsView.showNextPage();
+                    }
+                });
+            })
+            .on("getLastPage", function () {
+                FindInFiles.getAllSearchResults().done(function () {
+                    if (FindInFiles.searchModel.hasResults()) {
+                        _resultsView.showLastPage();
+                    }
+                });
             });
     });
     
     // Initialize: register listeners
-    $(ProjectManager).on("beforeProjectClose", function () { _resultsView.close(); });
+    ProjectManager.on("beforeProjectClose", function () { _resultsView.close(); });
     
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_FIND_IN_FILES,       Commands.CMD_FIND_IN_FILES,       _showFindBar);
-    CommandManager.register(Strings.CMD_FIND_IN_SELECTED,    Commands.CMD_FIND_IN_SELECTED,    _showFindBarForSubtree);
     CommandManager.register(Strings.CMD_FIND_IN_SUBTREE,     Commands.CMD_FIND_IN_SUBTREE,     _showFindBarForSubtree);
     
     CommandManager.register(Strings.CMD_REPLACE_IN_FILES,    Commands.CMD_REPLACE_IN_FILES,    _showReplaceBar);
-    CommandManager.register(Strings.CMD_REPLACE_IN_SELECTED, Commands.CMD_REPLACE_IN_SELECTED, _showReplaceBarForSubtree);
     CommandManager.register(Strings.CMD_REPLACE_IN_SUBTREE,  Commands.CMD_REPLACE_IN_SUBTREE,  _showReplaceBarForSubtree);
     
+    FindUtils.on(FindUtils.SEARCH_INDEXING_STARTED, _searchIndexingStarted);
+    FindUtils.on(FindUtils.SEARCH_INDEXING_FINISHED, _searchIndexingFinished);
+    FindUtils.on(FindUtils.SEARCH_FILE_FILTERS_CHANGED, _searchIfRequired);
+    FindUtils.on(FindUtils.SEARCH_SCOPE_CHANGED, _searchIfRequired);
+
     // Public exports
     exports.searchAndShowResults = searchAndShowResults;
     

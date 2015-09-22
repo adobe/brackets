@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, appshell, $, window */
+/*global define, appshell, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -66,11 +66,11 @@ define(function (require, exports, module) {
         _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
         _nodeDomain     = new NodeDomain("fileWatcher", _domainPath);
     
-    var _isRunningOnWindowsXP = navigator.userAgent.indexOf("Windows NT 5.") >= 0;
+    var _isRunningOnWindowsXP = window.navigator.userAgent.indexOf("Windows NT 5.") >= 0;
     
     
     // If the connection closes, notify the FileSystem that watchers have gone offline.
-    $(_nodeDomain.connection).on("close", function (event, promise) {
+    _nodeDomain.connection.on("close", function (event, promise) {
         if (_offlineCallback) {
             _offlineCallback();
         }
@@ -139,7 +139,7 @@ define(function (require, exports, module) {
     }
 
     // Setup the change handler. This only needs to happen once.
-    $(_nodeDomain).on("change", _fileWatcherChange);
+    _nodeDomain.on("change", _fileWatcherChange);
 
     /**
      * Convert appshell error codes to FileSystemError values.
@@ -531,15 +531,17 @@ define(function (require, exports, module) {
         }
         appshell.fs.isNetworkDrive(path, function (err, isNetworkDrive) {
             if (err || isNetworkDrive) {
-                callback(FileSystemError.UNKNOWN);
+                if (isNetworkDrive) {
+                    callback(FileSystemError.NETWORK_DRIVE_NOT_SUPPORTED);
+                } else {
+                    callback(FileSystemError.UNKNOWN);
+                }
                 return;
             }
-            
             _nodeDomain.exec("watchPath", path)
                 .then(callback, callback);
         });
     }
-    
     /**
      * Stop providing change notifications for the file or directory at the
      * given path, calling back asynchronously with a possibly null FileSystemError

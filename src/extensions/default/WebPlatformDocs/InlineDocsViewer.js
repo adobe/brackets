@@ -32,7 +32,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load Brackets modules
-    var ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
+    var Dialogs         = brackets.getModule("widgets/Dialogs"),
+        ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
         InlineWidget    = brackets.getModule("editor/InlineWidget").InlineWidget,
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
         Strings         = brackets.getModule("strings");
@@ -49,19 +50,15 @@ define(function (require, exports, module) {
     
     /**
      * @param {!string} cssPropName
-     * @param {!{SUMMARY:string, URL:string, VALUES:Array.<{TITLE:string, DESCRIPTION:string}>}} cssPropDetails
+     * @param {!{SUMMARY:string, URL:string, VALUES:?Array.<{value:string, description:string}>}} cssPropDetails
      */
     function InlineDocsViewer(cssPropName, cssPropDetails) {
         InlineWidget.call(this);
         
-        var propValues = cssPropDetails.VALUES.map(function (valueInfo) {
-            return { value: valueInfo.TITLE, description: valueInfo.DESCRIPTION };
-        });
-        
         var templateVars = {
             propName    : cssPropName,
             summary     : cssPropDetails.SUMMARY,
-            propValues  : propValues,
+            propValues  : cssPropDetails.VALUES || [],
             url         : cssPropDetails.URL,
             Strings     : Strings
         };
@@ -71,17 +68,7 @@ define(function (require, exports, module) {
         this.$wrapperDiv = $(html);
         this.$htmlContent.append(this.$wrapperDiv);
         
-        // Preprocess link tags to make URLs absolute
-        this.$wrapperDiv.find("a").each(function (index, elem) {
-            var $elem = $(elem);
-            var url = $elem.attr("href");
-            if (url && url.substr(0, 4) !== "http") {
-                // URLs in JSON data are relative
-                url = "http://docs.webplatform.org" + (url.charAt(0) !== "/" ? "/" : "") + url;
-                $elem.attr("href", url);
-            }
-            $elem.attr("title", url);
-        });
+        Dialogs.addLinkTooltips(this.$wrapperDiv);
         
         this._sizeEditorToContent   = this._sizeEditorToContent.bind(this);
         this._handleWheelScroll     = this._handleWheelScroll.bind(this);

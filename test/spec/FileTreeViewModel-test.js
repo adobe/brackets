@@ -95,6 +95,18 @@ define(function (require, exports, module) {
                 expect(vm.isPathLoaded("anothersub/")).toBe(true);
                 expect(vm.isPathLoaded("aclosedsub/")).toBe(false);
             });
+            
+            it("can return whether a given path is loaded even when directories and files are added", function () {
+                var vm = new FileTreeViewModel.FileTreeViewModel();
+                vm._treeData = treeData;
+                vm.setDirectoryContents("aclosedsub/newdir/", [
+                    {
+                        name: "newfile",
+                        isFile: true
+                    }
+                ]);
+                expect(vm.isPathLoaded("aclosedsub/")).toBe(false);
+            });
         });
 
         describe("setDirectoryOpen", function () {

@@ -38,7 +38,9 @@ define(function (require, exports, module) {
         StringUtils     = require("utils/StringUtils"),
         Strings         = require("strings"),
         _               = require("thirdparty/lodash");
-
+    
+    var PreferencesManager;
+    
     var promisify = Async.promisify; // for convenience
 
     describe("FindInFiles", function () {
@@ -70,32 +72,36 @@ define(function (require, exports, module) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
-                CommandManager  = testWindow.brackets.test.CommandManager;
-                DocumentManager = testWindow.brackets.test.DocumentManager;
-                EditorManager   = testWindow.brackets.test.EditorManager;
-                FileFilters     = testWindow.brackets.test.FileFilters;
-                FileSystem      = testWindow.brackets.test.FileSystem;
-                File            = testWindow.brackets.test.File;
-                FindInFiles     = testWindow.brackets.test.FindInFiles;
-                FindInFilesUI   = testWindow.brackets.test.FindInFilesUI;
-                ProjectManager  = testWindow.brackets.test.ProjectManager;
-                MainViewManager = testWindow.brackets.test.MainViewManager;
-                $               = testWindow.$;
+                CommandManager      = testWindow.brackets.test.CommandManager;
+                DocumentManager     = testWindow.brackets.test.DocumentManager;
+                EditorManager       = testWindow.brackets.test.EditorManager;
+                FileFilters         = testWindow.brackets.test.FileFilters;
+                FileSystem          = testWindow.brackets.test.FileSystem;
+                File                = testWindow.brackets.test.File;
+                FindInFiles         = testWindow.brackets.test.FindInFiles;
+                FindInFilesUI       = testWindow.brackets.test.FindInFilesUI;
+                ProjectManager      = testWindow.brackets.test.ProjectManager;
+                MainViewManager     = testWindow.brackets.test.MainViewManager;
+                $                   = testWindow.$;
+                PreferencesManager  = testWindow.brackets.test.PreferencesManager;
+                PreferencesManager.set("findInFiles.nodeSearch", false);
+                PreferencesManager.set("findInFiles.instantSearch", false);
             });
         });
         
         afterLast(function () {
-            CommandManager  = null;
-            DocumentManager = null;
-            EditorManager   = null;
-            FileSystem      = null;
-            File            = null;
-            FindInFiles     = null;
-            FindInFilesUI   = null;
-            ProjectManager  = null;
-            MainViewManager = null;
-            $               = null;
-            testWindow      = null;
+            CommandManager      = null;
+            DocumentManager     = null;
+            EditorManager       = null;
+            FileSystem          = null;
+            File                = null;
+            FindInFiles         = null;
+            FindInFilesUI       = null;
+            ProjectManager      = null;
+            MainViewManager     = null;
+            $                   = null;
+            testWindow          = null;
+            PreferencesManager  = null;
             SpecRunnerUtils.closeTestWindow();
             SpecRunnerUtils.removeTempDirectory();
         });
@@ -118,7 +124,6 @@ define(function (require, exports, module) {
         }
 
         function openSearchBar(scope, showReplace) {
-            waitForSearchBarClose();
             runs(function () {
                 FindInFiles._searchDone = false;
                 FindInFilesUI._showFindBar(scope, showReplace);
@@ -292,7 +297,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should ignore binary files", function () {
+            it("should ignore known binary file types", function () {
                 var $dlg, actualMessage, expectedMessage,
                     exists = false,
                     done = false,
@@ -347,6 +352,19 @@ define(function (require, exports, module) {
                 runs(function () {
                     // Set project back to main test folder
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+
+            it("should ignore unreadable files", function () {
+                // Add a nonexistent file to the ProjectManager.getAllFiles() result, which will force a file IO error
+                // when we try to read the file later. Similar errors may arise in real-world for non-UTF files, etc.
+                SpecRunnerUtils.injectIntoGetAllFiles(testWindow, testPath + "/doesNotExist.txt");
+                
+                openSearchBar();
+                executeSearch("foo");
+
+                runs(function () {
+                    expect(Object.keys(FindInFiles.searchModel.results).length).toBe(3);
                 });
             });
 
@@ -412,22 +430,19 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should dismiss dialog and show panel when there are results", function () {
+            it("should keep dialog and show panel when there are results", function () {
                 var filePath = testPath + "/foo.js",
                     fileEntry = FileSystem.getFileForPath(filePath);
 
                 openSearchBar(fileEntry);
                 executeSearch("callFoo");
 
-                waitsFor(function () {
-                    return ($(".modal-bar").length === 0);
-                }, "search bar close");
-
+                // With instant search, the Search Bar should not close on a search
                 runs(function () {
                     var fileResults = FindInFiles.searchModel.results[filePath];
                     expect(fileResults).toBeTruthy();
                     expect($("#find-in-files-results").is(":visible")).toBeTruthy();
-                    expect($(".modal-bar").length).toBe(0);
+                    expect($(".modal-bar").length).toBe(1);
                 });
             });
 
@@ -490,13 +505,15 @@ define(function (require, exports, module) {
                     expect($firstHit.hasClass("file-section")).toBeFalsy();
                     $firstHit.click();
 
-                    // Verify current document
-                    editor = EditorManager.getActiveEditor();
-                    expect(editor.document.file.fullPath).toEqual(filePath);
+                    setTimeout(function () {
+                        // Verify current document
+                        editor = EditorManager.getActiveEditor();
+                        expect(editor.document.file.fullPath).toEqual(filePath);
 
-                    // Verify selection
-                    expect(editor.getSelectedText().toLowerCase() === "foo");
-                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
+                        // Verify selection
+                        expect(editor.getSelectedText().toLowerCase() === "foo");
+                        waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
+                    }, 500);
                 });
             });
 
@@ -733,7 +750,6 @@ define(function (require, exports, module) {
             
             it("should jump to last page, then page backward, displaying correct contents at each step", function () {
                 openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
-                openSearchBar();
                 
                 executeSearch("find this");
 
@@ -769,7 +785,7 @@ define(function (require, exports, module) {
                 gotChange = false;
                 oldResults = null;
                 wasQuickChange = false;
-                $(FindInFiles.searchModel).on("change.FindInFilesTest", function (event, quickChange) {
+                FindInFiles.searchModel.on("change.FindInFilesTest", function (event, quickChange) {
                     gotChange = true;
                     wasQuickChange = quickChange;
                 });
@@ -785,7 +801,7 @@ define(function (require, exports, module) {
             });
             
             afterEach(function () {
-                $(FindInFiles.searchModel).off(".FindInFilesTest");
+                FindInFiles.searchModel.off(".FindInFilesTest");
                 waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
             });
             
@@ -1627,25 +1643,40 @@ define(function (require, exports, module) {
                     });
 
                     runs(function () {
-                        expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/css/foo.css");
+                        var expectedFile = testPath + "/foo.html";
+                        expect(DocumentManager.getCurrentDocument().file.fullPath).toBe(expectedFile);
+                        expect(MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, expectedFile)).not.toBe(-1);
                     });
                 });
 
                 it("should select the first modified file in the working set if replacements are done in memory and no editor was open", function () {
                     openTestProjectCopy(defaultSourcePath);
 
+                    var testFiles = ["/css/foo.css", "/foo.html", "/foo.js"];
+                    
                     doInMemoryTest({
                         queryInfo:         {query: "foo"},
                         numMatches:        14,
                         replaceText:       "bar",
                         knownGoodFolder:   "unchanged",
                         forceFilesOpen:    true,
-                        inMemoryFiles:     ["/css/foo.css", "/foo.html", "/foo.js"],
+                        inMemoryFiles:     testFiles,
                         inMemoryKGFolder:  "simple-case-insensitive"
                     });
 
+                    
                     runs(function () {
-                        expect(DocumentManager.getCurrentDocument().file.fullPath).toEqual(testPath + "/css/foo.css");
+                        // since nothing was opened prior to doing the 
+                        //  replacements then the first file modified will be opened. 
+                        // This may not be the first item in the array above
+                        //  since the files are sorted differently in performReplacements
+                        //  and the replace is performed asynchronously.  
+                        // So, just ensure that *something* was opened
+                        expect(DocumentManager.getCurrentDocument().file.fullPath).toBeTruthy();
+                        
+                        testFiles.forEach(function (relPath) {
+                            expect(MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, testPath + relPath)).not.toBe(-1);
+                        });
                     });
                 });
 
@@ -2149,8 +2180,8 @@ define(function (require, exports, module) {
                             $(".check-one").eq(1).click();
                             expect($(".check-one").eq(1).is(":checked")).toBeFalsy();
                             expect($(".check-all").is(":checked")).toBeFalsy();
-                            // In the sorting, this item should be the second match in the first file, which is css/foo.css.
-                            var uncheckedMatch = FindInFiles.searchModel.results[testPath + "/css/foo.css"].matches[1];
+                            // In the sorting, this item should be the second match in the first file, which is foo.html
+                            var uncheckedMatch = FindInFiles.searchModel.results[testPath + "/foo.html"].matches[1];
                             expect(uncheckedMatch.isChecked).toBe(false);
                             // Check that all items in the model besides the unchecked one to be checked.
                             expect(_.every(FindInFiles.searchModel.results, function (result) {

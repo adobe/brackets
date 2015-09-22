@@ -1,0 +1,73 @@
+@font-size: 1.1em;
+@color-triangle: #ccc;
+@color-triangle-mouseover: #aaa;
+@color-triangle-collapsed: #999;
+@color-marker-bg: #fff;
+@color-marker-border: #d7d7d7;
+@color-marker-text: #777;
+
+.CodeMirror-foldgutter {
+    &-open:after {
+        content: "\25bc";
+        font-size: @font-size;
+        color: @color-triangle;
+    }
+    &-folded:after {
+        content: "\25b6";
+        font-size: @font-size;
+        color: @color-triangle-collapsed;
+    }
+}
+
+.CodeMirror.over-gutter, .CodeMirror-activeline {
+    .CodeMirror-foldgutter-open:after {
+        color: @color-triangle-mouseover;
+    }
+}
+
+.CodeMirror-foldgutter,
+.CodeMirror-foldgutter-open,
+.CodeMirror-foldgutter-folded,
+.CodeMirror-foldgutter-blank {
+    width: @font-size;
+    cursor: default;
+    line-height: 100%;
+}
+
+.CodeMirror-foldgutter-open,
+.CodeMirror-foldgutter-folded {
+    padding-top: 2px;
+}
+
+.CodeMirror-gutter-elt {
+    height: 100% !important;
+}
+
+.CodeMirror.folding-enabled .CodeMirror-linenumber {
+    // Normally linenumber gutter has large right-padding to separate it from the code's text. But the
+    // folding gutter provides that same separation, so we need much less padding when it's displayed.
+    padding-right: 5px;
+}
+
+
+.CodeMirror-foldmarker {
+    // Re-enabling the pointer events for the fold marker. As pointer events are disabled for "CodeMirror-lines"
+    // to fix issue #2780.
+    pointer-events: auto;
+    padding-right: 3px;
+    padding-left: 3px;
+    margin-right: 3px;
+    margin-left: 3px;
+    border-radius: 2px;
+    cursor: pointer;
+    border: 1px solid @color-marker-border;
+    color: @color-marker-text;
+    background-color: @color-marker-bg;
+    
+    &:after {
+        content: "...";
+        font-size: 1em;
+        vertical-align: top;
+        line-height: 0.8em;
+    }
+}

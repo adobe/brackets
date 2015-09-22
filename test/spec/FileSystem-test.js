@@ -385,7 +385,7 @@ define(function (require, exports, module) {
                     cb = errorCallback();
                 
                 runs(function () {
-                    $(fileSystem).one("rename", spy);
+                    fileSystem.one("rename", spy);
                     file.rename(newPath, cb);
                 });
                 waitsFor(function () { return cb.wasCalled && spy.wasCalled; });
@@ -835,7 +835,7 @@ define(function (require, exports, module) {
                     // Delay impl callback to happen after impl watcher notification
                     MockFileSystemImpl.when(implOpName, entry.fullPath, delay(250));
                     
-                    $(fileSystem).on(eventName, function (evt, entry) {
+                    fileSystem.on(eventName, function (evt, entry) {
                         expect(opDone).toBe(true);  // this is the important check: callback should have already run!
                         eventDone = true;
                     });
@@ -903,7 +903,7 @@ define(function (require, exports, module) {
                     MockFileSystemImpl.when("writeFile", "/file1.txt", delay(cb1Delay));
                     MockFileSystemImpl.when("writeFile", "/file2.txt", delay(cb2Delay));
                     
-                    $(fileSystem).on("change", function (evt, entry) {
+                    fileSystem.on("change", function (evt, entry) {
                         // change for file N should not precede write callback for write to N
                         expect(write1Done || entry.fullPath !== "/file1.txt").toBe(true);
                         expect(write2Done || entry.fullPath !== "/file2.txt").toBe(true);
@@ -1174,7 +1174,7 @@ define(function (require, exports, module) {
                     
                     savedHash = file._hash;
                     
-                    $(fileSystem).on("change", function (event, filename) {
+                    fileSystem.on("change", function (event, filename) {
                         fileChanged = true;
                     });
                     
@@ -1246,7 +1246,7 @@ define(function (require, exports, module) {
                     
                     savedHash = file._hash;
                     
-                    $(fileSystem).on("change", function (event, filename) {
+                    fileSystem.on("change", function (event, filename) {
                         fileChanged = true;
                     });
                     
@@ -1517,7 +1517,7 @@ define(function (require, exports, module) {
                 changeDone = false;
                 
                 runs(function () {
-                    $(fileSystem).on("change", function (event, entry, added, removed) {
+                    fileSystem.on("change", function (event, entry, added, removed) {
                         changedEntry = entry;
                         addedEntries = added;
                         removedEntries = removed;

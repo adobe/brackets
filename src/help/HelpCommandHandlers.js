@@ -40,7 +40,6 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
         ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
-    
     // make sure the global brackets variable is loaded
     require("utils/Global");
 

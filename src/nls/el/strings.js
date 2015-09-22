@@ -60,7 +60,6 @@ define({
     "ERROR_DELETING_FILE"               : "Σφάλμα προέκυψε κατά τη διαδικασία διαγραφής του αρχείου <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Μη έγκυρο {0} όνομα",
     "INVALID_FILENAME_MESSAGE"          : "Τα όνομα αρχείων δεν μπορούν να περιέχουν τους ακόλουθους χαρακτήρες: {0} ή οποιεσδήποτε system reserved λέξεις.",
-    "FILE_ALREADY_EXISTS"               : "Το {0} <span class='dialog-filename'>{1}</span> υπάρχει ήδη.",
     "ERROR_CREATING_FILE_TITLE"         : "Σφάλμα δημιουργίας {0}",
     "ERROR_CREATING_FILE"               : "Σφάλμα προέκυψε κατά τη διαδικασία δημιουργίας του {0} <span class='dialog-filename'>{1}</span>. {2}",
 
@@ -111,15 +110,10 @@ define({
     "EXT_DELETED_MESSAGE"               : "Το <span class='dialog-filename'>{0}</span> έχει διαγραφεί στον δίσκο, αλλά έχει μη αποθηκευμένες αλλαγές στο {APP_NAME}.<br /><br />Θέλετε να κρατήσετε τις αλλαγές σας;",
     
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Χρησιμοποιήστε την σύνταξη /re/ για αναζήτηση regexp",
-    "FIND_RESULT_COUNT"                 : "{0} αποτελέσματα",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 αποτέλεσμα",
     "FIND_NO_RESULTS"                   : "Δεν βρέθηκαν αποτελέσματα",
-    "WITH"                              : "Με",
     "BUTTON_YES"                        : "Ναι",
     "BUTTON_NO"                         : "Όχι",
     "BUTTON_REPLACE_ALL"                : "Όλα\u2026",
-    "BUTTON_STOP"                       : "Διακοπή",
     "BUTTON_REPLACE"                    : "Αντικατάσταση",
             
     "BUTTON_NEXT"                       : "\u25B6",
@@ -135,13 +129,6 @@ define({
     "NO_UPDATE_TITLE"                   : "Έχετε την τελευταία έκδοση!",
     "NO_UPDATE_MESSAGE"                 : "Τρέχετε την τελευταία έκδοση του {APP_NAME}.",
 
-    "FIND_REPLACE_TITLE_PART1"          : "Αντικατάσταση \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" με \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
-
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" βρέθηκε",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "στο <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "στο project",
     "FIND_IN_FILES_FILE"                : "αρχείο",
@@ -186,9 +173,6 @@ define({
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Γραμμές",
 
     // CodeInspection: errors/warnings
-    "ERRORS_PANEL_TITLE"                    : "{0} Σφάλματα",
-    "ERRORS_PANEL_TITLE_SINGLE"             : "{0} Προβλήματα",
-    "ERRORS_PANEL_TITLE_MULTI"              : "Lint Προβλήματα",
     "SINGLE_ERROR"                          : "1 {0} Σφάλμα",
     "MULTIPLE_ERRORS"                       : "{1} {0} Σφάλματα",
     "NO_ERRORS"                             : "Καθόλου {0} σφάλματα - καλή δουλειά!",
@@ -272,10 +256,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Αναδίπλωση Λέξης",
     "CMD_LIVE_HIGHLIGHT"                  : "Επισήμανση Live Preview",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint Αρχείων κατά την Αποθήκευση",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Ταξινόμηση κατά Σειρά Προσθήκης",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Ταξινόμηση κατά Όνομα",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Ταξινόμηση κατά Τύπο",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Αυτόματη Ταξινόμηση",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Ταξινόμηση κατά Σειρά Προσθήκης",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Ταξινόμηση κατά Όνομα",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Ταξινόμηση κατά Τύπο",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Αυτόματη Ταξινόμηση",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Πλοήγηση",
@@ -297,9 +281,7 @@ define({
     "HELP_MENU"                           : "Βοήθεια",
     "CMD_CHECK_FOR_UPDATE"                : "Έλεγχος για Αναβαθμίσεις",
     "CMD_HOW_TO_USE_BRACKETS"             : "Πώς να Χρησιμοποιήσετε το {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME} Forum",
     "CMD_RELEASE_NOTES"                   : "Release Notes",
-    "CMD_REPORT_AN_ISSUE"                 : "Αναφορά Προβλήματος",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Προβολή Φακέλου Επεκτάσεων",
     "CMD_TWITTER"                         : "{TWITTER_NAME} στο Twitter",
     "CMD_ABOUT"                           : "Σχετικά με το {APP_TITLE}",
@@ -406,11 +388,6 @@ define({
     "UNDO_REMOVE"                          : "Αναίρεση",
     "MARKED_FOR_UPDATE"                    : "Επιλεγμένο για αναβάθμιση",
     "UNDO_UPDATE"                          : "Αναίρεση",
-    "CHANGE_AND_QUIT_TITLE"                : "Αλλαγή Επεκτάσεων",
-    "CHANGE_AND_QUIT_MESSAGE"              : "Για να αναβαθμίσετε ή να καταργήσετε τις επιλεγμένες επεκτάσεις, πρέπει να κλείσετε και να επανεκκινήσετε το {APP_NAME}. Θα ερωτηθείτε για την αποθήκευση των αλλαγών.",
-    "REMOVE_AND_QUIT"                      : "Κατάργηση Επεκτάσεων και Κλείσιμο",
-    "CHANGE_AND_QUIT"                      : "Αλλαγή Επεκτάσεων και Κλείσιμο",
-    "UPDATE_AND_QUIT"                      : "Αναβάθμιση Επεκτάσεων και Κλείσιμο",
     "EXTENSION_NOT_INSTALLED"              : "Αδυναμία κατάργησης της επέκτασης {0} αφού δεν ήταν εγκατεστημένη.",
     "NO_EXTENSIONS"                        : "Δεν υπάρχουν επεκτάσεις εγκατεστημένες ακόμα.<br>Κάντε κλικ στην καρτέλα Διαθέσιμα για να ξεκινήσετε.",
     "NO_EXTENSION_MATCHES"                 : "Δεν βρέθηκαν επεκτάσεις που να ικανοποιούν τα κριτήρια αναζήτησης σας.",

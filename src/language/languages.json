@@ -33,10 +33,18 @@
         "lineComment": ["//"]
     },
 
+    "stylus": {
+        "name": "Stylus",
+        "mode": ["stylus", "text/x-styl"],
+        "fileExtensions": ["styl"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
     "html": {
         "name": "HTML",
         "mode": ["htmlmixed", "text/x-brackets-html"],
-        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "hbs", "handlebars", "kit", "jsp", "aspx", "ascx", "asp", "master", "cshtml", "vbhtml"],
+        "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "kit", "jsp", "aspx", "ascx", "asp", "master", "cshtml", "vbhtml"],
         "blockComment": ["<!--", "-->"]
     },
     
@@ -58,6 +66,14 @@
         "name": "JavaScript",
         "mode": "javascript",
         "fileExtensions": ["js", "jsx", "js.erb", "jsm", "_js"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
+    "dart": {
+        "name": "Dart",
+        "mode": ["dart", "application/dart"],
+        "fileExtensions": ["dart"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -86,7 +102,14 @@
     "xml": {
         "name": "XML",
         "mode": "xml",
-        "fileExtensions": ["xml", "svg", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xbl", "mathml", "config", "plist", "xaml"],
+        "fileExtensions": ["xml", "wxs", "wxl", "wsdl", "rss", "atom", "rdf", "xslt", "xsl", "xul", "xsd", "xbl", "mathml", "config", "plist", "xaml"],
+        "blockComment": ["<!--", "-->"]
+    },
+
+    "svg": {
+        "name": "SVG",
+        "mode": ["xml", "image/svg+xml"],
+        "fileExtensions": ["svg"],
         "blockComment": ["<!--", "-->"]
     },
 
@@ -157,7 +180,7 @@
     "perl": {
         "name": "Perl",
         "mode": "perl",
-        "fileExtensions": ["pl", "pm"],
+        "fileExtensions": ["pl", "pm", "t"],
         "lineComment": ["#"]
     },
 
@@ -207,8 +230,13 @@
     "markdown": {
         "name": "Markdown",
         "mode": "markdown",
-        "fileExtensions": ["md", "markdown"],
+        "fileExtensions": ["md", "markdown", "mdown", "mkdn"],
         "blockComment": ["<!--", "-->"]
+    },
+
+    "gfm": {
+        "name": "Markdown (GitHub)",
+        "mode": "gfm"
     },
 
     "yaml": {
@@ -235,7 +263,7 @@
   
     "image": {
         "name": "Image",
-        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico", "bmp"],
+        "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico", "bmp", "webp"],
         "isBinary": true
     },
     
@@ -257,5 +285,13 @@
             "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip"
         ],
         "isBinary": true
+    },
+
+    "haskell": {
+        "name": "Haskell",
+        "mode": "haskell",
+        "fileExtensions": ["hs"],
+        "blockComment": ["{-", "-}"],
+        "lineComment": ["--"]
     }
 }

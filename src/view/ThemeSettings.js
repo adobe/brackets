@@ -107,7 +107,7 @@ define(function (require, exports, module) {
                 var attr = $target.attr("data-target");
                 newSettings[attr] = $target.val();
             })
-            .on("change", function () {
+            .on("change", "select", function () {
                 var $target = $(":selected", this);
                 var attr = $target.attr("data-target");
 
@@ -156,8 +156,12 @@ define(function (require, exports, module) {
         prefs.set("themeScrollbars", defaults.themeScrollbars);
     }
 
-    prefs.definePreference("theme", "string", defaults.theme);
-    prefs.definePreference("themeScrollbars", "boolean", defaults.themeScrollbars);
+    prefs.definePreference("theme", "string", defaults.theme, {
+        description: Strings.DESCRIPTION_THEME
+    });
+    prefs.definePreference("themeScrollbars", "boolean", defaults.themeScrollbars, {
+        description: Strings.DESCRIPTION_USE_THEME_SCROLLBARS
+    });
 
     exports._setThemes = setThemes;
     exports.restore    = restore;

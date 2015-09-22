@@ -31,7 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var FileSystem = require("filesystem/FileSystem"),
+    var Async      = require("utils/Async"),
+        FileSystem = require("filesystem/FileSystem"),
         FileUtils  = require("file/FileUtils");
 
     /**
@@ -72,7 +73,7 @@ define(function (require, exports, module) {
     /**
      * getModuleUrl returns different urls for win platform
      * so that's why we need a different check here
-     * @see getModuleUrl()
+     * @see #getModuleUrl
      * @param {!string} pathOrUrl that should be checked if it's absolute
      * @return {!boolean} returns true if pathOrUrl is absolute url on win platform
      *                    or when it's absolute path on other platforms
@@ -97,12 +98,10 @@ define(function (require, exports, module) {
             options;
         
         if (url) {
-            var dir  = url.slice(0, url.lastIndexOf("/") + 1),
-                file = url.slice(dir.length);
+            var dir = url.slice(0, url.lastIndexOf("/") + 1);
             
             options = {
-                filename: file,
-                paths:    [dir],
+                filename: url,
                 rootpath: dir
             };
 
@@ -117,17 +116,11 @@ define(function (require, exports, module) {
             }
         }
         
-        var parser = new less.Parser(options);
-        parser.parse(code, function onParse(err, tree) {
+        less.render(code, options, function onParse(err, tree) {
             if (err) {
                 result.reject(err);
             } else {
-                try {
-                    result.resolve(tree.toCSS());
-                } catch (toCSSError) {
-                    console.error(toCSSError.filename + ":" + toCSSError.line + " " + toCSSError.message);
-                    result.reject(toCSSError);
-                }
+                result.resolve(tree.css);
             }
         });
         
@@ -220,30 +213,65 @@ define(function (require, exports, module) {
             })
             .fail(result.reject);
         
+        // Summarize error info to console for easier debugging
+        result.fail(function (error, textStatus, httpError) {
+            if (error.readyState !== undefined) {
+                // If first arg is a jQXHR object, the real error info is in the next two args
+                console.error("[Extension] Unable to read stylesheet " + path + ":", textStatus, httpError);
+            } else {
+                console.error("[Extension] Unable to process stylesheet " + path, error);
+            }
+        });
+        
         return result.promise();
     }
     
     /**
-     * Loads the package.json file in the given extension folder.
+     * Loads the package.json file in the given extension folder as well as any additional
+     * metadata.
+     *
+     * If there's a .disabled file in the extension directory, then the content of package.json
+     * will be augmented with disabled property set to true. It will override whatever value of
+     * disabled might be set.
      *
      * @param {string} folder The extension folder.
      * @return {$.Promise} A promise object that is resolved with the parsed contents of the package.json file,
-     *     or rejected if there is no package.json or the contents are not valid JSON.
+     *     or rejected if there is no package.json with the boolean indicating whether .disabled file exists.
      */
-    function loadPackageJson(folder) {
-        var file = FileSystem.getFileForPath(folder + "/package.json"),
-            result = new $.Deferred();
-        FileUtils.readAsText(file)
-            .done(function (text) {
+    function loadMetadata(folder) {
+        var packageJSONFile = FileSystem.getFileForPath(folder + "/package.json"),
+            disabledFile = FileSystem.getFileForPath(folder + "/.disabled"),
+            result = new $.Deferred(),
+            jsonPromise = new $.Deferred(),
+            disabledPromise = new $.Deferred(),
+            json,
+            disabled;
+        FileUtils.readAsText(packageJSONFile)
+            .then(function (text) {
                 try {
-                    var json = JSON.parse(text);
-                    result.resolve(json);
+                    json = JSON.parse(text);
+                    jsonPromise.resolve();
                 } catch (e) {
-                    result.reject();
+                    jsonPromise.reject();
                 }
             })
-            .fail(function () {
-                result.reject();
+            .fail(jsonPromise.reject);
+        disabledFile.exists(function (err, exists) {
+            if (err) {
+                disabled = false;
+            } else {
+                disabled = exists;
+            }
+            disabledPromise.resolve();
+        });
+        Async.waitForAll([jsonPromise, disabledPromise])
+            .always(function () {
+                if (!json) {
+                    result.reject(disabled);
+                } else {
+                    json.disabled = disabled;
+                    result.resolve(json);
+                }
             });
         return result.promise();
     }
@@ -255,5 +283,5 @@ define(function (require, exports, module) {
     exports.getModuleUrl          = getModuleUrl;
     exports.loadFile              = loadFile;
     exports.loadStyleSheet        = loadStyleSheet;
-    exports.loadPackageJson       = loadPackageJson;
+    exports.loadMetadata          = loadMetadata;
 });

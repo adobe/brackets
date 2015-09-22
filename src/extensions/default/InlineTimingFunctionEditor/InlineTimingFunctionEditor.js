@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, window */
+/*global define, brackets, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -206,7 +206,7 @@ define(function (require, exports, module) {
         
         var doc = this.hostEditor.document;
         doc.addRef();
-        $(doc).on("change", this._handleHostDocumentChange);
+        doc.on("change", this._handleHostDocumentChange);
         
         this.hostEditor.setInlineWidgetHeight(this, this.timingFunctionEditor.getRootElement().outerHeight(), true);
         
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
         }
 
         var doc = this.hostEditor.document;
-        $(doc).off("change", this._handleHostDocumentChange);
+        doc.off("change", this._handleHostDocumentChange);
         doc.releaseRef();
     };
 

@@ -41,7 +41,6 @@ define(function (require, exports, module) {
         SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
         FileUtils                = require("file/FileUtils"),
         FileSystemError          = require("filesystem/FileSystemError");
-                    
     
     describe("DocumentCommandHandlers", function () {
         this.category = "integration";
@@ -54,6 +53,7 @@ define(function (require, exports, module) {
         var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
         var TEST_JS_NEW_CONTENT = "hello world";
         var TEST_JS_SECOND_NEW_CONTENT = "hello world 2";
+        var WINDOW_TITLE_DOT = brackets.platform === "mac" ? "\u2014" : "-";
         
         beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -641,7 +641,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.document.title).toBe(brackets.config.app_title);
+                    expect(testWindow.document.title).toBe("DocumentCommandHandlers-test-files " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
                 });
             });
 
@@ -657,7 +657,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "FILE_CLOSE");
                 });
                 runs(function () {
-                    expect(testWindow.document.title).toBe(brackets.config.app_title);
+                    expect(testWindow.document.title).toBe("DocumentCommandHandlers-test-files " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
                 });
             });
         });
@@ -794,7 +794,7 @@ define(function (require, exports, module) {
             });
 
             // Regardless of platform, files with CRLF should be saved with CRLF and files with LF should be saved with LF
-            it("should preserve line endings when saving changes", function () {
+            it("should preserve line endings after Save", function () {
                 var crlfText = "line1\r\nline2\r\nline3",
                     lfText   = "line1\nline2\nline3",
                     crlfPath = testPath + "/crlfTest.js",
@@ -816,7 +816,6 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: crlfPath});
                     waitsForDone(promise, "Open CRLF test file");
                 });
-                
                 runs(function () {
                     DocumentManager.getCurrentDocument().replaceRange("line2a\nline2b", {line: 1, ch: 0}, {line: 1, ch: 5});
                     promise = CommandManager.execute(Commands.FILE_SAVE);
@@ -828,14 +827,13 @@ define(function (require, exports, module) {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: lfPath});
                     waitsForDone(promise, "Open LF test file");
                 });
-                
                 runs(function () {
                     DocumentManager.getCurrentDocument().replaceRange("line2a\nline2b", {line: 1, ch: 0}, {line: 1, ch: 5});
                     promise = CommandManager.execute(Commands.FILE_SAVE);
                     waitsForDone(promise, "Save modified file");
                 });
                 
-                // verify file contents
+                // verify files' contents
                 runs(function () {
                     promise = FileUtils.readAsText(FileSystem.getFileForPath(crlfPath))
                         .done(function (actualText) {
@@ -854,14 +852,86 @@ define(function (require, exports, module) {
                 
                 // clean up
                 runs(function () {
-                    promise = SpecRunnerUtils.deletePath(crlfPath);
-                    waitsForDone(promise, "Remove CRLF test file");
-                });
-                runs(function () {
-                    promise = SpecRunnerUtils.deletePath(lfPath);
-                    waitsForDone(promise, "Remove LF test file");
+                    waitsForDone(SpecRunnerUtils.deletePath(crlfPath), "Remove CRLF test file");
+                    waitsForDone(SpecRunnerUtils.deletePath(lfPath),   "Remove LF test file");
                 });
             });
+            
+            it("should preserve line endings after Save As", function () {  // bug #9179
+                var crlfText = "line1\r\nline2\r\nline3",
+                    lfText   = "line1\nline2\nline3",
+                    crlfPath = testPath + "/crlfTest.js",
+                    lfPath   = testPath + "/lfTest.js",
+                    crlfNewPath = testPath + "/saveAsCRLF.js",
+                    lfNewPath = testPath + "/saveAsLF.js",
+                    promise;
+                
+                // create test files (Git rewrites line endings, so these can't be kept in src control)
+                runs(function () {
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(crlfPath), crlfText);
+                    waitsForDone(promise, "Create CRLF test file");
+                });
+                runs(function () {
+                    promise = FileUtils.writeText(FileSystem.getFileForPath(lfPath), lfText);
+                    waitsForDone(promise, "Create LF test file");
+                });
+                
+                // open, modify, and Save As (CRLF case)
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: crlfPath});
+                    waitsForDone(promise, "Open CRLF test file");
+                });
+                runs(function () {
+                    DocumentManager.getCurrentDocument().replaceRange("line2a\nline2b", {line: 1, ch: 0}, {line: 1, ch: 5});
+                    
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, crlfNewPath);
+                    });
+                    promise = CommandManager.execute(Commands.FILE_SAVE_AS);
+                    waitsForDone(promise, "Save As modified file");
+                });
+                
+                // open, modify, and Save As (LF case)
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: lfPath});
+                    waitsForDone(promise, "Open LF test file");
+                });
+                runs(function () {
+                    DocumentManager.getCurrentDocument().replaceRange("line2a\nline2b", {line: 1, ch: 0}, {line: 1, ch: 5});
+                    
+                    FileSystem.showSaveDialog.andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, lfNewPath);
+                    });
+                    promise = CommandManager.execute(Commands.FILE_SAVE_AS);
+                    waitsForDone(promise, "Save As modified file");
+                });
+                
+                // verify files' contents
+                runs(function () {
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(crlfNewPath))
+                        .done(function (actualText) {
+                            expect(actualText).toBe(crlfText.replace("line2", "line2a\r\nline2b"));
+                        });
+                    waitsForDone(promise, "Read CRLF save-as file");
+                });
+                
+                runs(function () {
+                    promise = FileUtils.readAsText(FileSystem.getFileForPath(lfNewPath))
+                        .done(function (actualText) {
+                            expect(actualText).toBe(lfText.replace("line2", "line2a\nline2b"));
+                        });
+                    waitsForDone(promise, "Read LF save-as file");
+                });
+                
+                // clean up
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.deletePath(crlfPath),    "Remove CRLF test file");
+                    waitsForDone(SpecRunnerUtils.deletePath(lfPath),      "Remove LF test file");
+                    waitsForDone(SpecRunnerUtils.deletePath(crlfNewPath), "Remove CRLF save-as file");
+                    waitsForDone(SpecRunnerUtils.deletePath(lfNewPath),   "Remove LF save-as file");
+                });
+            });
+            
         });
         
         
@@ -1053,8 +1123,7 @@ define(function (require, exports, module) {
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
                     
                     // verify no dot in titlebar
-                    var expectedTitle = (brackets.platform === "mac" ? ("test.js — " + brackets.config.app_title) : ("test.js - " + brackets.config.app_title));
-                    expect(testWindow.document.title).toBe(expectedTitle);
+                    expect(testWindow.document.title).toBe("test.js (DocumentCommandHandlers-test-files) " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
                 });
             });
             
@@ -1069,8 +1138,8 @@ define(function (require, exports, module) {
                     expect(doc.isDirty).toBe(true);
                     
                     // verify dot in titlebar
-                    var expectedTitle = (brackets.platform === "mac" ? ("• test.js — " + brackets.config.app_title) : ("• test.js - " + brackets.config.app_title));
-                    expect(testWindow.document.title).toBe(expectedTitle);
+                    expect(testWindow.document.title).toBe("• test.js (DocumentCommandHandlers-test-files) " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
+
                 });
             });
 
@@ -1216,8 +1285,8 @@ define(function (require, exports, module) {
                     activeEditorChangeListener = jasmine.createSpy();
 
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.on("currentDocumentChange", docChangeListener);
+                    EditorManager.on("activeEditorChange", activeEditorChangeListener);
                     
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
@@ -1235,8 +1304,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(2);
                     expect(activeEditorChangeListener.callCount).toBe(2);
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.off("currentDocumentChange", docChangeListener);
+                    EditorManager.off("activeEditorChange", activeEditorChangeListener);
                 });
             });
             
@@ -1246,8 +1315,8 @@ define(function (require, exports, module) {
                     activeEditorChangeListener = jasmine.createSpy();
 
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.on("currentDocumentChange", docChangeListener);
+                    EditorManager.on("activeEditorChange", activeEditorChangeListener);
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/couz.png" });
                     waitsForDone(promise, Commands.FILE_OPEN);
@@ -1264,8 +1333,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(0);
                     expect(activeEditorChangeListener.callCount).toBe(0);
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.off("currentDocumentChange", docChangeListener);
+                    EditorManager.off("activeEditorChange", activeEditorChangeListener);
                 });
     
             });
@@ -1276,8 +1345,8 @@ define(function (require, exports, module) {
                     activeEditorChangeListener = jasmine.createSpy();
 
                 runs(function () {
-                    _$(DocumentManager).on("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).on("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.on("currentDocumentChange", docChangeListener);
+                    EditorManager.on("activeEditorChange", activeEditorChangeListener);
                     
                     
                     promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: testPath + "/test.js" });
@@ -1295,8 +1364,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(docChangeListener.callCount).toBe(2);
                     expect(activeEditorChangeListener.callCount).toBe(2);
-                    _$(DocumentManager).off("currentDocumentChange", docChangeListener);
-                    _$(EditorManager).off("activeEditorChange", activeEditorChangeListener);
+                    DocumentManager.off("currentDocumentChange", docChangeListener);
+                    EditorManager.off("activeEditorChange", activeEditorChangeListener);
                 });
             });
             

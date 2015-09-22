@@ -24,7 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
 indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, ArrayBuffer, DataView, jasmine */
+/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, ArrayBuffer, DataView, jasmine */
 
 define(function (require, exports, module) {
     "use strict";
@@ -107,7 +107,7 @@ define(function (require, exports, module) {
         
         afterEach(function () {
             _connectionsToAutoDisconnect.forEach(function (c) {
-                $(c).off("close");
+                c.off("close");
                 c.disconnect();
             });
         });
@@ -192,10 +192,46 @@ define(function (require, exports, module) {
             });
         });
         
+        it("should receive progress events from asynchronous commands", function () {
+            var connection = createConnection();
+            var commandDeferred = null;
+            var result = null;
+            var progressMessage = null;
+            runConnectAndWait(connection, false);
+            runLoadDomainsAndWait(connection, ["TestCommandsTwo"], false);
+            runs(function () {
+                commandDeferred = connection.domains.test.reverseAsyncWithProgress("asdf");
+                commandDeferred.progress(function (message) {
+                    progressMessage = message;
+                });
+                commandDeferred.done(function (response) {
+                    result = response;
+                });
+            });
+            waitsFor(
+                function () {
+                    return commandDeferred && progressMessage !== null;
+                },
+                CONNECTION_TIMEOUT
+            );
+            waitsFor(
+                function () {
+                    return commandDeferred &&
+                        commandDeferred.state() === "resolved" &&
+                        result;
+                },
+                CONNECTION_TIMEOUT
+            );
+            runs(function () {
+                expect(progressMessage).toBe("progress");
+                expect(result).toBe("fdsa");
+            });
+        });
+
         it("should receive events", function () {
             var connection = createConnection();
             var spy = jasmine.createSpy();
-            $(connection).one(
+            connection.one(
                 "test:eventOne",
                 spy
             );
@@ -364,7 +400,7 @@ define(function (require, exports, module) {
             );
             
             var reconnectResolved = false, closeHandlerCalled = false;
-            $(connectionOne).on("close", function (e, reconnectPromise) {
+            connectionOne.on("close", function (e, reconnectPromise) {
                 closeHandlerCalled = true;
                 reconnectPromise.then(function () {
                     reconnectResolved = true;

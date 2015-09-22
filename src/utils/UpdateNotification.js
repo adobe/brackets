@@ -106,7 +106,7 @@ define(function (require, exports, module) {
             locale = locale.substring(0, 2);
         }
 
-        return brackets.config.update_info_url + locale + ".json";
+        return brackets.config.update_info_url + '?locale=' + locale;
     }
 
     /**
@@ -442,7 +442,7 @@ define(function (require, exports, module) {
     }
 
     // Events listeners
-    $(ExtensionManager).on("registryDownload", _onRegistryDownloaded);
+    ExtensionManager.on("registryDownload", _onRegistryDownloaded);
 
     // Define public API
     exports.launchAutomaticUpdate = launchAutomaticUpdate;

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, brackets */
 
 define(function (require, exports, module) {
     "use strict";
@@ -44,9 +44,15 @@ define(function (require, exports, module) {
     var prefs                   = PreferencesManager.getExtensionPrefs("closeOthers"),
         menuEntriesShown        = {};
     
-    prefs.definePreference("below",  "boolean", true);
-    prefs.definePreference("others", "boolean", true);
-    prefs.definePreference("above",  "boolean", true);
+    prefs.definePreference("below",  "boolean", true, {
+        description: Strings.DESCRIPTION_CLOSE_OTHERS_BELOW
+    });
+    prefs.definePreference("others", "boolean", true, {
+        description: Strings.DESCRIPTION_CLOSE_OTHERS
+    });
+    prefs.definePreference("above",  "boolean", true, {
+        description: Strings.DESCRIPTION_CLOSE_OTHERS_ABOVE
+    });
     
     
     /**
@@ -181,7 +187,7 @@ define(function (require, exports, module) {
     initializeCommands();
 
     // Add a context menu open handler
-    $(workingSetListCmenu).on("beforeContextMenuOpen", contextMenuOpenHandler);
+    workingSetListCmenu.on("beforeContextMenuOpen", contextMenuOpenHandler);
 
     prefs.on("change", prefChangeHandler);
 });

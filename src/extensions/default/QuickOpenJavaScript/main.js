@@ -32,7 +32,8 @@ define(function (require, exports, module) {
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         QuickOpen           = brackets.getModule("search/QuickOpen"),
         JSUtils             = brackets.getModule("language/JSUtils"),
-        DocumentManager     = brackets.getModule("document/DocumentManager");
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
+        StringMatch         = brackets.getModule("utils/StringMatch");
 
 
    /** 
@@ -100,7 +101,7 @@ define(function (require, exports, module) {
         });
         
         // Sort based on ranking & basic alphabetical order
-        QuickOpen.basicMatchSort(filteredList);
+        StringMatch.basicMatchSort(filteredList);
 
         return filteredList;
     }
@@ -111,20 +112,18 @@ define(function (require, exports, module) {
      */
     function match(query) {
         // only match @ at beginning of query for now
-        // TODO: match any location of @ when QuickOpen._handleItemFocus() is modified to
-        // dynamic open files
-        //if (query.indexOf("@") !== -1) {
-        if (query.indexOf("@") === 0) {
-            return true;
-        }
+        return (query[0] === "@");
     }
 
     /**
-     * Select the selected item in the current document
+     * Scroll to the selected item in the current document (unless no query string entered yet,
+     * in which case the topmost list item is irrelevant)
      * @param {?SearchResult} selectedItem
+     * @param {string} query
+     * @param {boolean} explicit False if this is only highlighted due to being at top of list after search()
      */
-    function itemFocus(selectedItem) {
-        if (!selectedItem) {
+    function itemFocus(selectedItem, query, explicit) {
+        if (!selectedItem || (query.length < 2 && !explicit)) {
             return;
         }
         var fileLocation = selectedItem.fileLocation;
@@ -134,8 +133,8 @@ define(function (require, exports, module) {
         EditorManager.getCurrentFullEditor().setSelection(from, to, true);
     }
 
-    function itemSelect(selectedItem) {
-        itemFocus(selectedItem);
+    function itemSelect(selectedItem, query) {
+        itemFocus(selectedItem, query, true);
     }
 
 

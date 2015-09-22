@@ -61,7 +61,6 @@ define({
     "ERROR_DELETING_FILE"               : "Došlo je do greške prilikom pokušaja da se obriše datoteka <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Ime {0} nije valjano",
     "INVALID_FILENAME_MESSAGE"          : "Imena datoteka ne smiju sadržavati sljedeće znakove: {0} ili riječi rezervirane za sistem.",
-    "FILE_ALREADY_EXISTS"               : "{0} <span class='dialog-filename'>{1}</span> već postoji.",
     "ERROR_CREATING_FILE_TITLE"         : "Greška pri kreiranju {0}",
     "ERROR_CREATING_FILE"               : "Došlo je do greške prilikom pokušaja da se kreira {0} <span class='dialog-filename'>{1}</span>. {2}",
 
@@ -128,9 +127,8 @@ define({
     "BUTTON_NO"                         : "Ne",
         
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} rezultata",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 rezultat",
     "FIND_NO_RESULTS"                   : "Nema rezultata",
+    "FIND_QUERY_PLACEHOLDER"            : "Nađi\u2026",
     "REPLACE_PLACEHOLDER"               : "Zamijeni sa\u2026",
     "BUTTON_REPLACE_ALL"                : "Sve\u2026",
     "BUTTON_REPLACE"                    : "Zamijeni",
@@ -149,15 +147,7 @@ define({
     "NO_UPDATE_TITLE"                   : "Imate aktualnu verziju!",
     "NO_UPDATE_MESSAGE"                 : "Trenutno koristite aktualnu verziju aplikacije {APP_NAME}.",
 
-    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "Zamijeni \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" sa \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
-
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" pronađen",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "u <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "u projektu",
     "FIND_IN_FILES_FILE"                : "datoteci",
@@ -177,7 +167,6 @@ define({
     "EDIT_FILE_FILTER"                  : "Uredi\u2026",
     "FILE_FILTER_DIALOG"                : "Uređivački filter",
     "FILE_FILTER_INSTRUCTIONS"          : "Isključi datoteke i direktorije koji se slažu sa ijednom od sljedećih nizova / podnizova riječi ili <a href='{0}' title='{0}'>globs</a>. Unesi svaki niz u novi red.",
-    "FILE_FILTER_LIST_PREFIX"           : "osim",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "i {0} više",
 
     // Quick Edit
@@ -198,6 +187,24 @@ define({
     "PROJECT_LOADING"   : "Učitavanje\u2026",
     "UNTITLED"          : "Neimenovan",
     "WORKING_FILES"     : "Radne datoteke",
+    
+    /**
+     * MainViewManager
+     */
+    "TOP"               : "Vrh",
+    "BOTTOM"            : "Dno",
+    "LEFT"              : "Lijevo",
+    "RIGHT"             : "Desno",
+
+    "CMD_SPLITVIEW_NONE"        : "Bez prepolavljanja",
+    "CMD_SPLITVIEW_VERTICAL"    : "Prepolovi okomito",
+    "CMD_SPLITVIEW_HORIZONTAL"  : "Prepolovi vodoravno",
+    "SPLITVIEW_MENU_TOOLTIP"    : "Prepolovi editor okomito ili vodoravno",
+    "GEAR_MENU_TOOLTIP"         : "Definiraj radni skup",
+
+    "SPLITVIEW_INFO_TITLE"              : "Već otvoreno",
+    "SPLITVIEW_MULTIPANE_WARNING"       : "Datoteka je već otvorena u drugom panelu. {APP_NAME} će uskoro podržavati otvaranje iste datoteke u više od jednog panela. Do tada, datoteka će biti prikazana u panelu u kojem je već otvorena.<br /><br />(Ovu ćeš poruku vidjeti samo jednom.)",
+
 
     /**
      * Keyboard modifier names
@@ -260,6 +267,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Sačuvaj sve",
     "CMD_FILE_SAVE_AS"                    : "Sačuvaj kao\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Prikaz uživo",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Omogući Experimentalni Prikaz Uživo",
     "CMD_PROJECT_SETTINGS"                : "Postavke Projekta\u2026",
     "CMD_FILE_RENAME"                     : "Preimenuj",
     "CMD_FILE_DELETE"                     : "Obriši",
@@ -298,9 +306,7 @@ define({
     // Search menu commands
     "FIND_MENU"                           : "Nađi",
     "CMD_FIND"                            : "Nađi",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Nađi\u2026",
     "CMD_FIND_IN_FILES"                   : "Nađi u datotekama",
-    "CMD_FIND_IN_SELECTED"                : "Nađi u odabranoj Datoteci/Mapi",
     "CMD_FIND_IN_SUBTREE"                 : "Nađi u\u2026",
     "CMD_FIND_NEXT"                       : "Nađi sljedeće",
     "CMD_FIND_PREVIOUS"                   : "Nađi prethodno",
@@ -309,7 +315,6 @@ define({
     "CMD_SKIP_CURRENT_MATCH"              : "Preskoči i dodaj sljedeće slaganje",
     "CMD_REPLACE"                         : "Zamijeni",
     "CMD_REPLACE_IN_FILES"                : "Zamijeni u datotekama",
-    "CMD_REPLACE_IN_SELECTED"             : "Zamijeni u odabranoj datoteci/mapi",
     "CMD_REPLACE_IN_SUBTREE"              : "Zamijeni u\u2026",
     
     // View menu commands
@@ -326,10 +331,11 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Prijelom teksta",
     "CMD_LIVE_HIGHLIGHT"                  : "Obilježi prikaz uživo",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Prekontroliraj datoteke prilikom spremanja",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortiraj po datumu",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortiraj po imenu",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortiraj po tipu",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatsko sortiranje",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Sortiraj po datumu",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Sortiraj po imenu",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sortiraj po tipu",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatsko sortiranje",
+    "CMD_THEMES"                          : "Teme\u2026",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigacija",
@@ -355,14 +361,13 @@ define({
     "CMD_HOW_TO_USE_BRACKETS"             : "Kako koristiti {APP_NAME}",
     "CMD_SUPPORT"                         : "{APP_NAME} Podrška (na engleskom)",
     "CMD_SUGGEST"                         : "Predloži mogućnost / značajku",
-    "CMD_FORUM"                           : "{APP_NAME} Forum",
     "CMD_RELEASE_NOTES"                   : "Bilješke o trenutnoj verziji",
     "CMD_GET_INVOLVED"                    : "Uključi se",
-    "CMD_REPORT_AN_ISSUE"                 : "Prijavi problem",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Prikaži direktorij sa ekstenzijama",
     "CMD_TWITTER"                         : "{TWITTER_NAME} na Twitteru",
     "CMD_ABOUT"                           : "O programu {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Otvori Preferencije",
+    "CMD_OPEN_KEYMAP"                     : "Otvori Svoje Postavke Tipki*",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentalna verzija",
@@ -381,7 +386,7 @@ define({
     "ABOUT_TEXT_WEB_PLATFORM_DOCS"         : "Web Platform Docs i Web Platform graphical logo su zaštićeni pod Creative Commons Attribution licencom, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Dostupna je nova verzija aplikacije {APP_NAME}! Kliknite ovdje za detalje.",
     "UPDATE_AVAILABLE_TITLE"               : "Novija verzija je dostupna",
-    "UPDATE_MESSAGE"                       : "Nova verzija aplikacije {APP_NAME} je dostupna. Ovo su neka od najnovijih izmjena:",
+    "UPDATE_MESSAGE"                       : "Nova verzija aplikacije {APP_NAME} je dostupna. Ovo su neke od najnovijih izmjena:",
     "GET_IT_NOW"                           : "Preuzmi sada!",
     "PROJECT_SETTINGS_TITLE"               : "Postavke projekta za: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Osnovna URL adresa za prikaz uživo",
@@ -391,6 +396,14 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Osnovna URL adresa ne smije sadržavati hasheve (hashes) poput \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Posebni znakovi kao '{0}' moraju biti %-enkodirani.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Nepoznata greška prilikom parsiranja osnovne URL adrese",
+    "EMPTY_VIEW_HEADER"                    : "<em>Otvori datoteku dok je ovaj panel u fokusu</em>",
+    
+    // Strings for themes-settings.html and themes-general.html
+    "CURRENT_THEME"                        : "Trenutna Tema",
+    "USE_THEME_SCROLLBARS"                 : "Koristi scrollbarove teme",
+    "FONT_SIZE"                            : "Veličina Fonta",
+    "FONT_FAMILY"                          : "Obitelj Fonta",
+    "THEMES_SETTINGS"                      : "Postavke Teme",
     
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Novo Pravilo",
@@ -399,6 +412,8 @@ define({
     "INSTALL"                              : "Instaliraj",
     "UPDATE"                               : "Obnovi",
     "REMOVE"                               : "Makni",
+    "DISABLE"                              : "Onemogući",
+    "ENABLE"                               : "Omogući",
     "OVERWRITE"                            : "Piši preko",
     "CANT_REMOVE_DEV"                      : "Extenzije u \"dev\" mapi moraju biti ručno obrisane.",
     "CANT_UPDATE"                          : "Novija verzija nije kompatibilna sa trenutnom verzijom aplikacije {APP_NAME}.",
@@ -433,12 +448,14 @@ define({
     "CANNOT_WRITE_TEMP"                    : "Nije moguće sačuvati preuzete podatke u privremenu datoteku.",
     "ERROR_LOADING"                        : "Extenzija je naišla na grešku prilikom pokretanja.",
     "MALFORMED_URL"                        : "URL nije valjan. Molimo provjerite da li ste ga unjeli točno.",
-    "UNSUPPORTED_PROTOCOL"                 : "URL mora biti http or https URL.",
+    "UNSUPPORTED_PROTOCOL"                 : "URL mora biti http ili https URL.",
     "UNKNOWN_ERROR"                        : "Nepoznata unutarnja greška.",
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Manager extenzija",
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Pristupanje registru extenzije nije moguće. Pokušajte kasnije.",
-    "INSTALL_FROM_URL"                     : "Instaliraj sa linka URL\u2026",
+    "INSTALL_EXTENSION_DRAG"               : "Dovuci .zip ovdje ili",
+    "INSTALL_EXTENSION_DROP"               : "Ispusti .zip da instaliraš",
+    "INSTALL_FROM_URL"                     : "Instaliraj sa URL linka\u2026",
     "EXTENSION_AUTHOR"                     : "Autor",
     "EXTENSION_DATE"                       : "Datum",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "Ova extenzija zahtjeva noviju verziju aplikacije {APP_NAME}.",
@@ -450,7 +467,7 @@ define({
     "EXTENSION_ERROR"                      : "Greška u extenziji",
     "EXTENSION_KEYWORDS"                   : "Ključne riječi",
     "EXTENSION_INSTALLED"                  : "Instalirano",
-    "EXTENSION_UPDATE_INSTALLED"           : "Ova verzija extenzije već je preuzeta i biti će instalirana nakon što se {APP_NAME} ponovo učita.",
+    "EXTENSION_UPDATE_INSTALLED"           : "Ova verzija extenzije već je preuzeta i bit će instalirana nakon što se {APP_NAME} ponovo učita.",
     "EXTENSION_SEARCH_PLACEHOLDER"         : "Traži",
     "EXTENSION_MORE_INFO_LINK"             : "Više",
     "BROWSE_EXTENSIONS"                    : "Pretraži Extenzije",
@@ -474,6 +491,7 @@ define({
     "REGISTRY_SANITY_CHECK_WARNING"        : "Budite oprezni prilikom instalacije extenzija koje potječu iz nepoznatih izvora.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Instalirano",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dostupno",
+    "EXTENSIONS_THEMES_TITLE"              : "Teme",
     "EXTENSIONS_UPDATES_TITLE"             : "Obnovljene verzije",
     
     "INLINE_EDITOR_NO_MATCHES"             : "Poklapanja nisu nađena.",
@@ -503,6 +521,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Zapiši u konzolu stanje Node-a",
     "CMD_RESTART_NODE"                          : "Ponovo pokreni Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Prikaži greške u statusnoj traci",
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Otvori Brackets Izvor",
     
     "LANGUAGE_TITLE"                            : "Promjeni Jezik",
     "LANGUAGE_MESSAGE"                          : "Jezik:",
@@ -528,7 +547,7 @@ define({
     
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Skoči na definiciju",
-    "CMD_SHOW_PARAMETER_HINT"                   : "Pokaži naznake (hintove) parametara*",
+    "CMD_SHOW_PARAMETER_HINT"                   : "Pokaži naznake (hintove) parametara",
     "NO_ARGUMENTS"                              : "<bez parametara>",
     
     // extensions/default/JSLint
@@ -541,7 +560,13 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Nedavni projekti",
     
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Pročitaj više"
+    "DOCS_MORE_LINK"                            : "Pročitaj više",
+    
+    // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Skupi Sve",
+    "EXPAND_ALL"                    : "Proširi Sve",
+    "COLLAPSE_CURRENT"              : "Skupi Trenutno",
+    "EXPAND_CURRENT"                : "Proširi Trenutno",
 });
 
 /* Last translated for a57bd8888da0b44f382e591c64b394b065178277 */

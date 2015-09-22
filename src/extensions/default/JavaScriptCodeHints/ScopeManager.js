@@ -36,7 +36,7 @@ define(function (require, exports, module) {
 
     var _ = brackets.getModule("thirdparty/lodash");
     
-    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror2/lib/codemirror"),
+    var CodeMirror          = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         DefaultDialogs      = brackets.getModule("widgets/DefaultDialogs"),
         Dialogs             = brackets.getModule("widgets/Dialogs"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
@@ -209,7 +209,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if in editor, false otherwise.
      */
     function isFileBeingEdited(filePath) {
-        var currentEditor   = EditorManager.getFocusedEditor(),
+        var currentEditor   = EditorManager.getActiveEditor(),
             currentDoc      = currentEditor && currentEditor.document;
 
         return (currentDoc && currentDoc.file.fullPath === filePath);
@@ -858,7 +858,8 @@ define(function (require, exports, module) {
              * @return {jQuery.Promise} - the Promise returned from DocumentMangaer.getDocumentText()
              */
             function getDocText(filePath) {
-                if (!FileSystem.isAbsolutePath(filePath)) {
+                if (!FileSystem.isAbsolutePath(filePath) || // don't handle URLs
+                        filePath.slice(0, 2) === "//") { // don't handle protocol-relative URLs like //example.com/main.js (see #10566)
                     return (new $.Deferred()).reject().promise();
                 }
                 

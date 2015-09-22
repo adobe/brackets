@@ -68,6 +68,25 @@ function init(domainManager) {
             }
         ]
     );
+    domainManager.registerCommand(
+        "testing",
+        "rename",
+        fs.rename,
+        true,
+        "Rename a file or directory.",
+        [
+            {
+                name: "src",
+                type: "string",
+                description: "source path"
+            },
+            {
+                name: "dest",
+                type: "string",
+                description: "destination path"
+            }
+        ]
+    );
 }
 
 exports.init = init;

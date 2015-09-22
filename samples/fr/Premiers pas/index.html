@@ -3,7 +3,7 @@
     
     <head>
         <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>PREMIERS PAS AVEC BRACKETS</title>
         <meta name="description" content="An interactive getting started guide for Brackets.">
         <link rel="stylesheet" href="main.css">
@@ -18,7 +18,7 @@
         -->
         
         <p>
-            Bienvenue dans cette version préliminaire de Brackets, le nouvel éditeur open source adapté au Web de demain. Nous attachons une grande importance aux normes et cherchons à créer des outils plus adaptés aux langages JavaScript, HTML et CSS ainsi qu’aux autres technologies du Web ouvert. Il s’agit là de notre modeste première contribution.
+            Bienvenue dans Brackets, un éditeur de code open source qui comprend et facilite la conception de sites web. Il s’agit d’un éditeur à la fois léger et puissant qui intègre des outils visuels directement dans son interface, de sorte que chaque opération peut devenir un véritable jeu d’enfant.
         </p>
         
         <!--
@@ -26,14 +26,23 @@
         -->
         <p>
             <em>Brackets se distingue des éditeurs traditionnels,</em>
-            notamment par son écriture en JavaScript, HTML et CSS.
-            Autrement dit, la plupart des utilisateurs de Brackets disposent des capacités nécessaires pour modifier et étendre l’éditeur.
-            En fait, nous utilisons Brackets tous les jours pour son propre développement. Brackets propose aussi des fonctionnalités uniques, comme l’Edition rapide ou l’Aperçu en direct, que vous ne trouverez pas forcément dans d’autres éditeurs.
-            Pour en savoir plus sur l’utilisation de ces fonctionnalités, poursuivez votre lecture.
+            notamment par ses fonctionnalités uniques, comme l’Edition rapide ou l’Aperçu en direct, que vous ne trouverez pas forcément dans d’autres éditeurs. Cerise sur le gâteau, Brackets est écrit en JavaScript, en HTML et en CSS. Autrement dit, la grande majorité des utilisateurs de Brackets est capable de modifier et d’étendre l’éditeur. En fait, nous utilisons Brackets tous les jours pour son propre développement. Pour en savoir plus sur l’utilisation de ses fonctionnalités centrales, poursuivez votre lecture.
         </p>
         
+        <!--
+            GET STARTED WITH YOUR OWN FILES
+        -->
         
-        <h2>Nous testons actuellement quelques nouveautés.</h2>
+        <h3>Projets Brackets</h3>
+        <p>
+            Pour éditer votre propre code à l’aide de l’application Brackets, il vous suffit d’ouvrir le dossier contenant vos fichiers.
+            Brackets traite le dossier ouvert en tant que « projet » ; ainsi, les fonctionnalités Indicateurs de code, Aperçu en direct ou encore Edition rapide s’appliquent uniquement aux fichiers du dossier ouvert.
+        </p>
+        
+        <samp>
+            Si vous vous sentez prêt à franchir le cap et à éditer votre propre code, fermez cet exemple de projet et utilisez la liste déroulante de la barre latérale de gauche pour changer de dossier. Pour le moment, la liste déroulante s’intitule « Prise en main », ce qui correspond au dossier dans lequel se trouve le fichier fictif sur lequel vous vous exercez actuellement. Cliquez sur la liste déroulante et sélectionnez « Ouvrir un dossier… » pour accéder à votre propre dossier.
+            Par la suite, vous pourrez tout à fait revenir aux dossiers précédemment ouverts, y compris cet exemple de projet, grâce à cette même liste déroulante.
+        </samp>
         
         <!--
             THE RELATIONSHIP BETWEEN HTML, CSS AND JAVASCRIPT
@@ -41,11 +50,11 @@
         <h3>Edition rapide des codes CSS et JavaScript</h3>
         <p>
             Vous ne risquez plus de perdre de vue le contexte en passant d’un document à un autre. Lorsque vous modifiez un fichier HTML, utilisez le raccourci <kbd>Cmd/Ctrl + E</kbd> pour ouvrir un éditeur rapide intégré qui affiche l’ensemble du code CSS associé.
-            Peaufinez votre CSS, puis appuyez sur <kbd>Echap</kbd> pour revenir au format HTML, ou laissez simplement les règles CSS ouvertes afin qu’elles deviennent partie intégrante de l’éditeur HTML. Si vous appuyez sur <kbd>Echap</kbd> en dehors d’un éditeur intégré rapide, tous les éditeurs sont réduits.
+            Peaufinez votre CSS, puis appuyez sur <kbd>Echap</kbd> pour revenir au format HTML, ou laissez simplement les règles CSS ouvertes afin qu’elles deviennent partie intégrante de l’éditeur HTML. Si vous appuyez sur <kbd>Echap</kbd> en dehors d’un éditeur intégré rapide, tous les éditeurs sont réduits. La fonction Edition rapide détecte également les règles définies dans les fichiers LESS et SCSS, y compris les règles imbriquées.
         </p>
-        
+
         <samp>
-            Une petite démonstration ? Placez le curseur de la souris sur la balise <!-- <samp> --> et tapez <kbd>Cmd/Ctrl + E</kbd>. Un éditeur rapide CSS apparaît en superposition, avec la règle CSS applicable. La fonction Edition rapide est également utilisable pour les attributs de classe et d’ID.
+            Une petite démonstration ? Placez le curseur de la souris sur la balise <!-- <samp> --> et tapez <kbd>Cmd/Ctrl + E</kbd>. Un éditeur rapide CSS apparaît en superposition, avec la règle CSS applicable. La fonction Edition rapide est également utilisable pour les attributs de classe et d’ID. Vous pouvez aussi vous en servir sur vos fichiers LESS et SCSS.
             
             Vous pouvez créer de nouvelles règles en procédant de la même manière. Cliquez sur l’une des balises <!-- <p> --> en haut du document et appuyez sur <kbd>Cmd/Ctrl + E</kbd>. Il n’existe aucune règle associée pour le moment, mais vous pouvez cliquer sur le bouton Nouvelle règle afin d’ajouter une règle pour <!-- <p> -->.
         </samp>
@@ -56,6 +65,8 @@
         
         <p>
             Vous pouvez utiliser le même raccourci pour éditer d’autres éléments, comme les fonctions dans JavaScript, les couleurs ou les fonctions de temporisation d’animation ; nous ajoutons sans cesse des nouveautés.
+        </p>
+        <p>
             Les éditeurs intégrés ne peuvent pas encore être imbriqués. Vous ne pouvez donc utiliser la fonction Edition rapide que lorsque le curseur se trouve dans un éditeur « plein écran ».
         </p>
         
@@ -80,7 +91,7 @@
             Si vous avez installé Google Chrome, vous pouvez dès maintenant tester cette fonctionnalité. Cliquez sur l’icône représentant un éclair en haut à droite de la fenêtre Brackets ou utilisez la combinaison <kbd>Cmd/Ctrl + Alt + P</kbd>. Lorsque le module Aperçu en direct est activé sur un document HTML, tous les documents CSS associés peuvent être modifiés en temps réel.
             L’icône passe du gris au doré une fois que Brackets a établi la connexion à votre navigateur.
             
-            Placez maintenant le curseur de la souris sur la balise <!-- <img> -->. Vous constatez qu’une surbrillance bleue apparaît tout autour de l’image dans Chrome. Utilisez ensuite la combinaison <kbd>Cmd/Ctrl + E</kbd> pour ouvrir les règles CSS définies.
+            Placez maintenant le curseur sur la balise <!-- <img> -->. Vous constatez qu’une surbrillance bleue apparaît tout autour de l’image dans Chrome. Utilisez ensuite la combinaison <kbd>Cmd/Ctrl + E</kbd> pour ouvrir les règles CSS définies.
             Essayez de faire passer l’épaisseur de la bordure de 10 px à 20 px, ou de remplacer la couleur d’arrière-plan « transparent » par « hotpink ». Si Brackets et votre navigateur s’exécutent côte à côte, ce dernier affiche immédiatement les modifications. Plutôt sympathique, non ?
         </samp>
         
@@ -99,18 +110,8 @@
         
         <h3>Vous en voulez plus ? Jetez un œil du côté des extensions !</h3>
         <p>
-            En plus de tous les atouts déjà intégrés à Brackets, notre communauté de développeurs, qui ne cesse de s’agrandir, a mis au point plus d’une centaine d’extensions qui offrent des fonctionnalités très pratiques. Si vous avez besoin d’une fonction qui ne se trouve pas dans Brackets, il est fort probable qu’un utilisateur ait créé l’extension qu’il vous faut. Pour parcourir la liste des extensions disponibles ou en rechercher une en particulier, cliquez sur <strong>Fichier &gt; Extension Manager</strong>, puis ouvrez l’onglet « Disponible ». Lorsque vous trouvez l’extension qui vous convient, il vous suffit de cliquer sur le bouton Installer correspondant.
+            En plus de tous les atouts déjà intégrés à Brackets, notre communauté de développeurs, qui ne cesse de s’agrandir, a mis au point des centaines d’extensions qui offrent des fonctionnalités très pratiques. Si vous avez besoin d’une fonction qui ne se trouve pas dans Brackets, il est fort probable qu’un utilisateur ait créé l’extension qu’il vous faut. Pour parcourir la liste des extensions disponibles ou en rechercher une en particulier, cliquez sur <strong>Fichier &gt; Gestionnaire d’extensions</strong>, puis ouvrez l’onglet « Disponible ». Lorsque vous trouvez l’extension qui vous convient, il vous suffit de cliquer sur le bouton Installer correspondant.
         </p>
-        
-        <h3>Projets Brackets</h3>
-        <p>
-            Pour éditer votre propre code à l’aide de l’application Brackets, il vous suffit d’ouvrir le dossier contenant vos fichiers. Brackets traite le dossier ouvert en tant que « projet » ; ainsi, les fonctionnalités Indicateurs de code, Aperçu en direct ou encore Edition rapide s’appliquent uniquement aux fichiers du dossier ouvert.
-        </p>
-        
-        <samp>
-            Si vous vous sentez prêt à franchir le cap et à éditer votre propre code, fermez cet exemple de projet et utilisez la liste déroulante de la barre latérale de gauche pour changer de dossier. Pour le moment, la liste déroulante s’intitule « Prise en main », ce qui correspond au dossier dans lequel se trouve le fichier fictif sur lequel vous vous exercez actuellement. Cliquez sur la liste déroulante et sélectionnez « Ouvrir un dossier… » pour accéder à votre propre dossier.
-            Par la suite, vous pourrez tout à fait revenir aux dossiers précédemment ouverts, y compris cet exemple de projet, grâce à cette même liste déroulante.
-        </samp>
         
         <!--
             LET US KNOW WHAT YOU THINK
@@ -127,31 +128,31 @@
             <li><a href="https://brackets-registry.aboutweb.com">Registre des extensions Brackets</a></li>
             <li><a href="https://github.com/adobe/brackets/wiki">Wiki Brackets</a></li>
             <li><a href="https://groups.google.com/forum/#!forum/brackets-dev">Liste de diffusion des développeurs Brackets</a></li>
-            <li><a href="https://twitter.com/brackets">@brackets sur Twitter</a></li>
-            <li>Discutez avec les développeurs de Brackets via IRC sur le canal <a href="http://webchat.freenode.net/?channels=brackets&uio=d4">#brackets du réseau Freenode</a>.</li>
+            <li><a href="https://twitter.com/brackets">@brackets on Twitter</a></li>
+            <li>Discutez avec les développeurs de Brackets via IRC sur <a href="http://webchat.freenode.net/?channels=brackets&uio=d4">#brackets on Freenode</a></li>
         </ul>
         
     </body>
 </html>
 <!--
 
-    [[[[[[[[[[[[[[[     ]]]]]]]]]]]]]]]
-    [::::::::::::::     ::::::::::::::]
-    [::::::::::::::     ::::::::::::::]
-    [::::::[[[[[[[:     :]]]]]]]::::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[    CODE THE WEB     ]:::::]
-    [:::::[  http://brackets.io ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [:::::[                     ]:::::]
-    [::::::[[[[[[[:     :]]]]]]]::::::]
-    [::::::::::::::     ::::::::::::::]
-    [::::::::::::::     ::::::::::::::]
-    [[[[[[[[[[[[[[[     ]]]]]]]]]]]]]]]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[     CODE THE WEB     ]:::::]
+    [:::::[  http://brackets.io  ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [:::::[                      ]:::::]
+    [::::::[[[[[[[:      :]]]]]]]::::::]
+    [::::::::::::::      ::::::::::::::]
+    [::::::::::::::      ::::::::::::::]
+    [[[[[[[[[[[[[[[      ]]]]]]]]]]]]]]]
 
 -->

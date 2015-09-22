@@ -39,4 +39,10 @@ define(function () {
         String.prototype.trimLeft = function () { return this.replace(/^\s+/, ""); };
     }
 
+    // Feature detection for Error.stack. Not all browsers expose it
+    // and Brackets assumes it will be a non-null string.
+    if (typeof (new Error()).stack === "undefined") {
+        Error.prototype.stack = "";
+    }
+
 });

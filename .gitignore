@@ -20,6 +20,9 @@ Thumbs.db
 
 /src/extensions/disabled
 
+# ignore .disabled file for default extensions
+/src/extensions/default/*/.disabled
+
 #OSX .DS_Store files
 .DS_Store
 
@@ -34,3 +37,4 @@ Thumbs.db
 
 # Files that can be automatically downloaded that we don't want to ship with our builds
 /src/extensibility/node/node_modules/request/tests/
+
