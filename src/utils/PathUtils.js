@@ -28,204 +28,207 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(function( window ){
+/*jslint regexp: true*/
+/*globals define*/
 
- var PathUtils = {
-	// This scary looking regular expression parses an absolute URL or its relative
-	// variants (protocol, site, document, query, and hash), into the various
-	// components (protocol, host, path, query, fragment, etc that make up the
-	// URL as well as some other commonly used sub-parts. When used with RegExp.exec()
-	// or String.match, it parses the URL into a results array that looks like this:
-	//
-	//     [0]: http://jblas:password@mycompany.com:8080/mail/inbox?msg=1234&type=unread#msg-content
-	//     [1]: http://jblas:password@mycompany.com:8080/mail/inbox?msg=1234&type=unread
-	//     [2]: http://jblas:password@mycompany.com:8080/mail/inbox
-	//     [3]: http://jblas:password@mycompany.com:8080
-	//     [4]: http:
-	//     [5]: //
-	//     [6]: jblas:password@mycompany.com:8080
-	//     [7]: jblas:password
-	//     [8]: jblas
-	//     [9]: password
-	//    [10]: mycompany.com:8080
-	//    [11]: mycompany.com
-	//    [12]: 8080
-	//    [13]: /mail/inbox
-	//    [14]: /mail/
-	//    [15]: inbox
-	//    [16]: ?msg=1234&type=unread
-	//    [17]: #msg-content
-	//
-	urlParseRE: /^(((([^:\/#\?]+:)?(?:(\/\/)((?:(([^:@\/#\?]+)(?:\:([^:@\/#\?]+))?)@)?(([^:\/#\?\]\[]+|\[[^\/\]@#?]+\])(?:\:([0-9]+))?))?)?)?((\/?(?:[^\/\?#]+\/+)*)([^\?#\.]*(?:\.[^\?#\.]+)*(\.[^\?#\.]+)|[^\?#]*)))?(\?[^#]+)?)(#.*)?/,
+define(function (require, exports, module) {
+    "use strict";
 
-	// These are the property names we set on the parsed url object. The order of the names
-	// in this array must match the order of the sub-matches in urlParseRE!
-	parsedUrlPropNames: [
-			"href",
-			"hrefNoHash",
-			"hrefNoSearch",
-			"domain",
-			"protocol",
-			"doubleSlash",
-			"authority",
-			"userinfo",
-			"username",
-			"password",
-			"host",
-			"hostname",
-			"port",
-			"pathname",
-			"directory",
-			"filename",
-			"filenameExtension",
-			"search",
-			"hash"
-	],
+    var PathUtils = {
+        // This scary looking regular expression parses an absolute URL or its relative
+        // variants (protocol, site, document, query, and hash), into the various
+        // components (protocol, host, path, query, fragment, etc that make up the
+        // URL as well as some other commonly used sub-parts. When used with RegExp.exec()
+        // or String.match, it parses the URL into a results array that looks like this:
+        //
+        //     [0]: http://jblas:password@mycompany.com:8080/mail/inbox?msg=1234&type=unread#msg-content
+        //     [1]: http://jblas:password@mycompany.com:8080/mail/inbox?msg=1234&type=unread
+        //     [2]: http://jblas:password@mycompany.com:8080/mail/inbox
+        //     [3]: http://jblas:password@mycompany.com:8080
+        //     [4]: http:
+        //     [5]: //
+        //     [6]: jblas:password@mycompany.com:8080
+        //     [7]: jblas:password
+        //     [8]: jblas
+        //     [9]: password
+        //    [10]: mycompany.com:8080
+        //    [11]: mycompany.com
+        //    [12]: 8080
+        //    [13]: /mail/inbox
+        //    [14]: /mail/
+        //    [15]: inbox
+        //    [16]: ?msg=1234&type=unread
+        //    [17]: #msg-content
+        //
+        urlParseRE: /^(((([^:\/#\?]+:)?(?:(\/\/)((?:(([^:@\/#\?]+)(?:\:([^:@\/#\?]+))?)@)?(([^:\/#\?\]\[]+|\[[^\/\]@#?]+\])(?:\:([0-9]+))?))?)?)?((\/?(?:[^\/\?#]+\/+)*)([^\?#\.]*(?:\.[^\?#\.]+)*(\.[^\?#\.]+)|[^\?#]*)))?(\?[^#]+)?)(#.*)?/,
 
-	defaultPorts: { http: "80", https: "443", ftp: "20", ftps: "990" },
+        // These are the property names we set on the parsed url object. The order of the names
+        // in this array must match the order of the sub-matches in urlParseRE!
+        parsedUrlPropNames: [
+            "href",
+            "hrefNoHash",
+            "hrefNoSearch",
+            "domain",
+            "protocol",
+            "doubleSlash",
+            "authority",
+            "userinfo",
+            "username",
+            "password",
+            "host",
+            "hostname",
+            "port",
+            "pathname",
+            "directory",
+            "filename",
+            "filenameExtension",
+            "search",
+            "hash"
+        ],
 
-	parseUrl: function( url ) {
+        defaultPorts: { http: "80", https: "443", ftp: "20", ftps: "990" },
 
-		// If we're passed an object, we'll assume that it is
-		// a parsed url object and just return it back to the caller.
-		if ( url && typeof url === "object" ) {
-			return url;
-		}
+        parseUrl: function (url) {
 
-		var matches = PathUtils.urlParseRE.exec( url || "" ) || [],
-			props = PathUtils.parsedUrlPropNames,
-			cnt = props.length,
-			result = {},
-			i;
-	
-		for ( i = 0; i < cnt; i++ ) {
-			// Most browsers returns an empty string for empty sub-matches, but
-			// IE returns undefined, so we need to make sure we normalize empty
-			// sub-matches so results are consistent across all browsers.
-	
-			result[ props[ i ] ] = matches[ i ] || "";
-		}
+            // If we're passed an object, we'll assume that it is
+            // a parsed url object and just return it back to the caller.
+            if (url && typeof url === "object") {
+                return url;
+            }
 
-		return result;
-	},
+            var matches = PathUtils.urlParseRE.exec(url || "") || [],
+                props = PathUtils.parsedUrlPropNames,
+                cnt = props.length,
+                result = {},
+                i;
 
-	port: function( url ) {
-		var u = PathUtils.parseUrl( url );
-		return u.port || PathUtils.defaultPorts[u.protocol];
-	},
+            for (i = 0; i < cnt; i++) {
+                // Most browsers returns an empty string for empty sub-matches, but
+                // IE returns undefined, so we need to make sure we normalize empty
+                // sub-matches so results are consistent across all browsers.
 
-	isSameDomain: function( absUrl1, absUrl2 ) {
-		return PathUtils.parseUrl( absUrl1 ).domain === PathUtils.parseUrl( absUrl2 ).domain;
-	},
+                result[props[i]] = matches[i] || "";
+            }
 
-	//Returns true for any relative variant.
-	isRelativeUrl: function( url ) {
-		// All relative Url variants have one thing in common, no protocol.
-		return PathUtils.parseUrl( url ).protocol === "";
-	},
+            return result;
+        },
 
-	//Returns true for an absolute url.
-	isAbsoluteUrl: function( url ) {
-		return PathUtils.parseUrl( url ).protocol !== "";
-	},
+        port: function (url) {
+            var u = PathUtils.parseUrl(url);
+            return u.port || PathUtils.defaultPorts[u.protocol];
+        },
 
-	// Turn relPath into an asbolute path. absPath is
-	// an optional absolute path which describes what
-	// relPath is relative to.
+        isSameDomain: function (absUrl1, absUrl2) {
+            return PathUtils.parseUrl(absUrl1).domain === PathUtils.parseUrl(absUrl2).domain;
+        },
 
-	makePathAbsolute: function( relPath, absPath ) {
-		if ( relPath && relPath.charAt( 0 ) === "/" ) {
-			return relPath;
-		}
+        //Returns true for any relative variant.
+        isRelativeUrl: function (url) {
+            // All relative Url variants have one thing in common, no protocol.
+            return PathUtils.parseUrl(url).protocol === "";
+        },
 
-		relPath = relPath || "";
-		absPath = absPath ? absPath.replace( /^\/|(\/[^\/]*|[^\/]+)$/g, "" ) : "";
+        //Returns true for an absolute url.
+        isAbsoluteUrl: function (url) {
+            return PathUtils.parseUrl(url).protocol !== "";
+        },
 
-		var absStack = absPath ? absPath.split( "/" ) : [],
-			relStack = relPath.split( "/" );
-		for ( var i = 0; i < relStack.length; i++ ) {
-			var d = relStack[ i ];
-			switch ( d ) {
-				case ".":
-					break;
-				case "..":
-					if ( absStack.length ) {
-						absStack.pop();
-					}
-					break;
-				default:
-					absStack.push( d );
-					break;
-			}
-		}
-		return "/" + absStack.join( "/" );
-	},
+        // Turn relPath into an asbolute path. absPath is
+        // an optional absolute path which describes what
+        // relPath is relative to.
 
-	// Turn absolute pathA into a path that is
-	// relative to absolute pathB.
+        makePathAbsolute: function (relPath, absPath) {
+            if (relPath && relPath.charAt(0) === "/") {
+                return relPath;
+            }
 
-	makePathRelative: function( pathA, pathB ) {
-		// Remove any file reference in the path.
-		pathB = pathB ? pathB.replace( /^\/|\/?[^\/]*$/g, "" ) : "";
-		pathA = pathA ? pathA.replace( /^\//, "" ) : "";
+            relPath = relPath || "";
+            absPath = absPath ? absPath.replace(/^\/|(\/[^\/]*|[^\/]+)$/g, "") : "";
 
-		var stackB = pathB ? pathB.split( "/" ) : [],
-			stackA = pathA.split( "/" ),
-			stackC = [],
-			len = stackB.length,
-			upLevel = false,
-			startIndex = 0;
+            var absStack = absPath ? absPath.split("/") : [],
+                relStack = relPath.split("/"),
+                i;
+            for (i = 0; i < relStack.length; i++) {
+                var d = relStack[i];
+                switch (d) {
+                case ".":
+                    break;
+                case "..":
+                    if (absStack.length) {
+                        absStack.pop();
+                    }
+                    break;
+                default:
+                    absStack.push(d);
+                    break;
+                }
+            }
+            return "/" + absStack.join("/");
+        },
 
-		for ( var i = 0; i < len; i++ ) {
-			upLevel = upLevel || stackA[ 0 ] !== stackB[ i ];
-			if ( upLevel ) {
-				stackC.push( ".." );
-			} else {
-				stackA.shift();
-			}
-		}
-		return stackC.concat( stackA ).join( "/" );
-	},
+        // Turn absolute pathA into a path that is
+        // relative to absolute pathB.
 
-	// Turn any relative URL variant into an absolute URL.
+        makePathRelative: function (pathA, pathB) {
+            // Remove any file reference in the path.
+            pathB = pathB ? pathB.replace(/^\/|\/?[^\/]*$/g, "") : "";
+            pathA = pathA ? pathA.replace(/^\//, "") : "";
 
-	makeUrlAbsolute: function( relUrl, absUrl ) {
-		if ( !PathUtils.isRelativeUrl( relUrl ) ) {
-			return relUrl;
-		}
+            var stackB = pathB ? pathB.split("/") : [],
+                stackA = pathA.split("/"),
+                stackC = [],
+                len = stackB.length,
+                upLevel = false,
+                i;
 
-		var relObj = PathUtils.parseUrl( relUrl ),
-			absObj = PathUtils.parseUrl( absUrl ),
-			protocol = relObj.protocol || absObj.protocol,
-			doubleSlash = relObj.protocol ? relObj.doubleSlash : ( relObj.doubleSlash || absObj.doubleSlash ),
-			authority = relObj.authority || absObj.authority,
-			hasPath = relObj.pathname !== "",
-			pathname = PathUtils.makePathAbsolute( relObj.pathname || absObj.filename, absObj.pathname ),
-			search = relObj.search || ( !hasPath && absObj.search ) || "",
-			hash = relObj.hash;
+            for (i = 0; i < len; i++) {
+                upLevel = upLevel || stackA[0] !== stackB[i];
+                if (upLevel) {
+                    stackC.push("..");
+                } else {
+                    stackA.shift();
+                }
+            }
+            return stackC.concat(stackA).join("/");
+        },
 
-		return protocol + doubleSlash + authority + pathname + search + hash;
-	}
-};
+        // Turn any relative URL variant into an absolute URL.
 
-// For every parsedUrlPropName, make sure there is a getter function defined on the PathUtils object.
+        makeUrlAbsolute: function (relUrl, absUrl) {
+            if (!PathUtils.isRelativeUrl(relUrl)) {
+                return relUrl;
+            }
 
-function getterFunc( propName )
-{
-	return function( url ){
-		return PathUtils.parseUrl( url )[ propName ];
-	}
-}
+            var relObj = PathUtils.parseUrl(relUrl),
+                absObj = PathUtils.parseUrl(absUrl),
+                protocol = relObj.protocol || absObj.protocol,
+                doubleSlash = relObj.protocol ? relObj.doubleSlash : (relObj.doubleSlash || absObj.doubleSlash),
+                authority = relObj.authority || absObj.authority,
+                hasPath = relObj.pathname !== "",
+                pathname = PathUtils.makePathAbsolute(relObj.pathname || absObj.filename, absObj.pathname),
+                search = relObj.search || (!hasPath && absObj.search) || "",
+                hash = relObj.hash;
 
-var i, prop, props = PathUtils.parsedUrlPropNames, cnt = props.length;
-for ( i = 0; i < cnt; i++ ) {
-	prop = props[ i ];
-	if ( !PathUtils[ prop ] ) {
-		PathUtils[ prop ] = getterFunc( prop );
-	}
-}
+            return protocol + doubleSlash + authority + pathname + search + hash;
+        }
+    };
 
-// Expose PathUtils to the world.
-window.PathUtils = PathUtils;
+    // For every parsedUrlPropName, make sure there is a getter function defined on the PathUtils object.
 
-})( window );
+    function getterFunc(propName) {
+        return function (url) {
+            return PathUtils.parseUrl(url)[propName];
+        };
+    }
+
+    var i, prop, props = PathUtils.parsedUrlPropNames, cnt = props.length;
+    for (i = 0; i < cnt; i++) {
+        prop = props[i];
+        if (!PathUtils[prop]) {
+            PathUtils[prop] = getterFunc(prop);
+        }
+    }
+
+    // Expose PathUtils to the world.
+    module.exports = exports = PathUtils;
+});

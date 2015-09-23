@@ -21,7 +21,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window */
+/*global define, brackets, $ */
 
 
 define(function (require, exports, module) {
@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
+        PathUtils           = brackets.getModule("utils/PathUtils"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
         Strings             = brackets.getModule("strings"),
         Data                = require("text!data.json"),
@@ -80,7 +81,7 @@ define(function (require, exports, module) {
         docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
         
         // get relative path from query string
-        queryUrl = window.PathUtils.parseUrl(query.queryStr);
+        queryUrl = PathUtils.parseUrl(query.queryStr);
         if (queryUrl) {
             queryDir = queryUrl.directory;
         }

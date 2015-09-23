@@ -24,7 +24,7 @@
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true,
 indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils */
+/*global define, $, brackets */
 
 /**
  * Functions for working with extension packages
@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         Strings              = require("strings"),
         ExtensionLoader      = require("utils/ExtensionLoader"),
         NodeConnection       = require("utils/NodeConnection"),
+        PathUtils            = require("utils/PathUtils"),
         PreferencesManager   = require("preferences/PreferencesManager");
     
     PreferencesManager.definePreference("proxy", "string", undefined, {
