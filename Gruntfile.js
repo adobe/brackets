@@ -111,6 +111,7 @@ module.exports = function (grunt) {
                             'dependencies.js',
                             'thirdparty/requirejs/require.js',
                             'thirdparty/slowparse/locale/*',
+                            'thirdparty/github-markdown.css',
                             'LiveDevelopment/launch.html',
                             'LiveDevelopment/MultiBrowserImpl/transports/**',
                             'LiveDevelopment/MultiBrowserImpl/launchers/**',
