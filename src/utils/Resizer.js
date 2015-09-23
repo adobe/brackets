@@ -61,12 +61,13 @@ define(function (require, exports, module) {
     // Load dependent modules
     var AppInit                 = require("utils/AppInit"),
         EventDispatcher         = require("utils/EventDispatcher"),
+        viewUtils               = require("utils/ViewUtils"),
         PreferencesManager      = require("preferences/PreferencesManager");
     
     var $mainView;
     
     var isResizing = false;
-    
+
     /**
      * Shows a resizable element.
      * @param {DOMNode} element Html element to show if possible
@@ -222,6 +223,10 @@ define(function (require, exports, module) {
             
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
+
+        if (PreferencesManager.get("pureCode")) {
+            elementPrefs.visible = false;
+        }
 
         if (!elementID) {
             console.error("Resizable panels must have a DOM id to use as a preferences key:", element);
@@ -527,6 +532,11 @@ define(function (require, exports, module) {
                 makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, minSize, $(element).hasClass("collapsible"), $(element).data().forceleft);
             }
         });
+
+        // The main toolbar is only collapsible.
+        if ($("#main-toolbar").hasClass("collapsible") && PreferencesManager.get("pureCode")) {
+            viewUtils.hideMainToolBar();
+        }
     });
     
     /**

@@ -28,8 +28,12 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _               = require("thirdparty/lodash"),
-        LanguageManager = require("language/LanguageManager");
+    var _                   = require("thirdparty/lodash"),
+        LanguageManager     = require("language/LanguageManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        Strings             = require("strings");
     
     var SCROLL_SHADOW_HEIGHT = 5;
     
@@ -501,14 +505,44 @@ define(function (require, exports, module) {
         return null;
     }
     
+    function hideMainToolBar() {
+        $("#main-toolbar").addClass("forced-hidden");
+        $(".main-view .content").each(function (index, element) {
+            $(element).addClass("force-right-zero");
+        });
+    }
+
+    function showMainToolBar() {
+        $("#main-toolbar").removeClass("forced-hidden");
+        $(".main-view .content").each(function (index, element) {
+            $(element).removeClass("force-right-zero");
+        });
+    }
+
     // handle all resize handlers in a single listener
     $(window).resize(_handleResize);
+
+    PreferencesManager.definePreference("pureCode", "boolean", false, {
+        description: Strings.DESCRIPTION_PURE_CODING_SURFACE
+    });
+
+    PreferencesManager.on("change", "pureCode", function () {
+        if (PreferencesManager.get("pureCode")) {
+            hideMainToolBar();
+            CommandManager.execute(Commands.HIDE_SIDEBAR);
+        } else {
+            showMainToolBar();
+            CommandManager.execute(Commands.SHOW_SIDEBAR);
+        }
+    });
 
     // Define public API
     exports.SCROLL_SHADOW_HEIGHT         = SCROLL_SHADOW_HEIGHT;
     exports.addScrollerShadow            = addScrollerShadow;
     exports.removeScrollerShadow         = removeScrollerShadow;
     exports.sidebarList                  = sidebarList;
+    exports.showMainToolBar              = showMainToolBar;
+    exports.hideMainToolBar              = hideMainToolBar;
     exports.scrollElementIntoView        = scrollElementIntoView;
     exports.getElementClipSize           = getElementClipSize;
     exports.getFileEntryDisplay          = getFileEntryDisplay;

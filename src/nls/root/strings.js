@@ -380,6 +380,7 @@ define({
     "VIEW_MENU"                           : "View",
     "CMD_HIDE_SIDEBAR"                    : "Hide Sidebar",
     "CMD_SHOW_SIDEBAR"                    : "Show Sidebar",
+    "CMD_TOGGLE_SIDEBAR"                  : "Toggle Sidebar",
     "CMD_INCREASE_FONT_SIZE"              : "Increase Font Size",
     "CMD_DECREASE_FONT_SIZE"              : "Decrease Font Size",
     "CMD_RESTORE_FONT_SIZE"               : "Restore Font Size",
@@ -768,5 +769,6 @@ define({
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false to disable opening preferences file in split view",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false to open user preferences file in left/top pane",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported\n * by {APP_NAME}.\n * Use this file as a reference to modify your preferences\n * file \"brackets.json\" opened in the other pane.\n * For more information on how to use preferences inside\n * {APP_NAME}, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
-    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default"
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default",
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable Code view only mode, Every other UI element in brackets will be hidden"
 });
