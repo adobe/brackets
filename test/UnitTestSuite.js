@@ -73,6 +73,7 @@ define(function (require, exports, module) {
     require("spec/NativeMenu-test");
     require("spec/NodeConnection-test");
     require("spec/Pane-test");
+    require("spec/PathUtils-test");
     require("spec/PreferencesBase-test");
     require("spec/PreferencesManager-test");
     require("spec/ProjectManager-test");

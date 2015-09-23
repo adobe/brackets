@@ -62,7 +62,6 @@
         "define": false,
         "brackets": false,
         "$": false,
-        "PathUtils": false,
         "window": false,
         "navigator": false,
         "Mustache": false
