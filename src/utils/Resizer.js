@@ -62,7 +62,10 @@ define(function (require, exports, module) {
     var AppInit                 = require("utils/AppInit"),
         EventDispatcher         = require("utils/EventDispatcher"),
         viewUtils               = require("utils/ViewUtils"),
-        PreferencesManager      = require("preferences/PreferencesManager");
+        PreferencesManager      = require("preferences/PreferencesManager"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        Strings             = require("strings");
     
     var $mainView;
     
@@ -557,6 +560,20 @@ define(function (require, exports, module) {
     
     PreferencesManager.convertPreferences(module, {"panelState": "user"}, true, _isPanelPreferences);
     
+    PreferencesManager.definePreference("pureCode", "boolean", false, {
+        description: Strings.DESCRIPTION_PURE_CODING_SURFACE
+    });
+
+    PreferencesManager.on("change", "pureCode", function () {
+        if (PreferencesManager.get("pureCode")) {
+            viewUtils.hideMainToolBar();
+            CommandManager.execute(Commands.HIDE_SIDEBAR);
+        } else {
+            viewUtils.showMainToolBar();
+            CommandManager.execute(Commands.SHOW_SIDEBAR);
+        }
+    });
+
     EventDispatcher.makeEventDispatcher(exports);
     
     exports.makeResizable   = makeResizable;

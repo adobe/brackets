@@ -29,11 +29,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var _                   = require("thirdparty/lodash"),
-        LanguageManager     = require("language/LanguageManager"),
-        PreferencesManager  = require("preferences/PreferencesManager"),
-        CommandManager      = require("command/CommandManager"),
-        Commands            = require("command/Commands"),
-        Strings             = require("strings");
+        LanguageManager     = require("language/LanguageManager");
     
     var SCROLL_SHADOW_HEIGHT = 5;
     
@@ -521,20 +517,6 @@ define(function (require, exports, module) {
 
     // handle all resize handlers in a single listener
     $(window).resize(_handleResize);
-
-    PreferencesManager.definePreference("pureCode", "boolean", false, {
-        description: Strings.DESCRIPTION_PURE_CODING_SURFACE
-    });
-
-    PreferencesManager.on("change", "pureCode", function () {
-        if (PreferencesManager.get("pureCode")) {
-            hideMainToolBar();
-            CommandManager.execute(Commands.HIDE_SIDEBAR);
-        } else {
-            showMainToolBar();
-            CommandManager.execute(Commands.SHOW_SIDEBAR);
-        }
-    });
 
     // Define public API
     exports.SCROLL_SHADOW_HEIGHT         = SCROLL_SHADOW_HEIGHT;
