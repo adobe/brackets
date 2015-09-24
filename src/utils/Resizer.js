@@ -54,6 +54,7 @@ define(function (require, exports, module) {
     var POSITION_BOTTOM = "bottom";
     var POSITION_LEFT = "left";
     var POSITION_RIGHT = "right";
+    var PREFS_PURE_CODE = "pureCode";
 	
     // Minimum size (height or width) for autodiscovered resizable panels
     var DEFAULT_MIN_SIZE = 100;
@@ -62,10 +63,7 @@ define(function (require, exports, module) {
     var AppInit                 = require("utils/AppInit"),
         EventDispatcher         = require("utils/EventDispatcher"),
         viewUtils               = require("utils/ViewUtils"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        CommandManager      = require("command/CommandManager"),
-        Commands            = require("command/Commands"),
-        Strings             = require("strings");
+        PreferencesManager      = require("preferences/PreferencesManager");
     
     var $mainView;
     
@@ -227,7 +225,7 @@ define(function (require, exports, module) {
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
 
-        if (PreferencesManager.get("pureCode")) {
+        if (PreferencesManager.get(PREFS_PURE_CODE)) {
             elementPrefs.visible = false;
         }
 
@@ -537,7 +535,7 @@ define(function (require, exports, module) {
         });
 
         // The main toolbar is only collapsible.
-        if ($("#main-toolbar").hasClass("collapsible") && PreferencesManager.get("pureCode")) {
+        if ($("#main-toolbar").hasClass("collapsible") && PreferencesManager.get(PREFS_PURE_CODE)) {
             viewUtils.hideMainToolBar();
         }
     });
@@ -557,22 +555,8 @@ define(function (require, exports, module) {
         
         return null;
     }
-    
-    PreferencesManager.convertPreferences(module, {"panelState": "user"}, true, _isPanelPreferences);
-    
-    PreferencesManager.definePreference("pureCode", "boolean", false, {
-        description: Strings.DESCRIPTION_PURE_CODING_SURFACE
-    });
 
-    PreferencesManager.on("change", "pureCode", function () {
-        if (PreferencesManager.get("pureCode")) {
-            viewUtils.hideMainToolBar();
-            CommandManager.execute(Commands.HIDE_SIDEBAR);
-        } else {
-            viewUtils.showMainToolBar();
-            CommandManager.execute(Commands.SHOW_SIDEBAR);
-        }
-    });
+    PreferencesManager.convertPreferences(module, {"panelState": "user"}, true, _isPanelPreferences);
 
     EventDispatcher.makeEventDispatcher(exports);
     
