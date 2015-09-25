@@ -33,7 +33,8 @@ define(function (require, exports, module) {
         Strings             = brackets.getModule("strings"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         ViewUtils           = brackets.getModule("utils/ViewUtils"),
-        KeyBindingManager   = brackets.getModule("command/KeyBindingManager");
+        KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
+        WorkspaceManager    = brackets.getModule("view/WorkspaceManager");
 
     // Constants
     var PREFS_PURE_CODE           = "noDistractions",
@@ -42,6 +43,9 @@ define(function (require, exports, module) {
     //key biding keys
     var togglePureCodeKey         = "Ctrl-Shift-`",
         togglePureCodeKeyMac      = "Cmd-Shift-`";
+
+    //locals
+    var _previouslyOpenPanelIDs = [];
 
     /**
      * @private
@@ -58,6 +62,33 @@ define(function (require, exports, module) {
         PreferencesManager.set(PREFS_PURE_CODE, !PreferencesManager.get(PREFS_PURE_CODE));
     }
 
+    /**
+     * hide all open panels
+     */
+    function _hidePanlesIfRequired() {
+        var panelIDs = WorkspaceManager.getAllPanelIDs(), i = 0;
+        _previouslyOpenPanelIDs = [];
+        for (i = 0; i < panelIDs.length; i++) {
+            if (WorkspaceManager.getPanelForID(panelIDs[i]).isVisible()) {
+                WorkspaceManager.getPanelForID(panelIDs[i]).hide();
+                _previouslyOpenPanelIDs.push(panelIDs[i]);
+            }
+        }
+    }
+
+    /**
+     * show all open panels that was previously hidden by _hidePanlesIfRequired()
+     */
+    function _showPanlesIfRequired() {
+        var panelIDs = _previouslyOpenPanelIDs, i = 0;
+        for (i = 0; i < panelIDs.length; i++) {
+            if (WorkspaceManager.getPanelForID(panelIDs[i])) {
+                WorkspaceManager.getPanelForID(panelIDs[i]).show();
+            }
+        }
+        _previouslyOpenPanelIDs = [];
+    }
+
     PreferencesManager.definePreference(PREFS_PURE_CODE, "boolean", false, {
         description: Strings.DESCRIPTION_PURE_CODING_SURFACE
     });
@@ -66,9 +97,11 @@ define(function (require, exports, module) {
         if (PreferencesManager.get(PREFS_PURE_CODE)) {
             ViewUtils.hideMainToolBar();
             CommandManager.execute(Commands.HIDE_SIDEBAR);
+            _hidePanlesIfRequired();
         } else {
             ViewUtils.showMainToolBar();
             CommandManager.execute(Commands.SHOW_SIDEBAR);
+            _showPanlesIfRequired();
         }
         _updateCheckedState();
     });

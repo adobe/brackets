@@ -56,6 +56,11 @@ define(function (require, exports, module) {
     var $editorHolder;
     
     /** 
+     * A map from panel ID's to all reated panels
+     */
+    var panelIDMap = {};
+
+    /**
      * Have we already started listening for the end of the ongoing window resize? 
      * @type {boolean} 
      */
@@ -221,9 +226,33 @@ define(function (require, exports, module) {
         $panel.hide();
         updateResizeLimits();  // initialize panel's max size
         
-        return new Panel($panel, minSize);
+        panelIDMap[id] = new Panel($panel, minSize);
+
+        return panelIDMap[id];
     }
     
+    /**
+     * Returns an array of all panel ID's
+     * @returns {Array} List of ID's of all bottom panels
+     */
+    function getAllPanelIDs() {
+        var property, panelIDs = [];
+        for (property in panelIDMap) {
+            if (panelIDMap.hasOwnProperty(property)) {
+                panelIDs.push(property);
+            }
+        }
+        return panelIDs;
+    }
+
+    /**
+     * Gets the Panel interface for the given ID. Can return undefined if no panel with the ID is found.
+     * @param   {string} panelID
+     * @returns {Object} Panel object for the ID or undefined
+     */
+    function getPanelForID(panelID) {
+        return panelIDMap[panelID];
+    }
     
     /**
      * Called when an external widget has appeared and needs some of the space occupied 
@@ -263,5 +292,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.createBottomPanel    = createBottomPanel;
     exports.recomputeLayout      = recomputeLayout;
+    exports.getAllPanelIDs       = getAllPanelIDs;
+    exports.getPanelForID        = getPanelForID;
     exports._setMockDOM          = _setMockDOM;
 });
