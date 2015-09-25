@@ -381,7 +381,7 @@ define({
     "CMD_HIDE_SIDEBAR"                    : "Hide Sidebar",
     "CMD_SHOW_SIDEBAR"                    : "Show Sidebar",
     "CMD_TOGGLE_SIDEBAR"                  : "Toggle Sidebar",
-    "CMD_TOGGLE_PURE_CODE"                : "Pure Code",
+    "CMD_TOGGLE_PURE_CODE"                : "No Distractions",
     "CMD_INCREASE_FONT_SIZE"              : "Increase Font Size",
     "CMD_DECREASE_FONT_SIZE"              : "Decrease Font Size",
     "CMD_RESTORE_FONT_SIZE"               : "Restore Font Size",

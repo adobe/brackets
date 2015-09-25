@@ -36,7 +36,7 @@ define(function (require, exports, module) {
         KeyBindingManager   = brackets.getModule("command/KeyBindingManager");
 
     // Constants
-    var PREFS_PURE_CODE           = "pureCode",
+    var PREFS_PURE_CODE           = "noDistractions",
         CMD_TOGGLE_PURE_CODE      = "view.togglePureCode";
 
     //key biding keys

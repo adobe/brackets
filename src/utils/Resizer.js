@@ -54,7 +54,7 @@ define(function (require, exports, module) {
     var POSITION_BOTTOM = "bottom";
     var POSITION_LEFT = "left";
     var POSITION_RIGHT = "right";
-    var PREFS_PURE_CODE = "pureCode";
+    var PREFS_PURE_CODE = "noDistractions";
 	
     // Minimum size (height or width) for autodiscovered resizable panels
     var DEFAULT_MIN_SIZE = 100;
