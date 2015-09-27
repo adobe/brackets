@@ -159,16 +159,32 @@ define(function (require, exports, module) {
         EventDispatcher     = require("utils/EventDispatcher"),
         FileSystem          = require("filesystem/FileSystem"),
         InMemoryFile        = require("document/InMemoryFile"),
+        //WorkingSetView      = require("project/WorkingSetView"),
         ViewStateManager    = require("view/ViewStateManager"),
         MainViewManager     = require("view/MainViewManager"),
         DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         ViewUtils           = require("utils/ViewUtils"),
         ProjectManager      = require("project/ProjectManager"),
         paneTemplate        = require("text!htmlContent/pane.html");
     
+    /**
+     * Internal pane id
+     * @const
+     * @private
+     */
+    var FIRST_PANE          = "first-pane";
+
+    /**
+     * Internal pane id
+     * @const
+     * @private
+     */
+    var SECOND_PANE         = "second-pane";
+
     /**
      * Make an index request object
      * @param {boolean} requestIndex - true to request an index, false if not
@@ -200,11 +216,29 @@ define(function (require, exports, module) {
         var self = this,
             $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id),
             $header  = $el.find(".pane-header"),
+            $headerText = $header.find(".pane-header-text"),
+            $headerFlipViewBtn = $header.find(".pane-header-flipview-btn"),
             $content = $el.find(".pane-content");
         
         $el.on("focusin.pane", function (e) {
             self._lastFocusedElement = e.target;
         });
+
+        // Flips the current file to the other pane when clicked
+        $headerFlipViewBtn.on("click.pane", function (e) {
+            var currentFile = self.getCurrentlyViewedFile();
+            var otherPaneId = self.id === FIRST_PANE ? SECOND_PANE : FIRST_PANE;
+            var otherPane = MainViewManager._getPane(otherPaneId);
+
+            MainViewManager._moveView(self.id, otherPaneId, currentFile).always(function () {
+                CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
+                                                            paneId: otherPaneId}).always(function () {
+                    otherPane.trigger("viewListChange");
+                    self.trigger("viewListChange");
+                });
+            });
+        });
+
 
         this._lastFocusedElement = $el[0];
         
@@ -230,6 +264,24 @@ define(function (require, exports, module) {
         Object.defineProperty(this,  "$header", {
             get: function () {
                 return $header;
+            },
+            set: function () {
+                console.error("cannot change the DOM node of a working pane");
+            }
+        });
+
+        Object.defineProperty(this,  "$headerText", {
+            get: function () {
+                return $headerText;
+            },
+            set: function () {
+                console.error("cannot change the DOM node of a working pane");
+            }
+        });
+
+        Object.defineProperty(this,  "$headerFlipViewBtn", {
+            get: function () {
+                return $headerFlipViewBtn;
             },
             set: function () {
                 console.error("cannot change the DOM node of a working pane");
@@ -264,6 +316,7 @@ define(function (require, exports, module) {
         MainViewManager.on(this._makeEventName("workingSetRemove"), _.bind(this.updateHeaderText, this));
         MainViewManager.on(this._makeEventName("workingSetAddList"), _.bind(this.updateHeaderText, this));
         MainViewManager.on(this._makeEventName("workingSetRemoveList"), _.bind(this.updateHeaderText, this));
+        MainViewManager.on(this._makeEventName("paneLayoutChange"), _.bind(this.updateFlipViewIcon, this));
     }
     EventDispatcher.makeEventDispatcher(Pane.prototype);
 
@@ -289,12 +342,26 @@ define(function (require, exports, module) {
     Pane.prototype.$el = null;
   
     /**
-     * the wrapped DOM node that contains name of current view, or informational string if there is no view
+     * the wrapped DOM node container that contains name of current view and the switch view button, or informational string if there is no view
      * @readonly
      * @type {JQuery}
      */
     Pane.prototype.$header = null;
-  
+
+    /**
+     * the wrapped DOM node that contains name of current view, or informational string if there is no view
+     * @readonly
+     * @type {JQuery}
+     */
+    Pane.prototype.$headerText = null;
+
+    /**
+     * the wrapped DOM node that is used to flip the view to another pane
+     * @readonly
+     * @type {JQuery}
+     */
+    Pane.prototype.$headerFlipViewBtn = null;
+
     /**
      * the wrapped DOM node that contains views
      * @readonly
@@ -854,6 +921,30 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Updates flipview icon in pane header
+     * @private
+     */
+    Pane.prototype.updateFlipViewIcon = function () {
+        var paneID = this.id,
+            directionIndex = 0,
+            ICON_CLASSES = ["flipview-icon-none", "flipview-icon-top", "flipview-icon-right", "flipview-icon-bottom", "flipview-icon-left"],
+            DIRECTION_STRINGS = ["", Strings.TOP, Strings.RIGHT, Strings.BOTTOM, Strings.LEFT],
+            layoutScheme = MainViewManager.getLayoutScheme(),
+            hasFile = this.getCurrentlyViewedFile();
+
+        if (layoutScheme.columns > 1 && hasFile) {
+            directionIndex = paneID === FIRST_PANE ? 2 : 4;
+        } else if (layoutScheme.rows > 1 && hasFile) {
+            directionIndex = paneID === FIRST_PANE ? 3 : 1;
+        }
+
+        this.$headerFlipViewBtn.removeClass(ICON_CLASSES.join(" "))
+                      .addClass(ICON_CLASSES[directionIndex]);
+
+        this.$headerFlipViewBtn.attr("title", StringUtils.format(Strings.FLIPVIEW_BTN_TOOLTIP,  DIRECTION_STRINGS[directionIndex].toLowerCase()));
+    };
+
+    /**
      * Updates text in pane header
      * @private
      */
@@ -861,22 +952,24 @@ define(function (require, exports, module) {
         var file = this.getCurrentlyViewedFile(),
             files,
             displayName;
-        
+
         if (file) {
             files = MainViewManager.getAllOpenFiles().filter(function (item) {
                 return (item.name === file.name);
             });
             if (files.length < 2) {
-                this.$header.text(file.name);
+                this.$headerText.text(file.name);
             } else {
                 displayName = ProjectManager.makeProjectRelativeIfPossible(file.fullPath);
-                this.$header.text(displayName);
+                this.$headerText.text(displayName);
             }
         } else {
-            this.$header.html(Strings.EMPTY_VIEW_HEADER);
+            this.$headerText.html(Strings.EMPTY_VIEW_HEADER);
         }
+
+        this.updateFlipViewIcon();
     };
-    
+
     /**
      * Event handler when a file changes name
      * @private

@@ -461,7 +461,10 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
+
+    //Strings for Pane.js
     "EMPTY_VIEW_HEADER"                    : "<em>Open a file while this pane has focus</em>",
+    "FLIPVIEW_BTN_TOOLTIP"                 : "Flip this view to {0} pane",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Current Theme",

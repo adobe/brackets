@@ -486,10 +486,57 @@ a, img {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        
+
+        &-text {
+            display: inline;
+        }
+
         .dark & {
             background-color: #1d1f21; // not using a variable on purpose.
             border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+
+        &-flipview-btn {
+            position: relative;
+            display: inline-block;
+            top: 0px;
+            padding-top: 4px;
+            padding-right: 4px;
+            padding-bottom: 2px;
+            padding-left: 4px;
+            margin-left: 0;
+            margin-bottom: 0;
+            .sprite-icon(0, 0, 13px, 13px, "images/flip-view-icons.svg");
+            background-origin: content-box;
+            -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
+            transform: translateZ(0); // future proofing
+            -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
+            z-index: 1;
+            vertical-align: middle;
+
+            &.btn-alt-quiet:hover {
+                border-color: @dark-bc-panel-bg;
+            }
+
+            &.flipview-icon-none {
+                display: none;
+            }
+
+            &.flipview-icon-top {
+                background-position: center 1px;
+            }
+            
+            &.flipview-icon-right {
+                background-position: center -18px;
+            }
+
+            &.flipview-icon-bottom {
+                background-position: center -35px;
+            }
+
+            &.flipview-icon-left {
+                background-position: center -54px;
+            }
         }
     }
     .active-pane {
@@ -755,6 +802,7 @@ a, img {
     -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
     z-index: 1;
 }
+
 .splitview-icon-none {
     background-position: center 1px;
 }
@@ -764,6 +812,8 @@ a, img {
 .splitview-icon-horizontal {
     background-position: center -41px;
 }
+
+
 
 // Show splitview icons on the button's dropdown menu too
 #splitview-menu ul.dropdown-menu > li {
