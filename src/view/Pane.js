@@ -159,7 +159,6 @@ define(function (require, exports, module) {
         EventDispatcher     = require("utils/EventDispatcher"),
         FileSystem          = require("filesystem/FileSystem"),
         InMemoryFile        = require("document/InMemoryFile"),
-        //WorkingSetView      = require("project/WorkingSetView"),
         ViewStateManager    = require("view/ViewStateManager"),
         MainViewManager     = require("view/MainViewManager"),
         DocumentManager     = require("document/DocumentManager"),
