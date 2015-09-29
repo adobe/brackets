@@ -83,23 +83,34 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Returns state of a context
+     * @param {{editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}}} ctx
+     * @return {{tokenize:function, state:string, stateArg:string, context:Object}}
+     */
+    function _getContextState(ctx) {
+        if (!ctx || !ctx.token) {
+            return null;
+        }
+        var state = ctx.token.state.localState || ctx.token.state;
+        if (!state.context && ctx.token.state.html.localState) {
+            state = ctx.token.state.html.localState;
+        }
+        return state;
+    }
+
+    /**
+     * @private
      * Checks if the current cursor position is inside the property name context
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @return {boolean} true if the context is in property name
      */
     function _isInPropName(ctx) {
-        var state,
+        var state = _getContextState(ctx),
             lastToken;
-        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment") {
+        if (!state || !state.context || ctx.token.type === "comment") {
             return false;
         }
 
-        state = ctx.token.state.localState || ctx.token.state;
-        
-        if (!state.context) {
-            return false;
-        }
-        
         lastToken = state.context.type;
         return (lastToken === "{" || lastToken === "rule" || lastToken === "block");
     }
@@ -124,16 +135,11 @@ define(function (require, exports, module) {
             return isInsideParens(context.prev);
         }
         
-        var state;
-        if (!ctx || !ctx.token || !ctx.token.state || ctx.token.type === "comment") {
+        var state = _getContextState(ctx);
+        if (!state || !state.context || !state.context.prev || ctx.token.type === "comment") {
             return false;
         }
 
-        state = ctx.token.state.localState || ctx.token.state;
-        
-        if (!state.context || !state.context.prev) {
-            return false;
-        }
         return ((state.context.type === "prop" &&
                     (state.context.prev.type === "rule" || state.context.prev.type === "block")) ||
                     isInsideParens(state.context));
@@ -146,14 +152,8 @@ define(function (require, exports, module) {
      * @return {boolean} true if the context is in property value
      */
     function _isInAtRule(ctx) {
-        var state;
-        if (!ctx || !ctx.token || !ctx.token.state) {
-            return false;
-        }
-
-        state = ctx.token.state.localState || ctx.token.state;
-        
-        if (!state.context) {
+        var state = _getContextState(ctx);
+        if (!state || !state.context) {
             return false;
         }
         return (state.context.type === "at");
@@ -1566,12 +1566,13 @@ define(function (require, exports, module) {
             return selector;
         }
 
-        var skipPrevSibling = false;
+        var skipPrevSibling = false,
+            state           = _getContextState(ctx);
         
         // If the cursor is inside a non-whitespace token with "block" or "top" state, then it is inside a 
         // selector. The only exception is when it is immediately after the '{'.
         if (isPreprocessorDoc && _hasNonWhitespace(ctx.token.string) && ctx.token.string !== "{" &&
-                (ctx.token.state.state === "block" || ctx.token.state.state === "top")) {
+                (state.state === "block" || state.state === "top")) {
             foundChars = true;
         }
         
@@ -1580,7 +1581,7 @@ define(function (require, exports, module) {
             if (ctx.token.type !== "comment") {
                 if (ctx.token.string === "}") {
                     if (isPreprocessorDoc) {
-                        if (ctx.token.state.state === "top") {
+                        if (state.state === "top") {
                             break;
                         }
                         skipPrevSibling = true;
