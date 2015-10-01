@@ -67,7 +67,7 @@ define(function (require, exports, module) {
             if (allowArrayBufferTransfer && options.transfer) {
                 transferable = [options.transfer];
             }
-            port.postMessage({method: fn, callback: id, args: options.args}, transferable);
+            port.postMessage({method: fn, shell: options.shell, callback: id, args: options.args}, transferable);
         });
     }
 

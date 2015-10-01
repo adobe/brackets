@@ -491,7 +491,8 @@ define([
             var callback = getCallbackFn(callbackId);
             var wrappedCallback;
             var args = data.args;
-            var path;
+            var shell = new _fs.Shell();
+            var path, src, dest;
 
             // With successful fs operations that create, update, delete, or rename files,
             // we also trigger events on the bramble instance.
@@ -511,6 +512,42 @@ define([
                     }
                     callback(err);
                 };
+            }
+
+            function moveFile(filePath, to, callback) {
+                var newFilePath = Path.join(to, Path.basename(filePath));
+
+                _fs.readFile(filePath, function(err, data) {
+                    if(err) {
+                        return callback(err);
+                    }
+
+                    shell.mkdirp(to, function(err) {
+                        if(err) {
+                            return callback(err);
+                        }
+
+                        _fs.writeFile(newFilePath, data, function(err) {
+                            if(err) {
+                                return callback(err);
+                            }
+
+                            callback(null, newFilePath);
+                        });
+                    });
+                });
+            }
+
+            function moveEmptyDirectory(dirPath, to, callback) {
+                var newEmptyDirPath = Path.join(to, Path.basename(dirPath));
+
+                shell.mkdirp(newEmptyDirPath, function(err) {
+                    if(err) {
+                        return callback(err);
+                    }
+
+                    callback(null, newEmptyDirPath);
+                });
             }
 
             // Most fs methods can just get run normally, but we have to deal with
@@ -571,8 +608,53 @@ define([
                 _watches[callbackId] = callback;
                 _fs.watch.apply(_fs, data.args.concat(callback));
                 break;
+            case "mv":
+                src = args[0];
+                dest = args[1];
+                _fs.stat(src, function(err, stats) {
+                    if(err) {
+                        return callback(err);
+                    }
+
+                    if(stats.isFile()) {
+                        return moveFile(src, dest, callback);
+                    }
+
+                    shell.find(src, {
+                        exec: function(nodePath, next) {
+                            var destinationDirectory = Path.join(dest, Path.basename(src), Path.dirname(Path.relative(src, nodePath)));
+
+                            if(!nodePath.endsWith("/")) {
+                                return moveFile(nodePath, destinationDirectory, next);
+                            }
+
+                            // If it is a directory, check to see if it contains
+                            // anything. If it does, ignore it as the case above
+                            // will eventually create it. If it is empty, create
+                            // an empty directory at the destination too.
+                            _fs.readdir(nodePath, function(err, contents) {
+                                if(err) {
+                                    return next(err);
+                                }
+
+                                // Directory contains something
+                                if(contents.length > 0) {
+                                    return next();
+                                }
+
+                                moveEmptyDirectory(nodePath, destinationDirectory, next);
+                            });
+                        }
+                    }, callback);
+                });
+
+                break;
             default:
-                _fs[data.method].apply(_fs, data.args.concat(callback));
+                if(data.shell) {
+                    shell[data.method].apply(shell, data.args.concat(callback));
+                } else {
+                    _fs[data.method].apply(_fs, data.args.concat(callback));
+                }
             }
         }
 
