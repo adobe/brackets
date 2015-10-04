@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window */
+/*global define, brackets, $, window, PathUtils */
 
 define(function (require, exports, module) {
     "use strict";
@@ -39,7 +39,6 @@ define(function (require, exports, module) {
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         Strings             = brackets.getModule("strings"),
-        PathUtils           = brackets.getModule("utils/PathUtils"),
         ViewUtils           = brackets.getModule("utils/ViewUtils"),
         TokenUtils          = brackets.getModule("utils/TokenUtils");
    

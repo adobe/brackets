@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, less */
+/*global define, $, brackets, less, PathUtils */
 
 /**
  * ExtensionUtils defines utility methods for implementing extensions.
@@ -32,7 +32,6 @@ define(function (require, exports, module) {
     "use strict";
     
     var Async      = require("utils/Async"),
-        PathUtils  = require("utils/PathUtils"),
         FileSystem = require("filesystem/FileSystem"),
         FileUtils  = require("file/FileUtils");
 

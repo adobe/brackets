@@ -275,6 +275,7 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror/addon/edit/closetag.js',
                     'src/thirdparty/CodeMirror/addon/selection/active-line.js',
                     'src/thirdparty/mustache/mustache.js',
+                    'src/thirdparty/path-utils/path-utils.min',
                     'src/thirdparty/less-2.5.1.min.js'
                 ],
                 helpers : [
