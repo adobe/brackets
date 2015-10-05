@@ -293,5 +293,11 @@
         "fileExtensions": ["hs"],
         "blockComment": ["{-", "-}"],
         "lineComment": ["--"]
-    }
+    },
+        "ocaml": {
+        "name": "OCaml",
+        "mode": ["ocaml", "text/x-ocaml"],
+        "fileExtensions": ["ml"],
+        "blockComment": ["(*", "*)"]
+    },
 }
