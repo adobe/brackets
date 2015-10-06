@@ -483,12 +483,11 @@ define(function (require, exports, module) {
          * Builds a fileInfos index of the project, as required to call findMatchingFunctions(). Calls the
          * specified 'invoker' function with fileInfos, and populates the 'functions' var once it's done.
          * Does not need to be wrapped in a runs() block.
-         * @param {function(Array.<FileIndexManager.FileInfo>):$.Promise} invokeFind
+         * @param {function(Array.<File>):$.Promise} invokeFind
          */
         function indexAndFind(invokeFind) {
             runs(function () {
                 var result = new $.Deferred();
-                
                 ProjectManager.getAllFiles().done(function (files) {
                     invokeFind(files)
                         .done(function (functionsResult) { functions = functionsResult; })
@@ -503,7 +502,6 @@ define(function (require, exports, module) {
         describe("Index integrity", function () {
             it("should handle colliding with prototype properties", function () { // #2813
                 // no init() needed - don't need any editors to be open
-                
                 indexAndFind(function (fileInfos) {
                     return JSUtils.findMatchingFunctions("toString", fileInfos);
                 });

@@ -127,7 +127,7 @@ define(function (require, exports, module) {
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
     
-    PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", false, {
+    PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_BRACKETS
     });
     PreferencesManager.definePreference(CLOSE_TAGS,         "object", { whenOpening: true, whenClosing: true, indentTags: [] }, {

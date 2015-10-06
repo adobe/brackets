@@ -363,11 +363,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "عبارت انطباق یافته بعدی را به انتخاب شده ها اضافه کن",
     "CMD_SKIP_CURRENT_MATCH"              : "پرش از این مورد و افزودن مورد انطباق یافته بعدی",
     "CMD_FIND_IN_FILES"                   : "جستجو در پرونده ها",
-    "CMD_FIND_IN_SELECTED"                : "جستجو در پرونده/پوشه انتخاب شده",
     "CMD_FIND_IN_SUBTREE"                 : "جستجو در\u2026",
     "CMD_REPLACE"                         : "جایگزینی",
     "CMD_REPLACE_IN_FILES"                : "جایگزینی در پرونده ها",
-    "CMD_REPLACE_IN_SELECTED"             : "جایگزینی در پرونده/پوشه های انتخاب شده",
     "CMD_REPLACE_IN_SUBTREE"              : "جایگزینی در\u2026",
 
     // View menu commands
