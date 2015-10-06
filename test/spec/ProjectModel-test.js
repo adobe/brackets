@@ -128,7 +128,7 @@ define(function (require, exports, module) {
                 rootPath = rootPath || "/";
                 var root = {
                     fullPath: rootPath,
-                    visit: function (visitor, errorHandler) {
+                    visit: function (visitor, options, errorHandler) {
                         visited = true;
                         if (!filelist && error) {
                             errorHandler(error);

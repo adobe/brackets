@@ -21,7 +21,11 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/* The hash code routne is taken from http://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
+   @CC wiki attribution: esmiralha
+*/
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50, bitwise: true */
 /*global define, brackets */
 
 /**
@@ -112,6 +116,16 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Returns true if the given string starts with the given prefix.
+     * @param   {String} str
+     * @param   {String} prefix
+     * @return {Boolean}
+     */
+    function startsWith(str, prefix) {
+        return str.slice(0, prefix.length) === prefix;
+    }
+
     /**
      * Returns true if the given string ends with the given suffix.
      *
@@ -211,6 +225,26 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Computes a 32bit hash from the given string
+     * Taken from http://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
+     * @CC wiki attribution: esmiralha
+     * @param   {string}   str The string for which hash is to be computed
+     * @return {number} The 32-bit hash
+     */
+    function hashCode(str) {
+        var hash = 0, i, chr, len;
+        if (str.length === 0) {
+            return hash;
+        }
+        for (i = 0, len = str.length; i < len; i++) {
+            chr   = str.charCodeAt(i);
+            hash  = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    }
+
     // Define public API
     exports.format              = format;
     exports.regexEscape         = regexEscape;
@@ -219,7 +253,9 @@ define(function (require, exports, module) {
     exports.offsetToLineNum     = offsetToLineNum;
     exports.urlSort             = urlSort;
     exports.breakableUrl        = breakableUrl;
+    exports.startsWith          = startsWith;
     exports.endsWith            = endsWith;
     exports.prettyPrintBytes    = prettyPrintBytes;
     exports.truncate            = truncate;
+    exports.hashCode            = hashCode;
 });

@@ -62,7 +62,7 @@ define(function (require, exports, module) {
                 cm: cm,
                 line: line,
                 timeStamp: Date.now(),
-                tokens: tokens,
+                tokens: tokens
             };
             cm.off("changes", _clearCache);
             cm.on("changes", _clearCache);

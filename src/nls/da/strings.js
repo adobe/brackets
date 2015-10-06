@@ -135,8 +135,6 @@ define({
     "BUTTON_NO"                         : "Nej",
         
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} resultater",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 resultat",
     "FIND_NO_RESULTS"                   : "Ingen resultater",
     "FIND_QUERY_PLACEHOLDER"            : "Søg\u2026",
     "REPLACE_PLACEHOLDER"               : "Erstat med\u2026",
@@ -327,11 +325,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Tilføj næste forekomst til markeringer",
     "CMD_SKIP_CURRENT_MATCH"              : "Spring over og tilføj næste forekomst",
     "CMD_FIND_IN_FILES"                   : "Søg i filer",
-    "CMD_FIND_IN_SELECTED"                : "Søg i valgte fil/mappe",
     "CMD_FIND_IN_SUBTREE"                 : "Søg i\u2026",
     "CMD_REPLACE"                         : "Erstat",
     "CMD_REPLACE_IN_FILES"                : "Erstat i filer",
-    "CMD_REPLACE_IN_SELECTED"             : "Erstat i valgte fil/mappe",
     "CMD_REPLACE_IN_SUBTREE"              : "Erstat i\u2026",
     
     // View menu commands
@@ -348,10 +344,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Tekstombrydning",
     "CMD_LIVE_HIGHLIGHT"                  : "Fremhæv i Live-Forhåndsvisning",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint filer når de gemmes",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortér efter tilføjelse",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortér efter navn",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortér efter type",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatisk sortering",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Sortér efter tilføjelse",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Sortér efter navn",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sortér efter type",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatisk sortering",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigér",

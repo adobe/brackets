@@ -94,7 +94,7 @@ define(function (require, exports, module) {
                 removedPath = path;
                 return new $.Deferred().resolve().promise();
             });
-            
+
             // Fake enabling/disabling
             disabledFilePath = null;
             spyOn(Package, "disable").andCallFake(function (path) {
@@ -329,7 +329,7 @@ define(function (require, exports, module) {
                     expect(ExtensionManager.extensions["mock-extension-3"].installInfo.status).toEqual(ExtensionManager.DISABLED);
                 });
             });
-            
+
             it("should set the title for a legacy extension based on its folder name", function () {
                 mockLoadExtensions();
                 runs(function () {
@@ -401,7 +401,7 @@ define(function (require, exports, module) {
                     expect(ExtensionManager.extensions["mock-extension-3"].installInfo.status).toEqual(ExtensionManager.DISABLED);
                 });
             });
-            
+
             it("should enable an extension and raise a statusChange event", function () {
                 var spy = jasmine.createSpy();
                 runs(function () {
@@ -418,7 +418,7 @@ define(function (require, exports, module) {
                     expect(ExtensionManager.extensions["mock-extension-2"].installInfo.status).toEqual(ExtensionManager.ENABLED);
                 });
             });
-            
+
             it("should fail when trying to remove an extension that's not installed", function () {
                 var finished = false;
                 runs(function () {
@@ -448,7 +448,7 @@ define(function (require, exports, module) {
                 });
                 waitsFor(function () { return finished; }, "finish disabling");
             });
-            
+
             it("should fail when trying to enable an extension that's not installed", function () {
                 var finished = false;
                 runs(function () {
@@ -873,7 +873,7 @@ define(function (require, exports, module) {
                         expect(model.filterSet.indexOf("another-great-extension")).toBe(1);
                     });
                 });
-                
+
                 it("should raise an event when an extension is installed", function () {
                     var calledId;
                     runs(function () {
@@ -899,7 +899,7 @@ define(function (require, exports, module) {
                         expect(calledId).toBe("another-great-extension");
                     });
                 });
-                
+
                 it("should not include a removed extension", function () {
                     runs(function () {
                         waitsForDone(ExtensionManager.remove("registered-extension"));
@@ -985,7 +985,7 @@ define(function (require, exports, module) {
                         expect(ExtensionManager.hasExtensionsToDisable()).toBe(true);
                     });
                 });
-                
+
                 it("should unmark an extension previously marked for disabling and raise an event", function () {
                     var id = "registered-extension", calledId;
                     runs(function () {
@@ -1022,7 +1022,7 @@ define(function (require, exports, module) {
                         expect(disabledPaths["/path/to/extensions/user/unregistered-extension/.disabled"]).toBeUndefined();
                     });
                 });
-                
+
                 it("should delete the .disabled file, enable the extension and raise an event", function () {
                     var extension = "registered-extension",
                         calledId;
@@ -1039,7 +1039,7 @@ define(function (require, exports, module) {
                         expect(calledId).toBe(extension);
                     });
                 });
-                
+
                 it("should mark an extension for update and raise an event", function () {
                     var id = "registered-extension", calledId;
                     runs(function () {
@@ -1624,12 +1624,12 @@ define(function (require, exports, module) {
                                     item.metadata.name === "mock-extension-5") {
                                 expect(view).toHaveText(item.metadata.name);
                                 expect($removeButton.length).toBe(1);
-                                
+
                                 // should also have disable/enable button
                                 var isDisable = item.metadata.name === "mock-extension-5" ? false : true,
                                     $disableButton = $("button." + (isDisable ? "disable" : "enable") + "[data-extension-id=" +
                                                        item.metadata.name + "]", view.$el);
-                                
+
                                 expect($disableButton.length).toBe(1);
                                 
                                 // But no update button
@@ -1722,7 +1722,7 @@ define(function (require, exports, module) {
                         expect(ExtensionManager.isMarkedForDisabling("mock-extension-3")).toBe(true);
                     });
                 });
-                
+
                 it("should undo mark for disabling and make the buttons available again", function () {
                     mockLoadExtensions(["user/mock-extension-3"]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
@@ -1742,7 +1742,7 @@ define(function (require, exports, module) {
                         expect(ExtensionManager.isMarkedForDisabling("mock-extension-3")).toBe(false);
                     });
                 });
-                
+
                 it("should be able to disable an extension from the dev folder", function () {
                     mockLoadExtensions(["dev/mock-extension-6"]);
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
@@ -2092,7 +2092,7 @@ define(function (require, exports, module) {
                             expect(dialogClassShown).toBeFalsy();
                         });
                     });
-                    
+
                     it("should show a disabling confirmation dialog if an extension was marked for disabling", function () {
                         mockLoadExtensions(["user/mock-extension-3"]);
                         setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
@@ -2106,7 +2106,7 @@ define(function (require, exports, module) {
                             $mockDlg.triggerHandler("buttonClick", Dialogs.DIALOG_BTN_CANCEL);
                         });
                     });
-                    
+
                     it("should update extensions and quit if the user hits Update and Quit on the removal confirmation dialog", function () {
                         var id = "mock-extension-3",
                             filename = "/path/to/downloaded/mock-extension-3.zip";

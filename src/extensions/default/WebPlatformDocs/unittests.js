@@ -32,8 +32,7 @@ define(function (require, exports, module) {
     var main                = require("main"),
         InlineDocsViewer    = require("InlineDocsViewer"),
         testCSS             = require("text!unittest-files/test1.css"),
-        testHTML            = require("text!unittest-files/test1.html"),
-        description         = require("text!unittest-files/description.html");
+        testHTML            = require("text!unittest-files/test1.html");
 
     describe("WebPlatformDocs", function () {
             
@@ -193,37 +192,26 @@ define(function (require, exports, module) {
                 return details;
             }
 
-            it("should process all anchor tags", function () {
+            it("should add titles to all links", function () {
                 var prop    = "my-css-prop",
                     url     = "http://dev.brackets.io/wiki/css/properties/my-css-prop",
                     details = createCssPropDetails(
                         prop,
                         url,
-                        [["normal", description]]
+                        [["normal", "See <a href='http://dev.brackets.io/wiki/css/properties/foo-css-prop'>foo-css-prop</a>"]]
                     ),
                     viewer = new InlineDocsViewer(prop, details),
                     $a,
-                    href,
                     $links = viewer.$htmlContent.find("a:not(.close)");
                 
-                // 8 links in description.html, 1 "more info" link in template
-                expect($links.length).toBe(9);
+                // 1 link in the description, 1 "more info" link in template
+                expect($links.length).toBe(2);
                 
                 $links.each(function (i, anchor) {
                     $a = $(anchor);
-                    href = $a.attr("href");
-                    
-                    if ($a.attr("data-expected")) {
-                        // transform all URLs, see unittest-files/description.html
-                        expect(href).toBe($a.attr("data-expected"));
-                    } else {
-                        // accont for "read more" URL
-                        expect(href).toBe(url);
-                        expect($a.hasClass("more-info"));
-                    }
                     
                     // all links should have a title
-                    expect($a.attr("title")).toBe(href);
+                    expect($a.attr("title")).toBe($a.attr("href"));
                 });
             });
             

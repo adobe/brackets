@@ -27,17 +27,50 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Async           = require("utils/Async"),
-        DocumentManager = require("document/DocumentManager"),
-        MainViewManager = require("view/MainViewManager"),
-        FileSystem      = require("filesystem/FileSystem"),
-        FileUtils       = require("file/FileUtils"),
-        FindBar         = require("search/FindBar").FindBar,
-        ProjectManager  = require("project/ProjectManager"),
-        Strings         = require("strings"),
-        StringUtils     = require("utils/StringUtils"),
-        _               = require("thirdparty/lodash");
+    var Async               = require("utils/Async"),
+        DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
+        FileSystem          = require("filesystem/FileSystem"),
+        FileUtils           = require("file/FileUtils"),
+        ProjectManager      = require("project/ProjectManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        EventDispatcher     = require("utils/EventDispatcher"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
+        _                   = require("thirdparty/lodash");
     
+    var nodeSearchDisabled = false,
+        instantSearchDisabled = false,
+        indexingInProgress = false,
+        nodeSearchCount = 0,
+        collapseResults = false;
+
+    EventDispatcher.makeEventDispatcher(exports);
+
+    // define preferences for find in files
+    PreferencesManager.definePreference("findInFiles.nodeSearch", "boolean", true, {
+        description: Strings.DESCRIPTION_FIND_IN_FILES_NODE
+    });
+    PreferencesManager.definePreference("findInFiles.instantSearch", "boolean", true, {
+        description: Strings.DESCRIPTION_FIND_IN_FILES_INSTANT
+    });
+
+    /**
+     * returns true if the used disabled node based search in his preferences
+     * @return {boolean}
+     */
+    function _prefNodeSearchDisabled() {
+        return !PreferencesManager.get("findInFiles.nodeSearch");
+    }
+
+    /**
+     * returns true if the used instant search in his preferences
+     * @return {boolean}
+     */
+    function _prefInstantSearchDisabled() {
+        return !PreferencesManager.get("findInFiles.instantSearch");
+    }
+
     /**
      * Given a replace string that contains $-expressions, replace them with data from the given
      * regexp match info.
@@ -70,52 +103,6 @@ define(function (require, exports, module) {
         // replace escaped dollar signs (i.e. $$, $$$$, ...) with single ones (unescaping)
         replaceWith = replaceWith.replace(/\$\$/g, "$");
         return replaceWith;
-    }
-    
-    /**
-     * Gets you the right query and replace text to prepopulate the Find Bar.
-     * @param {?FindBar} currentFindBar The currently open Find Bar, if any
-     * @param {?Editor} The active editor, if any
-     * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
-     */
-    function getInitialQuery(currentFindBar, editor) {
-        var query = "",
-            replaceText = "";
-
-        /*
-         * Returns the string used to prepopulate the find bar
-         * @param {!Editor} editor
-         * @return {string} first line of primary selection to populate the find bar
-         */
-        function getInitialQueryFromSelection(editor) {
-            var selectionText = editor.getSelectedText();
-            if (selectionText) {
-                return selectionText
-                    .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
-                    .split("\n")[0];
-            }
-            return "";
-        }
-
-        if (currentFindBar && !currentFindBar.isClosed()) {
-            // The modalBar was already up. When creating the new modalBar, copy the
-            // current query instead of using the passed-in selected text.
-            query = currentFindBar.getQueryInfo().query;
-            replaceText = currentFindBar.getReplaceText();
-        } else {
-            var openedFindBar = FindBar._bars && _.find(FindBar._bars, function (bar) {
-                    return !bar.isClosed();
-                });
-
-            if (openedFindBar) {
-                query = openedFindBar.getQueryInfo().query;
-                replaceText = openedFindBar.getReplaceText();
-            } else if (editor) {
-                query = getInitialQueryFromSelection(editor);
-            }
-        }
-
-        return {query: query, replaceText: replaceText};
     }
 
     /**
@@ -352,11 +339,219 @@ define(function (require, exports, module) {
         return {valid: true, queryExpr: queryExpr};
     }
 
+     /**
+     * Prioritizes the open file and then the working set files to the starting of the list of files
+     * @param {Array.<*>} files An array of file paths or file objects to sort
+     * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.
+     * @return {Array.<*>}
+     */
+    function prioritizeOpenFile(files, firstFile) {
+        var workingSetFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES),
+            workingSetFileFound = {},
+            fileSetWithoutWorkingSet = [],
+            startingWorkingFileSet = [],
+            propertyName = "",
+            i = 0;
+        firstFile = firstFile || "";
+
+        // Create a working set path map which indicates if a file in working set is found in file list
+        for (i = 0; i < workingSetFiles.length; i++) {
+            workingSetFileFound[workingSetFiles[i].fullPath] = false;
+        }
+
+        // Remove all the working set files from the filtration list
+        fileSetWithoutWorkingSet = files.filter(function (key) {
+            if (workingSetFileFound[key] !== undefined) {
+                workingSetFileFound[key] = true;
+                return false;
+            }
+            return true;
+        });
+
+        //push in the first file
+        if (workingSetFileFound[firstFile] === true) {
+            startingWorkingFileSet.push(firstFile);
+            workingSetFileFound[firstFile] = false;
+        }
+        //push in the rest of working set files already present in file list
+        for (propertyName in workingSetFileFound) {
+            if (workingSetFileFound.hasOwnProperty(propertyName) && workingSetFileFound[propertyName]) {
+                startingWorkingFileSet.push(propertyName);
+            }
+        }
+        return startingWorkingFileSet.concat(fileSetWithoutWorkingSet);
+    }
+
+
+    /**
+     * Returns the path of the currently open file or null if there isn't one open
+     * @return {?string}
+     */
+    function getOpenFilePath() {
+        var currentDoc = DocumentManager.getCurrentDocument();
+        return currentDoc ? currentDoc.file.fullPath : null;
+    }
+
+    /**
+     * enable/disable instant search
+     * @param {boolean} disable true to disable node based search
+     */
+    function setInstantSearchDisabled(disable) {
+        instantSearchDisabled = disable;
+    }
+
+    /**
+     * if instant search is disabled, this will return true we can only do instant search through node
+     * @return {boolean}
+     */
+    function isInstantSearchDisabled() {
+        return _prefNodeSearchDisabled() || _prefInstantSearchDisabled() || nodeSearchDisabled || instantSearchDisabled;
+    }
+
+    /**
+     * enable/disable node based search
+     * @param {boolean} disable true to disable node based search
+     */
+    function setNodeSearchDisabled(disable) {
+        if (disable) {
+            // only set disable. Enabling node earch doesnt mean we have to enable instant search.
+            setInstantSearchDisabled(disable);
+        }
+        nodeSearchDisabled = disable;
+    }
+
+    /**
+     * if node search is disabled, this will return true
+     * @return {boolean}
+     */
+    function isNodeSearchDisabled() {
+        return _prefNodeSearchDisabled() || nodeSearchDisabled;
+    }
+
+    /**
+     * check if a search is progressing in node
+     * @return {Boolean} true if search is processing in node
+     */
+    function isNodeSearchInProgress() {
+        if (nodeSearchCount === 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+
+    /**
+     * Raises an event when the file filters applied to a search changes
+     */
+    function notifyFileFiltersChanged() {
+        exports.trigger(exports.SEARCH_FILE_FILTERS_CHANGED);
+    }
+
+    /**
+     * Raises an event when the search scope changes[say search in a sub drictory in the project]
+     */
+    function notifySearchScopeChanged() {
+        exports.trigger(exports.SEARCH_SCOPE_CHANGED);
+    }
+
+    /**
+     * Notifies that a node search has started so that we FindUtils can figure out
+     * if any outstanding node search requests are pendind
+     */
+    function notifyNodeSearchStarted() {
+        nodeSearchCount++;
+    }
+
+    /**
+     * Notifies that a node search has finished so that we FindUtils can figure out
+     * if any outstanding node search requests are pendind
+     */
+    function notifyNodeSearchFinished() {
+        nodeSearchCount--;
+    }
+
+    /**
+     * Notifies that a node has started indexing the files
+     */
+    function notifyIndexingStarted() {
+        indexingInProgress = true;
+        exports.trigger(exports.SEARCH_INDEXING_STARTED);
+    }
+
+    /**
+     * Notifies that a node has finished indexing the files
+     */
+    function notifyIndexingFinished() {
+        indexingInProgress = false;
+        exports.trigger(exports.SEARCH_INDEXING_FINISHED);
+    }
+
+    /**
+     * Return true if indexing is in pregress in node
+     * @return {boolean} true if files are being indexed in node
+     */
+    function isIndexingInProgress() {
+        return indexingInProgress;
+    }
+
+    /**
+     * Set if we need to collapse all results in the results pane
+     * @param {boolean} collapse true to collapse
+     */
+    function setCollapseResults(collapse) {
+        collapseResults = collapse;
+        exports.trigger(exports.SEARCH_COLLAPSE_RESULTS);
+    }
+
+    /**
+     * check if results should be collapsed
+     * @return {boolean} true if results should be collapsed
+     */
+    function isCollapsedResults() {
+        return collapseResults;
+    }
+
+    /**
+     * Returns the health data pertaining to Find in files
+     */
+    function getHealthReport() {
+        return {
+            prefNodeSearchDisabled : _prefNodeSearchDisabled(),
+            prefInstantSearchDisabled : _prefInstantSearchDisabled()
+        };
+    }
+
     exports.parseDollars                    = parseDollars;
-    exports.getInitialQuery                 = getInitialQuery;
     exports.hasCheckedMatches               = hasCheckedMatches;
     exports.performReplacements             = performReplacements;
     exports.labelForScope                   = labelForScope;
     exports.parseQueryInfo                  = parseQueryInfo;
+    exports.prioritizeOpenFile              = prioritizeOpenFile;
+    exports.getOpenFilePath                 = getOpenFilePath;
+    exports.setNodeSearchDisabled           = setNodeSearchDisabled;
+    exports.isNodeSearchDisabled            = isNodeSearchDisabled;
+    exports.setInstantSearchDisabled        = setInstantSearchDisabled;
+    exports.isInstantSearchDisabled         = isInstantSearchDisabled;
+    exports.isNodeSearchInProgress          = isNodeSearchInProgress;
+    exports.isIndexingInProgress            = isIndexingInProgress;
+    exports.setCollapseResults              = setCollapseResults;
+    exports.isCollapsedResults              = isCollapsedResults;
+    exports.getHealthReport                 = getHealthReport;
     exports.ERROR_FILE_CHANGED              = "fileChanged";
+
+    // event notification functions
+    exports.notifyFileFiltersChanged        = notifyFileFiltersChanged;
+    exports.notifySearchScopeChanged        = notifySearchScopeChanged;
+    exports.notifyNodeSearchStarted         = notifyNodeSearchStarted;
+    exports.notifyNodeSearchFinished        = notifyNodeSearchFinished;
+    exports.notifyIndexingStarted           = notifyIndexingStarted;
+    exports.notifyIndexingFinished          = notifyIndexingFinished;
+
+    // events raised by FindUtils
+    exports.SEARCH_FILE_FILTERS_CHANGED              = "fileFiltersChanged";
+    exports.SEARCH_SCOPE_CHANGED                     = "searchScopeChanged";
+    exports.SEARCH_INDEXING_STARTED                  = "searchIndexingStarted";
+    exports.SEARCH_INDEXING_FINISHED                 = "searchIndexingFinished";
+    exports.SEARCH_COLLAPSE_RESULTS                  = "searchCollapseResults";
 });

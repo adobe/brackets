@@ -73,7 +73,7 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Probleem bij het aanmaken van een {0}",
     "ERROR_CREATING_FILE"               : "Er is een fout opgetreden bij het aanmaken van het {0} <span class='dialog-filename'>{1}</span>. {2}",
     "ERROR_MIXED_DRAGDROP"              : "Het is niet mogelijk een map te openen en tegelijkertijd andere bestanden.",
-    
+
     // User key map error strings
     "ERROR_KEYMAP_TITLE"                : "Fout tijdens lezen van het configuratiebestand \u0028keymap.json\u0029.",
     "ERROR_KEYMAP_CORRUPT"              : "De JSON-code in het configuratiebestand \u0028keymap.json\u0029 is niet correct. Het bestand wordt geopend zodat je het kan corrigeren.",
@@ -84,11 +84,11 @@ define({
     "ERROR_DUPLICATE_SHORTCUTS"         : "Je hebt meerdere acties aan dezelfde sneltoetsen toegewezen: {0}",
     "ERROR_INVALID_SHORTCUTS"           : "Deze sneltoetsen zijn niet toegestaan: {0}",
     "ERROR_NONEXISTENT_COMMANDS"        : "Je wijst sneltoetsen toe aan niet-bestaande commando\u0027s: {0}",
-    
+
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Fout tijdens lezen instellingen",
     "ERROR_PREFS_CORRUPT"               : "De JSON-code van het configuratiebestand is niet correct. Het bestand wordt geopend zodat je het kan corrigeren. {APP_NAME} moet hierna herstart worden om de wijzigingen toe te passen.",
-    "ERROR_PROJ_PREFS_CORRUPT"          : "De JSON-code van het project-configuratiebestand is niet correct. Het bestand wordt geopend zodat je het kan corrigeren. Je moet het project opnieuw laden om de wijzigingen toe te passen.",      
+    "ERROR_PROJ_PREFS_CORRUPT"          : "De JSON-code van het project-configuratiebestand is niet correct. Het bestand wordt geopend zodat je het kan corrigeren. Je moet het project opnieuw laden om de wijzigingen toe te passen.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oeps! {APP_NAME} werkt nog niet in browsers.",
@@ -148,7 +148,7 @@ define({
     "DELETE"                            : "Verwijder",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nee",
-    
+
     // Find, Replace, Find in Files
     "FIND_MATCH_INDEX"                  : "{0} van {1}",
     "FIND_NO_RESULTS"                   : "Geen resultaten",
@@ -162,7 +162,7 @@ define({
     "BUTTON_NEXT_HINT"                  : "Volgende overeenkomst",
     "BUTTON_PREV_HINT"                  : "Vorige overeenkomst",
     "BUTTON_CASESENSITIVE_HINT"         : "Hoofdlettergevoelig",
-    "BUTTON_REGEXP_HINT"                : "Reguliere expressie",   
+    "BUTTON_REGEXP_HINT"                : "Reguliere expressie",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Vervang zonder herstellen",
     "REPLACE_WITHOUT_UNDO_WARNING"      : "Omdat meer dan {0} bestanden moeten worden veranderd, {APP_NAME} zal ongeopende bestanden op de schijf aanpassen.<br /> Wijzigingen kunnen niet meer ongedaan worden gemaakt in die bestanden.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Vervang zonder herstellen",
@@ -184,7 +184,7 @@ define({
     //Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "in <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_NO_SCOPE"            : "in project",    
+    "FIND_IN_FILES_NO_SCOPE"            : "in project",
     "FIND_IN_FILES_ZERO_FILES"          : "Filter sluit alle bestanden uit {0}",
     "FIND_IN_FILES_FILE"                : "bestand",
     "FIND_IN_FILES_FILES"               : "bestanden",
@@ -192,14 +192,14 @@ define({
     "FIND_IN_FILES_MATCHES"             : "overeenkomsten",
     "FIND_IN_FILES_MORE_THAN"           : "Meer dan ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually    
+    "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Klik Ctrl/Cmd om alles in/uit te vouwen",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Vervang fouten",
-    "REPLACE_IN_FILES_ERRORS"           : "De volgende bestanden zijn niet aangepast omdat deze na het zoeken zijn aangepast of niet bewerkt kunnen worden.",    
-    
+    "REPLACE_IN_FILES_ERRORS"           : "De volgende bestanden zijn niet aangepast omdat deze na het zoeken zijn aangepast of niet bewerkt kunnen worden.",
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Probleem bij het ophalen van update-informatie",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Er is een fout opgetreden bij het ophalen van de laatste update-informatie van de server. Zorg ervoor dat je verbonden bent met het internet en probeer opnieuw.",    
-    
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Er is een fout opgetreden bij het ophalen van de laatste update-informatie van de server. Zorg ervoor dat je verbonden bent met het internet en probeer opnieuw.",
+
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Nieuwe set uitgesloten bestanden\u2026",
     "CLEAR_FILE_FILTER"                 : "Sluit geen bestanden uit",
@@ -222,33 +222,33 @@ define({
     "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS Quick Edit: plaats cursor in tag, class of id.",
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS Timing Function Quick Edit: syntax onjuist",
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS Quick Edit: plaats cursor in functienaam.",
-  
+
      // Quick Docs
-    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Geen snelle documentatie beschikbaar voor huidige cursorpositie.",   
-    
+    "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Geen snelle documentatie beschikbaar voor huidige cursorpositie.",
+
     /**
      * ProjectManager
      */
     "PROJECT_LOADING"   : "Laden\u2026",
     "UNTITLED"          : "Naamloos",
     "WORKING_FILES"     : "Geopend",
-    
+
     /**
      * MainViewManager
      */
     "TOP"               : "Boven",
     "BOTTOM"            : "Beneden",
     "LEFT"              : "Links",
-    "RIGHT"             : "Rechts", 
-    
+    "RIGHT"             : "Rechts",
+
     "CMD_SPLITVIEW_NONE"        : "Niet splitsen",
     "CMD_SPLITVIEW_VERTICAL"    : "Verticaal splitsen",
     "CMD_SPLITVIEW_HORIZONTAL"  : "Horizontaal splitsen",
     "SPLITVIEW_MENU_TOOLTIP"    : "Splits de editor verticaal of horizontaal",
     "GEAR_MENU_TOOLTIP"         : "Configureer bestanden",
-    
+
     "SPLITVIEW_INFO_TITLE"             : "Al geopend",
-    "SPLITVIEW_MULTIPANE_WARNING"      : "Dit bestand is al geopend in een ander paneel. {APP_NAME} zal spoedig ondersteuning bieden aan het openen van hetzelfde bestand in meerdere panelen. Voor nu wordt het bestand weergegeven in het paneel waarin het al geopend is.<br /><br />(Dit is een eenmalige melding.)",   
+    "SPLITVIEW_MULTIPANE_WARNING"      : "Dit bestand is al geopend in een ander paneel. {APP_NAME} zal spoedig ondersteuning bieden aan het openen van hetzelfde bestand in meerdere panelen. Voor nu wordt het bestand weergegeven in het paneel waarin het al geopend is.<br /><br />(Dit is een eenmalige melding.)",
 
     /**
      * Keyboard modifier names
@@ -341,7 +341,7 @@ define({
     "CMD_SELECT_LINE"                     : "Regel selecteren",
     "CMD_SPLIT_SEL_INTO_LINES"            : "Splits selectie in regels",
     "CMD_ADD_CUR_TO_NEXT_LINE"            : "Voeg cursor toe aan volgende regel",
-    "CMD_ADD_CUR_TO_PREV_LINE"            : "Voeg cursor toe aan vorige regel",        
+    "CMD_ADD_CUR_TO_PREV_LINE"            : "Voeg cursor toe aan vorige regel",
     "CMD_INDENT"                          : "Inspringen",
     "CMD_UNINDENT"                        : "Inspringen verwijderen",
     "CMD_DUPLICATE"                       : "Dupliceer",
@@ -356,19 +356,19 @@ define({
     "CMD_SHOW_CODE_HINTS"                 : "Toon code hints",
 
     // Search menu commands
-    "FIND_MENU"                           : "Zoek", 
+    "FIND_MENU"                           : "Zoek",
     "CMD_FIND"                            : "Zoek",
     "CMD_FIND_NEXT"                       : "Zoek volgende",
     "CMD_FIND_PREVIOUS"                   : "Zoek vorige",
     "CMD_FIND_ALL_AND_SELECT"             : "Zoek alles en selecteer",
     "CMD_ADD_NEXT_MATCH"                  : "Voeg eerstvolgende overeenkomst toe aan selectie",
-    "CMD_SKIP_CURRENT_MATCH"              : "Sla-over en selecteer volgende overeenkomst",   
+    "CMD_SKIP_CURRENT_MATCH"              : "Sla-over en selecteer volgende overeenkomst",
     "CMD_FIND_IN_FILES"                   : "Zoek in bestanden",
     "CMD_FIND_IN_SUBTREE"                 : "Zoek in\u2026",
     "CMD_REPLACE"                         : "Vervang",
     "CMD_REPLACE_IN_FILES"                : "Vervang in bestanden",
-    "CMD_REPLACE_IN_SUBTREE"              : "Vervang in\u2026", 
-    
+    "CMD_REPLACE_IN_SUBTREE"              : "Vervang in\u2026",
+
     // View menu commands
     "VIEW_MENU"                           : "Beeld",
     "CMD_HIDE_SIDEBAR"                    : "Verberg zijbalk",
@@ -388,7 +388,7 @@ define({
     "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sorteren op type",
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatisch sorteren",
     "CMD_THEMES"                          : "Thema\u0027s\u2026",
-    
+
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigeer",
     "CMD_QUICK_OPEN"                      : "Snel openen",
@@ -443,7 +443,7 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Er is een nieuwe versie van {APP_NAME} beschikbaar! Klik hier voor details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update beschikbaar",
     "UPDATE_MESSAGE"                       : "Hey, er is een nieuwe versie van {APP_NAME} beschikbaar. Hier zijn een aantal van de nieuwe functies:",
-    "GET_IT_NOW"                           : "Download het nu!",    
+    "GET_IT_NOW"                           : "Download het nu!",
     "PROJECT_SETTINGS_TITLE"               : "Projectinstellingen voor: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Live voorbeeld begin URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "Gebruik url als http://localhost:8000/ om als lokale server te gebruiken.",
@@ -462,8 +462,8 @@ define({
     "THEMES_SETTINGS"                      : "Thema-instellingen",
 
     // CSS Quick Edit
-    "BUTTON_NEW_RULE"                      : "Nieuwe regel",    
- 
+    "BUTTON_NEW_RULE"                      : "Nieuwe regel",
+
     // Extension Management strings
     "INSTALL"                              : "Installeren",
     "UPDATE"                               : "Update",
@@ -511,7 +511,7 @@ define({
     "EXTENSION_MANAGER_ERROR_LOAD"         : "Er is momenteel geen toegang mogelijk tot het extensieregister. Probeer later opnieuw.",
     "INSTALL_EXTENSION_DRAG"               : "Sleep .zip hier of",
     "INSTALL_EXTENSION_DROP"               : "Sleep .zip hier voor installatie",
-    "INSTALL_EXTENSION_DROP_ERROR"         : "Installatie/update afgebroken vanwege de volgende fouten:",    
+    "INSTALL_EXTENSION_DROP_ERROR"         : "Installatie/update afgebroken vanwege de volgende fouten:",
     "INSTALL_FROM_URL"                     : "installeer van URL\u2026",
     "INSTALL_EXTENSION_VALIDATING"         : "Validating\u2026",
     "EXTENSION_AUTHOR"                     : "Auteur",
@@ -559,10 +559,10 @@ define({
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "Alle overeenkomsten zijn samengevouwen. Vouw alle bestanden uit in het overzicht rechts om overeenkomsten te zien.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Er zijn geen bestaande CSS regels die overeenkomsten met jouw selectie.<br> Klik \"Nieuwe regel\" om te maken.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Er zijn geen stylesheets in je project.<br>Maak er een om CSS regels toe te voegen.",
-    
+
     // Custom Viewers
-    "IMAGE_VIEWER_LARGEST_ICON"            : "meest grote",    
-    
+    "IMAGE_VIEWER_LARGEST_ICON"            : "meest grote",
+
     /**
      * Unit names
      */
@@ -607,14 +607,14 @@ define({
     "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Om {APP_NAME} te verbeteren, wordt er periodiek <strong>(anoniem)</strong> beperkt aantal statistieken verzonden naar Adobe over hoe je {APP_NAME} gebruikt. Deze informatie helpt ons prioriteit te geven aan bepaalde functies, het vinden van fouten in de software en problemen in het gebruik zichtbaar te maken.<br><br>Je kan de data bekijken of ervoor kiezen om geen data te delen via <strong>Help > Statusrapport</strong>. <br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lees meer over het {APP_NAME} statusrapport (Engels)</a>",
     "HEALTH_DATA_PREVIEW"                       : "{APP_NAME} statusrapport",
     "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Om {APP_NAME} te verbeteren, wordt er periodiek <strong>(anoniem)</strong> beperkt aantal statistieken verzonden naar Adobe over hoe je {APP_NAME} gebruikt. Deze informatie helpt ons prioriteit te geven aan bepaalde functies, het vinden van fouten in de software en problemen in het gebruik zichtbaar te maken. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lees meer over het {APP_NAME} statusrapport (Engels)</a> en hoe het bijdraagt aan de {APP_NAME} gemeenschap terwijl je privacy beschermd blijft.</p><p>Onder zie je een voorbeeld van de data die wordt verzonden bij het volgende statusrapport, <em>als</em> het is ingeschakeld.</p>",
-    
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tijd",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Voortgang",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Verplaats geselecteerde punt<br><kbd class='text'>Shift</kbd> Verplaats met 10 units<br><kbd class='text'>Tab</kbd> Verwissel punten",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Vergroot of verklein stappen<br><kbd>←</kbd><kbd>→</kbd> 'Start' of 'Einde'",
-    "INLINE_TIMING_EDITOR_INVALID"              : "De oude waarde <code>{0}</code> is niet geldig, de weergegeven functie is veranderd naar <code>{1}</code>. Het bestand wordt bijgewerkt met de eerste aanpassing.",  
-    
+    "INLINE_TIMING_EDITOR_INVALID"              : "De oude waarde <code>{0}</code> is niet geldig, de weergegeven functie is veranderd naar <code>{1}</code>. Het bestand wordt bijgewerkt met de eerste aanpassing.",
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Huidige kleur",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Originele kleur",

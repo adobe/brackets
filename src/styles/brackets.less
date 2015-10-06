@@ -54,17 +54,14 @@ html, body {
     /* And make sure we get a pointer cursor even over text */
     cursor: default;
 
-    /* Turn off subpixel antialiasing on Mac since it flickers during animations. */
-    -webkit-font-smoothing: antialiased;
-
-    // This is a hack to avoid flicker when animations (like inline editors) that use the GPU complete.
-    // It seems that we have to put it here rather than on the animated element in order to prevent the
-    // entire window from flashing.
-    // See: http://stackoverflow.com/questions/3461441/prevent-flicker-on-webkit-transition-of-webkit-transform
-    // Mac-only though, since this would turn off subpixel antialiasing (ClearType) on Windows
     &.platform-mac {
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
+        // Use gray scale antialiasing for UI. Code view editor-holder
+        // overrides this to use subpixel antialiasing on Mac, which then
+        // can be overridden by setting "fontSmoothing" preference to
+        // "antialiased". Gray scale AA is used for UI parts which use
+        // SourceSansPro font, which does't look good with subpixel AA,
+        // especially on low resolution monitors.
+        -webkit-font-smoothing: antialiased;
     }
 
     .dark,
@@ -73,7 +70,9 @@ html, body {
     }
 }
 
-
+.subpixel-aa{
+    -webkit-font-smoothing: subpixel-antialiased;
+}
 
 .resizing-container {
     position: absolute;
@@ -1508,6 +1507,17 @@ a, img {
     .scope-group {
         display: inline-block;
         margin-left: 10px;
+    }
+
+    .indexing-group {
+        display: inline-block;
+        margin-left: 10px;
+    }
+
+    .indexing-message {
+        display: inline-block;
+        font-style: italic;
+        margin-left: 5px;
     }
 
     .message, .no-results-message {

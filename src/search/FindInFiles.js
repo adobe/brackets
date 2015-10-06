@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         Async                 = require("utils/Async"),
         StringUtils           = require("utils/StringUtils"),
         ProjectManager        = require("project/ProjectManager"),
+        PreferencesManager    = require("preferences/PreferencesManager"),
         DocumentModule        = require("document/Document"),
         DocumentManager       = require("document/DocumentManager"),
         MainViewManager       = require("view/MainViewManager"),
@@ -42,8 +43,20 @@ define(function (require, exports, module) {
         LanguageManager       = require("language/LanguageManager"),
         SearchModel           = require("search/SearchModel").SearchModel,
         PerfUtils             = require("utils/PerfUtils"),
-        FindUtils             = require("search/FindUtils");
+        NodeDomain            = require("utils/NodeDomain"),
+        FileUtils             = require("file/FileUtils"),
+        FindUtils             = require("search/FindUtils"),
+        HealthLogger          = require("utils/HealthLogger");
     
+    var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
+        _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
+        _nodePath       = "node/FindInFilesDomain",
+        _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
+        searchDomain     = new NodeDomain("FindInFiles", _domainPath),
+        searchScopeChanged = false,
+        findOrReplaceInProgress = false,
+        changedFileList = {};
+
     /**
      * Token used to indicate a specific reason for zero search results
      * @const @type {!Object}
@@ -63,7 +76,7 @@ define(function (require, exports, module) {
     var searchModel = new SearchModel();
     
     /* Forward declarations */
-    var _documentChangeHandler, _fileSystemChangeHandler, _fileNameChangeHandler;
+    var _documentChangeHandler, _fileSystemChangeHandler, _fileNameChangeHandler, clearSearch;
     
     /** Remove the listeners that were tracking potential search result changes */
     function _removeListeners() {
@@ -74,16 +87,25 @@ define(function (require, exports, module) {
     
     /** Add listeners to track events that might change the search result set */
     function _addListeners() {
-        if (searchModel.hasResults()) {
-            // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
-            _removeListeners();
-        
-            DocumentModule.on("documentChange", _documentChangeHandler);
-            FileSystem.on("change", _fileSystemChangeHandler);
-            DocumentManager.on("fileNameChange",  _fileNameChangeHandler);
-        }
+        // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
+        _removeListeners();
+
+        DocumentModule.on("documentChange", _documentChangeHandler);
+        FileSystem.on("change", _fileSystemChangeHandler);
+        DocumentManager.on("fileNameChange",  _fileNameChangeHandler);
     }
     
+    function nodeFileCacheComplete(event, numFiles, cacheSize) {
+        var projectName = ProjectManager.getProjectRoot().name || "noName00";
+        FindUtils.setInstantSearchDisabled(false);
+        // Node search could be disabled if some error has happened in node. But upon
+        // project change, if we get this message, then it means that node search is working,
+        // we re-enable node search. If a search fails, node search will be switched off eventually.
+        FindUtils.setNodeSearchDisabled(false);
+        FindUtils.notifyIndexingFinished();
+        HealthLogger.setProjectDetail(projectName, numFiles, cacheSize);
+    }
+
     /**
      * @private
      * Searches through the contents and returns an array of matches
@@ -116,7 +138,7 @@ define(function (require, exports, module) {
             
             if (highlightEndCh <= MAX_DISPLAY_LENGTH) {
                 // Don't store more than 200 chars per line
-                line = line.substr(0, Math.min(MAX_DISPLAY_LENGTH, line.length));
+                line = line.substr(0, MAX_DISPLAY_LENGTH);
             } else if (totalMatchLength > MAX_DISPLAY_LENGTH) {
                 // impossible to display the whole match
                 line = line.substr(ch, ch + MAX_DISPLAY_LENGTH);
@@ -267,7 +289,6 @@ define(function (require, exports, module) {
             searchModel.fireChanged(true);
         }
     }
-        
 
     /**
      * Checks that the file matches the given subtree scope. To fully check whether the file
@@ -316,7 +337,7 @@ define(function (require, exports, module) {
         if (scope && scope.isFile) {
             return new $.Deferred().resolve(filter(scope) ? [scope] : []).promise();
         } else {
-            return ProjectManager.getAllFiles(filter, true);
+            return ProjectManager.getAllFiles(filter, true, true);
         }
     }
     
@@ -362,8 +383,12 @@ define(function (require, exports, module) {
      *      A change list as described in the Document constructor
      */
     _documentChangeHandler = function (event, document, change) {
-        if (_inSearchScope(document.file)) {
-            _updateResults(document, change);
+        if (!findOrReplaceInProgress) {
+            changedFileList[document.file.fullPath] = true;
+        } else {
+            if (_inSearchScope(document.file)) {
+                _updateResults(document, change);
+            }
         }
     };
     
@@ -401,6 +426,34 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Inform node that the document has changed [along with its contents]
+     * @param {string} docPath the path of the changed document
+     */
+    function _updateDocumentInNode(docPath) {
+        DocumentManager.getDocumentForPath(docPath).done(function (doc) {
+            var updateObject = {
+                    "filePath": docPath,
+                    "docContents": doc.getText()
+                };
+            searchDomain.exec("documentChanged", updateObject);
+        });
+    }
+
+     /**
+     * @private
+     * sends all changed documents that we have tracked to node
+     */
+    function _updateChangedDocs() {
+        var key = null;
+        for (key in changedFileList) {
+            if (changedFileList.hasOwnProperty(key)) {
+                _updateDocumentInNode(key);
+            }
+        }
+    }
+
+    /**
+     * @private
      * Executes the Find in Files search inside the current scope.
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object
      * @param {!$.Promise} candidateFilesPromise Promise from getCandidateFiles(), which was called earlier
@@ -419,13 +472,82 @@ define(function (require, exports, module) {
         var scopeName = searchModel.scope ? searchModel.scope.fullPath : ProjectManager.getProjectRoot().fullPath,
             perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + queryInfo.query);
         
+        findOrReplaceInProgress = true;
+
         return candidateFilesPromise
             .then(function (fileListResult) {
                 // Filter out files/folders that match user's current exclusion filter
                 fileListResult = FileFilters.filterFileList(filter, fileListResult);
+
+                if (searchModel.isReplace || FindUtils.isNodeSearchDisabled()) {
+                    if (fileListResult.length) {
+                        searchModel.allResultsAvailable = true;
+                        return Async.doInParallel(fileListResult, _doSearchInOneFile);
+                    } else {
+                        return ZERO_FILES_TO_SEARCH;
+                    }
+                }
+            
+                var searchDeferred = new $.Deferred();
                 
                 if (fileListResult.length) {
-                    return Async.doInParallel(fileListResult, _doSearchInOneFile);
+                    var searchObject;
+                    if (searchScopeChanged) {
+                        var files = fileListResult
+                            .filter(function (entry) {
+                                return entry.isFile && _isReadableText(entry.fullPath);
+                            })
+                            .map(function (entry) {
+                                return entry.fullPath;
+                            });
+
+                        /* The following line prioritizes the open Document in editor and
+                         * pushes it to the top of the filelist. */
+                        files = FindUtils.prioritizeOpenFile(files, FindUtils.getOpenFilePath());
+
+                        searchObject = {
+                            "files": files,
+                            "queryInfo": queryInfo,
+                            "queryExpr": searchModel.queryExpr
+                        };
+                        searchScopeChanged = false;
+                    } else {
+                        searchObject = {
+                            "queryInfo": queryInfo,
+                            "queryExpr": searchModel.queryExpr
+                        };
+                    }
+
+                    if (searchModel.isReplace) {
+                        searchObject.getAllResults = true;
+                    }
+                    _updateChangedDocs();
+                    FindUtils.notifyNodeSearchStarted();
+                    searchDomain.exec("doSearch", searchObject)
+                        .done(function (rcvd_object) {
+                            FindUtils.notifyNodeSearchFinished();
+                            if (!rcvd_object || !rcvd_object.results) {
+                                console.log('no node falling back to brackets search');
+                                FindUtils.setNodeSearchDisabled(true);
+                                searchDeferred.fail();
+                                clearSearch();
+                                return;
+                            }
+                            searchModel.results = rcvd_object.results;
+                            searchModel.numMatches = rcvd_object.numMatches;
+                            searchModel.numFiles = rcvd_object.numFiles;
+                            searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
+                            searchModel.allResultsAvailable = rcvd_object.allResultsAvailable;
+                            searchDeferred.resolve();
+                        })
+                        .fail(function () {
+                            FindUtils.notifyNodeSearchFinished();
+                            console.log('node fails');
+                            FindUtils.setNodeSearchDisabled(true);
+                            clearSearch();
+                            searchDeferred.reject();
+                        });
+                    return searchDeferred.promise();
                 } else {
                     return ZERO_FILES_TO_SEARCH;
                 }
@@ -433,10 +555,7 @@ define(function (require, exports, module) {
             .then(function (zeroFilesToken) {
                 exports._searchDone = true; // for unit tests
                 PerfUtils.addMeasurement(perfTimer);
-                
-                // Listen for FS & Document changes to keep results up to date
-                _addListeners();
-                
+
                 if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
                     return zeroFilesToken;
                 } else {
@@ -457,10 +576,10 @@ define(function (require, exports, module) {
      * Clears any previous search information, removing update listeners and clearing the model.
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
      */
-    function clearSearch() {
-        _removeListeners();
+    clearSearch = function () {
+        findOrReplaceInProgress = false;
         searchModel.clear();
-    }
+    };
 
     /**
      * Does a search in the given scope with the given filter. Used when you want to start a search
@@ -509,6 +628,60 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Flags that the search scope has changed, so that the file list for the following search is recomputed
+     */
+    var _searchScopeChanged = function () {
+        searchScopeChanged = true;
+    };
+
+    /**
+     * Notify node that the results should be collapsed
+     */
+    function _searchcollapseResults() {
+        if (FindUtils.isNodeSearchDisabled()) {
+            return;
+        }
+        searchDomain.exec("collapseResults", FindUtils.isCollapsedResults());
+    }
+
+    /**
+     * Inform node that the list of files has changed.
+     * @param {array} fileList The list of files that changed.
+     */
+    function filesChanged(fileList) {
+        if (FindUtils.isNodeSearchDisabled()) {
+            return;
+        }
+        var updateObject = {
+            "fileList": fileList
+        };
+        if (searchModel.filter) {
+            updateObject.filesInSearchScope = FileFilters.getPathsMatchingFilter(searchModel.filter, fileList);
+            _searchScopeChanged();
+        }
+        searchDomain.exec("filesChanged", updateObject);
+    }
+
+    /**
+     * Inform node that the list of files have been removed.
+     * @param {array} fileList The list of files that was removed.
+     */
+    function filesRemoved(fileList) {
+        if (FindUtils.isNodeSearchDisabled()) {
+            return;
+        }
+        var updateObject = {
+            "fileList": fileList
+        };
+        if (searchModel.filter) {
+            updateObject.filesInSearchScope = FileFilters.getPathsMatchingFilter(searchModel.filter, fileList);
+            _searchScopeChanged();
+        }
+        searchDomain.exec("filesRemoved", updateObject);
+    }
+
+    /**
+     * @private
      * Moves the search results from the previous path to the new one and updates the results list, if required
      * @param {$.Event} event
      * @param {string} oldName
@@ -520,9 +693,15 @@ define(function (require, exports, module) {
             // Update the search results
         _.forEach(searchModel.results, function (item, fullPath) {
             if (fullPath.indexOf(oldName) === 0) {
-                searchModel.removeResults(fullPath);
-                searchModel.setResults(fullPath.replace(oldName, newName), item);
-                resultsChanged = true;
+                // node search : inform node about the rename
+                filesRemoved([fullPath]);
+                filesChanged([fullPath.replace(oldName, newName)]);
+
+                if (findOrReplaceInProgress) {
+                    searchModel.removeResults(fullPath);
+                    searchModel.setResults(fullPath.replace(oldName, newName), item);
+                    resultsChanged = true;
+                }
             }
         });
 
@@ -550,8 +729,12 @@ define(function (require, exports, module) {
             Object.keys(searchModel.results).forEach(function (fullPath) {
                 if (fullPath === entry.fullPath ||
                         (entry.isDirectory && fullPath.indexOf(entry.fullPath) === 0)) {
-                    searchModel.removeResults(fullPath);
-                    resultsChanged = true;
+                    // node search : inform node that the file is removed
+                    filesRemoved([fullPath]);
+                    if (findOrReplaceInProgress) {
+                        searchModel.removeResults(fullPath);
+                        resultsChanged = true;
+                    }
                 }
             });
         }
@@ -563,6 +746,7 @@ define(function (require, exports, module) {
          */
         function _addSearchResultsForEntry(entry) {
             var addedFiles = [],
+                addedFilePaths = [],
                 deferred = new $.Deferred();
             
             // gather up added files
@@ -573,6 +757,7 @@ define(function (require, exports, module) {
                         // Re-check the filtering that the initial search applied
                         if (_inSearchScope(child)) {
                             addedFiles.push(child);
+                            addedFilePaths.push(child.fullPath);
                         }
                     }
                     return true;
@@ -586,13 +771,18 @@ define(function (require, exports, module) {
                     return;
                 }
                 
-                // find additional matches in all added files
-                Async.doInParallel(addedFiles, function (file) {
-                    return _doSearchInOneFile(file)
-                        .done(function (foundMatches) {
-                            resultsChanged = resultsChanged || foundMatches;
-                        });
-                }).always(deferred.resolve);
+                //node Search : inform node about the file changes
+                filesChanged(addedFilePaths);
+
+                if (findOrReplaceInProgress) {
+                    // find additional matches in all added files
+                    Async.doInParallel(addedFiles, function (file) {
+                        return _doSearchInOneFile(file)
+                            .done(function (foundMatches) {
+                                resultsChanged = resultsChanged || foundMatches;
+                            });
+                    }).always(deferred.resolve);
+                }
             });
     
             return deferred.promise();
@@ -631,14 +821,119 @@ define(function (require, exports, module) {
             }
         });
     };
+
+    /**
+     * On project change, inform node about the new list of files that needs to be crawled.
+     * Instant search is also disabled for the time being till the crawl is complete in node.
+     */
+    var _initCache = function () {
+        function filter(file) {
+            return _subtreeFilter(file, null) && _isReadableText(file.fullPath);
+        }
+        FindUtils.setInstantSearchDisabled(true);
+
+        //we always listen for filesytem changes.
+        _addListeners();
+
+        if (!PreferencesManager.get("findInFiles.nodeSearch")) {
+            return;
+        }
+        ProjectManager.getAllFiles(filter, true, true)
+            .done(function (fileListResult) {
+                var files = fileListResult,
+                    filter = FileFilters.getActiveFilter();
+                if (filter && filter.patterns.length > 0) {
+                    files = FileFilters.filterFileList(FileFilters.compile(filter.patterns), files);
+                }
+                files = files.filter(function (entry) {
+                    return entry.isFile && _isReadableText(entry.fullPath);
+                }).map(function (entry) {
+                    return entry.fullPath;
+                });
+                FindUtils.notifyIndexingStarted();
+                searchDomain.exec("initCache", files);
+            });
+        _searchScopeChanged();
+    };
+
+
+    /**
+     * Gets the next page of search recults to append to the result set.
+     * @return {object} A promise that's resolved with the search results or rejected when the find competes.
+     */
+    function getNextPageofSearchResults() {
+        var searchDeferred = $.Deferred();
+        if (searchModel.allResultsAvailable) {
+            return searchDeferred.resolve().promise();
+        }
+        _updateChangedDocs();
+        FindUtils.notifyNodeSearchStarted();
+        searchDomain.exec("nextPage")
+            .done(function (rcvd_object) {
+                FindUtils.notifyNodeSearchFinished();
+                if (searchModel.results) {
+                    var resultEntry;
+                    for (resultEntry in rcvd_object.results ) {
+                        if (rcvd_object.results.hasOwnProperty(resultEntry)) {
+                            searchModel.results[resultEntry.toString()] = rcvd_object.results[resultEntry];
+                        }
+                    }
+                } else {
+                    searchModel.results = rcvd_object.results;
+                }
+                searchModel.fireChanged();
+                searchDeferred.resolve();
+            })
+            .fail(function () {
+                FindUtils.notifyNodeSearchFinished();
+                console.log('node fails');
+                FindUtils.setNodeSearchDisabled(true);
+                searchDeferred.reject();
+            });
+        return searchDeferred.promise();
+    }
+
+    function getAllSearchResults() {
+        var searchDeferred = $.Deferred();
+        if (searchModel.allResultsAvailable) {
+            return searchDeferred.resolve().promise();
+        }
+        _updateChangedDocs();
+        FindUtils.notifyNodeSearchStarted();
+        searchDomain.exec("getAllResults")
+            .done(function (rcvd_object) {
+                FindUtils.notifyNodeSearchFinished();
+                searchModel.results = rcvd_object.results;
+                searchModel.numMatches = rcvd_object.numMatches;
+                searchModel.numFiles = rcvd_object.numFiles;
+                searchModel.allResultsAvailable = true;
+                searchModel.fireChanged();
+                searchDeferred.resolve();
+            })
+            .fail(function () {
+                FindUtils.notifyNodeSearchFinished();
+                console.log('node fails');
+                FindUtils.setNodeSearchDisabled(true);
+                searchDeferred.reject();
+            });
+        return searchDeferred.promise();
+    }
+
+    ProjectManager.on("projectOpen", _initCache);
+    FindUtils.on(FindUtils.SEARCH_FILE_FILTERS_CHANGED, _searchScopeChanged);
+    FindUtils.on(FindUtils.SEARCH_SCOPE_CHANGED, _searchScopeChanged);
+    FindUtils.on(FindUtils.SEARCH_COLLAPSE_RESULTS, _searchcollapseResults);
+    searchDomain.on("crawlComplete", nodeFileCacheComplete);
     
     // Public exports
-    exports.searchModel          = searchModel;
-    exports.doSearchInScope      = doSearchInScope;
-    exports.doReplace            = doReplace;
-    exports.getCandidateFiles    = getCandidateFiles;
-    exports.clearSearch          = clearSearch;
-    exports.ZERO_FILES_TO_SEARCH = ZERO_FILES_TO_SEARCH;
+    exports.searchModel            = searchModel;
+    exports.doSearchInScope        = doSearchInScope;
+    exports.doReplace              = doReplace;
+    exports.getCandidateFiles      = getCandidateFiles;
+    exports.clearSearch            = clearSearch;
+    exports.ZERO_FILES_TO_SEARCH   = ZERO_FILES_TO_SEARCH;
+    exports.getNextPageofSearchResults          = getNextPageofSearchResults;
+    exports.getAllSearchResults    = getAllSearchResults;
     
     // For unit tests only
     exports._documentChangeHandler = _documentChangeHandler;

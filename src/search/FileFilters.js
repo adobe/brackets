@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         StringUtils        = require("utils/StringUtils"),
         Strings            = require("strings"),
         PreferencesManager = require("preferences/PreferencesManager"),
+        FindUtils          = require("search/FindUtils"),
         EditFilterTemplate = require("text!htmlContent/edit-filter-dialog.html"),
         FilterNameTemplate = require("text!htmlContent/filter-name.html");
   
@@ -58,7 +59,7 @@ define(function (require, exports, module) {
      * @type {DropdownButton}
      */
     var _picker  = null;
-    
+
     /**
      * Get the condensed form of the filter set by joining the first two in the set with
      * a comma separator and appending a short message with the number of filters being clipped.
@@ -192,6 +193,7 @@ define(function (require, exports, module) {
             // Explicitly set to -1 to remove the active file filter
             PreferencesManager.setViewState("activeFileFilter", -1);
         }
+        FindUtils.notifyFileFiltersChanged();
     }
     
     
@@ -283,10 +285,28 @@ define(function (require, exports, module) {
         
         var re = new RegExp(compiledFilter);
         return files.filter(function (f) {
-            return !f.fullPath.match(re);
+            return !re.test(f.fullPath);
         });
     }
     
+    /**
+     * Returns a copy of 'file path' strings that match any of the exclusion globs in the filter.
+     *
+     * @param {?string} compiledFilter  'Compiled' filter object as returned by compile(), or null to no-op
+     * @param {!Array.<string>} An array with a list of full file paths that matches atleast one of the filter.
+     * @return {!Array.<string>}
+     */
+    function getPathsMatchingFilter(compiledFilter, filePaths) {
+        if (!compiledFilter) {
+            return filePaths;
+        }
+
+        var re = new RegExp(compiledFilter);
+        return filePaths.filter(function (f) {
+            return f.match(re);
+        });
+    }
+
     
     /**
      * Opens a dialog box to edit the given filter. When editing is finished, the value of getActiveFilter() changes to
@@ -537,12 +557,13 @@ define(function (require, exports, module) {
     exports.showDropdown       = showDropdown;
     exports.closeDropdown      = closeDropdown;
 
-    exports.createFilterPicker = createFilterPicker;
-    exports.commitPicker       = commitPicker;
-    exports.getActiveFilter      = getActiveFilter;
-    exports.setActiveFilter      = setActiveFilter;
-    exports.editFilter         = editFilter;
-    exports.compile            = compile;
-    exports.filterPath         = filterPath;
-    exports.filterFileList     = filterFileList;
+    exports.createFilterPicker     = createFilterPicker;
+    exports.commitPicker           = commitPicker;
+    exports.getActiveFilter        = getActiveFilter;
+    exports.setActiveFilter        = setActiveFilter;
+    exports.editFilter             = editFilter;
+    exports.compile                = compile;
+    exports.filterPath             = filterPath;
+    exports.filterFileList         = filterFileList;
+    exports.getPathsMatchingFilter = getPathsMatchingFilter;
 });

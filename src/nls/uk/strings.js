@@ -362,11 +362,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                        : "Додати наступний збіг до виділення",
     "CMD_SKIP_CURRENT_MATCH"                    : "Пропустити поточний збіг",
     "CMD_FIND_IN_FILES"                         : "Знайти у файлах",
-    "CMD_FIND_IN_SELECTED"                      : "Знайти в обраному файлі/теці",
     "CMD_FIND_IN_SUBTREE"                       : "Знайти у\u2026",
     "CMD_REPLACE"                               : "Замінити",
     "CMD_REPLACE_IN_FILES"                      : "Замінити у файлах",
-    "CMD_REPLACE_IN_SELECTED"                   : "Замінити у вибраному файлі/теці",
     "CMD_REPLACE_IN_SUBTREE"                    : "Замінити\u2026",
 
     // View menu commands

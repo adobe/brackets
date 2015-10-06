@@ -30,7 +30,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var _ = require("thirdparty/lodash");
+    var _            = require("thirdparty/lodash"),
+        StringUtils  = require("utils/StringUtils");
 
     // make sure the global brackets variable is loaded
     require("utils/Global");
@@ -303,30 +304,49 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns the performance data as a tab deliminted string
+     * return single value, or comma separated values for an array or return aggregated values with
+     * <min value, average, max value, standard deviation>
+     * @param   {Array}    entry          An array or a single value
+     * @param   {Boolean} aggregateStats If set, the returned value will be aggregated in the form -
+     *                                   <min(avg)max[standard deviation]>
+     * @return {String}   a single value, or comma separated values in an array or
+     *                     <min(avg)max[standard deviation]> if aggregateStats is set
+     */
+    function getValueAsString(entry, aggregateStats) {
+        if (!Array.isArray(entry)) {
+            return entry;
+        }
+
+        if (aggregateStats) {
+            var sum = 0,
+                avg,
+                min = _.min(entry),
+                max = _.max(entry),
+                sd,
+                variationSum = 0;
+
+            entry.forEach(function (value) {
+                sum += value;
+            });
+            avg = Math.round(sum / entry.length);
+            entry.forEach(function (value) {
+                variationSum += Math.pow(value - avg, 2);
+            });
+            sd = Math.round(Math.sqrt(variationSum / entry.length));
+            return min + "(" + avg + ")" + max + "[" + sd + "]";
+        } else {
+            return entry.join(", ");
+        }
+    }
+
+    /**
+     * Returns the performance data as a tab delimited string
      * @return {string}
      */
     function getDelimitedPerfData() {
-        var getValue = function (entry) {
-            // return single value, or tab deliminted values for an array
-            if (Array.isArray(entry)) {
-                var i, values = "";
-                 
-                for (i = 0; i < entry.length; i++) {
-                    values += entry[i];
-                    if (i < entry.length - 1) {
-                        values += ", ";
-                    }
-                }
-                return values;
-            } else {
-                return entry;
-            }
-        };
-
         var result = "";
         _.forEach(perfData, function (entry, testName) {
-            result += getValue(entry) + "\t" + testName + "\n";
+            result += getValueAsString(entry) + "\t" + testName + "\n";
         });
 
         return result;
@@ -344,6 +364,31 @@ define(function (require, exports, module) {
         return perfData[id];
     }
     
+    /**
+     * Returns the Performance metrics to be logged for health report
+     * @return {Object} An object with the health data logs to be sent
+     */
+    function getHealthReport() {
+        var healthReport = {
+            projectLoadTimes : "",
+            fileOpenTimes : ""
+        };
+
+        _.forEach(perfData, function (entry, testName) {
+            if (StringUtils.startsWith(testName, "Application Startup")) {
+                healthReport.AppStartupTime = getValueAsString(entry);
+            } else if (StringUtils.startsWith(testName, "brackets module dependencies resolved")) {
+                healthReport.ModuleDepsResolved = getValueAsString(entry);
+            } else if (StringUtils.startsWith(testName, "Load Project")) {
+                healthReport.projectLoadTimes += ":" + getValueAsString(entry, true);
+            } else if (StringUtils.startsWith(testName, "Open File")) {
+                healthReport.fileOpenTimes += ":" + getValueAsString(entry, true);
+            }
+        });
+
+        return healthReport;
+    }
+
     function searchData(regExp) {
         var keys = Object.keys(perfData).filter(function (key) {
             return regExp.test(key);
@@ -384,4 +429,5 @@ define(function (require, exports, module) {
     exports.getDelimitedPerfData    = getDelimitedPerfData;
     exports.createPerfMeasurement   = createPerfMeasurement;
     exports.clear                   = clear;
+    exports.getHealthReport         = getHealthReport;
 });

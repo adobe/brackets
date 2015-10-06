@@ -64,7 +64,7 @@ define(function (require, exports, module) {
                 EditorManager       = testWindow.brackets.test.EditorManager;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
                 FileViewController  = testWindow.brackets.test.FileViewController;
-                   
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
         });
@@ -351,27 +351,7 @@ define(function (require, exports, module) {
         
         
         describe("Toggle Auto Close Braces", function () {
-            it("should NOT auto close braces in main editor by default", function () {
-                openEditor(JS_FILE);
-                
-                runs(function () {
-                    var editor = EditorManager.getCurrentFullEditor();
-                    checkCloseBraces(editor, {line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";");
-                });
-            });
-            
-            it("should NOT auto close braces in inline editor by default", function () {
-                openInlineEditor({line: 9, ch: 11});
-                
-                runs(function () {
-                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editor;
-                    checkCloseBraces(editor, {line: 1, ch: 15}, null, OPEN_BRACKET, ".shortLineClass { color: red; }");
-                });
-            });
-            
-            it("should auto close braces in the main editor after turning it on", function () {
-                // Turn on auto close braces
-                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
+            it("should auto close braces in main editor by default", function () {
                 openEditor(JS_FILE);
                 
                 runs(function () {
@@ -380,7 +360,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should auto close braces in inline editor after turning it on", function () {
+            it("should auto close braces in inline editor by default", function () {
                 openInlineEditor({line: 9, ch: 11});
                 
                 runs(function () {
@@ -389,7 +369,28 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should NOT auto close braces in the main editor after turning it on", function () {
+                // Turn off auto close braces
+                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
+                openEditor(JS_FILE);
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor();
+                    checkCloseBraces(editor, {line: 0, ch: 35}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";");
+                });
+            });
+            
+            it("should NOT auto close braces in inline editor after turning it on", function () {
+                openInlineEditor({line: 9, ch: 11});
+                
+                runs(function () {
+                    var editor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editor;
+                    checkCloseBraces(editor, {line: 1, ch: 15}, null, OPEN_BRACKET, ".shortLineClass { color: red; }");
+                });
+            });
+            
             it("should auto close braces when opening another document with auto close braces on", function () {
+                toggleOption(Commands.TOGGLE_CLOSE_BRACKETS, "Toggle auto close braces");
                 openEditor(CSS_FILE);
                 openAnotherEditor(JS_FILE);
                 

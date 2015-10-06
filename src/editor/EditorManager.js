@@ -192,10 +192,11 @@ define(function (require, exports, module) {
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
+     * @param {!Object} editorOptions If specified, contains editor options that can be passed to CodeMirror
      * @return {Editor} the newly created editor.
      */
-    function _createEditorForDocument(doc, makeMasterEditor, container, range) {
-        var editor = new Editor(doc, makeMasterEditor, container, range);
+    function _createEditorForDocument(doc, makeMasterEditor, container, range, editorOptions) {
+        var editor = new Editor(doc, makeMasterEditor, container, range, editorOptions);
 
         editor.on("focus", function () {
             _notifyActiveEditorChanged(editor);
@@ -471,11 +472,13 @@ define(function (require, exports, module) {
      * Semi-private: should only be called within this module or by Document.
      * @param {!Document} document  Document whose main/full Editor to create
      * @param {!Pane} pane  Pane in which the editor will be hosted
+     * @param {!Object} editorOptions If specified, contains editor options that
+     * can be passed to CodeMirror
      * @return {!Editor}
      */
-    function _createFullEditorForDocument(document, pane) {
+    function _createFullEditorForDocument(document, pane, editorOptions) {
         // Create editor; make it initially invisible
-        var editor = _createEditorForDocument(document, true, pane.$content);
+        var editor = _createEditorForDocument(document, true, pane.$content, undefined, editorOptions);
         editor.setVisible(false);
         pane.addView(editor);
         exports.trigger("_fullEditorCreatedForDocument", document, editor, pane.id);
@@ -530,9 +533,11 @@ define(function (require, exports, module) {
      * Create and/or show the editor for the specified document
      * @param {!Document} document - document to edit
      * @param {!Pane} pane - pane to show it in
+     * @param {!Object} editorOptions - If specified, contains
+     * editor options that can be passed to CodeMirror
      * @private
      */
-    function _showEditor(document, pane) {
+    function _showEditor(document, pane, editorOptions) {
         // Ensure a main editor exists for this document to show in the UI
         var createdNewEditor = false,
             editor = document._masterEditor;
@@ -545,7 +550,7 @@ define(function (require, exports, module) {
             }
             
             // Editor doesn't exist: populate a new Editor with the text
-            editor = _createFullEditorForDocument(document, pane);
+            editor = _createFullEditorForDocument(document, pane, editorOptions);
             createdNewEditor = true;
         } else if (editor.$el.parent()[0] !== pane.$content[0]) {
             // editor does exist but is not a child of the pane so add it to the 
@@ -618,13 +623,15 @@ define(function (require, exports, module) {
      * Opens the specified document in the given pane
      * @param {!Document} doc - the document to open
      * @param {!Pane} pane - the pane to open the document in
+     * @param {!Object} editorOptions - If specified, contains
+     * editor options that can be passed to CodeMirror
      * @return {boolean} true if the file can be opened, false if not
      */
-    function openDocument(doc, pane) {
+    function openDocument(doc, pane, editorOptions) {
         var perfTimerName = PerfUtils.markStart("EditorManager.openDocument():\t" + (!doc || doc.file.fullPath));
 
         if (doc && pane) {
-            _showEditor(doc, pane);
+            _showEditor(doc, pane, editorOptions);
         }
 
         PerfUtils.addMeasurement(perfTimerName);

@@ -116,7 +116,7 @@ define(function (require, exports, module) {
                     removeErrors,
                     updateErrors,
                     disableErrors;
-                
+
                 removeExtensionsPromise = ExtensionManager.removeMarkedExtensions()
                     .fail(function (errorArray) {
                         removeErrors = errorArray;
@@ -129,7 +129,7 @@ define(function (require, exports, module) {
                     .fail(function (errorArray) {
                         disableErrors = errorArray;
                     });
-                
+
                 Async.waitForAll([removeExtensionsPromise, updateExtensionsPromise, disableExtensionsPromise], true)
                     .always(function () {
                         dlg.close();
@@ -151,7 +151,7 @@ define(function (require, exports, module) {
                                 CommandManager.execute(Commands.APP_RELOAD);
                             }
                         }
-                        
+
                         if (removeErrors) {
                             removeErrors.forEach(function (errorObj) {
                                 ids.push(errorObj.item);
@@ -162,7 +162,7 @@ define(function (require, exports, module) {
                                 message: StringUtils.format(Strings.EXTENSION_MANAGER_REMOVE_ERROR, ids.join(", "))
                             });
                         }
-                        
+
                         if (updateErrors) {
                             // This error case should be very uncommon.
                             // Just let the user know that we couldn't update
@@ -185,7 +185,7 @@ define(function (require, exports, module) {
                                 message: StringUtils.format(Strings.EXTENSION_MANAGER_UPDATE_ERROR, ids.join(", "))
                             });
                         }
-                        
+
                         if (disableErrors) {
                             ids.length = 0;
                             disableErrors.forEach(function (errorObj) {
