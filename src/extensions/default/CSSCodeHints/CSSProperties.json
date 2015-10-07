@@ -10,7 +10,7 @@
     "animation-iteration-count":   {"values": ["infinite"]},
     "animation-name":              {"values": ["none"]},
     "animation-play-state":        {"values": ["paused", "running"]},
-    "animation-timing-function":   {"values": ["cubic-bezier(.42, 0, .58, 1)", "ease", "ease-in", "ease-in-out", "ease-out", "linear", "step-end", "step-start", "steps()"]},
+    "animation-timing-function":   {"values": ["cubic-bezier()", "ease", "ease-in", "ease-in-out", "ease-out", "linear", "step-end", "step-start", "steps()"]},
     "backface-visibility":         {"values": ["hidden", "visible"]},
     "background":                  {"values": []},
     "background-attachment":       {"values": ["fixed", "local", "scroll", "inherit"]},
@@ -38,7 +38,7 @@
     "border-image-slice":          {"values": []},
     "border-image-source":         {"values": []},
     "border-image-repeat":         {"values": ["repeat", "round", "space", "stretch"]},
-    "border-image-width":          {"values": ["auto"]},    
+    "border-image-width":          {"values": ["auto"]},
     "border-left":                 {"values": []},
     "border-left-color":           {"values": ["inherit"], "type": "color"},
     "border-left-style":           {"values": ["dashed", "dotted", "double", "groove", "hidden", "inset", "none", "outset", "ridge", "solid", "inherit"]},
@@ -196,7 +196,7 @@
     "transition-delay":            {"values": []},
     "transition-duration":         {"values": []},
     "transition-property":         {"values": ["all", "none"]},
-    "transition-timing-function":  {"values": ["cubic-bezier(.42, 0, .58, 1)", "ease", "ease-in", "ease-in-out", "ease-out", "linear", "step-end", "step-start", "steps()"]},
+    "transition-timing-function":  {"values": ["cubic-bezier()", "ease", "ease-in", "ease-in-out", "ease-out", "linear", "step-end", "step-start", "steps()"]},
     "unicode-bidi":                {"values": ["bidi-override", "embed", "normal", "inherit"]},
     "unicode-range":               {"values": []},
     "vertical-align":              {"values": ["baseline", "bottom", "middle", "sub", "super", "text-bottom", "text-top", "top", "inherit"]},
@@ -209,4 +209,3 @@
     "word-wrap":                   {"values": ["break-word", "normal"]},
     "z-index":                     {"values": ["auto", "inherit"]}
 }
-
