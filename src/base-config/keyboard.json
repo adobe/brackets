@@ -1,15 +1,6 @@
 ﻿{
-    "file.newDoc":  [
-        "Ctrl-N"
-    ],
-    "file.open":  [
-        "Ctrl-O"
-    ],
     "file.close":  [
-        "Ctrl-W"
-    ],
-    "file.openFolder": [
-        "Ctrl-Alt-O"
+        "Alt-W"
     ],
     "file.close_all":  [
         "Ctrl-Shift-W"
@@ -20,9 +11,6 @@
     "file.saveAll":  [
         "Ctrl-Alt-S"
     ],
-    "file.saveAs":  [
-        "Ctrl-Shift-S"
-    ],    
     "file.liveFilePreview":  [
         "Ctrl-Alt-P"
     ],
@@ -60,15 +48,6 @@
     ],
     "edit.selectAll":  [
         "Ctrl-A"
-    ],
-    "edit.selectLine":  [
-        {
-            "key": "Ctrl-L"
-        },
-        {
-            "key": "Ctrl-L",
-            "platform": "mac"
-        }
     ],
     "edit.splitSelIntoLines": [
         {
@@ -272,17 +251,18 @@
     "navigate.gotoLine":  [
         {
             "key": "Ctrl-G"
-        },
-        {
-            "key": "Cmd-L",
-            "platform": "mac"
         }
     ],
     "navigate.gotoDefinition":  [
-        "Ctrl-T"
+        "Alt-T"
     ],
     "navigate.jumptoDefinition":  [
-        "Ctrl-J"
+        {
+            "key": "Ctrl-J"
+        },
+        {
+            "key": "Alt-J"
+        }
     ],
     "navigate.gotoFirstProblem":  [
         {
@@ -320,10 +300,15 @@
         }
     ],
     "navigate.toggleQuickEdit":  [
-        "Ctrl-E"
+        {
+            "key": "Ctrl-E"
+        },
+        {
+            "key": "Alt-E"
+        }
     ],
     "navigate.toggleQuickDocs":  [
-        "Ctrl-K"
+        "Alt-K"
     ],
     "navigate.previousMatch":  [
         {
