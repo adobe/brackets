@@ -20,3 +20,34 @@ li.jstree-leaf > a {
 .CodeMirror-foldgutter-folded:after {
   font-size: .7em !important;
 }
+
+.swatches {
+	margin-top: 10px;
+	-webkit-user-select: text;
+	-khtml-user-select: text;
+	-moz-user-select: text;
+	-ms-user-select: text;
+	-o-user-select: text;
+}
+
+.swatch {
+	display: inline-block;
+	height: 25px;
+	width: 25px;
+	border: solid 1px transparent;
+	border-radius: 2px;
+	-webkit-transition: 1s;
+	-moz-transition: 1s;
+}
+
+.color-name {
+	padding: 10px;
+	font-size: 15px;
+	text-transform: uppercase;
+	top: -8px;
+	position: relative;
+}
+
+.image-header {
+	height: auto !important;
+}

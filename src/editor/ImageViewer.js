@@ -39,6 +39,8 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         _                   = require("thirdparty/lodash");
 
+    require("thirdparty/Vibrant");
+
     // XXXBramble specific bits to allow opening SVG as a regular image vs. XML doc
     var PreferencesManager  = require("preferences/PreferencesManager");
     PreferencesManager.definePreference("openSVGasXML", "boolean", false);
@@ -121,7 +123,28 @@ define(function (require, exports, module) {
         // add dimensions and size
         this._naturalWidth = e.currentTarget.naturalWidth;
         this._naturalHeight = e.currentTarget.naturalHeight;
-        
+
+        var img = e.currentTarget;
+
+        var vibrant = new window.Vibrant(img);
+        var swatches = vibrant.swatches();
+        var i = 0;
+        var elems = Array.prototype.slice.apply(document.querySelectorAll (".swatch"));
+        var texts = Array.prototype.slice.apply(document.querySelectorAll (".color-name"));
+
+        for (var swatch in swatches) {
+
+            if (swatches.hasOwnProperty(swatch) && swatches[swatch]) {
+                var el = elems[i];
+                var text = texts[i];
+
+                el.style.backgroundColor = swatches[swatch].getHex();
+                text.innerHTML = swatches[swatch].getHex();
+
+                i++;
+            }
+        }
+
         var extension = FileUtils.getFileExtension(this.file.fullPath);
         var dimensionString = this._naturalWidth + " &times; " + this._naturalHeight + " " + Strings.UNIT_PIXELS;
         
