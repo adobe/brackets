@@ -38,14 +38,18 @@ define(function (require, exports, module) {
 
     // Constants
     var PREFS_PURE_CODE           = "noDistractions",
-        CMD_TOGGLE_PURE_CODE      = "view.togglePureCode";
+        CMD_TOGGLE_PURE_CODE      = "view.togglePureCode",
+        CMD_TOGGLE_PANELS         = "view.togglePanels";
 
     //key biding keys
-    var togglePureCodeKey         = "Ctrl-Shift-`",
-        togglePureCodeKeyMac      = "Cmd-Shift-`";
+    var togglePureCodeKey         = "Ctrl-Shift-2",
+        togglePureCodeKeyMac      = "Cmd-Shift-2",
+        togglePanelsKey           = "Ctrl-Shift-`",
+        togglePanelsKeyMac        = "Cmd-Shift-`";
 
     //locals
-    var _previouslyOpenPanelIDs = [];
+    var _previouslyOpenPanelIDs = [],
+        panelsToggled = false;
 
     /**
      * @private
@@ -89,6 +93,15 @@ define(function (require, exports, module) {
         _previouslyOpenPanelIDs = [];
     }
 
+    function _togglePanels() {
+        panelsToggled = !panelsToggled;
+        if(panelsToggled) {
+            _hidePanlesIfRequired();
+        } else {
+            _showPanlesIfRequired();
+        }
+    }
+
     PreferencesManager.definePreference(PREFS_PURE_CODE, "boolean", false, {
         description: Strings.DESCRIPTION_PURE_CODING_SURFACE
     });
@@ -111,11 +124,13 @@ define(function (require, exports, module) {
      */
     function initializeCommands() {
         CommandManager.register(Strings.CMD_TOGGLE_PURE_CODE, CMD_TOGGLE_PURE_CODE, _togglePureCode);
+        CommandManager.register(Strings.CMD_TOGGLE_PANELS, CMD_TOGGLE_PANELS, _togglePanels);
 
-        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_TOGGLE_PURE_CODE, "", Menus.AFTER, Commands.VIEW_HIDE_SIDEBAR);
-        //Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_TOGGLE_PURE_CODE);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_TOGGLE_PANELS, "", Menus.AFTER, Commands.VIEW_HIDE_SIDEBAR);
+        Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_TOGGLE_PURE_CODE, "", Menus.AFTER, CMD_TOGGLE_PANELS);
 
         KeyBindingManager.addBinding(CMD_TOGGLE_PURE_CODE, [ {key: togglePureCodeKey}, {key: togglePureCodeKeyMac, platform: "mac"} ]);
+        KeyBindingManager.addBinding(CMD_TOGGLE_PANELS, [ {key: togglePanelsKey}, {key: togglePanelsKeyMac, platform: "mac"} ]);
     }
 
     initializeCommands();
