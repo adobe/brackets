@@ -150,3 +150,7 @@ div.CodeMirror-selected {
   color: #555;
   padding: 0 10px;
 }
+.inline-widget .CodeMirror-gutter.CodeMirror-linenumbers,
+.inline-widget .CodeMirror-gutter.CodeMirror-foldgutter {
+  background-color: #1b1b1b !important;
+}

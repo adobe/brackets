@@ -19,3 +19,9 @@ li.jstree-leaf > a {
 .CodeMirror-sizer {
 	margin-left: 75px !important;
 }
+
+/* Reduce the size of the code-folding gutter markers  with our larger font size */
+.CodeMirror-foldgutter-open:after,
+.CodeMirror-foldgutter-folded:after {
+  font-size: .7em !important;
+}

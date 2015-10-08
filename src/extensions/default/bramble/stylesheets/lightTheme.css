@@ -67,6 +67,11 @@ span.cm-variable {
 .CodeMirror-linenumber {
   color: #CCC;
 }
+
+.inline-widget .CodeMirror-gutter.CodeMirror-foldgutter {
+  background-color: #e6e9e9 !important;
+}
+
 .CodeMirror-gutter:after {
   content: "";
   position: absolute;
