@@ -38,27 +38,27 @@ define(function (require, exports, module) {
                 }
 
                 var filename = input.splice(0,1)[0];
-                BlobUtils.getUrl(Path.resolve(dir, decodePath(filename)), function(err, cachedUrl) {
-                    if(err) {
-                        // If there's an error with one of the linked files, warn and skip it.
-                        console.log("[CSSRewriter warning] failed on `" + filename + "`", err.message);
-                        fetch(input, replacements, next);
-                        return;
-                    }
-
-                    // Swap the filename with the blob url
-                    var filenameCleaned = filename.replace(periodRegex, '\\.')
-                                                  .replace(forwardSlashRegex, '\\/')
-                                                  .replace(dashRegex, '\\-');
-                    var regex = new RegExp(filenameCleaned, 'gm');
-
-                    // Queue a function to do the replacement in the second pass
-                    replacements.push(function(content) {
-                        return content.replace(regex, cachedUrl);
-                    });
-
+                var decodedPath = Path.resolve(dir, decodePath(filename));
+                var cachedUrl = BlobUtils.getUrl(decodedPath);
+                if(cachedUrl === decodedPath) {
+                    // If there's an error with one of the linked files, warn and skip it.
+                    console.log("[CSSRewriter warning] failed on `" + filename + "`", "not found");
                     fetch(input, replacements, next);
+                    return;
+                }
+
+                // Swap the filename with the blob url
+                var filenameCleaned = filename.replace(periodRegex, '\\.')
+                                              .replace(forwardSlashRegex, '\\/')
+                                              .replace(dashRegex, '\\-');
+                var regex = new RegExp(filenameCleaned, 'gm');
+
+                // Queue a function to do the replacement in the second pass
+                replacements.push(function(content) {
+                    return content.replace(regex, cachedUrl);
                 });
+
+                fetch(input, replacements, next);
             }
 
             function fetchFiles(list, next) {
@@ -90,7 +90,9 @@ define(function (require, exports, module) {
 
     function rewrite(path, css, callback) {
         var rewriter = new CSSRewriter(path, css);
-        rewriter.urls(callback);
+        setTimeout(function() {
+            rewriter.urls(callback);
+        }, 0);
     }
 
     exports.rewrite = rewrite;

@@ -6,7 +6,7 @@ define(function (require, exports, module) {
 
     var FileSystemError = require("filesystem/FileSystemError"),
         FileSystemStats = require("filesystem/FileSystemStats"),
-        Filer           = require("filesystem/impls/filer/BracketsFiler"),
+        BracketsFiler   = require("filesystem/impls/filer/BracketsFiler"),
         BlobUtils       = require("filesystem/impls/filer/BlobUtils"),
         decodePath      = require("filesystem/impls/filer/FilerUtils").decodePath,
         Handlers        = require("filesystem/impls/filer/lib/handlers"),
@@ -14,9 +14,15 @@ define(function (require, exports, module) {
         Async           = require("utils/Async"),
         BrambleEvents   = require("bramble/BrambleEvents");
 
-    var fs              = Filer.fs(),
-        Path            = Filer.Path,
+    var fs              = BracketsFiler.fs(),
+        Path            = BracketsFiler.Path,
         watchers        = {};
+
+    // We currently do *not* do write consistency checks, since only a single instance
+    // of the app tends to use a mounted path at a time in Bramble.  If you need to
+    // change this (e.g., multiple editor instances in different tabs sharing a project root),
+    // enable this.
+    var _doConsistencyCheck = false;
 
     var _changeCallback;            // Callback to notify FileSystem of watcher changes
 
@@ -316,7 +322,9 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if (options.hasOwnProperty("expectedHash") && options.expectedHash !== stats._hash) {
+            if (_doConsistencyCheck                    &&
+                options.hasOwnProperty("expectedHash") &&
+                options.expectedHash !== stats._hash) {
                 console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
 
                 if (options.hasOwnProperty("expectedContents")) {

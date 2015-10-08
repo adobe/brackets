@@ -44,14 +44,13 @@ define(function (require, exports, module) {
                 return;
             }
 
-            BlobUtils.getUrl(fullPath, function(err, url) {
-                if(err) {
-                    console.log("[HTMLRewriter warning] couldn't get URL for `" + fullPath + "`", err);
-                } else {
-                    element[urlType] = url;
-                }
-                callback();
-            });
+            var url = BlobUtils.getUrl(fullPath);
+            if(url === fullPath) {
+                console.log("[HTMLRewriter warning] couldn't get URL for `" + fullPath + "`");
+            } else {
+                element[urlType] = url;
+            }
+            callback();
         }, callback);
     };
 
@@ -115,7 +114,7 @@ define(function (require, exports, module) {
             // If the user has the given CSS file open in an editor,
             // use that; otherwise, get it from disk.
             server.serveLiveDocForPath(fullPath, function(err, url) {
-                if(err) {
+                if(err || url === fullPath) {
                     console.log("[HTMLRewriter warning] couldn't get URL for `" + fullPath + "`", err);
                 } else {
                     element.href = url;
@@ -158,7 +157,13 @@ define(function (require, exports, module) {
         // when we `fs.writeFile()` and generate cached Blob URLs in `handleFile()`).
         // If we don't, use `BlobUtils.getUrl()` instead to read from the fs.
         if(!server) {
-            server = { serveLiveDocForPath: BlobUtils.getUrl };
+            server = {
+                serveLiveDocForPath: function(path, callback) {
+                    setTimeout(function() {
+                        callback(null, BlobUtils.getUrl(path));
+                    }, 0);
+                }
+            };
         }
 
         var rewriter = new HTMLRewriter(path, html, server);
@@ -166,7 +171,9 @@ define(function (require, exports, module) {
         function iterator(functionName) {
             var args = Array.prototype.slice.call(arguments, 1);
             return function(callback) {
-                rewriter[functionName].apply(rewriter, args.concat([callback]));
+                setTimeout(function() {
+                    rewriter[functionName].apply(rewriter, args.concat([callback]));
+                }, 0);
             };
         }
 

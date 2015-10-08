@@ -7,18 +7,23 @@ define(function (require, exports, module) {
     var FilerUtils = require("filesystem/impls/filer/FilerUtils");
     var Path = FilerUtils.Path;
     var FilerBuffer = FilerUtils.Buffer;
+    var decodePath = require("filesystem/impls/filer/FilerUtils").decodePath;
 
     var proxyFS = {
         stat: function(path, callback) {
+            path = decodePath(path);
             proxyCall("stat", {args: [path]}, callback);
         },
         exists: function(path, callback) {
+            path = decodePath(path);
             proxyCall("exists", {args: [path]}, callback);
         },
         readdir: function(path, callback) {
+            path = decodePath(path);
             proxyCall("readdir", {args: [path]}, callback);
         },
         mkdir: function(path, callback) {
+            path = decodePath(path);
             proxyCall("mkdir", {args: [path]}, callback);
         },
         /**
@@ -27,6 +32,7 @@ define(function (require, exports, module) {
          * https://github.com/filerjs/filer/blob/develop/src/shell/shell.js
          */
         mkdirp: function(path, callback) {
+            path = decodePath(path);
             callback = callback || function(){};
 
             // We don't have direct access to Filer.Errors, fake it.
@@ -86,15 +92,21 @@ define(function (require, exports, module) {
             _mkdirp(path, callback);
         },
         rmdir: function(path, callback) {
+            path = decodePath(path);
             proxyCall("rmdir", {args: [path]}, callback);
         },
         unlink: function(path, callback) {
+            path = decodePath(path);
             proxyCall("unlink", {args: [path]}, callback);
         },
         rename: function(oldPath, newPath, callback) {
+            oldPath = decodePath(oldPath);
+            newPath = decodePath(newPath);
             proxyCall("rename", {args: [oldPath, newPath]}, callback);
         },
         readFile: function(path, options, callback) {
+            path = decodePath(path);
+
             if(typeof options === "function") {
                 callback = options;
                 options = {};
@@ -139,6 +151,7 @@ define(function (require, exports, module) {
             proxyCall("writeFile", options, callback);
         },
         watch: function(path, options, callback) {
+            path = decodePath(path);
             proxyCall("watch", {args: [path, options], persist: true}, callback);
         }
     };

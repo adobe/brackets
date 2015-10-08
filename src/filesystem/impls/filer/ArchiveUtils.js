@@ -5,17 +5,17 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var CommandManager = require("command/CommandManager");
-    var Commands       = require("command/Commands");
-    var async          = require("filesystem/impls/filer/lib/async");
-    var StartupState   = require("bramble/StartupState");
-    var JSZip          = require("thirdparty/jszip/dist/jszip.min");
-    var BlobUtils      = require("filesystem/impls/filer/BlobUtils");
-    var Filer          = require("filesystem/impls/filer/BracketsFiler");
-    var saveAs         = require("thirdparty/FileSaver");
-    var Buffer         = Filer.Buffer;
-    var Path           = Filer.Path;
-    var fs             = Filer.fs();
+    var CommandManager  = require("command/CommandManager");
+    var Commands        = require("command/Commands");
+    var async           = require("filesystem/impls/filer/lib/async");
+    var StartupState    = require("bramble/StartupState");
+    var JSZip           = require("thirdparty/jszip/dist/jszip.min");
+    var FileSystemCache = require("filesystem/impls/filer/FileSystemCache");
+    var Filer           = require("filesystem/impls/filer/BracketsFiler");
+    var saveAs          = require("thirdparty/FileSaver");
+    var Buffer          = Filer.Buffer;
+    var Path            = Filer.Path;
+    var fs              = Filer.fs();
 
     // Mac and Windows clutter zip files with extra files/folders we don't need
     function _skipFile(filename) {
@@ -53,7 +53,7 @@ define(function (require, exports, module) {
         // Update the file tree to show the new files
         CommandManager.execute(Commands.FILE_REFRESH).always(function() {
             // Generate Blob URLs for all the files we imported
-            BlobUtils.preload(StartupState.project("root"), callback);
+            FileSystemCache.refresh(callback);
         });
     }
 
