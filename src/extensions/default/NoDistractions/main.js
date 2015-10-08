@@ -95,7 +95,7 @@ define(function (require, exports, module) {
 
     function _togglePanels() {
         panelsToggled = !panelsToggled;
-        if(panelsToggled) {
+        if (panelsToggled) {
             _hidePanlesIfRequired();
         } else {
             _showPanlesIfRequired();
