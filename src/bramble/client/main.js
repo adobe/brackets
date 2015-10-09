@@ -492,7 +492,7 @@ define([
             var wrappedCallback;
             var args = data.args;
             var shell = new _fs.Shell();
-            var path, src, dest;
+            var path, src, dest, options;
 
             // With successful fs operations that create, update, delete, or rename files,
             // we also trigger events on the bramble instance.
@@ -514,39 +514,77 @@ define([
                 };
             }
 
-            function moveFile(filePath, to, callback) {
-                var newFilePath = Path.join(to, Path.basename(filePath));
+            function deleteDirectoryRecursively(directory, callback) {
+                function deleteFile(path, next) {
+                    // If the current path is a directory, do nothing
+                    if(path.endsWith("/")) {
+                        return next();
+                    }
+
+                    _fs.unlink(path, genericFileEventFn("fileDelete", path, next));
+                }
+
+                // Delete files inside the directory and trigger a `fileDelete`
+                shell.find(directory, {exec: deleteFile}, function(err) {
+                    if(err) {
+                        return callback(err);
+                    }
+
+                    shell.rm(directory, {recursive: true}, callback);
+                });
+            }
+
+            function moveFile(filePath, destDir, callback) {
+                var newFilePath = Path.join(destDir, Path.basename(filePath));
 
                 _fs.readFile(filePath, function(err, data) {
                     if(err) {
                         return callback(err);
                     }
 
-                    shell.mkdirp(to, function(err) {
+                    shell.mkdirp(destDir, function(err) {
                         if(err) {
                             return callback(err);
                         }
 
-                        _fs.writeFile(newFilePath, data, function(err) {
-                            if(err) {
-                                return callback(err);
-                            }
-
-                            callback(null, newFilePath);
-                        });
+                        _fs.writeFile(newFilePath, data, genericFileEventFn("fileChange", newFilePath, callback));
                     });
                 });
             }
 
-            function moveEmptyDirectory(dirPath, to, callback) {
-                var newEmptyDirPath = Path.join(to, Path.basename(dirPath));
+            function moveEmptyDirectory(dirPath, destDir, callback) {
+                var newEmptyDirPath = Path.join(destDir, Path.basename(dirPath));
 
-                shell.mkdirp(newEmptyDirPath, function(err) {
+                shell.mkdirp(newEmptyDirPath, callback);
+            }
+
+            function move(nodePath, callback) {
+                var destinationDirectory = Path.join(dest, Path.basename(src), Path.dirname(Path.relative(src, nodePath)));
+
+                if(!nodePath.endsWith("/")) {
+                    return moveFile(nodePath, destinationDirectory, callback);
+                }
+
+                // If it is a directory, check to see if it contains
+                // anything. If it does, ignore it as the case above
+                // will eventually create it. If it is empty, create
+                // an empty directory at the destination too.
+                _fs.readdir(nodePath, function(err, contents) {
                     if(err) {
                         return callback(err);
                     }
 
-                    callback(null, newEmptyDirPath);
+                    // Directory contains something
+                    if(contents.length > 0) {
+                        return callback();
+                    }
+
+                    // Avoid creating the same directory inside itself
+                    if(nodePath.replace(/\/?$/, "") === src.replace(/\/?$/, "")) {
+                        destinationDirectory = Path.dirname(destinationDirectory);
+                    }
+
+                    moveEmptyDirectory(nodePath, destinationDirectory, callback);
                 });
             }
 
@@ -620,40 +658,41 @@ define([
                         return moveFile(src, dest, callback);
                     }
 
-                    shell.find(src, {
-                        exec: function(nodePath, next) {
-                            var destinationDirectory = Path.join(dest, Path.basename(src), Path.dirname(Path.relative(src, nodePath)));
+                    shell.find(src, {exec: move}, callback);
+                });
 
-                            if(!nodePath.endsWith("/")) {
-                                return moveFile(nodePath, destinationDirectory, next);
-                            }
+                break;
+            case "rm":
+                path = args[0];
+                options = args[1];
 
-                            // If it is a directory, check to see if it contains
-                            // anything. If it does, ignore it as the case above
-                            // will eventually create it. If it is empty, create
-                            // an empty directory at the destination too.
-                            _fs.readdir(nodePath, function(err, contents) {
-                                if(err) {
-                                    return next(err);
-                                }
-
-                                // Directory contains something
-                                if(contents.length > 0) {
-                                    return next();
-                                }
-
-                                moveEmptyDirectory(nodePath, destinationDirectory, next);
-                            });
+                _fs.readdir(path, function(err, contents) {
+                    if(err) {
+                        // If the path was a file, immediately unlink
+                        // trigger the event, and call the callback
+                        if(err.code === "ENOTDIR") {
+                            return shell.rm(path, genericFileEventFn("fileDelete", path, callback));
                         }
-                    }, callback);
+
+                        return callback(err);
+                    }
+
+                    // If the directory is empty or *should* be empty (in the
+                    // case of a non-recursive rm), call shell.rm immediately
+                    // without triggering a `fileDelete` event
+                    if(!contents || contents.length < 1 || !options.recursive) {
+                        return shell.rm(path, callback);
+                    }
+
+                    deleteDirectoryRecursively(path, callback);
                 });
 
                 break;
             default:
                 if(data.shell) {
-                    shell[data.method].apply(shell, data.args.concat(callback));
+                    shell[data.method].apply(shell, args.concat(callback));
                 } else {
-                    _fs[data.method].apply(_fs, data.args.concat(callback));
+                    _fs[data.method].apply(_fs, args.concat(callback));
                 }
             }
         }

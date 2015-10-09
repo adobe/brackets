@@ -155,12 +155,16 @@ define(function (require, exports, module) {
             proxyCall("watch", {args: [path, options], persist: true}, callback);
         },
         ls: function(path, options, callback) {
+            path = decodePath(path);
             proxyCall("ls", {args: [path, options], shell: true}, callback);
         },
         mv: function(src, dest, callback) {
+            src = decodePath(src);
+            dest = decodePath(dest);
             proxyCall("mv", {args: [src, dest], shell: true}, callback);
         },
         rm: function(path, options, callback) {
+            path = decodePath(path);
             proxyCall("rm", {args: [path, options], shell: true}, callback);
         }
     };

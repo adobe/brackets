@@ -1,0 +1,18 @@
+<div class="move-to-dialog modal">
+    <div class="modal-header">
+        <h1 class="dialog-title">Pick a folder</h1>
+    </div>
+
+    <div class="modal-body">
+        <div class="directories"
+             data-destination="{{defaultPath}}"
+             data-source="{{source}}">
+            {{> directories}}
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button class="dialog-button btn primary" data-button-id="ok">OK</button>
+        <button class="dialog-button btn" data-button-id="cancel">Cancel</button>
+    </div>
+</div>

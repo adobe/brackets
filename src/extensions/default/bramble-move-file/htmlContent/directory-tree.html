@@ -1,0 +1,13 @@
+<div {{#indent}} style="margin-left: {{indent}}px;" {{/indent}}>
+    {{#.}}
+        <div class="directory" data-path="{{path}}">
+            <div class="directory-name {{#defaultPath}}active-directory{{/defaultPath}}">
+                {{^noIcon}}<span class="folder-icon"></span>{{/noIcon}}
+                <span><strong>{{name}}</strong></span>
+            </div>
+            {{#children}}
+                {{> subdirectories}}
+            {{/children}}
+        </div>
+    {{/.}}
+</div>

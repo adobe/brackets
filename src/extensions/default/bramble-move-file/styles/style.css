@@ -1,0 +1,33 @@
+.modal-body {
+    background-color: #fff;
+}
+
+.move-to-dialog {
+    font-size: 15px;
+}
+
+.move-to-dialog .directory {
+    display: block;
+}
+
+.move-to-dialog .directory-name {
+    margin-bottom: 6px;
+    display: inline-block;
+    padding: 6px;
+}
+
+.move-to-dialog .directory-name:hover {
+    background-color: #eaeaea;
+    cursor: pointer;
+}
+
+.move-to-dialog .active-directory {
+    background-color: #d0d0d0 !important;
+}
+
+.move-to-dialog .folder-icon {
+    background: url("../images/folder.svg") no-repeat left center;
+    opacity: 0.7;
+    padding-left: 20px;
+}
+

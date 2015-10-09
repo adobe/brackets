@@ -1,0 +1,21 @@
+{
+  "name": "brackets-move-file",
+  "version": "0.0.1",
+  "description": "Bramble extension to move files and folders in the file tree",
+  "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gideonthomas/brackets-move-file"
+  },
+  "keywords": [
+    "move",
+    "navigate",
+    "file-tree"
+  ],
+  "author": "Gideon Thomas (https://github.com/gideonthomas)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gideonthomas/brackets-move-file/issues"
+  },
+  "homepage": "https://github.com/gideonthomas/brackets-move-file"
+}

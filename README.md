@@ -85,6 +85,7 @@ A standard set of default extensions are always turned on:
 * UploadFiles
 * WebPlatformDocs
 * CodeFolding
+* bramble-move-file
 
 You could disable QuickView and CSSCodeHints by loading Bramble with `?disableExtensions=QuickView,CSSCodeHints`
 on the URL.
