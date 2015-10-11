@@ -217,6 +217,7 @@ define(function (require, exports, module) {
             $header  = $el.find(".pane-header"),
             $headerText = $header.find(".pane-header-text"),
             $headerFlipViewBtn = $header.find(".pane-header-flipview-btn"),
+            $headerCloseBtn = $header.find(".pane-header-close-btn"),
             $content = $el.find(".pane-content");
         
         $el.on("focusin.pane", function (e) {
@@ -238,6 +239,17 @@ define(function (require, exports, module) {
             });
         });
 
+        // Closes the current view on the pane when clicked. If pane has no files, merge
+        // panes.
+        $headerCloseBtn.on("click.pane", function () {
+            var file = self.getCurrentlyViewedFile();
+
+            if (file) {
+                CommandManager.execute(Commands.FILE_CLOSE, {File: file});
+            } else {
+                MainViewManager.setLayoutScheme(1, 1);
+            }
+        });
 
         this._lastFocusedElement = $el[0];
         
@@ -281,6 +293,15 @@ define(function (require, exports, module) {
         Object.defineProperty(this,  "$headerFlipViewBtn", {
             get: function () {
                 return $headerFlipViewBtn;
+            },
+            set: function () {
+                console.error("cannot change the DOM node of a working pane");
+            }
+        });
+
+        Object.defineProperty(this,  "$headerCloseBtn", {
+            get: function () {
+                return $headerCloseBtn;
             },
             set: function () {
                 console.error("cannot change the DOM node of a working pane");
@@ -360,6 +381,13 @@ define(function (require, exports, module) {
      * @type {JQuery}
      */
     Pane.prototype.$headerFlipViewBtn = null;
+
+    /**
+     * close button of the pane
+     * @readonly
+     * @type {JQuery}
+     */
+    Pane.prototype.$headerCloseBtn = null;
 
     /**
      * the wrapped DOM node that contains views

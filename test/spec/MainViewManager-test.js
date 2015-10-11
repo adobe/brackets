@@ -502,6 +502,41 @@ define(function (require, exports, module) {
                     expect(MainViewManager._getPaneIdForPath(testPath + "/test.css")).toEqual(null);
                 });
             });
+            it("should close the view when clicked", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(MainViewManager._getPaneIdForPath(testPath + "/test.js")).toEqual("first-pane");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                });
+                runs(function () {
+                    MainViewManager._getPane("first-pane").$headerCloseBtn.trigger("click");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
+                });
+            });
+            it("should collapse the panes when close button is clicked on a pane with no files", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    MainViewManager._getPane("first-pane").$headerCloseBtn.trigger("click");
+                });
+                runs(function () {
+                    expect(MainViewManager.getLayoutScheme()).toEqual({rows: 1, columns: 1});
+                });
+            });
             it("should activate pane when editor gains focus", function () {
                 var editors = {},
                     handler = function (e, doc, editor, paneId) {
