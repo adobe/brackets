@@ -498,11 +498,10 @@ a, img {
 
         &-flipview-btn {
             position: relative;
-            display: inline-block;
+            display: none;
             top: 0px;
-            padding-top: 4px;
+            padding-top: 2px;
             padding-right: 4px;
-            padding-bottom: 2px;
             padding-left: 4px;
             margin-left: 0;
             margin-bottom: 0;
@@ -515,8 +514,8 @@ a, img {
             z-index: 1;
             vertical-align: middle;
 
-            &.btn-alt-quiet:hover {
-                border-color: @dark-bc-panel-bg;
+            &:hover {
+                background-image: url("images/flip-view-icons-hover.svg")
             }
 
             &.flipview-icon-none {
@@ -542,12 +541,24 @@ a, img {
 
         &-close-btn {
             position: relative;
+            display: none;
             height: 16px;
             width: 16px;
             float: right;
             margin-top: -2px;
         }
+
+        &:hover, &.always-show-header-buttons {
+            > .pane-header-flipview-btn {
+                display: inline-block;
+            }
+
+            > .pane-header-close-btn {
+                display: inline;
+            }
+        }
     }
+
     .active-pane {
         
         .pane-header {

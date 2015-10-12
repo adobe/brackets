@@ -161,6 +161,7 @@ define(function (require, exports, module) {
         InMemoryFile        = require("document/InMemoryFile"),
         ViewStateManager    = require("view/ViewStateManager"),
         MainViewManager     = require("view/MainViewManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
@@ -183,6 +184,19 @@ define(function (require, exports, module) {
      * @private
      */
     var SECOND_PANE         = "second-pane";
+
+    // Define showPaneHeaderButtons, which controls when to show close and flip-view buttons
+    // on the header. Possible values "hover", "always" and "never"
+    PreferencesManager.definePreference("pane.showPaneHeaderButtons", "string", "hover", {
+        description: Strings.DESCRIPTION_SHOW_PANE_HEADER_BUTTONS
+    });
+
+    // Define mergePanesWhenLastFileClosed, which controls if a split view pane should be
+    // closed when the last file is closed, skipping the "Open a file while this pane has focus"
+    // step completely.
+    PreferencesManager.definePreference("pane.mergePanesWhenLastFileClosed", "boolean", false, {
+        description: Strings.DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED
+    });
 
     /**
      * Make an index request object
@@ -213,6 +227,7 @@ define(function (require, exports, module) {
         
         // Setup the container and the element we're inserting
         var self = this,
+            showPaneHeaderButtonsPref = PreferencesManager.get("pane.showPaneHeaderButtons"),
             $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id),
             $header  = $el.find(".pane-header"),
             $headerText = $header.find(".pane-header-text"),
@@ -242,10 +257,16 @@ define(function (require, exports, module) {
         // Closes the current view on the pane when clicked. If pane has no files, merge
         // panes.
         $headerCloseBtn.on("click.pane", function () {
+            //set clicked pane as active to ensure that this._currentView is updated before closing
+            MainViewManager.setActivePaneId(self.id);
             var file = self.getCurrentlyViewedFile();
 
             if (file) {
                 CommandManager.execute(Commands.FILE_CLOSE, {File: file});
+
+                if (!self.getCurrentlyViewedFile() && PreferencesManager.get("pane.mergePanesWhenLastFileClosed")) {
+                    MainViewManager.setLayoutScheme(1, 1);
+                }
             } else {
                 MainViewManager.setLayoutScheme(1, 1);
             }
@@ -327,6 +348,16 @@ define(function (require, exports, module) {
         });
 
         this.updateHeaderText();
+
+        switch (showPaneHeaderButtonsPref) {
+        case "always":
+            this.$header.addClass("always-show-header-buttons");
+            break;
+        case "never":
+            this.$headerFlipViewBtn.css("display", "none");
+            this.$headerCloseBtn.css("display", "none");
+            break;
+        }
 
         // Listen to document events so we can update ourself
         DocumentManager.on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
