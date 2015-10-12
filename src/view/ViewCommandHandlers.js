@@ -244,7 +244,7 @@ define(function (require, exports, module) {
             if(last2digits=="px" || last2digits=="em" && !isNaN(fsizeNumeric)  ) {
              return prefs.get("fontSize");
             } else {
-              return "12px";
+              return ;
             }
     }
 
