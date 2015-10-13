@@ -329,6 +329,7 @@ define(function (require, exports, module) {
         if (providersReportingProblems.length === 1) {
             // don't show a header if there is only one provider available for this file type
             $problemsPanelTable.find(".inspector-section").hide();
+            $problemsPanelTable.find("tr").removeClass("forced-hidden");
 
             if (numProblems === 1 && !aborted) {
                 message = StringUtils.format(Strings.SINGLE_ERROR, providersReportingProblems[0].name);
