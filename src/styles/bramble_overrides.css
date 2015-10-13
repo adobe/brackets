@@ -15,11 +15,6 @@ li.jstree-leaf > a {
 	cursor: pointer !important;
 }
 
-/* Add extra space to the left of the cursor in order that it will show at pos 0 */
-.CodeMirror-sizer {
-	margin-left: 75px !important;
-}
-
 /* Reduce the size of the code-folding gutter markers  with our larger font size */
 .CodeMirror-foldgutter-open:after,
 .CodeMirror-foldgutter-folded:after {
