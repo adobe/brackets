@@ -41,7 +41,7 @@ define(function (require, exports, module) {
         CMD_TOGGLE_PURE_CODE      = "view.togglePureCode",
         CMD_TOGGLE_PANELS         = "view.togglePanels";
 
-    //key biding keys
+    //key binding keys
     var togglePureCodeKey         = "Ctrl-Shift-2",
         togglePureCodeKeyMac      = "Cmd-Shift-2",
         togglePanelsKey           = "Ctrl-Shift-`",
@@ -49,7 +49,8 @@ define(function (require, exports, module) {
 
     //locals
     var _previouslyOpenPanelIDs = [],
-        panelsToggled = false;
+        panelsToggled = false,
+        layoutUpdated = false;
 
     /**
      * @private
@@ -69,7 +70,7 @@ define(function (require, exports, module) {
     /**
      * hide all open panels
      */
-    function _hidePanlesIfRequired() {
+    function _hidePanelsIfRequired() {
         var panelIDs = WorkspaceManager.getAllPanelIDs(), i = 0;
         _previouslyOpenPanelIDs = [];
         for (i = 0; i < panelIDs.length; i++) {
@@ -81,9 +82,9 @@ define(function (require, exports, module) {
     }
 
     /**
-     * show all open panels that was previously hidden by _hidePanlesIfRequired()
+     * show all open panels that was previously hidden by _hidePanelsIfRequired()
      */
-    function _showPanlesIfRequired() {
+    function _showPanelsIfRequired() {
         var panelIDs = _previouslyOpenPanelIDs, i = 0;
         for (i = 0; i < panelIDs.length; i++) {
             if (WorkspaceManager.getPanelForID(panelIDs[i])) {
@@ -93,12 +94,26 @@ define(function (require, exports, module) {
         _previouslyOpenPanelIDs = [];
     }
 
+    function _updateLayout() {
+        layoutUpdated = true;
+        panelsToggled = false;
+    }
+
+    /**
+     * We toggle panels in certain cases only :
+     * 1. if a panel is shown, toggle can hide it, and successive toggle can show the panel and repeat.
+     * 2. if a panel is hidden by toggle, and say the workspace changed making another panel visible by some operation;
+     * we reset toggle states so that toggle would hide the panel already present in the workspace.
+     * The already hidden panel should not be shown in the specific case for better UX.
+     */
     function _togglePanels() {
         panelsToggled = !panelsToggled;
         if (panelsToggled) {
-            _hidePanlesIfRequired();
-        } else {
-            _showPanlesIfRequired();
+            _hidePanelsIfRequired();
+            layoutUpdated = false;
+            panelsToggled = true;
+        } else if (!layoutUpdated) {
+            _showPanelsIfRequired();
         }
     }
 
@@ -110,14 +125,16 @@ define(function (require, exports, module) {
         if (PreferencesManager.get(PREFS_PURE_CODE)) {
             ViewUtils.hideMainToolBar();
             CommandManager.execute(Commands.HIDE_SIDEBAR);
-            _hidePanlesIfRequired();
+            _hidePanelsIfRequired();
         } else {
             ViewUtils.showMainToolBar();
             CommandManager.execute(Commands.SHOW_SIDEBAR);
-            _showPanlesIfRequired();
+            _showPanelsIfRequired();
         }
         _updateCheckedState();
     });
+
+    WorkspaceManager.on("workspaceUpdateLayout", _updateLayout);
 
     /**
      * Register the Commands , add the Menu Items and key bindings
