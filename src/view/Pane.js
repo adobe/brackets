@@ -186,9 +186,10 @@ define(function (require, exports, module) {
     var SECOND_PANE         = "second-pane";
 
     // Define showPaneHeaderButtons, which controls when to show close and flip-view buttons
-    // on the header. Possible values "hover", "always" and "never"
+    // on the header.
     PreferencesManager.definePreference("pane.showPaneHeaderButtons", "string", "hover", {
-        description: Strings.DESCRIPTION_SHOW_PANE_HEADER_BUTTONS
+        description: Strings.DESCRIPTION_SHOW_PANE_HEADER_BUTTONS,
+        values: ["hover", "always", "never"]
     });
 
     // Define mergePanesWhenLastFileClosed, which controls if a split view pane should be
