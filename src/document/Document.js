@@ -201,17 +201,15 @@ define(function (require, exports, module) {
      */
     Document.prototype._makeEditable = function (masterEditor) {
         if (this._masterEditor) {
-            //Already a master editor is associated , so preserve the old editor in list of editors
+            //Already a master editor is associated , so preserve the old editor in list of full editors
             if(this._associatedFullEditors.indexOf(this._masterEditor) < 0){
                 this._associatedFullEditors.push(this._masterEditor);
             }
-            //console.error("Document is already editable");
-        } 
-        //else {
-            this._text = null;
-            this._masterEditor = masterEditor;
-            masterEditor.on("change", this._handleEditorChange.bind(this));
-        //}
+        }
+        
+        this._text = null;
+        this._masterEditor = masterEditor;
+        masterEditor.on("change", this._handleEditorChange.bind(this));
     };
     
     /**
@@ -241,13 +239,16 @@ define(function (require, exports, module) {
      * To be used internally by Editor only 
      */
     Document.prototype._toggleMasterEditor = function (masterEditor) {
-        if (this._masterEditor) {
-            //Already a master editor is associated , so preserve the old editor in list of editors
-            if(this._associatedFullEditors.indexOf(this._masterEditor) < 0){
-                this._associatedFullEditors.push(this._masterEditor);
-            }
-        } 
-        this._masterEditor = masterEditor;
+        //Do a check before processing the request to ensure inline editors are not being set as master editor
+        if(this._associatedFullEditors.indexOf(masterEditor) >= 0){
+            if (this._masterEditor) {
+                //Already a master editor is associated , so preserve the old editor in list of editors
+                if(this._associatedFullEditors.indexOf(this._masterEditor) < 0){
+                    this._associatedFullEditors.push(this._masterEditor);
+                }
+            } 
+            this._masterEditor = masterEditor;
+        }
     };
     
     /**

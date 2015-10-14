@@ -707,17 +707,6 @@ define(function (require, exports, module) {
             throw new Error("invalid pane id: " + paneId);
         }
         
-        //Commented following blocks of code to allow same document to be opened in multiple full editors
-        
-        /*if (findInWorkingSet(ALL_PANES, file.fullPath) !== -1) {
-            return;
-        }*/
-        
-        // if it's already open in another pane, then just use that pane
-        /*if (existingPaneId && existingPaneId !== pane.id) {
-            pane = _getPane(existingPaneId);
-        }*/
-        
         var result = pane.reorderItem(file, index, force),
             entry = _makeMRUListEntry(file, pane.id);
 
@@ -1190,15 +1179,6 @@ define(function (require, exports, module) {
         var options = optionsIn || {},
             currentPaneId  = _getPaneIdForPath(doc.file.fullPath);
         
-        //Commented following block of code to allow same document to be opened in multiple full editors
-        /*if (currentPaneId) {
-            // If the doc is open in another pane then switch to that pane and call open document
-            //  which will really just show the view as it has always done we could just 
-            //  do pane.showView(doc._masterEditor) in that case but Editor Manager may do some 
-            //  state syncing 
-            paneId = currentPaneId;
-        }*/
-        
         var pane = _getPane(paneId);
         
         // If file is untitled or otherwise not within project tree, add it to
@@ -1240,32 +1220,6 @@ define(function (require, exports, module) {
         }
 
         var currentPaneId = _getPaneIdForPath(file.fullPath);
-
-        //Commented following block of code to allow same document to be opened in multiple full editors
-        /*if (currentPaneId) { 
-            // Warn user (only once) when file is already open in another view
-            if (!PreferencesManager.getViewState("splitview.multipane-info") &&
-                    currentPaneId !== _resolvePaneId(paneId)) {
-                PreferencesManager.setViewState("splitview.multipane-info", true);
-                
-                // File tree also executes single-click code prior to executing double-click
-                // code, so delay showing modal dialog to prevent eating second click
-                window.setTimeout(function () {
-                    Dialogs.showModalDialog(
-                        DefaultDialogs.DIALOG_ID_INFO,
-                        Strings.SPLITVIEW_INFO_TITLE,
-                        Strings.SPLITVIEW_MULTIPANE_WARNING
-                    );
-                }, 500);
-            }
-
-            // If the doc is open in another pane
-            //  then switch to that pane and call open document
-            //  which will really just show the view as it has always done
-            //  we could just do pane.showView(doc._masterEditor) in that
-            //  case but Editor Manager may do some state syncing             
-            paneId = currentPaneId;
-        }*/
         
         // See if there is already a view for the file
         var pane = _getPane(paneId);
