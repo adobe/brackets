@@ -647,7 +647,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype._canAddFile = function (file) {
         return ((this._views.hasOwnProperty(file.fullPath) && this.findInViewList(file.fullPath) === -1) ||
-                    (!MainViewManager._getPaneIdForPath(file.fullPath)));
+                    (MainViewManager._getPaneIdForPath(file.fullPath) !== this.id));
     };
     
     /**

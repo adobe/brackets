@@ -84,6 +84,11 @@ define(function (require, exports, module) {
     EventDispatcher.makeEventDispatcher(Document.prototype);
     
     /**
+     * list of editors who were initialized as master editors for this doc.
+     */
+    Document.prototype._associatedFullEditors = [];
+    
+    /**
      * Number of clients who want this Document to stay alive. The Document is listed in
      * DocumentManager._openDocuments whenever refCount > 0.
      */
@@ -196,12 +201,17 @@ define(function (require, exports, module) {
      */
     Document.prototype._makeEditable = function (masterEditor) {
         if (this._masterEditor) {
-            console.error("Document is already editable");
-        } else {
+            //Already a master editor is associated , so preserve the old editor in list of editors
+            if(this._associatedFullEditors.indexOf(this._masterEditor) < 0){
+                this._associatedFullEditors.push(this._masterEditor);
+            }
+            //console.error("Document is already editable");
+        } 
+        //else {
             this._text = null;
             this._masterEditor = masterEditor;
             masterEditor.on("change", this._handleEditorChange.bind(this));
-        }
+        //}
     };
     
     /**
@@ -215,8 +225,29 @@ define(function (require, exports, module) {
         } else {
             // _text represents the raw text, so fetch without normalized line endings
             this._text = this.getText(true);
-            this._masterEditor = null;
+            this._associatedFullEditors.splice(this._associatedFullEditors.indexOf(this._masterEditor),1);
+            
+            //Identify the most recently created full editor before this and set that as new master editor
+            if(this._associatedFullEditors.length > 0){
+               this._masterEditor = this._associatedFullEditors[this._associatedFullEditors.length - 1]; 
+            } else {
+                this._masterEditor = null;
+            }
         }
+    };
+    
+    /**
+     * Toggles the master editor from a pool of full editors which has gained focus 
+     * To be used internally by Editor only 
+     */
+    Document.prototype._toggleMasterEditor = function (masterEditor) {
+        if (this._masterEditor) {
+            //Already a master editor is associated , so preserve the old editor in list of editors
+            if(this._associatedFullEditors.indexOf(this._masterEditor) < 0){
+                this._associatedFullEditors.push(this._masterEditor);
+            }
+        } 
+        this._masterEditor = masterEditor;
     };
     
     /**

@@ -706,15 +706,17 @@ define(function (require, exports, module) {
         if (!pane) {
             throw new Error("invalid pane id: " + paneId);
         }
-
-        if (findInWorkingSet(ALL_PANES, file.fullPath) !== -1) {
+        
+        //Commented following blocks of code to allow same document to be opened in multiple full editors
+        
+        /*if (findInWorkingSet(ALL_PANES, file.fullPath) !== -1) {
             return;
-        }
+        }*/
         
         // if it's already open in another pane, then just use that pane
-        if (existingPaneId && existingPaneId !== pane.id) {
+        /*if (existingPaneId && existingPaneId !== pane.id) {
             pane = _getPane(existingPaneId);
-        }
+        }*/
         
         var result = pane.reorderItem(file, index, force),
             entry = _makeMRUListEntry(file, pane.id);
@@ -1188,13 +1190,14 @@ define(function (require, exports, module) {
         var options = optionsIn || {},
             currentPaneId  = _getPaneIdForPath(doc.file.fullPath);
         
-        if (currentPaneId) {
+        //Commented following block of code to allow same document to be opened in multiple full editors
+        /*if (currentPaneId) {
             // If the doc is open in another pane then switch to that pane and call open document
             //  which will really just show the view as it has always done we could just 
             //  do pane.showView(doc._masterEditor) in that case but Editor Manager may do some 
             //  state syncing 
             paneId = currentPaneId;
-        }
+        }*/
         
         var pane = _getPane(paneId);
         
@@ -1238,7 +1241,8 @@ define(function (require, exports, module) {
 
         var currentPaneId = _getPaneIdForPath(file.fullPath);
 
-        if (currentPaneId) {
+        //Commented following block of code to allow same document to be opened in multiple full editors
+        /*if (currentPaneId) { 
             // Warn user (only once) when file is already open in another view
             if (!PreferencesManager.getViewState("splitview.multipane-info") &&
                     currentPaneId !== _resolvePaneId(paneId)) {
@@ -1261,7 +1265,7 @@ define(function (require, exports, module) {
             //  we could just do pane.showView(doc._masterEditor) in that
             //  case but Editor Manager may do some state syncing             
             paneId = currentPaneId;
-        }
+        }*/
         
         // See if there is already a view for the file
         var pane = _getPane(paneId);
