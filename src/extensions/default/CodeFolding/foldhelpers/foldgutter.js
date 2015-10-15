@@ -355,9 +355,14 @@ define(function (require, exports, module) {
       * @param {!CodeMirror} cm the CodeMirror instance for the active editor
       * @param {!Object} from  the ch and line position that designates the start of the region
       * @param {!Object} to the ch and line position that designates the end of the region
+      * @param {?Number} gutterLineNumber the gutter line number that was clicked to signal the fold event
       */
-    function onFold(cm, from, to) {
-        updateFoldInfo(cm, from.line, from.line + 1);
+    function onFold(cm, from, to, gutterLineNumber) {
+        var state = cm.state.foldGutter,
+            line = isNaN(gutterLineNumber) ? from.line : gutterLineNumber;
+        if (line >= state.from && line < state.to) {
+            updateFoldInfo(cm, line, line + 1);
+        }
     }
 
     /**
@@ -365,9 +370,15 @@ define(function (require, exports, module) {
       * @param {!CodeMirror} cm the CodeMirror instance for the active editor
       * @param {!{line:number, ch:number}} from  the ch and line position that designates the start of the region
       * @param {!{line:number, ch:number}} to the ch and line position that designates the end of the region
+      * @param {?Number} gutterLineNumber the gutter line number that was clicked to signal the fold event
       */
-    function onUnFold(cm, from, to) {
-        updateFoldInfo(cm, from.line, from.line + 1);
+    function onUnFold(cm, from, to, gutterLineNumber) {
+        var state = cm.state.foldGutter,
+            line = isNaN(gutterLineNumber) ? from.line : gutterLineNumber;
+        var vp = cm.getViewport();
+        if (line >= state.from && line < state.to) {
+            updateFoldInfo(cm, line, Math.min(vp.to, to.line));
+        }
     }
 
     /**
