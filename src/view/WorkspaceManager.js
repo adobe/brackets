@@ -42,6 +42,10 @@ define(function (require, exports, module) {
         EventDispatcher         = require("utils/EventDispatcher"),
         Resizer                 = require("utils/Resizer");
     
+    //constants
+    var EVENT_WORKSPACE_UPDATE_LAYOUT  = "workspaceUpdateLayout",
+        EVENT_WORKSPACE_PANEL_SHOWN    = "workspacePanelShown",
+        EVENT_WORKSPACE_PANEL_HIDDEN   = "workspacePanelHidden";
     
     /** 
      * The ".content" vertical stack (editor + all header/footer panels) 
@@ -114,7 +118,7 @@ define(function (require, exports, module) {
         $editorHolder.height(editorAreaHeight);  // affects size of "not-editor" placeholder as well
         
         // Resize editor to fill the space
-        exports.trigger("workspaceUpdateLayout", editorAreaHeight, refreshHint);
+        exports.trigger(EVENT_WORKSPACE_UPDATE_LAYOUT, editorAreaHeight, refreshHint);
     }
     
     
@@ -189,6 +193,7 @@ define(function (require, exports, module) {
      */
     Panel.prototype.show = function () {
         Resizer.show(this.$panel[0]);
+        exports.trigger(EVENT_WORKSPACE_PANEL_SHOWN, this.panelID);
     };
 
     /** 
@@ -196,6 +201,7 @@ define(function (require, exports, module) {
      */
     Panel.prototype.hide = function () {
         Resizer.hide(this.$panel[0]);
+        exports.trigger(EVENT_WORKSPACE_PANEL_HIDDEN, this.panelID);
     };
     
     /** 
@@ -204,9 +210,9 @@ define(function (require, exports, module) {
      */
     Panel.prototype.setVisible = function (visible) {
         if (visible) {
-            Resizer.show(this.$panel[0]);
+            this.show();
         } else {
-            Resizer.hide(this.$panel[0]);
+            this.hide();
         }
     };
     
@@ -227,6 +233,7 @@ define(function (require, exports, module) {
         updateResizeLimits();  // initialize panel's max size
         
         panelIDMap[id] = new Panel($panel, minSize);
+        panelIDMap[id].panelID = id;
 
         return panelIDMap[id];
     }
@@ -290,9 +297,12 @@ define(function (require, exports, module) {
     EventDispatcher.makeEventDispatcher(exports);
     
     // Define public API
-    exports.createBottomPanel    = createBottomPanel;
-    exports.recomputeLayout      = recomputeLayout;
-    exports.getAllPanelIDs       = getAllPanelIDs;
-    exports.getPanelForID        = getPanelForID;
-    exports._setMockDOM          = _setMockDOM;
+    exports.createBottomPanel               = createBottomPanel;
+    exports.recomputeLayout                 = recomputeLayout;
+    exports.getAllPanelIDs                  = getAllPanelIDs;
+    exports.getPanelForID                   = getPanelForID;
+    exports._setMockDOM                     = _setMockDOM;
+    exports.EVENT_WORKSPACE_UPDATE_LAYOUT   = EVENT_WORKSPACE_UPDATE_LAYOUT;
+    exports.EVENT_WORKSPACE_PANEL_SHOWN     = EVENT_WORKSPACE_PANEL_SHOWN;
+    exports.EVENT_WORKSPACE_PANEL_HIDDEN    = EVENT_WORKSPACE_PANEL_HIDDEN;
 });

@@ -134,7 +134,7 @@ define(function (require, exports, module) {
         _updateCheckedState();
     });
 
-    WorkspaceManager.on("workspaceUpdateLayout", _updateLayout);
+    WorkspaceManager.on(WorkspaceManager.EVENT_WORKSPACE_PANEL_SHOWN, _updateLayout);
 
     /**
      * Register the Commands , add the Menu Items and key bindings

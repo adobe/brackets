@@ -62,7 +62,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var AppInit                 = require("utils/AppInit"),
         EventDispatcher         = require("utils/EventDispatcher"),
-        viewUtils               = require("utils/ViewUtils"),
+        ViewUtils               = require("utils/ViewUtils"),
         PreferencesManager      = require("preferences/PreferencesManager");
     
     var $mainView;
@@ -536,7 +536,7 @@ define(function (require, exports, module) {
 
         // The main toolbar is only collapsible.
         if ($("#main-toolbar").hasClass("collapsible") && PreferencesManager.get(PREFS_PURE_CODE)) {
-            viewUtils.hideMainToolBar();
+            ViewUtils.hideMainToolBar();
         }
     });
     
