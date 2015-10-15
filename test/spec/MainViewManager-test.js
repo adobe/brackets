@@ -412,6 +412,43 @@ define(function (require, exports, module) {
                     expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.css");
                 });
             });
+            it("should flip the view to the other pane", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(MainViewManager._getPaneIdForPath(testPath + "/test.js")).toEqual("first-pane");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
+                });
+                runs(function () {
+                    MainViewManager._getPane("first-pane").$headerFlipViewBtn.trigger("click");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                });
+                runs(function () {
+                    MainViewManager._getPane("second-pane").$headerFlipViewBtn.trigger("click");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
+                });
+            });
             it("should merge two panes to the right", function () {
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 2);
@@ -463,6 +500,41 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(MainViewManager._getPaneIdForPath(testPath + "/test.js")).toEqual("first-pane");
                     expect(MainViewManager._getPaneIdForPath(testPath + "/test.css")).toEqual(null);
+                });
+            });
+            it("should close the view when clicked", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(MainViewManager._getPaneIdForPath(testPath + "/test.js")).toEqual("first-pane");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                });
+                runs(function () {
+                    MainViewManager._getPane("first-pane").$headerCloseBtn.trigger("click");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
+                });
+            });
+            it("should collapse the panes when close button is clicked on a pane with no files", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    MainViewManager._getPane("first-pane").$headerCloseBtn.trigger("click");
+                });
+                runs(function () {
+                    expect(MainViewManager.getLayoutScheme()).toEqual({rows: 1, columns: 1});
                 });
             });
             it("should activate pane when editor gains focus", function () {
