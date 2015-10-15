@@ -546,6 +546,24 @@ a, img {
             width: 16px;
             float: right;
             margin-top: -2px;
+
+            &:before {
+                color: rgba(0, 0, 0, 0.5);
+            }
+
+            &:hover:before {
+                color: rgba(0, 0, 0, 0.8);
+            }
+
+            .dark & {
+                &:before {
+                    color: rgba(255, 255, 255, 0.5);
+                }
+
+                &:hover:before {
+                    color: rgba(255, 255, 255, 0.8);
+                }
+            }
         }
 
         &:hover, &.always-show-header-buttons {
