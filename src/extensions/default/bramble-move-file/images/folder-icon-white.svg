@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="12px" height="10px" viewBox="0 0 12 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.3 (12081) - http://www.bohemiancoding.com/sketch -->
+    <title>folder-icon-white</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#000000" stop-opacity="0.5" offset="0%"></stop>
+            <stop stop-color="#000000" stop-opacity="0.5" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="folder-icon-white" sketch:type="MSArtboardGroup" fill="#FFFFFF">
+            <path d="M10.6553314,2.793 C10.8883314,2.793 11.0383314,2.832 11.1063314,2.91 C11.1743314,2.987 11.1983314,3.123 11.1793314,3.317 L10.8303314,8.73 C10.8103314,8.866 10.7913314,8.967 10.7723314,9.035 C10.7523314,9.103 10.6943314,9.166 10.5973314,9.224 C10.5003314,9.282 10.3743314,9.312 10.2193314,9.312 L0.994331364,9.312 C0.762331364,9.312 0.606331364,9.263 0.529331364,9.166 C0.451331364,9.069 0.403331364,8.924 0.383331364,8.73 L0.00533136431,3.375 C-0.0336686357,2.987 0.141331364,2.793 0.529331364,2.793 L10.6553314,2.793 L10.6553314,2.793 Z M10.5393314,1.368 L10.5973314,2.328 L0.587331364,2.328 C0.587331364,2.095 0.645331364,1.484 0.762331364,0.495 C0.781331364,0.32 0.820331364,0.199 0.878331364,0.131 C0.936331364,0.063 0.999331364,0.024 1.06733136,0.015 C1.13533136,0.005 1.27633136,0 1.48933136,0 L3.67133136,0 C4.05933136,0 4.28233136,0.015 4.34133136,0.044 C4.39933136,0.073 4.53533136,0.203 4.74833136,0.436 C4.96233136,0.689 5.12633136,0.834 5.24333136,0.873 C5.35933136,0.912 5.59233136,0.931 5.94133136,0.931 L10.1023314,0.931 C10.3933314,0.931 10.5393314,1.077 10.5393314,1.368 L10.5393314,1.368 Z" id="Imported-Layers" sketch:type="MSShapeGroup"></path>
+        </g>
+    </g>
+</svg>

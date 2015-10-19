@@ -8,27 +8,43 @@
 }
 
 .move-to-dialog .directory {
+    margin-bottom: 6px;
     display: block;
 }
 
+.move-to-dialog .directory:last-child {
+    margin-bottom: 0px;
+}
+
 .move-to-dialog .directory-name {
-    margin-bottom: 6px;
     display: inline-block;
-    padding: 6px;
+    padding: 6px 10px;
+    border-radius: 2px;
 }
 
 .move-to-dialog .directory-name:hover {
-    background-color: #eaeaea;
+    background-color: rgba(0,0,0,.05);
     cursor: pointer;
 }
 
-.move-to-dialog .active-directory {
-    background-color: #d0d0d0 !important;
+.dark .move-to-dialog .directory-name:hover {
+    background-color: rgba(255,255,255,.05);
+}
+
+.move-to-dialog .active-directory, .move-to-dialog .active-directory:hover {
+    background-color: rgba(0,0,0,.1);
+}
+
+.dark .move-to-dialog .active-directory, .dark .move-to-dialog .active-directory:hover {
+    background-color: rgba(255,255,255,.1);
 }
 
 .move-to-dialog .folder-icon {
-    background: url("../images/folder.svg") no-repeat left center;
+    background: url("../images/folder-icon-black.svg") no-repeat left center;
     opacity: 0.7;
     padding-left: 20px;
 }
 
+.dark .move-to-dialog .folder-icon {
+    background: url("../images/folder-icon-white.svg") no-repeat left center;
+}
