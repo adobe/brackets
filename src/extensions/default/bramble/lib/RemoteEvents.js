@@ -5,7 +5,6 @@ define(function (require, exports, module) {
     "use strict";
 
     var BrambleEvents = brackets.getModule("bramble/BrambleEvents");
-    var EditorManager = brackets.getModule("editor/EditorManager");
     var MainViewManager = brackets.getModule("view/MainViewManager");
     var ViewCommandHandlers = brackets.getModule("view/ViewCommandHandlers");
     var Path = brackets.getModule("filesystem/impls/filer/FilerUtils").Path;
@@ -66,14 +65,13 @@ define(function (require, exports, module) {
             });
         });
 
-        // Listen for the user changing the active editor
+        // Listen for the user changing what file is being viewed
         var lastKnownEditorFilePath;
-        EditorManager.on("activeEditorChange", function(e, currentEditor) {
-            if (!currentEditor) {
+        MainViewManager.on("currentFileChange", function(e, file) {
+            if(!file) {
                 return;
             }
 
-            var file = currentEditor.document.file;
             if(file.fullPath !== lastKnownEditorFilePath) {
                 lastKnownEditorFilePath = file.fullPath;
                 sendActiveEditorChangeEvent(file);
