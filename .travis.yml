@@ -11,6 +11,11 @@ branches:
   - production
 notifications:
   irc: "irc.mozilla.org#thimble"
+env:
+  global:
+    - secure: OvDWteGJ/ctOzXudDb8icaLCtdJTd1HbQq5T9HvS7ZF8IDs6xM+atqxYWeyC+2sm7fLNkWjndcKrXFqZ3TRltW7ibaKreUMtUVaVKc7mGBNBn/gVfCNvHRlbDYr6bMUVapk9x1Ql6p2jE/Ss+p2EEGkzvHPKn2RMRWOQQQM7wTQ=
+  matrix:
+    - AWS_ACCESS_KEY_ID=AKIAI7XHSZFYVHFRTRIA CLOUDFRONT_DISTRIBUTION_ID=ENS8DUD0WOHD9
 deploy:
   - provider: s3
     access_key_id: AKIAI7XHSZFYVHFRTRIA
@@ -36,3 +41,5 @@ deploy:
     on:
       repo: humphd/brackets
       branch: production
+after_deploy:
+- node invalidate.js

@@ -14,6 +14,7 @@
     },
     "dependencies": {
         "autoprefixer-core": "5.1.8",
+        "aws-sdk": "^2.2.9",
         "grunt": "0.4.5",
         "grunt-cli": "0.1.9",
         "grunt-contrib-clean": "0.4.1",
