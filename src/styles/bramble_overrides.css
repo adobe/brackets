@@ -1,18 +1,18 @@
 /* Menu item goes to next line due to float:right issue on Firefox */
 @-moz-document url-prefix() {
-	.context-menu .menu-shortcut {
-		float: none;
-		margin-left: auto;
-	}
-	.dropdown-menu li a {
-		display: flex;
-		flex-flow: space-between;
-	}
+  .context-menu .menu-shortcut {
+    float: none;
+    margin-left: auto;
+  }
+  .dropdown-menu li a {
+    display: flex;
+    flex-flow: space-between;
+  }
 }
 
 /* Make it obvious that files in the sidebar are something you can click. */
 li.jstree-leaf > a {
-	cursor: pointer !important;
+  cursor: pointer !important;
 }
 
 /* Reduce the size of the code-folding gutter markers  with our larger font size */
@@ -22,32 +22,42 @@ li.jstree-leaf > a {
 }
 
 .swatches {
-	margin-top: 10px;
-	-webkit-user-select: text;
-	-khtml-user-select: text;
-	-moz-user-select: text;
-	-ms-user-select: text;
-	-o-user-select: text;
+  margin-top: 10px;
+  overflow: auto;
+  -webkit-user-select: text;
+  -khtml-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  -o-user-select: text;
+}
+
+.swatch-wrapper {
+  float: left;
+  margin: 0 10px 10px 0;
+  min-width: 110px;
+  text-align: left;
 }
 
 .swatch {
-	display: inline-block;
-	height: 25px;
-	width: 25px;
-	border: solid 1px transparent;
-	border-radius: 2px;
-	-webkit-transition: 1s;
-	-moz-transition: 1s;
+  display: block;
+  float: left;
+  height: 25px;
+  width: 25px;
+  border-radius: 1px;
+  -webkit-transition: .2s;
+  -moz-transition: .2s;
+  margin-right: 10px;
 }
 
 .color-name {
-	padding: 10px;
-	font-size: 15px;
-	text-transform: uppercase;
-	top: -8px;
-	position: relative;
+  font-size: 15px;
+  text-transform: uppercase;
+  position: relative;
+  top: 4px;
+  cursor: text;
+  opacity: .6;
 }
 
 .image-header {
-	height: auto !important;
+  height: auto !important;
 }
