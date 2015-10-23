@@ -13,6 +13,7 @@ define(function (require, exports, module) {
     var LiveDevMultiBrowser    = brackets.getModule("LiveDevelopment/LiveDevMultiBrowser");
     var KeyEvent               = brackets.getModule("utils/KeyEvent");
     var StartupState           = brackets.getModule("bramble/StartupState");
+    var FileSystem             = brackets.getModule("filesystem/FileSystem");
     var BracketsFiler          = brackets.getModule("filesystem/impls/filer/BracketsFiler");
     var Path                   = BracketsFiler.Path;
 
@@ -30,6 +31,12 @@ define(function (require, exports, module) {
         var relPath;
         var fileToOpen;
 
+        function afterFileTreeRefresh() {
+            FileSystem.off("change", afterFileTreeRefresh);
+            ProjectManager.showInTree(FileSystem.getFileForPath(fileToOpen));
+            LiveDevMultiBrowser.reload();
+        }
+
         if(newPath) {
             relPath = Path.relative(Path.dirname(source), fileInEditor);
             if(relPath === '') {
@@ -42,6 +49,18 @@ define(function (require, exports, module) {
             // in the folder that is being moved.
             if(fileInEditor.indexOf(source) === 0) {
                 CommandManager.execute(Commands.CMD_OPEN, {fullPath: fileToOpen});
+                // Once the file tree has been refreshed, a `change` event
+                // on the FileSystem is fired.
+                // This is unfortunately the only way to make sure
+                // the file tree first reflects the (delete + create) move
+                // operation and only then do `afterFileTreeRefresh` which
+                // expands the parent directories and reloads the preview.
+                // If it is not done in this order, you'll see the directories
+                // expand first with the file shown in its old location and
+                // after a delay, the file will jump to the new location.
+                FileSystem.on("change", afterFileTreeRefresh);
+                ProjectManager.refreshFileTree();
+                return;
             }
         }
 
