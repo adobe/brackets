@@ -347,35 +347,33 @@ define(function (require, exports, module) {
         });
     }
 
-    function unlink(path, callback) {
-        path = decodePath(path);
-
-        fs.stat(path, function(err, stats) {
+    function _rmfr(path, callback) {
+        // Regardless of whether we're passed a file or dir path, recursively delete it all.
+        fs.rm(path, {recursive: true}, function(err) {
             if (err) {
                 callback(_mapError(err));
                 return;
             }
 
-            // Deal with dir vs. file
-            var fnName = stats.type === "DIRECTORY" ? 'rmdir' : 'unlink';
-            fs[fnName](path, function(err) {
-                // TODO: deal with the symlink case (i.e., only remove cache
-                // item if file is really going away).
-                BlobUtils.remove(path);
-
-                if(!err) {
-                    BrambleEvents.triggerFileRemoved(path);
-                }
-                callback(_mapError(err));
+            // TODO: deal with the symlink case (i.e., only remove cache
+            // item if file is really going away).
+            BlobUtils.remove(path).forEach(function(filename) {
+                BrambleEvents.triggerFileRemoved(filename);
             });
+
+            callback();
         });
+    }
+
+    function unlink(path, callback) {
+        path = decodePath(path);
+        _rmfr(path, callback);
     }
 
     function moveToTrash(path, callback) {
         path = decodePath(path);
-
         // TODO: do we want to support a .trash/ dir or the like?
-        unlink(path, callback);
+        _rmfr(path, callback);
     }
 
     function initWatchers(changeCallback, offlineCallback) {

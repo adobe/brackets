@@ -28,11 +28,7 @@ define(function (require, exports, module) {
         paths[url] = filename;
     }
 
-    // Remove the cached BLOB URL for the given filename
-    function remove(filename) {
-        filename = decodePath(filename);
-        filename = Path.normalize(filename);
-
+    function _remove(filename) {
         var url = blobURLs[filename];
         // The first time a file is written, we won't have
         // a stale cache entry to clean up.
@@ -44,6 +40,26 @@ define(function (require, exports, module) {
         delete paths[url];
         // Delete the reference from memory
         URL.revokeObjectURL(url);
+    }
+
+    // Remove the cached BLOB URL for the given file path, or files beneath
+    // this path if it is a dir. Returns all file paths that were removed.
+    function remove(path) {
+        path = decodePath(path);
+        path = Path.normalize(path);
+        var removed = [];
+
+        // If this is a dir path, look for other paths entries below it
+        Object.keys(blobURLs).forEach(function(key) {
+            // If this filename matches exactly, or is a root path (i.e., other
+            // filenames begin with "<path>/...", remove it. Otherwise just skip.
+            if(key === path || key.indexOf(path + "/") === 0) {
+                removed.push(key);
+                _remove(key);
+            }
+        });
+
+        return removed;
     }
 
     // Update the cached records for the given filename
