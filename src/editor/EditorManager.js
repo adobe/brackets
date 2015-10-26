@@ -554,7 +554,7 @@ define(function (require, exports, module) {
             // Editor doesn't exist: populate a new Editor with the text
             editor = _createFullEditorForDocument(document, pane, editorOptions);
             createdNewEditor = true;
-        } 
+        }
 
         // show the view
         pane.showView(editor);

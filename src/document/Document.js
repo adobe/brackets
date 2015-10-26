@@ -202,7 +202,7 @@ define(function (require, exports, module) {
     Document.prototype._makeEditable = function (masterEditor) {
         if (this._masterEditor) {
             //Already a master editor is associated , so preserve the old editor in list of full editors
-            if(this._associatedFullEditors.indexOf(this._masterEditor) < 0){
+            if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
                 this._associatedFullEditors.push(this._masterEditor);
             }
         }
@@ -223,11 +223,11 @@ define(function (require, exports, module) {
         } else {
             // _text represents the raw text, so fetch without normalized line endings
             this._text = this.getText(true);
-            this._associatedFullEditors.splice(this._associatedFullEditors.indexOf(this._masterEditor),1);
+            this._associatedFullEditors.splice(this._associatedFullEditors.indexOf(this._masterEditor), 1);
             
             //Identify the most recently created full editor before this and set that as new master editor
-            if(this._associatedFullEditors.length > 0){
-               this._masterEditor = this._associatedFullEditors[this._associatedFullEditors.length - 1]; 
+            if (this._associatedFullEditors.length > 0) {
+                this._masterEditor = this._associatedFullEditors[this._associatedFullEditors.length - 1];
             } else {
                 this._masterEditor = null;
             }
@@ -240,13 +240,13 @@ define(function (require, exports, module) {
      */
     Document.prototype._toggleMasterEditor = function (masterEditor) {
         //Do a check before processing the request to ensure inline editors are not being set as master editor
-        if(this._associatedFullEditors.indexOf(masterEditor) >= 0){
+        if (this._associatedFullEditors.indexOf(masterEditor) >= 0) {
             if (this._masterEditor) {
                 //Already a master editor is associated , so preserve the old editor in list of editors
-                if(this._associatedFullEditors.indexOf(this._masterEditor) < 0){
+                if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
                     this._associatedFullEditors.push(this._masterEditor);
                 }
-            } 
+            }
             this._masterEditor = masterEditor;
         }
     };

@@ -86,8 +86,6 @@ define(function (require, exports, module) {
         MainViewFactory     = require("view/MainViewFactory"),
         ViewStateManager    = require("view/ViewStateManager"),
         Commands            = require("command/Commands"),
-        Dialogs             = require("widgets/Dialogs"),
-        DefaultDialogs      = require("widgets/DefaultDialogs"),
         EditorManager       = require("editor/EditorManager"),
         FileSystemError     = require("filesystem/FileSystemError"),
         DocumentManager     = require("document/DocumentManager"),
@@ -700,9 +698,7 @@ define(function (require, exports, module) {
      */
     function addToWorkingSet(paneId, file, index, force) {
         // look for the file to have already been added to another pane
-        var pane = _getPane(paneId),
-            existingPaneId = _getPaneIdForPath(file.fullPath);
-
+        var pane = _getPane(paneId);
         if (!pane) {
             throw new Error("invalid pane id: " + paneId);
         }
@@ -1176,8 +1172,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _edit(paneId, doc, optionsIn) {
-        var options = optionsIn || {},
-            currentPaneId  = _getPaneIdForPath(doc.file.fullPath);
+        var options = optionsIn || {};
         
         var pane = _getPane(paneId);
         
@@ -1219,7 +1214,6 @@ define(function (require, exports, module) {
             return result.reject("bad argument").promise();
         }
 
-        var currentPaneId = _getPaneIdForPath(file.fullPath);
         
         // See if there is already a view for the file
         var pane = _getPane(paneId);
