@@ -253,15 +253,28 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Locates the first  MRU entry of a file
+     * Locates the first  MRU entry of a file for the requested pane
+     * @param {!string} paneId - the paneId
      * @param {!File} File - the file
      * @return {{file:File, paneId:string}}
      * @private
      */
-    function _findFileInMRUList(file) {
+    function _findFileInMRUList(paneId, file) {
         return _.findIndex(_mruList, function (record) {
-            return (record.file.fullPath === file.fullPath);
+            return (record.file.fullPath === file.fullPath && record.paneId === paneId);
         });
+    }
+    
+    /**
+     * Checks whether a file is listed exclusively in the provided pane
+     * @param {!File} File - the file
+     * @return {{file:File, paneId:string}}
+     */
+    function isExclusiveToPane(file, paneId) {
+        var index = _.findIndex(_mruList, function (record) {
+            return (record.file.fullPath === file.fullPath && record.paneId !== paneId);
+        });
+        return index === -1;
     }
 
     
@@ -341,7 +354,7 @@ define(function (require, exports, module) {
                 _mruList.splice(index, 1);
             }
 
-            if (_findFileInMRUList(file) !== -1) {
+            if (_findFileInMRUList(pane.id, file) !== -1) {
                 console.log(file.fullPath + " duplicated in mru list");
             }
             
@@ -715,7 +728,7 @@ define(function (require, exports, module) {
         } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
 
-            if (_findFileInMRUList(file) === -1) {
+            if (_findFileInMRUList(pane.id, file) === -1) {
                 // Add to or update the position in MRU
                 if (pane.getCurrentlyViewedFile() === file) {
                     _mruList.unshift(entry);
@@ -740,7 +753,7 @@ define(function (require, exports, module) {
         uniqueFileList = pane.addListToViewList(fileList);
         
         uniqueFileList.forEach(function (file) {
-            if (_findFileInMRUList(file) !== -1) {
+            if (_findFileInMRUList(pane.id, file) !== -1) {
                 console.log(file.fullPath + " duplicated in mru list");
             }
             _mruList.push(_makeMRUListEntry(file, pane.id));
@@ -1323,7 +1336,7 @@ define(function (require, exports, module) {
     function _close(paneId, file, optionsIn) {
         var options = optionsIn || {};
         _forEachPaneOrPanes(paneId, function (pane) {
-            if (pane.removeView(file, options.noOpenNextFile)) {
+            if (pane.removeView(file, options.noOpenNextFile) && pane.id === paneId) {
                 _removeFileFromMRU(pane.id, file);
                 exports.trigger("workingSetRemove", file, false, pane.id);
                 return false;
@@ -1508,7 +1521,7 @@ define(function (require, exports, module) {
                     var fileList = pane.getViewList();
 
                     fileList.forEach(function (file) {
-                        if (_findFileInMRUList(file) !== -1) {
+                        if (_findFileInMRUList(pane.id, file) !== -1) {
                             console.log(file.fullPath + " duplicated in mru list");
                         }
                         _mruList.push(_makeMRUListEntry(file, pane.id));
@@ -1712,6 +1725,7 @@ define(function (require, exports, module) {
     exports.getPaneIdList                 = getPaneIdList;
     exports.getPaneTitle                  = getPaneTitle;
     exports.getPaneCount                  = getPaneCount;
+    exports.isExclusiveToPane             = isExclusiveToPane;
     
     exports.getAllOpenFiles               = getAllOpenFiles;
     exports.focusActivePane               = focusActivePane;

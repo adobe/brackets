@@ -961,7 +961,8 @@ define(function (require, exports, module) {
         this._codeMirror.on("focus", function () {
             self._focused = true;
             self.trigger("focus", self);
-            self.document._toggleMasterEditor(self);//Added to toggle fulleditors as master editor
+            // Set this full editor as master editor for the document
+            self.document._toggleMasterEditor(self);
         });
         
         this._codeMirror.on("blur", function () {
