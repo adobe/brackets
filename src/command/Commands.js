@@ -166,6 +166,8 @@ define(function (require, exports, module) {
     exports.APP_RELOAD_WITHOUT_EXTS     = "app.reload_without_exts";    // DocumentCommandHandlers.js   handleReloadWithoutExts()
     
     // File shell callbacks - string must MATCH string in native code (appshell/command_callbacks.h)
+    exports.APP_RECEIVE_MESSAGE         = "app.receiveMessageFromOtherBrowser";
+    
     exports.APP_ABORT_QUIT              = "app.abort_quit";             // DocumentCommandHandlers.js   handleAbortQuit()
     exports.APP_BEFORE_MENUPOPUP        = "app.before_menupopup";       // DocumentCommandHandlers.js   handleBeforeMenuPopup()
     
