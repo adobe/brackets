@@ -139,6 +139,10 @@ define(function (require, exports, module) {
                 expect(FileUtils.getBaseName("C:/foo/bar/#baz/jaz/")).toBe("jaz");
                 expect(FileUtils.getBaseName("C:/foo/bar/baz/#jaz/")).toBe("#jaz");
             });
+            
+            it("should return the parent path along with the base path containing ..", function () {
+                expect(FileUtils.getBaseName("C:/foo/bar/baz/../jaz")).toBe("../jaz");
+            });
         });
 
         describe("getFileExtension", function () {
