@@ -283,15 +283,9 @@ define(function (require, exports, module) {
         var lastSlash = fullPath.lastIndexOf("/");
         if (lastSlash === fullPath.length - 1) {  // directory: exclude trailing "/" too
             return fullPath.slice(fullPath.lastIndexOf("/", fullPath.length - 2) + 1, -1);
-        } else if ((brackets.platform === 'mac' || brackets.platform === 'linux')) {
-            // for Unix platform, if the fullPath contains directory structure information
-            // "/x/../y" , the baseName should be treated as a file from parent directory
-            var preFinalSlash = fullPath.substring(0, lastSlash).lastIndexOf("/");
-            if (fullPath.substring(preFinalSlash, lastSlash + 1) === "/../") {
-                return fullPath.slice(preFinalSlash + 1);
-            }
+        } else {
+            return fullPath.slice(lastSlash + 1);
         }
-        return fullPath.slice(lastSlash + 1);
     }
     
     /**
