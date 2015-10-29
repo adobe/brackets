@@ -53,7 +53,8 @@ define(function (require, exports, module) {
     var lastTypedTime = 0,
         currentTime = 0,
         intervalId = 0,
-        lastQueriedText = "";
+        lastQueriedText = "",
+        lastKeyCode;
 
     /**
      * @constructor
@@ -278,6 +279,7 @@ define(function (require, exports, module) {
             })
             .on("keydown", "#find-what, #replace-with", function (e) {
                 lastTypedTime = new Date().getTime();
+                lastKeyCode = e.keyCode;
                 var executeSearchIfNeeded = function () {
                     // We only do instant search via node.
                     if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
@@ -289,7 +291,7 @@ define(function (require, exports, module) {
                     }
                     currentTime = new Date().getTime();
                     if (lastTypedTime && (currentTime - lastTypedTime >= 100) && self.getQueryInfo().query !==  lastQueriedText &&
-                            !FindUtils.isNodeSearchInProgress() && e.keyCode !== KeyEvent.DOM_VK_CONTROL) {
+                            !FindUtils.isNodeSearchInProgress()) {
                         // init Search
                         if (self._options.multifile) {
                             if ($(e.target).is("#find-what")) {
@@ -308,6 +310,7 @@ define(function (require, exports, module) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
+                    lastQueriedText = self.getQueryInfo().query;
                     if (self._options.multifile) {
                         if ($(e.target).is("#find-what")) {
                             if (self._options.replace) {
@@ -566,7 +569,7 @@ define(function (require, exports, module) {
      * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
      */
     FindBar.getInitialQuery = function (currentFindBar, editor) {
-        var query = "",
+        var query = lastQueriedText,
             replaceText = "";
 
         /*
@@ -598,7 +601,7 @@ define(function (require, exports, module) {
                 query = openedFindBar.getQueryInfo().query;
                 replaceText = openedFindBar.getReplaceText();
             } else if (editor) {
-                query = getInitialQueryFromSelection(editor);
+                query = getInitialQueryFromSelection(editor) || lastQueriedText;
             }
         }
 
