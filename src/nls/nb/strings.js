@@ -134,9 +134,8 @@ define({
     "BUTTON_NO"                         : "Nei",
 
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} resultater",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 resultat",
     "FIND_NO_RESULTS"                   : "Ingen resultater",
+    "FIND_QUERY_PLACEHOLDER"            : "Finn\u2026",
     "REPLACE_PLACEHOLDER"               : "Erstatt med\u2026",
     "BUTTON_REPLACE_ALL"                : "Alle\u2026",
     "BUTTON_REPLACE"                    : "Erstatt",
@@ -154,16 +153,8 @@ define({
     "RELEASE_NOTES"                     : "Versjonsmerknader",
     "NO_UPDATE_TITLE"                   : "Du er oppdatert!",
     "NO_UPDATE_MESSAGE"                 : "Du kjører den nyeste versjonen av {APP_NAME}.",
-    
-    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "Erstatt \"",
-    "FIND_REPLACE_TITLE_PART2"          : "\" med \"",
-    "FIND_REPLACE_TITLE_PART3"          : "\" &mdash; {2} {0} {1}",
 
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "\"",
-    "FIND_IN_FILES_TITLE_PART2"         : "\" funnet",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} i {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "i <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "i prosjekt",
     "FIND_IN_FILES_ZERO_FILES"          : "Filter ekskluderer alle filer {0}",
@@ -183,7 +174,6 @@ define({
     "EDIT_FILE_FILTER"                  : "Rediger\u2026",
     "FILE_FILTER_DIALOG"                : "Rediger filter",
     "FILE_FILTER_INSTRUCTIONS"          : "Ekskluder filer og kataloger som er lik følgende strenger / understrenger eller <a href='{0}' title='{0}'>jokertegn</a>. Skriv inn hver streng på egen linje.",
-    "FILE_FILTER_LIST_PREFIX"           : "unntatt",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "og {0} mere",
     "FILTER_COUNTING_FILES"             : "Teller filer\u2026",
     "FILTER_FILE_COUNT"                 : "Tillater {0} av {1} filer {2}",
@@ -309,14 +299,12 @@ define({
     // Search menu commands
     "FIND_MENU"                           : "Finn",
     "CMD_FIND"                            : "Finn",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Finn\u2026",
     "CMD_FIND_NEXT"                       : "Finn neste",
     "CMD_FIND_PREVIOUS"                   : "Finn forrige",
     "CMD_FIND_ALL_AND_SELECT"             : "Finn alle og velg",
     "CMD_ADD_NEXT_MATCH"                  : "Legg til neste treff til utvalg",
     "CMD_SKIP_CURRENT_MATCH"              : "Hopp over og legg til neste treff",
     "CMD_FIND_IN_FILES"                   : "Finn i filer",
-    "CMD_FIND_IN_SELECTED"                : "Finn i valgt fil/katalog",
     "CMD_FIND_IN_SUBTREE"                 : "Finn i\u2026",
     "CMD_REPLACE"                         : "Erstatt",
 
@@ -334,10 +322,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Tekstbryting",
     "CMD_LIVE_HIGHLIGHT"                  : "Live Preview Highlight",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Lint filer ved lagring",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sorter på tilføyd",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sorter på navn",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sorter på type",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatisk sortering",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Sorter på tilføyd",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Sorter på navn",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sorter på type",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatisk sortering",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Naviger",

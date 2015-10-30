@@ -71,7 +71,6 @@ define({
     "INVALID_FILENAME_TITLE": "잘못된 {0}이름",
     "INVALID_FILENAME_MESSAGE": "파일 이름에는 다음 문자를 포함 할 수 없습니다: {0} 또는 시스템의 모든 예약어",
     "ENTRY_WITH_SAME_NAME_EXISTS": "<span class='dialog-filename'>{0}</span> 이름을 가진 파일 또는 디렉토리가 이미 존재합니다.",
-    "FILE_ALREADY_EXISTS": "{0} <span class='dialog-filename'>{1}</span>은 이미 존재 합니다.",
     "ERROR_CREATING_FILE_TITLE": "{0}를 만들던 중에 에러가 발생했습니다",
     "ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span>를 만들던 중에 에러가 발생했습니다.{2}",
     
@@ -364,11 +363,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "다음 일치하는 단어 찾은 후 선택영역에 추가",
     "CMD_SKIP_CURRENT_MATCH"              : "현재 영역 건너뛰고 다음 찾기",
     "CMD_FIND_IN_FILES"                   : "파일에서 찾기",
-    "CMD_FIND_IN_SELECTED"                : "선택한 파일/폴더에서 찾기",
     "CMD_FIND_IN_SUBTREE"                 : "다음에서 찾기\u2026",
     "CMD_REPLACE"                         : "바꾸기",
     "CMD_REPLACE_IN_FILES"                : "파일에서 바꾸기",
-    "CMD_REPLACE_IN_SELECTED"             : "선택한 파일/폴더에서 바꾸기",
     "CMD_REPLACE_IN_SUBTREE"              : "다음에서 바꾸기\u2026",
 
     // View menu commands
@@ -385,10 +382,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP": "자동 줄바꿈",
     "CMD_LIVE_HIGHLIGHT": "실시간 미리보기 하이라이트",
     "CMD_VIEW_TOGGLE_INSPECTION": "저장시 파일 Lint표시",
-    "CMD_SORT_WORKINGSET_BY_ADDED": "추가순으로 작업세트 정렬",
-    "CMD_SORT_WORKINGSET_BY_NAME": "이름순으로 작업세트 정렬",
-    "CMD_SORT_WORKINGSET_BY_TYPE": "타입별로 작업세트 정렬",
-    "CMD_SORT_WORKINGSET_AUTO": "자동으로 작업세트 정렬",
+    "CMD_WORKINGSET_SORT_BY_ADDED": "추가순으로 작업세트 정렬",
+    "CMD_WORKINGSET_SORT_BY_NAME": "이름순으로 작업세트 정렬",
+    "CMD_WORKINGSET_SORT_BY_TYPE": "타입별로 작업세트 정렬",
+    "CMD_WORKING_SORT_TOGGLE_AUTO": "자동으로 작업세트 정렬",
     "CMD_THEMES"                          : "테마\u2026",
 
     // Navigate menu Commands

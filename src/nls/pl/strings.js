@@ -62,7 +62,6 @@ define({
     "ERROR_DELETING_FILE"               : "Podczas usuwania pliku <span class='dialog-filename'>{0}</span> wystąpił błąd: {1}",
     "INVALID_FILENAME_TITLE"            : "Niewłaściwa nazwa pliku",
     "INVALID_FILENAME_MESSAGE"          : "Nazwa pliku nie może zawierać następujących znaków: {0}",
-    "FILE_ALREADY_EXISTS"               : "Plik <span class='dialog-filename'>{0}</span> już istnieje.",
     "ERROR_CREATING_FILE_TITLE"         : "Nie można utworzyć pliku",
     "ERROR_CREATING_FILE"               : "Wystąpił błąd podczas próby utworzenia pliku <span class='dialog-filename'>{0}</span>. {1}",
 
@@ -129,9 +128,8 @@ define({
     "BUTTON_NO"                         : "Nie",
 
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} wyników",
-    "FIND_RESULT_COUNT_SINGLE"          : "1 wynik",
     "FIND_NO_RESULTS"                   : "Brak wyników",
+    "FIND_QUERY_PLACEHOLDER"            : "Znajdź\u2026",
     "REPLACE_PLACEHOLDER"               : "Zamień na\u2026",
     "BUTTON_REPLACE_ALL"                : "Wszystko\u2026",
     "BUTTON_REPLACE"                    : "Zamień",
@@ -150,15 +148,7 @@ define({
     "NO_UPDATE_TITLE"                   : "{APP_NAME} jest aktualny!",
     "NO_UPDATE_MESSAGE"                 : "Aktualnie używasz najnowszej wersji {APP_NAME}.",
 
-    // Replace All (in single file)
-    "FIND_REPLACE_TITLE_PART1"          : "Zamienianie „",
-    "FIND_REPLACE_TITLE_PART2"          : "” na „",
-    "FIND_REPLACE_TITLE_PART3"          : "” &mdash; {2} {0} {1}",
-
     // Find in Files
-    "FIND_IN_FILES_TITLE_PART1"         : "Znaleziono „",
-    "FIND_IN_FILES_TITLE_PART2"         : "” ",
-    "FIND_IN_FILES_TITLE_PART3"         : "&mdash; {0} {1} {2} in {3} {4}",
     "FIND_IN_FILES_SCOPED"              : "w <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "w projekcie",
     "FIND_IN_FILES_ZERO_FILES"                  : "Filtr wyklucza wszystkie pliki {0}",
@@ -178,7 +168,6 @@ define({
     "EDIT_FILE_FILTER"                  : "Edytuj…",
     "FILE_FILTER_DIALOG"                : "Edytuj filtr",
     "FILE_FILTER_INSTRUCTIONS"          : "Możesz odrzucić pliki o nazwach pasujących do poniższych wzorów lub <a href='{0}' title='{0}'>masek</a>. Każdą regułę umieść w osobnej linii.",
-    "FILE_FILTER_LIST_PREFIX"           : "oprócz",
     "FILE_FILTER_CLIPPED_SUFFIX"        : "i {0} więcej",
     "FILTER_COUNTING_FILES"             : "Kalkulowanie…",
     "FILTER_FILE_COUNT"                 : "Przeszukane zostanie {0} z {1} plików {2}",
@@ -305,14 +294,12 @@ define({
     // Search menu commands
     "FIND_MENU"                           : "Find",
     "CMD_FIND"                            : "Znajdź",
-    "CMD_FIND_FIELD_PLACEHOLDER"          : "Znajdź…",
     "CMD_FIND_NEXT"                       : "Znajdź następny",
     "CMD_FIND_PREVIOUS"                   : "Znajdź poprzedni",
     "CMD_FIND_ALL_AND_SELECT"             : "Zaznacz wszystkie wystapienia",
     "CMD_ADD_NEXT_MATCH"                  : "Dodaj nastepny do zaznaczenia",
     "CMD_SKIP_CURRENT_MATCH"              : "Pomiń i dodaj następny",
     "CMD_FIND_IN_FILES"                   : "Znajdź w plikach",
-    "CMD_FIND_IN_SELECTED"                : "Find in Selected File/Folder",
     "CMD_FIND_IN_SUBTREE"                 : "Znajdź\u2026",
     "CMD_REPLACE"                         : "Zamień",
 
@@ -330,10 +317,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP"                : "Zawijaj wiersze",
     "CMD_LIVE_HIGHLIGHT"                  : "Podświetlanie przy podglądzie błyskawicznym",
     "CMD_VIEW_TOGGLE_INSPECTION"          : "Sprawdzaj poprawność przy zapisywaniu",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Sortuj według dodanych",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Sortuj według nazwy",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Sortuj według typu",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatyczne sortowanie",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Sortuj według dodanych",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Sortuj według nazwy",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Sortuj według typu",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatyczne sortowanie",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Nawigacja",

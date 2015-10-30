@@ -57,7 +57,6 @@ define({
     "ERROR_DELETING_FILE"               : "Hiba történt a fájl törlése közben: <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Helytelen fájlnév",
     "INVALID_FILENAME_MESSAGE"          : "A fájl neve nem tartalmazhatja a következő karaktereket: {0} és foglalt rendszer neveket.",
-    "FILE_ALREADY_EXISTS"               : "A fájl <span class='dialog-filename'>{0}</span> már létezik.",
     "ERROR_CREATING_FILE_TITLE"         : "Hiba történt a fájl létrehozása közben.",
     "ERROR_CREATING_FILE"               : "Hiba történt a fájl létrehozása közben: <span class='dialog-filename'>{0}</span>. {1}",
 
@@ -105,12 +104,8 @@ define({
     "EXT_DELETED_MESSAGE"               : "A/az <span class='dialog-filename'>{0}</span> törölve lett a lemezen, de tartalmaz nem mentet változtatásokat is a {APP_NAME}-ben.<br /><br />Meg szeretnéd tartani a változtatásokat?",
     
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Használd a  /re/ szintaxis-t a regexp kereséshez",
-    "FIND_RESULT_COUNT"                 : "{0} találat",
-    "WITH"                              : "",
     "BUTTON_YES"                        : "Igen",
     "BUTTON_NO"                         : "Nem",
-    "BUTTON_STOP"                       : "Leállítás",
 
     "OPEN_FILE"                         : "Fájl megnyitása",
     "SAVE_FILE_AS"                      : "Fájl mentése",
@@ -120,7 +115,6 @@ define({
     "NO_UPDATE_TITLE"                   : "A legfrissebb verziót használod!",
     "NO_UPDATE_MESSAGE"                 : "A legfrissebb {APP_NAME} fut.",
     
-    "FIND_IN_FILES_TITLE"               : "a \"{4}\" {5} - {0} {1} a {2} {3}-ban",
     "FIND_IN_FILES_SCOPED"              : "a <span class='dialog-filename'>{0}</span>-ban",
     "FIND_IN_FILES_NO_SCOPE"            : "a projektben",
     "FIND_IN_FILES_FILE"                : "fájl",
@@ -128,9 +122,7 @@ define({
     "FIND_IN_FILES_MATCH"               : "találat",
     "FIND_IN_FILES_MATCHES"             : "találatok",
     "FIND_IN_FILES_MORE_THAN"           : "Több mint ",
-    "FIND_IN_FILES_MAX"                 : " (az első {0} találat megjelenítése)",
     "FIND_IN_FILES_FILE_PATH"           : "Fájl: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_LINE"                : "sor:&nbsp;{0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Hiba a frissítési infó lekérdezése közben",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Hiba történt a legfrissebb frissítési infó lekérdezése közben. Győződj meg arról hogy van internet kapcsolatod, majd próbáld meg újra.",
@@ -230,10 +222,10 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Sorok száma",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Aktív sor megjelölése",
     "CMD_TOGGLE_WORD_WRAP"                : "Sortörés",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Rendezés Hozzáadás Szerint",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Rendezés Név Szerint",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Rendezés Típus Szerint",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatikus Rendezés",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Rendezés Hozzáadás Szerint",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Rendezés Név Szerint",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Rendezés Típus Szerint",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatikus Rendezés",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigálás",
@@ -253,23 +245,14 @@ define({
     "HELP_MENU"                           : "Súgó",
     "CMD_CHECK_FOR_UPDATE"                : "Frissítések keresése",
     "CMD_HOW_TO_USE_BRACKETS"             : "{APP_NAME} használata",
-    "CMD_FORUM"                           : "{APP_NAME} Fórum",
     "CMD_RELEASE_NOTES"                   : "Kiadási megjegyzések",
-    "CMD_REPORT_AN_ISSUE"                 : "Probléma bejelentése",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Bővítmények mappa megjelenítése",
     "CMD_TWITTER"                         : "{TWITTER_NAME} a Twitter-en",
     "CMD_ABOUT"                           : "A {APP_TITLE}-ről",
 
-
-    // Special commands invoked by the native shell
-    "CMD_CLOSE_WINDOW"                    : "Ablak bezárása",
-    "CMD_ABORT_QUIT"                      : "Kilépés Megakadályozása",
-    "CMD_BEFORE_MENUPOPUP"                : "A Felugró Menüablak Előtt",
-
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "kísérleti verzió",
     "DEVELOPMENT_BUILD"                    : "fejlesztési verzió",
-    "SEARCH_RESULTS"                       : "Keresési Találatok",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Ne Mentse",
     "SAVE"                                 : "Mentés",
@@ -360,11 +343,6 @@ define({
     "UNDO_REMOVE"                          : "Mégsem",
     "MARKED_FOR_UPDATE"                    : "Frissítéshez megjelölve",
     "UNDO_UPDATE"                          : "Mégsem",
-    "CHANGE_AND_QUIT_TITLE"                : "Bővítmények megváltoztatása",
-    "CHANGE_AND_QUIT_MESSAGE"              : "A megjelölt bővítmények frissítéséhez/eltávolításához ki kell lépni a {APP_NAME}-ből, majd újraindítani. A mentetlen változásokról meg fog jelenni egy ablak ahol elmentheted.",
-    "REMOVE_AND_QUIT"                      : "Bővítmények eltávolítása és kilépés",
-    "CHANGE_AND_QUIT"                      : "Bővítmények megváltoztatása és kilépés",
-    "UPDATE_AND_QUIT"                      : "Bővítmények frissítése és kilépés",
     "EXTENSION_NOT_INSTALLED"              : "A {0} bővítményt nem lehet eltávolítani, mert nincs telepítve.",
     "NO_EXTENSIONS"                        : "Nincs még telepített bővítmény.<br>Kattints a Telepítés URL-ről gombra a kezdéshez.",
     "NO_EXTENSION_MATCHES"                 : "Nincs bővítmény a keresett szavakra.",
@@ -404,15 +382,6 @@ define({
     
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Ugrás a Definícióhoz",
-    
-    // extensions/default/JSLint
-    "CMD_JSLINT"                                : "JSLint engedélyezése",
-    "CMD_JSLINT_FIRST_ERROR"                    : "Ugrás az első JSLint Hibához",
-    "JSLINT_ERRORS"                             : "JSLint Hibák",
-    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint Hiba",
-    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint Hiba",
-    "JSLINT_NO_ERRORS"                          : "Nincs JSLint hiba - szép munka!",
-    "JSLINT_DISABLED"                           : "JSLint letiltva, vagy nem működik a jelenlegi fájlban.",
     
     // extensions/default/QuickView 
     "CMD_ENABLE_QUICK_VIEW"                     : "Gyors Nézet rámutatáskor",

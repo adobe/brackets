@@ -58,6 +58,8 @@ define(function (require, exports, module) {
     "use strict";
     
     var _ = require("thirdparty/lodash");
+    
+    var LEAK_WARNING_THRESHOLD = 15;
 
     
     /**
@@ -88,6 +90,10 @@ define(function (require, exports, module) {
         var eventsList = events.split(/\s+/).map(splitNs),
             i;
         
+        if (!fn) {
+            throw new Error("EventListener.on() called with no listener fn for event '" + events + "'");
+        }
+        
         // Check for deprecation warnings
         if (this._deprecatedEvents) {
             for (i = 0; i < eventsList.length; i++) {
@@ -113,6 +119,11 @@ define(function (require, exports, module) {
             }
             eventsList[i].handler = fn;
             this._eventHandlers[eventName].push(eventsList[i]);
+            
+            // Check for suspicious number of listeners being added to one object-event pair
+            if (this._eventHandlers[eventName].length > LEAK_WARNING_THRESHOLD) {
+                console.error("Possible memory leak: " + this._eventHandlers[eventName].length + " '" + eventName + "' listeners attached to", this);
+            }
         }
         
         return this;  // for chaining

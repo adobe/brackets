@@ -162,16 +162,15 @@ define(function (require, exports, module) {
      */
     function lessifyTheme(content, theme) {
         var deferred = new $.Deferred();
-        var parser   = new less.Parser({
+
+        less.render("#editor-holder {" + content + "\n}", {
             rootpath: fixPath(stylesPath),
             filename: fixPath(theme.file._path)
-        });
-
-        parser.parse("#editor-holder {" + content + "\n}", function (err, tree) {
+        }, function (err, tree) {
             if (err) {
                 deferred.reject(err);
             } else {
-                deferred.resolve(tree.toCSS());
+                deferred.resolve(tree.css);
             }
         });
 

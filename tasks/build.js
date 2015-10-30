@@ -246,6 +246,55 @@ module.exports = function (grunt) {
         request.end();
     });
     
+    grunt.registerTask("nls-check", "Checks if all the keys in nls files are defined in root", function () {
+        var done = this.async(),
+            PATH = "src/nls",
+            ROOT_LANG = "root",
+            rootDefinitions = {},
+            definitions,
+            unknownKeys,
+            encounteredErrors;
+        
+        function getDefinitions(abspath) {
+            var fileContent,
+                definitions = [];
+            
+            fileContent = grunt.file.read(abspath);
+            fileContent.split("\n").forEach(function (line) {
+                var match = line.match(/^\s*"(\S+)"\s*:/);
+                if (match && match[1]) {
+                    definitions.push(match[1]);
+                }
+            });
+            return definitions;
+        }
+        
+        // Extracts all nls keys from nls/root
+        grunt.file.recurse(PATH + "/" + ROOT_LANG, function (abspath, rootdir, subdir, filename) {
+            rootDefinitions[filename] = getDefinitions(abspath);
+        });
+        
+        // Compares nls keys in translations with root ones
+        grunt.file.recurse(PATH, function (abspath, rootdir, subdir, filename) {
+            if (!subdir || subdir === ROOT_LANG) {
+                return;
+            }
+            definitions = getDefinitions(abspath);
+            unknownKeys = [];
+            
+            unknownKeys = definitions.filter(function (key) {
+                return rootDefinitions[filename].indexOf(key) < 0;
+            });
+            
+            if (unknownKeys.length) {
+                grunt.log.writeln("There are unknown keys included in " + PATH + "/" + subdir + "/" + filename + ":", unknownKeys);
+                encounteredErrors = true;
+            }
+        });
+
+        done(encounteredErrors);
+    });
+    
     build.getGitInfo = getGitInfo;
     
     return build;
