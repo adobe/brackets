@@ -166,6 +166,18 @@ define(function (require, exports, module) {
                     verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
             });
+          
+            it("should hint for poster attribute", function () {
+                runs(function () {
+                    testEditor.setCursorPos({ line: 24, ch: 17 });
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+                
+                runs(function () {
+                    verifyUrlHints(hintsObj.hints, testfilesDirHints);
+                });
+            });
             
             it("should not hint for type attribute", function () {
                 runs(function () {
