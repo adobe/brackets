@@ -57,9 +57,9 @@ define(function (require, exports, module) {
 
     // Use Vibrant.js to try and extract color info. This is possible for
     // most, but not all image types (e.g., svg).
-    function _extractColors(img) {
-        var swatchElems = _slice(document.querySelectorAll(".image-view-swatch"));
-        var hexElems = _slice(document.querySelectorAll(".image-view-hex"));
+    function _extractColors(pane, img) {
+        var swatchElems = _slice(pane.find(".image-view-swatch"));
+        var hexElems = _slice(pane.find(".image-view-hex"));
         var swatches;
         var i = 0;
 
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
 
         this._updateScale();
 
-        _extractColors(e.currentTarget);
+        _extractColors(this.$el, e.currentTarget);
     };
     
     /**
