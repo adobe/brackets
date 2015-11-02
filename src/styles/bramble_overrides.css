@@ -21,7 +21,7 @@ li.jstree-leaf > a {
   font-size: .7em !important;
 }
 
-.swatches {
+.image-view-swatches {
   margin-top: 10px;
   overflow: auto;
   -webkit-user-select: text;
@@ -29,6 +29,7 @@ li.jstree-leaf > a {
   -moz-user-select: text;
   -ms-user-select: text;
   -o-user-select: text;
+  user-select: text;
 }
 
 .swatch-wrapper {
@@ -38,7 +39,7 @@ li.jstree-leaf > a {
   text-align: left;
 }
 
-.swatch {
+.image-view-swatch {
   display: block;
   float: left;
   height: 25px;
@@ -46,10 +47,11 @@ li.jstree-leaf > a {
   border-radius: 1px;
   -webkit-transition: .2s;
   -moz-transition: .2s;
+  transition: .2s;
   margin-right: 10px;
 }
 
-.color-name {
+.image-view-hex {
   font-size: 15px;
   text-transform: uppercase;
   position: relative;

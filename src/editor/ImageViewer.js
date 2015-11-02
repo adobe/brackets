@@ -39,6 +39,7 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         _                   = require("thirdparty/lodash");
 
+    // Vibrant doesn't seem to play well with requirejs AMD loading, load it globally.
     require("thirdparty/Vibrant");
 
     // XXXBramble specific bits to allow opening SVG as a regular image vs. XML doc
@@ -47,9 +48,45 @@ define(function (require, exports, module) {
 
     var _viewers = {};
 
+    var _slice = Function.prototype.call.bind(Array.prototype.slice);
+
     // Get a Blob URL out of the cache
     function _getImageUrl(file) {
         return BlobUtils.getUrl(file.fullPath);
+    }
+
+    // Use Vibrant.js to try and extract color info. This is possible for
+    // most, but not all image types (e.g., svg).
+    function _extractColors(img) {
+        var swatchElems = _slice(document.querySelectorAll(".image-view-swatch"));
+        var hexElems = _slice(document.querySelectorAll(".image-view-hex"));
+        var swatches;
+        var i = 0;
+
+        try {
+            var vibrant = new window.Vibrant(img);
+            swatches = vibrant.swatches();
+            $(".image-view-swatches").removeClass("hide");
+        } catch(e) {
+            // Hide the color swatches, since we can't display anything
+            $(".image-view-swatches").addClass("hide");
+            return;
+        }
+
+        Object.keys(swatches).forEach(function(swatch) {
+            var swatchColor = swatchElems[i];
+            var swatchHex = hexElems[i];
+
+            var hex = swatches[swatch] && swatches[swatch].getHex();
+            // Sometimes there isn't a LightMuted color
+            if(!hex) {
+                return;
+            }
+
+            swatchColor.style.backgroundColor = hex;
+            swatchHex.textContent = hex;
+            i++;
+        });
     }
 
     /**
@@ -124,27 +161,6 @@ define(function (require, exports, module) {
         this._naturalWidth = e.currentTarget.naturalWidth;
         this._naturalHeight = e.currentTarget.naturalHeight;
 
-        var img = e.currentTarget;
-
-        var vibrant = new window.Vibrant(img);
-        var swatches = vibrant.swatches();
-        var i = 0;
-        var elems = Array.prototype.slice.apply(document.querySelectorAll (".swatch"));
-        var texts = Array.prototype.slice.apply(document.querySelectorAll (".color-name"));
-
-        for (var swatch in swatches) {
-
-            if (swatches.hasOwnProperty(swatch) && swatches[swatch]) {
-                var el = elems[i];
-                var text = texts[i];
-
-                el.style.backgroundColor = swatches[swatch].getHex();
-                text.innerHTML = swatches[swatch].getHex();
-
-                i++;
-            }
-        }
-
         var extension = FileUtils.getFileExtension(this.file.fullPath);
         var dimensionString = this._naturalWidth + " &times; " + this._naturalHeight + " " + Strings.UNIT_PIXELS;
         
@@ -181,6 +197,8 @@ define(function (require, exports, module) {
                    .on("mouseleave.ImageView", ".image-preview", _.bind(this._hideImageTip, this));
 
         this._updateScale();
+
+        _extractColors(e.currentTarget);
     };
     
     /**
