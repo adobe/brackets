@@ -61,7 +61,6 @@ define(function (require, exports, module) {
     // XXXBramble specific
     var BracketsFiler      = require("filesystem/impls/filer/BracketsFiler");
     var Path               = BracketsFiler.Path;
-    var FilerBuffer        = BracketsFiler.Buffer;
     var StartupState       = require("bramble/StartupState");
 
     /**
@@ -686,20 +685,14 @@ define(function (require, exports, module) {
     function handleBrambleNewFile(options) {
         var deferred = new $.Deferred();
         var root = StartupState.project("root");
-        var fs = BracketsFiler.fs();
 
-        function writeContents(path, data) {
+        function writeContents(path, contents) {
             // Add the new file to the project root, refresh the file tree, and open.
             path = Path.join(root, path);
-            fs.writeFile(
-                path,
-                new FilerBuffer(data),
-                {encoding: null},
-                function(err) {
-                    if(err) {
-                        return deferred.reject(err);
-                    }
 
+            var newFile = FileSystem.getFileForPath(path);
+            FileUtils.writeText(newFile, contents, true)
+                .done(function () {
                     CommandManager.execute(Commands.FILE_REFRESH)
                         .always(function() {
                             CommandManager.execute(
@@ -707,8 +700,10 @@ define(function (require, exports, module) {
                                 {fullPath: path}
                             ).always(deferred.resolve);
                         });
-                }
-            );
+                })
+                .fail(function (err) {
+                    deferred.reject(err);
+                });
         }
 
         // If we were given a filename, use it, otherwise generate one

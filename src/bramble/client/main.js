@@ -835,13 +835,11 @@ define([
     };
 
     BrambleProxy.prototype.addNewFile = function(options, callback) {
-        // Always use a buffer if we send contents
-        if(typeof(options.contents) === "string") {
-            options.contents = new FilerBuffer(options.contents, "utf8");
+        // We only support writing textual data this way
+        if(typeof(options.contents) !== "string") {
+            callback(new Error("expected string for file contents"));
+            return;
         }
-
-        // Serialize buffer to a regular array
-        options.contents = options.contents.toJSON().data;
 
         this._executeRemoteCommand({
             commandCategory: "bramble",

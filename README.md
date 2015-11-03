@@ -343,7 +343,7 @@ to be notified when the action completes:
 * `showTutorial([callback])` - shows tutorial (i.e., tutorial.html) vs editor contents in preview
 * `hideTutorial([callback])` - stops showing tutorial (i.e., tutorial.html) and uses editor contents in preview
 * `showUploadFilesDialog([callback])` - shows the Upload Files dialog, allowing users to drag-and-drop, upload a file, or take a selfie.
-* `addNewFile([options, callback])` - adds a new file, using the provided options, which can include: `filename` a `String` with the complete filename to use; `contents` a `Filer.Buffer` or `String` with the new file's data; `ext` a `String` with the new file's extension; `basenamePrefix` a `String` with the basename to use when generating a new filename.  NOTE: if you provide `filename`, `basenamePrefix` and `ext` are ignored.
+* `addNewFile([options, callback])` - adds a new text file, using the provided options, which can include: `filename` a `String` with the complete filename to use; `contents` a `String` with the new text file's data; `ext` a `String` with the new file's extension; `basenamePrefix` a `String` with the basename to use when generating a new filename.  NOTE: if you provide `filename`, `basenamePrefix` and `ext` are ignored.
 * `addNewFolder([callback])` - adds a new folder.
 * `export([callback])` - creates an archive `.zip` file of the entire project's filesystem, and downloads it to the browser.
 
