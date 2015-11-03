@@ -361,7 +361,7 @@ define(function (require, exports, module) {
         );
 
         this._$summary.html(Mustache.render(searchSummaryTemplate, {
-            query:       (this._model.queryInfo.query && this._model.queryInfo.query.toString()) || "",
+            query:       (this._model.queryInfo && this._model.queryInfo.query && this._model.queryInfo.query.toString()) || "",
             replaceWith: this._model.replaceText,
             titleLabel:  this._model.isReplace ? Strings.FIND_REPLACE_TITLE_LABEL : Strings.FIND_TITLE_LABEL,
             scope:       this._model.scope ? "&nbsp;" + FindUtils.labelForScope(this._model.scope) + "&nbsp;" : "",
