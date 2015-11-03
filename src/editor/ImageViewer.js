@@ -39,15 +39,54 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         _                   = require("thirdparty/lodash");
 
+    // Vibrant doesn't seem to play well with requirejs AMD loading, load it globally.
+    require("thirdparty/Vibrant");
+
     // XXXBramble specific bits to allow opening SVG as a regular image vs. XML doc
     var PreferencesManager  = require("preferences/PreferencesManager");
     PreferencesManager.definePreference("openSVGasXML", "boolean", false);
 
     var _viewers = {};
 
+    var _slice = Function.prototype.call.bind(Array.prototype.slice);
+
     // Get a Blob URL out of the cache
     function _getImageUrl(file) {
         return BlobUtils.getUrl(file.fullPath);
+    }
+
+    // Use Vibrant.js to try and extract color info. This is possible for
+    // most, but not all image types (e.g., svg).
+    function _extractColors(pane, img) {
+        var swatchElems = _slice(pane.find(".image-view-swatch"));
+        var hexElems = _slice(pane.find(".image-view-hex"));
+        var swatches;
+        var i = 0;
+
+        try {
+            var vibrant = new window.Vibrant(img);
+            swatches = vibrant.swatches();
+            $(".image-view-swatches").removeClass("hide");
+        } catch(e) {
+            // Hide the color swatches, since we can't display anything
+            $(".image-view-swatches").addClass("hide");
+            return;
+        }
+
+        Object.keys(swatches).forEach(function(swatch) {
+            var swatchColor = swatchElems[i];
+            var swatchHex = hexElems[i];
+
+            var hex = swatches[swatch] && swatches[swatch].getHex();
+            // Sometimes there isn't a LightMuted color
+            if(!hex) {
+                return;
+            }
+
+            swatchColor.style.backgroundColor = hex;
+            swatchHex.textContent = hex;
+            i++;
+        });
     }
 
     /**
@@ -121,7 +160,7 @@ define(function (require, exports, module) {
         // add dimensions and size
         this._naturalWidth = e.currentTarget.naturalWidth;
         this._naturalHeight = e.currentTarget.naturalHeight;
-        
+
         var extension = FileUtils.getFileExtension(this.file.fullPath);
         var dimensionString = this._naturalWidth + " &times; " + this._naturalHeight + " " + Strings.UNIT_PIXELS;
         
@@ -158,6 +197,8 @@ define(function (require, exports, module) {
                    .on("mouseleave.ImageView", ".image-preview", _.bind(this._hideImageTip, this));
 
         this._updateScale();
+
+        _extractColors(this.$el, e.currentTarget);
     };
     
     /**
