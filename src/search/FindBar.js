@@ -54,6 +54,7 @@ define(function (require, exports, module) {
         currentTime = 0,
         intervalId = 0,
         lastQueriedText = "",
+        lastTypedText = "",
         lastKeyCode;
 
     /**
@@ -93,6 +94,7 @@ define(function (require, exports, module) {
         this._closed = false;
         this._enabled = true;
         this.lastQueriedText = "";
+        this.lastTypedText = "";
     }
     EventDispatcher.makeEventDispatcher(FindBar.prototype);
     
@@ -268,6 +270,7 @@ define(function (require, exports, module) {
         $root
             .on("input", "#find-what", function () {
                 self.trigger("queryChange");
+                lastTypedText = self.getQueryInfo().query;
             })
             .on("click", "#find-case-sensitive, #find-regexp", function (e) {
                 $(e.currentTarget).toggleClass("active");
@@ -569,7 +572,7 @@ define(function (require, exports, module) {
      * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
      */
     FindBar.getInitialQuery = function (currentFindBar, editor) {
-        var query = lastQueriedText,
+        var query = lastTypedText,
             replaceText = "";
 
         /*
@@ -601,7 +604,7 @@ define(function (require, exports, module) {
                 query = openedFindBar.getQueryInfo().query;
                 replaceText = openedFindBar.getReplaceText();
             } else if (editor) {
-                query = getInitialQueryFromSelection(editor) || lastQueriedText;
+                query = getInitialQueryFromSelection(editor) || lastTypedText;
             }
         }
 
