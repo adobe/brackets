@@ -254,23 +254,34 @@
         "lineComment": ["//"]
     },
 
+    "haskell": {
+        "name": "Haskell",
+        "mode": "haskell",
+        "fileExtensions": ["hs"],
+        "blockComment": ["{-", "-}"],
+        "lineComment": ["--"]
+    },
+
     "bash": {
         "name": "Bash",
         "mode": ["shell", "text/x-sh"],
         "fileExtensions": ["sh", "command", "bash"],
         "lineComment": ["#"]
     },
+
   
     "image": {
         "name": "Image",
         "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico", "bmp", "webp"],
-        "isBinary": true
+        "isBinary": true,
+        "translationKey": "LANGUAGE_IMAGE"
     },
     
     "audio": {
         "name": "Audio",
         "fileExtensions": ["mp3", "wav", "aif", "aiff", "ogg"],
-        "isBinary": true
+        "isBinary": true,
+        "translationKey": "LANGUAGE_AUDIO"
     },
     
     "binary": {
@@ -284,14 +295,7 @@
             "pdi", "ppt", "pptx", "psd", "rar", "sdf", "so", "sqlite", "suo", "svgz",
             "swf", "tar", "tif", "tiff", "ttf", "woff", "xls", "xlsx", "zip"
         ],
-        "isBinary": true
-    },
-
-    "haskell": {
-        "name": "Haskell",
-        "mode": "haskell",
-        "fileExtensions": ["hs"],
-        "blockComment": ["{-", "-}"],
-        "lineComment": ["--"]
+        "isBinary": true,
+        "translationKey": "LANGUAGE_OTHER_BINARY"
     }
 }

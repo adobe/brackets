@@ -290,6 +290,13 @@ define({
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
     "STATUSBAR_SET_DEFAULT_LANG"            : "Set as Default for .{0} Files",
 
+    /**
+     * LanguageManager localized language names
+     */
+    "LANGUAGE_IMAGE"                        : "Image",
+    "LANGUAGE_AUDIO"                        : "Audio",
+    "LANGUAGE_OTHER_BINARY"                 : "Other Binary",
+
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problems",
     "SINGLE_ERROR"                          : "1 {0} Problem",

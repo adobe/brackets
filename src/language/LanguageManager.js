@@ -118,7 +118,16 @@
  *         name: "Audio",
  *         fileExtensions: ["mp3", "wav", "aif", "aiff", "ogg"],
  *         isBinary: true    
- *     }); 
+ *     });
+ * 
+ * You can also specify a localized name using the localizedName field.
+ * It will then be used in some places and can be accessed through language.getLocalizedName().
+ * 
+ *     LanguageManager.defineLanguage("image", {
+ *         name: "Image",
+ *         localizedName: "Bild",
+ *         isBinary: true
+ *     });
  * 
  * 
  * LanguageManager dispatches two events:
@@ -461,6 +470,12 @@ define(function (require, exports, module) {
     Language.prototype._name = null;
     
     /**
+     * Localized, human-readable name
+     * @type {string}
+     */
+    Language.prototype._localizedName = null;
+
+    /**
      * CodeMirror mode for this language
      * @type {string}
      */
@@ -552,6 +567,23 @@ define(function (require, exports, module) {
         return true;
     };
     
+    /**
+     * Returns the human-readable, localized name of this language.
+     * Falls back to the normal name if no localized one was given.
+     * @return {string} The (possibly localized) name
+     */
+    Language.prototype.getLocalizedName = function () {
+        return this._localizedName || this.getName();
+    };
+
+    /**
+     * Sets the human-readable, localized name of this language.
+     * @param {string} localizedName The localized name
+     */
+    Language.prototype._setLocalizedName = function (localizedName) {
+        this._localizedName = localizedName;
+    };
+
     /**
      * Returns the CodeMirror mode for this language.
      * @return {string} The mode
@@ -957,6 +989,13 @@ define(function (require, exports, module) {
             
             language._setBinary(!!definition.isBinary);
             
+            if (definition.localizedName) {
+                language._setLocalizedName(definition.localizedName);
+            } else if (definition.translationKey) {
+                // for internal use in languages.json only
+                language._setLocalizedName(Strings[definition.translationKey]);
+            }
+
             // store language to language map
             _languages[language.getId()] = language;
         }
