@@ -1741,4 +1741,6 @@ define(function (require, exports, module) {
     // Constants
     exports.ALL_PANES                     = ALL_PANES;
     exports.ACTIVE_PANE                   = ACTIVE_PANE;
+    exports.FIRST_PANE                    = FIRST_PANE;
+    exports.SECOND_PANE                   = SECOND_PANE;
 });

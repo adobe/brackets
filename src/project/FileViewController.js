@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, event */
 
 /**
  * Responsible for coordinating file selection between views by permitting only one view
@@ -160,8 +160,9 @@ define(function (require, exports, module) {
         _curDocChangedDueToMe = true;
 
         _fileSelectionFocus = fileSelectionFocus;
+        
 
-        paneId = (paneId || MainViewManager.ACTIVE_PANE);
+        paneId = (paneId || ((event.ctrlKey || event.metaKey) && event.altKey ? MainViewManager.SECOND_PANE : null) || ((event.ctrlKey || event.metaKey) ? MainViewManager.FIRST_PANE : null) || MainViewManager.ACTIVE_PANE);
         
         // If fullPath corresonds to the current doc being viewed then opening the file won't
         // trigger a currentFileChange event, so we need to trigger a documentSelectionFocusChange 
