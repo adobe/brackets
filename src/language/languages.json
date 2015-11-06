@@ -293,5 +293,12 @@
         "fileExtensions": ["hs"],
         "blockComment": ["{-", "-}"],
         "lineComment": ["--"]
+    },
+    
+    "turtle": {
+        "name": "RDF Turtle",
+        "mode": "turtle",
+        "fileExtensions": ["ttl"],
+        "lineComment": ["#"]
     }
 }
