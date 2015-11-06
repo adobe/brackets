@@ -69,6 +69,7 @@ define(function (require, exports, module) {
      */
     function calcAvailableHeight() {
         var availableHt = $windowContent.height();
+
         
         $editorHolder.siblings().each(function (i, elem) {
             var $elem = $(elem);
@@ -84,6 +85,18 @@ define(function (require, exports, module) {
     /** Updates panel resize limits to disallow making panels big enough to shrink editor area below 0 */
     function updateResizeLimits() {
         var editorAreaHeight = $editorHolder.height();
+   
+        // Set maxsize for sideBar
+        var $sideBar = $("#sidebar");
+        var sideBarMaxSize = $(".main-view").width() - $("#main-toolbar").width() - 1;
+        $sideBar.data("maxsize", sideBarMaxSize);
+        
+        // Adjust the sideBar's width in case it exceeds the window's width when resizing the window.
+        if ($sideBar.css("display") !== "none") {
+            $sideBar.width(Math.min(sideBarMaxSize, $sideBar.width()));
+            Resizer.resyncSizer($sideBar);
+            $windowContent.css("left", $sideBar.width());
+        }
         
         $editorHolder.siblings().each(function (i, elem) {
             var $elem = $(elem);
