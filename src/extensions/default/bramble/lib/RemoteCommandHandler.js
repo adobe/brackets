@@ -66,6 +66,8 @@ define(function (require, exports, module) {
 
         switch(command) {
         case "BRAMBLE_RELOAD":
+            // If JS is disabled, re-enable it just for this next reload.
+            HTMLRewriter.forceScriptsOnce();
             PostMessageTransport.reload();
             break;
         case "BRAMBLE_MOBILE_PREVIEW":

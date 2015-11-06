@@ -17,6 +17,13 @@ define(function (require, exports, module) {
     var jsEnabled = true;
 
     /**
+     * Provides a way to force JS to run when disabled, but only once.
+     * Useful when we want to allow the user to manually refresh the page with UI
+     * vs. when we do it automatically.
+     */
+    var jsEnabledOverride = false;
+
+    /**
      * Rewrite all external resources (links, scripts, img sources, ...) to
      * blob URL Objects from the fs.
      */
@@ -133,7 +140,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if(jsEnabled) {
+            if(jsEnabled || jsEnabledOverride) {
                 if(element.getAttribute("type") === "text/x-scripts-disabled") {
                     element.removeAttribute("type");
                 }
@@ -202,6 +209,9 @@ define(function (require, exports, module) {
                 doctype = (new XMLSerializer()).serializeToString(doc.doctype);
             }
 
+            // Reset the JS scripts override in case it was set on this run
+            jsEnabledOverride = false;
+
             callback(err, doctype + html);
         });
     }
@@ -212,5 +222,8 @@ define(function (require, exports, module) {
     };
     exports.disableScripts = function() {
         jsEnabled = false;
+    };
+    exports.forceScriptsOnce = function() {
+        jsEnabledOverride = true;
     };
 });
