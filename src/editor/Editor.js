@@ -982,6 +982,13 @@ define(function (require, exports, module) {
                 event.preventDefault();
             }
         });
+        // For word wrap. Code adapted from https://codemirror.net/demo/indentwrap.html#
+        this._codeMirror.on("renderLine", function (cm, line, elt) {
+            var charWidth = self._codeMirror.defaultCharWidth(), basePadding = 4;
+            var off = CodeMirror.countColumn(line.text, null, cm.getOption("tabSize")) * charWidth;
+            elt.style.textIndent = "-" + off + "px";
+            elt.style.paddingLeft = (basePadding + off) + "px";
+        });
     };
     
     /**
