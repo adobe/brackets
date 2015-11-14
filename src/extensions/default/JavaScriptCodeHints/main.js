@@ -640,6 +640,7 @@ define(function (require, exports, module) {
         function uninstallEditorListeners(editor) {
             if (editor) {
                 editor.off(HintUtils.eventName("change"));
+                ParameterHintManager.uninstallListeners(editor);
             }
         }
 
