@@ -389,13 +389,21 @@ define(function (require, exports, module) {
      *      changes
      */
     function installListeners(editor) {
-        editor.on("keydown", function (event, editor, domEvent) {
+        editor.on("keydown.ParameterHints", function (event, editor, domEvent) {
             if (domEvent.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 dismissHint();
             }
-        }).on("scroll", function () {
+        }).on("scroll.ParameterHints", function () {
             dismissHint();
         });
+    }
+    
+    /**
+     * Clean up after installListeners()
+     * @param {!Editor} editor
+     */
+    function uninstallListeners(editor) {
+        editor.off(".ParameterHints");
     }
 
     /**
@@ -429,6 +437,7 @@ define(function (require, exports, module) {
     exports.addCommands             = addCommands;
     exports.dismissHint             = dismissHint;
     exports.installListeners        = installListeners;
+    exports.uninstallListeners      = uninstallListeners;
     exports.isHintDisplayed         = isHintDisplayed;
     exports.popUpHint               = popUpHint;
     exports.popUpHintAtOpenParen    = popUpHintAtOpenParen;

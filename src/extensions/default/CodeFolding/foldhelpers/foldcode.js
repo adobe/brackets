@@ -90,8 +90,8 @@ define(function (require, exports, module) {
         });
 
         textRange.on("clear", function (from, to) {
-            delete cm._lineFolds[from.line];
-            CodeMirror.signal(cm, "unfold", cm, from, to);
+            delete cm._lineFolds[pos.line];
+            CodeMirror.signal(cm, "unfold", cm, from, to, pos.line);
         });
 
         if (force === "fold") {
@@ -101,7 +101,7 @@ define(function (require, exports, module) {
             delete cm._lineFolds[pos.line];
         }
 
-        CodeMirror.signal(cm, force, cm, range.from, range.to);
+        CodeMirror.signal(cm, force, cm, range.from, range.to, pos.line);
         return range;
     }
 
