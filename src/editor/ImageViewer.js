@@ -115,13 +115,7 @@ define(function (require, exports, module) {
         this.$imageData = this.$el.find(".image-data");
 
         this.$image = this.$el.find(".image");
-        this.$imageTip = this.$el.find(".image-tip");
-        this.$imageGuides = this.$el.find(".image-guide");
         this.$imageScale = this.$el.find(".image-scale");
-        this.$x_value = this.$el.find(".x-value");
-        this.$y_value = this.$el.find(".y-value");
-        this.$horzGuide = this.$el.find(".horz-guide");
-        this.$vertGuide = this.$el.find(".vert-guide");
         
         this.$imagePath.text(this.relPath).attr("title", this.relPath);
         this.$imagePreview.on("load", _.bind(this._onImageLoaded, this));
@@ -189,12 +183,6 @@ define(function (require, exports, module) {
         
         // make sure we always show the right file name
         DocumentManager.on("fileNameChange.ImageView", _.bind(this._onFilenameChange, this));
-       
-        this.$imageTip.hide();
-        this.$imageGuides.hide();
-        
-        this.$image.on("mousemove.ImageView", ".image-preview", _.bind(this._showImageTip, this))
-                   .on("mouseleave.ImageView", ".image-preview", _.bind(this._hideImageTip, this));
 
         this._updateScale();
 
@@ -221,115 +209,7 @@ define(function (require, exports, module) {
             this.$imageScale.text("").hide();
         }
     };
-        
-        
-    /**
-     * Show image coordinates under the mouse cursor
-     * @param {Event} e - event
-     * @private
-     */
-    ImageView.prototype._showImageTip = function (e) {
-        // Don't show image tip if this._scale is close to zero.
-        // since we won't have enough room to show tip anyway.
-        if (Math.floor(this._scale) === 0) {
-            return;
-        }
-        
-        var x                   = Math.round(e.offsetX * 100 / this._scale),
-            y                   = Math.round(e.offsetY * 100 / this._scale),
-            imagePos            = this.$imagePreview.position(),
-            left                = e.offsetX + imagePos.left,
-            top                 = e.offsetY + imagePos.top,
-            width               = this.$imagePreview.width(),
-            height              = this.$imagePreview.height(),
-            windowWidth         = $(window).width(),
-            fourDigitImageWidth = this._naturalWidth.toString().length === 4,
-            
-            // @todo -- seems a bit strange that we're computing sizes
-            //          using magic numbers
-            
-            infoWidth1          = 112,    // info div width 96px + vertical toolbar width 16px
-            infoWidth2          = 120,    // info div width 104px (for 4-digit image width) + vertical toolbar width 16px
-            tipOffsetX          = 10,     // adjustment for info div left from x coordinate of cursor
-            tipOffsetY          = -54,    // adjustment for info div top from y coordinate of cursor
-            tipMinusOffsetX1    = -82,    // for less than 4-digit image width
-            tipMinusOffsetX2    = -90;    // for 4-digit image width 
-        
-        // Check whether we're getting mousemove events beyond the image boundaries due to a browser bug 
-        // or the rounding calculation above for a scaled image. For example, if an image is 120 px wide,
-        // we should get mousemove events in the range of 0 <= x < 120, but not 120 or more. If we get 
-        // a value beyond the range, then simply handle the event as if it were a mouseleave.
-        if (x < 0 || x >= this._naturalWidth || y < 0 || y >= this._naturalHeight) {
-            this._hideImageTip(e);
-            this.$imagePreview.css("cursor", "auto");
-            return;
-        }
-        
-        this.$imagePreview.css("cursor", "none");
-        
-        this._handleMouseEnterOrExitScaleSticker(left, top);
-        
-        // Check whether to show the image tip on the left.
-        if ((e.pageX + infoWidth1) > windowWidth ||
-                (fourDigitImageWidth && (e.pageX + infoWidth2) > windowWidth)) {
-            tipOffsetX = fourDigitImageWidth ? tipMinusOffsetX2 : tipMinusOffsetX1;
-        }
-        
-        this.$x_value.text(x + "px");
-        this.$y_value.text(y + "px");
 
-        this.$imageTip.css({
-            left: left + tipOffsetX,
-            top: top + tipOffsetY
-        }).show();
-        
-        this.$horzGuide.css({
-            left: imagePos.left,
-            top: top,
-            width: width - 1
-        }).show();
-        
-        this.$vertGuide.css({
-            left: left,
-            top: imagePos.top,
-            height: height - 1
-        }).show();
-    };
-    
-    /**
-     * Hide image coordinates info tip
-     * @param {Event} e - event 
-     * @private
-     */
-    ImageView.prototype._hideImageTip = function (e) {
-        var $target   = $(e.target),
-            targetPos = $target.position(),
-            imagePos  = this.$imagePreview.position(),
-            right     = imagePos.left + this.$imagePreview.width(),
-            bottom    = imagePos.top + this.$imagePreview.height(),
-            x         = targetPos.left + e.offsetX,
-            y         = targetPos.top + e.offsetY;
-        
-        // Hide image tip and guides only if the cursor is outside of the image.
-        if (x < imagePos.left || x >= right ||
-                y < imagePos.top || y >= bottom) {
-            this._hideGuidesAndTip();
-            if (this._scaleDivInfo) {
-                this._scaleDivInfo = null;
-                this.$imageScale.show();
-            }
-        }
-    };
-    
-    /**
-     * Hides both guides and the tip
-     * @private
-     */
-    ImageView.prototype._hideGuidesAndTip = function () {
-        this.$imageTip.hide();
-        this.$imageGuides.hide();
-    };
-    
     /**
      * Check mouse entering/exiting the scale sticker. 
      * Hide it when entering and show it again when exiting.
@@ -409,8 +289,6 @@ define(function (require, exports, module) {
      * Updates the layout of the view
      */
     ImageView.prototype.updateLayout = function () {
-        this._hideGuidesAndTip();
-        
         var $container = this.$el.parent();
         
         var pos = $container.position(),
