@@ -49,8 +49,9 @@ define(function (require, exports, module) {
         StartupState    = require("bramble/StartupState"),
         ArchiveUtils    = require("filesystem/impls/filer/ArchiveUtils");
 
-    // 3M size limit for imported files
-    var byteLimit = 3 * 1024 * 1000;
+    // 3MB size limit for imported files. If you change this, also change the
+    // error message we generate in rejectImport() below!
+    var byteLimit = 3145728;
 
     /**
      * Returns true if the drag and drop items contains valid drop objects.
@@ -328,7 +329,7 @@ define(function (require, exports, module) {
          */
         function rejectImport(item) {
             if (item.size > byteLimit) {
-                return new Error("file exceeds maximum supported size");
+                return new Error("file exceeds maximum supported size: 3MB");
             }
 
             // If we don't know about this language type, or the OS doesn't think
