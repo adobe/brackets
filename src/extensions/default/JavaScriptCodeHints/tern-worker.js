@@ -36,7 +36,10 @@ var config = {};
     require(["./MessageIds", "./HintUtils2"], function (messageIds, hintUtils2) {
         MessageIds = messageIds;
         HintUtils2 = hintUtils2;
-        var ternRequire = require.config({baseUrl: "./thirdparty"});
+        var ternRequire = require.config({
+            waitSeconds: 120,
+            baseUrl: "./thirdparty"
+        });
         ternRequire(["tern/lib/tern", "tern/lib/infer"], function (tern, infer) {
             Tern = tern;
             Infer = infer;

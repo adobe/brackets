@@ -29,6 +29,8 @@
  * configuration and loads the brackets module.
  */
 require.config({
+    // Disable module loading timeouts, due to the size of what we load
+    waitSeconds: 0,
     paths: {
         "text"              : "thirdparty/text/text",
         "i18n"              : "thirdparty/i18n/i18n",

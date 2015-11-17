@@ -2,6 +2,7 @@
 /*global define, brackets*/
 
 require.config({
+    waitSeconds: 120,
     paths: {
         "text" : "lib/text",
         "i18n" : "lib/i18n"

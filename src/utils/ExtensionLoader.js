@@ -159,6 +159,8 @@ define(function (require, exports, module) {
      */
     function loadExtensionModule(name, config, entryPoint) {
         var extensionConfig = {
+            // Disable module loading timeouts, due to the size of what we load
+            waitSeconds: 0,
             context: name,
             baseUrl: config.baseUrl,
             /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */

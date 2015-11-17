@@ -204,6 +204,8 @@ module.exports = function (grunt) {
             dist: {
                 // Options: https://github.com/jrburke/r.js/blob/master/build/example.build.js
                 options: {
+                    // Disable module loading timeouts, due to the size of what we load
+                    waitSeconds: 0,
                     // `name` and `out` is set by grunt-usemin
                     baseUrl: 'src',
                     optimize: 'uglify2',
