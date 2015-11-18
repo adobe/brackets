@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, indent: 4, maxerr: 50 */
 /*global define, brackets */
 
 define(function (require, exports, module) {
@@ -54,15 +54,16 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     *
-     * Updates the command checked status based on the preference name given.
-     *
-     * @param {string} name Name of preference that has changed
+     * Updates the command checked status based on the preference for noDestraction mode
      */
     function _updateCheckedState() {
         CommandManager.get(CMD_TOGGLE_PURE_CODE).setChecked(PreferencesManager.get(PREFS_PURE_CODE));
     }
 
+    /**
+     * @private
+     * toggles noDisraction preference
+     */
     function _togglePureCode() {
         PreferencesManager.set(PREFS_PURE_CODE, !PreferencesManager.get(PREFS_PURE_CODE));
     }
@@ -71,26 +72,28 @@ define(function (require, exports, module) {
      * hide all open panels
      */
     function _hidePanelsIfRequired() {
-        var panelIDs = WorkspaceManager.getAllPanelIDs(), i = 0;
+        var panelIDs = WorkspaceManager.getAllPanelIDs();
         _previouslyOpenPanelIDs = [];
-        for (i = 0; i < panelIDs.length; i++) {
-            if (WorkspaceManager.getPanelForID(panelIDs[i]).isVisible()) {
-                WorkspaceManager.getPanelForID(panelIDs[i]).hide();
-                _previouslyOpenPanelIDs.push(panelIDs[i]);
+        panelIDs.forEach(function (panelID) {
+            var panel = WorkspaceManager.getPanelForID(panelID);
+            if (panel && panel.isVisible()) {
+                panel.hide();
+                _previouslyOpenPanelIDs.push(panelID);
             }
-        }
+        });
     }
 
     /**
      * show all open panels that was previously hidden by _hidePanelsIfRequired()
      */
     function _showPanelsIfRequired() {
-        var panelIDs = _previouslyOpenPanelIDs, i = 0;
-        for (i = 0; i < panelIDs.length; i++) {
-            if (WorkspaceManager.getPanelForID(panelIDs[i])) {
-                WorkspaceManager.getPanelForID(panelIDs[i]).show();
+        var panelIDs = _previouslyOpenPanelIDs;
+        panelIDs.forEach(function (panelID) {
+            var panel = WorkspaceManager.getPanelForID(panelID);
+            if (panel) {
+                panel.show();
             }
-        }
+        });
         _previouslyOpenPanelIDs = [];
     }
 
