@@ -48,12 +48,18 @@ define(function (require, exports, module) {
         Strings                 = require("strings");
 
     /**
+     * Constants events.
+     */
+    var EVENT_WORKSPACE_UPDATE_LAYOUT  = "workspaceUpdateLayout",
+        EVENT_WORKSPACE_PANEL_SHOWN    = "workspacePanelShown",
+        EVENT_WORKSPACE_PANEL_HIDDEN   = "workspacePanelHidden";
+
+    /**
      * Constants for the preferences defined in this file.
      */
-    var PREF_COLLAPSED          = "collapsed";
+    var PREF_COLLAPSED                 = "collapsed";
 
     var prefs = PreferencesManager.getExtensionPrefs("workspace");
-
 
     /**
      * The ".content" vertical stack (editor + all header/footer panels)
@@ -66,6 +72,11 @@ define(function (require, exports, module) {
      * @type {jQueryObject}
      */
     var $editorHolder;
+
+    /**
+     * A map from panel ID's to all reated panels
+     */
+    var panelIDMap = {};
 
     /**
      * Have we already started listening for the end of the ongoing window resize?
@@ -127,7 +138,7 @@ define(function (require, exports, module) {
         $editorHolder.height(editorAreaHeight);  // affects size of "not-editor" placeholder as well
 
         // Resize editor to fill the space
-        exports.trigger("workspaceUpdateLayout", editorAreaHeight, refreshHint);
+        exports.trigger(EVENT_WORKSPACE_UPDATE_LAYOUT, editorAreaHeight, refreshHint);
     }
 
 
@@ -202,6 +213,7 @@ define(function (require, exports, module) {
      */
     Panel.prototype.show = function () {
         Resizer.show(this.$panel[0]);
+        exports.trigger(EVENT_WORKSPACE_PANEL_SHOWN, this.panelID);
     };
 
     /**
@@ -209,6 +221,7 @@ define(function (require, exports, module) {
      */
     Panel.prototype.hide = function () {
         Resizer.hide(this.$panel[0]);
+        exports.trigger(EVENT_WORKSPACE_PANEL_HIDDEN, this.panelID);
     };
 
     /**
@@ -217,9 +230,9 @@ define(function (require, exports, module) {
      */
     Panel.prototype.setVisible = function (visible) {
         if (visible) {
-            Resizer.show(this.$panel[0]);
+            this.show();
         } else {
-            Resizer.hide(this.$panel[0]);
+            this.hide();
         }
     };
 
@@ -238,10 +251,34 @@ define(function (require, exports, module) {
         $panel.insertBefore("#container-panel");
         $panel.hide();
         updateResizeLimits();  // initialize panel's max size
+        panelIDMap[id] = new Panel($panel, minSize);
+        panelIDMap[id].panelID = id;
 
-        return new Panel($panel, minSize);
+        return panelIDMap[id];
     }
 
+    /**
+     * Returns an array of all panel ID's
+     * @returns {Array} List of ID's of all bottom panels
+     */
+    function getAllPanelIDs() {
+        var property, panelIDs = [];
+        for (property in panelIDMap) {
+            if (panelIDMap.hasOwnProperty(property)) {
+                panelIDs.push(property);
+            }
+        }
+        return panelIDs;
+    }
+
+    /**
+     * Gets the Panel interface for the given ID. Can return undefined if no panel with the ID is found.
+     * @param   {string} panelID
+     * @returns {Object} Panel object for the ID or undefined
+     */
+    function getPanelForID(panelID) {
+        return panelIDMap[panelID];
+    }
 
     /**
      * Creates a new panel inside the container above the status bar footer.
@@ -262,7 +299,6 @@ define(function (require, exports, module) {
 
         return panel;
     }
-
 
     /**
      * Represents a panel inside the ContainerPanel.
@@ -407,7 +443,6 @@ define(function (require, exports, module) {
         this.$tabTitle.hide();
         this._container.onPanelHide(this);
     };
-
 
     /**
      * Track the destinations that can be visited.
@@ -743,8 +778,13 @@ define(function (require, exports, module) {
     EventDispatcher.makeEventDispatcher(exports);
 
     // Define public API
-    exports.createBottomPanel    = createBottomPanel;
-    exports.addPanel             = addPanel;
-    exports.recomputeLayout      = recomputeLayout;
-    exports._setMockDOM          = _setMockDOM;
+    exports.createBottomPanel               = createBottomPanel;
+    exports.addPanel                        = addPanel;
+    exports.recomputeLayout                 = recomputeLayout;
+    exports.getAllPanelIDs                  = getAllPanelIDs;
+    exports.getPanelForID                   = getPanelForID;
+    exports._setMockDOM                     = _setMockDOM;
+    exports.EVENT_WORKSPACE_UPDATE_LAYOUT   = EVENT_WORKSPACE_UPDATE_LAYOUT;
+    exports.EVENT_WORKSPACE_PANEL_SHOWN     = EVENT_WORKSPACE_PANEL_SHOWN;
+    exports.EVENT_WORKSPACE_PANEL_HIDDEN    = EVENT_WORKSPACE_PANEL_HIDDEN;
 });
