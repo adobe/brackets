@@ -194,6 +194,7 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "Soubor <span class='dialog-filename'>{0}</span> ve složce <span class='dialog-path'>{1}</span>",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik pro rozbalení/sbalení všeho",
+    "FIND_IN_FILES_INDEXING"            : "Indexování pro okamžité vyhledávání\u2026",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Nahradit chyby",
     "REPLACE_IN_FILES_ERRORS"           : "Následující soubory nebyly změněny, protože se změnily po hledání nebo do nich nelze zapisovat.",
 
@@ -253,9 +254,15 @@ define({
     /**
      * Názvy kláves
      */
-    "KEYBOARD_CTRL"   : "Ctrl",
-    "KEYBOARD_SHIFT"  : "Shift",
-    "KEYBOARD_SPACE"  : "Mezerník",
+    "KEYBOARD_CTRL"         : "Ctrl",
+    "KEYBOARD_SHIFT"        : "Shift",
+    "KEYBOARD_SPACE"        : "Mezerník",
+    "KEYBOARD_PAGE_UP"      : "Page Up",
+    "KEYBOARD_PAGE_DOWN"    : "Page Down",
+    "KEYBOARD_HOME"         : "Home",
+    "KEYBOARD_END"          : "End",
+    "KEYBOARD_INSERT"       : "Insert",
+    "KEYBOARD_DELETE"       : "Delete",
 
     /**
      * Řetězce stavového řádku
@@ -454,7 +461,10 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL nemůže obsahovat znaky jako \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být zakódovány %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
-    "EMPTY_VIEW_HEADER"                    : "<em>Otevřete soubor, zatímco tento panel má fokus</em>",
+
+    // Řetězce pro Pane.js
+    "EMPTY_VIEW_HEADER"                    : "<em>Otevřete soubor, zatímco tento panel je aktivní</em>",
+    "FLIPVIEW_BTN_TOOLTIP"                 : "Přepnout toto zobrazení na panel {0}",
 
     // Řetězce pro themes-settings.html a themes-general.html
     "CURRENT_THEME"                        : "Aktuální motiv",
@@ -593,7 +603,7 @@ define({
     "CMD_RESTART_NODE"                          : "Restartovat Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Zobrazit chyby ve stavovém řádku",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Otevřít zdroj {APP_NAME}",
-    
+
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "Zástupce {APP_NAME} v příkazové řádce",
     "ERROR_CREATING_LAUNCH_SCRIPT"              : "Při instalaci zástupce do příkazové řádky se vyskytla chyba. Prosím vyzkoušejte řešení <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>na této stránce</a>.<br/><br/>Důvod: {0}",
     "ERROR_CLTOOLS_RMFAILED"                    : "Nelze odstranit existující symbolický odkaz na <code>/usr/local/bin/brackets</code>.",
@@ -674,6 +684,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limity, kolik úrovní do hloubky platí Skrýt vše",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Nejmenší počet řádků, pro které se objeví ikona pro skrytí kódu",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true k zapamatování skrytých částí pokud zavřete a znovu otevřete soubor nebo projekt",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true k povolení skrývání kódu při výběru textu v editoru",
     "DESCRIPTION_ATTR_HINTS"                         : "Povolit/zakázat nápovědy HTML vlastností",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Povolit/zakázat nápovědy CSS/LESS/SCSS hodnot",
     "DESCRIPTION_JS_HINTS"                           : "Povolit/zakázat nápovědy v JavaScriptu",
@@ -741,7 +752,7 @@ define({
     "DESCRIPTION_STATIC_SERVER_PORT"                 : "Síťový port, který by zabudovaný server měl použít pro živý náhled",
     "DESCRIPTION_STYLE_ACTIVE_LINE"                  : "true ke zvýraznění řádku, na kterém se nachází kurzor, barvou na pozadí",
     "DESCRIPTION_TAB_SIZE"                           : "Počet zobrazených mezer místo tabulátoru",
-    "DESCRIPTION_USE_TAB_CHAR"                       : "true k použití tabulátorů místo mezer",
+    "DESCRIPTION_USE_TAB_CHAR"                       : "true k používání tabulátorů místo mezer",
     "DESCRIPTION_UPPERCASE_COLORS"                   : "true k vygenerování hex barev velkými písmeny v Inline Color Editor",
     "DESCRIPTION_WORD_WRAP"                          : "Zalomit řádky přesahující šířku viewportu",
     "DESCRIPTION_DETECTED_EXCLUSIONS"                : "Seznam souborů, u kterých bylo zjištěno, že způsobují, že se Tern vymkne kontrole",
@@ -754,11 +765,15 @@ define({
     "DESCRIPTION_LINTING_COLLAPSED"                  : "true ke skrytí panelu linteru",
     "DESCRIPTION_FONT_FAMILY"                        : "Změnit písmo",
     "DESCRIPTION_FONT_SIZE"                          : "Změnit velikost písma, např. 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "true k povolení vyhledávání založeného na Node",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "true k povolení okamžitého vyhledávání",
     "DESCRIPTION_FONT_SMOOTHING"                     : "Pouze pro Mac: \"subpixel-antialiased\" k povolení sub-pixel vyhlazování nebo \"antialiased\" k vyhlazování v odstínech šedi",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false k zamezení otevírání souboru s preferencemi v rozděleném editoru",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false k otevření souboru s preferencemi v levém/horním panelu",
+    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true ke skrytí panelů po zavření posledního souboru z panelu pomocí tlačítka na hlavičce panelu",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Změňte ke zobrazení tlačítek zavřít a rozdělit ve hlavičce.",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Toto je soubor pouze ke čtení s preferencemi podporovanými\n * v {APP_NAME}.\n * Použijte tento soubor jako doporučení pro úpravu vašeho souboru s preferencemi\n * \"brackets.json\" otevřeném ve druhém panelu.\n * Pro více informací o úpravě preferencí\n * v {APP_NAME} se podívejte na webovou stránku https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Výchozí"
 });
 
-/* Last translated for 473f8f059728c813073732676de6832d04bc94b8 */
+/* Last translated for 443aeb1e6779ab9d80baf8808171f7bbf5a5f838 */

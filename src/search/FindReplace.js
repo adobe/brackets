@@ -610,7 +610,7 @@ define(function (require, exports, module) {
         state.searchStartPos = editor.getCursorPos(false, "start");
         
         // Prepopulate the search field
-        var initialQuery = FindUtils.getInitialQuery(findBar, editor);
+        var initialQuery = FindBar.getInitialQuery(findBar, editor);
         
         // Close our previous find bar, if any. (The open() of the new findBar will
         // take care of closing any other find bar instances.)

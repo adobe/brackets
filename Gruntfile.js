@@ -276,7 +276,7 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror/addon/selection/active-line.js',
                     'src/thirdparty/mustache/mustache.js',
                     'src/thirdparty/path-utils/path-utils.min',
-                    'src/thirdparty/less-1.7.5.min.js'
+                    'src/thirdparty/less-2.5.1.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'
@@ -300,11 +300,6 @@ module.exports = function (grunt) {
             projectRoot: 'src/extensibility/node/spec/'
         },
         jshint: {
-            all: [
-                '<%= meta.grunt %>',
-                '<%= meta.src %>',
-                '<%= meta.test %>'
-            ],
             grunt:  '<%= meta.grunt %>',
             src:    '<%= meta.src %>',
             test:   '<%= meta.test %>',
@@ -325,8 +320,8 @@ module.exports = function (grunt) {
     grunt.registerTask('install', ['write-config', 'less']);
 
     // task: test
-    grunt.registerTask('test', ['jshint:all', 'jasmine']);
-//    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine_node']);
+    grunt.registerTask('test', ['jshint', 'jasmine', 'nls-check']);
+//    grunt.registerTask('test', ['jshint', 'jasmine', 'jasmine_node']);
 
     // task: set-release
     // Update version number in package.json and rewrite src/config.json

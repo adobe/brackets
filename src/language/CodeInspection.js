@@ -329,6 +329,7 @@ define(function (require, exports, module) {
         if (providersReportingProblems.length === 1) {
             // don't show a header if there is only one provider available for this file type
             $problemsPanelTable.find(".inspector-section").hide();
+            $problemsPanelTable.find("tr").removeClass("forced-hidden");
 
             if (numProblems === 1 && !aborted) {
                 message = StringUtils.format(Strings.SINGLE_ERROR, providersReportingProblems[0].name);
@@ -414,6 +415,7 @@ define(function (require, exports, module) {
                 // Augment error objects with additional fields needed by Mustache template
                 results.forEach(function (inspectionResult) {
                     var provider = inspectionResult.provider;
+                    var isExpanded = prefs.get(provider.name + ".collapsed") !== false;
 
                     if (inspectionResult.result) {
                         inspectionResult.result.errors.forEach(function (error) {
@@ -422,12 +424,15 @@ define(function (require, exports, module) {
                                     (error.pos.line + 1) > 0 &&
                                     (error.codeSnippet = currentDoc.getLine(error.pos.line)) !== undefined) {
                                 error.friendlyLine = error.pos.line + 1;
-                                error.codeSnippet = error.codeSnippet.substr(0, Math.min(175, error.codeSnippet.length));  // limit snippet width
+                                error.codeSnippet = error.codeSnippet.substr(0, 175);  // limit snippet width
                             }
                             
                             if (error.type !== Type.META) {
                                 numProblems++;
                             }
+                            
+                            // Hide the errors when the provider is collapsed.
+                            error.display = isExpanded ? "" : "forced-hidden";
                         });
 
                         // if the code inspector was unable to process the whole file, we keep track to show a different status
@@ -437,6 +442,7 @@ define(function (require, exports, module) {
 
                         if (inspectionResult.result.errors.length) {
                             allErrors.push({
+                                isExpanded:   isExpanded,
                                 providerName: provider.name,
                                 results:      inspectionResult.result.errors
                             });
@@ -655,11 +661,20 @@ define(function (require, exports, module) {
 
                 // This is a inspector title row, expand/collapse on click
                 if ($selectedRow.hasClass("inspector-section")) {
-                    // Clicking the inspector title section header collapses/expands result rows
-                    $selectedRow.nextUntil(".inspector-section").toggle();
-
                     var $triangle = $(".disclosure-triangle", $selectedRow);
+                    var isExpanded = $triangle.hasClass("expanded");
+
+                    // Clicking the inspector title section header collapses/expands result rows
+                    if (isExpanded) {
+                        $selectedRow.nextUntil(".inspector-section").addClass("forced-hidden");
+                    } else {
+                        $selectedRow.nextUntil(".inspector-section").removeClass("forced-hidden");
+                    }
                     $triangle.toggleClass("expanded");
+
+                    var providerName = $selectedRow.find("input[type='hidden']").val();
+                    prefs.set(providerName + ".collapsed", !isExpanded);
+                    prefs.save();
                 } else {
                     // This is a problem marker row, show the result on click
                     // Grab the required position data

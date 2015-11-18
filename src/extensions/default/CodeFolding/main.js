@@ -29,7 +29,7 @@
 /*global define, $, brackets*/
 define(function (require, exports, module) {
     "use strict";
-    
+
     var CodeMirror              = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         Strings                 = brackets.getModule("strings"),
         AppInit                 = brackets.getModule("utils/AppInit"),
@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         Editor                  = brackets.getModule("editor/Editor").Editor,
         EditorManager           = brackets.getModule("editor/EditorManager"),
         ProjectManager          = brackets.getModule("project/ProjectManager"),
+        ViewStateManager        = brackets.getModule("view/ViewStateManager"),
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         Menus                   = brackets.getModule("command/Menus"),
@@ -56,7 +57,7 @@ define(function (require, exports, module) {
         expandAllKeyMac         = "Cmd-Shift-1";
 
     ExtensionUtils.loadStyleSheet(module, "main.less");
-    
+
     // Load CodeMirror addons
     brackets.getModule(["thirdparty/CodeMirror/addon/fold/brace-fold"]);
     brackets.getModule(["thirdparty/CodeMirror/addon/fold/comment-fold"]);
@@ -67,30 +68,78 @@ define(function (require, exports, module) {
     // e.g. collapsing all children when 'alt' key is pressed
     var foldGutter              = require("foldhelpers/foldgutter"),
         foldCode                = require("foldhelpers/foldcode"),
-        indentFold              = require("foldhelpers/indentFold");
-    
-    
+        indentFold              = require("foldhelpers/indentFold"),
+        selectionFold           = require("foldhelpers/foldSelected");
+
+
     /** Set to true when init() has run; set back to false after deinit() has run */
     var _isInitialized = false;
-    
+
     /**
       * Restores the linefolds in the editor using values fetched from the preference store
       * Checks the document to ensure that changes have not been made (e.g., in a different editor)
       * to invalidate the saved line folds.
+      * Selection Folds are found by comparing the line folds in the preference store with the
+      * selection ranges in the viewState of the current document. Any selection range in the view state
+      * that is folded in the prefs will be folded. Unlike other fold range finder, the only validation
+      * on selection folds is to check that they satisfy the minimum fold range.
       * @param {Editor} editor  the editor whose saved line folds should be restored
       */
     function restoreLineFolds(editor) {
+        /**
+         * Checks if the range from and to Pos is the same as the selection start and end Pos
+         * @param   {Object}  range     {from, to} where from and to are CodeMirror.Pos objects
+         * @param   {Object}  selection {start, end} where start and end are CodeMirror.Pos objects
+         * @returns {Boolean} true if the range and selection span the same region and false otherwise
+         */
+        function rangeEqualsSelection(range, selection) {
+            return range.from.line === selection.start.line && range.from.ch === selection.start.ch &&
+                range.to.line === selection.end.line && range.to.ch === selection.end.ch;
+        }
+
+        /**
+         * Checks if the range is equal to one of the selections in the viewState
+         * @param   {Object}  range     {from, to} where from and to are CodeMirror.Pos objects.
+         * @param   {Object}  viewState The current editor's ViewState object
+         * @returns {Boolean} true if the range is found in the list of selections or false if not.
+         */
+        function isInViewStateSelection(range, viewState) {
+            if (!viewState || !viewState.selections) {
+                return false;
+            }
+
+            return viewState.selections.some(function (selection) {
+                return rangeEqualsSelection(range, selection);
+            });
+        }
+
         var saveFolds = prefs.getSetting("saveFoldStates");
         if (!editor || !saveFolds) {
             return;
         }
+        var viewState = ViewStateManager.getViewState(editor.document.file);
         var cm = editor._codeMirror;
         var path = editor.document.file.fullPath;
         var folds = cm._lineFolds || prefs.getFolds(path);
-        cm._lineFolds = cm.getValidFolds(folds);
+        //separate out selection folds from non-selection folds
+        var nonSelectionFolds = {}, selectionFolds = {}, range;
+        Object.keys(folds).forEach(function (line) {
+            range = folds[line];
+            if (isInViewStateSelection(range, viewState)) {
+                selectionFolds[line] = range;
+            } else {
+                nonSelectionFolds[line] = range;
+            }
+        });
+        nonSelectionFolds = cm.getValidFolds(nonSelectionFolds);
+        //add the selection folds
+        Object.keys(selectionFolds).forEach(function (line) {
+            nonSelectionFolds[line] = selectionFolds[line];
+        });
+        cm._lineFolds = nonSelectionFolds;
         prefs.setFolds(path, cm._lineFolds);
         Object.keys(cm._lineFolds).forEach(function (line) {
-            cm.foldCode(Number(line));
+            cm.foldCode(Number(line), {range: cm._lineFolds[line]});
         });
     }
 
@@ -262,7 +311,7 @@ define(function (require, exports, module) {
         cm.refresh();  // force recomputing gutter width - .folding-enabled class affected linenumbers gutter
         CodeMirror.defineOption("foldGutter", false, null);
     }
-    
+
     /** Add gutter and restore saved expand/collapse state */
     function enableFoldingInEditor(editor) {
         if (editor._codeMirror.getOption("gutters").indexOf(GUTTER_NAME) === -1) {
@@ -300,7 +349,7 @@ define(function (require, exports, module) {
      */
     function deinit() {
         _isInitialized = false;
-        
+
         KeyBindingManager.removeBinding(collapseKey);
         KeyBindingManager.removeBinding(expandKey);
         KeyBindingManager.removeBinding(collapseAllKey);
@@ -314,7 +363,7 @@ define(function (require, exports, module) {
         Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(EXPAND);
         Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(COLLAPSE_ALL);
         Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).removeMenuItem(EXPAND_ALL);
-        
+
         EditorManager.off(".CodeFolding");
         DocumentManager.off(".CodeFolding");
         ProjectManager.off(".CodeFolding");
@@ -325,19 +374,22 @@ define(function (require, exports, module) {
             removeGutter(editor);
         });
     }
-    
+
     /**
      * Enable code-folding functionality
      */
     function init() {
         _isInitialized = true;
-        
+
         foldCode.init();
         foldGutter.init();
-        
+
         // Many CodeMirror modes specify which fold helper should be used for that language. For a few that
         // don't, we register helpers explicitly here. We also register a global helper for generic indent-based
         // folding, which cuts across all languages if enabled via preference.
+        CodeMirror.registerGlobalHelper("fold", "selectionFold", function (mode, cm) {
+            return prefs.getSetting("makeSelectionsFoldable");
+        }, selectionFold);
         CodeMirror.registerGlobalHelper("fold", "indent", function (mode, cm) {
             return prefs.getSetting("alwaysUseIndentFold");
         }, indentFold);
@@ -358,19 +410,20 @@ define(function (require, exports, module) {
         Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND_ALL);
         Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE);
         Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(EXPAND);
-        
+
         //register keybindings
         KeyBindingManager.addBinding(COLLAPSE_ALL, [ {key: collapseAllKey}, {key: collapseAllKeyMac, platform: "mac"} ]);
         KeyBindingManager.addBinding(EXPAND_ALL, [ {key: expandAllKey}, {key: expandAllKeyMac, platform: "mac"} ]);
         KeyBindingManager.addBinding(COLLAPSE, collapseKey);
         KeyBindingManager.addBinding(EXPAND, expandKey);
 
+
         // Add gutters & restore saved expand/collapse state in all currently open editors
         Editor.forEveryEditor(function (editor) {
             enableFoldingInEditor(editor);
         });
     }
-    
+
     /**
       * Register change listener for the preferences file.
       */
@@ -394,7 +447,7 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.EXPAND_ALL, EXPAND_ALL, expandAll);
         CommandManager.register(Strings.COLLAPSE_CURRENT, COLLAPSE, collapseCurrent);
         CommandManager.register(Strings.EXPAND_CURRENT, EXPAND, expandCurrent);
-        
+
         if (prefs.getSetting("enabled")) {
             init();
         }

@@ -128,11 +128,6 @@ define(function (require, exports, module) {
     require("search/FindInFilesUI");
     require("search/FindReplace");
     
-    // Compatibility shims for filesystem API migration
-    require("file/NativeFileError");
-    require("file/NativeFileSystem");
-    require("project/FileIndexManager");
-    
     // Compatibility shim for PanelManager to WorkspaceManager migration
     require("view/PanelManager");
     
@@ -320,7 +315,7 @@ define(function (require, exports, module) {
         });
 
         // Check for updates
-        if (!params.get("skipUpdateCheck") && !brackets.inBrowser) {
+        if (!brackets.inBrowser && !params.get("skipUpdateCheck")) {
             AppInit.appReady(function () {
                 // launches periodic checks for updates cca every 24 hours
                 UpdateNotification.launchAutomaticUpdate();

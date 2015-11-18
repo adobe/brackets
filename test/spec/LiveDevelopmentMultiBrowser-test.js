@@ -102,6 +102,19 @@ define(function (require, exports, module) {
                 });
             });
             
+            it("should establish a browser connection for an opened html file that has no 'head' tag", function () {
+                //open a file
+                runs(function () {
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["withoutHead.html"]), "SpecRunnerUtils.openProjectFiles withoutHead.html", 1000);
+                });
+                
+                waitsForLiveDevelopmentToOpen();
+
+                runs(function () {
+                    expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
+                });
+            });
+            
             it("should find an index.html in a parent directory", function () {
                 runs(function () {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["sub/test.css"]), "SpecRunnerUtils.openProjectFiles sub/test.css", 1000);

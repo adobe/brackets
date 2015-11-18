@@ -127,7 +127,7 @@ define(function (require, exports, module) {
     cmOptions[USE_TAB_CHAR]       = "indentWithTabs";
     cmOptions[WORD_WRAP]          = "lineWrapping";
     
-    PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", false, {
+    PreferencesManager.definePreference(CLOSE_BRACKETS,     "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_BRACKETS
     });
     PreferencesManager.definePreference(CLOSE_TAGS,         "object", { whenOpening: true, whenClosing: true, indentTags: [] }, {
@@ -981,6 +981,13 @@ define(function (require, exports, module) {
             if (files && files.length) {
                 event.preventDefault();
             }
+        });
+        // For word wrap. Code adapted from https://codemirror.net/demo/indentwrap.html#
+        this._codeMirror.on("renderLine", function (cm, line, elt) {
+            var charWidth = self._codeMirror.defaultCharWidth(), basePadding = 4;
+            var off = CodeMirror.countColumn(line.text, null, cm.getOption("tabSize")) * charWidth;
+            elt.style.textIndent = "-" + off + "px";
+            elt.style.paddingLeft = (basePadding + off) + "px";
         });
     };
     

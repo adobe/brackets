@@ -363,11 +363,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Tambahkan Hasil Berikutnya ke Pilihan",
     "CMD_SKIP_CURRENT_MATCH"              : "Lewati dan Tambahkan Hasil Berikutnya",
     "CMD_FIND_IN_FILES"                   : "Temukan di File",
-    "CMD_FIND_IN_SELECTED"                : "Temukan di File/Folder yang Dipilih",
     "CMD_FIND_IN_SUBTREE"                 : "Temukan\u2026",
     "CMD_REPLACE"                         : "Ganti",
     "CMD_REPLACE_IN_FILES"                : "Ganti di File",
-    "CMD_REPLACE_IN_SELECTED"             : "Ganti di File/Folder yang Dipilih",
     "CMD_REPLACE_IN_SUBTREE"              : "Ganti di\u2026",
 
     // View menu commands

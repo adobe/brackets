@@ -183,9 +183,12 @@ define(function (require, exports, module) {
                         // Notify the caller
                         callback(null, stat);
                     } finally {
-                        // If the write succeeded, fire a synthetic change event
-                        this._fileSystem._fireChangeEvent(parent, added, removed);
-                        
+                        if (parent._isWatched()) {
+                            // If the write succeeded and the parent directory is watched,
+                            // fire a synthetic change event
+                            this._fileSystem._fireChangeEvent(parent, added, removed);
+
+                        }
                         // Always unblock external change events
                         this._fileSystem._endChange();
                     }

@@ -407,9 +407,9 @@ define(function (require, exports, module) {
             if (before === -1) {
                 before = scopeOrder.length - 2;
             }
-            newScopeOrder = _.first(scopeOrder, before);
+            newScopeOrder = _.take(scopeOrder, before);
             newScopeOrder.push("project");
-            newScopeOrder.push.apply(newScopeOrder, _.rest(scopeOrder, before));
+            newScopeOrder.push.apply(newScopeOrder, _.drop(scopeOrder, before));
         } else {
             newScopeOrder = _.without(scopeOrder, "project");
         }

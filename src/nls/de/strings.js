@@ -194,6 +194,7 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&ndash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Strg/Cmd + Klick, um alle aus-/einzuklappen",
+    "FIND_IN_FILES_INDEXING"            : "Index für Sofortsuche wird erstellt\u2026",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Fehler beim Ersetzen",
     "REPLACE_IN_FILES_ERRORS"           : "Die folgenden Dateien wurden nicht verändert, weil sie nach der Suche geändert wurden oder nicht geschrieben werden konnten.",
 
@@ -251,11 +252,17 @@ define({
     "SPLITVIEW_MULTIPANE_WARNING"       : "Diese Datei ist bereits in einer anderen Ansicht geöffnet. Das Öffnen einer Datei in mehreren Ansichten wird {APP_NAME} bald unterstützen. Bis dahin wird die Datei in der Ansicht angezeigt, in der sie bereits geöffnet ist.<br /><br />(Sie sehen diese Nachricht nur einmal.)",
 
     /**
-     * Keyboard modifier names
+     * Keyboard modifiers and special key names
      */
-    "KEYBOARD_CTRL"   : "Strg",
-    "KEYBOARD_SHIFT"  : "Umschalt",
-    "KEYBOARD_SPACE"  : "Leer",
+    "KEYBOARD_CTRL"         : "Strg",
+    "KEYBOARD_SHIFT"        : "Umschalt",
+    "KEYBOARD_SPACE"        : "Leer",
+    "KEYBOARD_PAGE_UP"      : "Bild\u2191",
+    "KEYBOARD_PAGE_DOWN"    : "Bild\u2193",
+    "KEYBOARD_HOME"         : "Pos 1",
+    "KEYBOARD_END"          : "Ende",
+    "KEYBOARD_INSERT"       : "Einfg",
+    "KEYBOARD_DELETE"       : "Entf",
 
     /**
      * StatusBar strings
@@ -674,6 +681,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limitiert die maximale Anzahl von \"Alle Einklappen\"-Markierungen",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Mindestzahl an Zeilen, bevor eine einklappbare Folding-Markierung erscheint",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "Aktiviert das Speichern der eingeklappten Abschnitte",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "Aktiviert das Einklappen von ausgewähltem Text",
     "DESCRIPTION_ATTR_HINTS"                         : "Aktiviert Code Hints für HTML-Attribute",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Aktiviert Code Hints für CSS/LESS/SCSS",
     "DESCRIPTION_JS_HINTS"                           : "Aktiviert Code Hints für JavaScript",
@@ -689,7 +697,7 @@ define({
     "DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY"       : "Nur hervorheben, wenn die Auswahl ein komplettes Wort umfasst",
     "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "Aktiviert das Akzeptieren eines Code Hints mithilfe der Tab-Taste",
     "DESCRIPTION_NO_HINTS_ON_DOT"                    : "Deaktiviert das automatische Anzeigen der JavaScript Code Hints, sobald . eingegeben wird",
-    "DESCRIPTION_JSLINT_OPTIONS"                     : "Ein Objekt, das die Standardeinstellungen für JSLint ",
+    "DESCRIPTION_JSLINT_OPTIONS"                     : "Ein Objekt, das die Standardeinstellungen für JSLint festlegt",
     "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "Ausdrücke mit Zuweisungen erlauben",
     "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "Bitweise Operatoren erlauben",
     "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "Die Verwendung von globalen Variablen, die im Browser standardmäßig verfügbar sind, erlauben",
@@ -754,6 +762,8 @@ define({
     "DESCRIPTION_LINTING_COLLAPSED"                  : "Das Linter-Panel einklappen",
     "DESCRIPTION_FONT_FAMILY"                        : "Schriftart ändern",
     "DESCRIPTION_FONT_SIZE"                          : "Schriftgröße ändern; z. B. 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "Aktiviert die Node-basierte Suche",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "Aktiviert die Sofortsuche",
     "DESCRIPTION_FONT_SMOOTHING"                     : "Nur Mac: \"subpixel-antialiased\", um Subpixel-Antialiasing zu aktivieren, oder \"antialiased\" für Graustufen-Antialiasing",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "Aktiviert das Öffnen der Einstellungsdatei in einer geteilten Ansicht",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "Öffnet die Einstellungsdatei in der rechten bzw. unteren Ansicht",
@@ -761,4 +771,4 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard"
 });
 
-/* Last translated for 473f8f059728c813073732676de6832d04bc94b8 */
+/* Last translated for 1eba0ae1cb21e73752c8359132b972ec7e5997ab */

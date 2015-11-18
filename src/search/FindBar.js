@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         MainViewManager    = require("view/MainViewManager"),
         Strings            = require("strings"),
         ViewUtils          = require("utils/ViewUtils"),
-        FindUtils          = require("search/FindUtils");
+        FindUtils          = require("search/FindUtils"),
+        HealthLogger       = require("utils/HealthLogger");
     
     /**
      * @private
@@ -52,7 +53,9 @@ define(function (require, exports, module) {
     var lastTypedTime = 0,
         currentTime = 0,
         intervalId = 0,
-        lastQueriedText = "";
+        lastQueriedText = "",
+        lastTypedText = "",
+        lastKeyCode;
 
     /**
      * @constructor
@@ -91,6 +94,7 @@ define(function (require, exports, module) {
         this._closed = false;
         this._enabled = true;
         this.lastQueriedText = "";
+        this.lastTypedText = "";
     }
     EventDispatcher.makeEventDispatcher(FindBar.prototype);
     
@@ -236,6 +240,9 @@ define(function (require, exports, module) {
         // close the old Find bar (with no animation) before creating a new one. 
         // TODO: see note above - this will move to ModalBar eventually.
         FindBar._closeFindBars();
+        if (this._options.multifile) {
+            HealthLogger.searchDone(HealthLogger.SEARCH_NEW);
+        }
         
         var templateVars = _.clone(this._options);
         templateVars.Strings = Strings;
@@ -263,6 +270,7 @@ define(function (require, exports, module) {
         $root
             .on("input", "#find-what", function () {
                 self.trigger("queryChange");
+                lastTypedText = self.getQueryInfo().query;
             })
             .on("click", "#find-case-sensitive, #find-regexp", function (e) {
                 $(e.currentTarget).toggleClass("active");
@@ -274,6 +282,7 @@ define(function (require, exports, module) {
             })
             .on("keydown", "#find-what, #replace-with", function (e) {
                 lastTypedTime = new Date().getTime();
+                lastKeyCode = e.keyCode;
                 var executeSearchIfNeeded = function () {
                     // We only do instant search via node.
                     if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
@@ -285,11 +294,12 @@ define(function (require, exports, module) {
                     }
                     currentTime = new Date().getTime();
                     if (lastTypedTime && (currentTime - lastTypedTime >= 100) && self.getQueryInfo().query !==  lastQueriedText &&
-                            !FindUtils.isNodeSearchInProgress() && e.keyCode !== KeyEvent.DOM_VK_CONTROL) {
+                            !FindUtils.isNodeSearchInProgress()) {
                         // init Search
                         if (self._options.multifile) {
                             if ($(e.target).is("#find-what")) {
                                 if (!self._options.replace) {
+                                    HealthLogger.searchDone(HealthLogger.SEARCH_INSTANT);
                                     self.trigger("doFind");
                                     lastQueriedText = self.getQueryInfo().query;
                                 }
@@ -303,16 +313,19 @@ define(function (require, exports, module) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
+                    lastQueriedText = self.getQueryInfo().query;
                     if (self._options.multifile) {
                         if ($(e.target).is("#find-what")) {
                             if (self._options.replace) {
                                 // Just set focus to the Replace field.
                                 self.focusReplace();
                             } else {
+                                HealthLogger.searchDone(HealthLogger.SEARCH_ON_RETURN_KEY);
                                 // Trigger a Find (which really means "Find All" in this context).
                                 self.trigger("doFind");
                             }
                         } else {
+                            HealthLogger.searchDone(HealthLogger.SEARCH_REPLACE_ALL);
                             self.trigger("doReplaceAll");
                         }
                     } else {
@@ -549,6 +562,53 @@ define(function (require, exports, module) {
      */
     FindBar.prototype.redoInstantSearch = function () {
         this.trigger("doFind");
+    };
+
+    /**
+     * Gets you the right query and replace text to prepopulate the Find Bar.
+     * @static
+     * @param {?FindBar} currentFindBar The currently open Find Bar, if any
+     * @param {?Editor} The active editor, if any
+     * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
+     */
+    FindBar.getInitialQuery = function (currentFindBar, editor) {
+        var query = lastTypedText,
+            replaceText = "";
+
+        /*
+         * Returns the string used to prepopulate the find bar
+         * @param {!Editor} editor
+         * @return {string} first line of primary selection to populate the find bar
+         */
+        function getInitialQueryFromSelection(editor) {
+            var selectionText = editor.getSelectedText();
+            if (selectionText) {
+                return selectionText
+                    .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
+                    .split("\n")[0];
+            }
+            return "";
+        }
+
+        if (currentFindBar && !currentFindBar.isClosed()) {
+            // The modalBar was already up. When creating the new modalBar, copy the
+            // current query instead of using the passed-in selected text.
+            query = currentFindBar.getQueryInfo().query;
+            replaceText = currentFindBar.getReplaceText();
+        } else {
+            var openedFindBar = FindBar._bars && _.find(FindBar._bars, function (bar) {
+                    return !bar.isClosed();
+                });
+
+            if (openedFindBar) {
+                query = openedFindBar.getQueryInfo().query;
+                replaceText = openedFindBar.getReplaceText();
+            } else if (editor) {
+                query = getInitialQueryFromSelection(editor) || lastTypedText;
+            }
+        }
+
+        return {query: query, replaceText: replaceText};
     };
 
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
