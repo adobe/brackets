@@ -34,12 +34,15 @@ define(function (require, exports, module) {
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         ViewUtils           = brackets.getModule("utils/ViewUtils"),
         KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
+        HealthLogger        = brackets.getModule("utils/HealthLogger"),
         WorkspaceManager    = brackets.getModule("view/WorkspaceManager");
 
     // Constants
     var PREFS_PURE_CODE           = "noDistractions",
         CMD_TOGGLE_PURE_CODE      = "view.togglePureCode",
-        CMD_TOGGLE_PANELS         = "view.togglePanels";
+        CMD_TOGGLE_PANELS         = "view.togglePanels",
+        HEALTH_NO_DISTRACTION     = "noDistractionModeUsed",
+        HEALTH_TOGGLE_PANELS      = "togglePanels";
 
     //key binding keys
     var togglePureCodeKey         = "Ctrl-Shift-2",
@@ -66,6 +69,7 @@ define(function (require, exports, module) {
      */
     function _togglePureCode() {
         PreferencesManager.set(PREFS_PURE_CODE, !PreferencesManager.get(PREFS_PURE_CODE));
+        HealthLogger.setHealthDataLog(HEALTH_NO_DISTRACTION, true);
     }
 
     /**
@@ -110,6 +114,7 @@ define(function (require, exports, module) {
      * The already hidden panel should not be shown in the specific case for better UX.
      */
     function _togglePanels() {
+        var togglePanelCount;
         panelsToggled = !panelsToggled;
         if (panelsToggled) {
             _hidePanelsIfRequired();
@@ -118,6 +123,11 @@ define(function (require, exports, module) {
         } else if (!layoutUpdated) {
             _showPanelsIfRequired();
         }
+
+        //log health data
+        togglePanelCount = HealthLogger.getHealthDataLog(HEALTH_TOGGLE_PANELS);
+        togglePanelCount = (typeof togglePanelCount === 'number') ? togglePanelCount + 1 : 0;
+        HealthLogger.setHealthDataLog(HEALTH_TOGGLE_PANELS, togglePanelCount);
     }
 
     PreferencesManager.definePreference(PREFS_PURE_CODE, "boolean", false, {
