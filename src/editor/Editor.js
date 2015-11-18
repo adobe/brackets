@@ -399,6 +399,10 @@ define(function (require, exports, module) {
         // CodeMirror-focused. Instead, track focus via onFocus and onBlur
         // options and track state with this._focused
         this._focused = false;
+        // This is a workaround to determine whether a scroll event was fired
+        // by the user or by CodeMirror itself
+        // See #3391
+        this.isUserScrollEvent = true;
         
         this._installEditorListeners();
         
@@ -946,13 +950,18 @@ define(function (require, exports, module) {
         this._codeMirror.on("cursorActivity", function (instance) {
             self.trigger("cursorActivity", self);
         });
+        this._codeMirror.on("scrollCursorIntoView", function (instance, changes) {
+            // scrollCursorIntoView always fires before scroll
+            self.isUserScrollEvent = false;
+        });
         this._codeMirror.on("scroll", function (instance) {
-            // If this editor is visible, close all dropdowns on scroll.
+            // If this editor is visible, and the event was initiated by the user, close all dropdowns on scroll.
             // (We don't want to do this if we're just scrolling in a non-visible editor
             // in response to some document change event.)
-            if (self.isFullyVisible()) {
+            if (self.isUserScrollEvent && self.isFullyVisible()) {
                 Menus.closeAll();
             }
+            self.isUserScrollEvent = true;
 
             self.trigger("scroll", self);
         });
