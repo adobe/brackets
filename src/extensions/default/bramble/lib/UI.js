@@ -195,6 +195,14 @@ define(function (require, exports, module) {
         MainViewManager.setActivePaneId("first-pane");
     }
 
+    function enableFullscreenPreview() {
+        $("#main-view").addClass("fullscreen-preview");
+    }
+
+    function disableFullscreenPreview() {
+        $("#main-view").removeClass("fullscreen-preview");
+    }
+
     function showDesktopView(preventReload) {
         if(!isMobileViewOpen) {
             return;
@@ -323,6 +331,8 @@ define(function (require, exports, module) {
     exports.initUI                 = initUI;
     exports.showMobileView         = showMobileView;
     exports.showDesktopView        = showDesktopView;
+    exports.enableFullscreenPreview = enableFullscreenPreview;
+    exports.disableFullscreenPreview = disableFullscreenPreview;
     exports.getPreviewMode         = getPreviewMode;
     exports.removeLeftSideToolBar  = removeLeftSideToolBar;
     exports.removeMainToolBar      = removeMainToolBar;
