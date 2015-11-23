@@ -201,6 +201,7 @@ define(function (require, exports, module) {
 
     function disableFullscreenPreview() {
         $("#main-view").removeClass("fullscreen-preview");
+        MainViewManager.setActivePaneId("first-pane");
     }
 
     function showDesktopView(preventReload) {

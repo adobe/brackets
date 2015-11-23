@@ -64,10 +64,11 @@ li.jstree-leaf > a {
     height: auto !important;
 }
 
-.fullscreen-preview  #first-pane {
-    display: none;
+
+.fullscreen-preview #first-pane {
+    width: 0 !important;
 }
 
-.fullscreen-preview  .main-view .content {
-  left: 0 !important;
+.fullscreen-preview .main-view .content {
+    left: 0 !important;
 }
