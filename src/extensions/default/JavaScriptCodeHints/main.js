@@ -149,6 +149,64 @@ define(function (require, exports, module) {
             console.debug("Hints", _.pluck(hints, "label"));
         }
         
+        var _infered = true;
+        
+        function getInferHelper(type) {
+            return function (element, index, array) {
+                if (element === type && _infered) {
+                    _infered = true;
+                } else {
+                    _infered = false;
+                }
+            };
+        }
+        
+        function inferArrayType(typeExpr) {
+            var type = "[...]";
+            var types = typeExpr.split('[')[1].split(']')[0].split(',');
+           
+            _infered = true;
+            
+            types.every(getInferHelper('string'));
+            if (_infered) {
+                type = '[Abc]';
+            } else {
+                _infered = true;
+                types.every(getInferHelper('number'));
+                if (_infered) {
+                    type = '[123]';
+                } else {
+                    _infered = true;
+                    types.every(getInferHelper('Object'));
+                    if (_infered) {
+                        type = '[{ }]';
+                    }
+                }
+            }
+            
+            return type;
+        }
+        
+        function getRenderType(type) {
+            var typeString = "&nbsp;";
+            if (type) {
+                if (type.indexOf('Object') === 0) {
+                    typeString = '{ }';
+                } else if (type.indexOf('[') === 0) {
+                    typeString = inferArrayType(type);
+                } else if (type.indexOf('fn') === 0) {
+                    typeString = 'fn( )';
+                } else if (type.indexOf('string') === 0) {
+                    typeString = "Abc";
+                } else if (type.indexOf('number') === 0) {
+                    typeString = '123';
+                } else if (type.indexOf('bool') === 0) {
+                    typeString = 'bool';
+                }
+            }
+            return typeString;
+        }
+        
         /*
          * Returns a formatted list of hints with the query substring
          * highlighted.
@@ -165,7 +223,7 @@ define(function (require, exports, module) {
         function formatHints(hints, query) {
             return hints.map(function (token) {
                 var $hintObj    = $("<span>").addClass("brackets-js-hints");
-
+                $('<span>' + getRenderType(token.type) + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type");
                 // level indicates either variable scope or property confidence
                 if (!type.property && !token.builtin && token.depth !== undefined) {
                     switch (token.depth) {
