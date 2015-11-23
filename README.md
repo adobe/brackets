@@ -336,6 +336,8 @@ to be notified when the action completes:
 * `refreshPreview([callback])` - reloads the preview with the latest content in the editor and filesystem
 * `useMobilePreview([callback])` - uses a Mobile view in the preview, as it would look on a smartphone
 * `useDesktopPreview([callback])` - uses a Desktop view in the preview, as it would look on a desktop computer (default)
+* `enableFullscreenPreview([callback])` - shows a fullscreen preview of the current file
+* `disableFullscreenPreview([callback])` - turns off the fullscreen preview of the curent file
 * `enableJavaScript([callback])` - turns on JavaScript execution for the preview (default)
 * `disableJavaScript([callback])` - turns off JavaScript execution for the preview
 * `enableWordWrap([callback])` - turns on word wrap for the editor (default)

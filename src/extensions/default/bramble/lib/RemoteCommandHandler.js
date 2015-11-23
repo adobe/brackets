@@ -76,6 +76,12 @@ define(function (require, exports, module) {
         case "BRAMBLE_DESKTOP_PREVIEW":
             UI.showDesktopView();
             break;
+        case "BRAMBLE_ENABLE_FULLSCREEN_PREVIEW":
+            UI.enableFullscreenPreview();
+            break;
+        case "BRAMBLE_DISABLE_FULLSCREEN_PREVIEW":
+            UI.disableFullscreenPreview();
+            break;
         case "BRAMBLE_ENABLE_SCRIPTS":
             HTMLRewriter.enableScripts();
             PostMessageTransport.reload();

@@ -63,3 +63,11 @@ li.jstree-leaf > a {
 .image-header {
     height: auto !important;
 }
+
+.fullscreen-preview  #first-pane {
+    display: none;
+}
+
+.fullscreen-preview  .main-view .content {
+  left: 0 !important;
+}
