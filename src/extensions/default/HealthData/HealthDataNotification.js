@@ -45,8 +45,8 @@ define(function (require, exports, module) {
         // Check whether the notification dialog should be shown. It will be shown one time. Does not check in testing environment.
         if (!params.get("testEnvironment")) {
             var alreadyShown = PreferencesManager.getViewState("healthDataNotificationShown");
-
-            if (!alreadyShown) {
+            var prefs = PreferencesManager.getExtensionPrefs("healthData");
+            if (!alreadyShown && prefs.get("healthDataTracking")) {
                 HealthDataPopup.showFirstLaunchTooltip()
                     .done(function () {
                         PreferencesManager.setViewState("healthDataNotificationShown", true);
