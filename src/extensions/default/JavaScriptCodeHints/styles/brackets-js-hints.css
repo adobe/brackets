@@ -22,14 +22,44 @@
  */
 
 .brackets-js-hints-type {
-    width: 30px;
-    color: cornflowerblue;
+    font-size: 10px;
+    width:25px;
+    color: white;
     font-weight: 900;
-    padding-left: 5px;
     text-align: center;
     float: left;
-    box-sizing: border-box;
+    box-sizing: border-box;  
+    font-style:normal;
+    padding:0px 0px 0px 6px;
+    text-shadow:
+    -1px -1px 0 #8d8d8d,
+    1px -1px 0 #8d8d8d,
+    -1px 1px 0 #8d8d8d,
+    1px 1px 0 #8d8d8d; 
 }
+
+.highlight .brackets-js-hints-type {
+    font-size: 13px;
+    text-shadow:
+    -1px -1px 0 #6495ed,
+    1px -1px 0 #6495ed,
+    -1px 1px 0 #6495ed,
+    1px 1px 0 #6495ed; 
+}
+
+.brackets-js-hints-type-details {
+    color: #d3d3d3;
+    font-weight: 100;
+    font-style: italic!important;
+    padding-left: 10px;
+    float:right;
+    margin-left:5px;
+} 
+
+.highlight .brackets-js-hints-type-details {
+    color: #0c50af;
+}
+
 
 .brackets-js-hints.priority-high {
     color: #486c00; /* green */

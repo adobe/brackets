@@ -162,28 +162,27 @@ define(function (require, exports, module) {
         }
         
         function inferArrayType(typeExpr) {
-            var type = "[...]";
+            var type = "[?]";
             var types = typeExpr.split('[')[1].split(']')[0].split(',');
            
             _infered = true;
             
             types.every(getInferHelper('string'));
             if (_infered) {
-                type = '[Abc]';
+                type = '[S]';
             } else {
                 _infered = true;
                 types.every(getInferHelper('number'));
                 if (_infered) {
-                    type = '[123]';
+                    type = '[N]';
                 } else {
                     _infered = true;
                     types.every(getInferHelper('Object'));
                     if (_infered) {
-                        type = '[{ }]';
+                        type = '[{}]';
                     }
                 }
             }
-            
             return type;
         }
         
@@ -191,17 +190,17 @@ define(function (require, exports, module) {
             var typeString = "&nbsp;";
             if (type) {
                 if (type.indexOf('Object') === 0) {
-                    typeString = '{ }';
+                    typeString = '{}';
                 } else if (type.indexOf('[') === 0) {
                     typeString = inferArrayType(type);
                 } else if (type.indexOf('fn') === 0) {
-                    typeString = 'fn( )';
+                    typeString = 'fn';
                 } else if (type.indexOf('string') === 0) {
-                    typeString = "Abc";
+                    typeString = "S";
                 } else if (type.indexOf('number') === 0) {
-                    typeString = '123';
+                    typeString = 'N';
                 } else if (type.indexOf('bool') === 0) {
-                    typeString = 'bool';
+                    typeString = 'B';
                 }
             }
             return typeString;
@@ -268,10 +267,10 @@ define(function (require, exports, module) {
                     });
                 } else {
                     $hintObj.text(token.value);
-                }
-
-                $hintObj.data("token", token);
+                } 
                 
+                $hintObj.data("token", token);
+                $('<span>' + " " + (token.type || 'keyword').split('->').join(':') + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
                 return $hintObj;
             });
         }
