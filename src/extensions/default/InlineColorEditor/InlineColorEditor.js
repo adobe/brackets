@@ -27,9 +27,9 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var InlineWidget         = brackets.getModule("editor/InlineWidget").InlineWidget,
-        ColorEditor          = require("ColorEditor").ColorEditor,
-        ColorUtils           = brackets.getModule("utils/ColorUtils");
+    var InlineWidget    = brackets.getModule("editor/InlineWidget").InlineWidget,
+        ColorEditor     = require("ColorEditor").ColorEditor,
+        ColorUtils      = brackets.getModule("utils/ColorUtils");
         
 
     /** @const @type {number} */
@@ -211,7 +211,9 @@ define(function (require, exports, module) {
     /** Comparator to sort by which colors are used the most */
     function _colorSort(a, b) {
         if (a.count === b.count) {
-            return 0;
+            // workaround for stable sort, which is not supported in V8 (https://code.google.com/p/v8/issues/detail?id=90)
+            // see also: #2171
+            return a.firstIndex < b.firstIndex ? -1 : 1;
         }
         if (a.count > b.count) {
             return -1;
@@ -234,12 +236,13 @@ define(function (require, exports, module) {
         var colorInfo = {};
         
         // Count how many times each color is used
-        originalArray.forEach(function (originalColor) {
+        originalArray.forEach(function (originalColor, index) {
             var key = originalColor.toLowerCase();
             if (colorInfo[key]) {
                 colorInfo[key].count++;
             } else {
-                colorInfo[key] = { value: originalColor, count: 1 };
+                // keep firstIndex for stable sorting
+                colorInfo[key] = { value: originalColor, count: 1, firstIndex: index };
             }
         });
         
