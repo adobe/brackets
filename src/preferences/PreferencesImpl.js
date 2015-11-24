@@ -79,8 +79,10 @@ define(function (require, exports, module) {
     // Create a User scope
     var userStorage             = new PreferencesBase.FileStorage(userPrefFile, true),
         userScope               = new PreferencesBase.Scope(userStorage),
+        userPathLayer           = new PreferencesBase.PathLayer(""), // uses absolute paths
         userLanguageLayer       = new PreferencesBase.LanguageLayer();
     
+    userScope.addLayer(userPathLayer);
     userScope.addLayer(userLanguageLayer);
 
     var userScopeLoading = manager.addScope("user", userScope);
@@ -137,6 +139,7 @@ define(function (require, exports, module) {
     exports.manager             = manager;
     exports.projectStorage      = projectStorage;
     exports.projectPathLayer    = projectPathLayer;
+    exports.userPathLayer       = userPathLayer;
     exports.userScopeLoading    = userScopeLoading;
     exports.stateManager        = stateManager;
     exports.stateProjectLayer   = stateProjectLayer;
