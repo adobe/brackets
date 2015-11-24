@@ -267,8 +267,7 @@ define(function (require, exports, module) {
                     });
                 } else {
                     $hintObj.text(token.value);
-                } 
-                
+                }
                 $hintObj.data("token", token);
                 $('<span>' + " " + (token.type || 'keyword').split('->').join(':') + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
                 return $hintObj;
