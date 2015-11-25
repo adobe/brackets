@@ -171,8 +171,7 @@ define(function (require, exports, module) {
         }
         
         /**
-         * Invokes Toggle Line or Block Comment, expects the given selection/cursor & document text, invokes
-         * it a 2nd time, and then expects the original selection/cursor & document text again.
+         * Invokes Toggle Line or Block Comment, expects the given selection/cursor & document text,
          * @param {!string} expectedCommentedText
          * @param {!{ch:number,line:number}|{start:{ch:number,line:number},end:{ch:number,line:number}}} expectedCommentedSel
          * @param {?string} expectedSelText If provided, the text that should be selected after the first comment operation.
@@ -202,11 +201,9 @@ define(function (require, exports, module) {
                 expect(myEditor.getSelectedText()).toEqual(expectedSelText);
             }
             
-            runs(function () {
-                CommandManager.execute(command, myEditor);
-                expect(myDocument.getText()).toEqual(startingContent);
-                expectSel(startingSel);
-            });
+            //removed invoking the toggling for 2nd time to get original selection back 
+            //wont give original selection back - same behaviour as other line comment indent friendly editors
+            //escpecially check case "should properly toggle when some selections are already commented but others aren't"
         }
         
         function testToggleLine(expectedCommentedText, expectedCommentedSel, expectedSelText) {
@@ -224,17 +221,17 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(3, 0);
                 
                 var lines = defaultContent.split("\n");
-                lines[3] = "//        a();";
+                lines[3] = "        //a();";
                 var expectedText = lines.join("\n");
 
-                testToggleLine(expectedText, {line: 3, ch: 2});
+                testToggleLine(expectedText, {line: 3, ch: 0});
             });
             
             it("should comment/uncomment a single line, cursor at end", function () {
                 myEditor.setCursorPos(3, 12);
                 
                 var lines = defaultContent.split("\n");
-                lines[3] = "//        a();";
+                lines[3] = "        //a();";
                 var expectedText = lines.join("\n");
                 
                 testToggleLine(expectedText, {line: 3, ch: 14});
@@ -255,7 +252,7 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 12});
                 
                 var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
+                lines[1] = "    //function bar() {";
                 var expectedText = lines.join("\n");
                 
                 testToggleLine(expectedText, {start: {line: 1, ch: 6}, end: {line: 1, ch: 14}});
@@ -266,7 +263,7 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 1, ch: 0}, {line: 1, ch: 20});
                 
                 var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
+                lines[1] = "    //function bar() {";
                 var expectedText = lines.join("\n");
                 
                 testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 1, ch: 22}});
@@ -277,7 +274,7 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
                 
                 var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
+                lines[1] = "    //function bar() {";
                 var expectedText = lines.join("\n");
                 
                 testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
@@ -288,11 +285,11 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
                 
                 var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                lines[2] = "//        ";
-                lines[3] = "//        a();";
-                lines[4] = "//        ";
-                lines[5] = "//    }";
+                lines[1] = "    //function bar() {";
+                lines[2] = "    //    ";
+                lines[3] = "    //    a();";
+                lines[4] = "    //    ";
+                lines[5] = "    //}";
                 var expectedText = lines.join("\n");
                 
                 testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
@@ -302,21 +299,21 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 1, ch: 6}, {line: 3, ch: 9});
                 
                 var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                lines[2] = "//        ";
-                lines[3] = "//        a();";
+                lines[1] = "    //function bar() {";
+                lines[2] = "    //    ";
+                lines[3] = "    //    a();";
                 var expectedText = lines.join("\n");
                 
-                testToggleLine(expectedText, {start: {line: 1, ch: 8}, end: {line: 3, ch: 11}}, "nction bar() {\n//        \n//        a");
+                testToggleLine(expectedText, {start: {line: 1, ch: 8}, end: {line: 3, ch: 11}}, "nction bar() {\n    //    \n    //    a");
             });
             
             it("should comment/uncomment when selection starts & ends on whitespace lines", function () {
                 myEditor.setSelection({line: 2, ch: 0}, {line: 4, ch: 8});
                 
                 var lines = defaultContent.split("\n");
-                lines[2] = "//        ";
-                lines[3] = "//        a();";
-                lines[4] = "//        ";
+                lines[2] = "        //";
+                lines[3] = "        //a();";
+                lines[4] = "        //";
                 var expectedText = lines.join("\n");
                 
                 testToggleLine(expectedText, {start: {line: 2, ch: 0}, end: {line: 4, ch: 10}});
@@ -372,8 +369,8 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 0});
                 
                 lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                lines[2] = "//        ";
+                lines[1] = "    //function bar() {";
+                lines[2] = "    //    ";
                 lines[3] = "////        a();";
                 var expectedText = lines.join("\n");
                 
@@ -391,9 +388,9 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 0});
                 
                 lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                lines[2] = "//        ";
-                lines[3] = "//        //a();";
+                lines[1] = "    //function bar() {";
+                lines[2] = "    //    ";
+                lines[3] = "    //    //a();";
                 var expectedText = lines.join("\n");
                 
                 testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
@@ -470,12 +467,12 @@ define(function (require, exports, module) {
                                             {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}}]);
                     
                     var lines = defaultContent.split("\n");
-                    lines[1] = "//    function bar() {";
-                    lines[3] = "//        a();";
+                    lines[1] = "    //function bar() {";
+                    lines[3] = "        //a();";
                     var expectedText = lines.join("\n");
                     
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 6}, end: {line: 1, ch: 6}, primary: false, reversed: false},
-                                                  {start: {line: 3, ch: 6}, end: {line: 3, ch: 6}, primary: true, reversed: false}]);
+                    testToggleLine(expectedText, [{start: {line: 1, ch: 6}, end: {line: 1, ch: 6}, primary: false, reversed: false}, 
+                                                  {start: {line: 3, ch : 4 }, end: {line: 3, ch: 4 }, reversed: false, primary: true}]);
                 });
                 
                 it("should toggle comments on separate lines with range selections", function () {
@@ -483,12 +480,12 @@ define(function (require, exports, module) {
                                             {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}}]);
                     
                     var lines = defaultContent.split("\n");
-                    lines[1] = "//    function bar() {";
-                    lines[3] = "//        a();";
+                    lines[1] = "    //function bar() {";
+                    lines[3] = "        //a();";
                     var expectedText = lines.join("\n");
                     
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 6}, end: {line: 1, ch: 8}, primary: false, reversed: false},
-                                                  {start: {line: 3, ch: 6}, end: {line: 3, ch: 8}, primary: true, reversed: false}]);
+                    testToggleLine(expectedText, [{ start: {line: 1, ch: 6 }, end: {line: 1, ch: 8 }, reversed: false, primary: false }, 
+                                                  { start: {line: 3, ch: 4 }, end : {line: 3, ch: 6 }, reversed: false, primary: true }]);
                 });
 
                 it("should toggle comments on separate lines with multiline selections", function () {
@@ -496,13 +493,14 @@ define(function (require, exports, module) {
                                             {start: {line: 3, ch: 4}, end: {line: 4, ch: 6}}]);
                     
                     var lines = defaultContent.split("\n"), i;
-                    for (i = 1; i <= 4; i++) {
-                        lines[i] = "//" + lines[i];
-                    }
+                    lines[1] = "    //function bar() {";
+                    lines[2] = "    //    ";
+                    lines[3] = "        //a();";
+                    lines[4] = "        //";
                     var expectedText = lines.join("\n");
                     
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 6}, end: {line: 2, ch: 8}, primary: false, reversed: false},
-                                                  {start: {line: 3, ch: 6}, end: {line: 4, ch: 8}, primary: true, reversed: false}]);
+                    testToggleLine(expectedText, [{start: {line: 1, ch: 6 }, end: {line: 2, ch: 8 }, reversed: false, primary: false}, 
+                                                  {start: {line: 3, ch: 4 }, end: {line: 4, ch: 6 }, reversed: false, primary: true}]);
                 });
                 
                 it("should adjust selections appropriately at start of line", function () {
@@ -510,12 +508,13 @@ define(function (require, exports, module) {
                                             {start: {line: 3, ch: 0}, end: {line: 3, ch: 6}}]);
                     
                     var lines = defaultContent.split("\n");
-                    lines[1] = "//    function bar() {";
-                    lines[3] = "//        a();";
+                    lines[1] = "    //function bar() {";
+                    lines[3] = "        //a();";
+                            
                     var expectedText = lines.join("\n");
                     
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
-                                                  {start: {line: 3, ch: 0}, end: {line: 3, ch: 8}, primary: true, reversed: false}]);
+                    testToggleLine(expectedText, [{start: { line: 1, ch: 0 }, end: { line: 1, ch: 0 }, reversed: false, primary: false }, 
+                                                  {start: { line: 3, ch: 0 }, end: { line: 3, ch: 8 }, reversed: false, primary: true }]);
                 });
                 
                 it("should only handle each line once, but preserve primary/reversed flags on ignored selections", function () {
@@ -525,22 +524,25 @@ define(function (require, exports, module) {
                                             {start: {line: 3, ch: 6}, end: {line: 3, ch: 8}, reversed: true}]);
                     
                     var lines = defaultContent.split("\n"), i;
-                    for (i = 1; i <= 3; i++) {
-                        lines[i] = "//" + lines[i];
-                    }
+                    lines[1]= "    //function bar() {";
+                    lines[2]= "    //    ";
+                    lines[3]= "        //a();";
+                    
+                    
                     var expectedText = lines.join("\n");
                     
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 6}, end: {line: 1, ch: 6}, primary: false, reversed: false},
-                                                  {start: {line: 1, ch: 8}, end: {line: 2, ch: 6}, primary: true, reversed: false},
-                                                  {start: {line: 3, ch: 6}, end: {line: 3, ch: 6}, primary: false, reversed: false},
-                                                  {start: {line: 3, ch: 8}, end: {line: 3, ch: 10}, primary: false, reversed: true}]);
+                    testToggleLine(expectedText, [{start: {line: 1, ch: 6}, end: {line: 1, ch: 6}, reversed: false, primary: false}, 
+                                                  {start: {line: 1, ch: 8}, end: {line: 2, ch: 6}, reversed: false, primary: true}, 
+                                                  {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, reversed: false, primary: false}, 
+                                                  {start: {line: 3, ch: 6}, end: {line: 3, ch: 10}, reversed: true, primary: false}]);
                     
                 });
                 
                 it("should properly toggle when some selections are already commented but others aren't", function () {
                     var lines = defaultContent.split("\n");
-                    lines[1] = "//" + lines[1];
-                    lines[5] = "//" + lines[5];
+                    lines[1] = "    //function bar() {";
+                    lines[3] = "    a();";
+                    lines[5] = "    //}";
                     var startingContent = lines.join("\n");
                     myDocument.setText(startingContent);
                     
@@ -548,14 +550,14 @@ define(function (require, exports, module) {
                                             {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}},
                                             {start: {line: 5, ch: 4}, end: {line: 5, ch: 4}}]);
                     
-                    lines[1] = lines[1].slice(2);
-                    lines[3] = "//" + lines[3];
-                    lines[5] = lines[5].slice(2);
+                    lines[1] = "    function bar() {";
+                    lines[3] = "    //a();";
+                    lines[5] = "    }";
                     var expectedText = lines.join("\n");
                     
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
-                                                  {start: {line: 3, ch: 6}, end: {line: 3, ch: 6}, primary: false, reversed: false},
-                                                  {start: {line: 5, ch: 2}, end: {line: 5, ch: 2}, primary: true, reversed: false}]);
+                    testToggleLine(expectedText, [{ start : { line : 1, ch : 4 }, end : { line : 1, ch : 4 }, reversed : false, primary : false }, 
+                                                  { start : { line : 3, ch : 6 }, end : { line : 3, ch : 6 }, reversed : false, primary : false }, 
+                                                  { start : { line : 5, ch : 4 }, end : { line : 5, ch : 4 }, reversed : false, primary : true }]);
                 });
                 
                 it("should properly toggle adjacent lines (not coalescing them) if there are cursors on each line", function () {
@@ -571,7 +573,7 @@ define(function (require, exports, module) {
                                             {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}}]);
                     
                     lines[1] = lines[1].slice(2);
-                    lines[2] = "//" + lines[2];
+                    lines[2] = "    //foo();";
                     lines[3] = lines[3].slice(2);
                     var expectedText = lines.join("\n");
                     
@@ -1841,11 +1843,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
                 var lines = htmlContent.split("\n");
-                lines[10] = "//                    a();";
+                lines[10] = "                    //a();";
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 10, ch: 2});
+                expectCursorAt({line: 10, ch: 0});
                 
                 // Uncomment
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
@@ -1909,11 +1911,11 @@ define(function (require, exports, module) {
                     var lines = htmlContent.split("\n");
                     lines[1] = "<!--    <head>-->";
                     lines[4] = "/*                font-size: 15px;*/";
-                    lines[10] = "//                    a();";
+                    lines[10] = "                    //a();";
                     
-                    testToggleLine(lines.join("\n"), [{start: {line: 1, ch: 8}, end: {line: 1, ch: 14}, primary: false, reversed: false},
-                                                      {start: {line: 4, ch: 18}, end: {line: 4, ch: 34}, primary: false, reversed: false},
-                                                      {start: {line: 10, ch: 2}, end: {line: 10, ch: 2}, primary: true, reversed: false}]);
+                    testToggleLine(lines.join("\n"), [{start: {line: 1, ch: 8 }, end: {line: 1, ch: 14 }, reversed: false, primary: false}, 
+                                                      {start: {line: 4, ch: 18 }, end: {line: 4, ch: 34 }, reversed: false, primary: false}, 
+                                                      {start: {line: 10, ch: 0 }, end: {line: 10, ch: 0 }, reversed: false, primary: true}]);
                 });
                 
                 it("shouldn't comment anything in a mixed-mode selection, but should track it properly and comment the other selections", function () {
