@@ -215,7 +215,7 @@ define(function (require, exports, module) {
                 //ignore the first line and recalculate cursor position for first non white space char of every line
                 if(i!==startLine){
                     line = doc.getLine(i);
-                    var firstCharPosition = line.search(/\S|$/);
+                    firstCharPosition = line.search(/\S|$/);
                 }
                 
                 //if the non space first character position is before original start position , put comment at the new position otherwise older pos
