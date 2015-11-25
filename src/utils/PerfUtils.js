@@ -245,6 +245,9 @@ define(function (require, exports, module) {
      * @param {Object} id  Timer id.
      */
     function updateMeasurement(id) {
+        if (!enabled) {
+            return;
+        }
         var elapsedTime = brackets.app.getElapsedMilliseconds();
 
         if (updatableTests[id.id]) {
@@ -282,6 +285,9 @@ define(function (require, exports, module) {
      * @param {Object} id  Timer id.
      */
     function finalizeMeasurement(id) {
+        if (!enabled) {
+            return;
+        }
         if (activeTests[id.id]) {
             delete activeTests[id.id];
         }
