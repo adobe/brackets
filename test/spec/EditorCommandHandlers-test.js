@@ -190,9 +190,6 @@ define(function (require, exports, module) {
                 }
             }
             
-            var startingContent = myDocument.getText();
-            var startingSel = myEditor.getSelections();
-            
             // Toggle comment on
             CommandManager.execute(command, myEditor);
             expect(myDocument.getText()).toEqual(expectedCommentedText);
@@ -492,7 +489,7 @@ define(function (require, exports, module) {
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 2, ch: 6}},
                                             {start: {line: 3, ch: 4}, end: {line: 4, ch: 6}}]);
                     
-                    var lines = defaultContent.split("\n"), i;
+                    var lines = defaultContent.split("\n");
                     lines[1] = "    //function bar() {";
                     lines[2] = "    //    ";
                     lines[3] = "        //a();";
@@ -523,7 +520,7 @@ define(function (require, exports, module) {
                                             {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}},
                                             {start: {line: 3, ch: 6}, end: {line: 3, ch: 8}, reversed: true}]);
                     
-                    var lines = defaultContent.split("\n"), i;
+                    var lines = defaultContent.split("\n");
                     lines[1]= "    //function bar() {";
                     lines[2]= "    //    ";
                     lines[3]= "        //a();";
