@@ -206,9 +206,9 @@ define(function (require, exports, module) {
         
         if (containsNotLineComment) {
             // Comment out - prepend the first prefix to each line
+            line = doc.getLine(startLine);
+            var cursorPosition = line.search(/\S|$/);
             for (i = startLine; i <= endLine; i++) {
-                line = doc.getLine(i);
-                var cursorPosition = line.search(/\S|$/);
                 editGroup.push({text: prefixes[0], start: {line: i, ch: cursorPosition}});
             }
 
