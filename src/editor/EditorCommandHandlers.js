@@ -207,8 +207,23 @@ define(function (require, exports, module) {
         if (containsNotLineComment) {
             // Comment out - prepend the first prefix to each line
             line = doc.getLine(startLine);
-            var cursorPosition = line.search(/\S|$/);
+            var originalCursorPosition = line.search(/\S|$/);
+            
+            var firstCharPosition,cursorPosition = originalCursorPosition;
+            
             for (i = startLine; i <= endLine; i++) {
+                //ignore the first line and recalculate cursor position for first non white space char of every line
+                if(i!=startLine){
+                    line = doc.getLine(i);
+                    var firstCharPosition = line.search(/\S|$/);
+                }
+                
+                //if the non space first character position is before original start position , put comment at the new position otherwise older pos
+                if(firstCharPosition<originalCursorPosition){
+                    cursorPosition= firstCharPosition;
+                }else{
+                    cursorPosition= originalCursorPosition;
+                }
                 editGroup.push({text: prefixes[0], start: {line: i, ch: cursorPosition}});
             }
 
