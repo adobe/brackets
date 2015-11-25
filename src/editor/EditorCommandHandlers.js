@@ -213,7 +213,7 @@ define(function (require, exports, module) {
             
             for (i = startLine; i <= endLine; i++) {
                 //ignore the first line and recalculate cursor position for first non white space char of every line
-                if(i!=startLine){
+                if(i!==startLine){
                     line = doc.getLine(i);
                     var firstCharPosition = line.search(/\S|$/);
                 }
