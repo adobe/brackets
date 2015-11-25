@@ -38,6 +38,14 @@
     1px 1px 0 #8d8d8d; 
 }
 
+.dark .brackets-js-hints-type {
+    text-shadow:
+    -1px -1px 0 #696969,
+    1px -1px 0 #696969,
+    -1px 1px 0 #696969,
+    1px 1px 0 #696969; 
+}
+
 .highlight .brackets-js-hints-type {
     font-size: 13px;
     text-shadow:
@@ -51,13 +59,20 @@
     color: #d3d3d3;
     font-weight: 100;
     font-style: italic!important;
-    padding-left: 10px;
     float:right;
-    margin-left:5px;
+    padding-left: 10px;
+}
+
+.dark .brackets-js-hints-type-details {
+    color: #696969;
 } 
 
 .highlight .brackets-js-hints-type-details {
-    color: #0c50af;
+    color: #6495ed;
+}
+
+.brackets-js-hints-type-details.keyword {
+    color: #6495ed;
 }
 
 

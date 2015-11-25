@@ -179,7 +179,7 @@ define(function (require, exports, module) {
                     _infered = true;
                     types.every(getInferHelper('Object'));
                     if (_infered) {
-                        type = '[{}]';
+                        type = '[O]';
                     }
                 }
             }
@@ -190,7 +190,7 @@ define(function (require, exports, module) {
             var typeString = "&nbsp;";
             if (type) {
                 if (type.indexOf('Object') === 0) {
-                    typeString = '{}';
+                    typeString = 'O';
                 } else if (type.indexOf('[') === 0) {
                     typeString = inferArrayType(type);
                 } else if (type.indexOf('fn') === 0) {
@@ -268,8 +268,16 @@ define(function (require, exports, module) {
                 } else {
                     $hintObj.text(token.value);
                 }
+                
                 $hintObj.data("token", token);
-                $('<span>' + " " + (token.type || 'keyword').split('->').join(':') + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
+                
+                if (token.type) {
+                    $('<span>' + " " + token.type.split('->').join(':') + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
+                } else {
+                    if (token.keyword) {
+                        $('<span>' + " " + "keyword" + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details").addClass("keyword");
+                    }
+                }
                 return $hintObj;
             });
         }
