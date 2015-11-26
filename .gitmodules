@@ -7,8 +7,8 @@
 [submodule "src/thirdparty/mustache"]
 	path = src/thirdparty/mustache
 	url = https://github.com/janl/mustache.js.git
-[submodule "src/extensions/default/JavaScriptCodeHints/node/node_modules/tern"]
-	path = src/extensions/default/JavaScriptCodeHints/node/node_modules/tern
+[submodule "src/extensions/default/JavaScriptCodeHints/node/thirdparty/tern"]
+	path = src/extensions/default/JavaScriptCodeHints/node/thirdparty/tern
 	url = https://github.com/marijnh/tern.git
 [submodule "src/extensions/default/JavaScriptCodeHints/thirdparty/acorn"]
 	path = src/extensions/default/JavaScriptCodeHints/thirdparty/acorn

@@ -21,8 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
-maxerr: 50, node: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, node: true, regexp: true */
 
 var config = {};
 
@@ -31,17 +30,14 @@ var config = {};
         
     var _domainManager;
     var MessageIds;
-    var Tern, Infer;
     var self = {
         postMessage: function (data) {
             _domainManager.emitEvent("TernNodeDomain", "data", [data]);
         }
     };
     
-    //MessageIds /*= require(basepath.join(path.sep) + "/MessageIds")*/;
-    
-    Tern = require("./node_modules/tern/lib/tern");
-    Infer = require("./node_modules/tern/lib/infer");
+    var Tern = require("./thirdparty/tern/lib/tern"),
+        Infer = require("./thirdparty/tern/lib/infer");
     
     var ternServer  = null,
         inferenceTimeout;
@@ -185,6 +181,8 @@ var config = {};
         query.types = true;
         query.expandWordForward = false;
         query.lineCharPositions = true;
+        query.docs = true;
+        query.urls = true;
 
         var request = {query: query, files: [], offset: offset, timeout: inferenceTimeout};
         if (fileInfo.type !== MessageIds.TERN_FILE_INFO_TYPE_EMPTY) {
@@ -309,7 +307,7 @@ var config = {};
                     for (i = 0; i < data.completions.length; ++i) {
                         var completion = data.completions[i];
                         completions.push({value: completion.name, type: completion.type, depth: completion.depth,
-                            guess: completion.guess, origin: completion.origin});
+                            guess: completion.guess, origin: completion.origin, doc: completion.doc, url: completion.url});
                     }
                 }
 

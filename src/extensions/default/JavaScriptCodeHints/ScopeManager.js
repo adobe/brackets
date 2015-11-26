@@ -80,6 +80,12 @@ define(function (require, exports, module) {
     var config = {};
     
     /**
+     *  Used to cache JS Code for hinting in HTML Mixed mode
+     */
+    var cachedJStext = "";
+    
+    
+    /**
      *  An array of library names that contain JavaScript builtins definitions.
      *
      * @return {Array.<string>} - array of library  names.
@@ -561,7 +567,7 @@ define(function (require, exports, module) {
         if (isHtmlFile) {
             result = {type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
                 name: path,
-                text: session.getJavascriptText()};
+                text: cachedJStext};
         } else if (!documentChanges) {
             result = {type: MessageIds.TERN_FILE_INFO_TYPE_EMPTY,
                 name: path,
@@ -1459,6 +1465,11 @@ define(function (require, exports, module) {
         if (!currentModule) {
             currentModule = new TernModule();
         }
+        
+        if (LanguageManager.getLanguageForPath(document.file.fullPath).getId() === "html") {
+            cachedJStext = session.getJavascriptText();
+        }
+        
         return currentModule.handleEditorChange(session, document, previousDocument);
     }
 
