@@ -7,9 +7,6 @@
 [submodule "src/thirdparty/mustache"]
 	path = src/thirdparty/mustache
 	url = https://github.com/janl/mustache.js.git
-[submodule "src/extensions/default/JavaScriptCodeHints/node/thirdparty/tern"]
-	path = src/extensions/default/JavaScriptCodeHints/node/thirdparty/tern
-	url = https://github.com/marijnh/tern.git
 [submodule "src/extensions/default/JavaScriptCodeHints/thirdparty/acorn"]
 	path = src/extensions/default/JavaScriptCodeHints/thirdparty/acorn
 	url = https://github.com/marijnh/acorn.git
@@ -25,3 +22,9 @@
 [submodule "src/extensions/default/JSLint/thirdparty/jslint"]
 	path = src/extensions/default/JSLint/thirdparty/jslint
 	url = https://github.com/peterflynn/JSLint.git
+[submodule "src/extensions/default/JavaScriptCodeHints/node/node_modules/acorn"]
+	path = src/extensions/default/JavaScriptCodeHints/node/node_modules/acorn
+	url = https://github.com/marijnh/acorn.git
+[submodule "src/extensions/default/JavaScriptCodeHints/node/node_modules/tern"]
+	path = src/extensions/default/JavaScriptCodeHints/node/node_modules/tern
+	url = https://github.com/marijnh/acorn.git

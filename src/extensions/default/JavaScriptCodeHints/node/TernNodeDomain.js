@@ -36,8 +36,8 @@ var config = {};
         }
     };
     
-    var Tern = require("./thirdparty/tern/lib/tern"),
-        Infer = require("./thirdparty/tern/lib/infer");
+    var Tern = require("./node_modules/tern/lib/tern"),
+        Infer = require("./node_modules/tern/lib/infer");
     
     var ternServer  = null,
         inferenceTimeout;
