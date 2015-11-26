@@ -98,7 +98,7 @@ define(function (require, exports, module) {
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
-        var path = ExtensionUtils.getModulePath(module, "node/thirdparty/tern/defs/"),
+        var path = ExtensionUtils.getModulePath(module, "node/node_modules/tern/defs/"),
             files = builtinFiles,
             library;
 
