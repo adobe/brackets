@@ -278,6 +278,15 @@ define(function (require, exports, module) {
                         $('<span>' + " " + "keyword" + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details").addClass("keyword");
                     }
                 }
+                
+                if (token.doc) {
+                    $('<span>' + " " + token.doc + '</span>').appendTo($hintObj).addClass("jshint-description");
+                }
+                
+                if (token.url) {
+                    $('<a href=' + token.url + '></a>').appendTo($hintObj).addClass("jshint-description-url").html('&#127760');
+                }
+                
                 return $hintObj;
             });
         }
