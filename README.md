@@ -340,6 +340,8 @@ to be notified when the action completes:
 * `disableFullscreenPreview([callback])` - turns off the fullscreen preview of the curent file
 * `enableJavaScript([callback])` - turns on JavaScript execution for the preview (default)
 * `disableJavaScript([callback])` - turns off JavaScript execution for the preview
+* `enableInspector([callback])` - turns on the preview inspector (shows code for hovered/clicked element)
+* `disableInspector([callback])` - turns off the preview inspector (default)
 * `enableWordWrap([callback])` - turns on word wrap for the editor (default)
 * `disableWordWrap([callback])` - turns off word wrap for the editor
 * `showTutorial([callback])` - shows tutorial (i.e., tutorial.html) vs editor contents in preview
@@ -355,7 +357,7 @@ The Bramble instance is also an [`EventEmitter`](https://github.com/Wolfy87/Even
 the following events:
 
 * `"layout"` - triggered whenever the sidebar, editor, or preview panes are changed. It includes an `Object` that returns the same infor as the `getLayout()` getter: : `sidebarWidth`, `firstPaneWidth`, `secondPathWidth`
-* `"activeEditorChange"` - triggered whenever the editor changes from one file to another. It includs an `Object` with the current file's `fullPath` and `filename`.
+* `"activeEditorChange"` - triggered whenever the editor changes from one file to another. It includes an `Object` with the current file's `fullPath` and `filename`.
 * `"previewModeChange"` - triggered whenever the preview mode is changed. It includes an `Object` with the new `mode`
 * `"sidebarChange"` - triggered whenever the sidebar is hidden or shown. It includes an `Object` with a `visible` property set to `true` or `false`
 * `"themeChange"` - triggered whenever the theme changes. It inclues an `Object` with a `theme` property that indicates the new theme
@@ -364,6 +366,7 @@ the following events:
 * `"tutorialAdded"` - triggered when a new tutorial is added to the project
 * `"tutorialRemoved"` - triggered when an existing tutorial for the project is removed
 * `"tutorialVisibilityChange"` - triggered when the tutorial preview is turned on or off. It includes an `Object` with a `visibility` property that indicates whether the tutorial is visible.
+* `"inspectorChange"` - triggered whenever the inspector changes from enabled to disabled, or vice versa. It includes an `Object` with an `enabled` property set to `true` or `false`.
 
 There are also high-level events for changes to files:
 

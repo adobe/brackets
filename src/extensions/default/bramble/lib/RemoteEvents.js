@@ -94,6 +94,14 @@ define(function (require, exports, module) {
             });
         });
 
+        // Listen for changes to the inspector
+        BrambleEvents.on("bramble:inspectorChange", function(e, enabled) {
+            sendEvent({
+                type: "bramble:inspectorChange",
+                enabled: enabled
+            });
+        });
+
         // Listen for changes to the font size
         ViewCommandHandlers.on("fontSizeChange", function(e, fontSize) {
             sendEvent({

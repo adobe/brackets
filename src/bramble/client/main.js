@@ -822,6 +822,14 @@ define([
         this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DISABLE_SCRIPTS"}, callback);
     };
 
+    BrambleProxy.prototype.enableInspector = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_ENABLE_INSPECTOR"}, callback);
+    };
+
+    BrambleProxy.prototype.disableInspector = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DISABLE_INSPECTOR"}, callback);
+    };
+
     BrambleProxy.prototype.enableWordWrap = function(callback) {
         this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_ENABLE_WORD_WRAP"}, callback);
     };

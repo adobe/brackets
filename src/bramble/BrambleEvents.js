@@ -62,4 +62,9 @@ define(function (require, exports, module) {
     exports.triggerTutorialVisibilityChange = function(visible) {
         exports.trigger("bramble:tutorialVisibilityChange", visible);
     };
+
+    // enabling/disabling the inspector
+    exports.triggerInspectorChange = function(enabled) {
+        exports.trigger("bramble:inspectorChange", enabled);
+    };
 });

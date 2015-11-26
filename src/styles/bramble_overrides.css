@@ -72,3 +72,7 @@ li.jstree-leaf > a {
 .fullscreen-preview .main-view .content {
     left: 0 !important;
 }
+
+.bramble-inspector-highlight {
+    background: rgba(0, 135, 207, .3) !important;
+}

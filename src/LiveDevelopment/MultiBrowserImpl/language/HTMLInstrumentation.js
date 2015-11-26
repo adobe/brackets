@@ -777,7 +777,15 @@ define(function (require, exports, module) {
         function walk(node) {
             if (node.tag) {
                 var attrText = " data-brackets-id='" + node.tagID + "'";
-                
+
+                // Add editor position info for nodes within <body>
+                if(node.tag !== "html") {
+                    attrText += " data-bramble-start-line='" + node.startPos.line + "'" +
+                                " data-bramble-start-ch='" + node.startPos.ch + "'" +
+                                " data-bramble-end-line='" + node.endPos.line + "'" +
+                                " data-bramble-end-ch='" + node.endPos.ch + "'";
+                }
+
                 // If the dom was fully rebuilt, use its offsets. Otherwise, use the marks in the
                 // associated editor, since they'll be more up to date.
                 var startOffset;

@@ -16,6 +16,7 @@ define(function (require, exports, module) {
     var _                  = brackets.getModule("thirdparty/lodash");
     var ArchiveUtils       = brackets.getModule("filesystem/impls/filer/ArchiveUtils");
 
+    var MouseManager = require("lib/MouseManager");
     var PostMessageTransport = require("lib/PostMessageTransport");
     var Tutorial = require("lib/Tutorial");
     var Theme = require("lib/Theme");
@@ -89,6 +90,13 @@ define(function (require, exports, module) {
         case "BRAMBLE_DISABLE_SCRIPTS":
             HTMLRewriter.disableScripts();
             PostMessageTransport.reload();
+            break;
+        case "BRAMBLE_ENABLE_INSPECTOR":
+            MouseManager.enableInspector();
+            break;
+        case "BRAMBLE_DISABLE_INSPECTOR":
+            // Disable the inspector, and clear any marks in the preview/editor
+            MouseManager.disableInspector(true);
             break;
         case "BRAMBLE_LIGHT_THEME":
             Theme.setTheme("light-theme");
