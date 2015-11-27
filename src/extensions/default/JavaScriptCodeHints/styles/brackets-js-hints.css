@@ -22,7 +22,7 @@
  */
 
 .hint-width-limiter {
-    width:470px;
+    width:450px;
 }
 
 .brackets-js-hints-type {
@@ -71,7 +71,6 @@
 .jshint-description {
     line-height: 1.3;
     display: none;
-    width: calc(100% - 50px);
     padding-bottom: 3px;
     padding-left: 37px;
     padding-right: 37px;
@@ -79,7 +78,7 @@
     box-sizing: border-box;
     word-wrap: break-word;
     white-space: normal;
-    width:450px; 
+    width:450px;
 }
 
 .jshint-description-url {
@@ -99,6 +98,7 @@
 
 .highlight .jshint-description {
     display: block;
+    color:#6495ed;
 }
 
 .dark .brackets-js-hints-type-details {

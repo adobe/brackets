@@ -271,27 +271,29 @@ define(function (require, exports, module) {
                 
                 $hintObj.data("token", token);
                 
+                if (token.url) {
+                    $('<a href=' + token.url + '>ooo</a>').appendTo($hintObj).addClass("jshint-description-url");
+                }
+                
                 if (token.type) {
-                    $('<span>' + " " + token.type.split('->').join(':') + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
+                    //$('<span>' + " " + token.type.split('->').join(':') + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
+                    $('<span>' + " " + token.type.split('->').join(':') + '</span>').appendTo($hintObj).addClass("jshint-description");
                 } else {
                     if (token.keyword) {
                         $('<span>' + " " + "keyword" + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details").addClass("keyword");
                     }
                 }
                 
-                if (token.url) {
-                    $('<a href=' + token.url + '>ooo</a>').appendTo($hintObj).addClass("jshint-description-url");
-                }
-                
                 if (token.doc) {
-                    $('<span>' + " " + token.doc + '</span>').appendTo($hintObj).addClass("jshint-description");
+                    //$('<span>' + " " + token.doc + '</span>').appendTo($hintObj).addClass("jshint-description");
+                    $hintObj.attr('title', token.doc);
                 }
                 
                 $('<div class="hint-width-limiter"></div>').appendTo($hintObj);
                 
                 return $hintObj;
             });
-        } 
+        }
 
         // trim leading and trailing string literal delimiters from the query
         trimmedQuery = _.trim(query, HintUtils.SINGLE_QUOTE + HintUtils.DOUBLE_QUOTE);
