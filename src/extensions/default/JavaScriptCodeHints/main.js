@@ -279,17 +279,19 @@ define(function (require, exports, module) {
                     }
                 }
                 
+                if (token.url) {
+                    $('<a href=' + token.url + '>ooo</a>').appendTo($hintObj).addClass("jshint-description-url");
+                }
+                
                 if (token.doc) {
                     $('<span>' + " " + token.doc + '</span>').appendTo($hintObj).addClass("jshint-description");
                 }
                 
-                if (token.url) {
-                    $('<a href=' + token.url + '></a>').appendTo($hintObj).addClass("jshint-description-url").html('&#127760');
-                }
+                $('<div class="hint-width-limiter"></div>').appendTo($hintObj);
                 
                 return $hintObj;
             });
-        }
+        } 
 
         // trim leading and trailing string literal delimiters from the query
         trimmedQuery = _.trim(query, HintUtils.SINGLE_QUOTE + HintUtils.DOUBLE_QUOTE);

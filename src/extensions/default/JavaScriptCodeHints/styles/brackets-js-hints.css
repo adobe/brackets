@@ -21,8 +21,8 @@
  * 
  */
 
-.brackets-js-hints {
-    max-width: 400px;
+.hint-width-limiter {
+    width:470px;
 }
 
 .brackets-js-hints-type {
@@ -34,11 +34,13 @@
     box-sizing: border-box;  
     font-style:normal;
     padding:0px 0px 0px 6px;
+    float: left;
     text-shadow:
     -1px -1px 0 #8d8d8d,
     1px -1px 0 #8d8d8d,
     -1px 1px 0 #8d8d8d,
     1px 1px 0 #8d8d8d; 
+    font-stretch: expanded;
 }
 
 .dark .brackets-js-hints-type {
@@ -74,20 +76,21 @@
     padding-left: 37px;
     padding-right: 37px;
     color: #d3d3d3;
-    word-wrap:break-word;
     box-sizing: border-box;
+    word-wrap: break-word;
+    white-space: normal;
+    width:450px; 
 }
 
 .jshint-description-url {
     color: #6495ed;
-    clear: right;
     float : right;
     background : transparent !important;
     display:none;
 }
 
 .highlight .jshint-description-url {
-    display:block;
+    display:inline-block;
 }
 
 .dark .jshint-description {
