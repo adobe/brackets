@@ -173,6 +173,15 @@ function findCommonPrefix(extractDir, callback) {
 }
 
 /**
+ * Strip the BOM from the file if it has one.
+ * @param {String} data The raw file contents.
+ * @return {String} The same data, sans the BOM.
+ */
+function stripBOM(data) {
+    return data.substr(data.indexOf("{")).replace(/\u0000/g, "");
+}
+
+/**
  * Validates the contents of package.json.
  *
  * @param {string} path path to package file (used in error reporting)
@@ -194,6 +203,9 @@ function validatePackageJSON(path, packageJSON, options, callback) {
             var metadata;
             
             try {
+                // Strip a possible BOM, which causes the JSON parsing to error
+                // https://github.com/adobe/brackets/issues/10492
+                data = stripBOM(data);
                 metadata = JSON.parse(data);
             } catch (e) {
                 errors.push([Errors.INVALID_PACKAGE_JSON, e.toString(), path]);
