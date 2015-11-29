@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         PreferencesManager = require("preferences/PreferencesManager"),
         FindUtils          = require("search/FindUtils"),
         EditFilterTemplate = require("text!htmlContent/edit-filter-dialog.html"),
-        FilterNameTemplate = require("text!htmlContent/filter-name.html");
+        FilterNameTemplate = require("text!htmlContent/filter-name.html"),
+        EventDispatcher    = require("utils/EventDispatcher");
   
     /**
      * Constant: first filter index in the filter dropdown list
@@ -510,12 +511,13 @@ define(function (require, exports, module) {
         _picker.on("listRendered", _handleListRendered);
         
         _picker.on("select", function (event, item, itemIndex) {
+            // Trigger a exclusionSetChange Event which will be handled by findBar.
+            exports.trigger("exclusionSetChange");
             if (itemIndex === 0) {
                 // Close the dropdown first before opening the edit filter dialog 
                 // so that it will restore focus to the DOM element that has focus
                 // prior to opening it.
                 _picker.closeDropdown();
-
                 // Create a new filter set
                 editFilter({ name: "", patterns: [] }, -1);
             } else if (itemIndex === 1) {
@@ -552,6 +554,9 @@ define(function (require, exports, module) {
             _picker.closeDropdown();
         }
     }
+
+    // Set up event dispatching
+    EventDispatcher.makeEventDispatcher(exports);
     
     // For unit tests only
     exports.showDropdown       = showDropdown;
