@@ -161,49 +161,49 @@ define(function (require, exports, module) {
             };
         }
         
-        function inferArrayType(typeExpr) {
-            var type = "[?]";
+        function inferArrayTypeClass(typeExpr) {
+            var type = "type-array";
             var types = typeExpr.split('[')[1].split(']')[0].split(',');
            
             _infered = true;
             
             types.every(getInferHelper('string'));
             if (_infered) {
-                type = '[S]';
+                type = 'type-string-array';
             } else {
                 _infered = true;
                 types.every(getInferHelper('number'));
                 if (_infered) {
-                    type = '[N]';
+                    type = 'type-num-array';
                 } else {
                     _infered = true;
                     types.every(getInferHelper('Object'));
                     if (_infered) {
-                        type = '[O]';
+                        type = 'type-object-array';
                     }
                 }
             }
             return type;
         }
         
-        function getRenderType(type) {
-            var typeString = "&nbsp;";
+        function getRenderTypeClass(type) {
+            var typeClass = 'type-undetermined';
             if (type) {
                 if (type.indexOf('Object') === 0) {
-                    typeString = 'O';
+                    typeClass = 'type-object';
                 } else if (type.indexOf('[') === 0) {
-                    typeString = inferArrayType(type);
+                    typeClass = inferArrayTypeClass(type);
                 } else if (type.indexOf('fn') === 0) {
-                    typeString = 'fn';
+                    typeClass = 'type-function';
                 } else if (type.indexOf('string') === 0) {
-                    typeString = "S";
+                    typeClass = "type-string";
                 } else if (type.indexOf('number') === 0) {
-                    typeString = 'N';
+                    typeClass = 'type-number';
                 } else if (type.indexOf('bool') === 0) {
-                    typeString = 'B';
+                    typeClass = 'type-boolean';
                 }
             }
-            return typeString;
+            return typeClass;
         }
         
         /*
@@ -222,7 +222,8 @@ define(function (require, exports, module) {
         function formatHints(hints, query) {
             return hints.map(function (token) {
                 var $hintObj    = $("<span>").addClass("brackets-js-hints");
-                $('<span>' + getRenderType(token.type) + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type");
+                ($hintObj).addClass(getRenderTypeClass(token.type));
+                //$('<span>' + getRenderType(token.type) + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type");
                 // level indicates either variable scope or property confidence
                 if (!type.property && !token.builtin && token.depth !== undefined) {
                     switch (token.depth) {
@@ -268,16 +269,23 @@ define(function (require, exports, module) {
                 } else {
                     $hintObj.text(token.value);
                 }
-                
+    
                 $hintObj.data("token", token);
                 
-                if (token.url) {
-                    $('<a href=' + token.url + '>ooo</a>').appendTo($hintObj).addClass("jshint-description-url");
-                }
-                
                 if (token.type) {
-                    //$('<span>' + " " + token.type.split('->').join(':') + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
-                    $('<span>' + " " + token.type.split('->').join(':') + '</span>').appendTo($hintObj).addClass("jshint-description");
+                    if (token.type.length > 40) {
+                        if (token.url) {
+                            $('<a>' + " " + token.type.split('->').join(':').trim() + '</a>').appendTo($hintObj).addClass("jshint-description").attr('href', token.url);
+                        } else {
+                            $('<span>' + " " + token.type.split('->').join(':').trim() + '</span>').appendTo($hintObj).addClass("jshint-description");
+                        }
+                    } else {
+                        if (token.url) {
+                            $('<a>' + " " + token.type.split('->').join(':').trim() + '</a>').appendTo($hintObj).addClass("brackets-js-hints-type-details").attr('href', token.url);
+                        } else {
+                            $('<span>' + " " + token.type.split('->').join(':').trim() + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
+                        }
+                    }
                 } else {
                     if (token.keyword) {
                         $('<span>' + " " + "keyword" + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details").addClass("keyword");
@@ -285,7 +293,6 @@ define(function (require, exports, module) {
                 }
                 
                 if (token.doc) {
-                    //$('<span>' + " " + token.doc + '</span>').appendTo($hintObj).addClass("jshint-description");
                     $hintObj.attr('title', token.doc);
                 }
                 
@@ -311,7 +318,7 @@ define(function (require, exports, module) {
             handleWideResults: hints.handleWideResults
         };
     }
-
+    
     /**
      * @constructor
      */
