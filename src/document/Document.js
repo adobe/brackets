@@ -209,6 +209,8 @@ define(function (require, exports, module) {
         
         this._text = null;
         this._masterEditor = masterEditor;
+        
+        masterEditor.off("change", this._handleEditorChange);
         masterEditor.on("change", this._handleEditorChange.bind(this));
     };
     

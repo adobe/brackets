@@ -959,6 +959,7 @@ define(function (require, exports, module) {
             this._views[path] = view;
         }
 
+        view.markPaneId(this.id);
         
         if (show) {
             this.showView(view);

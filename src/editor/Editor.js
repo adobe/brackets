@@ -80,6 +80,8 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils"),
         ValidationUtils    = require("utils/ValidationUtils"),
         ViewUtils          = require("utils/ViewUtils"),
+        MainViewManager    = require("view/MainViewManager"),
+        DocumentManager    = require("document/DocumentManager"),
         _                  = require("thirdparty/lodash");
 
     /** Editor preferences */
@@ -313,6 +315,10 @@ define(function (require, exports, module) {
         document.on("change", this._handleDocumentChange);
         document.on("deleted", this._handleDocumentDeleted);
         document.on("languageChanged", this._handleDocumentLanguageChanged);
+        
+        // To sync working sets if the view is for same doc across panes
+        DocumentManager.off("dirtyFlagChange", this._doWorkingSetSync);
+        DocumentManager.on("dirtyFlagChange", this._doWorkingSetSync.bind(this));
 
         var mode = this._getModeFromDocument();
         
@@ -324,6 +330,9 @@ define(function (require, exports, module) {
         this._lastEditorWidth = null;
         
         this._$messagePopover = null;
+        
+        // To track which pane the editor is being attached to if it's a full editor
+        this._paneId = null;
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
@@ -448,6 +457,20 @@ define(function (require, exports, module) {
     
     EventDispatcher.makeEventDispatcher(Editor.prototype);
     EventDispatcher.markDeprecated(Editor.prototype, "keyEvent", "'keydown/press/up'");
+    
+    Editor.prototype.markPaneId = function (paneId) {
+        this._paneId = paneId;
+        // In case this Editor is initialized not as the first full editor for the document 
+        // and the document is already dirty and present in another working set, make sure 
+        // to add this documents to the new panes working set.
+        this._doWorkingSetSync(null, this.document);
+    };
+    
+    Editor.prototype._doWorkingSetSync = function (event, doc) {
+        if (doc === this.document && this._paneId && this.document.isDirty) {
+            MainViewManager.addToWorkingSet(this._paneId, this.document.file, -1, true);
+        }
+    };
     
     /**
      * Removes this editor from the DOM and detaches from the Document. If this is the "master"
