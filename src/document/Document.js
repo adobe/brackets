@@ -77,7 +77,7 @@ define(function (require, exports, module) {
      */
     function Document(file, initialTimestamp, rawText) {
         this.file = file;
-        this._updateLanguage();
+        this._updateLanguage(rawText);
         this.refreshText(rawText, initialTimestamp, true);
     }
     
@@ -675,10 +675,15 @@ define(function (require, exports, module) {
     
     /**
      * Updates the language to match the current mapping given by LanguageManager
+     * 
+     * @param {!string} rawText  Text content of the file.
      */
-    Document.prototype._updateLanguage = function () {
+    Document.prototype._updateLanguage = function (rawText) {
         var oldLanguage = this.language;
         this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
+        if (this.language === LanguageManager.getLanguage("unknown")) {
+            this.language = LanguageManager.getLanguageForContent(rawText);
+        }
         if (oldLanguage && oldLanguage !== this.language) {
             this.trigger("languageChanged", oldLanguage, this.language);
         }

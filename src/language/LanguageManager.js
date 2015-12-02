@@ -244,6 +244,28 @@ define(function (require, exports, module) {
     function getLanguage(id) {
         return _languages[id];
     }
+
+    /**
+     * Resolves a file content to a Language object.
+     * @param {!string} rawText  Text content of the file.
+     *
+     * @return {Language} The language detected based on file content or the fallback language
+     */
+    function getLanguageForContent(rawText) {
+        // Shebang detection for script languages 
+        if (rawText) {
+            //filter out #!/usr/bin/, #!/usr/local/bin/, #!/bin/, #!/usr/bin/env, and arguments in order to get language name
+            //for python, it filters out version number as well (python2 python3 -> python) 
+            var lang = rawText.match(/^#!(?:\/usr\/bin\/env\ |(?:\/usr|\/usr\/local)?\/bin\/)(python(?=[23]\W)|(?!python)\w+)[^\r\n]*[\r\n]/m);
+            if (lang && lang[1] && _languages[lang[1]]) {
+                return _languages[lang[1]];
+            }
+            else if (lang && lang[1] && _languages[lang[1]] === "sh") { //workaround for bash
+                return _languages.bash;
+            }
+        }
+        return _fallbackLanguage;
+    }
     
     /**
      * Resolves a file extension to a Language object.
@@ -495,7 +517,7 @@ define(function (require, exports, module) {
      * @type {{ prefix: string, suffix: string }}
      */
     Language.prototype._blockCommentSyntax = null;
-    
+
     /**
      * Whether or not the language is binary
      * @type {boolean}
@@ -837,7 +859,7 @@ define(function (require, exports, module) {
         
         return true;
     };
-    
+
     /**
      * Returns either a language associated with the mode or the fallback language.
      * Used to disambiguate modes used by multiple languages.
@@ -897,7 +919,7 @@ define(function (require, exports, module) {
     Language.prototype.isBinary = function () {
         return this._isBinary;
     };
-    
+
     /**
      * Sets whether or not the language is binary
      * @param {!boolean} isBinary
@@ -956,7 +978,7 @@ define(function (require, exports, module) {
             }
             
             language._setBinary(!!definition.isBinary);
-            
+
             // store language to language map
             _languages[language.getId()] = language;
         }
@@ -1171,6 +1193,7 @@ define(function (require, exports, module) {
     exports.getLanguage                 = getLanguage;
     exports.getLanguageForExtension     = getLanguageForExtension;
     exports.getLanguageForPath          = getLanguageForPath;
+    exports.getLanguageForContent       = getLanguageForContent;
     exports.getLanguages                = getLanguages;
     exports.setLanguageOverrideForPath  = setLanguageOverrideForPath;
     exports.getCompoundFileExtension    = getCompoundFileExtension;

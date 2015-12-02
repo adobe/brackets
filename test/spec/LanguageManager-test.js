@@ -270,6 +270,37 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("auto detection for extensionless file", function () {
+            
+            it("should return appropriate language", function () {
+                var text    = "#!/bin/sh\n\necho 123";
+                var text2   = "#!/bin/bash\n\necho 123";
+                var text3   = "#!/usr/bin/env bash\n\necho 123";
+                var text4   = "123\n\necho 123";
+                var text5   = "#!/bin/shell\n\necho 123";
+                var text6   = "#!/usr/bin/python2\n\nprint 'hello world'";
+                var text7   = "#!/usr/bin/python3\n\nprint 'hello world'";
+                var text8   = "#!/usr/bin/python222\n\nprint 'hello world'";
+                var text9   = "#!/usr/bin/python -c\n\nprint 'hello world'";
+
+                var bash    = LanguageManager.getLanguage("bash"),
+                    python    = LanguageManager.getLanguage("python"),
+                    unknown = LanguageManager.getLanguage("unknown");
+
+                expect(LanguageManager.getLanguageForContent(text)).toBe(bash);
+                expect(LanguageManager.getLanguageForContent(text2)).toBe(bash);
+                expect(LanguageManager.getLanguageForContent(text3)).toBe(bash);
+                expect(LanguageManager.getLanguageForContent(text4)).toBe(unknown);
+                expect(LanguageManager.getLanguageForContent(text5)).toBe(unknown);
+                expect(LanguageManager.getLanguageForContent(text6)).toBe(python);
+                expect(LanguageManager.getLanguageForContent(text7)).toBe(python);
+                expect(LanguageManager.getLanguageForContent(text8)).toBe(unknown);
+                expect(LanguageManager.getLanguageForContent(text9)).toBe(python);
+
+            });
+            
+        });
+
         describe("defineLanguage", function () {
             
             it("should create a basic language", function () {
