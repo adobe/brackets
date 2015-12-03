@@ -22,7 +22,12 @@
  */
 
 .hint-width-limiter {
-    width:450px;
+    width:400px;
+}
+
+span.brackets-js-hints {
+    width: 400px;
+    display: inline-block;
 }
 
 .brackets-js-hints.type-undetermined:before {
@@ -32,7 +37,8 @@
     float:left;
     width:25px;
     text-align: center;
-    margin-left:5px;
+    margin-left:-5px;
+    margin-right:5px;
     visibility: hidden;
     line-height: 1.2em;
 }
@@ -44,7 +50,8 @@
     float:left;
     width:25px;
     text-align: center;
-    margin-left:5px;
+    margin-left:-5px;
+    margin-right:5px;
     line-height: 1.2em;
 }
 
@@ -55,7 +62,8 @@
     float:left;
     width:25px;
     text-align: center;
-    margin-left:5px;
+    margin-left:-5px;
+    margin-right:5px;
     line-height: 1.2em;
 }
 
@@ -66,7 +74,8 @@
     float:left;
     width:25px;
     text-align: center;
-    margin-left:5px;
+    margin-left:-5px;
+    margin-right:5px;
     line-height: 1.2em;
 }
 
@@ -77,7 +86,8 @@
     float:left;
     width:25px;
     text-align: center;
-    margin-left:5px;
+    margin-left:-5px;
+    margin-right:5px;
     line-height: 1.2em;
 }
 
@@ -88,7 +98,8 @@
     float:left;
     width:25px;
     text-align: center;
-    margin-left:5px;
+    margin-left:-5px;
+    margin-right:5px;
     line-height: 1.2em;
 }
 
@@ -99,7 +110,8 @@
     float:left;
     width:25px;
     text-align: center;
-    margin-left:5px;
+    margin-left:-5px;
+    margin-right:5px;
     line-height: 1.2em;
 }
 
@@ -110,7 +122,8 @@
     float:left;
     width:25px;
     text-align: center;
-    margin-left:5px;
+    margin-left:-5px;
+    margin-right:5px;
     line-height: 1.2em;
 }
 
@@ -121,7 +134,8 @@
     float:left;
     width:25px;
     text-align: center;
-    margin-left:5px;
+    margin-left:-5px;
+    margin-right:5px;
     line-height: 1.2em;
 }
 
@@ -129,17 +143,18 @@
     color: #d3d3d3 !important;
     font-weight: 100;
     font-style: italic !important;
-    padding-left: 25px;
+    margin-right: 25px;
+    float:right;
 }
 
 .jshint-description {
     display: none;
-    padding-left: 45px !important;
+    padding-left: 35px !important;
     padding-right:10px !important;
     color: #d3d3d3;
     word-wrap: break-word;	
     white-space: normal;
-    width:450px;
+    width:400px;
     box-sizing: border-box;
 }
 
