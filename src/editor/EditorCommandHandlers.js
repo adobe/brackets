@@ -127,8 +127,11 @@ define(function (require, exports, module) {
     function _getLinePrefix(string, expressions, prefixes) {
         var result = null;
         expressions.forEach(function (exp, index) {
-            if (string.match(exp) && ((result && result.length < prefixes[index].length) || !result)) {
-                result = prefixes[index];
+            if (string.match(exp) && ((result && result.prefix.length < prefixes[index].length) || !result)) {
+                result = {
+                    prefix: prefixes[index],
+                    offset: string.indexOf(prefixes[index])
+                };
             }
         });
         return result;
@@ -201,7 +204,7 @@ define(function (require, exports, module) {
         // Decide if we're commenting vs. un-commenting
         // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
         // some editors like Sublime don't comment them out)
-        var i, line, prefix, commentI,
+        var i, line, prefix, commentI, result,
             containsNotLineComment = _containsNotLineComment(editor, startLine, endLine, lineExp);
         
         if (containsNotLineComment) {
@@ -215,6 +218,8 @@ define(function (require, exports, module) {
                 if (trackedSel.start.ch === 0 && CodeMirror.cmpPos(trackedSel.start, trackedSel.end) !== 0) {
                     trackedSel.start = {line: trackedSel.start.line, ch: 0};
                     trackedSel.end = {line: trackedSel.end.line, ch: (trackedSel.end.line === endLine ? trackedSel.end.ch + prefixes[0].length : 0)};
+                } else if (trackedSel.start.ch === 0 && CodeMirror.cmpPos(trackedSel.start, trackedSel.end) === 0) {
+                    trackedSel.start = trackedSel.end = {line: trackedSel.start.line, ch: prefixes[0].length};
                 } else {
                     trackedSel.isBeforeEdit = true;
                 }
@@ -223,15 +228,33 @@ define(function (require, exports, module) {
             // Uncomment - remove the prefix on each line (if any)
             for (i = startLine; i <= endLine; i++) {
                 line   = doc.getLine(i);
-                prefix = _getLinePrefix(line, lineExp, prefixes);
+                result = _getLinePrefix(line, lineExp, prefixes);
+                prefix = result && result.prefix;
 
                 if (prefix) {
                     commentI = line.indexOf(prefix);
                     editGroup.push({text: "", start: {line: i, ch: commentI}, end: {line: i, ch: commentI + prefix.length}});
                 }
             }
+
+            // Adjust tracked selection ranges across removed prefixes
             _.each(trackedSels, function (trackedSel) {
-                trackedSel.isBeforeEdit = true;
+                var adjustStart, adjustEnd, prefix;
+
+                if (CodeMirror.cmpPos(trackedSel.start, trackedSel.end) !== 0) {
+                    prefix = _getLinePrefix(doc.getLine(trackedSel.start.line), lineExp, prefixes);
+                    adjustStart = (prefix && trackedSel.start.ch > prefix.offset) ? prefix.prefix.length : 0;
+                    trackedSel.start = {line: trackedSel.start.line, ch: trackedSel.start.ch - adjustStart};
+
+                    // adjust end if there is a prefix being removed
+                    if (trackedSel.start.line !== trackedSel.end.line) {
+                        prefix = _getLinePrefix(doc.getLine(trackedSel.end.line), lineExp, prefixes);
+                    }
+                    adjustEnd = ((trackedSel.end.line === endLine) && prefix) ? prefix.prefix.length : 0;
+                    trackedSel.end = {line: trackedSel.end.line, ch: trackedSel.end.ch - adjustEnd};
+                } else {
+                    trackedSel.isBeforeEdit = true;
+                }
             });
         }
         return {edit: editGroup, selection: trackedSels};
@@ -517,9 +540,31 @@ define(function (require, exports, module) {
                     editGroup.push({text: "", start: prefixPos, end: {line: prefixPos.line, ch: prefixPos.ch + prefix.length}});
                 }
 
-                // Don't fix up the tracked selections here - let the edit fix them up.
+                // Fix up the tracked selections here
                 _.each(selectionsToTrack, function (trackedSel) {
-                    trackedSel.isBeforeEdit = true;
+                    function updatePosForEdit(pos) {
+                        if (pos.line === prefixPos.line && pos.ch >= prefixPos.ch && pos.ch < prefixPos.ch + prefix.length) {
+                            // Adjust pos after prefix
+                            pos.ch = prefixPos.ch + prefix.length;
+                        } else if (suffixPos && pos.line === suffixPos.line &&
+                                   (pos.ch > suffixPos.ch && pos.ch <= suffixPos.ch + suffix.length)) {
+                            // Adjust pos before suffix
+                            pos.ch = suffixPos.ch;
+                        }
+
+                        // Adjust pos between prefix and suffix
+                        if (pos.line === prefixPos.line && pos.ch >= (prefixPos.ch + prefix.length)) {
+                            pos.ch -= prefix.length;
+                        } else if (prefixAtStart) {
+                            pos.line--;
+                        }
+                        if (suffixPos && suffixAtStart && pos.line === suffixPos.line) {
+                            pos.line--;
+                        }
+                    }
+
+                    updatePosForEdit(trackedSel.start);
+                    updatePosForEdit(trackedSel.end);
                 });
             }
 
