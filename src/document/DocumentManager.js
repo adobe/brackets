@@ -192,6 +192,22 @@ define(function (require, exports, module) {
         }
         return result;
     }
+    /**
+     * Returns whether the given filePath is of an untitled File
+     * @param {!string} filePath
+     * @return {boolean} true if given filePath is of an untitled File, false otherwise
+     */
+    function isUntitledFilePath(filePath) {
+        var document,
+            isUntitled = false;
+        if (filePath) {
+            document = getOpenDocumentForPath(filePath);
+            if (document) {
+                isUntitled = true;
+            }
+        }
+        return isUntitled;
+    }
     
     
     /**
@@ -735,6 +751,7 @@ define(function (require, exports, module) {
     exports.getDocumentText             = getDocumentText;
     exports.createUntitledDocument      = createUntitledDocument;
     exports.getAllOpenDocuments         = getAllOpenDocuments;
+    exports.isUntitledFilePath          = isUntitledFilePath;
     
     // For internal use only
     exports.notifyPathNameChanged       = notifyPathNameChanged;

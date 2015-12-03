@@ -503,6 +503,20 @@ define(function (require, exports, module) {
     function getProjectRoot() {
         return model.projectRoot;
     }
+    
+    /**
+     * Returns the path to be used for getting the preferences for this file
+     * This will return the project root for an untitled document and the regular file path for a saved file
+     * @return {Path} 
+     */
+    function getPreferenceContextPath(filePath) {
+        // In case of untitled documents we want to use the project root instead of
+        // the random generated file path. This is to resolve #10370
+        if (filePath && DocumentManager.isUntitledFilePath(filePath)) {
+            return getProjectRoot().fullPath;
+        }
+        return filePath;
+    }
 
     /**
      * @private
@@ -1434,6 +1448,7 @@ define(function (require, exports, module) {
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.shouldShow                    = ProjectModel.shouldShow;
     exports.openProject                   = openProject;
+    exports.getPreferenceContextPath      = getPreferenceContextPath;
     exports.getSelectedItem               = getSelectedItem;
     exports.getContext                    = getContext;
     exports.getInitialProjectPath         = getInitialProjectPath;
