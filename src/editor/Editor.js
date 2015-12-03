@@ -499,6 +499,8 @@ define(function (require, exports, module) {
         // If we're the Document's master editor, disconnecting from it has special meaning
         if (this.document._masterEditor === this) {
             this.document._makeNonEditable();
+        } esle {
+            this.document._disassociateEditor(this);
         }
         
         // Destroying us destroys any inline widgets we're hosting. Make sure their closeCallbacks

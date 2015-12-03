@@ -205,6 +205,8 @@ define(function (require, exports, module) {
             if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
                 this._associatedFullEditors.push(this._masterEditor);
             }
+        } else {
+            
         }
         
         this._text = null;
@@ -237,7 +239,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Toggles the master editor from a pool of full editors which has gained focus 
+     * Toggles the master editor which has gained focus from a pool of full editors 
      * To be used internally by Editor only 
      */
     Document.prototype._toggleMasterEditor = function (masterEditor) {
@@ -250,6 +252,17 @@ define(function (require, exports, module) {
                 }
             }
             this._masterEditor = masterEditor;
+        }
+    };
+    
+    /**
+     * Disassociates an editor from this document if present in the associated editor list
+     * To be used internally by Editor only when destroyed and not the current master editor for the document
+     */
+    Document.prototype._disassociateEditor = function (editor) {
+        // Do a check before processing the request to ensure inline editors are not being handled
+        if (this._associatedFullEditors.indexOf(editor) >= 0) {
+            this._associatedFullEditors.splice(this._associatedFullEditors.indexOf(editor), 1);
         }
     };
     
