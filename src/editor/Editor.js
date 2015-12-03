@@ -499,7 +499,7 @@ define(function (require, exports, module) {
         // If we're the Document's master editor, disconnecting from it has special meaning
         if (this.document._masterEditor === this) {
             this.document._makeNonEditable();
-        } esle {
+        } else {
             this.document._disassociateEditor(this);
         }
         

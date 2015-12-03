@@ -205,14 +205,11 @@ define(function (require, exports, module) {
             if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
                 this._associatedFullEditors.push(this._masterEditor);
             }
-        } else {
-            
         }
         
         this._text = null;
         this._masterEditor = masterEditor;
         
-        masterEditor.off("change", this._handleEditorChange);
         masterEditor.on("change", this._handleEditorChange.bind(this));
     };
     
