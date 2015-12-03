@@ -178,6 +178,10 @@ define(function (require, exports, module) {
         get: "getLanguageForPath"
     };
     
+    // Set to true after the preference mappings have been loaded.
+    // All languages registered afterwards need to also call _updateFromPrefs again.
+    var prefsLoaded = false;
+    
     // Helper functions
     
     /**
@@ -432,6 +436,110 @@ define(function (require, exports, module) {
             }
         }
         return extension.join(".");
+    }
+    
+    /**
+     * @private
+     * 
+     * If a default file extension or name was overridden by a pref, restore it.
+     * 
+     * @param {string} name Extension or filename that should be restored
+     * @param {{overridden: string, add: string}} prefState object for the pref that is currently being updated
+     */
+    function _restoreOverriddenDefault(name, state) {
+        if (state.overridden[name]) {
+            var language = getLanguage(state.overridden[name]);
+            language[state.add](name);
+            delete state.overridden[name];
+        }
+    }
+    
+    /**
+     * @private
+     * 
+     * Updates extension and filename mappings from languages based on the current preferences values.
+     * 
+     * The preferences look like this in a prefs file:
+     * 
+     * Map *.foo to javascript, *.vm to html
+     * 
+     *     "language.fileExtensions": {
+     *         "foo": "javascript",
+     *         "vm": "html"
+     *     }
+     * 
+     * Map "Gemfile" to ruby:
+     * 
+     *     "language.fileNames": {
+     *         "Gemfile": "ruby"
+     *     }
+     */
+    function _updateFromPrefs(pref) {
+        if (!pref) {
+            // When called without a pref defined, update from both the extension map and name map
+            _updateFromPrefs(_EXTENSION_MAP_PREF);
+            _updateFromPrefs(_NAME_MAP_PREF);
+            return;
+        }
+        
+        var newMapping = PreferencesManager.get(pref),
+            newNames,
+            state = _prefState[pref],
+            last = state.last,
+            overridden = state.overridden;
+        
+        // Filter out the languages that are not (yet) defined.
+        // Important to be able to add extensions to languages defined by extensions.
+        newMapping = _.reduce(newMapping, function (result, languageId, ext) {
+            if (getLanguage(languageId)) {
+                result[ext] = languageId;
+            }
+            return result;
+        }, {});
+
+        newNames = Object.keys(newMapping);
+
+        // Look for added and changed names (extensions or filenames)
+        newNames.forEach(function (name) {
+            var language;
+            if (newMapping[name] !== last[name]) {
+                if (last[name]) {
+                    language = getLanguage(last[name]);
+                    if (language) {
+                        language[state.remove](name);
+                        
+                        // If this name that was previously mapped was overriding a default
+                        // restore it now.
+                        _restoreOverriddenDefault(name, state);
+                    }
+                }
+                
+                language = exports[state.get](name);
+                if (language) {
+                    language[state.remove](name);
+                    
+                    // We're removing a name that was defined in Brackets or an extension,
+                    // so keep track of how it used to be mapped.
+                    if (!overridden[name]) {
+                        overridden[name] = language.getId();
+                    }
+                }
+                language = getLanguage(newMapping[name]);
+                if (language) {
+                    language[state.add](name);
+                }
+            }
+        });
+        
+        // Look for removed names (extensions or filenames)
+        _.difference(Object.keys(last), newNames).forEach(function (name) {
+            var language = getLanguage(last[name]);
+            if (language) {
+                language[state.remove](name);
+                _restoreOverriddenDefault(name, state);
+            }
+        });
+        state.last = newMapping;
     }
 
     
@@ -959,6 +1067,11 @@ define(function (require, exports, module) {
             
             // store language to language map
             _languages[language.getId()] = language;
+            
+            if (prefsLoaded) {
+                // Language mappings have already been loaded, so update them
+                _updateFromPrefs();
+            }
         }
         
         if (!language._setId(id) || !language._setName(name) ||
@@ -1002,92 +1115,6 @@ define(function (require, exports, module) {
         }
         
         return result.promise();
-    }
-    
-    /**
-     * @private
-     * 
-     * If a default file extension or name was overridden by a pref, restore it.
-     * 
-     * @param {string} name Extension or filename that should be restored
-     * @param {{overridden: string, add: string}} prefState object for the pref that is currently being updated
-     */
-    function _restoreOverriddenDefault(name, state) {
-        if (state.overridden[name]) {
-            var language = getLanguage(state.overridden[name]);
-            language[state.add](name);
-            delete state.overridden[name];
-        }
-    }
-    
-    /**
-     * @private
-     * 
-     * Updates extension and filename mappings from languages based on the current preferences values.
-     * 
-     * The preferences look like this in a prefs file:
-     * 
-     * Map *.foo to javascript, *.vm to html
-     * 
-     *     "language.fileExtensions": {
-     *         "foo": "javascript",
-     *         "vm": "html"
-     *     }
-     * 
-     * Map "Gemfile" to ruby:
-     * 
-     *     "language.fileNames": {
-     *         "Gemfile": "ruby"
-     *     }
-     */
-    function _updateFromPrefs(pref) {
-        var newMapping = PreferencesManager.get(pref),
-            newNames = Object.keys(newMapping),
-            state = _prefState[pref],
-            last = state.last,
-            overridden = state.overridden;
-        
-        // Look for added and changed names (extensions or filenames)
-        newNames.forEach(function (name) {
-            var language;
-            if (newMapping[name] !== last[name]) {
-                if (last[name]) {
-                    language = getLanguage(last[name]);
-                    if (language) {
-                        language[state.remove](name);
-                        
-                        // If this name that was previously mapped was overriding a default
-                        // restore it now.
-                        _restoreOverriddenDefault(name, state);
-                    }
-                }
-                
-                language = exports[state.get](name);
-                if (language) {
-                    language[state.remove](name);
-                    
-                    // We're removing a name that was defined in Brackets or an extension,
-                    // so keep track of how it used to be mapped.
-                    if (!overridden[name]) {
-                        overridden[name] = language.getId();
-                    }
-                }
-                language = getLanguage(newMapping[name]);
-                if (language) {
-                    language[state.add](name);
-                }
-            }
-        });
-        
-        // Look for removed names (extensions or filenames)
-        _.difference(Object.keys(last), newNames).forEach(function (name) {
-            var language = getLanguage(last[name]);
-            if (language) {
-                language[state.remove](name);
-                _restoreOverriddenDefault(name, state);
-            }
-        });
-        state.last = newMapping;
     }
     
    
@@ -1155,8 +1182,9 @@ define(function (require, exports, module) {
             }).on("change", function () {
                 _updateFromPrefs(_NAME_MAP_PREF);
             });
-            _updateFromPrefs(_EXTENSION_MAP_PREF);
-            _updateFromPrefs(_NAME_MAP_PREF);
+            _updateFromPrefs();
+            
+            prefsLoaded = true;
         });
     });
     

@@ -851,6 +851,20 @@ define(function (require, exports, module) {
                 language = LanguageManager.getLanguageForPath("Gemfile");
                 expect(language.getId()).toBe("ruby");
             });
+            
+            it("should manage languages which are not defined yet", function () {
+                PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, {
+                    test: "six"
+                });
+                var language = LanguageManager.getLanguageForExtension("test");
+                expect(language).toBeUndefined();
+                
+                // This defineLanguage is enough to re-read the preferences and update the mappings
+                defineLanguage({ id: "six", name: "Six", mode: ["null", "text/plain"] });
+                
+                language = LanguageManager.getLanguageForExtension("test");
+                expect(language.getId()).toBe("six");
+            });
         });
 
         describe("isBinary", function () {
