@@ -544,7 +544,7 @@ define(function (require, exports, module) {
         
         //Check if a master editor is not set already or the current master editor doesn't belong 
         //to the pane container requested - to support creation of multiple full editors
-        if (!editor || editor.$el.parent()[0] !== pane.$content[0]) {
+        if (!editor || editor._paneId !== pane.id) {
             // Performance (see #4757) Chrome wastes time messing with selection
             // that will just be changed at end, so clear it for now
             if (window.getSelection && window.getSelection().empty) {  // Chrome

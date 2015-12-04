@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
     describe("EditorManager", function () {
-        var pane, testEditor, testDoc, $fakeContentDiv, $fakeHolder;
+        var pane, anotherPane, testEditor, testDoc, $fakeContentDiv, $fakeHolder;
         beforeEach(function () {
             // Normally the editor holder would be created inside a "content" div, which is
             // used in the available height calculation. We create a fake content div just to
@@ -47,7 +47,8 @@ define(function (require, exports, module) {
                                         .attr("id", "hidden-editors")
                                         .appendTo($fakeContentDiv);
 
-            pane = SpecRunnerUtils.createMockPane($fakeHolder);
+            pane = SpecRunnerUtils.createMockPane($fakeHolder, 'first-pane');
+            anotherPane = SpecRunnerUtils.createMockPane($fakeHolder, 'second-pane');
             testDoc = SpecRunnerUtils.createMockDocument("");
         });
         afterEach(function () {
@@ -66,19 +67,32 @@ define(function (require, exports, module) {
         
         describe("Create Editors", function () {
             
-            it("should create a new editor for a document and add it to a pane", function () {
+            it("should create a new editor for a document and add it to the requested pane", function () {
                 spyOn(pane, "addView");
                 EditorManager.openDocument(testDoc, pane);
                 expect(pane.addView).toHaveBeenCalled();
             });
-            it("should use an existing editor for a document and show the editor", function () {
+            it("should use an existing editor for a document when requested on same pane", function () {
                 spyOn(pane, "addView");
                 spyOn(pane, "showView");
-                var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane.$el);
+                var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane.$el, undefined, 'first-pane');
                 EditorManager.openDocument(testDoc, pane);
-                expect(pane.addView).toHaveBeenCalled();
-                expect(pane.showView).toHaveBeenCalled();
-                expect(pane.addView.calls[0].args[0]).toEqual(editor);
+                expect(pane.addView).not.toHaveBeenCalled();
+                expect(pane.showView).toHaveBeenCalledWith(editor);
+            });
+            it("should create a new editor for a document if requested pane and existing editors pane is not same", function () {
+                spyOn(pane, "addView");
+                spyOn(pane, "showView");
+                spyOn(anotherPane, "addView");
+                spyOn(anotherPane, "showView");
+                var editor = SpecRunnerUtils.createEditorInstance(testDoc, anotherPane.$el, undefined, 'first-pane');
+                EditorManager.openDocument(testDoc, anotherPane);
+                expect(pane.addView).not.toHaveBeenCalled();
+                expect(pane.showView).not.toHaveBeenCalled();
+                expect(anotherPane.addView).toHaveBeenCalled();
+                expect(anotherPane.addView).not.toHaveBeenCalledWith(editor);
+                expect(anotherPane.showView).toHaveBeenCalled();
+                expect(anotherPane.showView).not.toHaveBeenCalledWith(editor);
             });
         });
     });

@@ -395,11 +395,14 @@ define(function (require, exports, module) {
             .appendTo($("body"));
     }
 
-    function createEditorInstance(doc, $editorHolder, visibleRange) {
+    function createEditorInstance(doc, $editorHolder, visibleRange, paneId) {
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
         
         Editor.setUseTabChar(EDITOR_USE_TABS);
         Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
+        if (paneId) {
+            editor._paneId = paneId;
+        }
         EditorManager._notifyActiveEditorChanged(editor);
         
         return editor;
@@ -445,7 +448,7 @@ define(function (require, exports, module) {
         return { doc: doc, editor: createMockEditorForDocument(doc, visibleRange) };
     }
     
-    function createMockPane($el) {
+    function createMockPane($el, paneId) {
         createMockElement()
             .attr("class", "pane-header")
             .appendTo($el);
@@ -455,6 +458,7 @@ define(function (require, exports, module) {
         
         return {
             $el: $el,
+            id: paneId || 'first-pane',
             $content: $fakeContent,
             addView: function (path, editor) {
             },
