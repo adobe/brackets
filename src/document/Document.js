@@ -205,17 +205,12 @@ define(function (require, exports, module) {
             if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
                 this._associatedFullEditors.push(this._masterEditor);
             }
-        } else {
-            this._associatedFullEditors.push(masterEditor);
         }
         
         this._text = null;
         this._masterEditor = masterEditor;
         
-        // Keep the change listner bound to this doc instance so that we can call off while toggling master editor
-        this._handleEditorChange = this._handleEditorChange.bind(this);
-        
-        masterEditor.on("change", this._handleEditorChange);
+        masterEditor.on("change", this._handleEditorChange.bind(this));
     };
     
     /**
