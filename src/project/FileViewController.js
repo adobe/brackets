@@ -148,6 +148,19 @@ define(function (require, exports, module) {
     function openAndSelectDocument(fullPath, fileSelectionFocus, paneId) {
         var result,
             curDocChangedDueToMe = _curDocChangedDueToMe;
+        
+        function _getDerivedPaneContext() {
+            
+            function _secondPaneContext() {
+                return (event.ctrlKey || event.metaKey) && event.altKey ? MainViewManager.SECOND_PANE : null;
+            }
+            
+            function _firstPaneContext() {
+                return (event.ctrlKey || event.metaKey) ? MainViewManager.FIRST_PANE : null;
+            }
+            
+            return _secondPaneContext() || _firstPaneContext();
+        }
 
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
             console.error("Bad parameter passed to FileViewController.openAndSelectDocument");
@@ -162,7 +175,7 @@ define(function (require, exports, module) {
         _fileSelectionFocus = fileSelectionFocus;
         
 
-        paneId = (paneId || ((event.ctrlKey || event.metaKey) && event.altKey ? MainViewManager.SECOND_PANE : null) || ((event.ctrlKey || event.metaKey) ? MainViewManager.FIRST_PANE : null) || MainViewManager.ACTIVE_PANE);
+        paneId = (paneId || _getDerivedPaneContext() || MainViewManager.ACTIVE_PANE);
         
         // If fullPath corresonds to the current doc being viewed then opening the file won't
         // trigger a currentFileChange event, so we need to trigger a documentSelectionFocusChange 
