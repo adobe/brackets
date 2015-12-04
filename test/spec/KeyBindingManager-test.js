@@ -54,7 +54,7 @@ define(function (require, exports, module) {
             "Alt-Shift-Up": "edit.addCursorToPrevLine",
             "F8": "navigate.gotoFirstProblem",
             "Ctrl-Alt-O": "file.openFolder",
-            "Ctrl-Alt-H": "view.hideSidebar",
+            "Ctrl-Alt-H": "view.toggleSidebar",
             "Ctrl-Shift-O": "navigate.quickOpen",
             "Ctrl-T": "navigate.gotoDefinition"
         },
@@ -65,7 +65,7 @@ define(function (require, exports, module) {
             "Alt-Shift-Up": "edit.addCursorToPrevLine",
             "Cmd-'": "navigate.gotoFirstProblem",
             "Alt-Cmd-O": "file.openFolder",
-            "Shift-Cmd-H": "view.hideSidebar",
+            "Shift-Cmd-H": "view.toggleSidebar",
             "Shift-Cmd-O": "navigate.quickOpen",
             "Cmd-T": "navigate.gotoDefinition"
         };
@@ -116,7 +116,7 @@ define(function (require, exports, module) {
             displayKey = KeyBindingManager._getDisplayKey(key);
             if (platform === "mac") {
                 explicitPlatform = undefined;
-                if (commandID === "edit.selectLine" || commandID === "view.hideSidebar" ||
+                if (commandID === "edit.selectLine" || commandID === "view.toggleSidebar" ||
                         commandID === "navigate.gotoFirstProblem") {
                     explicitPlatform = "mac";
                 }
@@ -586,7 +586,7 @@ define(function (require, exports, module) {
                         var msgPrefix = Strings.ERROR_MULTIPLE_SHORTCUTS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
                         expect(message).toMatch("file.openFolder");
-                        expect(message).toMatch("view.hideSidebar");
+                        expect(message).toMatch("view.toggleSidebar");
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
                 });
@@ -654,7 +654,7 @@ define(function (require, exports, module) {
                         var msgPrefix = Strings.ERROR_NONEXISTENT_COMMANDS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
                         expect(message).toMatch("file.openFolder");
-                        expect(message).toMatch("view.hideSidebar");
+                        expect(message).toMatch("view.toggleSidebar");
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
                 });
@@ -688,7 +688,7 @@ define(function (require, exports, module) {
                     expect(keymap["Alt-Cmd-O"]).toBeFalsy();
                     expect(keymap["Alt-Ctrl-O"]).toBeFalsy();
 
-                    expect(keymap[reassignedKey1].commandID).toEqual("view.hideSidebar");
+                    expect(keymap[reassignedKey1].commandID).toEqual("view.toggleSidebar");
                     expect(keymap["Shift-Cmd-H"]).toBeFalsy();
                     expect(keymap["Alt-Ctrl-H"]).toBeFalsy();
 
@@ -729,9 +729,9 @@ define(function (require, exports, module) {
                         reassignedKey3 = (platform === "mac") ? "Cmd-T" : "Ctrl-T";
 
                     expect(Dialogs.showModalDialog).not.toHaveBeenCalled();
-                    expect(keymap["Ctrl-2"].commandID).toEqual("view.hideSidebar");
+                    expect(keymap["Ctrl-2"].commandID).toEqual("view.toggleSidebar");
                     
-                    // Previous user key binding to "view.hideSidebar" is gone.
+                    // Previous user key binding to "view.toggleSidebar" is gone.
                     expect(keymap[reassignedKey1]).toBeFalsy();
                     
                     // Default key binding for "file.openFolder" is restored.

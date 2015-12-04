@@ -42,6 +42,10 @@ define(function (require, exports, module) {
         EventDispatcher         = require("utils/EventDispatcher"),
         Resizer                 = require("utils/Resizer");
     
+    //constants
+    var EVENT_WORKSPACE_UPDATE_LAYOUT  = "workspaceUpdateLayout",
+        EVENT_WORKSPACE_PANEL_SHOWN    = "workspacePanelShown",
+        EVENT_WORKSPACE_PANEL_HIDDEN   = "workspacePanelHidden";
     
     /** 
      * The ".content" vertical stack (editor + all header/footer panels) 
@@ -56,6 +60,11 @@ define(function (require, exports, module) {
     var $editorHolder;
     
     /** 
+     * A map from panel ID's to all reated panels
+     */
+    var panelIDMap = {};
+
+    /**
      * Have we already started listening for the end of the ongoing window resize? 
      * @type {boolean} 
      */
@@ -109,7 +118,7 @@ define(function (require, exports, module) {
         $editorHolder.height(editorAreaHeight);  // affects size of "not-editor" placeholder as well
         
         // Resize editor to fill the space
-        exports.trigger("workspaceUpdateLayout", editorAreaHeight, refreshHint);
+        exports.trigger(EVENT_WORKSPACE_UPDATE_LAYOUT, editorAreaHeight, refreshHint);
     }
     
     
@@ -184,6 +193,7 @@ define(function (require, exports, module) {
      */
     Panel.prototype.show = function () {
         Resizer.show(this.$panel[0]);
+        exports.trigger(EVENT_WORKSPACE_PANEL_SHOWN, this.panelID);
     };
 
     /** 
@@ -191,6 +201,7 @@ define(function (require, exports, module) {
      */
     Panel.prototype.hide = function () {
         Resizer.hide(this.$panel[0]);
+        exports.trigger(EVENT_WORKSPACE_PANEL_HIDDEN, this.panelID);
     };
     
     /** 
@@ -199,9 +210,9 @@ define(function (require, exports, module) {
      */
     Panel.prototype.setVisible = function (visible) {
         if (visible) {
-            Resizer.show(this.$panel[0]);
+            this.show();
         } else {
-            Resizer.hide(this.$panel[0]);
+            this.hide();
         }
     };
     
@@ -221,9 +232,34 @@ define(function (require, exports, module) {
         $panel.hide();
         updateResizeLimits();  // initialize panel's max size
         
-        return new Panel($panel, minSize);
+        panelIDMap[id] = new Panel($panel, minSize);
+        panelIDMap[id].panelID = id;
+
+        return panelIDMap[id];
     }
     
+    /**
+     * Returns an array of all panel ID's
+     * @returns {Array} List of ID's of all bottom panels
+     */
+    function getAllPanelIDs() {
+        var property, panelIDs = [];
+        for (property in panelIDMap) {
+            if (panelIDMap.hasOwnProperty(property)) {
+                panelIDs.push(property);
+            }
+        }
+        return panelIDs;
+    }
+
+    /**
+     * Gets the Panel interface for the given ID. Can return undefined if no panel with the ID is found.
+     * @param   {string} panelID
+     * @returns {Object} Panel object for the ID or undefined
+     */
+    function getPanelForID(panelID) {
+        return panelIDMap[panelID];
+    }
     
     /**
      * Called when an external widget has appeared and needs some of the space occupied 
@@ -261,7 +297,12 @@ define(function (require, exports, module) {
     EventDispatcher.makeEventDispatcher(exports);
     
     // Define public API
-    exports.createBottomPanel    = createBottomPanel;
-    exports.recomputeLayout      = recomputeLayout;
-    exports._setMockDOM          = _setMockDOM;
+    exports.createBottomPanel               = createBottomPanel;
+    exports.recomputeLayout                 = recomputeLayout;
+    exports.getAllPanelIDs                  = getAllPanelIDs;
+    exports.getPanelForID                   = getPanelForID;
+    exports._setMockDOM                     = _setMockDOM;
+    exports.EVENT_WORKSPACE_UPDATE_LAYOUT   = EVENT_WORKSPACE_UPDATE_LAYOUT;
+    exports.EVENT_WORKSPACE_PANEL_SHOWN     = EVENT_WORKSPACE_PANEL_SHOWN;
+    exports.EVENT_WORKSPACE_PANEL_HIDDEN    = EVENT_WORKSPACE_PANEL_HIDDEN;
 });

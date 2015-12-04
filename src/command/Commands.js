@@ -104,7 +104,7 @@ define(function (require, exports, module) {
     
     // VIEW
     exports.CMD_THEMES_OPEN_SETTINGS    = "view.themesOpenSetting";     // MenuCommands.js              Settings.open()
-    exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";           // SidebarView.js               toggle()
+    exports.VIEW_HIDE_SIDEBAR           = "view.toggleSidebar";         // SidebarView.js               toggle()
     exports.VIEW_INCREASE_FONT_SIZE     = "view.increaseFontSize";      // ViewCommandHandlers.js       _handleIncreaseFontSize()
     exports.VIEW_DECREASE_FONT_SIZE     = "view.decreaseFontSize";      // ViewCommandHandlers.js       _handleDecreaseFontSize()
     exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";       // ViewCommandHandlers.js       _handleRestoreFontSize()
@@ -172,6 +172,10 @@ define(function (require, exports, module) {
     // ADD_TO_WORKING_SET is deprectated but we need a handler for it because the new command doesn't return the same result as the legacy command
     exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";       // Deprecated through DocumentCommandHandlers.js handleFileAddToWorkingSet
     
+    // Show or Hide sidebar
+    exports.HIDE_SIDEBAR                = "view.hideSidebar";           // SidebarView.js               hide()
+    exports.SHOW_SIDEBAR                = "view.showSidebar";           // SidebarView.js               show()
+
     // DEPRECATED: Working Set Commands
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_ADDED",   "CMD_WORKINGSET_SORT_BY_ADDED");
     DeprecationWarning.deprecateConstant(exports, "SORT_WORKINGSET_BY_NAME",    "CMD_WORKINGSET_SORT_BY_NAME");

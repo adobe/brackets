@@ -194,7 +194,7 @@ define({
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Cliquer tout en appuyant sur Ctrl/Cmd pour tout développer/tout réduire",
-	"FIND_IN_FILES_INDEXING": "Indexing for Instant Search\u2026",
+	"FIND_IN_FILES_INDEXING": "Indexation pour la recherche instantanée\u2026",
 	"REPLACE_IN_FILES_ERRORS_TITLE": "Erreurs de remplacement",
 	"REPLACE_IN_FILES_ERRORS": "Les fichiers suivants n’ont pas été traités car ils ont été modifiés après l’opération de recherche ou ne sont pas accessibles en écriture.",
 
@@ -252,11 +252,17 @@ define({
 	"SPLITVIEW_MULTIPANE_WARNING": "Ce fichier est déjà ouvert dans un autre volet. Il sera bientôt possible d’ouvrir un même fichier dans plusieurs volets de l’application {APP_NAME}, mais en attendant, vous ne pouvez consulter le fichier que dans le volet dans lequel il est déjà ouvert.<br /><br />(Ce message ne s’affichera qu’une fois.)",
 
     /**
-     * Keyboard modifier names
+     * Keyboard modifiers and special key names
      */
 	"KEYBOARD_CTRL": "Ctrl",
 	"KEYBOARD_SHIFT": "Maj",
 	"KEYBOARD_SPACE": "Espace",
+	"KEYBOARD_PAGE_UP": "Page précédente",
+	"KEYBOARD_PAGE_DOWN": "Page suivante",
+	"KEYBOARD_HOME": "Accueil",
+	"KEYBOARD_END": "Fin",
+	"KEYBOARD_INSERT": "Insérer",
+	"KEYBOARD_DELETE": "Supprimer",
 
     /**
      * StatusBar strings
@@ -594,7 +600,7 @@ define({
 	"CMD_RESTART_NODE": "Redémarrer le nœud",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "Afficher les erreurs dans la barre d’état",
 	"CMD_OPEN_BRACKETS_SOURCE": "Ouvrir la source de {APP_NAME}",
-    
+
 	"CREATING_LAUNCH_SCRIPT_TITLE": "Raccourci de ligne de commande {APP_NAME}",
 	"ERROR_CREATING_LAUNCH_SCRIPT": "Une erreur est survenue lors de l’installation du raccourci de ligne de commande. Essayez d’appliquer <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>ces suggestions pour résoudre le problème</a>.<br/><br/>Motif : {0}",
 	"ERROR_CLTOOLS_RMFAILED": "Impossible de supprimer le lien symbolique existant <code>/usr/local/bin/brackets</code>.",
@@ -658,7 +664,7 @@ define({
 	"EXPAND_ALL": "Développer tout",
 	"COLLAPSE_CURRENT": "Réduire l’élément actif",
 	"EXPAND_CURRENT": "Développer l’élément actif",
-    
+
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "vrai pour fermer automatiquement les accolades, les crochets et les parenthèses",
 	"DESCRIPTION_CLOSE_OTHERS_ABOVE": "faux pour supprimer l’option « Fermer les autres au-dessus » du menu contextuel Fichiers de travail",
@@ -675,6 +681,7 @@ define({
 	"DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL": "Limite le nombre de niveaux auquel s’applique l’option Réduire tout",
 	"DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE": "Nombre minimum de lignes pour qu’une icône de section réductible apparaisse",
 	"DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES": "vrai pour mémoriser les sections réduites si vous fermez et rouvrez un fichier ou un projet",
+	"DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "vrai pour activer le pliage de code sur le texte sélectionné dans l’éditeur",
 	"DESCRIPTION_ATTR_HINTS": "Activer/désactiver les indicateurs d’attribut HTML",
 	"DESCRIPTION_CSS_PROP_HINTS": "Activer/désactiver les indicateurs de propriété CSS/LESS/SCSS",
 	"DESCRIPTION_JS_HINTS": "Activer/désactiver les indicateurs de code JavaScript",
@@ -754,9 +761,9 @@ define({
 	"DESCRIPTION_USE_THEME_SCROLLBARS": "vrai pour autoriser les barres de défilement personnalisées",
 	"DESCRIPTION_LINTING_COLLAPSED": "vrai pour réduire le panneau d’analyse lint",
 	"DESCRIPTION_FONT_FAMILY": "Changer de famille de polices",
-	"DESCRIPTION_FONT_SIZE": "Change font size; e.g. 13px",
-	"DESCRIPTION_FIND_IN_FILES_NODE": "true to enable node based search",
-	"DESCRIPTION_FIND_IN_FILES_INSTANT": "true to enable instant search",
+	"DESCRIPTION_FONT_SIZE": "Modifier la taille de police, par ex. 13px",
+	"DESCRIPTION_FIND_IN_FILES_NODE": "vrai pour activer la recherche basée sur des nœuds",
+	"DESCRIPTION_FIND_IN_FILES_INSTANT": "vrai pour activer la recherche instantanée",
 	"DESCRIPTION_FONT_SMOOTHING": "Mac uniquement : « subpixel-antialiased » pour activer l’anticrénelage (lissage) des sous-pixels ou « antialiased » pour l’anticrénelage des niveaux de gris",
 	"DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW": "faux pour désactiver l’ouverture du fichier de préférences en mode fractionné",
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "faux pour ouvrir le fichier de préférences de l’utilisateur dans le volet gauche/supérieur",

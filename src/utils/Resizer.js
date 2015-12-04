@@ -54,6 +54,7 @@ define(function (require, exports, module) {
     var POSITION_BOTTOM = "bottom";
     var POSITION_LEFT = "left";
     var POSITION_RIGHT = "right";
+    var PREFS_PURE_CODE = "noDistractions";
 	
     // Minimum size (height or width) for autodiscovered resizable panels
     var DEFAULT_MIN_SIZE = 100;
@@ -61,12 +62,13 @@ define(function (require, exports, module) {
     // Load dependent modules
     var AppInit                 = require("utils/AppInit"),
         EventDispatcher         = require("utils/EventDispatcher"),
+        ViewUtils               = require("utils/ViewUtils"),
         PreferencesManager      = require("preferences/PreferencesManager");
     
     var $mainView;
     
     var isResizing = false;
-    
+
     /**
      * Shows a resizable element.
      * @param {DOMNode} element Html element to show if possible
@@ -222,6 +224,10 @@ define(function (require, exports, module) {
             
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
+
+        if (PreferencesManager.get(PREFS_PURE_CODE)) {
+            elementPrefs.visible = false;
+        }
 
         if (!elementID) {
             console.error("Resizable panels must have a DOM id to use as a preferences key:", element);
@@ -527,6 +533,11 @@ define(function (require, exports, module) {
                 makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, minSize, $(element).hasClass("collapsible"), $(element).data().forceleft);
             }
         });
+
+        // The main toolbar is only collapsible.
+        if ($("#main-toolbar").hasClass("collapsible") && PreferencesManager.get(PREFS_PURE_CODE)) {
+            ViewUtils.hideMainToolBar();
+        }
     });
     
     /**
@@ -544,9 +555,9 @@ define(function (require, exports, module) {
         
         return null;
     }
-    
+
     PreferencesManager.convertPreferences(module, {"panelState": "user"}, true, _isPanelPreferences);
-    
+
     EventDispatcher.makeEventDispatcher(exports);
     
     exports.makeResizable   = makeResizable;
