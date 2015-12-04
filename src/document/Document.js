@@ -205,12 +205,17 @@ define(function (require, exports, module) {
             if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
                 this._associatedFullEditors.push(this._masterEditor);
             }
+        } else {
+            this._associatedFullEditors.push(masterEditor);
         }
         
         this._text = null;
         this._masterEditor = masterEditor;
         
-        masterEditor.on("change", this._handleEditorChange.bind(this));
+        // Keep the change listner bound to this doc instance so that we can call off while toggling master editor
+        this._handleEditorChange = this._handleEditorChange.bind(this);
+        
+        masterEditor.on("change", this._handleEditorChange);
     };
     
     /**
@@ -453,6 +458,11 @@ define(function (require, exports, module) {
      * @private
      */
     Document.prototype._handleEditorChange = function (event, editor, changeList) {
+        // Handle editor change event only when it is originated from the master editor for this doc
+        if (this._masterEditor !== editor) {
+            return;
+        }
+        
         // TODO: This needs to be kept in sync with SpecRunnerUtils.createMockActiveDocument(). In the
         // future, we should fix things so that we either don't need mock documents or that this
         // is factored so it will just run in both.
