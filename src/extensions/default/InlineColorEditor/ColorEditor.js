@@ -171,8 +171,8 @@ define(function (require, exports, module) {
         
         // Update gradients in color square & opacity slider
         this.$selectionBase.css("background-color", colorObject.toHexString());
-        this.$opacityGradient.css("background-image", "-webkit-gradient(linear, 0% 0%, 0% 100%, from(" + hueColor + "), to(transparent))");
-        
+        this.$opacityGradient.css("background-image", "linear-gradient(to bottom, " + hueColor + " 0%, rgba(0,0,0,0) 100%)");
+
         // Update slider thumb positions
         this.$hueSelector.css("bottom", (this._hsv.h / 360 * 100) + "%");
         this.$opacitySelector.css("bottom", (this._hsv.a * 100) + "%");
