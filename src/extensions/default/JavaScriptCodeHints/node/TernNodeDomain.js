@@ -39,28 +39,14 @@ var config = {};
     var Tern = require("./node_modules/tern/lib/tern"),
         Infer = require("./node_modules/tern/lib/infer");
     
+    var ExtractContent = require("./ExtractFileContent");
+    
     var ternServer  = null,
         inferenceTimeout;
 
     // Save the tern callbacks for when we get the contents of the file
     var fileCallBacks = {};
-
-    /**
-     * Provide the contents of the requested file to tern
-     * @param {string} name - the name of the file
-     * @param {Function} next - the function to call with the text of the file
-     *  once it has been read in.
-     */
-    function getFile(name, next) {
-        // save the callback
-        fileCallBacks[name] = next;
-        // post a message back to the main thread to get the file contents 
-        self.postMessage({
-            type: MessageIds.TERN_GET_FILE_MSG,
-            file: name
-        });
-    }
-
+    
     /**
      * Send a log message back from the node to the main thread
      * @private
@@ -86,7 +72,7 @@ var config = {};
             _log("Error thrown in tern_node domain:" + e.message + "\n" + e.stack);
         }
     }
-
+    
     /**
      * Handle a response from the main thread providing the contents of a file
      * @param {string} file - the name of the file
@@ -102,6 +88,29 @@ var config = {};
             }
         }
         delete fileCallBacks[file];
+    }
+    
+    /**
+     * Callback handle to request contents of a file from the main thread
+     * @param {string} file - the name of the file
+     */
+    function _requestFileContent(name) {
+        self.postMessage({
+            type: MessageIds.TERN_GET_FILE_MSG,
+            file: name
+        });
+    }
+
+    /**
+     * Provide the contents of the requested file to tern
+     * @param {string} name - the name of the file
+     * @param {Function} next - the function to call with the text of the file
+     *  once it has been read in.
+     */
+    function getFile(name, next) {
+        // save the callback
+        fileCallBacks[name] = next;
+        ExtractContent.extractContent(name, handleGetFile, _requestFileContent);
     }
 
     /**
@@ -724,6 +733,10 @@ var config = {};
             handleUpdateFile(request.path, request.text);
         } else if (type === MessageIds.SET_CONFIG) {
             setConfig(request.config);
+        } else if (type === MessageIds.TERN_UPDATE_DIRTY_FILE) {
+            ExtractContent.updateFilesCache(request.name, request.action);
+        } else if (type === MessageIds.TERN_CLEAR_DIRTY_FILES_LIST) {
+            ExtractContent.clearFilesCache();
         } else {
             _log("Unknown message: " + JSON.stringify(request));
         }

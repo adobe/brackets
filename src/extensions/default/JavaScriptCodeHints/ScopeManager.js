@@ -757,6 +757,23 @@ define(function (require, exports, module) {
             ]
         );
     }
+    
+    DocumentManager.on("dirtyFlagChange", function (event, changedDoc) {
+        if (changedDoc.file.fullPath) {
+            postMessage({
+                type: MessageIds.TERN_UPDATE_DIRTY_FILE,
+                name: changedDoc.file.fullPath,
+                action: changedDoc.isDirty
+            });
+        }
+    });
+
+    // Clear dirty document list in tern node domain
+    ProjectManager.on("beforeProjectClose", function () {
+        postMessage({
+            type: MessageIds.TERN_CLEAR_DIRTY_FILES_LIST
+        });
+    });
 
     /**
      * Encapsulate all the logic to talk to the tern module.  This will create
