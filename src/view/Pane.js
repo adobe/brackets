@@ -1110,8 +1110,11 @@ define(function (require, exports, module) {
         } else {
             this._views[path] = view;
         }
-
-        view.markPaneId(this.id);
+        
+        // Ensure that we don't endup marking the custom views
+        if (view.markPaneId) {
+            view.markPaneId(this.id);
+        }
         
         if (show) {
             this.showView(view);
