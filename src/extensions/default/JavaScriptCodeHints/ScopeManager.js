@@ -1092,6 +1092,8 @@ define(function (require, exports, module) {
                         handleUpdateFile(response);
                     } else if (type === MessageIds.TERN_INFERENCE_TIMEDOUT) {
                         handleTimedOut(response);
+                    } else if (type === MessageIds.TERN_WORKER_READY) {
+                        moduleDeferred.resolveWith(null, [_ternNodeDomain]);
                     } else {
                         console.log("Tern Module: " + (response.log || response));
                     }
@@ -1183,6 +1185,10 @@ define(function (require, exports, module) {
     
                 isDocumentDirty = false;
                 return;
+            }
+            
+            if (previousDocument && previousDocument.isDirty) {
+                updateTernFile(previousDocument);
             }
     
             isDocumentDirty = false;

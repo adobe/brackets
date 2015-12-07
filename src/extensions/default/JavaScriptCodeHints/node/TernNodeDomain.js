@@ -148,6 +148,10 @@ var config = {};
         // If a server is already created just reset the analysis data 
         if (ternServer) {
             ternServer.reset();
+            ternServer.flush();
+            Infer.resetGuessing();
+            // tell the main thread we're ready to start processing again
+            self.postMessage({type: MessageIds.TERN_WORKER_READY});
         }
     }
 
@@ -664,6 +668,7 @@ var config = {};
 
         // reset to get the best hints with the updated file.
         ternServer.reset();
+        Infer.resetGuessing();
     }
 
     /**
