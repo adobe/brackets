@@ -272,19 +272,22 @@ define(function (require, exports, module) {
     
                 $hintObj.data("token", token);
                 
+                function _appendLink() {
+                    if (token.url) {
+                        $('<a><&nbsp;></a>').appendTo($hintObj).addClass("jshint-link").attr('href', token.url).on("click", function (event) {
+                            event.stopImmediatePropagation();
+                            event.stopPropagation();
+                        });
+                    }
+                }
+                
                 if (token.type) {
                     if (token.type.length > 40) {
-                        if (token.url) {
-                            $('<a>' + " " + token.type.split('->').join(':').trim() + '</a>').appendTo($hintObj).addClass("jshint-description").attr('href', token.url);
-                        } else {
-                            $('<span>' + " " + token.type.split('->').join(':').trim() + '</span>').appendTo($hintObj).addClass("jshint-description");
-                        }
+                        _appendLink();
+                        $('<span>' + " " + token.type.split('->').join(':').trim() + '</span>').appendTo($hintObj).addClass("jshint-description");
                     } else {
-                        if (token.url) {
-                            $('<a>' + " " + token.type.split('->').join(':').trim() + '</a>').appendTo($hintObj).addClass("brackets-js-hints-type-details").attr('href', token.url);
-                        } else {
-                            $('<span>' + " " + token.type.split('->').join(':').trim() + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
-                        }
+                        $('<span>' + " " + token.type.split('->').join(':').trim() + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
+                        _appendLink();
                     }
                 } else {
                     if (token.keyword) {
@@ -294,6 +297,7 @@ define(function (require, exports, module) {
                 
                 if (token.doc) {
                     $hintObj.attr('title', token.doc);
+                    $('<span>' + " " + token.doc.trim() + '</span>').appendTo($hintObj).addClass("jshint-jsdoc");
                 }
                 
                 $('<div class="hint-width-limiter"></div>').appendTo($hintObj);
