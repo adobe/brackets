@@ -58,7 +58,7 @@
     function extractContent(fileName, callback, extractFromMainContext) {
         if (_dirtyFilesCache.indexOf(fileName) !== -1) {
             // Ask the main thread context to provide the updated file content
-            extractFromMainContext.apply(fileName);
+            extractFromMainContext.apply(null, [fileName]);
             console.log("File read from main thread ", fileName);
         } else {
             _readFile(fileName, callback);

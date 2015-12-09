@@ -22,6 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, node: true, regexp: true */
+/*global setImmediate */
 
 var config = {};
 
@@ -110,7 +111,14 @@ var config = {};
     function getFile(name, next) {
         // save the callback
         fileCallBacks[name] = next;
-        ExtractContent.extractContent(name, handleGetFile, _requestFileContent);
+        
+        setImmediate(function () {
+            try {
+                ExtractContent.extractContent(name, handleGetFile, _requestFileContent);
+            } catch (error) {
+                console.log(error);
+            }
+        });
     }
 
     /**
@@ -701,7 +709,7 @@ var config = {};
         config = configUpdate;
     }
 
-    function invokeTernCommand(commandConfig) {
+    function _requestTernServer(commandConfig) {
         var file, text, offset,
             request = commandConfig,
             type = request.type;
@@ -744,6 +752,14 @@ var config = {};
             ExtractContent.clearFilesCache();
         } else {
             _log("Unknown message: " + JSON.stringify(request));
+        }
+    }
+
+    function invokeTernCommand(commandConfig) {
+        try {
+            _requestTernServer(commandConfig);
+        } catch (error) {
+            console.warn(error);
         }
     }
 
