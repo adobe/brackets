@@ -26,8 +26,10 @@
 (function () {
     "use strict";
     
-    var WebSocketServer = require("ws").Server,
-        _ = require("lodash");
+    var WebSocketServer = require("ws").Server;
+    var _ = {
+        find: require("lodash.find")
+    };
     
     /**
      * @private

@@ -8,13 +8,14 @@ var util = require('util')
   , Validation = require('./Validation').Validation
   , ErrorCodes = require('./ErrorCodes')
   , BufferPool = require('./BufferPool')
-  , bufferUtil = require('./BufferUtil').BufferUtil;
+  , bufferUtil = require('./BufferUtil').BufferUtil
+  , PerMessageDeflate = require('./PerMessageDeflate');
 
 /**
  * HyBi Receiver implementation
  */
 
-function Receiver () {
+function Receiver (extensions) {
   // memory pool for fragmented messages
   var fragmentedPoolPrevUsed = -1;
   this.fragmentedBufferPool = new BufferPool(1024, function(db, length) {
@@ -35,6 +36,7 @@ function Receiver () {
       db.used;
   });
 
+  this.extensions = extensions || {};
   this.state = {
     activeFragmentedOperation: null,
     lastFragment: false,
@@ -48,8 +50,10 @@ function Receiver () {
   this.expectBuffer = null;
   this.expectHandler = null;
   this.currentMessage = [];
+  this.messageHandlers = [];
   this.expectHeader(2, this.processPacket);
   this.dead = false;
+  this.processing = false;
 
   this.onerror = function() {};
   this.ontext = function() {};
@@ -177,14 +181,26 @@ Receiver.prototype.allocateFromPool = function(length, isFragmented) {
  */
 
 Receiver.prototype.processPacket = function (data) {
-  if ((data[0] & 0x70) != 0) {
-    this.error('reserved fields must be empty', 1002);
-    return;
+  if (this.extensions[PerMessageDeflate.extensionName]) {
+    if ((data[0] & 0x30) != 0) {
+      this.error('reserved fields (2, 3) must be empty', 1002);
+      return;
+    }
+  } else {
+    if ((data[0] & 0x70) != 0) {
+      this.error('reserved fields must be empty', 1002);
+      return;
+    }
   }
   this.state.lastFragment = (data[0] & 0x80) == 0x80;
   this.state.masked = (data[1] & 0x80) == 0x80;
+  var compressed = (data[0] & 0x40) == 0x40;
   var opcode = data[0] & 0xf;
   if (opcode === 0) {
+    if (compressed) {
+      this.error('continuation frame cannot have the Per-message Compressed bits', 1002);
+      return;
+    }
     // continuation frame
     this.state.fragmentedOperation = true;
     this.state.opcode = this.state.activeFragmentedOperation;
@@ -198,6 +214,11 @@ Receiver.prototype.processPacket = function (data) {
       this.error('data frames after the initial data frame must have opcode 0', 1002);
       return;
     }
+    if (opcode >= 8 && compressed) {
+      this.error('control frames cannot have the Per-message Compressed bits', 1002);
+      return;
+    }
+    this.state.compressed = compressed;
     this.state.opcode = opcode;
     if (this.state.lastFragment === false) {
       this.state.fragmentedOperation = true;
@@ -256,6 +277,7 @@ Receiver.prototype.reset = function() {
   this.expectHandler = null;
   this.overflow = [];
   this.currentMessage = [];
+  this.messageHandlers = [];
 };
 
 /**
@@ -297,6 +319,49 @@ Receiver.prototype.error = function (reason, protocolErrorCode) {
 };
 
 /**
+ * Execute message handler buffers
+ *
+ * @api private
+ */
+
+Receiver.prototype.flush = function() {
+  if (this.processing || this.dead) return;
+
+  var handler = this.messageHandlers.shift();
+  if (!handler) return;
+
+  this.processing = true;
+  var self = this;
+
+  handler(function() {
+    self.processing = false;
+    self.flush();
+  });
+};
+
+/**
+ * Apply extensions to message
+ *
+ * @api private
+ */
+
+Receiver.prototype.applyExtensions = function(messageBuffer, fin, compressed, callback) {
+  var self = this;
+  if (compressed) {
+    this.extensions[PerMessageDeflate.extensionName].decompress(messageBuffer, fin, function(err, buffer) {
+      if (self.dead) return;
+      if (err) {
+        callback(new Error('invalid compressed data'));
+        return;
+      }
+      callback(null, buffer);
+    });
+  } else {
+    callback(null, messageBuffer);
+  }
+};
+
+/**
  * Buffer utilities
  */
 
@@ -332,6 +397,16 @@ function fastCopy(length, srcBuffer, dstBuffer, dstOffset) {
     case 2: dstBuffer[dstOffset+1] = srcBuffer[1];
     case 1: dstBuffer[dstOffset] = srcBuffer[0];
   }
+}
+
+function clone(obj) {
+  var cloned = {};
+  for (var k in obj) {
+    if (obj.hasOwnProperty(k)) {
+      cloned[k] = obj[k];
+    }
+  }
+  return cloned;
 }
 
 /**
@@ -380,17 +455,27 @@ var opcodes = {
       }
     },
     finish: function(mask, data) {
-      var packet = this.unmask(mask, data, true);
-      if (packet != null) this.currentMessage.push(packet);
-      if (this.state.lastFragment) {
-        var messageBuffer = this.concatBuffers(this.currentMessage);
-        if (!Validation.isValidUTF8(messageBuffer)) {
-          this.error('invalid utf8 sequence', 1007);
-          return;
-        }
-        this.ontext(messageBuffer.toString('utf8'), {masked: this.state.masked, buffer: messageBuffer});
-        this.currentMessage = [];
-      }
+      var self = this;
+      var packet = this.unmask(mask, data, true) || new Buffer(0);
+      var state = clone(this.state);
+      this.messageHandlers.push(function(callback) {
+        self.applyExtensions(packet, state.lastFragment, state.compressed, function(err, buffer) {
+          if (err) return self.error(err.message, 1007);
+          if (buffer != null) self.currentMessage.push(buffer);
+
+          if (state.lastFragment) {
+            var messageBuffer = self.concatBuffers(self.currentMessage);
+            self.currentMessage = [];
+            if (!Validation.isValidUTF8(messageBuffer)) {
+              self.error('invalid utf8 sequence', 1007);
+              return;
+            }
+            self.ontext(messageBuffer.toString('utf8'), {masked: state.masked, buffer: messageBuffer});
+          }
+          callback();
+        });
+      });
+      this.flush();
       this.endPacket();
     }
   },
@@ -435,13 +520,22 @@ var opcodes = {
       }
     },
     finish: function(mask, data) {
-      var packet = this.unmask(mask, data, true);
-      if (packet != null) this.currentMessage.push(packet);
-      if (this.state.lastFragment) {
-        var messageBuffer = this.concatBuffers(this.currentMessage);
-        this.onbinary(messageBuffer, {masked: this.state.masked, buffer: messageBuffer});
-        this.currentMessage = [];
-      }
+      var self = this;
+      var packet = this.unmask(mask, data, true) || new Buffer(0);
+      var state = clone(this.state);
+      this.messageHandlers.push(function(callback) {
+        self.applyExtensions(packet, state.lastFragment, state.compressed, function(err, buffer) {
+          if (err) return self.error(err.message, 1007);
+          if (buffer != null) self.currentMessage.push(buffer);
+          if (state.lastFragment) {
+            var messageBuffer = self.concatBuffers(self.currentMessage);
+            self.currentMessage = [];
+            self.onbinary(messageBuffer, {masked: state.masked, buffer: messageBuffer});
+          }
+          callback();
+        });
+      });
+      this.flush();
       this.endPacket();
     }
   },
@@ -482,26 +576,31 @@ var opcodes = {
     finish: function(mask, data) {
       var self = this;
       data = self.unmask(mask, data, true);
-      if (data && data.length == 1) {
-        self.error('close packets with data must be at least two bytes long', 1002);
-        return;
-      }
-      var code = data && data.length > 1 ? readUInt16BE.call(data, 0) : 1000;
-      if (!ErrorCodes.isValidErrorCode(code)) {
-        self.error('invalid error code', 1002);
-        return;
-      }
-      var message = '';
-      if (data && data.length > 2) {
-        var messageBuffer = data.slice(2);
-        if (!Validation.isValidUTF8(messageBuffer)) {
-          self.error('invalid utf8 sequence', 1007);
+
+      var state = clone(this.state);
+      this.messageHandlers.push(function() {
+        if (data && data.length == 1) {
+          self.error('close packets with data must be at least two bytes long', 1002);
           return;
         }
-        message = messageBuffer.toString('utf8');
-      }
-      this.onclose(code, message, {masked: self.state.masked});
-      this.reset();
+        var code = data && data.length > 1 ? readUInt16BE.call(data, 0) : 1000;
+        if (!ErrorCodes.isValidErrorCode(code)) {
+          self.error('invalid error code', 1002);
+          return;
+        }
+        var message = '';
+        if (data && data.length > 2) {
+          var messageBuffer = data.slice(2);
+          if (!Validation.isValidUTF8(messageBuffer)) {
+            self.error('invalid utf8 sequence', 1007);
+            return;
+          }
+          message = messageBuffer.toString('utf8');
+        }
+        self.onclose(code, message, {masked: state.masked});
+        self.reset();
+      });
+      this.flush();
     },
   },
   // ping
@@ -539,7 +638,14 @@ var opcodes = {
       }
     },
     finish: function(mask, data) {
-      this.onping(this.unmask(mask, data, true), {masked: this.state.masked, binary: true});
+      var self = this;
+      data = this.unmask(mask, data, true);
+      var state = clone(this.state);
+      this.messageHandlers.push(function(callback) {
+        self.onping(data, {masked: state.masked, binary: true});
+        callback();
+      });
+      this.flush();
       this.endPacket();
     }
   },
@@ -578,7 +684,14 @@ var opcodes = {
       }
     },
     finish: function(mask, data) {
-      this.onpong(this.unmask(mask, data, true), {masked: this.state.masked, binary: true});
+      var self = this;
+      data = self.unmask(mask, data, true);
+      var state = clone(this.state);
+      this.messageHandlers.push(function(callback) {
+        self.onpong(data, {masked: state.masked, binary: true});
+        callback();
+      });
+      this.flush();
       this.endPacket();
     }
   }

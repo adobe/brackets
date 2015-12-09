@@ -4,13 +4,13 @@
   "version": "1.2.0",
   "dependencies": {
     "decompress-zip": "0.0.2",
-    "semver": "2.x",
     "fs-extra": "0.6.x",
-    "async": "0.2.x",
     "request": "2.27.x",
+    "semver": "2.x",
     "temp": "~0.6.0"
   },
   "devDependencies": {
+    "async": "0.2.x",
     "rewire": "1.1.x"
   }
 }

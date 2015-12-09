@@ -1,5 +1,21 @@
 language: node_js
 npm_args: --ws:native
 node_js:
-  - "0.8"
+  - "0.12"
+  - "0.11"
   - "0.10"
+  - "0.9"
+  - "0.8"
+  - "iojs-v1.1"
+  - "iojs-v1.0"
+  - "iojs-v2.0"
+before_install:
+  - "npm install -g npm@2.1.18"
+matrix:
+  fast_finish: true
+  allow_failures:
+    - node_js: "0.11"
+    - node_js: "0.9"
+    - node_js: "iojs-v1.1"
+    - node_js: "iojs-v1.0"
+    - node_js: "iojs-v2.0"

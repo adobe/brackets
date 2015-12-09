@@ -8,15 +8,22 @@ var events = require('events')
   , util = require('util')
   , EventEmitter = events.EventEmitter
   , ErrorCodes = require('./ErrorCodes')
-  , bufferUtil = require('./BufferUtil').BufferUtil;
+  , bufferUtil = require('./BufferUtil').BufferUtil
+  , PerMessageDeflate = require('./PerMessageDeflate');
 
 /**
  * HyBi Sender implementation
  */
 
-function Sender(socket) {
+function Sender(socket, extensions) {
+  events.EventEmitter.call(this);
+
   this._socket = socket;
+  this.extensions = extensions || {};
   this.firstFragment = true;
+  this.compress = false;
+  this.messageHandlers = [];
+  this.processing = false;
 }
 
 /**
@@ -31,7 +38,7 @@ util.inherits(Sender, events.EventEmitter);
  * @api public
  */
 
-Sender.prototype.close = function(code, data, mask) {
+Sender.prototype.close = function(code, data, mask, cb) {
   if (typeof code !== 'undefined') {
     if (typeof code !== 'number' ||
       !ErrorCodes.isValidErrorCode(code)) throw new Error('first argument must be a valid error code number');
@@ -40,7 +47,14 @@ Sender.prototype.close = function(code, data, mask) {
   var dataBuffer = new Buffer(2 + (data ? Buffer.byteLength(data) : 0));
   writeUInt16BE.call(dataBuffer, code, 0);
   if (dataBuffer.length > 2) dataBuffer.write(data, 2);
-  this.frameAndSend(0x8, dataBuffer, true, mask);
+
+  var self = this;
+  this.messageHandlers.push(function(callback) {
+    self.frameAndSend(0x8, dataBuffer, true, mask);
+    callback();
+    if (typeof cb == 'function') cb();
+  });
+  this.flush();
 };
 
 /**
@@ -51,7 +65,12 @@ Sender.prototype.close = function(code, data, mask) {
 
 Sender.prototype.ping = function(data, options) {
   var mask = options && options.mask;
-  this.frameAndSend(0x9, data || '', true, mask);
+  var self = this;
+  this.messageHandlers.push(function(callback) {
+    self.frameAndSend(0x9, data || '', true, mask);
+    callback();
+  });
+  this.flush();
 };
 
 /**
@@ -62,7 +81,12 @@ Sender.prototype.ping = function(data, options) {
 
 Sender.prototype.pong = function(data, options) {
   var mask = options && options.mask;
-  this.frameAndSend(0xa, data || '', true, mask);
+  var self = this;
+  this.messageHandlers.push(function(callback) {
+    self.frameAndSend(0xa, data || '', true, mask);
+    callback();
+  });
+  this.flush();
 };
 
 /**
@@ -74,11 +98,32 @@ Sender.prototype.pong = function(data, options) {
 Sender.prototype.send = function(data, options, cb) {
   var finalFragment = options && options.fin === false ? false : true;
   var mask = options && options.mask;
+  var compress = options && options.compress;
   var opcode = options && options.binary ? 2 : 1;
-  if (this.firstFragment === false) opcode = 0;
-  else this.firstFragment = false;
+  if (this.firstFragment === false) {
+    opcode = 0;
+    compress = false;
+  } else {
+    this.firstFragment = false;
+    this.compress = compress;
+  }
   if (finalFragment) this.firstFragment = true
-  this.frameAndSend(opcode, data, finalFragment, mask, cb);
+
+  var compressFragment = this.compress;
+
+  var self = this;
+  this.messageHandlers.push(function(callback) {
+    self.applyExtensions(data, finalFragment, compressFragment, function(err, data) {
+      if (err) {
+        if (typeof cb == 'function') cb(err);
+        else self.emit('error', err);
+        return;
+      }
+      self.frameAndSend(opcode, data, finalFragment, mask, compress, cb);
+      callback();
+    });
+  });
+  this.flush();
 };
 
 /**
@@ -87,7 +132,7 @@ Sender.prototype.send = function(data, options, cb) {
  * @api private
  */
 
-Sender.prototype.frameAndSend = function(opcode, data, finalFragment, maskData, cb) {
+Sender.prototype.frameAndSend = function(opcode, data, finalFragment, maskData, compressed, cb) {
   var canModifyData = false;
 
   if (!data) {
@@ -127,6 +172,7 @@ Sender.prototype.frameAndSend = function(opcode, data, finalFragment, maskData, 
   var totalLength = mergeBuffers ? dataLength + dataOffset : dataOffset;
   var outputBuffer = new Buffer(totalLength);
   outputBuffer[0] = finalFragment ? opcode | 0x80 : opcode;
+  if (compressed) outputBuffer[0] |= 0x40;
 
   switch (secondByte) {
     case 126:
@@ -188,6 +234,42 @@ Sender.prototype.frameAndSend = function(opcode, data, finalFragment, maskData, 
         else this.emit('error', e);
       }
     }
+  }
+};
+
+/**
+ * Execute message handler buffers
+ *
+ * @api private
+ */
+
+Sender.prototype.flush = function() {
+  if (this.processing) return;
+
+  var handler = this.messageHandlers.shift();
+  if (!handler) return;
+
+  this.processing = true;
+
+  var self = this;
+
+  handler(function() {
+    self.processing = false;
+    self.flush();
+  });
+};
+
+/**
+ * Apply extensions to message
+ *
+ * @api private
+ */
+
+Sender.prototype.applyExtensions = function(data, fin, compress, callback) {
+  if (compress && data) {
+    this.extensions[PerMessageDeflate.extensionName].compress(data, fin, callback);
+  } else {
+    callback(null, data);
   }
 };
 
