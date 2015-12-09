@@ -71,11 +71,6 @@ define(function (require, exports, module) {
     // extensions need these to be required up front. We need a better solution for this eventually.
     require("utils/ExtensionUtils");
     
-    // Also load compatibility shims for now, in case legacy extensions are still using old file APIs
-    require("project/FileIndexManager");
-    require("file/NativeFileSystem");
-    require("file/NativeFileError");
-    
     // Load both top-level suites. Filtering is applied at the top-level as a filter to BootstrapReporter.
     require("test/UnitTestSuite");
     require("test/PerformanceTestSuite");

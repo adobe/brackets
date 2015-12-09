@@ -271,8 +271,9 @@ define(function (require, exports, module) {
     _cmdSplitVertical   = CommandManager.register(Strings.CMD_SPLITVIEW_VERTICAL,   Commands.CMD_SPLITVIEW_VERTICAL,   _handleSplitViewVertical);
     _cmdSplitHorizontal = CommandManager.register(Strings.CMD_SPLITVIEW_HORIZONTAL, Commands.CMD_SPLITVIEW_HORIZONTAL, _handleSplitViewHorizontal);
     
-    CommandManager.register(Strings.CMD_HIDE_SIDEBAR, Commands.VIEW_HIDE_SIDEBAR, toggle);
-    
+    CommandManager.register(Strings.CMD_TOGGLE_SIDEBAR, Commands.VIEW_HIDE_SIDEBAR, toggle);
+    CommandManager.register(Strings.CMD_SHOW_SIDEBAR, Commands.SHOW_SIDEBAR, show);
+    CommandManager.register(Strings.CMD_HIDE_SIDEBAR, Commands.HIDE_SIDEBAR, hide);
     
     // Define public API
     exports.toggle      = toggle;

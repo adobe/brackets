@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global jasmine, define, describe, beforeEach, it, expect */
+/*global jasmine, define, describe, beforeEach, it, expect, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -428,6 +428,28 @@ define(function (require, exports, module) {
             dispatcher.trigger("foo");
             expect(fn1).toHaveBeenCalled();
             expect(fn2).toHaveBeenCalled();
+        });
+        
+        
+        it("on() should print warnings when too many listeners attached", function () {
+            function makeStubListener() {  // avoids JSLint "don't make functions in a loop" complaint
+                return function () {};
+            }
+            
+            spyOn(console, "error");
+            var i;
+            for (i = 0; i < 15; i++) {
+                dispatcher.on("foo", makeStubListener());
+            }
+            expect(console.error).not.toHaveBeenCalled();
+            
+            // Prints warnings when number of listeners exceeds 15
+            dispatcher.on("foo", fn1);
+            expect(console.error).toHaveBeenCalled();
+            
+            // ...but still attaches listener anyway
+            dispatcher.trigger("foo");
+            expect(fn1).toHaveBeenCalled();
         });
     });
 });

@@ -60,7 +60,6 @@ define({
     "ERROR_DELETING_FILE"               : "Nastala chyba pri zmazaní súboru <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Neplatný {0} názov",
     "INVALID_FILENAME_MESSAGE"          : "Názvy súboru nesmú obsahovať nasledujúce znaky: {0} alebo používať rezervované systémové slová.",
-    "FILE_ALREADY_EXISTS"               : "Súbor {0} <span class='dialog-filename'>{1}</span> už existuje.",
     "ERROR_CREATING_FILE_TITLE"         : "Chyba pri vytváraní súboru {0}",
     "ERROR_CREATING_FILE"               : "Nastala chyba pri vytváraní súboru {0} <span class='dialog-filename'>{1}</span>. {2}",
 
@@ -110,13 +109,8 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> bol zmazaný z disku, ale zmeny sa neuložili v {APP_NAME}.<br /><br />Chcete uložiť zmeny?",
     
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Použite /re/ syntax pre regexp vyhľadávanie",
-    "FIND_RESULT_COUNT"                 : "{0} výsledkov",
-    "WITH"                              : "S",
     "BUTTON_YES"                        : "Áno",
     "BUTTON_NO"                         : "Nie",
-    "BUTTON_ALL"                        : "Všetko",
-    "BUTTON_STOP"                       : "Stop",
     "BUTTON_REPLACE"                    : "Nahradiť",
 
     "OPEN_FILE"                         : "Otvoriť súbor",
@@ -127,9 +121,6 @@ define({
     "NO_UPDATE_TITLE"                   : "Všetko je aktuálne!",
     "NO_UPDATE_MESSAGE"                 : "Máte najnovšiu verziu {APP_NAME}.",
 
-    "FIND_REPLACE_TITLE"                : "Nahradiť \"{0}\" s \"{1}\" &mdash; {3} {2} zhodami",
-
-    "FIND_IN_FILES_TITLE"               : "\"{4}\" nájdený {5} &mdash; {0} {1} v {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "v <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "v projekte",
     "FIND_IN_FILES_FILE"                : "súbor",
@@ -138,10 +129,7 @@ define({
     "FIND_IN_FILES_MATCHES"             : "zhody",
     "FIND_IN_FILES_MORE_THAN"           : "Cez ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Menej</a>",
-    "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>Viac</a>",
     "FIND_IN_FILES_FILE_PATH"           : "Súbor: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_LINE"                : "riadok: {0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Problém pri získavaní informácií o aktualizácii",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nastal problém pri získavaní aktuálnych informácií zo servera. Prosím uistite sa, že ste pripojený do internetu a skúste znovu.",
@@ -246,10 +234,10 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Čísla riadkov",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýrazniť aktívny riadok",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomenie riadkov",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Usporiadať podľa dátumu",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Usporiadať podľa mena",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Usporiadať podľa typu",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatické usporiadanie",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Usporiadať podľa dátumu",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Usporiadať podľa mena",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Usporiadať podľa typu",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatické usporiadanie",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigácia",
@@ -269,18 +257,10 @@ define({
     "HELP_MENU"                           : "Nápoveda",
     "CMD_CHECK_FOR_UPDATE"                : "Skontrolovať aktualizácie",
     "CMD_HOW_TO_USE_BRACKETS"             : "Ako používať {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME} fórum",
     "CMD_RELEASE_NOTES"                   : "Poznámky o verzii",
-    "CMD_REPORT_AN_ISSUE"                 : "Nahlásiť problém",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobraziť priečinok s doplnkami",
     "CMD_TWITTER"                         : "{TWITTER_NAME} na Twitteri",
     "CMD_ABOUT"                           : "O {APP_TITLE}",
-
-
-    // Špeciálne príkazy spúšťané pomocou natívneho shellu
-    "CMD_CLOSE_WINDOW"                    : "Zatvoriť okno",
-    "CMD_ABORT_QUIT"                      : "Zrusiť ukončenie",
-    "CMD_BEFORE_MENUPOPUP"                : "Before Menu Popup",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentálna verzia",
@@ -379,11 +359,6 @@ define({
     "UNDO_REMOVE"                          : "Späť",
     "MARKED_FOR_UPDATE"                    : "Označené pre aktualizáciu",
     "UNDO_UPDATE"                          : "Späť",
-    "CHANGE_AND_QUIT_TITLE"                : "Zmeniť doplnky",
-    "CHANGE_AND_QUIT_MESSAGE"              : "Pre aktualizáciu alebo odstránenie označených doplnkov musíte ukončiť a reštartovať {APP_NAME}. Budete vyzvaný k uloženiu zmien.",
-    "REMOVE_AND_QUIT"                      : "Odstrániť doplnky a skončiť",
-    "CHANGE_AND_QUIT"                      : "Zmeniť doplnky a skončiť",
-    "UPDATE_AND_QUIT"                      : "Aktualizovať doplnky a skončiť",
     "EXTENSION_NOT_INSTALLED"              : "Nie je možné odstrániť doplnok {0}, pretože nebol nainštalovaný",
     "NO_EXTENSIONS"                        : "Nie sú nainštalované žiadne doplnky.<br>Click on the Available tab above to get started.",
     "NO_EXTENSION_MATCHES"                 : "Nenašiel sa žiadny doplnok.",
@@ -429,15 +404,6 @@ define({
     "CMD_JUMPTO_DEFINITION"                     : "Prejsť na definíciu",
     "CMD_SHOW_PARAMETER_HINT"                   : "Ukázať pomôcku parametra",
     "NO_ARGUMENTS"                              : "<žiadne parametre>",
-
-    // extensions/default/JSLint
-    "CMD_JSLINT"                                : "Povoliť JSLint",
-    "CMD_JSLINT_FIRST_ERROR"                    : "Prejsť na prvú JSLint chybu",
-    "JSLINT_ERRORS"                             : "JSLint chyby",
-    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint chyba",
-    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint chýb",
-    "JSLINT_NO_ERRORS"                          : "Žiadne JSLint chyby - dobrá práca!",
-    "JSLINT_DISABLED"                           : "JSLint je vypnutý, alebo nefunguje s týmto súborom.",
     
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Rýchly náhľad",
