@@ -53,7 +53,9 @@ define(function (require, exports, module) {
     var lastTypedTime = 0,
         currentTime = 0,
         intervalId = 0,
-        lastQueriedText = "";
+        lastQueriedText = "",
+        lastTypedText = "",
+        lastKeyCode;
 
     /**
      * @constructor
@@ -92,6 +94,7 @@ define(function (require, exports, module) {
         this._closed = false;
         this._enabled = true;
         this.lastQueriedText = "";
+        this.lastTypedText = "";
     }
     EventDispatcher.makeEventDispatcher(FindBar.prototype);
     
@@ -284,6 +287,7 @@ define(function (require, exports, module) {
         $root
             .on("input", "#find-what", function () {
                 self.trigger("queryChange");
+                lastTypedText = self.getQueryInfo().query;
             })
             .on("click", "#find-case-sensitive, #find-regexp", function (e) {
                 $(e.currentTarget).toggleClass("active");
@@ -295,6 +299,7 @@ define(function (require, exports, module) {
             })
             .on("keydown", "#find-what, #replace-with", function (e) {
                 lastTypedTime = new Date().getTime();
+                lastKeyCode = e.keyCode;
                 var executeSearchIfNeeded = function () {
                     // We only do instant search via node.
                     if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
@@ -305,8 +310,11 @@ define(function (require, exports, module) {
                         return;
                     }
                     currentTime = new Date().getTime();
-                    if (lastTypedTime && (currentTime - lastTypedTime >= 100) && self.getQueryInfo().query !== lastQueriedText &&
-                            !FindUtils.isNodeSearchInProgress() && e.keyCode !== KeyEvent.DOM_VK_CONTROL) {
+
+                    if (lastTypedTime && (currentTime - lastTypedTime >= 100) &&
+                            self.getQueryInfo().query !== lastQueriedText &&
+                            !FindUtils.isNodeSearchInProgress()) {
+
                         // init Search
                         if (self._options.multifile) {
                             if ($(e.target).is("#find-what")) {
@@ -325,6 +333,7 @@ define(function (require, exports, module) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
+                    lastQueriedText = self.getQueryInfo().query;
                     if (self._options.multifile) {
                         if ($(e.target).is("#find-what")) {
                             if (self._options.replace) {
@@ -586,7 +595,7 @@ define(function (require, exports, module) {
      * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
      */
     FindBar.getInitialQuery = function (currentFindBar, editor) {
-        var query = "",
+        var query = lastTypedText,
             replaceText = "";
 
         /*
@@ -617,6 +626,8 @@ define(function (require, exports, module) {
             if (openedFindBar) {
                 query = openedFindBar.getQueryInfo().query;
                 replaceText = openedFindBar.getReplaceText();
+            } else if (editor) {
+                query = getInitialQueryFromSelection(editor) || lastTypedText;
             }
         }
 
