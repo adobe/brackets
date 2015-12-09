@@ -11,6 +11,7 @@
   var domainName = 'brackets-eslint';
   var domainManager = null;
   var noop = function () {};
+  var globalPackagesAvailable = false;
 
   function _setProjectRoot(projectRoot) {
     var opts = { useEslintrc: true };
@@ -57,9 +58,15 @@
   require('enable-global-packages').on('ready', function () {
     // global packages are available now
     _setProjectRoot(currentProjectRoot);
+    globalPackagesAvailable = true;
   });
 
   function lintFile(fullPath, projectRoot, callback) {
+    if (!globalPackagesAvailable) {
+      setTimeout(function () {
+        lintFile(fullPath, projectRoot, callback);
+      }, 250);
+    }
     if (projectRoot !== currentProjectRoot) {
       _setProjectRoot(projectRoot);
       currentProjectRoot = projectRoot;
