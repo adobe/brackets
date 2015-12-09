@@ -640,7 +640,6 @@ define(function (require, exports, module) {
                 findNext(editor, searchBackwards);
             })
             .on("close.FindReplace", function (e) {
-                // Mark last search phrase
                 editor.lastParsedQuery = state.parsedQuery || "";
 
                 // Clear highlights but leave search state in place so Find Next/Previous work after closing

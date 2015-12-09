@@ -244,7 +244,7 @@ define(function (require, exports, module) {
         var templateVars = _.clone(this._options);
         templateVars.Strings = Strings;
         templateVars.replaceAllLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_ALL);
-        // TODO CHANGE SECOND ARG TO FALSE
+
         this._modalBar = new ModalBar(
             Mustache.render(_searchBarTemplate, templateVars),
             !!PreferencesManager.get('autoHideSearch')
@@ -347,7 +347,6 @@ define(function (require, exports, module) {
                 }
             })
             .on("click", ".close", function () {
-            // TODO ALLOW SPECIFIC CLOSE HERE
                 self.close();
             });
         
