@@ -21,9 +21,6 @@
  * 
  */
 
-.hint-width-limiter {
-    width:400px;
-}
 
 span.brackets-js-hints {
     width: 400px;
@@ -149,7 +146,7 @@ span.brackets-js-hints {
 
 .jshint-description {
     display: none;
-    padding-left: 35px !important;
+    padding-left: 28px !important;
     padding-right:10px !important;
     color: #d4d4d4;
     word-wrap: break-word;	

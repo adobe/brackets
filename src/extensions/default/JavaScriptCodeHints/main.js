@@ -284,23 +284,21 @@ define(function (require, exports, module) {
                 if (token.type) {
                     if (token.type.length > 40) {
                         _appendLink();
-                        $('<span>' + " " + token.type.split('->').join(':').trim() + '</span>').appendTo($hintObj).addClass("jshint-description");
+                        $('<span>' + token.type.split('->').join(':').toString().trim() + '</span>').appendTo($hintObj).addClass("jshint-description");
                     } else {
-                        $('<span>' + " " + token.type.split('->').join(':').trim() + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
+                        $('<span>' + token.type.split('->').join(':').toString().trim() + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
                         _appendLink();
                     }
                 } else {
                     if (token.keyword) {
-                        $('<span>' + " " + "keyword" + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details").addClass("keyword");
+                        $('<span>keyword</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details").addClass("keyword");
                     }
                 }
                 
                 if (token.doc) {
                     $hintObj.attr('title', token.doc);
-                    $('<span>' + " " + token.doc.trim() + '</span>').appendTo($hintObj).addClass("jshint-jsdoc");
+                    $('<span></span>').text(token.doc.trim()).appendTo($hintObj).addClass("jshint-jsdoc");
                 }
-                
-                $('<div class="hint-width-limiter"></div>').appendTo($hintObj);
                 
                 return $hintObj;
             });
