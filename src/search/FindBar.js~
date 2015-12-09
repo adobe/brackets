@@ -142,6 +142,18 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * @private
+     * Event function for closing the findbar when the Escape key is pressed
+     */
+    FindBar._handleKeydown function(e) {
+        if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+            e.stopPropagation();
+            e.preventDefault();
+            this.close();
+        }
+    };
+    
     /*
      * Instance properties/functions
      */
@@ -246,26 +258,19 @@ define(function (require, exports, module) {
         templateVars.replaceAllLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_ALL);
         // TODO CHANGE SECOND ARG TO FALSE
         this._modalBar = new ModalBar(
-            Mustache.render(_searchBarTemplate, templateVars),
+            Mustache.render(_searchBarTemplate, templateVars), 
             !!PreferencesManager.get('autoHideSearch')
         );  // 2nd arg = auto-close on Esc/blur
         
-        // Done this way because ModalBar.js seems to react underiably when
+        // Done this way because ModalBar.js seems to react underiably when 
         // modifying it to handle the escape key - the findbar wasn't getting
         // closed as it should, instead persisting in the background
-        function _handleKeydown(e) {
-            if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                e.stopPropagation();
-                e.preventDefault();
-                self.close();
-            }
-        }
-        window.document.body.addEventListener("keydown", _handleKeydown, true);
+        window.document.body.addEventListener("keydown", FindBar._handleKeydown, true);
         
         // When the ModalBar closes, clean ourselves up.
         this._modalBar.on("close", function (event) {
-            window.document.body.removeEventListener("keydown", _handleKeydown, true);
-
+            window.document.body.removeEventListener("keydown", FindBar._handleKeydown, true);
+            
             // Hide error popup, since it hangs down low enough to make the slide-out look awkward
             self.showError(null);
             self._modalBar = null;
@@ -618,11 +623,9 @@ define(function (require, exports, module) {
             if (openedFindBar) {
                 query = openedFindBar.getQueryInfo().query;
                 replaceText = openedFindBar.getReplaceText();
+            } else if (editor) {
+                query = getInitialQueryFromSelection(editor);
             }
-        }
-
-        if (editor) {
-            query = getInitialQueryFromSelection(editor);
         }
 
         return {query: query, replaceText: replaceText};

@@ -612,6 +612,10 @@ define(function (require, exports, module) {
         // Prepopulate the search field
         var initialQuery = FindBar.getInitialQuery(findBar, editor);
         
+        if (initialQuery.query === "" && editor.lastParsedQuery !== "") {
+            initialQuery.query = editor.lastParsedQuery;
+        }
+
         // Close our previous find bar, if any. (The open() of the new findBar will
         // take care of closing any other find bar instances.)
         if (findBar) {
@@ -636,6 +640,9 @@ define(function (require, exports, module) {
                 findNext(editor, searchBackwards);
             })
             .on("close.FindReplace", function (e) {
+                // Mark last search phrase
+                editor.lastParsedQuery = state.parsedQuery || "";
+
                 // Clear highlights but leave search state in place so Find Next/Previous work after closing
                 clearHighlights(cm, state);
 
@@ -655,12 +662,12 @@ define(function (require, exports, module) {
      */
     function doSearch(editor, searchBackwards) {
         var state = getSearchState(editor._codeMirror);
+
         if (state.parsedQuery) {
             findNext(editor, searchBackwards);
-            return;
+        } else {
+            openSearchBar(editor, false);
         }
-        
-        openSearchBar(editor, false);
     }
 
     
@@ -695,6 +702,8 @@ define(function (require, exports, module) {
                 findBar.close();
             }
         }
+
+        editor.lastEditorSearchPosStr = "";     // Positions have shifted, so we abort the auto-next on findbar launch
     }
 
     function replace(editor) {
@@ -717,10 +726,38 @@ define(function (require, exports, module) {
 
     function _launchFind() {
         var editor = EditorManager.getActiveEditor();
+
         if (editor) {
+            // Make note of the original query details
+            var state = getSearchState(editor._codeMirror),
+                qry = (findBar && state && state.parsedQuery) || "",
+                idx = state && state.matchIndex;
+
             // Create a new instance of the search bar UI
             clearSearch(editor._codeMirror);
             doSearch(editor, false);
+            _findNextIfSameSearch(qry, idx, getSearchState(editor._codeMirror));
+        }
+    }
+
+    function _findNextIfSameSearch(originalQuery, originalIdx, state) {
+        // Process the new query and prep the original and new for comparing
+        var newIdx, newQuery;
+
+        if (findBar && state && state.queryInfo && state.searchStartPos) {
+            newQuery = state.parsedQuery || "";
+            newIdx = state.matchIndex;
+
+            if (!state.queryInfo.isCaseSensitive) {
+                originalQuery = originalQuery.toLowerCase();
+                newQuery = newQuery.toLowerCase();
+            }
+        }
+
+        // If the original and new query are the same, go to the next
+        if (originalQuery && newQuery && originalQuery === newQuery &&
+                originalIdx === newIdx) {
+            _findNext();
         }
     }
 

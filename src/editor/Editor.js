@@ -97,7 +97,8 @@ define(function (require, exports, module) {
         TAB_SIZE            = "tabSize",
         UPPERCASE_COLORS    = "uppercaseColors",
         USE_TAB_CHAR        = "useTabChar",
-        WORD_WRAP           = "wordWrap";
+        WORD_WRAP           = "wordWrap",
+        AUTO_HIDE_SEARCH    = "autoHideSearch";
     
     var cmOptions         = {};
     
@@ -205,6 +206,9 @@ define(function (require, exports, module) {
     });
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
         description: Strings.DESCRIPTION_WORD_WRAP
+    });
+    PreferencesManager.definePreference(AUTO_HIDE_SEARCH,   "boolean", true, {
+        description: Strings.DESCRIPTION_SEARCH_AUTOHIDE
     });
     
     var editorOptions = Object.keys(cmOptions);
