@@ -13,11 +13,22 @@
   var noop = function () {};
 
   function _setProjectRoot(projectRoot) {
-    var opts = {};
+    var opts = { useEslintrc: true };
+    var configPath;
     var rulesDirPath;
     var ignorePath;
 
     if (projectRoot) {
+      configPath = projectRoot + '.eslintrc';
+      try {
+        if (fs.statSync(configPath).isFile()) {
+          noop();
+        }
+      } catch (e) {
+        // config file not found, use default
+        opts.rules = require('eslint/conf/eslint.json').rules;
+      }
+
       rulesDirPath = projectRoot + '.eslintrules';
       try {
         if (fs.statSync(rulesDirPath).isDirectory()) {
