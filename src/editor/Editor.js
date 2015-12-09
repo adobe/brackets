@@ -81,7 +81,6 @@ define(function (require, exports, module) {
         ValidationUtils    = require("utils/ValidationUtils"),
         ViewUtils          = require("utils/ViewUtils"),
         MainViewManager    = require("view/MainViewManager"),
-        DocumentManager    = require("document/DocumentManager"),
         _                  = require("thirdparty/lodash");
 
     /** Editor preferences */
@@ -316,9 +315,8 @@ define(function (require, exports, module) {
         document.on("change", this._handleDocumentChange);
         document.on("deleted", this._handleDocumentDeleted);
         document.on("languageChanged", this._handleDocumentLanguageChanged);
-        
         // To sync working sets if the view is for same doc across panes
-        DocumentManager.on("dirtyFlagChange", this._doWorkingSetSync);
+        document.on("_dirtyFlagChange", this._doWorkingSetSync);
 
         var mode = this._getModeFromDocument();
         
@@ -491,7 +489,7 @@ define(function (require, exports, module) {
         this.document.off("change", this._handleDocumentChange);
         this.document.off("deleted", this._handleDocumentDeleted);
         this.document.off("languageChanged", this._handleDocumentLanguageChanged);
-        DocumentManager.off("dirtyFlagChange", this._doWorkingSetSync);
+        this.document.off("_dirtyFlagChange", this._doWorkingSetSync);
         
         if (this._visibleRange) {   // TextRange also refs the Document
             this._visibleRange.dispose();
