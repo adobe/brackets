@@ -369,6 +369,7 @@ define({
 	"CMD_REPLACE": "Remplacer",
 	"CMD_REPLACE_IN_FILES": "Remplacer dans les fichiers",
 	"CMD_REPLACE_IN_SUBTREE": "Remplacer dans\u2026",
+
     "CMD_TOGGLE_SEARCH_AUTOHIDE": "Automatiquement ferme la recherche",
 
     // View menu commands
