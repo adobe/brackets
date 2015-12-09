@@ -12,6 +12,10 @@
         "branch": "",
         "SHA": ""
     },
+    "dependencies": {
+        "enable-global-packages": "0.0.5",
+        "eslint": "1.10.3"
+    },
     "devDependencies": {
         "grunt": "0.4.5",
         "jasmine-node": "1.11.0",
