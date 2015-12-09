@@ -159,7 +159,7 @@ span.brackets-js-hints {
 }
 
 .dark .jshint-description {
-    color: #696969;
+    color: #ccc;
 }
 
 .jshint-jsdoc {
@@ -175,7 +175,10 @@ span.brackets-js-hints {
     clear: left;
     max-height: 3em;
     overflow: hidden;
-    opacity:0.7;
+}
+
+.dark .jshint-jsdoc {
+    color: #ccc;
 }
 
 .jshint-link {
