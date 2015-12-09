@@ -263,7 +263,7 @@ define(function (require, exports, module) {
             var file = self.getCurrentlyViewedFile();
 
             if (file) {
-                CommandManager.execute(Commands.FILE_CLOSE, {File: file});
+                CommandManager.execute(Commands.FILE_CLOSE, {File: file, paneId: self.id});
 
                 if (!self.getCurrentlyViewedFile() && PreferencesManager.get("pane.mergePanesWhenLastFileClosed")) {
                     MainViewManager.setLayoutScheme(1, 1);

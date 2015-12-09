@@ -271,6 +271,7 @@ define(function (require, exports, module) {
      * @return {{file:File, paneId:string}}
      */
     function isExclusiveToPane(file, paneId) {
+        paneId = paneId === ACTIVE_PANE && _activePaneId ? _activePaneId : paneId;
         var index = _.findIndex(_mruList, function (record) {
             return (record.file.fullPath === file.fullPath && record.paneId !== paneId);
         });
