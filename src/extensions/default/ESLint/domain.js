@@ -66,6 +66,7 @@
       setTimeout(function () {
         lintFile(fullPath, projectRoot, callback);
       }, 250);
+      return;
     }
     if (projectRoot !== currentProjectRoot) {
       _setProjectRoot(projectRoot);
