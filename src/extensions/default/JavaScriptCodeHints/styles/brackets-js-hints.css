@@ -181,11 +181,18 @@ span.brackets-js-hints {
 .jshint-link {
     float:right;
     display:none;
-    color:orangered !important;
-    margin:0px !important;
     margin-right: 10px !important;
-    padding:0px !important;
-    font-weight: 900 !important;
+}
+
+.jshint-link:before {
+    float: right;
+    color: orangered !important;
+    content: '?' !important;
+    border: 1px orangered solid;
+    width: 10px;
+    text-align: center;
+    line-height: 1em;
+    visibility: visible !important;
 }
 
 .highlight .jshint-link {

@@ -274,7 +274,7 @@ define(function (require, exports, module) {
                 
                 function _appendLink() {
                     if (token.url) {
-                        $('<a><&nbsp;></a>').appendTo($hintObj).addClass("jshint-link").attr('href', token.url).on("click", function (event) {
+                        $('<a></a>').appendTo($hintObj).addClass("jshint-link").attr('href', token.url).on("click", function (event) {
                             event.stopImmediatePropagation();
                             event.stopPropagation();
                         });
