@@ -1119,6 +1119,7 @@ define(function (require, exports, module) {
      *      the "ch" parameter.
      */
     Editor.prototype.setCursorPos = function (line, ch, center, expandTabs) {
+        var oldCursorPos = this.getCursorPos(true, "start");
         if (expandTabs) {
             ch = this.getColOffset({line: line, ch: ch});
         }
@@ -1126,6 +1127,7 @@ define(function (require, exports, module) {
         if (center) {
             this.centerOnCursor();
         }
+        this.trigger("cursorPositionChange", this.getCursorPos(true, "start"), oldCursorPos);
     };
     
     /**
@@ -1353,7 +1355,9 @@ define(function (require, exports, module) {
      *      should be merged with for the purposes of undo. See {@link Document#replaceRange} for more details.
      */
     Editor.prototype.setSelection = function (start, end, center, centerOptions, origin) {
+        var oldCursorPos = this.getCursorPos(true, "start");
         this.setSelections([{start: start, end: end || start}], center, centerOptions, origin);
+        this.trigger("cursorPositionChange", this.getCursorPos(true, "start"), oldCursorPos);
     };
     
     /**
