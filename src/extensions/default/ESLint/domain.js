@@ -81,6 +81,7 @@
       // this is important for ESLint so .eslintrc is properly loaded
       // we could go around this by parsing .eslintrc manually but that'd
       // bring complexity we don't need here right now
+      // related: https://github.com/eslint/eslint/issues/4472
       process.chdir(projectRoot);
 
       var res;
