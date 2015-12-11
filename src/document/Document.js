@@ -113,6 +113,12 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     Document.prototype.isDirty = false;
+
+    /**
+     * Whether this document has unsaved lineEndings changes or not.
+     * @type {boolean}
+     */
+    Document.prototype._lineEndingsDirty = false;
     
     /**
      * Whether this document is currently being saved.
@@ -464,7 +470,7 @@ define(function (require, exports, module) {
         if (!this._refreshInProgress) {
             // Sync isDirty from CodeMirror state
             var wasDirty = this.isDirty;
-            this.isDirty = !editor._codeMirror.isClean();
+            this.isDirty = !editor._codeMirror.isClean() || this._lineEndingsDirty;
             
             // Notify if isDirty just changed (this also auto-adds us to working set if needed)
             if (wasDirty !== this.isDirty) {
@@ -481,6 +487,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._markClean = function () {
         this.isDirty = false;
+        this._lineEndingsDirty = false;
         if (this._masterEditor) {
             this._masterEditor._codeMirror.markClean();
         }
@@ -747,7 +754,25 @@ define(function (require, exports, module) {
     Document.prototype.isUntitled = function () {
         return this.file instanceof InMemoryFile;
     };
+
+    /**
+     * Set lineEnding of the document. Change Text in the process.
+     */
+    Document.prototype.setLineEndings = function (lineEndings) {
+        this._lineEndings = lineEndings;
+        this._lineEndingsDirty = true;
+        this.isDirty = true;
+    };
     
+    /**
+     * Get the current document LineEnding.
+     *
+     * @return {string} - returns the current line endings of the document.
+     */
+    Document.prototype.getLineEndings = function () {
+        return this._lineEndings;
+    };
+
     // We dispatch events from the module level, and the instance level. Instance events are wired up
     // in the Document constructor.
     EventDispatcher.makeEventDispatcher(exports);
