@@ -78,6 +78,14 @@ define(function (require, exports, module) {
             }
         });
 
+        // Listen for file rename
+        BrambleEvents.on("fileRenamed", function(e, oldFilePath, newFilePath) {
+            if (oldFilePath === lastKnownEditorFilePath) {
+                lastKnownEditorFilePath = newFilePath;
+                sendActiveEditorChangeEvent({ fullPath: newFilePath });
+            }
+        });
+
         // Listen for changes to the theme
         BrambleEvents.on("bramble:themeChange", function(e, theme) {
             sendEvent({
