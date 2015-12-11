@@ -26,20 +26,20 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var AppInit                      = brackets.getModule("utils/AppInit"),
         PreferencesManager           = brackets.getModule("preferences/PreferencesManager"),
         UrlParams                    = brackets.getModule("utils/UrlParams").UrlParams,
         HealthDataPreview            = require("HealthDataPreview"),
         HealthDataPopup              = require("HealthDataPopup");
-    
+
     // Parse URL params
     var params = new UrlParams();
 
     function handleHealthDataStatistics() {
         HealthDataPreview.previewHealthData();
     }
-    
+
     AppInit.appReady(function () {
         params.parse();
         // Check whether the notification dialog should be shown. It will be shown one time. Does not check in testing environment.
@@ -54,7 +54,7 @@ define(function (require, exports, module) {
             }
         }
     });
-    
-    
+
+
     exports.handleHealthDataStatistics       = handleHealthDataStatistics;
 });
