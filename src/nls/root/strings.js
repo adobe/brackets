@@ -737,6 +737,7 @@ define({
     "DESCRIPTION_LANGUAGE"                           : "Language specific settings",
     "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Additional mappings from file extension to language name",
     "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Additional mappings from file name to language name",
+    "DESCRIPTION_LINE_COMMENT_INDENT"                : "true to align a line comment with the line's indentation - does not apply to all languages",
     "DESCRIPTION_LINTING_ENABLED"                    : "true to enable Code Inspection",
     "DESCRIPTION_ASYNC_TIMEOUT"                      : "The time in milliseconds after which asynchronous linters time out",
     "DESCRIPTION_LINTING_PREFER"                     : "Array of linters to run first",

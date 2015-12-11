@@ -38,7 +38,8 @@
         "mode": ["stylus", "text/x-styl"],
         "fileExtensions": ["styl"],
         "blockComment": ["/*", "*/"],
-        "lineComment": ["//"]
+        "lineComment": ["//"],
+        "indentLineComments": true
     },
 
     "html": {

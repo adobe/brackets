@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         Strings            = require("strings"),
         CommandManager     = require("command/CommandManager"),
         EditorManager      = require("editor/EditorManager"),
+        PreferencesManager = require("preferences/PreferencesManager"),
         StringUtils        = require("utils/StringUtils"),
         TokenUtils         = require("utils/TokenUtils"),
         CodeMirror         = require("thirdparty/CodeMirror/lib/codemirror"),
@@ -46,6 +47,10 @@ define(function (require, exports, module) {
      */
     var DIRECTION_UP    = -1;
     var DIRECTION_DOWN  = +1;
+    
+    PreferencesManager.definePreference("lineComment.indent", "boolean", true, {
+        description: Strings.DESCRIPTION_LINE_COMMENT_INDENT
+    });
         
     /**
      * @private
@@ -171,6 +176,7 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} editor
      * @param {!Array.<string>} prefixes, e.g. ["//"]
+     * @param {?boolean} shouldIndent
      * @param {string=} blockPrefix, e.g. "<!--"
      * @param {string=} blockSuffix, e.g. "-->"
      * @param {!Editor} editor The editor to edit within.
@@ -184,14 +190,30 @@ define(function (require, exports, module) {
      *                  Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean, isBeforeEdit: boolean}>}}
      *      An edit description suitable for including in the edits array passed to `Document.doMultipleEdits()`.
      */
-    function _getLineCommentPrefixEdit(editor, prefixes, blockPrefix, blockSuffix, lineSel) {
-        var doc         = editor.document,
-            sel         = lineSel.selectionForEdit,
-            trackedSels = lineSel.selectionsToTrack,
-            lineExp     = _createLineExpressions(prefixes, blockPrefix, blockSuffix),
-            startLine   = sel.start.line,
-            endLine     = sel.end.line,
-            editGroup   = [];
+    function _getLineCommentPrefixEdit(editor, prefixes, shouldIndent, blockPrefix, blockSuffix, lineSel) {
+        var doc             = editor.document,
+            sel             = lineSel.selectionForEdit,
+            trackedSels     = lineSel.selectionsToTrack,
+            lineExp         = _createLineExpressions(prefixes, blockPrefix, blockSuffix),
+            startLine       = sel.start.line,
+            endLine         = sel.end.line,
+            editGroup       = [],
+            indentPref      = PreferencesManager.get("linecomment.indent"),
+            indentMode;
+        
+        var INDENT_MODE_AFTER_SPACE = 1,
+            INDENT_MODE_INDENT      = 2,
+            INDENT_MODE_BEGINNING   = 3;
+        
+        if (shouldIndent) {
+            indentMode = INDENT_MODE_AFTER_SPACE;
+        } else if (shouldIndent === false) {
+            indentMode = INDENT_MODE_BEGINNING;
+        } else if (indentPref) {
+            indentMode = INDENT_MODE_INDENT;
+        } else {
+            indentMode = INDENT_MODE_BEGINNING;
+        }
 
         // In full-line selection, cursor pos is start of next line - but don't want to modify that line
         if (sel.end.ch === 0) {
@@ -201,19 +223,41 @@ define(function (require, exports, module) {
         // Decide if we're commenting vs. un-commenting
         // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
         // some editors like Sublime don't comment them out)
-        var i, line, prefix, commentI,
+        var i, line, prefix, commentI = 0,
+            lineIndentation = [],
             containsNotLineComment = _containsNotLineComment(editor, startLine, endLine, lineExp);
-        
+
         if (containsNotLineComment) {
+            if (indentMode === INDENT_MODE_INDENT) {
+                var firstNonWS, firstLineScanned;
+                // Determine how many spaces to indent
+                for (i = startLine; i <= endLine; i++) {
+                    line = doc.getLine(i);
+                    firstNonWS = line.search(/\S/);
+                    if (firstNonWS > -1) { // line is not all-whitespace
+                        if (firstLineScanned) {
+                            commentI = Math.min(firstNonWS, commentI);
+                        } else {
+                            commentI = firstNonWS;
+                            firstLineScanned = true;
+                        }
+                    }
+                }
+            }
             // Comment out - prepend the first prefix to each line
             for (i = startLine; i <= endLine; i++) {
-                editGroup.push({text: prefixes[0], start: {line: i, ch: 0}});
+                if (indentMode === INDENT_MODE_AFTER_SPACE) {
+                    line = doc.getLine(i);
+                    commentI = Math.max(line.search(/\S/), 0);
+                }
+                lineIndentation[i] = commentI;
+                editGroup.push({text: prefixes[0], start: {line: i, ch: commentI}});
             }
 
             // Make sure tracked selections include the prefix that was added at start of range
             _.each(trackedSels, function (trackedSel) {
-                if (trackedSel.start.ch === 0 && CodeMirror.cmpPos(trackedSel.start, trackedSel.end) !== 0) {
-                    trackedSel.start = {line: trackedSel.start.line, ch: 0};
+                if (trackedSel.start.ch <= lineIndentation[trackedSel.start.line] && CodeMirror.cmpPos(trackedSel.start, trackedSel.end) !== 0) {
+                    trackedSel.start = {line: trackedSel.start.line, ch: trackedSel.start.ch};
                     trackedSel.end = {line: trackedSel.end.line, ch: (trackedSel.end.line === endLine ? trackedSel.end.ch + prefixes[0].length : 0)};
                 } else {
                     trackedSel.isBeforeEdit = true;
@@ -590,7 +634,7 @@ define(function (require, exports, module) {
                 var language = editor.document.getLanguage().getLanguageForMode(mode.name || mode);
 
                 if (language.hasLineCommentSyntax()) {
-                    edit = _getLineCommentPrefixEdit(editor, language.getLineCommentPrefixes(), language.getBlockCommentPrefix(), language.getBlockCommentSuffix(), lineSel);
+                    edit = _getLineCommentPrefixEdit(editor, language.getLineCommentPrefixes(), language.hasIndentLineComments(), language.getBlockCommentPrefix(), language.getBlockCommentSuffix(), lineSel);
                 } else if (language.hasBlockCommentSyntax()) {
                     edit = _getLineCommentPrefixSuffixEdit(editor, language.getBlockCommentPrefix(), language.getBlockCommentSuffix(), lineSel);
                 }
