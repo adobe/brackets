@@ -765,7 +765,7 @@ define(function (require, exports, module) {
                         if (tryClosing || e.which === MIDDLE_BUTTON) {
                             CommandManager
                                 .execute(Commands.FILE_CLOSE, {file: sourceFile,
-                                                               paneId: sourceView.paneId})
+                                                           paneId: sourceView.paneId})
                                 .always(function () {
                                     postDropCleanup();
                                 });

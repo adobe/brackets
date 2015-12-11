@@ -586,6 +586,9 @@ define(function (require, exports, module) {
             exports.trigger("documentRefreshed", doc);
         })
         .on("_dirtyFlagChange", function (event, doc) {
+            // Modules listening on the doc instance notified about dirtyflag change
+            // To be used internally by Editor
+            doc.trigger("_dirtyFlagChange", doc);
             exports.trigger("dirtyFlagChange", doc);
             if (doc.isDirty) {
                 MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, doc.file);
