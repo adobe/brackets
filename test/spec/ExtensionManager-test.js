@@ -2268,6 +2268,20 @@ define(function (require, exports, module) {
                     });
                 });
             });
+
+            it("should translate the author and the contributors", function () {
+                setupViewWithMockData(ExtensionManagerViewModel.RegistryViewModel);
+                runs(function () {
+                    _.forEach(mockRegistry, function (item, id) {
+                        if (item.metadata["package-i18n"] &&
+                                item.metadata["package-i18n"].hasOwnProperty("fr") &&
+                                item.metadata["package-i18n"].fr.hasOwnProperty("author")) {
+                            expect(view).toHaveText(item.metadata["package-i18n"].fr.author);
+                            expect(item.metadata["package-i18n"].fr.contributors).toEqual(view.model._getEntry(id).metadata.contributors);
+                        }
+                    });
+                });
+            });
         });
     });
 });

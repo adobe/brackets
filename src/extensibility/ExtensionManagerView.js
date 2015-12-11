@@ -231,7 +231,7 @@ define(function (require, exports, module) {
         context.failedToStart = (entry.installInfo && entry.installInfo.status === ExtensionManager.START_FAILED);
         context.disabled = (entry.installInfo && entry.installInfo.status === ExtensionManager.DISABLED);
         context.hasVersionInfo = !!info.versions;
-                
+
         if (entry.registryInfo) {
             var latestVerCompatInfo = ExtensionManager.getCompatibilityInfo(entry.registryInfo, brackets.metadata.apiVersion);
             context.isCompatible = latestVerCompatInfo.isCompatible;
@@ -254,7 +254,7 @@ define(function (require, exports, module) {
             [shortLang, lang].forEach(function (locale) {
                 if (info.metadata["package-i18n"].hasOwnProperty(locale)) {
                     // only overlay specific properties with the localized values
-                    ["title", "description", "homepage", "keywords"].forEach(function (prop) {
+                    ["title", "description", "homepage", "keywords", "author", "contributors"].forEach(function (prop) {
                         if (info.metadata["package-i18n"][locale].hasOwnProperty(prop)) {
                             info.metadata[prop] = info.metadata["package-i18n"][locale][prop];
                         }
@@ -411,6 +411,6 @@ define(function (require, exports, module) {
     ExtensionManagerView.prototype.filter = function (query) {
         this.model.filter(query);
     };
-        
+
     exports.ExtensionManagerView = ExtensionManagerView;
 });

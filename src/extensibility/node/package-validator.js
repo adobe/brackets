@@ -172,6 +172,19 @@ function findCommonPrefix(extractDir, callback) {
     });
 }
 
+function parsePeople(packageJSON) {
+    if (packageJSON.author) {
+        packageJSON.author = parsePersonString(packageJSON.author);
+    }
+    if (packageJSON.contributors) {
+        if (!packageJSON.contributors.map) {
+            packageJSON.contributors = [packageJSON.contributors];
+        }
+        packageJSON.contributors.map(parsePersonString);
+    }
+    return packageJSON;
+}
+
 /**
  * Validates the contents of package.json.
  *
@@ -213,25 +226,15 @@ function validatePackageJSON(path, packageJSON, options, callback) {
                 errors.push([Errors.INVALID_VERSION_NUMBER, metadata.version, path]);
             }
             
-            // normalize the author
-            if (metadata.author) {
-                metadata.author = parsePersonString(metadata.author);
-            }
+            parsePeople(metadata);
             
-            // contributors should be an array of people.
-            // normalize each entry.
-            if (metadata.contributors) {
-                if (metadata.contributors.map) {
-                    metadata.contributors = metadata.contributors.map(function (person) {
-                        return parsePersonString(person);
-                    });
-                } else {
-                    metadata.contributors = [
-                        parsePersonString(metadata.contributors)
-                    ];
-                }
+            // normalize translated author and contributors
+            if (metadata["package-i18n"]) {
+                Object.keys(metadata["package-i18n"]).forEach(function (lang) {
+                    parsePeople(metadata["package-i18n"][lang]);
+                });
             }
-            
+
             if (metadata.engines && metadata.engines.brackets) {
                 var range = metadata.engines.brackets;
                 if (!semver.validRange(range)) {
