@@ -574,6 +574,7 @@ define(function (require, exports, module) {
             newElement = queue.pop();
             oldElement = oldNodeMap[newElement.tagID];
             
+            
             // Do we need to compare elements?
             if (oldElement) {
                 
@@ -609,9 +610,21 @@ define(function (require, exports, module) {
                         parentID: null,
                         attributes: newElement.attributes
                     });
+                    
+                    // Since the root <html> tag has a new tag ID if the user copies and pastes the entire document,
+                    // This checks if there is an old <root> node, and if there is, passes that node as a parameter to 
+                    // generateChildEdits instead of null.
+                    if (Object.keys(oldNodeMap).length > 0){
+                        addEdits(generateChildEdits(oldNodeMap[Object.keys(oldNodeMap)[0]], oldNodeMap, newElement, newNodeMap));
+                    } else {
+                        addEdits(generateChildEdits(null, oldNodeMap, newElement, newNodeMap));
+                    }
+                    
+                } else {
+                    addEdits(generateChildEdits(null, oldNodeMap, newElement, newNodeMap));
                 }
                 
-                addEdits(generateChildEdits(null, oldNodeMap, newElement, newNodeMap));
+                
             }
         } while (queue.length);
         
