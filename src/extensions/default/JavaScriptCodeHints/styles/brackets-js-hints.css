@@ -22,8 +22,8 @@
  */
 
 
-span.brackets-js-hints {
-    width: 400px;
+span.brackets-js-hints-with-type-details {
+    width: 300px;
     display: inline-block;
 }
 
@@ -137,7 +137,7 @@ span.brackets-js-hints {
 }
 
 .brackets-js-hints-type-details {
-    color: #d3d3d3 !important;
+    color: #a3a3a3 !important;
     font-weight: 100;
     font-style: italic !important;
     margin-right: 5px;
@@ -146,12 +146,10 @@ span.brackets-js-hints {
 
 .jshint-description {
     display: none;
-    padding-left: 28px !important;
-    padding-right:10px !important;
     color: #d4d4d4;
     word-wrap: break-word;	
     white-space: normal;
-    width:400px;
+    width:300px;
     box-sizing: border-box;
 }
 
@@ -161,12 +159,11 @@ span.brackets-js-hints {
 
 .jshint-jsdoc {
     display: none;
-    padding-left: 28px !important;
     padding-right: 10px !important;
     color: grey;
     word-wrap: break-word;
     white-space: normal;
-    width: 400px;
+    width: 300px;
     box-sizing: border-box;
     float: left;
     clear: left;
@@ -179,24 +176,41 @@ span.brackets-js-hints {
 }
 
 .jshint-link {
-    float:right;
     display:none;
-    margin-right: 10px !important;
+    width:0px !important;
+    height:1px !important;
+    margin-left: 15px;
+    float:right;
 }
 
 .jshint-link:before {
-    float: right;
-    color: orangered !important;
-    content: '?' !important;
-    border: 1px orangered solid;
-    width: 10px;
+    position: relative;
+    float: left;
+    top:1px;
+    content: "i" !important;
+    width: 16px;
+    height: 16px;
+    margin-right:10px;
+    font-size: 14px;
+    font-weight: bold;
+    font-style: italic;
+    line-height: 15px;
     text-align: center;
-    line-height: 1em;
     visibility: visible !important;
+    font-weight: 900;
+    color: #fff;
+    background-color: #2ea56c;
+    border-color: #177F42;
+    border-radius: 16px;
+    font-family: SourceSansPro-Semibold;
+}
+
+.dark .jshint-link:before {
+    background-color: #146a41;
 }
 
 .highlight .jshint-link {
-    display:block;
+    display: inline-block !important;
 }
 
 .highlight .jshint-description {
@@ -213,11 +227,14 @@ span.brackets-js-hints {
 } 
 
 .highlight .brackets-js-hints-type-details {
-    color: #6495ed !important;
-    display: inline-block;
+    display:none;
 }
 
-.brackets-js-hints-type-details.keyword {
+.brackets-js-hints-keyword {
+    font-weight: 100;
+    font-style: italic !important;
+    margin-right: 5px;
+    float:right;
     color: #6495ed !important;
 }
 
