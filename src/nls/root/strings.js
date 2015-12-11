@@ -691,6 +691,7 @@ define({
     "DESCRIPTION_ATTR_HINTS"                         : "Enable/disable HTML attribute hints",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Enable/disable CSS/LESS/SCSS property hints",
     "DESCRIPTION_JS_HINTS"                           : "Enable/disable JavaScript code hints",
+    "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "Enable/disable datatype details in JavaScript code hints",
     "DESCRIPTION_PREF_HINTS"                         : "Enable/disable Preferences code hints",
     "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "Enable/disable HTML entity hints",
     "DESCRIPTION_SVG_HINTS"                          : "Enable/disable SVG code hints",
