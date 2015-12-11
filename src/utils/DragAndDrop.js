@@ -78,6 +78,13 @@ define(function (require, exports, module) {
         
         return Async.doInParallel(paths, function (path, idx) {
             var result = new $.Deferred();
+
+            //This occurs when WinRAR feeds us paths inside a zip file, which we can't open
+            if(!FileSystem.isAbsolutePath(path)){
+                errorFiles.push({path: path, error: Strings.NOT_READABLE_ERR });
+                result.reject();
+                return result.promise();
+            }
             
             // Only open files.
             FileSystem.resolve(path, function (err, item) {

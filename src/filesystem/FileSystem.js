@@ -488,7 +488,7 @@ define(function (require, exports, module) {
     FileSystem.prototype._normalizePath = function (path, isDirectory) {
         
         if (!FileSystem.isAbsolutePath(path)) {
-            throw new Error("Paths must be absolute: '" + path + "'");  // expect only absolute paths
+            throw new Error("Paths must be absolute: '" + path + "'"); // expect only absolute paths
         }
         
         var isUNCPath = this._impl.normalizeUNCPaths && path.search(_DUPLICATED_SLASH_RE) === 0;
