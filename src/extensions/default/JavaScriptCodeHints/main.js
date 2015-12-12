@@ -46,14 +46,15 @@ define(function (require, exports, module) {
         Session              = require("Session"),
         Acorn                = require("thirdparty/acorn/acorn");
 
-    var session        = null,  // object that encapsulates the current session state
-        cachedCursor   = null,  // last cursor of the current hinting session
-        cachedHints    = null,  // sorted hints for the current hinting session
-        cachedType     = null,  // describes the lookup type and the object context
-        cachedToken    = null,  // the token used in the current hinting session
-        matcher        = null,  // string matcher for hints
-        jsHintsEnabled = true,  // preference setting to enable/disable the hint session
-        noHintsOnDot   = false, // preference setting to prevent hints on dot
+    var session            = null,  // object that encapsulates the current session state
+        cachedCursor       = null,  // last cursor of the current hinting session
+        cachedHints        = null,  // sorted hints for the current hinting session
+        cachedType         = null,  // describes the lookup type and the object context
+        cachedToken        = null,  // the token used in the current hinting session
+        matcher            = null,  // string matcher for hints
+        jsHintsEnabled     = true,  // preference setting to enable/disable the hint session
+        hintDetailsEnabled = true,  // preference setting to enable/disable hint type details
+        noHintsOnDot       = false, // preference setting to prevent hints on dot
         ignoreChange;           // can ignore next "change" event if true;
 
     // Languages that support inline JavaScript
@@ -78,6 +79,11 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference("codehint.JSHints", "boolean", true, {
         description: Strings.DESCRIPTION_JS_HINTS
     });
+    
+    // This preference controls whether detailed type metadata will be desplayed within hint list. Deafults to true.
+    PreferencesManager.definePreference("jscodehints.typedetails", "boolean", true, {
+        description: Strings.DESCRIPTION_JS_HINTS_TYPE_DETAILS
+    });
 
     /**
      * Check whether any of code hints preferences for JS Code Hints is disabled
@@ -98,6 +104,10 @@ define(function (require, exports, module) {
     
     PreferencesManager.on("change", "jscodehints.noHintsOnDot", function () {
         noHintsOnDot = !!PreferencesManager.get("jscodehints.noHintsOnDot");
+    });
+    
+    PreferencesManager.on("change", "jscodehints.typedetails", function () {
+        hintDetailsEnabled = PreferencesManager.get("jscodehints.typedetails");
     });
     
     /**
@@ -148,6 +158,43 @@ define(function (require, exports, module) {
         if (setConfig.config.debug) {
             console.debug("Hints", _.pluck(hints, "label"));
         }
+        
+        function formatTypeDataForToken($hintObj, token) {
+            
+            if (!hintDetailsEnabled) {
+                return;
+            }
+            
+            $hintObj.addClass('brackets-js-hints-with-type-details');
+            
+            (function _appendLink() {
+                if (token.url) {
+                    $('<a></a>').appendTo($hintObj).addClass("jshint-link").attr('href', token.url).on("click", function (event) {
+                        event.stopImmediatePropagation();
+                        event.stopPropagation();
+                    });
+                }
+            }());
+
+            if (token.type) {
+                if (token.type.trim() !== '?') {
+                    if (token.type.length < 30) {
+                        $('<span>' + token.type.split('->').join(':').toString().trim() + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
+                    }
+                    $('<span>' + token.type.split('->').join(':').toString().trim() + '</span>').appendTo($hintObj).addClass("jshint-description");
+                }
+            } else {
+                if (token.keyword) {
+                    $('<span>keyword</span>').appendTo($hintObj).addClass("brackets-js-hints-keyword");
+                }
+            }
+
+            if (token.doc) {
+                $hintObj.attr('title', token.doc);
+                $('<span></span>').text(token.doc.trim()).appendTo($hintObj).addClass("jshint-jsdoc");
+            }
+        }
+            
         
         /*
          * Returns a formatted list of hints with the query substring
@@ -211,8 +258,10 @@ define(function (require, exports, module) {
                 } else {
                     $hintObj.text(token.value);
                 }
-
+    
                 $hintObj.data("token", token);
+                
+                formatTypeDataForToken($hintObj, token);
                 
                 return $hintObj;
             });
@@ -234,7 +283,7 @@ define(function (require, exports, module) {
             handleWideResults: hints.handleWideResults
         };
     }
-
+    
     /**
      * @constructor
      */

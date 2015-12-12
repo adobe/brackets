@@ -86,8 +86,6 @@ define(function (require, exports, module) {
         MainViewFactory     = require("view/MainViewFactory"),
         ViewStateManager    = require("view/ViewStateManager"),
         Commands            = require("command/Commands"),
-        Dialogs             = require("widgets/Dialogs"),
-        DefaultDialogs      = require("widgets/DefaultDialogs"),
         EditorManager       = require("editor/EditorManager"),
         FileSystemError     = require("filesystem/FileSystemError"),
         DocumentManager     = require("document/DocumentManager"),
@@ -255,15 +253,29 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Locates the first  MRU entry of a file
+     * Locates the first  MRU entry of a file for the requested pane
+     * @param {!string} paneId - the paneId
      * @param {!File} File - the file
      * @return {{file:File, paneId:string}}
      * @private
      */
-    function _findFileInMRUList(file) {
+    function _findFileInMRUList(paneId, file) {
         return _.findIndex(_mruList, function (record) {
-            return (record.file.fullPath === file.fullPath);
+            return (record.file.fullPath === file.fullPath && record.paneId === paneId);
         });
+    }
+    
+    /**
+     * Checks whether a file is listed exclusively in the provided pane
+     * @param {!File} File - the file
+     * @return {{file:File, paneId:string}}
+     */
+    function isExclusiveToPane(file, paneId) {
+        paneId = paneId === ACTIVE_PANE && _activePaneId ? _activePaneId : paneId;
+        var index = _.findIndex(_mruList, function (record) {
+            return (record.file.fullPath === file.fullPath && record.paneId !== paneId);
+        });
+        return index === -1;
     }
 
     
@@ -343,7 +355,7 @@ define(function (require, exports, module) {
                 _mruList.splice(index, 1);
             }
 
-            if (_findFileInMRUList(file) !== -1) {
+            if (_findFileInMRUList(pane.id, file) !== -1) {
                 console.log(file.fullPath + " duplicated in mru list");
             }
             
@@ -700,20 +712,9 @@ define(function (require, exports, module) {
      */
     function addToWorkingSet(paneId, file, index, force) {
         // look for the file to have already been added to another pane
-        var pane = _getPane(paneId),
-            existingPaneId = _getPaneIdForPath(file.fullPath);
-
+        var pane = _getPane(paneId);
         if (!pane) {
             throw new Error("invalid pane id: " + paneId);
-        }
-
-        if (findInWorkingSet(ALL_PANES, file.fullPath) !== -1) {
-            return;
-        }
-        
-        // if it's already open in another pane, then just use that pane
-        if (existingPaneId && existingPaneId !== pane.id) {
-            pane = _getPane(existingPaneId);
         }
         
         var result = pane.reorderItem(file, index, force),
@@ -728,7 +729,7 @@ define(function (require, exports, module) {
         } else if (result === pane.ITEM_NOT_FOUND) {
             index = pane.addToViewList(file, index);
 
-            if (_findFileInMRUList(file) === -1) {
+            if (_findFileInMRUList(pane.id, file) === -1) {
                 // Add to or update the position in MRU
                 if (pane.getCurrentlyViewedFile() === file) {
                     _mruList.unshift(entry);
@@ -753,7 +754,7 @@ define(function (require, exports, module) {
         uniqueFileList = pane.addListToViewList(fileList);
         
         uniqueFileList.forEach(function (file) {
-            if (_findFileInMRUList(file) !== -1) {
+            if (_findFileInMRUList(pane.id, file) !== -1) {
                 console.log(file.fullPath + " duplicated in mru list");
             }
             _mruList.push(_makeMRUListEntry(file, pane.id));
@@ -1185,16 +1186,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _edit(paneId, doc, optionsIn) {
-        var options = optionsIn || {},
-            currentPaneId  = _getPaneIdForPath(doc.file.fullPath);
-        
-        if (currentPaneId) {
-            // If the doc is open in another pane then switch to that pane and call open document
-            //  which will really just show the view as it has always done we could just 
-            //  do pane.showView(doc._masterEditor) in that case but Editor Manager may do some 
-            //  state syncing 
-            paneId = currentPaneId;
-        }
+        var options = optionsIn || {};
         
         var pane = _getPane(paneId);
         
@@ -1236,32 +1228,6 @@ define(function (require, exports, module) {
             return result.reject("bad argument").promise();
         }
 
-        var currentPaneId = _getPaneIdForPath(file.fullPath);
-
-        if (currentPaneId) {
-            // Warn user (only once) when file is already open in another view
-            if (!PreferencesManager.getViewState("splitview.multipane-info") &&
-                    currentPaneId !== _resolvePaneId(paneId)) {
-                PreferencesManager.setViewState("splitview.multipane-info", true);
-                
-                // File tree also executes single-click code prior to executing double-click
-                // code, so delay showing modal dialog to prevent eating second click
-                window.setTimeout(function () {
-                    Dialogs.showModalDialog(
-                        DefaultDialogs.DIALOG_ID_INFO,
-                        Strings.SPLITVIEW_INFO_TITLE,
-                        Strings.SPLITVIEW_MULTIPANE_WARNING
-                    );
-                }, 500);
-            }
-
-            // If the doc is open in another pane
-            //  then switch to that pane and call open document
-            //  which will really just show the view as it has always done
-            //  we could just do pane.showView(doc._masterEditor) in that
-            //  case but Editor Manager may do some state syncing             
-            paneId = currentPaneId;
-        }
         
         // See if there is already a view for the file
         var pane = _getPane(paneId);
@@ -1371,7 +1337,7 @@ define(function (require, exports, module) {
     function _close(paneId, file, optionsIn) {
         var options = optionsIn || {};
         _forEachPaneOrPanes(paneId, function (pane) {
-            if (pane.removeView(file, options.noOpenNextFile)) {
+            if (pane.removeView(file, options.noOpenNextFile) && pane.id === paneId) {
                 _removeFileFromMRU(pane.id, file);
                 exports.trigger("workingSetRemove", file, false, pane.id);
                 return false;
@@ -1556,7 +1522,7 @@ define(function (require, exports, module) {
                     var fileList = pane.getViewList();
 
                     fileList.forEach(function (file) {
-                        if (_findFileInMRUList(file) !== -1) {
+                        if (_findFileInMRUList(pane.id, file) !== -1) {
                             console.log(file.fullPath + " duplicated in mru list");
                         }
                         _mruList.push(_makeMRUListEntry(file, pane.id));
@@ -1760,6 +1726,7 @@ define(function (require, exports, module) {
     exports.getPaneIdList                 = getPaneIdList;
     exports.getPaneTitle                  = getPaneTitle;
     exports.getPaneCount                  = getPaneCount;
+    exports.isExclusiveToPane             = isExclusiveToPane;
     
     exports.getAllOpenFiles               = getAllOpenFiles;
     exports.focusActivePane               = focusActivePane;
@@ -1775,4 +1742,6 @@ define(function (require, exports, module) {
     // Constants
     exports.ALL_PANES                     = ALL_PANES;
     exports.ACTIVE_PANE                   = ACTIVE_PANE;
+    exports.FIRST_PANE                    = FIRST_PANE;
+    exports.SECOND_PANE                   = SECOND_PANE;
 });

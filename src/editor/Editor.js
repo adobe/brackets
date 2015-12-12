@@ -80,6 +80,7 @@ define(function (require, exports, module) {
         TokenUtils         = require("utils/TokenUtils"),
         ValidationUtils    = require("utils/ValidationUtils"),
         ViewUtils          = require("utils/ViewUtils"),
+        MainViewManager    = require("view/MainViewManager"),
         _                  = require("thirdparty/lodash");
 
     /** Editor preferences */
@@ -314,9 +315,12 @@ define(function (require, exports, module) {
         this._handleDocumentChange = this._handleDocumentChange.bind(this);
         this._handleDocumentDeleted = this._handleDocumentDeleted.bind(this);
         this._handleDocumentLanguageChanged = this._handleDocumentLanguageChanged.bind(this);
+        this._doWorkingSetSync = this._doWorkingSetSync.bind(this);
         document.on("change", this._handleDocumentChange);
         document.on("deleted", this._handleDocumentDeleted);
         document.on("languageChanged", this._handleDocumentLanguageChanged);
+        // To sync working sets if the view is for same doc across panes
+        document.on("_dirtyFlagChange", this._doWorkingSetSync);
 
         var mode = this._getModeFromDocument();
         
@@ -328,6 +332,9 @@ define(function (require, exports, module) {
         this._lastEditorWidth = null;
         
         this._$messagePopover = null;
+        
+        // To track which pane the editor is being attached to if it's a full editor
+        this._paneId = null;
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
@@ -453,6 +460,20 @@ define(function (require, exports, module) {
     EventDispatcher.makeEventDispatcher(Editor.prototype);
     EventDispatcher.markDeprecated(Editor.prototype, "keyEvent", "'keydown/press/up'");
     
+    Editor.prototype.markPaneId = function (paneId) {
+        this._paneId = paneId;
+        // In case this Editor is initialized not as the first full editor for the document 
+        // and the document is already dirty and present in another working set, make sure 
+        // to add this documents to the new panes working set.
+        this._doWorkingSetSync(null, this.document);
+    };
+    
+    Editor.prototype._doWorkingSetSync = function (event, doc) {
+        if (doc === this.document && this._paneId && this.document.isDirty) {
+            MainViewManager.addToWorkingSet(this._paneId, this.document.file, -1, false);
+        }
+    };
+    
     /**
      * Removes this editor from the DOM and detaches from the Document. If this is the "master"
      * Editor that is secretly providing the Document's backing state, then the Document reverts to
@@ -472,6 +493,7 @@ define(function (require, exports, module) {
         this.document.off("change", this._handleDocumentChange);
         this.document.off("deleted", this._handleDocumentDeleted);
         this.document.off("languageChanged", this._handleDocumentLanguageChanged);
+        this.document.off("_dirtyFlagChange", this._doWorkingSetSync);
         
         if (this._visibleRange) {   // TextRange also refs the Document
             this._visibleRange.dispose();
@@ -480,6 +502,8 @@ define(function (require, exports, module) {
         // If we're the Document's master editor, disconnecting from it has special meaning
         if (this.document._masterEditor === this) {
             this.document._makeNonEditable();
+        } else {
+            this.document._disassociateEditor(this);
         }
         
         // Destroying us destroys any inline widgets we're hosting. Make sure their closeCallbacks
@@ -965,6 +989,8 @@ define(function (require, exports, module) {
         this._codeMirror.on("focus", function () {
             self._focused = true;
             self.trigger("focus", self);
+            // Set this full editor as master editor for the document
+            self.document._toggleMasterEditor(self);
         });
         
         this._codeMirror.on("blur", function () {

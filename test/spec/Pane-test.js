@@ -70,7 +70,11 @@ define(function (require, exports, module) {
                 },
                 notifyVisibilityChange: function (visible) {
                     this._visible = visible;
+                },
+                markPaneId: function (id) {
+                    this._paneId = id;
                 }
+                
             };
         }
         

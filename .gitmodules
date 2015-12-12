@@ -9,7 +9,7 @@
 	url = https://github.com/janl/mustache.js.git
 [submodule "src/extensions/default/JavaScriptCodeHints/thirdparty/tern"]
 	path = src/extensions/default/JavaScriptCodeHints/thirdparty/tern
-	url = https://github.com/marijnh/tern.git
+	url = https://github.com/ternjs/tern.git
 [submodule "src/extensions/default/JavaScriptCodeHints/thirdparty/acorn"]
 	path = src/extensions/default/JavaScriptCodeHints/thirdparty/acorn
 	url = https://github.com/marijnh/acorn.git
