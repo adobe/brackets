@@ -591,6 +591,8 @@ define(function (require, exports, module) {
             // Blank or invalid query: just jump back to initial pos
             editor._codeMirror.setCursor(state.searchStartPos);
         }
+
+        editor.lastParsedQuery = state.parsedQuery;
     }
     
     
@@ -640,8 +642,7 @@ define(function (require, exports, module) {
                 findNext(editor, searchBackwards);
             })
             .on("close.FindReplace", function (e) {
-                editor.lastParsedQuery = state.parsedQuery || "";
-
+                editor.lastParsedQuery = state.parsedQuery;
                 // Clear highlights but leave search state in place so Find Next/Previous work after closing
                 clearHighlights(cm, state);
 
@@ -748,8 +749,8 @@ define(function (require, exports, module) {
             newIdx = state.matchIndex;
 
             if (!state.queryInfo.isCaseSensitive) {
-                originalQuery = originalQuery.toLowerCase();
-                newQuery = newQuery.toLowerCase();
+                originalQuery = originalQuery.toString().toLowerCase();
+                newQuery = newQuery.toString().toLowerCase();
             }
         }
 

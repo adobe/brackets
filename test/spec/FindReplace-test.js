@@ -745,7 +745,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("shouldn't Find Next after search bar reopened", function () {
+            it("should Find Next after search bar reopened", function () {
                 runs(function () {
                     myEditor.setCursorPos(0, 0);
                     
@@ -763,10 +763,10 @@ define(function (require, exports, module) {
                     twCommandManager.execute(Commands.CMD_FIND);
                     
                     expectSearchBarOpen();
-                    expect(myEditor).toHaveCursorPosition(0, 0);
+                    expect(myEditor).toHaveCursorPosition(8, 8, true);
                     
                     twCommandManager.execute(Commands.CMD_FIND_NEXT);
-                    expect(myEditor).toHaveCursorPosition(0, 0);
+                    expect(myEditor).toHaveCursorPosition(8, 8, true);
                 });
             });
             
