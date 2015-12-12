@@ -288,7 +288,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "Clique para alterar o tipo de arquivo",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Clique para abrir/fechar o painel de relatórios.",
     "STATUSBAR_DEFAULT_LANG"                : "(padrão)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "Definir como padrão para arquivos .{0}.",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Definir como padrão para arquivos {0}.",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "Problemas de {0}",

@@ -281,7 +281,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "Klik om bestandstype te veranderen.",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klik om foutenpaneel te openen.",
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "Standaard voor .{0} bestanden",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Standaard voor {0} bestanden",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Fouten",

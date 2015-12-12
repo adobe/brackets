@@ -280,7 +280,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "파일 종류를 변경하려면 클릭하세요",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. 클릭하면 기록 패널을 토글합니다.",
     "STATUSBAR_DEFAULT_LANG"                : "(기본값)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : ".{0} 파일에 대한 기본값으로 설정",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "{0} 파일에 대한 기본값으로 설정",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0}개의 에러",

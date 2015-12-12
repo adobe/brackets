@@ -281,7 +281,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "Clicca per cambiare il tipo di file",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Clicca per attivare pannello dei report.",
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "Imposta come predefinito per .{0} File",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Imposta come predefinito per {0} File",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Problemi",

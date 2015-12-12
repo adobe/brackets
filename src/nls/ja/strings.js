@@ -288,7 +288,7 @@ define({
 	"STATUSBAR_LANG_TOOLTIP": "クリックしてファイルタイプを変更",
 	"STATUSBAR_CODE_INSPECTION_TOOLTIP": "{0}。クリックしてレポートパネルを切り替えます。",
 	"STATUSBAR_DEFAULT_LANG": "(指定なし)",
-	"STATUSBAR_SET_DEFAULT_LANG": ".{0} ファイルのデフォルトとして設定",
+	"STATUSBAR_SET_DEFAULT_LANG": "{0} ファイルのデフォルトとして設定",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} 個の問題",

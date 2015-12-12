@@ -280,7 +280,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "Klik untuk mengubah tipe file",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klik untuk menampilkan/menyembunyikan panel laporan.",
     "STATUSBAR_DEFAULT_LANG"                : "(default)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "Simpan sebagai Default untuk File .{0}",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Simpan sebagai Default untuk File {0}",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Masalah",

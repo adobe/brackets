@@ -280,7 +280,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                    : "Натисніть, аби змінити тип файлу",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"         : "{0}. Натисніть, аби перемкнути панель повідомлень.",
     "STATUSBAR_DEFAULT_LANG"                    : "(типово)",
-    "STATUSBAR_SET_DEFAULT_LANG"                : "Встановити типовим для файлів .{0}",
+    "STATUSBAR_SET_DEFAULT_LANG"                : "Встановити типовим для файлів {0}",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"               : "{0} Помилок",

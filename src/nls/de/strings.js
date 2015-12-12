@@ -288,7 +288,7 @@ define({
     "STATUSBAR_LANG_TOOLTIP"                : "Klicken, um den Dateityp zu ändern",
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Klicken, um Übersicht anzuzeigen/auszublenden.",
     "STATUSBAR_DEFAULT_LANG"                : "(Standard)",
-    "STATUSBAR_SET_DEFAULT_LANG"            : "Als Standard für .{0}-Dateien festlegen",
+    "STATUSBAR_SET_DEFAULT_LANG"            : "Als Standard für {0}-Dateien festlegen",
 
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "{0} Probleme",

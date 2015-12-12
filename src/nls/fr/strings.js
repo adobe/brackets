@@ -288,7 +288,7 @@ define({
 	"STATUSBAR_LANG_TOOLTIP": "Cliquez pour modifier le type de fichier",
 	"STATUSBAR_CODE_INSPECTION_TOOLTIP": "{0}. Cliquez pour afficher/masquer le panneau des rapports.",
 	"STATUSBAR_DEFAULT_LANG": "(par défaut)",
-	"STATUSBAR_SET_DEFAULT_LANG": "Utiliser par défaut pour les fichiers .{0}",
+	"STATUSBAR_SET_DEFAULT_LANG": "Utiliser par défaut pour les fichiers {0}",
 
     // CodeInspection: errors/warnings
 	"ERRORS_PANEL_TITLE_MULTIPLE": "{0} problèmes",
