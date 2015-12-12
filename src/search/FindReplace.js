@@ -749,8 +749,13 @@ define(function (require, exports, module) {
             newIdx = state.matchIndex;
 
             if (!state.queryInfo.isCaseSensitive) {
-                originalQuery = originalQuery.toString().toLowerCase();
-                newQuery = newQuery.toString().toLowerCase();
+                originalQuery = typeof originalQuery === "string"
+                    ? originalQuery.toLowerCase()
+                    : originalQuery;
+
+                newQuery = typeof newQuery === "string"
+                    ? newQuery.toLowerCase()
+                    : newQuery;
             }
         }
 
