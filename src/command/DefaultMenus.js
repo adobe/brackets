@@ -34,7 +34,41 @@ define(function (require, exports, module) {
     var AppInit         = require("utils/AppInit"),
         Commands        = require("command/Commands"),
         Menus           = require("command/Menus"),
-        Strings         = require("strings");
+        Strings         = require("strings"),
+        MainViewManager = require("view/MainViewManager"),
+        CommandManager  = require("command/CommandManager");
+    
+    /**
+     * @private
+     * Enable or disable the supplied menu items in context menu.
+     *
+     * @param {boolean} enabled Indicates whether the items are enabled or disabled.
+     * @param {Array} Array of command IDs of the menu items on which the action is to be performed.
+     */
+    function _setContextMenuItemsVisibility(enabled, items) {
+        items.forEach(function (item) {
+            CommandManager.get(item).setEnabled(enabled);
+        });
+    }
+    
+    /**
+     * @private
+     * Compute the visibility of context menu items when working on files that have not yet been saved.
+     */
+    function _setMenuItemsVisibility() {
+        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
+        if (file) {
+            file.exists(function (err, isPresent) {
+                if (!err) {
+                    if (isPresent) {
+                        _setContextMenuItemsVisibility(true, [Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS]);
+                    } else {
+                        _setContextMenuItemsVisibility(false, [Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS]);
+                    }
+                }
+            });
+        }
+    }
     
     AppInit.htmlReady(function () {
         /*
@@ -342,5 +376,10 @@ define(function (require, exports, module) {
                 $(this).addClass("open");
             }
         });
+        
+        // Check the visibility of context menu items before opening the context menu.
+        // 'Rename', 'Show in file tree' and 'Show in explorer' items will be disabled for files that have not yet been saved to disk.
+        Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisibility);
+        Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisibility);
     });
 });
