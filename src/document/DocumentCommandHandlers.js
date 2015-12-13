@@ -1115,6 +1115,7 @@ define(function (require, exports, module) {
         var file,
             promptOnly,
             _forceClose,
+            _spawnedRequest,
             paneId = MainViewManager.ACTIVE_PANE;
 
         if (commandData) {
@@ -1122,6 +1123,7 @@ define(function (require, exports, module) {
             promptOnly  = commandData.promptOnly;
             _forceClose = commandData._forceClose;
             paneId      = commandData.paneId || paneId;
+            _spawnedRequest = commandData.spawnedRequest || false;
         }
 
         // utility function for handleFileClose: closes document & removes from workingset
@@ -1146,8 +1148,9 @@ define(function (require, exports, module) {
 
         var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
 
-        if (doc && doc.isDirty && !_forceClose) {
-            // Document is dirty: prompt to save changes before closing
+        if (doc && doc.isDirty && !_forceClose && (MainViewManager.isExclusiveToPane(doc.file, paneId) || _spawnedRequest)) {
+            // Document is dirty: prompt to save changes before closing if only the document is exclusively
+            // listed in the requested pane or this is part of a list close request
             var filename = FileUtils.getBaseName(doc.file.fullPath);
 
             Dialogs.showModalDialog(
@@ -1245,7 +1248,7 @@ define(function (require, exports, module) {
 
         } else if (unsavedDocs.length === 1) {
             // Only one unsaved file: show the usual single-file-close confirmation UI
-            var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: promptOnly };
+            var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: promptOnly, spawnedRequest: true };
 
             handleFileClose(fileCloseArgs).done(function () {
                 // still need to close any other, non-unsaved documents

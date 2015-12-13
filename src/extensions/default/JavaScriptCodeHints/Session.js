@@ -570,6 +570,14 @@ define(function (require, exports, module) {
                     if (hint.depth !== undefined) {
                         searchResult.depth = hint.depth;
                     }
+                    
+                    if (hint.doc) {
+                        searchResult.doc = hint.doc;
+                    }
+                    
+                    if (hint.url) {
+                        searchResult.url = hint.url;
+                    }
 
                     if (!type.property && !type.showFunctionType && hint.origin &&
                             isBuiltin(hint.origin)) {

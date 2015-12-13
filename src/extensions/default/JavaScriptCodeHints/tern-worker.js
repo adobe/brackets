@@ -168,6 +168,8 @@ var config = {};
                 query.types = true;
                 query.expandWordForward = false;
                 query.lineCharPositions = true;
+                query.docs = true;
+                query.urls = true;
 
                 var request = {query: query, files: [], offset: offset, timeout: inferenceTimeout};
                 if (fileInfo.type !== MessageIds.TERN_FILE_INFO_TYPE_EMPTY) {
@@ -294,7 +296,7 @@ var config = {};
                             for (i = 0; i < data.completions.length; ++i) {
                                 var completion = data.completions[i];
                                 completions.push({value: completion.name, type: completion.type, depth: completion.depth,
-                                    guess: completion.guess, origin: completion.origin});
+                                    guess: completion.guess, origin: completion.origin, doc: completion.doc, url: completion.url});
                             }
                         }
 

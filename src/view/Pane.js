@@ -263,7 +263,7 @@ define(function (require, exports, module) {
             var file = self.getCurrentlyViewedFile();
 
             if (file) {
-                CommandManager.execute(Commands.FILE_CLOSE, {File: file});
+                CommandManager.execute(Commands.FILE_CLOSE, {File: file, paneId: self.id});
 
                 if (!self.getCurrentlyViewedFile() && PreferencesManager.get("pane.mergePanesWhenLastFileClosed")) {
                     MainViewManager.setLayoutScheme(1, 1);
@@ -773,7 +773,7 @@ define(function (require, exports, module) {
      */
     Pane.prototype._canAddFile = function (file) {
         return ((this._views.hasOwnProperty(file.fullPath) && this.findInViewList(file.fullPath) === -1) ||
-                    (!MainViewManager._getPaneIdForPath(file.fullPath)));
+                    (MainViewManager._getPaneIdForPath(file.fullPath) !== this.id));
     };
     
     /**
@@ -1110,7 +1110,11 @@ define(function (require, exports, module) {
         } else {
             this._views[path] = view;
         }
-
+        
+        // Ensure that we don't endup marking the custom views
+        if (view.markPaneId) {
+            view.markPaneId(this.id);
+        }
         
         if (show) {
             this.showView(view);

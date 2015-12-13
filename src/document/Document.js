@@ -84,6 +84,11 @@ define(function (require, exports, module) {
     EventDispatcher.makeEventDispatcher(Document.prototype);
     
     /**
+     * List of editors which were initialized as master editors for this doc.
+     */
+    Document.prototype._associatedFullEditors = [];
+    
+    /**
      * Number of clients who want this Document to stay alive. The Document is listed in
      * DocumentManager._openDocuments whenever refCount > 0.
      */
@@ -196,12 +201,16 @@ define(function (require, exports, module) {
      */
     Document.prototype._makeEditable = function (masterEditor) {
         if (this._masterEditor) {
-            console.error("Document is already editable");
-        } else {
-            this._text = null;
-            this._masterEditor = masterEditor;
-            masterEditor.on("change", this._handleEditorChange.bind(this));
+            //Already a master editor is associated , so preserve the old editor in list of full editors
+            if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
+                this._associatedFullEditors.push(this._masterEditor);
+            }
         }
+        
+        this._text = null;
+        this._masterEditor = masterEditor;
+        
+        masterEditor.on("change", this._handleEditorChange.bind(this));
     };
     
     /**
@@ -215,7 +224,42 @@ define(function (require, exports, module) {
         } else {
             // _text represents the raw text, so fetch without normalized line endings
             this._text = this.getText(true);
-            this._masterEditor = null;
+            this._associatedFullEditors.splice(this._associatedFullEditors.indexOf(this._masterEditor), 1);
+            
+            // Identify the most recently created full editor before this and set that as new master editor
+            if (this._associatedFullEditors.length > 0) {
+                this._masterEditor = this._associatedFullEditors[this._associatedFullEditors.length - 1];
+            } else {
+                this._masterEditor = null;
+            }
+        }
+    };
+    
+    /**
+     * Toggles the master editor which has gained focus from a pool of full editors 
+     * To be used internally by Editor only 
+     */
+    Document.prototype._toggleMasterEditor = function (masterEditor) {
+        // Do a check before processing the request to ensure inline editors are not being set as master editor
+        if (this._associatedFullEditors.indexOf(masterEditor) >= 0) {
+            if (this._masterEditor) {
+                // Already a master editor is associated , so preserve the old editor in list of editors
+                if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
+                    this._associatedFullEditors.push(this._masterEditor);
+                }
+            }
+            this._masterEditor = masterEditor;
+        }
+    };
+    
+    /**
+     * Disassociates an editor from this document if present in the associated editor list
+     * To be used internally by Editor only when destroyed and not the current master editor for the document
+     */
+    Document.prototype._disassociateEditor = function (editor) {
+        // Do a check before processing the request to ensure inline editors are not being handled
+        if (this._associatedFullEditors.indexOf(editor) >= 0) {
+            this._associatedFullEditors.splice(this._associatedFullEditors.indexOf(editor), 1);
         }
     };
     
@@ -409,6 +453,11 @@ define(function (require, exports, module) {
      * @private
      */
     Document.prototype._handleEditorChange = function (event, editor, changeList) {
+        // Handle editor change event only when it is originated from the master editor for this doc
+        if (this._masterEditor !== editor) {
+            return;
+        }
+        
         // TODO: This needs to be kept in sync with SpecRunnerUtils.createMockActiveDocument(). In the
         // future, we should fix things so that we either don't need mock documents or that this
         // is factored so it will just run in both.

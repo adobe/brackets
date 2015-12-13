@@ -542,7 +542,9 @@ define(function (require, exports, module) {
         var createdNewEditor = false,
             editor = document._masterEditor;
         
-        if (!editor) {
+        //Check if a master editor is not set already or the current master editor doesn't belong 
+        //to the pane container requested - to support creation of multiple full editors
+        if (!editor || editor._paneId !== pane.id) {
             // Performance (see #4757) Chrome wastes time messing with selection
             // that will just be changed at end, so clear it for now
             if (window.getSelection && window.getSelection().empty) {  // Chrome
@@ -552,10 +554,6 @@ define(function (require, exports, module) {
             // Editor doesn't exist: populate a new Editor with the text
             editor = _createFullEditorForDocument(document, pane, editorOptions);
             createdNewEditor = true;
-        } else if (editor.$el.parent()[0] !== pane.$content[0]) {
-            // editor does exist but is not a child of the pane so add it to the 
-            //  pane (which will switch the view's container as well)
-            pane.addView(editor);
         }
 
         // show the view
