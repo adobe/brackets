@@ -66,8 +66,12 @@ define(function (require, exports, module) {
      * @type {Object.<string, boolean>}
      * @private
      */
-    var _status      = { HTML_READY : false, APP_READY : false, EXTENSIONS_LOADED: false };
+    var _status      = {};
     
+    _status[HTML_READY]         = false;
+    _status[APP_READY]          = false;
+    _status[EXTENSIONS_LOADED]  = false;
+
     /*
      * Map of callbacks to states
      * @type {Object.<string, Array.<function()>>}
