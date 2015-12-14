@@ -389,7 +389,7 @@ define({
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Ny regel",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Installer",
     "UPDATE"                               : "Oppdater",
@@ -477,7 +477,7 @@ define({
 
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "største",
-    
+
     /**
      * Unit names
      */
@@ -504,7 +504,7 @@ define({
     "LANGUAGE_SUBMIT"                           : "Gjenåpne {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Avbryt",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Sett systemforvalg",
-    
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tid",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progresjon",

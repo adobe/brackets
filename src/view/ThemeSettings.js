@@ -86,7 +86,7 @@ define(function (require, exports, module) {
         // Select the correct theme.
         var $currentThemeOption = $template
             .find("[value='" + currentSettings.theme + "']");
-        
+
         if ($currentThemeOption.length === 0) {
             $currentThemeOption = $template.find("[value='" + defaults.theme + "']");
         }
