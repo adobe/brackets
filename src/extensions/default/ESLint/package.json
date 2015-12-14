@@ -1,0 +1,6 @@
+{
+    "dependencies": {
+        "enable-global-packages": "0.0.5",
+        "eslint": "1.10.3"
+    }
+}
