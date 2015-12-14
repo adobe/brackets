@@ -20,10 +20,13 @@
         var ignorePath;
 
         if (projectRoot) {
-            configPath = projectRoot + '.eslintrc';
             try {
-                if (fs.statSync(configPath).isFile()) {
-                    noop();
+                var dirContent = fs.readdirSync(projectRoot);
+                dirContent = dirContent.filter(function (entry) {
+                    return entry.match(/^\.eslintrc(\.(js|yaml|yml|json))?$/);
+                });
+                if (dirContent.length === 0) {
+                    throw new Error('no config file found!');
                 }
             } catch (e) {
                 // config file not found, use default
