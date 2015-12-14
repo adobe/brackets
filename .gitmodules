@@ -30,4 +30,4 @@
 	url = https://github.com/marijnh/acorn.git
 [submodule "src/extensions/default/JavaScriptCodeHints/node/node_modules/tern"]
 	path = src/extensions/default/JavaScriptCodeHints/node/node_modules/tern
-	url = https://github.com/marijnh/tern.git
+	url = https://github.com/ternjs/tern.git
