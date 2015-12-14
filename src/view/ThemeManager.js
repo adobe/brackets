@@ -358,9 +358,9 @@ define(function (require, exports, module) {
         refresh();
     });
 
-    
+
     EventDispatcher.makeEventDispatcher(exports);
-    
+
     exports.refresh         = refresh;
     exports.loadFile        = loadFile;
     exports.loadPackage     = loadPackage;

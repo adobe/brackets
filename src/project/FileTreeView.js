@@ -843,7 +843,7 @@ define(function (require, exports, module) {
             });
         }
     }));
-    
+
     /**
      * On Windows and Linux, the selection bar in the tree does not extend over the scroll bar.
      * The selectionExtension sits on top of the scroll bar to make the selection bar appear to span the
@@ -985,7 +985,7 @@ define(function (require, exports, module) {
                     forceRender: this.props.forceRender,
                     platform: this.props.platform
                 });
-            
+
             return DOM.div(
                 null,
                 selectionBackground,
