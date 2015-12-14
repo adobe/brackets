@@ -518,7 +518,7 @@ define({
     "EXTENSION_INCOMPATIBLE_OLDER"         : " نسخه فعلی این افزونه فقط با نسخه های قبلی {APP_NAME} سازگار است.",
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "نسخه {0} از این افزونه نیازمند نسخه جدیدی از {APP_NAME} می باشد. ولی شما می توانید یک نسخه پایین تر از {1} را نصب کنید.",
     "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "نسخه {0} از این افزونه فقط با نسخه قدیمی از {APP_NAME} کار می کند. اما شما به راحتی می توانید نصب کنید نسخه {1} را ",
-    
+
 
     "EXTENSION_NO_DESCRIPTION"             : "بدون شرح",
     "EXTENSION_MORE_INFO"                  : "اطلاعات بیشتر...",
