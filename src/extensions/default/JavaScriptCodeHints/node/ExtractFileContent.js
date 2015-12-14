@@ -29,11 +29,22 @@
     var fs = require("fs"),
         _dirtyFilesCache = [];
     
-    function _clearDirtyFilesCache() {
+    /**
+     * Clears the cache for dirty file paths
+     */
+    function clearDirtyFilesCache() {
         _dirtyFilesCache = [];
     }
     
-    function _updateDirtyFilesCache(name, action) {
+    /**
+     * Updates the files cache with fullpath when dirty flag changes for a document
+     * If the doc is being marked as dirty then an entry is created in the cache
+     * If the doc is being marked as clean then the corresponsing entry gets cleared from cache
+     *
+     * @param {String} name - fullpath of the document
+     * @param {boolean} action - whether the document is dirty
+     */
+    function updateDirtyFilesCache(name, action) {
         if (action) {
             _dirtyFilesCache.push(name);
         } else {
@@ -44,6 +55,12 @@
         }
     }
     
+    /**
+     * Extract content locally from the file system used fs.readFile()
+     *
+     * @param {String} fileName - fullpath of the document
+     * @param {Function} callback - callback handle to post the content back
+     */
     function _readFile(fileName, callback) {
         fs.readFile(fileName, 'utf8', function (err, data) {
             var content = "";
@@ -55,6 +72,15 @@
         });
     }
     
+    /**
+     * Extracts file content for the given file name(1st param) and invokes the callback handle(2nd param) with 
+     * extracted file content. Content can be extracted locally from the file system used fs.readFile()
+     * or conditionally from main context(brackets main thread) by using the 3rd param 
+     *
+     * @param {String} fileName - fullpath of the document
+     * @param {Function} callback - callback handle to post the content back
+     * @param {Object} extractFromMainContext - content request handle wrapper from main thread
+     */
     function extractContent(fileName, callback, extractFromMainContext) {
         if (_dirtyFilesCache.indexOf(fileName) !== -1) {
             // Ask the main thread context to provide the updated file content
@@ -66,7 +92,7 @@
     }
     
     exports.extractContent = extractContent;
-    exports.clearFilesCache = _clearDirtyFilesCache;
-    exports.updateFilesCache = _updateDirtyFilesCache;
+    exports.clearFilesCache = clearDirtyFilesCache;
+    exports.updateFilesCache = updateDirtyFilesCache;
     
 }());
