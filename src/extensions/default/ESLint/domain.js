@@ -10,7 +10,6 @@
     var currentProjectRoot = null;
     var domainName = 'brackets-eslint';
     var domainManager = null;
-    var noop = function () {};
     var globalPackagesAvailable = false;
 
     function _setProjectRoot(projectRoot) {
@@ -38,9 +37,8 @@
                 if (fs.statSync(rulesDirPath).isDirectory()) {
                     opts.rulePaths = [rulesDirPath];
                 }
-            } catch (e) {
-                // no action required
-                noop(e);
+            } catch (err) {
+                // ignore err
             }
 
             ignorePath = projectRoot + '.eslintignore';
@@ -49,9 +47,8 @@
                     opts.ignore = true;
                     opts.ignorePath = ignorePath;
                 }
-            } catch (e) {
-                // no action required
-                noop(e);
+            } catch (err) {
+                // ignore err
             }
         }
 
