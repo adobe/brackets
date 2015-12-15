@@ -1466,7 +1466,7 @@ define(function (require, exports, module) {
     });
     
     function useIconProviders(data, $element) {
-         _iconProviders.forEach(function (provider) {
+        _iconProviders.forEach(function (provider) {
             var icon = provider(data);
             if (icon) {
                 $element.prepend($(icon));

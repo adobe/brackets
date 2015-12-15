@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets */
+/*global $, define, brackets */
 
 
 
@@ -129,7 +129,7 @@ define(function (require, exports, module) {
             file: path,
             paneId: pane,
             cursor: cursorPos
-        }
+        };
     }
     
     /**
@@ -159,23 +159,23 @@ define(function (require, exports, module) {
             $mrofContainer.remove();
         });*/
         
-        function _onFocus() {
-            $mrofContainer.find("#recent-file-path").text($(this).parent().data("path"));
+        function _onFocus(event) {
+            $mrofContainer.find("#recent-file-path").text($(event.target).parent().data("path"));
         }
         
         function _onClick() {
-            var context = this;
-            CommandManager.execute(Commands.FILE_OPEN, {fullPath: $(this).parent().data("path"),
-                                                        paneId: $(this).parent().data("paneId") }).done(function () {
+            var context = event.target;
+            CommandManager.execute(Commands.FILE_OPEN, {fullPath: $(context).parent().data("path"),
+                                                        paneId: $(context).parent().data("paneId") }).done(function () {
                 EditorManager.getActiveEditor().setCursorPos($(context).parent().data("cursor"));
                 EditorManager.getActiveEditor().centerOnCursor();
                 $(context).trigger("focus");
             });
         }
         
-        var data, fileEntry; 
-
-        $.each(_mrofList, function( index, value ) {
+        var data, fileEntry;
+        
+        $.each(_mrofList, function (index, value) {
             
             data = {fullPath: value.file,
                     name: FileUtils.getBaseName(value.file),
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
             fileEntry = FileSystem.getFileForPath(value.file);
             
             // Create new list item with a link
-            $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay({name: FileUtils.getBaseName(value.file)}));            
+            $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay({name: FileUtils.getBaseName(value.file)}));
             WorkingSetView.useIconProviders(data, $link);
             
             var $newItem = $("<li></li>").append($link);
@@ -217,7 +217,7 @@ define(function (require, exports, module) {
         $("#mrof-container > #mrof-list > li > a").on("click", _onClick);
         $("#mrof-container > #mrof-list > li > a").on("select", _onClick);
         
-        $("#mrof-container > #mrof-list > li > a").first().trigger("focus");    
+        $("#mrof-container > #mrof-list > li > a").first().trigger("focus");
     }
     
     function _addToMROFList(current) {
@@ -235,7 +235,7 @@ define(function (require, exports, module) {
         }
 
         // add it to the front of the list
-        _mrofList.unshift(entry);        
+        _mrofList.unshift(entry);
     }
     
     EditorManager.on("activeEditorChange", function (event, current, previous) {
