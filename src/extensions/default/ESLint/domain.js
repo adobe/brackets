@@ -22,7 +22,7 @@
             try {
                 var dirContent = fs.readdirSync(projectRoot);
                 dirContent = dirContent.filter(function (entry) {
-                    return entry.match(/^\.eslintrc(\.(js|yaml|yml|json))?$/);
+                    return /^\.eslintrc(\.(js|yaml|yml|json))?$/.test(entry);
                 });
                 if (dirContent.length === 0) {
                     throw new Error('no config file found!');
