@@ -48,7 +48,7 @@
         "valid-jsdoc": 0,
         "valid-typeof": 2,
 
-        "no-trailing-spaces": 2,
+        "no-trailing-spaces": [2, { "skipBlankLines": true }],
         "eol-last": 2
     },
     "globals": {
