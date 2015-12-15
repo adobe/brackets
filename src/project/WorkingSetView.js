@@ -1464,12 +1464,30 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         $workingFilesContainer =  $("#working-set-list-container");
     });
+    
+    function useIconProviders(data, $element) {
+         _iconProviders.forEach(function (provider) {
+            var icon = provider(data);
+            if (icon) {
+                $element.prepend($(icon));
+            }
+        });
+    }
 
-
+    function useClassProviders(data, $element) {
+        _classProviders.forEach(function (provider) {
+            $element.addClass(provider(data));
+        });
+    }
+    
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
     exports.addIconProvider               = addIconProvider;
     exports.addClassProvider              = addClassProvider;
     exports.syncSelectionIndicator        = syncSelectionIndicator;
+    
+    // API to be used only by default extensions
+    exports.useIconProviders              = useIconProviders;
+    exports.useClassProviders               = useClassProviders;
 });
