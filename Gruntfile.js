@@ -304,7 +304,7 @@ module.exports = function (grunt) {
             src:    '<%= meta.src %>',
             test:   '<%= meta.test %>',
             options: {
-                configFile: '.eslintrc'
+                quiet: true
             }
         },
         shell: {

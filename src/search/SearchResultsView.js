@@ -580,7 +580,6 @@ define(function (require, exports, module) {
         this._model.on("change.SearchResultsView", this._handleModelChange.bind(this));
     };
 
-
     /**
      * @private
      * Clear the Results Summary

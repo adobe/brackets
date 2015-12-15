@@ -87,7 +87,7 @@ define(function (require, exports, module) {
             it("should return the unchanged directory of a posix directory path", function () {
                 expect(FileUtils.getDirectoryPath("/foo/bar/")).toBe("/foo/bar/");
             });
-            
+
             it("should return the unchanged directory of a root path", function () {
                 expect(FileUtils.getDirectoryPath("C:/")).toBe("C:/");
                 expect(FileUtils.getDirectoryPath("/")).toBe("/");
@@ -165,14 +165,14 @@ define(function (require, exports, module) {
                 expect(FileUtils.getFileExtension("foo.bar.baz..jaz.txt")).toBe("txt");
             });
         });
-        
+
         describe("getFilenameWithoutExtension", function () {
 
             it("should remove last extension segment only", function () {
                 expect(FileUtils.getFilenameWithoutExtension("foo.txt")).toBe("foo");
                 expect(FileUtils.getFilenameWithoutExtension("foo.min.txt")).toBe("foo.min");
                 expect(FileUtils.getFilenameWithoutExtension("foo")).toBe("foo");
-                
+
                 expect(FileUtils.getFilenameWithoutExtension(".foo")).toBe("");
             });
         });

@@ -55,7 +55,6 @@
         "brackets": false,
 
         "window": false,
-        // Resemble a browser environment.
         "alert": false,
         "document": false,
         "localStorage": false,

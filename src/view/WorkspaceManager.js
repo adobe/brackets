@@ -90,7 +90,6 @@ define(function (require, exports, module) {
      */
     var containerPanel;
 
-
     /**
      * Calculates the available height for the full-size Editor (or the no-editor placeholder),
      * accounting for the current size of all visible panels, toolbar, & status bar.
@@ -251,6 +250,7 @@ define(function (require, exports, module) {
         $panel.insertBefore("#container-panel");
         $panel.hide();
         updateResizeLimits();  // initialize panel's max size
+
         panelIDMap[id] = new Panel($panel, minSize);
         panelIDMap[id].panelID = id;
 
@@ -739,7 +739,6 @@ define(function (require, exports, module) {
                 containerPanel.hide();
             }
         });
-
 
     /* Attach to key parts of the overall UI, once created */
     AppInit.htmlReady(function () {
