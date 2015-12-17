@@ -8,6 +8,7 @@
         left:20%;
         top:25%;
         z-index: 2000;
+        max-width: 900px;
     }
     
     #mrof-container > #mrof-list {
@@ -25,44 +26,57 @@
     }
     
     #mrof-container > #mrof-list > li {
+        position:relative;
         display: block;
-        height: 18px;
+        height: 22px;
         margin-left: 18px;
         margin-top: 4px;
         float: left;
         width: calc(25% - 20px);
-        min-width: 200px;
-        
+        min-width: 230px;
     }
     
-    #mrof-container > #mrof-list > li > a {
+    #mrof-container > #mrof-list > li.highlight {
+        background: #2d2e30;
+    }
+    
+    #mrof-container > #mrof-list > li > a.mroitem {
         color: #ffffff;
         font-size: 13px;
-        height: 18px;
+        height: 22px;
         text-decoration: none;
         display: block;
         line-height: 15px;
         padding: 3px;
         cursor: default;
         padding-left: 10px;
+        width: 100%;
+        box-sizing: border-box;
     }
     
-    #mrof-container > #mrof-list > li > a > .extension {
+    #mrof-container > #mrof-list > li > a.mroitem > .extension {
         color: #adb9bd;
     }
     
-    #mrof-container > #mrof-list > li > a:focus {
-        background: #2d2e30;
+    #mrof-container > #mrof-list > li > a.mroitem:focus {
+        background: transparent;
         color:#8fddff;
         box-shadow: none !important;
         padding-left: 10px;
     }
     
-    #mrof-container > #mrof-list > li > a:focus > .extension {
+    #mrof-container > #mrof-list > li.highlight > a.mroitem {
+        background: transparent;
+        color:#8fddff;
+        box-shadow: none !important;
+        padding-left: 10px;
+    }
+    
+    #mrof-container > #mrof-list > li > a.mroitem:focus > .extension {
         color:#8fddff;
     }
     
-    #mrof-container > .header {
+    #mrof-container > .header { 
         color: #adb9bd;
         width: 100%;
         height: 30px;
@@ -72,7 +86,7 @@
         padding-right: 15px;
         box-sizing: border-box;
         padding: 5px 15px;
-        border-bottom: 1px solid #3b3d41;
+        border-bottom: 1px solid #44464C;
     }
     
     #mrof-container > .header > span {
@@ -92,15 +106,20 @@
         padding-left: 20px;
         border-top: 1px solid #44464C;
         box-sizing: border-box;
+        overflow:hidden;
     }
     
     #mrof-container > .header > .close {
         color: #adb9bd;
     }
     
+    #mrof-container.confirmation-mode > .header > .close {
+        display: none;
+    }
+    
     #mrof-container > .hseperator {
         width: 100%;
-        height:25px;
+        height:10px;
         position: absolute;
         top:30px;
         left:0px;
@@ -114,15 +133,33 @@
         left:0px;
     }
     
+    #mrof-container #clear-mrof-list {
+        display: block;
+        position: absolute;
+        top: 1px;
+        right: 15px;
+        width: 80px;
+        height: 25px;
+        padding: 3px;
+        text-align: center;
+        box-sizing: border-box;
+    }
+    
+    #mrof-container.confirmation-mode #clear-mrof-list {
+        display: none;
+    }
+    
 </style>
 <div id="mrof-container" class="quiet-scrollbars">
     <div class="header">
         <span>Most Recently Opened Files</span>
+        <a class="close" id="mrof-list-close">x</a>
     </div>
     <div class="hseperator scroller-shadow top"></div>
     <ul id="mrof-list"></ul>
     <div class="vseperator scroller-shadow bottom"></div>
     <div class="footer">
         <span id="recent-file-path"></span>
+        <div class="btn-alt-quiet" id="clear-mrof-list" title="Clear recent files list">Clear All</div>
     </div>
 </div>

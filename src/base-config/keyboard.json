@@ -5,6 +5,15 @@
     "file.open":  [
         "Ctrl-O"
     ],
+    "show.recent.files": [
+        "Alt-O"
+    ],
+    "next.recent.files": [
+        "Alt-Shift-N"
+    ],
+    "prev.recent.files": [
+        "Alt-Shift-P"
+    ],
     "file.close":  [
         "Ctrl-W"
     ],

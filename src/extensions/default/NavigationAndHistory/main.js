@@ -31,6 +31,7 @@ define(function (require, exports, module) {
 
     var _                   = brackets.getModule("thirdparty/lodash"),
         AppInit             = brackets.getModule("utils/AppInit"),
+        Async               = brackets.getModule("utils/Async"),
         MainViewManager     = brackets.getModule("view/MainViewManager"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
@@ -45,85 +46,52 @@ define(function (require, exports, module) {
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         KeyBindingManager   = brackets.getModule("command/KeyBindingManager");
     
+    // Command constants for recent files
+    var SHOW_RECENT_FILES       = "show.recent.files",
+        NEXT_IN_RECENT_FILES    = "next.recent.files",
+        PREV_IN_RECENT_FILES    = "prev.recent.files";
+    
     var htmlTemplate = require("text!html/recentfiles-template.html");
     
-    var _nextCmd, _prevCmd;
+    var $currentContext,
+        hideTimeoutVar,
+        openFileTimeoutVar;
+    
+    // Delay in ms for hide timer when open recent files dialog shown from keyborad only commands
+    var HIDE_TIMEOUT_DELAY = 1500,
+        OPEN_FILE_DELAY    = 600;
     
     /*
     * Contains list of most recently opened files and their last known cursor position
+    * @private
+    * @type {Array.<Object>}
     */
     var _mrofList = [],
-        _mrofLastPos = [];
-
-    var _currentFrame = null,
-        _currentEditor = null,
-        _activePaneId = "",
-        _inTransientState = false;
+        $mrofContainer,
+        _activePaneId = null;
     
-    function _synchCommands() {
-        _prevCmd.setEnabled(_currentFrame && _currentFrame.prevFrame);
-        _nextCmd.setEnabled(_currentFrame && _currentFrame.nextFrame);
-    }
-    
-    function _restoreFromHistory(frame) {
-        _inTransientState = true;
-        CommandManager.execute(Commands.FILE_OPEN, {fullPath: frame.path,
-                                                        paneId: frame.paneId }).done(function () {
-            EditorManager.getActiveEditor().setCursorPos(frame.cursorPos);
+    /**
+     * Opens a full editor for the given context
+     * @private
+     * @param {Object.<path, paneId, cursor>} contextData - wrapper to provide the information required to open a full editor
+     * @return {$.Promise} - from the commandmanager 
+     */
+    function _openEditorForContext(contextData) {
+        return CommandManager.execute(Commands.FILE_OPEN, {fullPath: contextData.path,
+                                                    paneId: contextData.paneId }).done(function () {
+            EditorManager.getActiveEditor().setCursorPos(contextData.cursor);
             EditorManager.getActiveEditor().centerOnCursor();
-        }).always(function () {
-            _inTransientState = false;
-            _currentFrame = frame;
-            _synchCommands();
         });
     }
     
-    function _createHistoryFrame(editor, cPos, currentFrame) {
-        return {
-            path: editor.document.file.fullPath,
-            cursorPos: cPos || editor.getCursorPos(true, "start"),
-            paneId: _activePaneId,
-            prevFrame: currentFrame,
-            nextFrame: null
-        };
-    }
-    
-    function _addHistoryFrame(editor, cPos) {
-        var newFrame = _createHistoryFrame(editor, cPos, _currentFrame);
-        if (_currentFrame) {
-            _currentFrame.nextFrame = newFrame;
-        }
-        if (_currentFrame && _currentFrame.cursorPos === newFrame.cursorPos) {
-            _currentFrame.nextFrame = null;
-        } else {
-            _currentFrame = newFrame;
-        }
-        _synchCommands();
-    }
-    
-    function _navigateNext() {
-        if (_currentFrame && _currentFrame.nextFrame) {
-            _restoreFromHistory(_currentFrame.nextFrame);
-        }
-        _synchCommands();
-    }
-    
-    function _navigatePrev() {
-        if (_currentFrame && _currentFrame.prevFrame) {
-            _restoreFromHistory(_currentFrame.prevFrame);
-        }
-        _synchCommands();
-    }
-    
-    function _recordCursorPosChange(event, current, previous) {
-        if (!_inTransientState && previous) {
-            _addHistoryFrame(_currentEditor, previous);
-        }
-        if (!_inTransientState && current) {
-            _addHistoryFrame(_currentEditor, current);
-        }
-    }
-    
+    /**
+     * Creates an entry for MROF list
+     * @private
+     * @param {String} path - full path of a doc
+     * @param {String} pane - the pane holding the editor for the doc
+     * @param {Object} cursorPos - current cursor position
+     * @return {Object} a frame containing file path, pane and last known cursor
+     */
     function _makeMROFListEntry(path, pane, cursorPos) {
         return {
             file: path,
@@ -150,31 +118,98 @@ define(function (require, exports, module) {
         return { location : { scope: "user", layer: "project", layerID: projectRoot && projectRoot.fullPath } };
     }
     
-    function _createMROFDisplayList() {
-        var $link;
-        var $mrofContainer = $(htmlTemplate).appendTo("#editor-holder"),
-            $mrofList = $mrofContainer.find("#mrof-list");
-        
-        /*$(document).one("click","#mrof-container-close",function(){
+    
+    function _checkExt(entry, index) {
+        var deferred = new $.Deferred(),
+            fileEntry = FileSystem.getFileForPath(entry.file);
+
+        fileEntry.exists(function (err, exists) {
+            if (!err && exists) {
+                deferred.resolve();
+            } else {
+                _mrofList[index] = null;
+                deferred.reject();
+            }
+        });
+
+        return deferred.promise();
+    }
+    
+    /**
+     * Checks whether entries in MROF list actually exists in fileSystem to prevent access to deleted files 
+     * @private
+     */
+    function _syncWithFileSystem() {
+        _mrofList = _mrofList.filter(function (e) {return e; });
+        Async.doSequentially(_mrofList, _checkExt, false);
+        _mrofList = _mrofList.filter(function (e) {return e; });
+    }
+    
+    /**
+     * Hides the current MROF list if visible
+     * @private
+     */
+    function _hideMROFList() {
+        if ($mrofContainer) {
             $mrofContainer.remove();
-        });*/
+            $mrofContainer = null;
+            $currentContext = null;
+            if (EditorManager.getActiveEditor()) {
+                EditorManager.getActiveEditor().focus();
+            }
+            hideTimeoutVar = null;
+        }
+    }
+    
+    /**
+     * Shows the current MROF list
+     * @private
+     */
+    function _createMROFDisplayList() {
+        var $link, $newItem;
+        $mrofContainer = $(htmlTemplate).appendTo("#editor-holder");
+        var $mrofList = $mrofContainer.find("#mrof-list");
         
+        /**
+         * Focus handler for the link in list item 
+         * @private
+         */
         function _onFocus(event) {
+            $("#mrof-container > #mrof-list > li.highlight").removeClass("highlight");
+            $(event.target).parent().addClass("highlight");
             $mrofContainer.find("#recent-file-path").text($(event.target).parent().data("path"));
+            $currentContext = $(event.target).parent();
         }
         
-        function _onClick() {
-            var context = event.target;
-            CommandManager.execute(Commands.FILE_OPEN, {fullPath: $(context).parent().data("path"),
-                                                        paneId: $(context).parent().data("paneId") }).done(function () {
-                EditorManager.getActiveEditor().setCursorPos($(context).parent().data("cursor"));
-                EditorManager.getActiveEditor().centerOnCursor();
-                $(context).trigger("focus");
+        /**
+         * Click handler for the link in list item 
+         * @private
+         */
+        function _onClick(event) {
+            var $context = $(event.target).parent();
+            _openEditorForContext({
+                path: $context.data("path"),
+                paneId: $context.data("paneId"),
+                cursor: $context.data("cursor")
             });
         }
         
+        /**
+         * Clears the MROF list in memory and pop over
+         * @private
+         */
+        function _clearMROFList() {
+            _mrofList = [];
+            $mrofList.empty();
+        }
+        
+        $("#mrof-list-close").one("click", _hideMROFList);
+        
         var data, fileEntry;
         
+        _syncWithFileSystem();
+        
+        // Iterate over the MROF list and create the pop over UI items
         $.each(_mrofList, function (index, value) {
             
             data = {fullPath: value.file,
@@ -184,51 +219,138 @@ define(function (require, exports, module) {
             fileEntry = FileSystem.getFileForPath(value.file);
             
             // Create new list item with a link
-            $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay({name: FileUtils.getBaseName(value.file)}));
+            $link = $("<a href='#' class='mroitem'></a>").html(ViewUtils.getFileEntryDisplay({name: FileUtils.getBaseName(value.file)}));
+            
+            // Use the file icon providers
             WorkingSetView.useIconProviders(data, $link);
             
-            var $newItem = $("<li></li>").append($link);
+            $newItem = $("<li></li>").append($link);
             
             $newItem.data("path", value.file);
             $newItem.data("paneId", value.paneId);
             $newItem.data("cursor", value.cursor);
             $newItem.data("file", fileEntry);
+            $newItem.attr("title", value.file);
             
+            // Use the class providers(git e.t.c)
             WorkingSetView.useClassProviders(data, $newItem);
             
             if (_isOpenAndDirty(fileEntry)) {
-                $("<div class='file-status-icon dirty' style='position: static;float:left;margin-left: -6px;'></div>").prependTo($newItem);
+                $("<div class='file-status-icon dirty' style='position: static;float:left;margin-left: -5px;'></div>").prependTo($newItem);
             }
             
             $mrofList.append($newItem);
         });
         
-        function _hideListOnCtrlUp(event) {
-            if (event.keyCode === 17) {
-                $mrofContainer.remove();
-                EditorManager.getActiveEditor().focus();
-            }
-        }
-        
-        $(window).off('keyup', _hideListOnCtrlUp);
-        $(window).on('keyup', _hideListOnCtrlUp);
-        
-        $("#mrof-container > #mrof-list > li > a").on("focus", _onFocus);
-        $("#mrof-container > #mrof-list > li > a").on("click", _onClick);
-        $("#mrof-container > #mrof-list > li > a").on("select", _onClick);
-        
-        $("#mrof-container > #mrof-list > li > a").first().trigger("focus");
+        // Handlers for mouse events on the list items
+        $("#mrof-container > #mrof-list > li > a.mroitem").on("focus", _onFocus);
+        $("#mrof-container > #mrof-list > li > a.mroitem").on("click", _onClick);
+        $("#mrof-container > #mrof-list > li > a.mroitem").on("select", _onClick);
+        $("#mrof-container > #mrof-list > li > a.mroitem").first().trigger("focus");
+        $("#mrof-container > .footer > div#clear-mrof-list").on("click", _clearMROFList);
     }
     
-    function _addToMROFList(current) {
+    function _openFile() {
+        if ($currentContext) {
+            _openEditorForContext({
+                path: $currentContext.data("path"),
+                paneId: $currentContext.data("paneId"),
+                cursor: $currentContext.data("cursor")
+            });
+        }
+    }
+    
+    function _startHideTimer() {
+        hideTimeoutVar = setTimeout(_hideMROFList, HIDE_TIMEOUT_DELAY);
+    }
+    
+    function _resetHideTimer() {
+        if (hideTimeoutVar) {
+            window.clearTimeout(hideTimeoutVar);
+        }
+        _startHideTimer();
+    }
+    
+    function _startOpenFileTimer() {
+        openFileTimeoutVar =  setTimeout(_openFile, OPEN_FILE_DELAY);
+    }
+    
+    function _resetOpenFileTimer() {
+        if (openFileTimeoutVar) {
+            window.clearTimeout(openFileTimeoutVar);
+        }
+        _startOpenFileTimer();
+    }
+    
+    /**
+     * Opens the next item in MROF list if pop over is visible else displays the pop over 
+     * @private
+     */
+    function _moveNext() {
+        var $context, $next;
+        if ($mrofContainer) {
+            $context = $currentContext || $("#mrof-container > #mrof-list > li.highlight");
+            if ($context.length > 0) {
+                $next = $context.next();
+                if ($next.length > 0) {
+                    $currentContext = $next;
+                    _resetOpenFileTimer();
+                    $next.find("a.mroitem").trigger("focus");
+                }
+            } else {
+                //WTF! (Worse than failure). We should not get here.
+                $("#mrof-container > #mrof-list > li > a.mroitem:visited").last().trigger("focus");
+            }
+            _resetHideTimer();
+        } else {
+            _createMROFDisplayList();
+            $mrofContainer.addClass("confirmation-mode");
+            _startHideTimer();
+        }
+    }
+
+    /**
+     * Opens the previous item in MROF list if pop over is visible else displays the pop over 
+     * @private
+     */
+    function _movePrev() {
+        var $context, $prev;
+        if ($mrofContainer) {
+            $context = $currentContext || $("#mrof-container > #mrof-list > li.highlight");
+            if ($context.length > 0) {
+                $prev = $context.prev();
+                if ($prev.length > 0) {
+                    $currentContext = $prev;
+                    _resetOpenFileTimer();
+                    $prev.find("a.mroitem").trigger("focus");
+                }
+            } else {
+                //WTF! (Worse than failure). We should not get here.
+                $("#mrof-container > #mrof-list > li > a.mroitem:visited").last().trigger("focus");
+            }
+            _resetHideTimer();
+        } else {
+            _createMROFDisplayList();
+            $mrofContainer.addClass("confirmation-mode");
+            _startHideTimer();
+        }
+    }
+    
+    /**
+     * Adds an entry to MROF list
+     * @private
+     * @param {Editor} editor - editor to extract file information
+     */
+    function _addToMROFList(editor) {
         
-        var filePath = current.document.file.fullPath;
+        var filePath = editor.document.file.fullPath;
         
+        // Check existing list for this doc path and pane entry
         var index = _.findIndex(_mrofList, function (record) {
-            return (record.file === filePath && record.paneId === current._paneId);
+            return (record.file === filePath && record.paneId === editor._paneId);
         });
 
-        var entry = _makeMROFListEntry(filePath, current._paneId, current.getCursorPos(true, "first"));
+        var entry = _makeMROFListEntry(filePath, editor._paneId, editor.getCursorPos(true, "first"));
 
         if (index !== -1) {
             _mrofList.splice(index, 1);
@@ -239,57 +361,37 @@ define(function (require, exports, module) {
     }
     
     EditorManager.on("activeEditorChange", function (event, current, previous) {
-        if (!_inTransientState && previous) {
-            _addHistoryFrame(previous, null);
-            _addToMROFList(previous);
-        }
-        
-        if (!_inTransientState && current) {
-            _addHistoryFrame(current, null);
-        }
-        
         if (previous) {
-            previous.off("cursorPositionChange", _recordCursorPosChange);
+            _addToMROFList(previous);
         }
         
         if (current) {
             _addToMROFList(current);
-            _currentEditor = current;
             _activePaneId = MainViewManager.getActivePaneId();
-            current.on("cursorPositionChange", _recordCursorPosChange);
         }
     });
     
-    ProjectManager.on("beforeProjectClose", function () {
+    ProjectManager.on("beforeProjectClose beforeAppClose", function () {
         PreferencesManager.setViewState("openFiles", _mrofList, _getPrefsContext(), true);
-        _currentFrame = null;
-        _inTransientState = false;
-        _synchCommands();
         _mrofList = [];
     });
     
     ProjectManager.on("projectOpen", function () {
         _mrofList = PreferencesManager.getViewState("openFiles", _getPrefsContext()) || [];
+        _syncWithFileSystem();
     });
     
     AppInit.appReady(function () {
-        CommandManager.register("Next Context", "Commands.NAVIGATE_NEXT_DOC", _navigateNext);
-        CommandManager.register("Previous Context", "Commands.NAVIGATE_PREV_DOC", _navigatePrev);
-        var menu = Menus.getMenu(Menus.AppMenuBar.NAVIGATE_MENU);
-        menu.addMenuItem("Commands.NAVIGATE_NEXT_DOC", "", Menus.BEFORE, Commands.NAVIGATE_NEXT_DOC);
-        menu.addMenuItem("Commands.NAVIGATE_PREV_DOC", "", Menus.BEFORE, Commands.NAVIGATE_NEXT_DOC);
-
-        KeyBindingManager.addBinding("Commands.NAVIGATE_NEXT_DOC", [{key: "Alt-N",   platform: "win"},
-                                                                        {key: "Alt-N",  platform:  "mac"}]);
-        KeyBindingManager.addBinding("Commands.NAVIGATE_PREV_DOC", [{key: "Alt-P",   platform: "win"},
-                                                                        {key: "Alt-P",  platform:  "mac"}]);
-        _prevCmd = CommandManager.get("Commands.NAVIGATE_PREV_DOC");
-        _nextCmd = CommandManager.get("Commands.NAVIGATE_NEXT_DOC");
-        _prevCmd.setEnabled(false);
-        _nextCmd.setEnabled(false);
+        // Command to show recent files list
+        CommandManager.register("Open Recent", SHOW_RECENT_FILES, _createMROFDisplayList);
         
-        CommandManager.register("Next Context", "Commands.SHOW_HISTORY", _createMROFDisplayList);
-        KeyBindingManager.addBinding("Commands.SHOW_HISTORY", [{key: "Ctrl-R",   platform: "win"},
-                                                                        {key: "Alt-N",  platform:  "mac"}]);
+        // Keybooard only - Navigate to the next doc in MROF list
+        CommandManager.register("Next in Recent", NEXT_IN_RECENT_FILES, _moveNext);
+       
+        // Keybooard only - Navigate to the prev doc in MROF list
+        CommandManager.register("Prev in Recent", PREV_IN_RECENT_FILES, _movePrev);
+        
+        var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
+        menu.addMenuItem(SHOW_RECENT_FILES, "", Menus.AFTER, Commands.FILE_OPEN_FOLDER);
     });
 });
