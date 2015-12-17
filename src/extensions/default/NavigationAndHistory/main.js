@@ -186,7 +186,7 @@ define(function (require, exports, module) {
          * @private
          */
         function _onClick(event) {
-            var $context = $(event.target).parent();
+            var $context = $(event.delegateTarget).parent();
             _openEditorForContext({
                 path: $context.data("path"),
                 paneId: $context.data("paneId"),
