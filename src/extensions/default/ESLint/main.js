@@ -9,6 +9,7 @@ define(function (require, exports, module) {
     var ProjectManager = brackets.getModule('project/ProjectManager');
     var ExtensionUtils = brackets.getModule('utils/ExtensionUtils');
     var NodeDomain = brackets.getModule('utils/NodeDomain');
+    var FileSystem = brackets.getModule("filesystem/FileSystem");
 
     // constants
     var JS_LANGUAGE = LanguageManager.getLanguageForExtension('js');
@@ -57,6 +58,13 @@ define(function (require, exports, module) {
 
         return deferred.promise();
     }
+
+    FileSystem.on("change", function (evt, file) {
+        if (/^\.eslintrc(\.(js|yaml|yml|json))?$/.test(file.name)) {
+            var projectRoot = ProjectManager.getProjectRoot().fullPath;
+            nodeDomain.exec('configFileModified', projectRoot);
+        }
+    });
 
     // register a linter with CodeInspection
     CodeInspection.register(JS_LANGUAGE.getId(), {

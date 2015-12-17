@@ -94,6 +94,11 @@
         });
     }
 
+    function configFileModified(projectRoot) {
+        _setProjectRoot(projectRoot);
+        currentProjectRoot = projectRoot;
+    }
+
     exports.init = function (_domainManager) {
         domainManager = _domainManager;
 
@@ -127,6 +132,24 @@
             ]
         );
 
+        domainManager.registerCommand(
+            domainName,
+            'configFileModified',
+            configFileModified,
+            false,
+            'notify that config file was modified',
+            [
+                {
+                    name: 'projectRoot',
+                    type: 'string'
+                }
+            ], [
+                {
+                    name: 'result',
+                    type: 'boolean'
+                }
+            ]
+        );
     };
 
 }());
