@@ -38,13 +38,15 @@ define(function (require, exports, module) {
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         CommandManager      = brackets.getModule("command/CommandManager"),
         Commands            = brackets.getModule("command/Commands"),
+        Dialogs             = brackets.getModule("widgets/Dialogs"),
         Menus               = brackets.getModule("command/Menus"),
         FileSystem          = brackets.getModule("filesystem/FileSystem"),
         FileUtils           = brackets.getModule("file/FileUtils"),
         ViewUtils           = brackets.getModule("utils/ViewUtils"),
         WorkingSetView      = brackets.getModule("project/WorkingSetView"),
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        KeyBindingManager   = brackets.getModule("command/KeyBindingManager");
+        KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
+        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils");
     
     // Command constants for recent files
     var SHOW_RECENT_FILES       = "show.recent.files",
@@ -382,6 +384,9 @@ define(function (require, exports, module) {
     });
     
     AppInit.appReady(function () {
+        
+        ExtensionUtils.loadStyleSheet(module, "styles/recent-files.css");
+        
         // Command to show recent files list
         CommandManager.register("Open Recent", SHOW_RECENT_FILES, _createMROFDisplayList);
         
