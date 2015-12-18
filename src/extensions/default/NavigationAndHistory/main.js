@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -53,11 +53,8 @@ define(function (require, exports, module) {
         NEXT_IN_RECENT_FILES    = "next.recent.files",
         PREV_IN_RECENT_FILES    = "prev.recent.files";
     
-    var htmlTemplate = require("text!html/recentfiles-template.html");
-    
-    var $currentContext,
-        hideTimeoutVar,
-        openFileTimeoutVar;
+    var htmlTemplate = require("text!html/recentfiles-template.html"),
+        dirtyDotTemplate = "<div class='file-status-icon dirty' style='position: absolute;margin-left: -2px;'></div>";
     
     // Delay in ms for hide timer when open recent files dialog shown from keyborad only commands
     var HIDE_TIMEOUT_DELAY = 1500,
@@ -69,8 +66,14 @@ define(function (require, exports, module) {
     * @type {Array.<Object>}
     */
     var _mrofList = [],
-        $mrofContainer,
+        $mrofContainer = null,
         _activePaneId = null;
+    
+    
+    var $currentContext,
+        hideTimeoutVar,
+        openFileTimeoutVar,
+        activeEditor;
     
     /**
      * Opens a full editor for the given context
@@ -81,8 +84,9 @@ define(function (require, exports, module) {
     function _openEditorForContext(contextData) {
         return CommandManager.execute(Commands.FILE_OPEN, {fullPath: contextData.path,
                                                     paneId: contextData.paneId }).done(function () {
-            EditorManager.getActiveEditor().setCursorPos(contextData.cursor);
-            EditorManager.getActiveEditor().centerOnCursor();
+            activeEditor = EditorManager.getActiveEditor();
+            activeEditor.setCursorPos(contextData.cursor);
+            activeEditor.centerOnCursor();
         });
     }
     
@@ -114,7 +118,9 @@ define(function (require, exports, module) {
         return (docIfOpen && docIfOpen.isDirty);
     }
     
-    /** Returns a 'context' object for getting/setting project-specific preferences */
+    /** 
+     * Returns a 'context' object for getting/setting project-specific preferences 
+     */
     function _getPrefsContext() {
         var projectRoot = ProjectManager.getProjectRoot();
         return { location : { scope: "user", layer: "project", layerID: projectRoot && projectRoot.fullPath } };
@@ -156,61 +162,16 @@ define(function (require, exports, module) {
             $mrofContainer.remove();
             $mrofContainer = null;
             $currentContext = null;
-            if (EditorManager.getActiveEditor()) {
-                EditorManager.getActiveEditor().focus();
+            activeEditor = EditorManager.getActiveEditor();
+            if (activeEditor) {
+                activeEditor.focus();
             }
             hideTimeoutVar = null;
         }
     }
     
-    /**
-     * Shows the current MROF list
-     * @private
-     */
-    function _createMROFDisplayList() {
-        var $link, $newItem;
-        $mrofContainer = $(htmlTemplate).appendTo("#editor-holder");
-        var $mrofList = $mrofContainer.find("#mrof-list");
-        
-        /**
-         * Focus handler for the link in list item 
-         * @private
-         */
-        function _onFocus(event) {
-            $("#mrof-container > #mrof-list > li.highlight").removeClass("highlight");
-            $(event.target).parent().addClass("highlight");
-            $mrofContainer.find("#recent-file-path").text($(event.target).parent().data("path"));
-            $currentContext = $(event.target).parent();
-        }
-        
-        /**
-         * Click handler for the link in list item 
-         * @private
-         */
-        function _onClick(event) {
-            var $context = $(event.delegateTarget).parent();
-            _openEditorForContext({
-                path: $context.data("path"),
-                paneId: $context.data("paneId"),
-                cursor: $context.data("cursor")
-            });
-        }
-        
-        /**
-         * Clears the MROF list in memory and pop over
-         * @private
-         */
-        function _clearMROFList() {
-            _mrofList = [];
-            $mrofList.empty();
-        }
-        
-        $("#mrof-list-close").one("click", _hideMROFList);
-        
-        var data, fileEntry;
-        
-        _syncWithFileSystem();
-        
+    function _createFileEntries($mrofList) {
+        var data, fileEntry, $link, $newItem;
         // Iterate over the MROF list and create the pop over UI items
         $.each(_mrofList, function (index, value) {
             
@@ -237,18 +198,76 @@ define(function (require, exports, module) {
             // Use the class providers(git e.t.c)
             WorkingSetView.useClassProviders(data, $newItem);
             
+            // If a file is dirty , mark it in the list
             if (_isOpenAndDirty(fileEntry)) {
-                $("<div class='file-status-icon dirty' style='position: static;float:left;margin-left: -5px;'></div>").prependTo($newItem);
+                $(dirtyDotTemplate).prependTo($newItem);
             }
             
             $mrofList.append($newItem);
         });
+    }
+    
+    /**
+     * Shows the current MROF list
+     * @private
+     */
+    function _createMROFDisplayList() {
+        var $link, $newItem;
+        $mrofContainer = $(htmlTemplate).appendTo("#editor-holder");
+        var $mrofList = $mrofContainer.find("#mrof-list");
         
+        /**
+         * Focus handler for the link in list item 
+         * @private
+         */
+        function _onFocus(event) {
+            var $scope = $(event.target).parent();
+            $("#mrof-container > #mrof-list > li.highlight").removeClass("highlight");
+            $(event.target).parent().addClass("highlight");
+            $mrofContainer.find("#recent-file-path").text($scope.data("path"));
+            $currentContext = $scope;
+        }
+        
+        /**
+         * Click handler for the link in list item 
+         * @private
+         */
+        function _onClick(event) {
+            var $scope = $(event.delegateTarget).parent();
+            _openEditorForContext({
+                path: $scope.data("path"),
+                paneId: $scope.data("paneId"),
+                cursor: $scope.data("cursor")
+            });
+        }
+        
+        /**
+         * Clears the MROF list in memory and pop over
+         * @private
+         */
+        function _clearMROFList() {
+            _mrofList = [];
+            $mrofList.empty();
+        }
+        
+        $("#mrof-list-close").one("click", _hideMROFList);
+        
+        var data, fileEntry;
+        
+        _syncWithFileSystem();
+        
+        _createFileEntries($mrofList);
+        
+        var $fileLinks = $("#mrof-container > #mrof-list > li > a.mroitem");
         // Handlers for mouse events on the list items
-        $("#mrof-container > #mrof-list > li > a.mroitem").on("focus", _onFocus);
-        $("#mrof-container > #mrof-list > li > a.mroitem").on("click", _onClick);
-        $("#mrof-container > #mrof-list > li > a.mroitem").on("select", _onClick);
-        $("#mrof-container > #mrof-list > li > a.mroitem").first().trigger("focus");
+        $fileLinks.on("focus", _onFocus);
+        $fileLinks.on("click", _onClick);
+        $fileLinks.on("select", _onClick);
+        
+        // Put focus on the Most recent file link in the list
+        $fileLinks.first().trigger("focus");
+        
+        // Attach clear list handler to the 'Clear All' button
         $("#mrof-container > .footer > div#clear-mrof-list").on("click", _clearMROFList);
     }
     
