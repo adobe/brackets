@@ -82,8 +82,11 @@ define(function (require, exports, module) {
      * @return {$.Promise} - from the commandmanager 
      */
     function _openEditorForContext(contextData) {
+        // Open the file in the current active pane to prevent unwanted scenarios, fallback to the persisted paneId
+        // only when unable to determine active paneId (like empty working set at the launch)
+        var activePaneId = MainViewManager.getActivePaneId();
         return CommandManager.execute(Commands.FILE_OPEN, {fullPath: contextData.path,
-                                                    paneId: contextData.paneId }).done(function () {
+                                                    paneId: activePaneId || contextData.paneId }).done(function () {
             activeEditor = EditorManager.getActiveEditor();
             activeEditor.setCursorPos(contextData.cursor);
             activeEditor.centerOnCursor();
@@ -207,11 +210,27 @@ define(function (require, exports, module) {
         });
     }
     
+    function _clearTimers() {
+        if (openFileTimeoutVar) {
+            window.clearTimeout(openFileTimeoutVar);
+        }
+        if (hideTimeoutVar) {
+            window.clearTimeout(hideTimeoutVar);
+        }
+    }
+    
     /**
      * Shows the current MROF list
      * @private
      */
     function _createMROFDisplayList() {
+        
+        // Cancel Any timer that might be active
+        _clearTimers();
+        
+        // Call hide first to make sure we are not creating duplicate lists 
+        _hideMROFList();
+        
         var $link, $newItem;
         $mrofContainer = $(htmlTemplate).appendTo("#editor-holder");
         var $mrofList = $mrofContainer.find("#mrof-list");
@@ -368,7 +387,7 @@ define(function (require, exports, module) {
         
         // Check existing list for this doc path and pane entry
         var index = _.findIndex(_mrofList, function (record) {
-            return (record.file === filePath && record.paneId === editor._paneId);
+            return (record.file === filePath);
         });
 
         var entry = _makeMROFListEntry(filePath, editor._paneId, editor.getCursorPos(true, "first"));
