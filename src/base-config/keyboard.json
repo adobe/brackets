@@ -355,5 +355,8 @@
     ],
     "help.support": [
         "F1"
+    ],
+    "refactor.rename": [
+        "Ctrl-R"
     ]
 }
