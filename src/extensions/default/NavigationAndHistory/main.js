@@ -75,6 +75,8 @@ define(function (require, exports, module) {
         openFileTimeoutVar,
         activeEditor;
     
+    var _hideMROFList;
+    
     /**
      * Opens a full editor for the given context
      * @private
@@ -154,23 +156,6 @@ define(function (require, exports, module) {
         _mrofList = _mrofList.filter(function (e) {return e; });
         Async.doSequentially(_mrofList, _checkExt, false);
         _mrofList = _mrofList.filter(function (e) {return e; });
-    }
-    
-    /**
-     * Hides the current MROF list if visible
-     * @private
-     */
-    function _hideMROFList() {
-        if ($mrofContainer) {
-            $mrofContainer.remove();
-            $mrofContainer = null;
-            $currentContext = null;
-            activeEditor = EditorManager.getActiveEditor();
-            if (activeEditor) {
-                activeEditor.focus();
-            }
-            hideTimeoutVar = null;
-        }
     }
     
     function _createFileEntries($mrofList) {
@@ -421,12 +406,56 @@ define(function (require, exports, module) {
         _syncWithFileSystem();
     });
     
+    function _handleArrowKeys(event) {
+        var LEFT = 37,
+            RIGHT = 39;
+        
+        var $context, $nextContext;
+        if ($mrofContainer && (event.which === LEFT || event.which === RIGHT)) {
+            $context = $currentContext || $("#mrof-container > #mrof-list > li.highlight");
+            if ($context.length > 0) {
+                $nextContext = event.which === LEFT ? $context.prev() : $context.next();
+                if ($nextContext.length > 0) {
+                    $currentContext = $nextContext;
+                    _resetOpenFileTimer();
+                    $nextContext.find("a.mroitem").trigger("focus");
+                }
+            } else {
+                //WTF! (Worse than failure). We should not get here.
+                $("#mrof-container > #mrof-list > li > a.mroitem:visited").last().trigger("focus");
+            }
+        }
+    }
+    
+    function _showRecentFileList() {
+        _createMROFDisplayList();
+        $(window).on("keyup", _handleArrowKeys);
+    }
+    
+    /**
+     * Hides the current MROF list if visible
+     * @private
+     */
+    _hideMROFList = function () {
+        if ($mrofContainer) {
+            $mrofContainer.remove();
+            $mrofContainer = null;
+            $currentContext = null;
+            activeEditor = EditorManager.getActiveEditor();
+            if (activeEditor) {
+                activeEditor.focus();
+            }
+            hideTimeoutVar = null;
+        }
+        $(window).off("keyup", _handleArrowKeys);
+    };
+    
     AppInit.appReady(function () {
         
         ExtensionUtils.loadStyleSheet(module, "styles/recent-files.css");
         
         // Command to show recent files list
-        CommandManager.register("Open Recent", SHOW_RECENT_FILES, _createMROFDisplayList);
+        CommandManager.register("Open Recent", SHOW_RECENT_FILES, _showRecentFileList);
         
         // Keybooard only - Navigate to the next doc in MROF list
         CommandManager.register("Next in Recent", NEXT_IN_RECENT_FILES, _moveNext);
