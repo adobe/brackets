@@ -20,11 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+/*eslint-env node*/
 /*jslint nomen:true */
 /*global module, require, process */
-module.exports = function (grunt) {
-    "use strict";
+"use strict";
 
+module.exports = function (grunt) {
     var common      = {},
         path        = require("path"),
         _platform;

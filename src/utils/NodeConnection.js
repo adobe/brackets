@@ -222,7 +222,9 @@ define(function (require, exports, module) {
         if (this._ws && this._ws.readyState !== WebSocket.CLOSED) {
             try {
                 this._ws.close();
-            } catch (e) { }
+            } catch (e) {
+                // Do nothing
+            }
         }
         var failedDeferreds = this._pendingInterfaceRefreshDeferreds
             .concat(this._pendingCommandDeferreds);

@@ -213,7 +213,7 @@ define(function (require, exports, module) {
         } else if (this._connectionPromise) {
             result = this._connectionPromise.then(execConnected);
         } else {
-            result = new $.Deferred.reject().promise();
+            result = new $.Deferred().reject().promise();
         }
         return result;
     };

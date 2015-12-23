@@ -233,6 +233,7 @@ define(function (require, exports, module) {
      * @return {number} The 32-bit hash
      */
     function hashCode(str) {
+        /* eslint-disable no-bitwise */
         var hash = 0, i, chr, len;
         if (str.length === 0) {
             return hash;
@@ -243,6 +244,7 @@ define(function (require, exports, module) {
             hash |= 0; // Convert to 32bit integer
         }
         return hash;
+        /* eslint-enable no-bitwise */
     }
 
     // Define public API
