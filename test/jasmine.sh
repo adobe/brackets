@@ -28,4 +28,20 @@ BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo $BASEDIR
 
 # open the Jasmine SpecRunner
-open ${BASEDIR}/../../bin/mac/Brackets.app --args file:///${BASEDIR}/SpecRunner.html
+case $OSTYPE in
+darwin*)
+    open ${BASEDIR}/../../bin/mac/Brackets.app --args file:///${BASEDIR}/SpecRunner.html
+    ;;
+linux*)
+    echo Linux Not Yet Implemented
+    ;;
+cygwin* | msys | win32 )
+    echo Windows Not Yet Implemented
+    ;;
+freebsd*)
+    echo FreeBSD Not Yet Implemented
+    ;;
+*)
+    echo Unknown operating system $OSTYPE
+    ;;
+esac
