@@ -9,10 +9,10 @@
         "Alt-O"
     ],
     "next.recent.files": [
-        "Alt-Shift-N"
+        "Alt-N"
     ],
     "prev.recent.files": [
-        "Alt-Shift-P"
+        "Alt-P"
     ],
     "file.close":  [
         "Ctrl-W"

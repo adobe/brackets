@@ -1,12 +1,13 @@
 #mrof-container {
     display:block;
-    width:60%;
+    /*width:60%;*/
     height:50%;
     background: #3c3f41;
     position:absolute;
-    left:20%;
+    left:calc(50% - 250px);
     top:25%;
-    max-width: 900px;
+    width: 550px;
+    z-index: 1050;
 }
 
 #mrof-container > #mrof-list {
@@ -27,10 +28,10 @@
     position:relative;
     display: block;
     height: 22px;
-    margin-left: 18px;
+    margin-left: 10px;
     margin-top: 4px;
     float: left;
-    width: calc(25% - 20px);
+    width: calc(50% - 30px);
     min-width: 230px;
     padding:1px 5px;
     white-space: nowrap;
@@ -149,6 +150,16 @@
     box-sizing: border-box;
 }
 
-#mrof-container.confirmation-mode #clear-mrof-list {
+/*#mrof-container.confirmation-mode #clear-mrof-list {
     display: none;
+}*/
+
+#mrof-container #recent-file-path {
+    float: left;
+    width: calc(100% - 90px);
+    box-sizing: border-box;
+    text-overflow: ellipsis;
+    overflow-wrap: normal;
+    overflow: hidden;
+    white-space: nowrap;
 }

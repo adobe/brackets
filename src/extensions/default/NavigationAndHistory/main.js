@@ -217,7 +217,7 @@ define(function (require, exports, module) {
         _hideMROFList();
         
         var $link, $newItem;
-        $mrofContainer = $(htmlTemplate).appendTo("#editor-holder");
+        $mrofContainer = $(htmlTemplate).appendTo("body");
         var $mrofList = $mrofContainer.find("#mrof-list");
         
         /**
@@ -252,6 +252,7 @@ define(function (require, exports, module) {
         function _clearMROFList() {
             _mrofList = [];
             $mrofList.empty();
+            $currentContext = null;
         }
         
         $("#mrof-list-close").one("click", _hideMROFList);
@@ -285,26 +286,11 @@ define(function (require, exports, module) {
         }
     }
     
-    function _startHideTimer() {
-        hideTimeoutVar = setTimeout(_hideMROFList, HIDE_TIMEOUT_DELAY);
-    }
-    
-    function _resetHideTimer() {
-        if (hideTimeoutVar) {
-            window.clearTimeout(hideTimeoutVar);
+    function _hideMROFListOnAltlUp() {
+        if ($mrofContainer && event.keyCode === 18) {
+            _openFile();
+            _hideMROFList();
         }
-        _startHideTimer();
-    }
-    
-    function _startOpenFileTimer() {
-        openFileTimeoutVar =  setTimeout(_openFile, OPEN_FILE_DELAY);
-    }
-    
-    function _resetOpenFileTimer() {
-        if (openFileTimeoutVar) {
-            window.clearTimeout(openFileTimeoutVar);
-        }
-        _startOpenFileTimer();
     }
     
     /**
@@ -317,20 +303,24 @@ define(function (require, exports, module) {
             $context = $currentContext || $("#mrof-container > #mrof-list > li.highlight");
             if ($context.length > 0) {
                 $next = $context.next();
+                if ($next.length === 0) {
+                    $next = $("#mrof-container > #mrof-list > li").first();
+                }
                 if ($next.length > 0) {
                     $currentContext = $next;
-                    _resetOpenFileTimer();
+                    //_resetOpenFileTimer();
                     $next.find("a.mroitem").trigger("focus");
                 }
             } else {
                 //WTF! (Worse than failure). We should not get here.
                 $("#mrof-container > #mrof-list > li > a.mroitem:visited").last().trigger("focus");
             }
-            _resetHideTimer();
+            //_resetHideTimer();
         } else {
             _createMROFDisplayList();
             $mrofContainer.addClass("confirmation-mode");
-            _startHideTimer();
+            //_startHideTimer();
+            $(window).on("keyup", _hideMROFListOnAltlUp);
         }
     }
 
@@ -344,20 +334,24 @@ define(function (require, exports, module) {
             $context = $currentContext || $("#mrof-container > #mrof-list > li.highlight");
             if ($context.length > 0) {
                 $prev = $context.prev();
+                if ($prev.length === 0) {
+                    $prev = $("#mrof-container > #mrof-list > li").last();
+                }
                 if ($prev.length > 0) {
                     $currentContext = $prev;
-                    _resetOpenFileTimer();
+                    //_resetOpenFileTimer();
                     $prev.find("a.mroitem").trigger("focus");
                 }
             } else {
                 //WTF! (Worse than failure). We should not get here.
                 $("#mrof-container > #mrof-list > li > a.mroitem:visited").last().trigger("focus");
             }
-            _resetHideTimer();
+            //_resetHideTimer();
         } else {
             _createMROFDisplayList();
             $mrofContainer.addClass("confirmation-mode");
-            _startHideTimer();
+            //_startHideTimer();
+            $(window).on("keyup", _hideMROFListOnAltlUp);
         }
     }
     
@@ -445,9 +439,10 @@ define(function (require, exports, module) {
             if (activeEditor) {
                 activeEditor.focus();
             }
-            hideTimeoutVar = null;
+            //hideTimeoutVar = null;
         }
         $(window).off("keyup", _handleArrowKeys);
+        $(window).off("keyup", _hideMROFListOnAltlUp);
     };
     
     AppInit.appReady(function () {
@@ -455,7 +450,7 @@ define(function (require, exports, module) {
         ExtensionUtils.loadStyleSheet(module, "styles/recent-files.css");
         
         // Command to show recent files list
-        CommandManager.register("Open Recent", SHOW_RECENT_FILES, _showRecentFileList);
+        //CommandManager.register("Open Recent", SHOW_RECENT_FILES, _showRecentFileList);
         
         // Keybooard only - Navigate to the next doc in MROF list
         CommandManager.register("Next in Recent", NEXT_IN_RECENT_FILES, _moveNext);
@@ -463,7 +458,7 @@ define(function (require, exports, module) {
         // Keybooard only - Navigate to the prev doc in MROF list
         CommandManager.register("Prev in Recent", PREV_IN_RECENT_FILES, _movePrev);
         
-        var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
-        menu.addMenuItem(SHOW_RECENT_FILES, "", Menus.AFTER, Commands.FILE_OPEN_FOLDER);
+        /*var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
+        menu.addMenuItem(SHOW_RECENT_FILES, "", Menus.AFTER, Commands.FILE_OPEN_FOLDER);*/
     });
 });
