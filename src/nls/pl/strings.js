@@ -39,7 +39,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Brak pozwolenia na modyfikację.",
     "CONTENTS_MODIFIED_ERR"             : "Plik został zmodyfikowany z zewnątrz.",
     "UNSUPPORTED_ENCODING_ERR"          : "{APP_NAME} aktualnie obsługuje jedynie pliki zakdowane w UTF-8",
-    "FILE_EXISTS_ERR"                   : "Ten plik już folder istnieje",
+    "FILE_EXISTS_ERR"                   : "Ten plik lub folder już istnieje",
     "FILE"                              : "plik",
     "FILE_TITLE"                        : "Plik",
     "DIRECTORY"                         : "folder",
