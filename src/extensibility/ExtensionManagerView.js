@@ -37,6 +37,9 @@ define(function (require, exports, module) {
         LocalizationUtils         = require("utils/LocalizationUtils"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
 
+    // Parse item template for future use
+    Mustache.parse(itemTemplate);
+
     /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized
      * with initialize(). When the view is closed, dispose() must be called.
@@ -56,7 +59,6 @@ define(function (require, exports, module) {
         var self = this,
             result = new $.Deferred();
         this.model = model;
-        this._itemTemplate = Mustache.compile(itemTemplate);
         this._itemViews = {};
         this.$el = $("<div class='extension-list tab-pane' id='" + this.model.source + "'/>");
         this._$emptyMessage = $("<div class='empty-message'/>")
@@ -99,12 +101,6 @@ define(function (require, exports, module) {
      * The root of the table inside the view.
      */
     ExtensionManagerView.prototype._$table = null;
-
-    /**
-     * @private
-     * @type {function} The compiled template we use for rendering items in the extension list.
-     */
-    ExtensionManagerView.prototype._itemTemplate = null;
 
     /**
      * @private
@@ -336,7 +332,7 @@ define(function (require, exports, module) {
             context[helper] = registry_utils[helper];
         });
 
-        return $(this._itemTemplate(context));
+        return $(Mustache.render(itemTemplate, context));
     };
 
     /**
