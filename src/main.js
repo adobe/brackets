@@ -32,6 +32,7 @@ require.config({
     paths: {
         "text"              : "thirdparty/text/text",
         "i18n"              : "thirdparty/i18n/i18n",
+        "react"             : "thirdparty/react",
 
         // The file system implementation. Change this value to use different
         // implementations (e.g. cloud-based storage).
@@ -39,7 +40,8 @@ require.config({
     },
     map: {
         "*": {
-            "thirdparty/CodeMirror2": "thirdparty/CodeMirror"
+            "thirdparty/CodeMirror2": "thirdparty/CodeMirror",
+            "thirdparty/react":	"react"
         }
     }
 });
