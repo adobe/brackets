@@ -250,8 +250,8 @@ define(function (require, exports, module) {
 
         this._modalBar = new ModalBar(
             Mustache.render(_searchBarTemplate, templateVars),
-            !!PreferencesManager.get('autoHideSearch')
-        );  // 2nd arg = auto-close on Esc/blur
+            !!PreferencesManager.get('autoHideSearch')		// 2nd arg = auto-close on Esc/blur
+        );
         
         // Done this way because ModalBar.js seems to react underiably when
         // modifying it to handle the escape key - the findbar wasn't getting

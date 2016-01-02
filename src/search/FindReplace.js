@@ -702,8 +702,6 @@ define(function (require, exports, module) {
                 findBar.close();
             }
         }
-
-        editor.lastEditorSearchPosStr = "";     // Positions have shifted, so we abort the auto-next on findbar launch
     }
 
     function replace(editor) {
@@ -730,13 +728,13 @@ define(function (require, exports, module) {
         if (editor) {
             // Make note of the original query details
             var state = getSearchState(editor._codeMirror),
-                qry = (findBar && state && state.parsedQuery) || "",
+                query = (findBar && state && state.parsedQuery) || "",
                 idx = state && state.matchIndex;
 
             // Create a new instance of the search bar UI
             clearSearch(editor._codeMirror);
             doSearch(editor, false);
-            _findNextIfSameSearch(qry, idx, getSearchState(editor._codeMirror));
+            _findNextIfSameSearch(query, idx, getSearchState(editor._codeMirror));
         }
     }
 
@@ -749,13 +747,12 @@ define(function (require, exports, module) {
             newIdx = state.matchIndex;
 
             if (!state.queryInfo.isCaseSensitive) {
-                originalQuery = typeof originalQuery === "string"
-                    ? originalQuery.toLowerCase()
-                    : originalQuery;
-
-                newQuery = typeof newQuery === "string"
-                    ? newQuery.toLowerCase()
-                    : newQuery;
+                if (typeof originalQuery === "string") {
+                    originalQuery = originalQuery.toLowerCase();
+                }
+                if (typeof newQuery === "string") {
+                    newQuery = newQuery.toLowerCase();
+                }
             }
         }
 
