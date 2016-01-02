@@ -551,10 +551,10 @@ define(function (require, exports, module) {
 
     // Update UI when Brackets finishes loading
     AppInit.appReady(init);
-    
-    
+
+
     EventDispatcher.makeEventDispatcher(exports);
-    
+
     exports.restoreFontSize = restoreFontSize;
     exports.restoreFonts    = restoreFonts;
     exports.getFontSize     = getFontSize;

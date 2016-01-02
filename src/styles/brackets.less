@@ -120,6 +120,10 @@ a, img {
         left: @sidebar-width;  // changed dynamically via Resizer
         right: @main-toolbar-width;
     }
+    
+    .force-right-zero {
+        right: 0;
+    }
 }
 
 #titlebar, .modal-bar {
@@ -138,10 +142,6 @@ a, img {
 
 .forced-hidden {
     display: none !important;
-}
-
-.force-right-zero {
-    right: 0 !important;
 }
 
 .busyCursor {
@@ -330,7 +330,7 @@ a, img {
     /* Placeholder shown when there is no editor open */
 
     .view-pane {
-        display: block;
+        display: block !important;
         margin: 0;
         overflow: hidden;
     }

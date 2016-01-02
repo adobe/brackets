@@ -93,7 +93,7 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var _osDash = brackets.platform === "mac" ? "\u2014" : "-";
-    
+
     /**
      * String template for window title when no file is open.
      * @type {string}
@@ -254,7 +254,7 @@ define(function (require, exports, module) {
             _updateTitle();
         }
     }
-    
+
     /**
      * Shows an error dialog indicating that the given file could not be opened due to the given error
      * @param {!FileSystemError} name
@@ -277,7 +277,7 @@ define(function (require, exports, module) {
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
      * @param {boolean=} silent If true, don't show error message
-     * @param {string=} paneId, the id oi the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE. 
+     * @param {string=} paneId, the id oi the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE.
      * @param {{*}=} options, command options
      * @return {$.Promise} a jQuery promise that will either
      * - be resolved with a file for the specified file path or
@@ -350,8 +350,8 @@ define(function (require, exports, module) {
      * @param {boolean=} silent - If true, don't show error message
      * @param {string=}  paneId - the pane in which to open the file. Can be undefined, a valid pane id or ACTIVE_PANE
      * @param {{*}=} options - options to pass to MainViewManager._open
-     * @return {$.Promise} a jQuery promise resolved with a Document object or 
-     *                      rejected with an err 
+     * @return {$.Promise} a jQuery promise resolved with a Document object or
+     *                      rejected with an err
      */
     function _doOpenWithOptionalPath(fullPath, silent, paneId, options) {
         var result;
@@ -376,7 +376,7 @@ define(function (require, exports, module) {
                             filesToOpen.push(FileSystem.getFileForPath(path));
                         });
                         MainViewManager.addListToWorkingSet(paneId, filesToOpen);
-                        
+
                         _doOpen(paths[paths.length - 1], silent, paneId, options)
                             .done(function (file) {
                                 _defaultOpenDialogFullPath =
@@ -449,7 +449,7 @@ define(function (require, exports, module) {
             silent = (commandData && commandData.silent) || false,
             paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE,
             result = new $.Deferred();
-        
+
         _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
             .done(function (file) {
                 HealthLogger.fileOpened(fileInfo.path);
@@ -1723,7 +1723,7 @@ define(function (require, exports, module) {
     } else if (brackets.platform === "mac") {
         showInOS    = Strings.CMD_SHOW_IN_FINDER;
     }
-    
+
     // Define public API
     exports.showFileOpenError = showFileOpenError;
 
