@@ -59,6 +59,8 @@ define(function (require, exports, module) {
     var CLICK_RENAME_MINIMUM  = 500,
         RIGHT_MOUSE_BUTTON    = 2,
         LEFT_MOUSE_BUTTON     = 0;
+    
+    var INDENTATION_WIDTH     = 18;
 
     /**
      * @private
@@ -106,6 +108,40 @@ define(function (require, exports, module) {
         var width = measuringElement.width();
         measuringElement.remove();
         return width;
+    }
+
+    /**
+     * @private
+     *
+     * Create an appropriate div based thickness to indent the tree correctly.
+     *
+     * @param {int} depth - The depthness of the current node.
+     * @return {ReactComponent} - The resulting div.
+     */
+    function _createThickness(depth) {
+        return DOM.div({
+            className: "thickness",
+            style: {
+                width: (INDENTATION_WIDTH * depth) + "px"
+            }
+        });
+    }
+
+    /**
+     * @private
+     *
+     * Create the arrow icons used for the folders indented correctly.
+     *
+     * @param {int} depth - The depthness of the current node.
+     * @return {ReactComponent} - The resulting ins.
+     */
+    function _createAlignedIns(depth) {
+        return DOM.ins({
+            className: "jstree-icon",
+            style: {
+                marginLeft: (INDENTATION_WIDTH * depth) + "px"
+            }
+        }, " ");
     }
 
     /**
@@ -457,6 +493,19 @@ define(function (require, exports, module) {
                 'context-node': this.props.entry.get("context")
             });
 
+            var liArgs = [
+                {
+                    className: this.getClasses("jstree-leaf"),
+                    onClick: this.handleClick,
+                    onMouseDown: this.handleMouseDown,
+                    onDoubleClick: this.handleDoubleClick
+                },
+                DOM.ins({
+                    className: "jstree-icon"
+                }, " "),
+            ];
+            var thickness = _createThickness(this.props.depth);
+
             if (this.props.entry.get("rename")) {
                 nameDisplay = fileRenameInput({
                     actions: this.props.actions,
@@ -464,25 +513,20 @@ define(function (require, exports, module) {
                     name: this.props.name,
                     parentPath: this.props.parentPath
                 });
+
+                liArgs.push(thickness);
             } else {
                 // Need to flatten the argument list because getIcons returns an array
                 var aArgs = _.flatten([{
                     href: "#",
                     className: fileClasses
-                }, this.getIcons(), name, extension]);
+                }, thickness, this.getIcons(), name, extension]);
                 nameDisplay = DOM.a.apply(DOM.a, aArgs);
             }
 
-            return DOM.li({
-                className: this.getClasses("jstree-leaf"),
-                onClick: this.handleClick,
-                onMouseDown: this.handleMouseDown,
-                onDoubleClick: this.handleDoubleClick
-            },
-                DOM.ins({
-                    className: "jstree-icon"
-                }, " "),
-                nameDisplay);
+            liArgs.push(nameDisplay);
+
+            return DOM.li.apply(DOM.li, liArgs);
         }
     }));
 
@@ -668,6 +712,7 @@ define(function (require, exports, module) {
             if (isOpen && children) {
                 nodeClass = "open";
                 childNodes = directoryContents({
+                    depth: this.props.depth + 1,
                     parentPath: this.myPath(),
                     contents: children,
                     extensions: this.props.extensions,
@@ -698,11 +743,13 @@ define(function (require, exports, module) {
                 });
             }
 
+            var thickness = _createThickness(this.props.depth);
+
             // Need to flatten the arguments because getIcons returns an array
             var aArgs = _.flatten([{
                 href: "#",
                 className: directoryClasses
-            }, this.getIcons()]);
+            }, thickness, this.getIcons()]);
             if (!entry.get("rename")) {
                 aArgs.push(this.props.name);
             }
@@ -714,9 +761,7 @@ define(function (require, exports, module) {
                 onClick: this.handleClick,
                 onMouseDown: this.handleMouseDown
             },
-                DOM.ins({
-                    className: "jstree-icon"
-                }, " "),
+                _createAlignedIns(this.props.depth),
                 renameInput,
                 nameDisplay,
                 childNodes);
@@ -764,6 +809,7 @@ define(function (require, exports, module) {
 
                 if (FileTreeViewModel.isFile(entry)) {
                     return fileNode({
+                        depth: this.props.depth,
                         parentPath: this.props.parentPath,
                         name: name,
                         entry: entry,
@@ -775,6 +821,7 @@ define(function (require, exports, module) {
                     });
                 } else {
                     return directoryNode({
+                        depth: this.props.depth,
                         parentPath: this.props.parentPath,
                         name: name,
                         entry: entry,
@@ -971,6 +1018,7 @@ define(function (require, exports, module) {
                 }),
                 contents = directoryContents({
                     isRoot: true,
+                    depth: 1,
                     parentPath: this.props.parentPath,
                     sortDirectoriesFirst: this.props.sortDirectoriesFirst,
                     contents: this.props.treeData,
