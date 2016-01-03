@@ -767,6 +767,6 @@ define({
 	"DESCRIPTION_FONT_SMOOTHING": "Mac のみ : サブピクセルアンチエイリアスを有効にするには subpixel-antialiased、グレースケールアンチエイリアスの場合は antialiased",
 	"DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW": "分割ビューで環境設定ファイルを開けないようにするには false",
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "左側/上部のペインでユーザーの環境設定ファイルを開くには false",
-	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * これは、{APP_NAME} で環境設定がサポートされた\n読み取り専用ファイルです。\n * このファイルは、他のペインで開かれた環境設定ファイル brackets.json を\n * 変更する際の参照資料として使用します。\n * {APP_NAME} 内で環境設定を使用する方法については、Web ページ\n *  (https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences) を参照してください。\n */",
+	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * これは、{APP_NAME} がサポートしている環境設定が記録された読み取り\n * 専用ファイルです。\n * もう片方のペインで開かれた環境設定ファイル brackets.json を変更\n * する際の参考としてお使いください。\n * {APP_NAME} 内で環境設定を使用する方法については、Web ページ\n * https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n * を参照してください。\n */",
 	"DEFAULT_PREFERENCES_JSON_DEFAULT": "デフォルト"
 });
