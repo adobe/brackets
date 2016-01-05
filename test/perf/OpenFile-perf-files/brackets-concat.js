@@ -7276,7 +7276,7 @@ define('command/Commands',['require','exports','module'],function (require, expo
     exports.TOGGLE_USE_TAB_CHARS        = "debug.useTabChars";
 
     // VIEW
-    exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";
+    exports.VIEW_HIDE_SIDEBAR           = "view.toggleSidebar";
     exports.VIEW_INCREASE_FONT_SIZE     = "view.increaseFontSize";
     exports.VIEW_DECREASE_FONT_SIZE     = "view.decreaseFontSize";
     exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";
@@ -45530,7 +45530,7 @@ define('command/Commands',['require','exports','module'],function (require, expo
     exports.TOGGLE_USE_TAB_CHARS        = "debug.useTabChars";
 
     // VIEW
-    exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";
+    exports.VIEW_HIDE_SIDEBAR           = "view.toggleSidebar";
     exports.VIEW_INCREASE_FONT_SIZE     = "view.increaseFontSize";
     exports.VIEW_DECREASE_FONT_SIZE     = "view.decreaseFontSize";
     exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";

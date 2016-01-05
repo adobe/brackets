@@ -380,6 +380,9 @@ define({
     "VIEW_MENU"                           : "View",
     "CMD_HIDE_SIDEBAR"                    : "Hide Sidebar",
     "CMD_SHOW_SIDEBAR"                    : "Show Sidebar",
+    "CMD_TOGGLE_SIDEBAR"                  : "Toggle Sidebar",
+    "CMD_TOGGLE_PANELS"                   : "Toggle Panels",
+    "CMD_TOGGLE_PURE_CODE"                : "No Distractions",
     "CMD_INCREASE_FONT_SIZE"              : "Increase Font Size",
     "CMD_DECREASE_FONT_SIZE"              : "Decrease Font Size",
     "CMD_RESTORE_FONT_SIZE"               : "Restore Font Size",
@@ -461,7 +464,10 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "The base URL can't contain hashes like \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Special characters like '{0}' must be %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unknown error parsing Base URL",
+
+    // Strings for Pane.js
     "EMPTY_VIEW_HEADER"                    : "<em>Open a file while this pane has focus</em>",
+    "FLIPVIEW_BTN_TOOLTIP"                 : "Flip this view to {0} pane",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Current Theme",
@@ -600,7 +606,7 @@ define({
     "CMD_RESTART_NODE"                          : "Restart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Show Errors in Status Bar",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Open {APP_NAME} Source",
-    
+
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} Command Line Shortcut",
     "ERROR_CREATING_LAUNCH_SCRIPT"              : "An error occurred while installing the command line shortcut. Please try <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>these troubleshooting suggestions</a>.<br/><br/>Reason: {0}",
     "ERROR_CLTOOLS_RMFAILED"                    : "Unable to remove existing <code>/usr/local/bin/brackets</code> symlink.",
@@ -664,7 +670,7 @@ define({
     "EXPAND_ALL"                    : "Expand All",
     "COLLAPSE_CURRENT"              : "Collapse Current",
     "EXPAND_CURRENT"                : "Expand Current",
-    
+
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true to automatically close braces, brackets and parentheses",
     "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "false to remove the \"Close Others Above\" from the Working Files context menu",
@@ -681,9 +687,11 @@ define({
     "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limits how many levels deep Collapse All applies",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Minimum lines before a collapsible section icon appears",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true to remember collapsed sections if you close and reopen a file or project",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true to enable code folding on selected text in the editor",
     "DESCRIPTION_ATTR_HINTS"                         : "Enable/disable HTML attribute hints",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Enable/disable CSS/LESS/SCSS property hints",
     "DESCRIPTION_JS_HINTS"                           : "Enable/disable JavaScript code hints",
+    "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "Enable/disable datatype details in JavaScript code hints",
     "DESCRIPTION_PREF_HINTS"                         : "Enable/disable Preferences code hints",
     "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "Enable/disable HTML entity hints",
     "DESCRIPTION_SVG_HINTS"                          : "Enable/disable SVG code hints",
@@ -766,6 +774,9 @@ define({
     "DESCRIPTION_FONT_SMOOTHING"                     : "Mac-only: \"subpixel-antialiased\" to enable sub-pixel antialiasing or \"antialiased\" for gray scale antialiasing",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false to disable opening preferences file in split view",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false to open user preferences file in left/top pane",
+    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true to collapse panes after the last file from the pane is closed via pane header close button",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Toggle when to show the close and flip-view buttons on the header.",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported\n * by {APP_NAME}.\n * Use this file as a reference to modify your preferences\n * file \"brackets.json\" opened in the other pane.\n * For more information on how to use preferences inside\n * {APP_NAME}, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
-    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default"
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default",
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable code only mode and hide all other UI elements in {APP_NAME}"
 });

@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
@@ -71,10 +71,9 @@ define({
     "INVALID_FILENAME_TITLE": "잘못된 {0}이름",
     "INVALID_FILENAME_MESSAGE": "파일 이름에는 다음 문자를 포함 할 수 없습니다: {0} 또는 시스템의 모든 예약어",
     "ENTRY_WITH_SAME_NAME_EXISTS": "<span class='dialog-filename'>{0}</span> 이름을 가진 파일 또는 디렉토리가 이미 존재합니다.",
-    "FILE_ALREADY_EXISTS": "{0} <span class='dialog-filename'>{1}</span>은 이미 존재 합니다.",
     "ERROR_CREATING_FILE_TITLE": "{0}를 만들던 중에 에러가 발생했습니다",
     "ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span>를 만들던 중에 에러가 발생했습니다.{2}",
-    
+
     // User key map error strings
     "ERROR_KEYMAP_TITLE"                : "사용자 키맵 파일을 읽는 중 에러가 발생했습니다",
     "ERROR_KEYMAP_CORRUPT"              : "키맵 파일의 JSON 형식이 올바르지 않습니다. 형식을 올바르게 수정할 수 있도록 파일이 열릴 것입니다",
@@ -93,7 +92,7 @@ define({
     // Application error strings
     "ERROR_IN_BROWSER_TITLE": "{APP_NAME}는 아직 브라우저에서 실행되지 않습니다.",
     "ERROR_IN_BROWSER": "{APP_NAME}는 HTML로 구축되어 있지만 데스크톱 응용 프로그램으로 실행하여 로컬 파일을 편집 할 수 있습니다. {APP_NAME}을 실행하기 위해 <b>github.com / adobe / brackets-shell</b> 저장소 응용 프로그램 셸을 사용하십시오.",
-    
+
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE": "파일을 인덱스 하던 중에 에러가 발생했습니다.",
     "ERROR_MAX_FILES": "인덱싱 할 수 있는 파일의 최대 수에 도달했습니다. 인덱스에서 파일 검색 기능이 제대로 작동하지 않을 수 있습니다.",
@@ -102,7 +101,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE": "브라우저 시작 에러",
     "ERROR_CANT_FIND_CHROME": "Google Chrome 브라우저를 찾을 수 없습니다. 설치되어 있는지 확인하십시오.",
     "ERROR_LAUNCHING_BROWSER": "브라우저를 시작하던 중에 에러가 발생했습니다. (에러 {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE": "실시간 미리보기 에러",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE": "브라우저에 연결합니다",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE": "실시간 미리보기에 연결하려면 원격 디버깅을 사용하여 Chrome을 다시 시작해야 합니다. <br /> Chrome을 다시 시작하고 원격 디버깅을 사용하시겠습니까?",
@@ -113,7 +112,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE": "실시간 미리보기에 오신 것을 환영합니다",
     "LIVE_DEVELOPMENT_INFO_MESSAGE": "{APP_NAME}가 실시간 미리보기를 통해 브라우저에 연결됐습니다. HTML 파일이 수정되면 브라우저에서 미리보기가 즉시 업데이트됩니다. <br />현재 사용 중인 {APP_NAME}의 초기 버전에서는 <strong>Google Chrome</strong> 에서만 실시간 미리보기를 지원하며, <strong>CSS 또는 HTML 파일</strong>을 편집할 때만 실시간으로 업데이트됩니다. 자바스크립트 파일에 대한 변경 사항은 저장할 때 자동으로 다시 로드됩니다. (이 메시지는 한 번만 표시됩니다)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING": "자세한 내용은 <a href='{0}' title='{0}'> Live Development 연결 오류 문제 해결 </a>를 참조하세요.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "실시간 미리보기",
     "LIVE_DEV_STATUS_TIP_PROGRESS1": "실시간 미리보기: 연결 중 \u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2": "실시간 미리보기: 초기화 중\u2026",
@@ -125,7 +124,7 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED": "브라우저에서 페이지가 닫혀 있으므로 실시간 미리보기가 취소되었습니다.",
     "LIVE_DEV_NAVIGATED_AWAY": "브라우저에서 현재 프로젝트에 포함되지 않은 페이지로 이동했기 때문에 실시간 미리보기가 취소되었습니다.",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON": "알 수없는 원인 ({0})에 의해 실시간 미리보기가 취소되었습니다.",
-    
+
     "SAVE_CLOSE_TITLE": "변경 사항 저장",
     "SAVE_CLOSE_MESSAGE": "문서 <span class='dialog-filename'>{0}</span> 변경 내용을 저장 하시겠습니까?",
     "SAVE_CLOSE_MULTI_MESSAGE": "다음 파일에 대한 변경 사항을 저장 하시겠습니까?",
@@ -136,7 +135,7 @@ define({
     "EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span>파일이 변경되었습니다.<br /><br />파일을 저장하여 이 변경 사항을 덮어씌우겠습니까?",
     "EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span>파일에 저장되지 않은 변경 사항이 있습니다. <br /> 두 버전을 유지 하시겠습니까?",
     "EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span>파일은 삭제되었지만 저장되지 않은 변경 사항이 있습니다. <br /> 변경을 유지 하시겠습니까?",
-    
+
     // Generic dialog/button labels
     "DONE"                              : "완료",
     "OK": "확인",
@@ -148,7 +147,7 @@ define({
     "DELETE": "삭제",
     "BUTTON_YES": "예",
     "BUTTON_NO": "아니오",
-    
+
     // Find, Replace, Find in Files
     "FIND_MATCH_INDEX": "{1}개 중 {0}번째",
     "FIND_NO_RESULTS": "결과 없음",
@@ -232,7 +231,7 @@ define({
     "PROJECT_LOADING": "프로젝트 여는 중\u2026",
     "UNTITLED": "제목 없음",
     "WORKING_FILES": "현재 파일",
-    
+
     /**
      * MainViewManager
      */
@@ -256,7 +255,7 @@ define({
     "KEYBOARD_CTRL": "Ctrl",
     "KEYBOARD_SHIFT": "Shift",
     "KEYBOARD_SPACE": "Space",
-    
+
     /**
      * StatusBar strings
      */
@@ -294,8 +293,8 @@ define({
     "NOTHING_TO_LINT": "Lint 검사기로 확인할 파일이 없습니다.",
     "LINTER_TIMED_OUT"                      : "{0} 검사기가 {1}ms 대기 후 타임아웃 되었습니다",
     "LINTER_FAILED"                         : "{0} 검사기가 에러때문에 종료되었습니다: {1}",
-    
-    
+
+
     /**
      * Command Name Constants
      */
@@ -354,7 +353,7 @@ define({
     "CMD_OPEN_LINE_BELOW": "하단에 라인 열기",
     "CMD_TOGGLE_CLOSE_BRACKETS": "자동 괄호",
     "CMD_SHOW_CODE_HINTS": "코드 힌트 표시",
-    
+
     // Search menu commands
     "FIND_MENU"                           : "검색",
     "CMD_FIND"                            : "찾기",
@@ -364,11 +363,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "다음 일치하는 단어 찾은 후 선택영역에 추가",
     "CMD_SKIP_CURRENT_MATCH"              : "현재 영역 건너뛰고 다음 찾기",
     "CMD_FIND_IN_FILES"                   : "파일에서 찾기",
-    "CMD_FIND_IN_SELECTED"                : "선택한 파일/폴더에서 찾기",
     "CMD_FIND_IN_SUBTREE"                 : "다음에서 찾기\u2026",
     "CMD_REPLACE"                         : "바꾸기",
     "CMD_REPLACE_IN_FILES"                : "파일에서 바꾸기",
-    "CMD_REPLACE_IN_SELECTED"             : "선택한 파일/폴더에서 바꾸기",
     "CMD_REPLACE_IN_SUBTREE"              : "다음에서 바꾸기\u2026",
 
     // View menu commands
@@ -385,10 +382,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP": "자동 줄바꿈",
     "CMD_LIVE_HIGHLIGHT": "실시간 미리보기 하이라이트",
     "CMD_VIEW_TOGGLE_INSPECTION": "저장시 파일 Lint표시",
-    "CMD_SORT_WORKINGSET_BY_ADDED": "추가순으로 작업세트 정렬",
-    "CMD_SORT_WORKINGSET_BY_NAME": "이름순으로 작업세트 정렬",
-    "CMD_SORT_WORKINGSET_BY_TYPE": "타입별로 작업세트 정렬",
-    "CMD_SORT_WORKINGSET_AUTO": "자동으로 작업세트 정렬",
+    "CMD_WORKINGSET_SORT_BY_ADDED": "추가순으로 작업세트 정렬",
+    "CMD_WORKINGSET_SORT_BY_NAME": "이름순으로 작업세트 정렬",
+    "CMD_WORKINGSET_SORT_BY_TYPE": "타입별로 작업세트 정렬",
+    "CMD_WORKING_SORT_TOGGLE_AUTO": "자동으로 작업세트 정렬",
     "CMD_THEMES"                          : "테마\u2026",
 
     // Navigate menu Commands
@@ -408,7 +405,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "탐색기에서 보기",
     "CMD_SHOW_IN_FINDER"                  : "파인더에서 보기",
     "CMD_SHOW_IN_OS": "파일 위치 열기",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "도움말",
     "CMD_CHECK_FOR_UPDATE"                : "업데이트 확인",
@@ -454,17 +451,17 @@ define({
     "BASEURL_ERROR_INVALID_CHAR": "「{0}」과(와) 같은 특수 문자는 퍼센트로 인코딩해야합니다.",
     "BASEURL_ERROR_UNKNOWN_ERROR": "기본 URL의 구문을 분석하는 동안 알 수 없는 오류가 발생했습니다",
     "EMPTY_VIEW_HEADER": "<em>Open a file while this pane has focus</em>",
-    
+
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "현재 테마",
     "USE_THEME_SCROLLBARS"                 : "테마에서 정의한 스크롤바 적용",
     "FONT_SIZE"                            : "글자 크기",
     "FONT_FAMILY"                          : "글꼴",
     "THEMES_SETTINGS"                      : "테마 설정",
-    
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE": "새 규칙",
-    
+
     // Extension Management strings
     "INSTALL": "설치",
     "UPDATE": "업데이트",
@@ -555,15 +552,15 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE": "설치 가능",
     "EXTENSIONS_THEMES_TITLE"              : "테마",
     "EXTENSIONS_UPDATES_TITLE": "업데이트",
-    
+
     "INLINE_EDITOR_NO_MATCHES": "일치하는 항목이 없습니다.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
     "CSS_QUICK_EDIT_NO_MATCHES": "선택 일치하는 기존 CSS 규칙이 없습니다. <br> 「새 규칙」을 클릭하여 규칙을 작성하세요.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS": "프로젝트에는 스타일 시트가 없습니다. <br> 스타일 시트를 작성하여 CSS 규칙에 추가하세요.",
-    
+
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "최대",
-    
+
     /**
      * Unit names
      */
@@ -585,7 +582,7 @@ define({
     "CMD_RESTART_NODE": "Node를 다시 시작",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "에러를 상태표시줄에 표시",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "{APP_NAME} 소스 열기",
-    
+
     "LANGUAGE_TITLE": "언어 변경",
     "LANGUAGE_MESSAGE": "언어:",
     "LANGUAGE_SUBMIT": "{APP_NAME} 재시작",
@@ -598,7 +595,7 @@ define({
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "현재색",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP": "원본색",
@@ -607,23 +604,23 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLa 형식",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} ({1}시간 사용)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1}시간 사용)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION": "정의로 이동",
     "CMD_SHOW_PARAMETER_HINT": "파라메터 정보를 표시",
     "NO_ARGUMENTS": "<매개변수가 없습니다>",
     "DETECTED_EXCLUSION_TITLE"                  : "자바스크립트 파일 추론 문제",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets에서 <span class='dialog-filename'>{0}</span> 파일을 처리하던 중 문제가 발생했습니다.<br><br>이 파일은 코드 힌트, 정의 이동, 빠른 편집 등에서 사용되지 않을 것입니다. 이 파일을 다시 사용하려면 프로젝트 폴더에 있는 <code>.brackets.json</code> 파일을 열고 <code>jscodehints.detectedExclusions</code> 항목을 수정하세요.<br><br>Backets의 버그일 수 있습니다. 이 파일의 사본을 제출할 수 있다면 여기서 말한 파일과 함께<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>버그 보고</a>에 등록해주세요.",
-    
+
     // extensions/default/JSLint
     "JSLINT_NAME": "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW": "QuickView 사용",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS": "최근에 사용한 프로젝트",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK": "상세 정보"
 });

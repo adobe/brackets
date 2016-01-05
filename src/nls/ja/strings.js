@@ -194,7 +194,7 @@ define({
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Ctrl / Command キーをクリックしてすべて展開 / 折りたたみ",
-	"FIND_IN_FILES_INDEXING": "Indexing for Instant Search\u2026",
+	"FIND_IN_FILES_INDEXING": "クイック検索のインデックスを作成中\u2026",
 	"REPLACE_IN_FILES_ERRORS_TITLE": "置換エラー",
 	"REPLACE_IN_FILES_ERRORS": "次のファイルは検索の後で変更されているか、書き込むことができないため、変更されていません。",
 
@@ -252,11 +252,17 @@ define({
 	"SPLITVIEW_MULTIPANE_WARNING": "ファイルは他のペインで既に開かれています。{APP_NAME} ではまもなく複数のペインで同じファイルを開くことが可能になる予定です。それまでは、ファイルは既に開かれているペインで表示されます。<br /><br />(このメッセージは一度しか表示されません。)",
 
     /**
-     * Keyboard modifier names
+     * Keyboard modifiers and special key names
      */
 	"KEYBOARD_CTRL": "Ctrl",
 	"KEYBOARD_SHIFT": "Shift",
 	"KEYBOARD_SPACE": "Space",
+	"KEYBOARD_PAGE_UP": "上に移動",
+	"KEYBOARD_PAGE_DOWN": "下に移動",
+	"KEYBOARD_HOME": "ホーム",
+	"KEYBOARD_END": "終了",
+	"KEYBOARD_INSERT": "挿入",
+	"KEYBOARD_DELETE": "削除",
 
     /**
      * StatusBar strings
@@ -594,7 +600,7 @@ define({
 	"CMD_RESTART_NODE": "Node を再起動",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
 	"CMD_OPEN_BRACKETS_SOURCE": "{APP_NAME} ソースを開く",
-    
+
 	"CREATING_LAUNCH_SCRIPT_TITLE": "{APP_NAME} コマンドラインショートカット",
 	"ERROR_CREATING_LAUNCH_SCRIPT": "コマンドラインショートカットのインストール中にエラーが発生しました。<a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>これらのトラブルシューティングの提案</a>をお試しください。<br/><br/>理由 : {0}",
 	"ERROR_CLTOOLS_RMFAILED": "既存の <code>/usr/local/bin/brackets</code> シンボリックリンクを削除できません。",
@@ -616,7 +622,7 @@ define({
 	"HEALTH_DATA_DO_TRACK": "{APP_NAME} の使用方法に関する情報を匿名で共有します",
 	"HEALTH_DATA_NOTIFICATION_MESSAGE": "{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>匿名の</strong>統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<br><br>お客様のデータを確認するには、または、データを共有しないように選択するには、<strong>ヘルプ／正常性レポート</strong>を選択してください。<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポートに関する詳細情報</a>",
 	"HEALTH_DATA_PREVIEW": "{APP_NAME} の正常性レポート",
-	"HEALTH_DATA_PREVIEW_INTRO": "<p>{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>匿名の</strong>統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポート</a>について、またこれが {APP_NAME} コミュニティにどのように役立ち、プライバシーの保護するかついて詳細をご確認ください。</p><p>有効にした場合に、次回のお客様の正常性レポートで送信されるデータのプレビューを以下に示します。<em></em></p>",
+	"HEALTH_DATA_PREVIEW_INTRO": "<p>{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>匿名の</strong>統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポート</a>について、またこれが {APP_NAME} コミュニティにどのように役立ち、プライバシーを保護するかついて詳細をご確認ください。</p><p>有効にした場合に、次回のお客様の正常性レポートで送信されるデータのプレビューを以下に示します。<em></em></p>",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "時間",
@@ -658,7 +664,7 @@ define({
 	"EXPAND_ALL": "すべて展開",
 	"COLLAPSE_CURRENT": "現在のコードをたたむ",
 	"EXPAND_CURRENT": "現在のコードを展開",
-    
+
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "中括弧、角括弧、丸括弧を自動的に閉じるには true",
 	"DESCRIPTION_CLOSE_OTHERS_ABOVE": "「作業中ファイル」コンテキストメニューから「上をすべて閉じる」を削除するには false",
@@ -675,6 +681,7 @@ define({
 	"DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL": "「すべて折りたたむ」を適用するレベル数を制限します",
 	"DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE": "次の行数に達したら折りたたみ可能なセクションのアイコンを表示する",
 	"DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES": "ファイルまたはプロジェクトを閉じて再度開く場合に折りたたまれたセクションを記憶するには true",
+	"DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "エディター内の選択したテキストでコード折りたたみを有効にするには true",
 	"DESCRIPTION_ATTR_HINTS": "HTML 属性ヒントを有効化/無効化",
 	"DESCRIPTION_CSS_PROP_HINTS": "CSS/LESS/SCSS プロパティヒントを有効化/無効化",
 	"DESCRIPTION_JS_HINTS": "JavaScript のコードヒントを有効化/無効化",
@@ -754,9 +761,9 @@ define({
 	"DESCRIPTION_USE_THEME_SCROLLBARS": "カスタムスクロールバーを許可するには true",
 	"DESCRIPTION_LINTING_COLLAPSED": "構文チェックパネルを閉じるには true",
 	"DESCRIPTION_FONT_FAMILY": "フォントファミリーを変更",
-	"DESCRIPTION_FONT_SIZE": "Change font size; e.g. 13px",
-	"DESCRIPTION_FIND_IN_FILES_NODE": "true to enable node based search",
-	"DESCRIPTION_FIND_IN_FILES_INSTANT": "true to enable instant search",
+	"DESCRIPTION_FONT_SIZE": "フォントサイズを変更 (例 : 13 px)",
+	"DESCRIPTION_FIND_IN_FILES_NODE": "ノードベースの検索を有効にするには true",
+	"DESCRIPTION_FIND_IN_FILES_INSTANT": "クイック検索を有効にするには true",
 	"DESCRIPTION_FONT_SMOOTHING": "Mac のみ : サブピクセルアンチエイリアスを有効にするには subpixel-antialiased、グレースケールアンチエイリアスの場合は antialiased",
 	"DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW": "分割ビューで環境設定ファイルを開けないようにするには false",
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "左側/上部のペインでユーザーの環境設定ファイルを開くには false",

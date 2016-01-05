@@ -254,9 +254,15 @@ define({
     /**
      * Názvy kláves
      */
-    "KEYBOARD_CTRL"   : "Ctrl",
-    "KEYBOARD_SHIFT"  : "Shift",
-    "KEYBOARD_SPACE"  : "Mezerník",
+    "KEYBOARD_CTRL"         : "Ctrl",
+    "KEYBOARD_SHIFT"        : "Shift",
+    "KEYBOARD_SPACE"        : "Mezerník",
+    "KEYBOARD_PAGE_UP"      : "Page Up",
+    "KEYBOARD_PAGE_DOWN"    : "Page Down",
+    "KEYBOARD_HOME"         : "Home",
+    "KEYBOARD_END"          : "End",
+    "KEYBOARD_INSERT"       : "Insert",
+    "KEYBOARD_DELETE"       : "Delete",
 
     /**
      * Řetězce stavového řádku
@@ -455,7 +461,10 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL nemůže obsahovat znaky jako \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštní znaky jako '{0}' musí být zakódovány %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznámá chyba při zpracování URL",
-    "EMPTY_VIEW_HEADER"                    : "<em>Otevřete soubor, zatímco tento panel má fokus</em>",
+
+    // Řetězce pro Pane.js
+    "EMPTY_VIEW_HEADER"                    : "<em>Otevřete soubor, zatímco tento panel je aktivní</em>",
+    "FLIPVIEW_BTN_TOOLTIP"                 : "Přepnout toto zobrazení na panel {0}",
 
     // Řetězce pro themes-settings.html a themes-general.html
     "CURRENT_THEME"                        : "Aktuální motiv",
@@ -594,7 +603,7 @@ define({
     "CMD_RESTART_NODE"                          : "Restartovat Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Zobrazit chyby ve stavovém řádku",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Otevřít zdroj {APP_NAME}",
-    
+
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "Zástupce {APP_NAME} v příkazové řádce",
     "ERROR_CREATING_LAUNCH_SCRIPT"              : "Při instalaci zástupce do příkazové řádky se vyskytla chyba. Prosím vyzkoušejte řešení <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>na této stránce</a>.<br/><br/>Důvod: {0}",
     "ERROR_CLTOOLS_RMFAILED"                    : "Nelze odstranit existující symbolický odkaz na <code>/usr/local/bin/brackets</code>.",
@@ -675,6 +684,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limity, kolik úrovní do hloubky platí Skrýt vše",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Nejmenší počet řádků, pro které se objeví ikona pro skrytí kódu",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true k zapamatování skrytých částí pokud zavřete a znovu otevřete soubor nebo projekt",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true k povolení skrývání kódu při výběru textu v editoru",
     "DESCRIPTION_ATTR_HINTS"                         : "Povolit/zakázat nápovědy HTML vlastností",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Povolit/zakázat nápovědy CSS/LESS/SCSS hodnot",
     "DESCRIPTION_JS_HINTS"                           : "Povolit/zakázat nápovědy v JavaScriptu",
@@ -760,8 +770,10 @@ define({
     "DESCRIPTION_FONT_SMOOTHING"                     : "Pouze pro Mac: \"subpixel-antialiased\" k povolení sub-pixel vyhlazování nebo \"antialiased\" k vyhlazování v odstínech šedi",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false k zamezení otevírání souboru s preferencemi v rozděleném editoru",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false k otevření souboru s preferencemi v levém/horním panelu",
+    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true ke skrytí panelů po zavření posledního souboru z panelu pomocí tlačítka na hlavičce panelu",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Změňte ke zobrazení tlačítek zavřít a rozdělit ve hlavičce.",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Toto je soubor pouze ke čtení s preferencemi podporovanými\n * v {APP_NAME}.\n * Použijte tento soubor jako doporučení pro úpravu vašeho souboru s preferencemi\n * \"brackets.json\" otevřeném ve druhém panelu.\n * Pro více informací o úpravě preferencí\n * v {APP_NAME} se podívejte na webovou stránku https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Výchozí"
 });
 
-/* Last translated for ed57a2cfd8132224ebee91365ba50f8f718f165f */
+/* Last translated for 443aeb1e6779ab9d80baf8808171f7bbf5a5f838 */

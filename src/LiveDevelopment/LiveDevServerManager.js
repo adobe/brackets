@@ -104,13 +104,13 @@ define(function (require, exports, module) {
 
         _serverProviders.push(providerObj);
         _serverProviders.sort(_providerSort);
-        
+
         return providerObj;
     }
-    
+
     /**
      * Remove a server from the list of the registered providers.
-     * 
+     *
      * @param {{object}} provider The provider to be removed.
      */
     function removeServer(provider) {
@@ -121,7 +121,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     // Backwards compatibility
     exports.getProvider         = getServer;
     exports.registerProvider    = registerServer;

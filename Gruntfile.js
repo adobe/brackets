@@ -25,7 +25,7 @@ module.exports = function (grunt) {
     'use strict';
 
     // load dependencies
-    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty']});
+    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty', 'grunt-eslint']});
     grunt.loadTasks('tasks');
 
     // Project configuration.
@@ -241,19 +241,19 @@ module.exports = function (grunt) {
         watch: {
             all : {
                 files: ['**/*', '!**/node_modules/**'],
-                tasks: ['jshint']
+                tasks: ['eslint']
             },
             grunt : {
                 files: ['<%= meta.grunt %>', 'tasks/**/*'],
-                tasks: ['jshint:grunt']
+                tasks: ['eslint:grunt']
             },
             src : {
                 files: ['<%= meta.src %>', 'src/**/*'],
-                tasks: ['jshint:src']
+                tasks: ['eslint:src']
             },
             test : {
                 files: ['<%= meta.test %>', 'test/**/*'],
-                tasks: ['jshint:test']
+                tasks: ['eslint:test']
             }
         },
         /* FIXME (jasonsanjose): how to handle extension tests */
@@ -276,7 +276,7 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror/addon/selection/active-line.js',
                     'src/thirdparty/mustache/mustache.js',
                     'src/thirdparty/path-utils/path-utils.min',
-                    'src/thirdparty/less-1.7.5.min.js'
+                    'src/thirdparty/less-2.5.1.min.js'
                 ],
                 helpers : [
                     'test/spec/PhantomHelper.js'
@@ -299,18 +299,12 @@ module.exports = function (grunt) {
         'jasmine_node': {
             projectRoot: 'src/extensibility/node/spec/'
         },
-        jshint: {
-            all: [
-                '<%= meta.grunt %>',
-                '<%= meta.src %>',
-                '<%= meta.test %>'
-            ],
+        eslint: {
             grunt:  '<%= meta.grunt %>',
             src:    '<%= meta.src %>',
             test:   '<%= meta.test %>',
-            /* use strict options to mimic JSLINT until we migrate to JSHINT in Brackets */
             options: {
-                jshintrc: '.jshintrc'
+                quiet: true
             }
         },
         shell: {
@@ -325,8 +319,8 @@ module.exports = function (grunt) {
     grunt.registerTask('install', ['write-config', 'less']);
 
     // task: test
-    grunt.registerTask('test', ['jshint:all', 'jasmine']);
-//    grunt.registerTask('test', ['jshint:all', 'jasmine', 'jasmine_node']);
+    grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);
+//    grunt.registerTask('test', ['eslint', 'jasmine', 'jasmine_node', 'nls-check']);
 
     // task: set-release
     // Update version number in package.json and rewrite src/config.json
@@ -334,7 +328,7 @@ module.exports = function (grunt) {
 
     // task: build
     grunt.registerTask('build', [
-        'jshint:src',
+        'eslint:src',
         'jasmine',
         'clean',
         'less',
