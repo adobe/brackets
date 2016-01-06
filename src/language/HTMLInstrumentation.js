@@ -159,7 +159,7 @@ define(function (require, exports, module) {
             }
         }
 
-        return match.mark;
+        return match && match.mark;
     }
 
     /**

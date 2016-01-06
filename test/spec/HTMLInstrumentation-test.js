@@ -1699,6 +1699,16 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should handle adding a space after </html>", function () {
+                setupEditor("<html></html>", true);
+                runs(function () {
+                    doEditTest(editor.document.getText(), function (editor, previousDOM) {
+                        editor.document.replaceRange(" ", {line: 0, ch: 13});
+                    }, function (result, previousDOM, incremental) {
+                    }, true);
+                });
+            });
+
             it("should represent simple new tag insert", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
