@@ -292,7 +292,7 @@ define(function (require, exports, module) {
         // if we are already displaying a file do nothing but resolve immediately.
         // this fixes timing issues in test cases.
         if (MainViewManager.getCurrentlyViewedPath(paneId || MainViewManager.ACTIVE_PANE) === fullPath) {
-            result.resolve(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE));
+            result.resolve(MainViewManager.getCurrentlyViewedFile(paneId || MainViewManager.ACTIVE_PANE));
             return result.promise();
         }
 
