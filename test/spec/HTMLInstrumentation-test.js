@@ -1432,7 +1432,7 @@ define(function (require, exports, module) {
             });
 
             it("should handle deleting of a non-empty tag character-by-character", function () {
-                setupEditor("<div><p>deleteme</p>{{0}}</div>", true);
+                setupEditor("<div><b>deleteme</b>{{0}}</div>", true);
                 runs(function () {
                     var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         pTagID = previousDOM.children[0].tagID,
@@ -1608,10 +1608,10 @@ define(function (require, exports, module) {
                     expect(previousDOM).toBe(null);
 
                     // Type the opening tag--should be invalid all the way
-                    result = typeAndExpect(editor, previousDOM, {line: 0, ch: 0}, "<html></html");
+                    result = typeAndExpect(editor, previousDOM, {line: 0, ch: 0}, "<html");
                     expect(result.finalInvalid).toBe(true);
 
-                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // Finally become valid by closing the start tag. Note that this elementInsert
                     // should be treated specially by RemoteFunctions not to actually insert the
                     // element, but just copy its ID to the autocreated HTML element.
                     result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
@@ -1676,10 +1676,10 @@ define(function (require, exports, module) {
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
 
                     // Type the opening tag--should be invalid all the way
-                    result = typeAndExpect(editor, previousDOM, offsets[0], "<body></body");
+                    result = typeAndExpect(editor, previousDOM, offsets[0], "<body");
                     expect(result.finalInvalid).toBe(true);
 
-                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // Finally become valid by closing the start tag. Note that this elementInsert
                     // should be treated specially by RemoteFunctions not to actually insert the
                     // element, but just copy its ID to the autocreated HTML element.
                     result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
