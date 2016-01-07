@@ -92,8 +92,7 @@ define(function (require, exports, module) {
         case "number":
         case "regexp":
         case "string":
-        // exclude variable & param decls
-        case "def":
+        case "def":     // exclude variable & param decls
             return false;
         case "string-2":
             // exclude strings inside a regexp

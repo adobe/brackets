@@ -25,7 +25,14 @@ module.exports = function (grunt) {
     'use strict';
 
     // load dependencies
-    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty', 'grunt-eslint']});
+    require('load-grunt-tasks')(grunt, {
+        pattern: [
+            'grunt-*',
+            '!grunt-cli',
+            '!grunt-lib-phantomjs',
+            '!grunt-template-jasmine-requirejs'
+        ]
+    });
     grunt.loadTasks('tasks');
 
     // Project configuration.
