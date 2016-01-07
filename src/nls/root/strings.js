@@ -776,7 +776,6 @@ define({
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false to open user preferences file in left/top pane",
     "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true to collapse panes after the last file from the pane is closed via pane header close button",
     "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Toggle when to show the close and flip-view buttons on the header.",
-    "DESCRIPTION_RETAIN_FOCUS_AFTER_FLIP"            : "true to retain focus on the currently active pane, false to move focus to the new pane",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported\n * by {APP_NAME}.\n * Use this file as a reference to modify your preferences\n * file \"brackets.json\" opened in the other pane.\n * For more information on how to use preferences inside\n * {APP_NAME}, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default",
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable code only mode and hide all other UI elements in {APP_NAME}"
