@@ -192,6 +192,12 @@ define(function (require, exports, module) {
         values: ["hover", "always", "never"]
     });
 
+    // Define retainFocusAfterFlip, which controls which pane gets focus after a pane
+    // has been flipped.
+    PreferencesManager.definePreference("pane.retainFocusAfterFlip", "boolean", false, {
+        description: Strings.DESCRIPTION_RETAIN_FOCUS_AFTER_FLIP
+    });
+
     // Define mergePanesWhenLastFileClosed, which controls if a split view pane should be
     // closed when the last file is closed, skipping the "Open a file while this pane has focus"
     // step completely.
@@ -229,6 +235,7 @@ define(function (require, exports, module) {
         // Setup the container and the element we're inserting
         var self = this,
             showPaneHeaderButtonsPref = PreferencesManager.get("pane.showPaneHeaderButtons"),
+            retainFocusAfterFlip = PreferencesManager.get("pane.retainFocusAfterFlip"),
             $el = $container.append(Mustache.render(paneTemplate, {id: id})).find("#" + id),
             $header  = $el.find(".pane-header"),
             $headerText = $header.find(".pane-header-text"),
@@ -246,11 +253,31 @@ define(function (require, exports, module) {
             var otherPaneId = self.id === FIRST_PANE ? SECOND_PANE : FIRST_PANE;
             var otherPane = MainViewManager._getPane(otherPaneId);
 
+            // currently active pane is not necessarily self.id as just clicking the button does not
+            // give focus to the pane. This way it is possible to flip multiple panes to the active one
+            // without losing focus.
+            var activePaneIdBeforeFlip = MainViewManager.getActivePaneId();
+
             MainViewManager._moveView(self.id, otherPaneId, currentFile).always(function () {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
                                                             paneId: otherPaneId}).always(function () {
                     otherPane.trigger("viewListChange");
                     self.trigger("viewListChange");
+
+                    // Defer the focusing until other focus events have occurred.
+                    setTimeout(function () {
+                        if (retainFocusAfterFlip) {
+                            // Focus has most likely changed: give it back to the original pane.
+                            var activePaneBeforeFlip = MainViewManager._getPane(activePaneIdBeforeFlip);
+                            activePaneBeforeFlip.focus();
+                            self._lastFocusedElement = activePaneBeforeFlip.$el[0];
+                            MainViewManager.setActivePaneId(activePaneIdBeforeFlip);
+                        } else {
+                            // Other pane already has focus: update the Active Pane Id too.
+                            MainViewManager.setActivePaneId(otherPaneId);
+                            self._lastFocusedElement = otherPane.$el[0];
+                        }
+                    }, 1);
                 });
             });
         });
