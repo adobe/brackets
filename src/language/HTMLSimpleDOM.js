@@ -484,12 +484,6 @@ define(function (require, exports, module) {
             lastIndex = token.end;
         }
 
-        // Manually compute the position of the end of the text (we can't rely on the
-        // tokenizer for this since it may not get to the very end)
-        // TODO: should probably make the tokenizer get to the end...
-        var lines = this.text.split("\n"),
-            lastPos = {line: lines.length - 1, ch: lines[lines.length - 1].length};
-
         // If we have any tags hanging open, fail the parse if we're in strict mode,
         // otherwise close them at the end of the document.
         while (stack.length) {
@@ -499,7 +493,7 @@ define(function (require, exports, module) {
                 this._logError(token);
                 return null;
             }
-            closeTag(this.text.length, lastPos);
+            closeTag(this.text.length, this.t._indexPos);
         }
 
         var dom = lastClosedTag;

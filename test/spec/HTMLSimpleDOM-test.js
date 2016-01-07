@@ -81,8 +81,11 @@ define(function (require, exports, module) {
             });
 
             it("should parse a document with an implied-close tag at the end of the document", function () {
-                var result = build("<body><p>unclosed para and body", true);
+                var result = build("<body><p>hello", true);
                 expect(result).toBeTruthy();
+                expect(result.tag).toBe("body");
+                expect(result.children[0].tag).toBe("p");
+                expect(result.children[0].children[0].content).toBe("hello");
             });
 
             it("should return null for an unclosed non-void/non-implied-close tag", function () {
