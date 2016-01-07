@@ -1452,6 +1452,22 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should handle deleting of a single character exactly between two elements", function () {
+                setupEditor("<p><br>X{{0}}<br></p>", true);
+                runs(function () {
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
+                        pTagID = previousDOM.tagID,
+                        br1TagID = previousDOM.children[0].tagID,
+                        br2TagID = previousDOM.children[2].tagID;
+
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+
+                    deleteAndExpect(editor, previousDOM, offsets[0], 1, [
+                        [{type: 'textDelete', parentID: pTagID, afterID: br1TagID, beforeID: br2TagID}]
+                    ]);
+                });
+            });
+
             it("should handle typing of a new attribute character-by-character", function () {
                 setupEditor("<p{{0}}>some text</p>", true);
                 runs(function () {
