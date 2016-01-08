@@ -380,9 +380,9 @@ define({
 	"VIEW_MENU": "Affichage",
 	"CMD_HIDE_SIDEBAR": "Masquer la barre latérale",
 	"CMD_SHOW_SIDEBAR": "Afficher la barre latérale",
-	"CMD_TOGGLE_SIDEBAR": "Toggle Sidebar",
-	"CMD_TOGGLE_PANELS": "Toggle Panels",
-	"CMD_TOGGLE_PURE_CODE": "No Distractions",
+	"CMD_TOGGLE_SIDEBAR": "Afficher/Masquer la barre latérale",
+	"CMD_TOGGLE_PANELS": "Afficher/Masquer les panneaux",
+	"CMD_TOGGLE_PURE_CODE": "Aucune distraction",
 	"CMD_INCREASE_FONT_SIZE": "Augmenter la taille de la police",
 	"CMD_DECREASE_FONT_SIZE": "Diminuer la taille de la police",
 	"CMD_RESTORE_FONT_SIZE": "Restaurer la taille de la police",
@@ -467,7 +467,7 @@ define({
 
     // Strings for Pane.js
 	"EMPTY_VIEW_HEADER": "<em>Ouvrir un fichier quand ce panneau est actif</em>",
-	"FLIPVIEW_BTN_TOOLTIP": "Flip this view to {0} pane",
+	"FLIPVIEW_BTN_TOOLTIP": "Transférer cette vue dans le volet {0}",
 
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "Thème actuel ",
@@ -691,7 +691,7 @@ define({
 	"DESCRIPTION_ATTR_HINTS": "Activer/désactiver les indicateurs d’attribut HTML",
 	"DESCRIPTION_CSS_PROP_HINTS": "Activer/désactiver les indicateurs de propriété CSS/LESS/SCSS",
 	"DESCRIPTION_JS_HINTS": "Activer/désactiver les indicateurs de code JavaScript",
-	"DESCRIPTION_JS_HINTS_TYPE_DETAILS": "Enable/disable datatype details in JavaScript code hints",
+	"DESCRIPTION_JS_HINTS_TYPE_DETAILS": "Activer/désactiver les détails sur le type de données dans les indicateurs de code JavaScript",
 	"DESCRIPTION_PREF_HINTS": "Activer/désactiver les indicateurs de code Préférences",
 	"DESCRIPTION_SPECIAL_CHAR_HINTS": "Activer/désactiver les indicateurs d’entité HTML",
 	"DESCRIPTION_SVG_HINTS": "Activer/désactiver les indicateurs de code SVG",
@@ -774,9 +774,9 @@ define({
 	"DESCRIPTION_FONT_SMOOTHING": "Mac uniquement : « subpixel-antialiased » pour activer l’anticrénelage (lissage) des sous-pixels ou « antialiased » pour l’anticrénelage des niveaux de gris",
 	"DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW": "faux pour désactiver l’ouverture du fichier de préférences en mode fractionné",
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "faux pour ouvrir le fichier de préférences de l’utilisateur dans le volet gauche/supérieur",
-	"DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED": "true to collapse panes after the last file from the pane is closed via pane header close button",
-	"DESCRIPTION_SHOW_PANE_HEADER_BUTTONS": "Toggle when to show the close and flip-view buttons on the header.",
+	"DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED": "vrai pour réduire les volets une fois que le dernier fichier du volet est fermé à l’aide du bouton situé dans l’en-tête",
+	"DESCRIPTION_SHOW_PANE_HEADER_BUTTONS": "Permet de choisir quand afficher les boutons Fermer et Transférer la vue dans l’en-tête.",
 	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * Fichier en lecture seule contenant les préférences prises\n * en charge par {APP_NAME}.\n * Utilisez ce fichier en référence pour modifier\n * votre fichier de préférences « brackets.json » ouvert dans l’autre volet.\n * Pour savoir comment utiliser les préférences dans\n * {APP_NAME}, reportez-vous à la page https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences.\n */",
 	"DEFAULT_PREFERENCES_JSON_DEFAULT": "Par défaut",
-	"DESCRIPTION_PURE_CODING_SURFACE": "true to enable code only mode and hide all other UI elements in {APP_NAME}"
+	"DESCRIPTION_PURE_CODING_SURFACE": "vrai pour activer le mode code seul et masquer tous les autres éléments de l’interface utilisateur dans {APP_NAME}"
 });
