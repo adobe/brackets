@@ -251,6 +251,12 @@ define(function (require, exports, module) {
                                                             paneId: otherPaneId}).always(function () {
                     otherPane.trigger("viewListChange");
                     self.trigger("viewListChange");
+
+                    // Defer the focusing until other focus events have occurred.
+                    setTimeout(function () {
+                        MainViewManager.setActivePaneId(otherPaneId);
+                        self._lastFocusedElement = otherPane.$el[0];
+                    }, 1);
                 });
             });
         });
