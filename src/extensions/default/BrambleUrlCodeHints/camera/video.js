@@ -69,7 +69,10 @@ define(function (require, exports, module) {
         vendorURL.revokeObjectURL(this.interface.src);
 
         if(this.stream) {
-            this.stream.stop();
+            var video = this.stream.getVideoTracks ? this.stream.getVideoTracks()[0] : null;
+            if(video) {
+                video.stop();
+            }
             this.stream = null;
             this.streaming = false;
         }
