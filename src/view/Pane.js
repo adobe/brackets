@@ -56,8 +56,8 @@
   *
   * Pane Object Events:
   *
-  *  - viewListChange - Whenever there is a file change to a file in the working set.  These 2 events: `DocumentManger.pathRemove`
-  *  and `DocumentManger.fileNameChange` will cause a `viewListChange` event so the WorkingSetView can update.
+  *  - viewListChange - Whenever there is a file change to a file in the working set.  These 2 events: `DocumentManager.pathRemove`
+  *  and `DocumentManager.fileNameChange` will cause a `viewListChange` event so the WorkingSetView can update.
   *
   *  - currentViewChange - Whenever the current view changes.
   *             (e, newView:View, oldView:View)
@@ -246,16 +246,33 @@ define(function (require, exports, module) {
             var otherPaneId = self.id === FIRST_PANE ? SECOND_PANE : FIRST_PANE;
             var otherPane = MainViewManager._getPane(otherPaneId);
 
+            // Currently active pane is not necessarily self.id as just clicking the button does not
+            // give focus to the pane. This way it is possible to flip multiple panes to the active one
+            // without losing focus.
+            var activePaneIdBeforeFlip = MainViewManager.getActivePaneId();
+            var currentFileOnOtherPaneIndex = otherPane.findInViewList(currentFile.fullPath);
+
+            // if the currentFile is already on other pane just close the current pane
+            if (currentFileOnOtherPaneIndex  !== -1) {
+                CommandManager.execute(Commands.FILE_CLOSE, {File: currentFile, paneId: self.id});
+            }
+
             MainViewManager._moveView(self.id, otherPaneId, currentFile).always(function () {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
                                                             paneId: otherPaneId}).always(function () {
-                    otherPane.trigger("viewListChange");
+
+                    var activePaneBeforeFlip = MainViewManager._getPane(activePaneIdBeforeFlip);
+
+                    // Trigger view list changes for both panes
                     self.trigger("viewListChange");
+                    otherPane.trigger("viewListChange");
 
                     // Defer the focusing until other focus events have occurred.
                     setTimeout(function () {
-                        MainViewManager.setActivePaneId(otherPaneId);
-                        self._lastFocusedElement = otherPane.$el[0];
+                        // Focus has most likely changed: give it back to the original pane.
+                        activePaneBeforeFlip.focus();
+                        self._lastFocusedElement = activePaneBeforeFlip.$el[0];
+                        MainViewManager.setActivePaneId(activePaneIdBeforeFlip);
                     }, 1);
                 });
             });
@@ -564,23 +581,34 @@ define(function (require, exports, module) {
         //  move the item in the working set and
         //  open it in the destination pane
         openNextPromise.done(function () {
+            var viewListIndex = self.findInViewList(file.fullPath);
+            var shouldAddView = viewListIndex !== -1;
+            var view = self._views[file.fullPath];
+
+            // If the file isn't in working set, destroy the view and delete it from
+            // source pane's view map and return as solved
+            if (!shouldAddView) {
+                if (view) {
+                    self._doDestroyView(view);
+                }
+                return result.resolve();
+            }
+
             // Remove file from all 3 view lists
-            self._viewList.splice(self.findInViewList(file.fullPath), 1);
+            self._viewList.splice(viewListIndex, 1);
             self._viewListMRUOrder.splice(self.findInViewListMRUOrder(file.fullPath), 1);
             self._viewListAddedOrder.splice(self.findInViewListAddedOrder(file.fullPath), 1);
 
             // insert the view into the working set
             destinationPane._addToViewList(file,  _makeIndexRequestObject(true, destinationIndex));
 
-            //move the view,
-            var view = self._views[file.fullPath];
-
             // if we had a view, it had previously been opened
-            //  otherwise, the file was in the working set unopened
+            // otherwise, the file was in the working set unopened
             if (view) {
                 // delete it from the source pane's view map and add it to the destination pane's view map
                 delete self._views[file.fullPath];
                 destinationPane.addView(view, !destinationPane.getCurrentlyViewedFile());
+
                 // we're done
                 result.resolve();
             } else if (!destinationPane.getCurrentlyViewedFile()) {
@@ -819,7 +847,6 @@ define(function (require, exports, module) {
      */
     Pane.prototype.addToViewList = function (file, index) {
         var indexRequested = (index !== undefined && index !== null && index >= 0 && index < this._viewList.length);
-
         this._addToViewList(file, _makeIndexRequestObject(indexRequested, index));
 
         if (!indexRequested) {
