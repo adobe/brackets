@@ -380,8 +380,8 @@ define({
     "VIEW_MENU"                           : "Näytä",
     "CMD_HIDE_SIDEBAR"                    : "Piilota sivupalkki",
     "CMD_SHOW_SIDEBAR"                    : "Näytä sivupalkki",
-    "CMD_TOGGLE_SIDEBAR"                  : "Näytä/piilota sivupalkki",
-    "CMD_TOGGLE_PANELS"                   : "Näytä/piilota paneelit",
+    "CMD_TOGGLE_SIDEBAR"                  : "Näytä tai piilota sivupalkki",
+    "CMD_TOGGLE_PANELS"                   : "Näytä tai piilota paneelit",
     "CMD_TOGGLE_PURE_CODE"                : "Ei häiriötekijöitä",
     "CMD_INCREASE_FONT_SIZE"              : "Suurenna tekstikokoa",
     "CMD_DECREASE_FONT_SIZE"              : "Pienennä tekstikokoa",
@@ -774,11 +774,11 @@ define({
     "DESCRIPTION_FONT_SMOOTHING"                     : "Vain Mac: ota käyttöön alipikselien reunapehmennys valinnalla ”subpixel-antialiased” tai harmaansävyinen reunapehmennys valinnalla ”antialiased”",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false: poista asetustiedoston avaaminen käytöstä jaetussa näkymässä",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false: avaa käyttäjän asetustiedosto vasemmassa tai ylemmässä ruudussa",
-    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true: yhdistä paneelit kun viimeinen tiedosto paneelista on suljettu käyttäen paneelin yläosassa olevaa suljin painiketta",
-    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Valitse koska paneelin yläosassa näytetään suljin- ja flip-view-painikkeita",
+    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true: yhdistä ruudut sen jälkeen, kun ruudun viimeinen tiedosto on suljettu ruudun yläosassa olevalla sulkupaikkeella",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Valitse, milloin sulku- ja flip view \u2011painikkeet näkyvät paneelin yläosassa",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Tämä on vain luku -tiedosto {APP_NAME}in tukemista\n * asetuksista.\n * Käytä tätä apuna, kun muutat asetustiedostoasi\n * ”brackets.json”, joka on avattu toiseen ruutuun.\n * Lisätietoa siitä, kuinka käyttää asetuksia {APP_NAME}issa,\n * löydät verkkosivulta osoitteessa https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Oletus",
-    "DESCRIPTION_PURE_CODING_SURFACE"                : "true: näytä vain koodinäkymä ja piilota muut UI elementit {APP_NAME}issa"
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "true: ota vain koodi \u2011näkymä käyttöön ja piilota muut {APP_NAME}in käyttöliittymäelementit"
 });
 
 /* Last translated for fcd2e98ef35c110e00aebfbb6d3c3816e5156552 */
