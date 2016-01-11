@@ -331,6 +331,9 @@ define(function (require, exports, module) {
 
         // To track which pane the editor is being attached to if it's a full editor
         this._paneId = null;
+        
+        // To track the parent editor ( host editor at that time of creation) of an inline editor
+        this._hostEditor = null;
 
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
@@ -983,10 +986,17 @@ define(function (require, exports, module) {
 
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.on("focus", function () {
+            if (self._hostEditor) {
+                // Mark the host editor as the master editor for the hosting document
+                self._hostEditor.document._toggleMasterEditor(self._hostEditor);
+            } else {
+                // Set this full editor as master editor for the document
+                self.document._toggleMasterEditor(self);
+            }
+            
             self._focused = true;
             self.trigger("focus", self);
-            // Set this full editor as master editor for the document
-            self.document._toggleMasterEditor(self);
+            
         });
 
         this._codeMirror.on("blur", function () {
