@@ -782,4 +782,4 @@ define({
     "DESCRIPTION_PURE_CODING_SURFACE"                : "Aktiviert den Ablenkungsfreien Modus, bei dem alle UI-Elemente außer dem Code ausgeblendet werden"
 });
 
-/* Last translated for 1eba0ae1cb21e73752c8359132b972ec7e5997ab */
+/* Last translated for fcd2e98ef35c110e00aebfbb6d3c3816e5156552 */
