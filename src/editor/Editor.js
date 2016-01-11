@@ -97,7 +97,8 @@ define(function (require, exports, module) {
         TAB_SIZE            = "tabSize",
         UPPERCASE_COLORS    = "uppercaseColors",
         USE_TAB_CHAR        = "useTabChar",
-        WORD_WRAP           = "wordWrap";
+        WORD_WRAP           = "wordWrap",
+        INDENT_LINE_COMMENT   = "indentLineComment";
     
     var cmOptions         = {};
     
@@ -206,6 +207,11 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
         description: Strings.DESCRIPTION_WORD_WRAP
     });
+    
+    PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
+        description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
+    });
+    
     
     var editorOptions = Object.keys(cmOptions);
 
@@ -2476,6 +2482,27 @@ define(function (require, exports, module) {
      */
     Editor.getWordWrap = function (fullPath) {
         return PreferencesManager.get(WORD_WRAP, _buildPreferencesContext(fullPath));
+    };
+    
+    /**
+     * Sets word wrap option.
+     * Affects any editors that share the same preference location.
+     * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
+     */
+    Editor.setIndentLineComment = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(INDENT_LINE_COMMENT, value, options);
+    };
+    
+    /**
+     * Returns true if word wrap is enabled for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getIndentLineComment = function (fullPath) {
+        return PreferencesManager.get(INDENT_LINE_COMMENT, _buildPreferencesContext(fullPath));
     };
     
     /**
