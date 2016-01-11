@@ -256,26 +256,29 @@ define(function (require, exports, module) {
             if (currentFileOnOtherPaneIndex  !== -1) {
                 CommandManager.execute(Commands.FILE_CLOSE, {File: currentFile, paneId: self.id});
             }
+            
+            // If the same doc view is present in the destination pane prevent flip
+            if (!otherPane.getViewForPath(currentFile.fullPath)) {
+                MainViewManager._moveView(self.id, otherPaneId, currentFile).always(function () {
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
+                                                                paneId: otherPaneId}).always(function () {
 
-            MainViewManager._moveView(self.id, otherPaneId, currentFile).always(function () {
-                CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
-                                                            paneId: otherPaneId}).always(function () {
+                        var activePaneBeforeFlip = MainViewManager._getPane(activePaneIdBeforeFlip);
 
-                    var activePaneBeforeFlip = MainViewManager._getPane(activePaneIdBeforeFlip);
+                        // Trigger view list changes for both panes
+                        self.trigger("viewListChange");
+                        otherPane.trigger("viewListChange");
 
-                    // Trigger view list changes for both panes
-                    self.trigger("viewListChange");
-                    otherPane.trigger("viewListChange");
-
-                    // Defer the focusing until other focus events have occurred.
-                    setTimeout(function () {
-                        // Focus has most likely changed: give it back to the original pane.
-                        activePaneBeforeFlip.focus();
-                        self._lastFocusedElement = activePaneBeforeFlip.$el[0];
-                        MainViewManager.setActivePaneId(activePaneIdBeforeFlip);
-                    }, 1);
+                        // Defer the focusing until other focus events have occurred.
+                        setTimeout(function () {
+                            // Focus has most likely changed: give it back to the original pane.
+                            activePaneBeforeFlip.focus();
+                            self._lastFocusedElement = activePaneBeforeFlip.$el[0];
+                            MainViewManager.setActivePaneId(activePaneIdBeforeFlip);
+                        }, 1);
+                    });
                 });
-            });
+            }
         });
 
         // Closes the current view on the pane when clicked. If pane has no files, merge
