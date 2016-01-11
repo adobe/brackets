@@ -21,6 +21,224 @@
  * 
  */
 
+
+span.brackets-js-hints-with-type-details {
+    width: 300px;
+    display: inline-block;
+}
+
+.brackets-js-hints.type-undetermined:before {
+    color: cornflowerblue;
+    content: '12';
+    border: 1px cornflowerblue solid;
+    float:left;
+    width:25px;
+    text-align: center;
+    margin-left:-5px;
+    margin-right:5px;
+    visibility: hidden;
+    line-height: 1.2em;
+}
+
+.brackets-js-hints.type-number:before {
+    color: cornflowerblue;
+    content: '12';
+    border: 1px cornflowerblue solid;
+    float:left;
+    width:25px;
+    text-align: center;
+    margin-left:-5px;
+    margin-right:5px;
+    line-height: 1.2em;
+}
+
+.brackets-js-hints.type-string:before {
+    color: cornflowerblue;
+    content: 'ab';
+    border: 1px cornflowerblue solid;
+    float:left;
+    width:25px;
+    text-align: center;
+    margin-left:-5px;
+    margin-right:5px;
+    line-height: 1.2em;
+}
+
+.brackets-js-hints.type-function:before {
+    color: cornflowerblue;
+    content: 'fn( )';
+    border: 1px cornflowerblue solid;
+    float:left;
+    width:25px;
+    text-align: center;
+    margin-left:-5px;
+    margin-right:5px;
+    line-height: 1.2em;
+}
+
+.brackets-js-hints.type-array:before {
+    color: cornflowerblue;
+    content: '[  ]';
+    border: 1px cornflowerblue solid;
+    float:left;
+    width:25px;
+    text-align: center;
+    margin-left:-5px;
+    margin-right:5px;
+    line-height: 1.2em;
+}
+
+.brackets-js-hints.type-object:before {
+    color: cornflowerblue;
+    content: '{ :}';
+    border: 1px cornflowerblue solid;
+    float:left;
+    width:25px;
+    text-align: center;
+    margin-left:-5px;
+    margin-right:5px;
+    line-height: 1.2em;
+}
+
+.brackets-js-hints.type-num-array:before {
+    color: cornflowerblue;
+    content: '[12]';
+    border: 1px cornflowerblue solid;
+    float:left;
+    width:25px;
+    text-align: center;
+    margin-left:-5px;
+    margin-right:5px;
+    line-height: 1.2em;
+}
+
+.brackets-js-hints.type-string-array:before {
+    color: cornflowerblue;
+    content: '[ab]';
+    border: 1px cornflowerblue solid;
+    float:left;
+    width:25px;
+    text-align: center;
+    margin-left:-5px;
+    margin-right:5px;
+    line-height: 1.2em;
+}
+
+.brackets-js-hints.type-boolean:before {
+    color: cornflowerblue;
+    content: 'bool';
+    border: 1px cornflowerblue solid;
+    float:left;
+    width:25px;
+    text-align: center;
+    margin-left:-5px;
+    margin-right:5px;
+    line-height: 1.2em;
+}
+
+.brackets-js-hints-type-details {
+    color: #a3a3a3 !important;
+    font-weight: 100;
+    font-style: italic !important;
+    margin-right: 5px;
+    float:right;
+}
+
+.jshint-description {
+    display: none;
+    color: #d4d4d4;
+    word-wrap: break-word;	
+    white-space: normal;
+    width:300px;
+    box-sizing: border-box;
+}
+
+.dark .jshint-description {
+    color: #ccc;
+}
+
+.jshint-jsdoc {
+    display: none;
+    padding-right: 10px !important;
+    color: grey;
+    word-wrap: break-word;
+    white-space: normal;
+    width: 300px;
+    box-sizing: border-box;
+    float: left;
+    clear: left;
+    max-height: 3em;
+    overflow: hidden;
+}
+
+.dark .jshint-jsdoc {
+    color: #ccc;
+}
+
+.jshint-link {
+    display:none;
+    width:0px !important;
+    height:1px !important;
+    margin-left: 15px;
+    float:right;
+}
+
+.jshint-link:before {
+    position: relative;
+    float: left;
+    top:1px;
+    content: "i" !important;
+    width: 16px;
+    height: 16px;
+    margin-right:10px;
+    font-size: 14px;
+    font-weight: bold;
+    font-style: italic;
+    line-height: 15px;
+    text-align: center;
+    visibility: visible !important;
+    font-weight: 900;
+    color: #fff;
+    background-color: #2ea56c;
+    border-color: #177F42;
+    border-radius: 16px;
+    font-family: SourceSansPro-Semibold;
+}
+
+.dark .jshint-link:before {
+    background-color: #146a41;
+}
+
+.highlight .jshint-link {
+    display: inline-block !important;
+}
+
+.highlight .jshint-description {
+    display: block;
+    color: #6495ed !important;
+}
+
+.highlight .jshint-jsdoc {
+    display: block;
+}
+
+.dark .brackets-js-hints-type-details {
+    color: #696969 !important;
+} 
+
+.highlight .brackets-js-hints-type-details {
+    display:none;
+}
+
+.brackets-js-hints-keyword {
+    font-weight: 100;
+    font-style: italic !important;
+    margin-right: 5px;
+    float:right;
+    color: #6495ed !important;
+}
+
+
 .brackets-js-hints.priority-high {
     color: #486c00; /* green */
 }
