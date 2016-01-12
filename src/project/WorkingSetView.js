@@ -788,22 +788,27 @@ define(function (require, exports, module) {
                     MainViewManager._moveWorkingSetItem(sourceView.paneId, startingIndex, $el.index());
                     postDropCleanup();
                 } else {
-                    // item was dragged to another working set
-                    MainViewManager._moveView(sourceView.paneId, currentView.paneId, sourceFile, $el.index())
-                        .always(function () {
-                            // if the current document was dragged to another working set
-                            //  then reopen it to make it the currently selected file
-                            if (draggingCurrentFile) {
-                                CommandManager
-                                    .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
-                                                                   paneId: currentView.paneId})
-                                    .always(function () {
-                                        postDropCleanup();
-                                    });
-                            } else {
-                                postDropCleanup();
-                            }
-                        });
+                    // If the same doc view is present in the destination pane prevent drop
+                    if (!MainViewManager._getPane(currentView.paneId).getViewForPath(sourceFile.fullPath)) {
+                        // item was dragged to another working set
+                        MainViewManager._moveView(sourceView.paneId, currentView.paneId, sourceFile, $el.index())
+                            .always(function () {
+                                // if the current document was dragged to another working set
+                                //  then reopen it to make it the currently selected file
+                                if (draggingCurrentFile) {
+                                    CommandManager
+                                        .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
+                                                                       paneId: currentView.paneId})
+                                        .always(function () {
+                                            postDropCleanup();
+                                        });
+                                } else {
+                                    postDropCleanup();
+                                }
+                            });
+                    } else {
+                        postDropCleanup();
+                    }
                 }
             }
 

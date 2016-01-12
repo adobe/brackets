@@ -245,6 +245,11 @@ define(function (require, exports, module) {
             var currentFile = self.getCurrentlyViewedFile();
             var otherPaneId = self.id === FIRST_PANE ? SECOND_PANE : FIRST_PANE;
             var otherPane = MainViewManager._getPane(otherPaneId);
+            
+            // If the same doc view is present in the destination pane prevent flip
+            if (otherPane.getViewForPath(currentFile.fullPath)) {
+                return;
+            }
 
             // Currently active pane is not necessarily self.id as just clicking the button does not
             // give focus to the pane. This way it is possible to flip multiple panes to the active one
@@ -257,28 +262,25 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.FILE_CLOSE, {File: currentFile, paneId: self.id});
             }
             
-            // If the same doc view is present in the destination pane prevent flip
-            if (!otherPane.getViewForPath(currentFile.fullPath)) {
-                MainViewManager._moveView(self.id, otherPaneId, currentFile).always(function () {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
-                                                                paneId: otherPaneId}).always(function () {
+            MainViewManager._moveView(self.id, otherPaneId, currentFile).always(function () {
+                CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
+                                                            paneId: otherPaneId}).always(function () {
 
-                        var activePaneBeforeFlip = MainViewManager._getPane(activePaneIdBeforeFlip);
+                    var activePaneBeforeFlip = MainViewManager._getPane(activePaneIdBeforeFlip);
 
-                        // Trigger view list changes for both panes
-                        self.trigger("viewListChange");
-                        otherPane.trigger("viewListChange");
+                    // Trigger view list changes for both panes
+                    self.trigger("viewListChange");
+                    otherPane.trigger("viewListChange");
 
-                        // Defer the focusing until other focus events have occurred.
-                        setTimeout(function () {
-                            // Focus has most likely changed: give it back to the original pane.
-                            activePaneBeforeFlip.focus();
-                            self._lastFocusedElement = activePaneBeforeFlip.$el[0];
-                            MainViewManager.setActivePaneId(activePaneIdBeforeFlip);
-                        }, 1);
-                    });
+                    // Defer the focusing until other focus events have occurred.
+                    setTimeout(function () {
+                        // Focus has most likely changed: give it back to the original pane.
+                        activePaneBeforeFlip.focus();
+                        self._lastFocusedElement = activePaneBeforeFlip.$el[0];
+                        MainViewManager.setActivePaneId(activePaneIdBeforeFlip);
+                    }, 1);
                 });
-            }
+            });
         });
 
         // Closes the current view on the pane when clicked. If pane has no files, merge
