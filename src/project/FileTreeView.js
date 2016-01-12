@@ -398,7 +398,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if (this.props.entry.get("selected")) {
+            if (this.props.entry.get("selected") && !e.ctrlKey) {
                 if (this.state.clickTimer === null && !this.props.entry.get("rename")) {
                     var timer = window.setTimeout(this.startRename, CLICK_RENAME_MINIMUM);
                     this.setState({
