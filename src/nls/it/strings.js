@@ -768,7 +768,7 @@ define({
     "DESCRIPTION_USE_THEME_SCROLLBARS"               : "true per consentire le barre di scorrimento su misura",
     "DESCRIPTION_LINTING_COLLAPSED"                  : "true per non mostrare il pannello del controllo del codice",
     "DESCRIPTION_FONT_FAMILY"                        : "Modifica il font usato in {APP_NAME}",
-    "DESCRIPTION_FONT_SIZE"                          : "Modifica le dimensioni dei caratteri; ad esempio 13px"
+    "DESCRIPTION_FONT_SIZE"                          : "Modifica le dimensioni dei caratteri; ad esempio 13px",
     "DESCRIPTION_FIND_IN_FILES_NODE"                 : "true per attivare la ricerca basata su Node",
     "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "true per attivare la ricerca immediata",
     "DESCRIPTION_FONT_SMOOTHING"                     : "Solo per Mac: \"subpixel-antialias\" per consentire sub-pixel antialiasing o \"antialias\" per la scala dei grigi antialiasing",
