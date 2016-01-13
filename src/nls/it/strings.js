@@ -781,5 +781,5 @@ define({
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true per abilitare il codice in modalità solo e nascondere tutti gli altri elementi dell'interfaccia utente in {APP_NAME}"
 });
 
-/* Last translation of: eda6874dfbb9b7f8ad4c5a5d145f19699d4aef30*/
+/* Last translation of: fcd2e98ef35c110e00aebfbb6d3c3816e5156552*/
 
