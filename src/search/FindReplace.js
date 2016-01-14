@@ -234,6 +234,7 @@ define(function (require, exports, module) {
         if (!primary) {
             primary = _.last(selections);
         }
+
         editor._codeMirror.scrollIntoView({from: primary.start, to: primary.end});
         editor.setSelections(selections, center, centerOptions);
     }
