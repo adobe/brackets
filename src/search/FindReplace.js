@@ -613,7 +613,6 @@ define(function (require, exports, module) {
 
         // Prepopulate the search field
         var initialQuery = FindBar.getInitialQuery(findBar, editor);
-// TODO NEEDS REMOVING?
         if (initialQuery.query === "" && editor.lastParsedQuery !== "") {
             initialQuery.query = editor.lastParsedQuery;
         }
@@ -734,11 +733,16 @@ define(function (require, exports, module) {
             // Create a new instance of the search bar UI
             clearSearch(editor._codeMirror);
             doSearch(editor, false);
-            _findNextIfSameSearch(query, idx, getSearchState(editor._codeMirror));
+
+            // Get the new state after a search and find the next if no changes
+            state = getSearchState(editor._codeMirror);
+            if (_isPreviousSearch(query, idx, state)) {
+                _findNext();
+            }
         }
     }
 
-    function _findNextIfSameSearch(originalQuery, originalIdx, state) {
+    function _isPreviousSearch(originalQuery, originalIdx, state) {
         // Process the new query and prep the original and new for comparing
         var newIdx, newQuery;
 
@@ -756,11 +760,8 @@ define(function (require, exports, module) {
             }
         }
 
-        // If the original and new query are the same, go to the next
-        if (originalQuery && newQuery && originalQuery === newQuery &&
-                originalIdx === newIdx) {
-            _findNext();
-        }
+        return originalQuery && newQuery && originalQuery === newQuery &&
+            originalIdx === newIdx;
     }
 
     function _findNext() {
