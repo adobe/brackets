@@ -599,7 +599,6 @@ define(function (require, exports, module) {
      * @return {string} first line of primary selection to populate the find bar
      */
     FindBar._getInitialQueryFromSelection = function(editor) {
-        // TODO IF REGEXP DO NOT GET SELECTION! LEAVE AS IS
         var selectionText = editor.getSelectedText();
         if (selectionText) {
             return selectionText
