@@ -745,7 +745,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should Find Next after search bar reopened", function () {
+            it("shouldn't Find Next after search bar reopened", function () {
                 runs(function () {
                     myEditor.setCursorPos(0, 0);
 

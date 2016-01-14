@@ -725,43 +725,10 @@ define(function (require, exports, module) {
         var editor = EditorManager.getActiveEditor();
 
         if (editor) {
-            // Make note of the original query details
-            var state = getSearchState(editor._codeMirror),
-                query = (findBar && state && state.parsedQuery) || "",
-                idx = state && state.matchIndex;
-
             // Create a new instance of the search bar UI
             clearSearch(editor._codeMirror);
             doSearch(editor, false);
-
-            // Get the new state after a search and find the next if no changes
-            state = getSearchState(editor._codeMirror);
-            if (_isPreviousSearch(query, idx, state)) {
-                _findNext();
-            }
         }
-    }
-
-    function _isPreviousSearch(originalQuery, originalIdx, state) {
-        // Process the new query and prep the original and new for comparing
-        var newIdx, newQuery;
-
-        if (findBar && state && state.queryInfo && state.searchStartPos) {
-            newQuery = state.parsedQuery || "";
-            newIdx = state.matchIndex;
-
-            if (!state.queryInfo.isCaseSensitive) {
-                if (typeof originalQuery === "string") {
-                    originalQuery = originalQuery.toLowerCase();
-                }
-                if (typeof newQuery === "string") {
-                    newQuery = newQuery.toLowerCase();
-                }
-            }
-        }
-
-        return originalQuery && newQuery && originalQuery === newQuery &&
-            originalIdx === newIdx;
     }
 
     function _findNext() {
