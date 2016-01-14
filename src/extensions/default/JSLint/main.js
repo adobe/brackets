@@ -244,7 +244,7 @@ define(function (require, exports, module) {
             options.browser = true;
         }
 
-        var jslintResult = JSLINT(text, {});
+        var jslintResult = JSLINT(text, options);
 
         if (!jslintResult) {
             // Remove any trailing null placeholder (early-abort indicator)
