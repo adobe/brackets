@@ -738,7 +738,7 @@ define(function (require, exports, module) {
                 } else {
 
                     // The directory is there, but the directory hasn't been loaded.
-                    // Update the directory to be a `notFullyLoaded` directory
+                    // Update the directory to be a `notFullyLoaded` directory.
                     treeData = treeData.updateIn(objectPath, _createNotFullyLoadedDirectory);
                     objectPath.push("children");
                     treePointer = treeData.getIn(objectPath);
