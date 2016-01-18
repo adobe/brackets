@@ -37,10 +37,10 @@ $ npm install
 
 Step 3: run the build
 
-You can build Bramble by running the Grunt build process:
+You can build Bramble by running the npm build task:
 
 ```
-$ grunt build-browser
+$ npm run build
 ```
 
 Step 4: Run Bramble:
