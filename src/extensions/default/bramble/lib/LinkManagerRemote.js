@@ -4,7 +4,10 @@
     "use strict";
 
     function handleClick(e) {
-        var url = e.target.getAttribute("href");
+        var anchor = e.currentTarget;
+        var url = anchor.href;
+        var href = anchor.getAttribute("href");
+        var element;
 
         // For local paths vs. absolute URLs, try to open the right file.
         // Special case (i.e., pass through) some common, non-http(s) protocol
@@ -13,8 +16,19 @@
             return true;
         }
 
-        if(!(/\:?\/\//.test(url)) && window._Brackets_LiveDev_Transport) {
+        var pathNav = !(/\:?\/\//.test(url));
+        // `fragmentId` handles the special case of fragment ids in the
+        // same html page in preview mode (not tutorial mode)
+        var fragmentId = /^\s*#/.test(href);
+
+        if(pathNav && window._Brackets_LiveDev_Transport) {
             window._Brackets_LiveDev_Transport.send("bramble-navigate:" + url);
+        } else if(fragmentId) {
+            element = document.querySelector(href) || document.getElementsByName(href.slice(1));
+            if(element) {
+                element = element[0] || element;
+                element.scrollIntoView(true);
+            }
         } else {
             window.open(url, "_blank");
         }
