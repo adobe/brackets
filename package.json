@@ -51,6 +51,7 @@
     },
     "scripts": {
         "postinstall": "grunt install",
+        "build": "grunt build-browser",
         "test": "grunt test && grunt build-browser-compressed",
         "start": "http-server -p 8000 --cors"
     },
