@@ -66,6 +66,12 @@
         // Restore last scroll position for this session (if any)
         document.body.scrollTop = sessionStorage.getItem(SCROLL_KEY)|0;
 
+        // Do not listen for mouse events relevant for the inspector
+        // if there is no livedoc
+        if(!transport) {
+            return;
+        }
+
         startListener();
 
         // If the user clicks on an element, stop inspecting with mousemove (pin editor)
