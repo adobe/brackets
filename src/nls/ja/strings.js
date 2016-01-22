@@ -382,7 +382,7 @@ define({
 	"CMD_SHOW_SIDEBAR": "サイドバーを表示する",
 	"CMD_TOGGLE_SIDEBAR": "サイドバーの切り替え",
 	"CMD_TOGGLE_PANELS": "パネルの表示切り替え",
-	"CMD_TOGGLE_PURE_CODE": "中断なし",
+	"CMD_TOGGLE_PURE_CODE": "簡易表示",
 	"CMD_INCREASE_FONT_SIZE": "フォントサイズを大きく",
 	"CMD_DECREASE_FONT_SIZE": "フォントサイズを小さく",
 	"CMD_RESTORE_FONT_SIZE": "フォントサイズを元に戻す",
@@ -467,7 +467,7 @@ define({
 
     // Strings for Pane.js
 	"EMPTY_VIEW_HEADER": "<em>このペインにフォーカスがあるときにファイルを開く</em>",
-	"FLIPVIEW_BTN_TOOLTIP": "{0} ペインにこのビューを反転",
+	"FLIPVIEW_BTN_TOOLTIP": "このビューを {0} ペインにめくる",
 
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "現在のテーマ",
