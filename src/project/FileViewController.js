@@ -159,7 +159,7 @@ define(function (require, exports, module) {
                 return (event.ctrlKey || event.metaKey) ? MainViewManager.FIRST_PANE : null;
             }
 
-            return _secondPaneContext() || _firstPaneContext();
+            return event && (_secondPaneContext() || _firstPaneContext());
         }
 
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
