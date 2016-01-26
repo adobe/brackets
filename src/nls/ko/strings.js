@@ -87,7 +87,7 @@ define({
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "환경설정을 읽는 중 에러가 발생했습니다",
-    "ERROR_PREFS_CORRUPT"               : "환경설정 파일의 JSON 형식이 올바르지 않습니다. 형식을 올바르게 수정할 수 있도록 파일이 열릴 것입니다. 수정한 내용을 반영하려면 {APP_NAME}을 재시작해야 합니다.",
+    "ERROR_PREFS_CORRUPT"               : "환경설정 파일의 JSON 형식이 올바르지 않습니다. 형식을 올바르게 수정할 수 있도록 파일이 열릴 것입니다. 수정한 내용을 반영하려면 {APP_NAME}를 재시작해야 합니다.",
     "ERROR_PROJ_PREFS_CORRUPT"          : "프로젝트 환경설정 파일의 JSON 형식이 올바르지 않습니다. 형식을 올바르게 수정할 수 있도록 파일이 열릴 것입니다. 변경 사항을 적용하려면 프로젝트를 다시 로드해야 합니다.",
 
     // Application error strings
@@ -596,7 +596,7 @@ define({
     "CMD_SHOW_DEV_TOOLS": "개발자 도구 보기",
     "CMD_REFRESH_WINDOW": "{APP_NAME} 재시작",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "확장 기능 없이 재시작",
-    "CMD_NEW_BRACKETS_WINDOW": "새로운 {APP_NAME}창",
+    "CMD_NEW_BRACKETS_WINDOW": "새로운 {APP_NAME} 창",
     "CMD_LAUNCH_SCRIPT_MAC"                     : "명령 줄 바로가기 설치",
     "CMD_SWITCH_LANGUAGE": "언어 변경",
     "CMD_RUN_UNIT_TESTS": "테스트 실행",
