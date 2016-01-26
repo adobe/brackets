@@ -673,9 +673,9 @@ define({
 
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "괄호(), 중괄호{}, 대괄호[]를 자동으로 닫으려면 true",
-    "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "작업중인 파일 콘텍스트 메뉴에서 \"위에 있는 다른 코드 닫기\"를 제거하려면 false",
-    "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "작업중인 파일 콘텍스트 메뉴에서 \"아래 있는 다른 코드 닫기\"를 제거하려면 false",
-    "DESCRIPTION_CLOSE_OTHERS"                       : "작업중인 파일 콘텍스트 메뉴에서 \"다른 코드 모두 닫기\"를 제거하려면 false",
+    "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "작업중인 파일 콘텍스트 메뉴에서 \"위의 목록 닫기\"를 제거하려면 false",
+    "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "작업중인 파일 콘텍스트 메뉴에서 \"아래 목록 닫기\"를 제거하려면 false",
+    "DESCRIPTION_CLOSE_OTHERS"                       : "작업중인 파일 콘텍스트 메뉴에서 \"다른 파일 닫기\"를 제거하려면 false",
     "DESCRIPTION_CLOSE_TAGS"                         : "태그 종료 옵션 설정",
     "DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS"         : "자동으로 닫지 말아야 할 태그 목록",
     "DESCRIPTION_CLOSE_TAGS_WHEN_OPENING"            : "시작 태그 > 입력 시 닫기",
