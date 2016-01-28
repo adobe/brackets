@@ -216,15 +216,15 @@ define(function (require, exports, module) {
                 //check if preference for indent line comment is available otherwise go back to default indentation
                 if (Editor.getIndentLineComment()) {
                     //ignore the first line and recalculate cursor position for first non white space char of every line
-                    if (i!==startLine) {
+                    if (i !== startLine) {
                         line = doc.getLine(i);
                         firstCharPosition = line.search(/\S|$/);
                     }
                     //if the non space first character position is before original start position , put comment at the new position otherwise older pos
-                    if (firstCharPosition<originalCursorPosition) {
-                        cursorPosition= firstCharPosition;
+                    if (firstCharPosition < originalCursorPosition) {
+                        cursorPosition = firstCharPosition;
                     } else {
-                        cursorPosition= originalCursorPosition;
+                        cursorPosition = originalCursorPosition;
                     }
                     
                     editGroup.push({text: prefixes[0], start: {line: i, ch: cursorPosition}}); 
