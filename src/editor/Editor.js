@@ -2522,8 +2522,8 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets word wrap option.
-     * Affects any editors that share the same preference location.
+     * Sets lineCommentIndent option.
+     * 
      * @param {boolean} value
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
