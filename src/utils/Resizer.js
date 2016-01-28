@@ -225,7 +225,8 @@ define(function (require, exports, module) {
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
 
-        if (PreferencesManager.get(PREFS_PURE_CODE)) {
+        if (PreferencesManager.get(PREFS_PURE_CODE) &&
+                ($element.hasClass("bottom-panel") || $element.hasClass("sidebar"))) {
             elementPrefs.visible = false;
         }
 

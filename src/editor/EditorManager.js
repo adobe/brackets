@@ -505,6 +505,7 @@ define(function (require, exports, module) {
         // first and showing it after the visible range is set, we avoid that initial render.
         $(inlineContent).hide();
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, range);
+        inlineEditor._hostEditor = getCurrentFullEditor();
         $(inlineContent).show();
 
         return { content: inlineContent, editor: inlineEditor };
