@@ -817,7 +817,7 @@ define(function (require, exports, module) {
             var oldStat = entry._stat;
             if (entry.isFile) {
                 // Update stat and clear contents, but only if out of date
-                if (!(stat && oldStat && stat.mtime.getTime() === oldStat.mtime.getTime())) {
+                if (!(stat && oldStat && stat.mtime.getTime() <= oldStat.mtime.getTime())) {
                     entry._clearCachedData();
                     entry._stat = stat;
                     this._fireChangeEvent(entry);
