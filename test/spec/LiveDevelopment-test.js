@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
@@ -48,7 +48,7 @@ define(function (require, exports, module) {
         DOMAgent,
         DocumentManager,
         ProjectManager;
-    
+
     // Used as mocks
     require("LiveDevelopment/main");
     var CommandsModule                = require("command/Commands"),
@@ -62,16 +62,16 @@ define(function (require, exports, module) {
         HTMLInstrumentationModule     = require("language/HTMLInstrumentation"),
         NativeAppModule               = require("utils/NativeApp"),
         CSSPreprocessorDocumentModule = require("LiveDevelopment/Documents/CSSPreprocessorDocument");
-    
+
     var testPath    = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
         tempDir     = SpecRunnerUtils.getTempDirectory(),
         testWindow,
         allSpacesRE = /\s+/gi;
-    
+
     function fixSpaces(str) {
         return str.replace(allSpacesRE, " ");
     }
-    
+
     function isOpenInBrowser(doc, agents) {
         return (doc && doc.url && agents && agents.network && agents.network.wasURLRequested(doc.url));
     }
@@ -82,24 +82,24 @@ define(function (require, exports, module) {
             waitsForDone(LiveDevelopment.open(), "LiveDevelopment.open()", 15000);
         });
     }
-            
+
     function saveAndWaitForLoadEvent(doc) {
         var deferred = new $.Deferred();
-            
+
         // documentSaved is fired async after the FILE_SAVE command completes.
         // Instead of waiting for the FILE_SAVE promise, we listen to the
         // inspector connection to confirm that the page reload occurred
         Inspector.Page.on("loadEventFired", deferred.resolve);
-        
+
         // remove event listener after timeout fires
         deferred.always(function () {
             Inspector.Page.off("loadEventFired", deferred.resolve);
         });
-        
+
         // save the file
         var fileSavePromise = CommandManager.execute(Commands.FILE_SAVE, {doc: doc});
         waitsForDone(fileSavePromise, "FILE_SAVE", 1000);
-        
+
         // wrap with a timeout to indicate loadEventFired was not fired
         return Async.withTimeout(deferred.promise(), 2000);
     }
@@ -116,24 +116,24 @@ define(function (require, exports, module) {
             callback(liveDoc);
         });
     }
-    
+
     function doOneTest(htmlFile, cssFile) {
         var localText,
             browserText,
             loadEventPromise,
             curDoc;
-        
+
         runs(function () {
             spyOn(Inspector.Page, "reload");
             waitsForDone(SpecRunnerUtils.openProjectFiles([htmlFile]), "SpecRunnerUtils.openProjectFiles " + htmlFile, 1000);
         });
 
         openLiveDevelopmentAndWait();
-        
+
         runs(function () {
             waitsForDone(SpecRunnerUtils.openProjectFiles([cssFile]), "SpecRunnerUtils.openProjectFiles " + cssFile, 1000);
         });
-        
+
         runs(function () {
             curDoc =  DocumentManager.getCurrentDocument();
             localText = curDoc.getText();
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
 
         var liveDoc;
         waitForLiveDoc(tempDir + "/" + cssFile, function (doc) { liveDoc = doc; });
-        
+
         var doneSyncing = false;
         runs(function () {
             liveDoc.getSourceFromBrowser().done(function (text) {
@@ -153,21 +153,21 @@ define(function (require, exports, module) {
             });
         });
         waitsFor(function () { return doneSyncing; }, "Browser to sync changes", 10000);
-        
+
         runs(function () {
             expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
-            
+
             var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/" + htmlFile);
             expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
-            
+
             // Save the CSS file
             loadEventPromise = saveAndWaitForLoadEvent(doc);
         });
-        
+
         runs(function () {
             waitsForFail(loadEventPromise, "loadEventFired", 3000);
         });
-        
+
         runs(function () {
             expect(Inspector.Page.reload).not.toHaveBeenCalled();
         });
@@ -176,9 +176,9 @@ define(function (require, exports, module) {
     function enableAgent(liveDevModule, name) {
         liveDevModule.enableAgent(name);
     }
-        
+
     describe("Inspector", function () {
-        
+
         this.category = "livepreview";
 
         it("should return a ready socket on Inspector.connect and close the socket on Inspector.disconnect", function () {
@@ -186,7 +186,7 @@ define(function (require, exports, module) {
                 url = LiveDevelopmentModule.launcherUrl + "?id=" + id,
                 connected = false,
                 failed = false;
-            
+
             runs(function () {
                 waitsForDone(
                     NativeAppModule.openLiveBrowser(url, true),
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
                     5000
                 );
             });
-            
+
             runs(function () {
                 var retries = 0;
                 function tryConnect() {
@@ -213,19 +213,19 @@ define(function (require, exports, module) {
                 }
                 tryConnect();
             });
-            
+
             waitsFor(function () { return connected || failed; }, "LiveDevelopmentModule.launcherUrl", 10000);
-            
+
             runs(function () {
                 expect(failed).toBe(false);
                 expect(InspectorModule.connected()).toBeTruthy();
             });
-            
+
             runs(function () {
                 var promise = InspectorModule.Runtime.evaluate("window.open('', '_self').close()");
                 waitsForDone(promise, "Inspector.Runtime.evaluate", 5000);
             });
-            
+
             waitsFor(function () { return !InspectorModule.connected(); }, "!InspectorModule.connected()", 10000);
         });
     });
@@ -263,28 +263,28 @@ define(function (require, exports, module) {
                 .toBe(StringUtils.format(Strings.BASEURL_ERROR_INVALID_CHAR, " "));
         });
     });
-    
+
     describe("HighlightAgent", function () {
-        
+
         this.category = "livepreview";
 
         describe("Highlighting elements in browser from a CSS rule", function () {
-            
+
             var testDocument,
                 testEditor,
                 testCSSDoc,
                 liveDevelopmentConfig,
                 inspectorConfig;
-            
+
             beforeEach(function () {
                 // save original configs
                 liveDevelopmentConfig = LiveDevelopmentModule.config;
                 inspectorConfig = InspectorModule.config;
-                
+
                 // force init
                 LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
                 HighlightAgentModule.load();
-                
+
                 // module spies
                 spyOn(CSSAgentModule, "styleForURL").andReturn([]);
                 spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
@@ -295,65 +295,65 @@ define(function (require, exports, module) {
                 };
                 spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
                 spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
-                
+
                 // document spies
                 var mock = SpecRunnerUtils.createMockEditor("p {}\n\ndiv {}", "css");
                 testDocument = mock.doc;
                 testEditor = mock.editor;
                 testCSSDoc = new CSSDocumentModule(testDocument, testEditor);
-                
+
             });
-            
+
             afterEach(function () {
                 LiveDevelopmentModule.config = liveDevelopmentConfig;
                 InspectorModule.config = inspectorConfig;
-                
+
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testDocument = null;
                 testEditor = null;
                 testCSSDoc = null;
             });
-            
+
             it("should toggle the highlight via a command", function () {
                 var cmd = CommandsManagerModule.get(CommandsModule.FILE_LIVE_HIGHLIGHT);
                 cmd.setEnabled(true);
-                
+
                 // Run our tests in order depending on whether highlighting is on or off
                 // presently. By setting the order like this, we'll also leave highlighting
                 // in the state we found it in.
                 if (cmd.getChecked()) {
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
-                    
+
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
                 } else {
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
-                    
+
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
                 }
             });
-            
+
             it("should redraw highlights when the document changes", function () {
                 testDocument.setText("body {}");
                 expect(HighlightAgentModule.redraw).toHaveBeenCalled();
             });
-            
+
             it("should redraw highlights when the cursor moves", function () {
                 testEditor.setCursorPos(0, 3);
                 expect(HighlightAgentModule.rule).toHaveBeenCalled();
                 expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("p");
-                
+
                 testEditor.setCursorPos(2, 0);
                 expect(HighlightAgentModule.rule.calls.length).toEqual(3);
                 expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div");
             });
         });
-    
+
         describe("Highlighting elements in browser from a rule in scss", function () {
-            
+
             var testDocument,
                 testEditor,
                 testCSSDoc,
@@ -373,16 +373,16 @@ define(function (require, exports, module) {
                               "    }\n" +
                               "  }\n" +
                               "}\n";
-            
+
             beforeEach(function () {
                 // save original configs
                 liveDevelopmentConfig = LiveDevelopmentModule.config;
                 inspectorConfig = InspectorModule.config;
-                
+
                 // force init
                 LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
                 HighlightAgentModule.load();
-                
+
                 // module spies
                 spyOn(CSSAgentModule, "styleForURL").andReturn([]);
                 spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
@@ -390,50 +390,50 @@ define(function (require, exports, module) {
                 spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
                 spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
                 spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
-                
+
                 var mock = SpecRunnerUtils.createMockEditor(fileContent, "scss");
                 testDocument = mock.doc;
                 testEditor = mock.editor;
                 testCSSDoc = new CSSPreprocessorDocumentModule(testDocument, testEditor);
             });
-            
+
             afterEach(function () {
                 LiveDevelopmentModule.config = liveDevelopmentConfig;
                 InspectorModule.config = inspectorConfig;
-                
+
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testDocument = null;
                 testEditor = null;
                 testCSSDoc = null;
             });
-            
+
             it("should toggle the highlight via a command", function () {
                 var cmd = CommandsManagerModule.get(CommandsModule.FILE_LIVE_HIGHLIGHT);
                 cmd.setEnabled(true);
-                
+
                 // Run our tests in order depending on whether highlighting is on or off
                 // presently. By setting the order like this, we'll also leave highlighting
                 // in the state we found it in.
                 if (cmd.getChecked()) {
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
-                    
+
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
                 } else {
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
-                    
+
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
                 }
             });
-            
+
             it("should redraw highlights when the cursor moves", function () {
                 testEditor.setCursorPos(0, 9);  // after = sign in "div[role='main']" selector
                 expect(HighlightAgentModule.rule).toHaveBeenCalled();
                 expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div[role='main']");
-                
+
                 testEditor.setCursorPos(3, 12); // after - in "padding-top:14px;" on line 3
                 expect(HighlightAgentModule.rule.calls.length).toEqual(3);
                 expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div[role='main'] ul");
@@ -451,9 +451,9 @@ define(function (require, exports, module) {
                 expect(HighlightAgentModule.rule.mostRecentCall.args[0]).toEqual("div[role='main'] ul li a:hover");
             });
         });
-    
+
         describe("Highlighting elements in browser from a rule in LESS", function () {
-            
+
             var testDocument,
                 testEditor,
                 testCSSDoc,
@@ -473,16 +473,16 @@ define(function (require, exports, module) {
                               "    a, img { }\n" +
                               "  }\n" +
                               "}";
-            
+
             beforeEach(function () {
                 // save original configs
                 liveDevelopmentConfig = LiveDevelopmentModule.config;
                 inspectorConfig = InspectorModule.config;
-                
+
                 // force init
                 LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
                 HighlightAgentModule.load();
-                
+
                 // module spies
                 spyOn(CSSAgentModule, "styleForURL").andReturn([]);
                 spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
@@ -490,7 +490,7 @@ define(function (require, exports, module) {
                 spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
                 spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
                 spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
-                
+
                 // TODO: Due to https://github.com/adobe/brackets/issues/8837, we are
                 // using "scss" as language id instead of "less".
                 var mock = SpecRunnerUtils.createMockEditor(fileContent, "scss");
@@ -498,39 +498,39 @@ define(function (require, exports, module) {
                 testEditor = mock.editor;
                 testCSSDoc = new CSSPreprocessorDocumentModule(testDocument, testEditor);
             });
-            
+
             afterEach(function () {
                 LiveDevelopmentModule.config = liveDevelopmentConfig;
                 InspectorModule.config = inspectorConfig;
-                
+
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testDocument = null;
                 testEditor = null;
                 testCSSDoc = null;
             });
-            
+
             it("should toggle the highlight via a command", function () {
                 var cmd = CommandsManagerModule.get(CommandsModule.FILE_LIVE_HIGHLIGHT);
                 cmd.setEnabled(true);
-                
+
                 // Run our tests in order depending on whether highlighting is on or off
                 // presently. By setting the order like this, we'll also leave highlighting
                 // in the state we found it in.
                 if (cmd.getChecked()) {
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
-                    
+
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
                 } else {
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.showHighlight).toHaveBeenCalled();
-                    
+
                     CommandsManagerModule.execute(CommandsModule.FILE_LIVE_HIGHLIGHT);
                     expect(LiveDevelopmentModule.hideHighlight).toHaveBeenCalled();
                 }
             });
-            
+
             it("should not update any highlights when the cursor is in a LESS variable definition", function () {
                 testEditor.setCursorPos(0, 3);
                 expect(HighlightAgentModule.rule.calls.length).toEqual(0);
@@ -538,7 +538,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos(11, 10);
                 expect(HighlightAgentModule.rule.calls.length).toEqual(0);
             });
-               
+
             it("should redraw highlights when the cursor moves", function () {
                 testEditor.setCursorPos(1, 0);  // before .navbar-collapse on line 1
                 expect(HighlightAgentModule.rule).toHaveBeenCalled();
@@ -573,7 +573,7 @@ define(function (require, exports, module) {
         });
 
         describe("Highlighting elements in browser from cursor positions in HTML page", function () {
-            
+
             var testDocument,
                 testEditor,
                 testHTMLDoc,
@@ -584,7 +584,7 @@ define(function (require, exports, module) {
                 elementIds = {},
                 testPath = SpecRunnerUtils.getTestPath("/spec/HTMLInstrumentation-test-files"),
                 WellFormedFileEntry = FileSystem.getFileForPath(testPath + "/wellformed.html");
-          
+
             function init(fileEntry) {
                 if (fileEntry) {
                     runs(function () {
@@ -593,72 +593,72 @@ define(function (require, exports, module) {
                                 fileContent = text;
                             });
                     });
-                    
+
                     waitsFor(function () { return (fileContent !== null); }, "Load fileContent", 1000);
                 }
             }
-        
+
             function createIdToTagMap(html) {
                 var elementIdRegEx = /<(\w+?)\s+(?:[^<]*?\s)*?data-brackets-id='(\S+?)'/gi,
                     match,
                     tagID,
                     tagName;
-                
+
                 elementIds = {};
                 do {
                     match = elementIdRegEx.exec(html);
                     if (match) {
                         tagID = match[2];
                         tagName = match[1];
-                        
+
                         // Verify that the newly found ID is unique.
                         expect(elementIds[tagID]).toBeUndefined();
-                        
+
                         elementIds[tagID] = tagName.toLowerCase();
                     }
                 } while (match);
             }
-            
+
             function verifyTagWithId(line, ch, tag) {
                 testEditor.setCursorPos(line, ch);
                 var id = HighlightAgentModule.domElement.mostRecentCall.args[0];
                 expect(elementIds[id]).toEqual(tag);
             }
-            
+
             beforeEach(function () {
                 if (!fileContent) {
                     init(WellFormedFileEntry);
                 }
-                
+
                 runs(function () {
                     // save original configs
                     liveDevelopmentConfig = LiveDevelopmentModule.config;
                     inspectorConfig = InspectorModule.config;
-                    
+
                     // force init
                     LiveDevelopmentModule.config = InspectorModule.config = {highlight: true};
                     HighlightAgentModule.load();
-                    
+
                     // module spies -- used to mock actual API calls so that we can test those
                     // APIs without having to actually launch the browser.
                     spyOn(HighlightAgentModule, "hide").andCallFake(function () {});
                     spyOn(HighlightAgentModule, "domElement").andCallFake(function () {});
-                    
+
                     var mock = SpecRunnerUtils.createMockEditor(fileContent, "html");
                     testDocument = mock.doc;
                     testEditor = mock.editor;
-                    
+
                     instrumentedHtml = HTMLInstrumentationModule.generateInstrumentedHTML(testEditor);
                     createIdToTagMap(instrumentedHtml);
                     testHTMLDoc = new HTMLDocumentModule(testDocument, testEditor);
                     testHTMLDoc.setInstrumentationEnabled(true);
                 });
             });
-            
+
             afterEach(function () {
                 LiveDevelopmentModule.config = liveDevelopmentConfig;
                 InspectorModule.config = inspectorConfig;
-                
+
                 SpecRunnerUtils.destroyMockEditor(testDocument);
                 testDocument = null;
                 testEditor = null;
@@ -666,60 +666,60 @@ define(function (require, exports, module) {
                 instrumentedHtml = "";
                 elementIds = {};
             });
-            
+
             it("should highlight the image for cursor positions inside img tag.", function () {
                 verifyTagWithId(37, 4, "img");  // before <img
                 verifyTagWithId(37, 95, "img"); // after />
                 verifyTagWithId(37, 65, "img"); // inside src attribute value
-    
+
             });
-    
+
             it("should highlight the parent link element for cursor positions between 'img' and its parent 'a' tag.", function () {
                 verifyTagWithId(37, 1, "a");  // before "   <img"
                 verifyTagWithId(38, 0, "a");  // before </a>
             });
-    
+
             it("No highlight when the cursor position is outside of the 'html' tag", function () {
                 var count = HighlightAgentModule.hide.callCount;
-                
+
                 testEditor.setCursorPos(0, 5);  // inside 'doctype' tag
                 expect(HighlightAgentModule.hide).toHaveBeenCalled();
                 expect(HighlightAgentModule.hide.callCount).toBe(count + 1);
                 expect(HighlightAgentModule.domElement).not.toHaveBeenCalled();
-    
+
                 testEditor.setCursorPos(147, 5);  // after </html>
                 expect(HighlightAgentModule.hide.callCount).toBe(count + 2);
                 expect(HighlightAgentModule.domElement).not.toHaveBeenCalled();
             });
-    
+
             it("Should highlight the entire body for all cursor positions inside an html comment", function () {
                 verifyTagWithId(15, 1, "body");  // cursor between < and ! in the comment start
                 verifyTagWithId(16, 15, "body");
                 verifyTagWithId(17, 3, "body");  // cursor after -->
             });
-    
+
             it("should highlight 'meta/link' tag for cursor positions in meta/link tags, not 'head' tag", function () {
                 verifyTagWithId(5, 60, "meta");
                 verifyTagWithId(8, 12, "link");
             });
-    
+
             it("Should highlight 'title' tag at cursor positions (either in the content or begin/end tag)", function () {
                 verifyTagWithId(6, 11, "title");  // inside the begin tag
                 verifyTagWithId(6, 30, "title");  // in the content
                 verifyTagWithId(6, 50, "title");  // inside the end tag
             });
-    
+
             it("Should get 'h2' tag at cursor positions (either in the content or begin or end tag)", function () {
                 verifyTagWithId(13, 1, "h2");  // inside the begin tag
                 verifyTagWithId(13, 20, "h2"); // in the content
                 verifyTagWithId(13, 27, "h2"); // inside the end tag
             });
         });
-    
+
     });
 
     describe("Live Development", function () {
-        
+
         this.category = "livepreview";
 
         beforeFirst(function () {
@@ -756,32 +756,32 @@ define(function (require, exports, module) {
 
             SpecRunnerUtils.removeTempDirectory();
         });
-        
+
         beforeEach(function () {
             // verify live dev isn't currently active
             expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
-        
+
             // copy files to temp directory
             runs(function () {
                 waitsForDone(SpecRunnerUtils.copyPath(testPath, tempDir), "copy temp files");
             });
-            
+
             // open project
             runs(function () {
                 SpecRunnerUtils.loadProjectInTestWindow(tempDir);
             });
         });
-        
+
         afterEach(function () {
             runs(function () {
                 waitsForDone(LiveDevelopment.close(), "Waiting for browser to become inactive", 10000);
             });
-            
+
             testWindow.closeAllFiles();
         });
 
         describe("CSS Editing", function () {
-            
+
             it("should establish a browser connection for an opened html file", function () {
                 //open a file
                 runs(function () {
@@ -792,12 +792,12 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
-                    
+
                     var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/simple1.html");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
             });
-            
+
             it("should establish a browser connection for an opened xhtml file", function () {
                 //open a file
                 runs(function () {
@@ -808,42 +808,42 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_ACTIVE);
-                    
+
                     var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/test.xhtml");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
             });
-            
+
             it("should should not start a browser connection for an opened css file", function () {
                 //open a file
                 runs(function () {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles simple1.css", 1000);
                 });
-                
+
                 //start live dev
                 runs(function () {
                     waitsForFail(LiveDevelopment.open(), "LiveDevelopment.open()", 10000);
                 });
- 
+
                 runs(function () {
                     // close the error dialog
                     Dialogs.cancelModalDialogIfOpen(DefaultDialogs.DIALOG_ID_ERROR);
-                    
+
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_INACTIVE);
 
                     var doc = DocumentManager.getOpenDocumentForPath(tempDir + "/simple1.css");
                     expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeFalsy();
                 });
             });
-            
+
             it("should push changes through the browser connection", function () {
                 doOneTest("simple1.html", "simple1.css");
             });
-            
+
             it("should ignore query strings in linked CSS file hrefs", function () {
                 doOneTest("simple1Query.html", "simple1.css");
             });
-            
+
             it("should push changes after loading an iframe", function () {
                 doOneTest("simple1iframe.html", "simple1.css");
             });
@@ -851,11 +851,11 @@ define(function (require, exports, module) {
             it("should push in memory css changes made before the session starts", function () {
                 var localText,
                     browserText;
-                
+
                 runs(function () {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles simple1.css", 1000);
                 });
-                
+
                 runs(function () {
                     var curDoc =  DocumentManager.getCurrentDocument();
                     localText = curDoc.getText();
@@ -865,13 +865,13 @@ define(function (require, exports, module) {
                     // Document should not be marked dirty
                     expect(LiveDevelopment.status).not.toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
                 });
-                
+
                 runs(function () {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles simple1.html", 1000);
                 });
-                
+
                 openLiveDevelopmentAndWait();
-                
+
                 var liveDoc, doneSyncing = false;
                 waitForLiveDoc(tempDir + "/simple1.css", function (doc) { liveDoc = doc; });
 
@@ -883,7 +883,7 @@ define(function (require, exports, module) {
                     });
                 });
                 waitsFor(function () { return doneSyncing; }, "Browser to sync changes", 10000);
-                
+
                 runs(function () {
                     expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
                 });
@@ -896,28 +896,28 @@ define(function (require, exports, module) {
                     updatedHtmlText,
                     htmlDoc,
                     loadEventPromise;
-                
+
                 runs(function () {
                     spyOn(Inspector.Page, "reload").andCallThrough();
                     enableAgent(LiveDevelopment, "dom");
 
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles simple1.css", 1000);
                 });
-                
+
                 runs(function () {
                     var curDoc =  DocumentManager.getCurrentDocument();
                     localCssText = curDoc.getText();
                     localCssText += "\n .testClass { background-color:#090; }\n";
                     curDoc.setText(localCssText);
-                    
+
                     // Document should not be marked dirty
                     expect(LiveDevelopment.status).not.toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
                 });
-                
+
                 runs(function () {
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles simple1.html", 1000);
                 });
-                
+
                 // Modify some text in test file before starting live dev
                 runs(function () {
                     htmlDoc =  DocumentManager.getCurrentDocument();
@@ -925,31 +925,31 @@ define(function (require, exports, module) {
                     updatedHtmlText = origHtmlText.replace("Brackets is", "Live Preview in Brackets is");
                     htmlDoc.setText(updatedHtmlText);
                 });
-                                
+
                 openLiveDevelopmentAndWait();
-                
+
                 waitsFor(function () {
                     return (LiveDevelopment.status === LiveDevelopment.STATUS_OUT_OF_SYNC ||
                             LiveDevelopment.status === LiveDevelopment.STATUS_ACTIVE) &&
                             (DOMAgent.root);
                 }, "LiveDevelopment STATUS_OUT_OF_SYNC or STATUS_ACTIVE and DOMAgent.root", 10000);
-                
+
                 // Grab the node that we've just modified in Brackets.
                 // Verify that we get the modified text in memory and not the original text on disk.
                 var originalNode;
                 runs(function () {
                     originalNode = DOMAgent.nodeAtLocation(501);
                     expect(originalNode.value).toBe("Live Preview in Brackets is awesome!");
-                    
+
                     loadEventPromise = saveAndWaitForLoadEvent(htmlDoc);
                 });
-                
+
                 runs(function () {
                     // Browser should not reload for live HTML docs
                     waitsForFail(loadEventPromise, "loadEventFired", 3000);
                 });
-                
-                // Grab the node that we've modified in Brackets. 
+
+                // Grab the node that we've modified in Brackets.
                 var liveDoc, updatedNode, doneSyncing = false;
                 waitForLiveDoc(tempDir + "/simple1.css", function (doc) { liveDoc = doc; });
 
@@ -957,7 +957,7 @@ define(function (require, exports, module) {
                     // Inpsector.Page.reload should not be called when saving an HTML file
                     expect(Inspector.Page.reload).not.toHaveBeenCalled();
                     updatedNode = DOMAgent.nodeAtLocation(501);
-                    
+
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserCssText = text;
                         doneSyncing = true;
@@ -967,7 +967,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(fixSpaces(browserCssText)).toBe(fixSpaces(localCssText));
-                    
+
                     // Verify that we still have modified text
                     expect(updatedNode.value).toBe("Live Preview in Brackets is awesome!");
                 });
@@ -977,7 +977,7 @@ define(function (require, exports, module) {
                 doOneTest("simple1iframe.html", "iframe.css");
             });
         });
-        
+
         describe("HTML Editing", function () {
 
             function _openSimpleHTML() {
@@ -1007,7 +1007,7 @@ define(function (require, exports, module) {
                     var syncErrorDOM    = testWindow.$(".live-preview-sync-error"),
                         lineNumStr      = $(syncErrorDOM).find(".CodeMirror-linenumber").text(),
                         lineNum         = (typeof lineNumStr === "string") ? parseInt(lineNumStr, 10) : -1;
-                    
+
                     if (expectedStatus === LiveDevelopmentModule.STATUS_SYNC_ERROR) {
                         expect(syncErrorDOM.length).toEqual(1);
                         expect(lineNum).toEqual(errorLineNum);
@@ -1066,17 +1066,17 @@ define(function (require, exports, module) {
                     expect(edit.content).toEqual("Live Preview in Brackets is awesome!");
                 });
             });
-            
+
             it("should not reparse page on save (#5279)", function () {
                 var doc, saveDeferred = new $.Deferred();
-                
+
                 _openSimpleHTML();
-                
+
                 runs(function () {
                     // Make an edit.
                     doc = DocumentManager.getCurrentDocument();
                     doc.replaceRange("Live Preview in ", {line: 11, ch: 33});
-                    
+
                     // Document should not be marked dirty
                     expect(LiveDevelopment.status).not.toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
 
@@ -1089,7 +1089,7 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.FILE_SAVE, { doc: doc });
                     waitsForDone(saveDeferred.promise(), "file finished saving");
                 });
-                
+
                 runs(function () {
                     expect(testWindow.brackets.test.HTMLInstrumentation.scanDocument.callCount).toBe(0);
                 });
@@ -1097,64 +1097,64 @@ define(function (require, exports, module) {
 
         });
 
-        
+
         describe("JS Editing", function () {
-            
+
             it("should reload the page when editing a non-live document", function () {
                 var promise,
                     jsdoc,
                     loadEventPromise;
-                
+
                 runs(function () {
                     // Setup reload spy
                     spyOn(Inspector.Page, "reload").andCallThrough();
-                    
+
                     promise = SpecRunnerUtils.openProjectFiles(["simple1.html"]);
                     waitsForDone(promise, "SpecRunnerUtils.openProjectFiles simple1.html", 1000);
                 });
 
                 openLiveDevelopmentAndWait();
-                
+
                 runs(function () {
                     promise = SpecRunnerUtils.openProjectFiles(["simple1.js"]);
                     promise.done(function (openDocs) {
                         jsdoc = openDocs["simple1.js"];
                     });
-                    
+
                     waitsForDone(promise, "SpecRunnerUtils.openProjectFiles simple1.js", 1000);
                 });
 
                 runs(function () {
                     // Edit a JavaScript doc
                     jsdoc.setText("window.onload = function () {document.getElementById('testId').style.backgroundColor = '#090'}");
-                    
+
                     // Make sure the live development dirty dot shows
                     expect(LiveDevelopment.status).toBe(LiveDevelopment.STATUS_OUT_OF_SYNC);
 
                     // Save changes to the test file
                     loadEventPromise = saveAndWaitForLoadEvent(jsdoc);
                 });
-                
+
                 runs(function () {
                     // Browser should reload when saving non-live files like JavaScript
                     waitsForDone(loadEventPromise, "loadEventFired", 3000);
                 });
-                
+
                 runs(function () {
                     expect(Inspector.Page.reload.callCount).toEqual(1);
-                    
+
                     // Edit the file again
                     jsdoc.setText("window.onload = function () {document.body.style.backgroundColor = '#090'}");
-                    
+
                     // Save changes to the test file...again
                     loadEventPromise = saveAndWaitForLoadEvent(jsdoc);
                 });
-                
+
                 runs(function () {
                     // Browser should reload again
                     waitsForDone(loadEventPromise, "loadEventFired", 3000);
                 });
-                
+
                 runs(function () {
                     expect(Inspector.Page.reload.callCount).toEqual(2);
                 });
@@ -1225,7 +1225,7 @@ define(function (require, exports, module) {
 
         });
     });
-    
+
     describe("Default HTML Document", function () {
 
         this.category = "livepreview";
@@ -1246,7 +1246,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         afterLast(function () {
             brackets         = null;
             LiveDevelopment  = null;
@@ -1268,23 +1268,23 @@ define(function (require, exports, module) {
                 var promise,
                     document,
                     indexFile = "sub/sub2/index.html";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-1");
-                
+
                 runs(function () {
                     waitsForDone(SpecRunnerUtils.openProjectFiles([indexFile]), "SpecRunnerUtils.openProjectFiles " + indexFile);
                 });
-                
+
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
-                
+
                     promise.done(function (doc) {
                         document = doc;
                     });
 
                     waitsForDone(promise);
                 });
-                
+
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/static-project-1/" + indexFile);
                 });
@@ -1295,20 +1295,20 @@ define(function (require, exports, module) {
                     document,
                     cssFile = "sub/sub2/test.css",
                     indexFile = "sub/sub2/index.html";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-1");
                 loadFile(cssFile);
-                
+
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
-                
+
                     promise.done(function (doc) {
                         document = doc;
                     });
-                    
+
                     waitsForDone(promise);
                 });
-                
+
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/static-project-1/" + indexFile);
                 });
@@ -1319,21 +1319,21 @@ define(function (require, exports, module) {
                     document;
                 var cssFile = "sub/sub2/test.css",
                     indexFile = "sub/index.html";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-2");
-                
+
                 loadFile(cssFile);
 
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
-                
+
                     promise.done(function (doc) {
                         document = doc;
                     });
-                    
+
                     waitsForDone(promise);
                 });
-                
+
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/static-project-2/" + indexFile);
                 });
@@ -1344,20 +1344,20 @@ define(function (require, exports, module) {
                     document;
                 var cssFile = "sub/sub2/test.css",
                     indexFile = "index.html";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-3");
                 loadFile(cssFile);
-                
+
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
-                
+
                     promise.done(function (doc) {
                         document = doc;
                     });
-                    
+
                     waitsForDone(promise);
                 });
-                
+
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/static-project-3/" + indexFile);
                 });
@@ -1368,20 +1368,20 @@ define(function (require, exports, module) {
                     document;
                 var cssFile = "sub/sub2/test.css",
                     indexFile = "sub/sub2/index.html";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-4");
                 loadFile(cssFile);
-                
+
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
-                
+
                     promise.done(function (doc) {
                         document = doc;
                     });
-                    
+
                     waitsForDone(promise);
                 });
-                
+
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/static-project-4/" + indexFile);
                 });
@@ -1392,43 +1392,43 @@ define(function (require, exports, module) {
                     document;
                 var cssFile = "sub/test.css",
                     indexFile = "sub/index.html";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-5");
                 loadFile(cssFile);
-                
+
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
-                
+
                     promise.done(function (doc) {
                         document = doc;
                     });
-                    
+
                     waitsForDone(promise);
                 });
-                
+
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/static-project-5/" + indexFile);
                 });
             });
-            
+
             it("should not find any HTML page", function () {
                 var promise,
                     document;
                 var cssFile = "top2/test.css";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/static-project-6");
                 loadFile(cssFile);
-                
+
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
-                
+
                     promise.done(function (doc) {
                         document = doc;
                     });
-                    
+
                     waitsForDone(promise);
                 });
-                
+
                 runs(function () {
                     expect(document).toBe(null);
                 });
@@ -1441,23 +1441,23 @@ define(function (require, exports, module) {
                 var promise,
                     document,
                     indexFile = "sub/sub2/index.php";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-1");
 
                 runs(function () {
                     waitsForDone(SpecRunnerUtils.openProjectFiles([indexFile]), "SpecRunnerUtils.openProjectFiles " + indexFile);
                 });
-                
+
                 runs(function () {
                     promise = LiveDevelopment._getInitialDocFromCurrent();
-                
+
                     promise.done(function (doc) {
                         document = doc;
                     });
 
                     waitsForDone(promise);
                 });
-                
+
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/dynamic-project-1/" + indexFile);
                 });
@@ -1468,21 +1468,21 @@ define(function (require, exports, module) {
                     document,
                     cssFile = "sub/sub2/test.css",
                     indexFile = "sub/sub2/index.php";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-1");
                 loadFile(cssFile);
-                
+
                 runs(function () {
                     ProjectManager.setBaseUrl("http://localhost:1111/");
                     promise = LiveDevelopment._getInitialDocFromCurrent();
-                
+
                     promise.done(function (doc) {
                         document = doc;
                     });
-                    
+
                     waitsForDone(promise);
                 });
-                
+
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/dynamic-project-1/" + indexFile);
                 });
@@ -1493,21 +1493,21 @@ define(function (require, exports, module) {
                     document,
                     cssFile = "sub/sub2/test.css",
                     indexFile = "sub/index.php";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-2");
                 loadFile(cssFile);
-                
+
                 runs(function () {
                     ProjectManager.setBaseUrl("http://localhost:2222/");
                     promise = LiveDevelopment._getInitialDocFromCurrent();
-                
+
                     promise.done(function (doc) {
                         document = doc;
                     });
-                    
+
                     waitsForDone(promise);
                 });
-                
+
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/dynamic-project-2/" + indexFile);
                 });
@@ -1518,46 +1518,46 @@ define(function (require, exports, module) {
                     document,
                     cssFile = "sub/sub2/test.css",
                     indexFile = "index.php";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-3");
                 loadFile(cssFile);
 
                 runs(function () {
                     ProjectManager.setBaseUrl("http://localhost:3333/");
                     promise = LiveDevelopment._getInitialDocFromCurrent();
-                
+
                     promise.done(function (doc) {
                         document = doc;
                     });
-                    
+
                     waitsForDone(promise);
                 });
-                
+
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/dynamic-project-3/" + indexFile);
                 });
             });
-            
+
             it("should find the HTML page in the same directory", function () {
                 var promise,
                     document;
                 var cssFile = "sub/test.css",
                     indexFile = "sub/index.php";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-5");
                 loadFile(cssFile);
-                
+
                 runs(function () {
                     ProjectManager.setBaseUrl("http://localhost:5555/");
                     promise = LiveDevelopment._getInitialDocFromCurrent();
-                
+
                     promise.done(function (doc) {
                         document = doc;
                     });
-                    
+
                     waitsForDone(promise);
                 });
-                
+
                 runs(function () {
                     expect(document.file.fullPath).toBe(testPath + "/dynamic-project-5/" + indexFile);
                 });
@@ -1567,10 +1567,10 @@ define(function (require, exports, module) {
                 var promise,
                     document;
                 var cssFile = "top2/test.css";
-                
+
                 SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dynamic-project-6");
                 loadFile(cssFile);
-                
+
                 runs(function () {
                     ProjectManager.setBaseUrl("http://localhost:6666/");
                     promise = LiveDevelopment._getInitialDocFromCurrent();

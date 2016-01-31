@@ -1,30 +1,30 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*
  * N.B.: This file was copied from `lib/registry_utils.js` in `https://github.com/adobe/brackets-registry`.
  * We can't use the exact same file currently because Brackets uses AMD-style modules, so this version has
- * the AMD wrapper added (and is reindented to avoid JSLint complaints).. If changes are made here, the 
+ * the AMD wrapper added (and is reindented to avoid JSLint complaints).. If changes are made here, the
  * version in the registry app should be kept in sync.
  * In the future, we should have a better mechanism for sharing code between the two.
  */
@@ -34,7 +34,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     // From Brackets StringUtils
     function htmlEscape(str) {
         return String(str)
@@ -44,7 +44,7 @@ define(function (require, exports, module) {
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;");
     }
-    
+
     /**
      * Gets the last version from the given object and returns the short form of its date.
      * Assumes "this" is the current template context.
@@ -65,7 +65,7 @@ define(function (require, exports, module) {
         }
         return result || "";
     };
-    
+
     /**
      * Returns a more friendly display form of the owner's internal user id.
      * Assumes "this" is the current template context.
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
         }
         return friendlyName;
     };
-    
+
     /**
      * Given a registry item, returns a URL that represents its owner's page on the auth service.
      * Currently only handles GitHub.
@@ -128,12 +128,12 @@ define(function (require, exports, module) {
             if (entry.versions) {
                 return new Date(entry.versions[entry.versions.length - 1].published).getTime();
             }
-            
+
             return Number.NEGATIVE_INFINITY;
         }
-        
+
         var sortedEntries = [];
-    
+
         // Sort the registry by last published date (newest first).
         Object.keys(registry).forEach(function (key) {
             sortedEntries.push(registry[key]);
@@ -142,7 +142,7 @@ define(function (require, exports, module) {
             return getPublishTime((subkey && entry2[subkey]) || entry2) -
                 getPublishTime((subkey && entry1[subkey]) || entry1);
         });
-        
+
         return sortedEntries;
     };
 });

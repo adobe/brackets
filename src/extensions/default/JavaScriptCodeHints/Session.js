@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
@@ -28,6 +28,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var StringMatch     = brackets.getModule("utils/StringMatch"),
+        TokenUtils      = brackets.getModule("utils/TokenUtils"),
         LanguageManager = brackets.getModule("language/LanguageManager"),
         HTMLUtils       = brackets.getModule("language/HTMLUtils"),
         HintUtils       = require("HintUtils"),
@@ -68,7 +69,7 @@ define(function (require, exports, module) {
 
     /**
      * Get the name of the file associated with the current session
-     * 
+     *
      * @return {string} - the full pathname of the file associated with the
      *      current session
      */
@@ -88,14 +89,14 @@ define(function (require, exports, module) {
     /**
      * Get the text of a line.
      *
-     * @param {number} line - the line number     
+     * @param {number} line - the line number
      * @return {string} - the text of the line
      */
     Session.prototype.getLine = function (line) {
         var doc = this.editor.document;
         return doc.getLine(line);
     };
-    
+
     /**
      * Get the offset of the current cursor position
      *
@@ -104,10 +105,10 @@ define(function (require, exports, module) {
      */
     Session.prototype.getOffset = function () {
         var cursor = this.getCursor();
-        
+
         return this.getOffsetFromCursor(cursor);
     };
-    
+
     /**
      * Get the offset of a cursor position
      *
@@ -121,7 +122,7 @@ define(function (require, exports, module) {
     /**
      * Get the token at the given cursor position, or at the current cursor
      * if none is given.
-     * 
+     *
      * @param {?{line: number, ch: number}} cursor - the cursor position
      *      at which to retrieve a token
      * @return {Object} - the CodeMirror token at the given cursor position
@@ -130,9 +131,9 @@ define(function (require, exports, module) {
         var cm = this.editor._codeMirror;
 
         if (cursor) {
-            return cm.getTokenAt(cursor);
+            return TokenUtils.getTokenAt(cm, cursor);
         } else {
-            return cm.getTokenAt(this.getCursor());
+            return TokenUtils.getTokenAt(cm, this.getCursor());
         }
     };
 
@@ -155,7 +156,7 @@ define(function (require, exports, module) {
 
     /**
      * Get the next cursor position on the line, or null if there isn't one.
-     * 
+     *
      * @return {?{line: number, ch: number}} - the cursor position
      *      immediately following the current cursor position, or null if
      *      none exists.
@@ -173,10 +174,10 @@ define(function (require, exports, module) {
             return null;
         }
     };
-    
+
     /**
      * Get the token before the one at the given cursor position
-     * 
+     *
      * @param {{line: number, ch: number}} cursor - cursor position after
      *      which a token should be retrieved
      * @return {Object} - the CodeMirror token before the one at the given
@@ -200,16 +201,16 @@ define(function (require, exports, module) {
             }
             prev = this.getToken(cursor);
         } while (!/\S/.test(prev.string));
-        
+
         return prev;
     };
 
     /**
      * Get the token after the one at the given cursor position
-     * 
+     *
      * @param {{line: number, ch: number}} cursor - cursor position after
      *      which a token should be retrieved
-     * @param {boolean} skipWhitespace - true if this should skip over whitespace tokens 
+     * @param {boolean} skipWhitespace - true if this should skip over whitespace tokens
      * @return {Object} - the CodeMirror token after the one at the given
      *      cursor position
      */
@@ -232,15 +233,15 @@ define(function (require, exports, module) {
             }
             next = this.getToken(cursor);
         } while (skipWhitespace && !/\S/.test(next.string));
-        
+
         return next;
     };
-    
+
     /**
      * Calculate a query string relative to the current cursor position
      * and token. E.g., from a state "identi<cursor>er", the query string is
      * "identi".
-     * 
+     *
      * @return {string} - the query string for the current cursor position
      */
     Session.prototype.getQuery = function () {
@@ -267,9 +268,9 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Find the context of a property lookup. For example, for a lookup 
+     * Find the context of a property lookup. For example, for a lookup
      * foo(bar, baz(quux)).prop, foo is the context.
-     * 
+     *
      * @param {{line: number, ch: number}} cursor - the cursor position
      *      at which context information is to be retrieved
      * @param {number=} depth - the current depth of the parenthesis stack, or
@@ -306,7 +307,7 @@ define(function (require, exports, module) {
     Session.prototype.findPreviousDot = function () {
         var cursor = this.getCursor(),
             token = this.getToken(cursor);
-        
+
         // If the cursor is right after the dot, then the current token will be "."
         if (token && token.string === ".") {
             return cursor;
@@ -451,8 +452,8 @@ define(function (require, exports, module) {
     /**
      * Get the type of the current session, i.e., whether it is a property
      * lookup and, if so, what the context of the lookup is.
-     * 
-     * @return {{property: boolean, 
+     *
+     * @return {{property: boolean,
                  context: string} - an Object consisting
      *      of a {boolean} "property" that indicates whether or not the type of
      *      the session is a property lookup, and a {string} "context" that
@@ -481,13 +482,13 @@ define(function (require, exports, module) {
                 context = this.getContext(cursor);
             }
         }
-        
+
         return {
             property: propertyLookup,
             context: context
         };
     };
-    
+
     // Comparison function used for sorting that does a case-insensitive string
     // comparison on the "value" field of both objects. Unlike a normal string
     // comparison, however, this sorts leading "_" to the bottom, given that a
@@ -508,10 +509,10 @@ define(function (require, exports, module) {
         }
         return 0;
     }
-    
+
     /**
      * Get a list of hints for the current session using the current scope
-     * information. 
+     * information.
      *
      * @param {string} query - the query prefix
      * @param {StringMatcher} matcher - the class to find query matches and sort the results
@@ -570,6 +571,14 @@ define(function (require, exports, module) {
                         searchResult.depth = hint.depth;
                     }
 
+                    if (hint.doc) {
+                        searchResult.doc = hint.doc;
+                    }
+
+                    if (hint.url) {
+                        searchResult.url = hint.url;
+                    }
+
                     if (!type.property && !type.showFunctionType && hint.origin &&
                             isBuiltin(hint.origin)) {
                         searchResult.builtin = 1;
@@ -612,7 +621,7 @@ define(function (require, exports, module) {
 
         return {hints: hints, needGuesses: needGuesses};
     };
-    
+
     Session.prototype.setTernHints = function (newHints) {
         this.ternHints = newHints;
     };
@@ -751,11 +760,11 @@ define(function (require, exports, module) {
             var text = "",
                 editor = this.editor,
                 scriptBlocks = HTMLUtils.findBlocks(editor, "javascript");
-            
+
             // Add all the javascript text
             // For non-javascript blocks we replace everything except for newlines
             // with whitespace.  This is so that the offset and cursor positions
-            // we get from the document still work.  
+            // we get from the document still work.
             // Alternatively we could strip the non-javascript text, and modify the offset,
             // and/or cursor, but then we have to remember how to reverse the translation
             // to support jump-to-definition
@@ -763,7 +772,7 @@ define(function (require, exports, module) {
             scriptBlocks.forEach(function (scriptBlock) {
                 var start = scriptBlock.start,
                     end = scriptBlock.end;
-                
+
                 // get the preceding html text, and replace it with whitespace
                 var htmlText = editor.document.getRange(htmlStart, start);
                 htmlText = htmlText.replace(/./g, " ");
@@ -771,29 +780,29 @@ define(function (require, exports, module) {
                 htmlStart = end;
                 text += htmlText + scriptBlock.text;
             });
-            
+
             return text;
         } else {
             // Javascript file, just return the text
             return this.editor.document.getText();
         }
     };
-    
+
     /**
      * Determine if the cursor is located in the name of a function declaration.
      * This is so we can suppress hints when in a function name, as we do for variable and
      * parameter declarations, but we can tell those from the token itself rather than having
      * to look at previous tokens.
-     * 
+     *
      * @return {boolean} - true if the current cursor position is in the name of a function
      * declaration.
      */
     Session.prototype.isFunctionName = function () {
         var cursor = this.getCursor(),
             prevToken = this._getPreviousToken(cursor);
-        
+
         return prevToken.string === "function";
     };
-    
+
     module.exports = Session;
 });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -398,7 +398,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if (this.props.entry.get("selected")) {
+            if (this.props.entry.get("selected") && !e.ctrlKey) {
                 if (this.state.clickTimer === null && !this.props.entry.get("rename")) {
                     var timer = window.setTimeout(this.startRename, CLICK_RENAME_MINIMUM);
                     this.setState({
@@ -843,7 +843,7 @@ define(function (require, exports, module) {
             });
         }
     }));
-    
+
     /**
      * On Windows and Linux, the selection bar in the tree does not extend over the scroll bar.
      * The selectionExtension sits on top of the scroll bar to make the selection bar appear to span the
@@ -985,7 +985,7 @@ define(function (require, exports, module) {
                     forceRender: this.props.forceRender,
                     platform: this.props.platform
                 });
-            
+
             return DOM.div(
                 null,
                 selectionBackground,

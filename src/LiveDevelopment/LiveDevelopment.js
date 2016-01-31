@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
@@ -105,13 +105,13 @@ define(function LiveDevelopment(require, exports, module) {
         CSSPreprocessorDocument = require("LiveDevelopment/Documents/CSSPreprocessorDocument"),
         HTMLDocument    = require("LiveDevelopment/Documents/HTMLDocument"),
         JSDocument      = require("LiveDevelopment/Documents/JSDocument");
-    
+
     // Document errors
     var SYNC_ERROR_CLASS = "live-preview-sync-error";
 
     // Agents
     var CSSAgent = require("LiveDevelopment/Agents/CSSAgent");
-    
+
     var agents = {
         "console"   : require("LiveDevelopment/Agents/ConsoleAgent"),
         "remote"    : require("LiveDevelopment/Agents/RemoteAgent"),
@@ -163,19 +163,19 @@ define(function LiveDevelopment(require, exports, module) {
      * @type {HTMLDocument}
      */
     var _liveDocument;
-    
+
     /**
      * Related Live Documents
      * @type {Object.<string: (HTMLDocument|CSSDocument)>}
      */
     var _relatedDocuments = {};
-    
+
     /**
      * Promise returned for each call to open()
      * @type {jQuery.Deferred}
      */
     var _openDeferred;
-    
+
     /**
      * Promise returned for each call to close()
      * @type {jQuery.Deferred}
@@ -184,13 +184,13 @@ define(function LiveDevelopment(require, exports, module) {
 
     // Disallow re-entrancy of loadAgents()
     var _loadAgentsPromise;
-    
+
     /**
      * Current live preview server
      * @type {BaseServer}
      */
     var _server;
-    
+
     /**
      * @private
      * Handles of registered servers
@@ -233,10 +233,10 @@ define(function LiveDevelopment(require, exports, module) {
         if (!_server) {
             return undefined;
         }
-        
+
         return _server.get(path);
     }
-    
+
     function getLiveDocForEditor(editor) {
         if (!editor) {
             return null;
@@ -251,22 +251,22 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _doClearErrors(liveDocument) {
         var lineHandle;
-        
+
         if (!liveDocument.editor ||
                 !liveDocument._errorLineHandles ||
                 !liveDocument._errorLineHandles.length) {
             return;
         }
-        
+
         liveDocument.editor._codeMirror.operation(function () {
             while (true) {
                 // Iterate over all lines that were previously marked with an error
                 lineHandle = liveDocument._errorLineHandles.pop();
-                
+
                 if (!lineHandle) {
                     break;
                 }
-                
+
                 liveDocument.editor._codeMirror.removeLineClass(lineHandle, "wrap", SYNC_ERROR_CLASS);
             }
         });
@@ -289,14 +289,14 @@ define(function LiveDevelopment(require, exports, module) {
     function _closeDocument(liveDocument) {
         _doClearErrors(liveDocument);
         liveDocument.close();
-        
+
         if (liveDocument.editor) {
             liveDocument.editor.off(".livedev");
         }
-        
+
         liveDocument.off(".livedev");
     }
-    
+
     /**
      * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
      * given file is no longer associated with the HTML document that is live (e.g.
@@ -306,14 +306,14 @@ define(function LiveDevelopment(require, exports, module) {
         if (_relatedDocuments[liveDoc.doc.url]) {
             delete _relatedDocuments[liveDoc.doc.url];
         }
-            
+
         if (_server) {
             _server.remove(liveDoc);
         }
-        
+
         _closeDocument(liveDoc);
     }
-    
+
     /**
      * Update the status. Triggers a statusChange event.
      * @param {number} status new status
@@ -325,19 +325,19 @@ define(function LiveDevelopment(require, exports, module) {
         if (status === exports.status) {
             return;
         }
-        
+
         exports.status = status;
-        
+
         var reason = status === STATUS_INACTIVE ? closeReason : null;
         exports.trigger("statusChange", status, reason);
     }
-    
+
     /**
      * @private
      * Event handler for live document errors. Displays error status in the editor gutter.
      * @param {$.Event} event
      * @param {HTMLDocument|CSSDocument} liveDocument
-     * @param {Array.<{token: SimpleNode, startPos: Pos, endPos: Pos}>} errors 
+     * @param {Array.<{token: SimpleNode, startPos: Pos, endPos: Pos}>} errors
      */
     function _handleLiveDocumentStatusChanged(liveDocument) {
         var startLine,
@@ -347,7 +347,7 @@ define(function LiveDevelopment(require, exports, module) {
             status = (liveDocument.errors.length) ? STATUS_SYNC_ERROR : STATUS_ACTIVE;
 
         _setStatus(status);
-        
+
         if (!liveDocument.editor) {
             return;
         }
@@ -356,13 +356,13 @@ define(function LiveDevelopment(require, exports, module) {
         liveDocument.editor._codeMirror.operation(function () {
             // Remove existing errors before marking new ones
             _doClearErrors(liveDocument);
-            
+
             liveDocument._errorLineHandles = liveDocument._errorLineHandles || [];
-    
+
             liveDocument.errors.forEach(function (error) {
                 startLine = error.startPos.line;
                 endLine = error.endPos.line;
-                
+
                 for (i = startLine; i < endLine + 1; i++) {
                     lineHandle = liveDocument.editor._codeMirror.addLineClass(i, "wrap", SYNC_ERROR_CLASS);
                     liveDocument._errorLineHandles.push(lineHandle);
@@ -380,12 +380,12 @@ define(function LiveDevelopment(require, exports, module) {
             _closeDocument(_liveDocument);
             _liveDocument = undefined;
         }
-        
+
         Object.keys(_relatedDocuments).forEach(function (url) {
             _closeDocument(_relatedDocuments[url]);
             delete _relatedDocuments[url];
         });
-        
+
         // Clear all documents from request filtering
         if (_server) {
             _server.clear();
@@ -425,7 +425,7 @@ define(function LiveDevelopment(require, exports, module) {
         _liveDocument = _createDocument(doc, doc._masterEditor);
         _server.add(_liveDocument);
     }
-    
+
     /** Enable an agent. Takes effect next time a connection is made. Does not affect
      *  current live development sessions.
      *
@@ -458,11 +458,11 @@ define(function LiveDevelopment(require, exports, module) {
 
         return doc.isDirty && !isLiveEditingEnabled;
     }
-    
+
     /** Triggered by Inspector.error */
     function _onError(event, error, msgData) {
         var message;
-        
+
         // Sometimes error.message is undefined
         if (!error.message) {
             console.warn("Expected a non-empty string in error.message, got this instead:", error.message);
@@ -485,7 +485,7 @@ define(function LiveDevelopment(require, exports, module) {
         // Show the message, but include the error object for further information (e.g. error code)
         console.error(message, error, msgData);
     }
-    
+
     function _styleSheetAdded(event, url) {
         var path = _server && _server.urlToPath(url),
             exists = !!_relatedDocuments[url];
@@ -526,7 +526,7 @@ define(function LiveDevelopment(require, exports, module) {
         });
         _loadedAgentNames = [];
     }
-    
+
     /**
      * @private
      * Invoke a no-arg method on an inspector agent
@@ -562,10 +562,10 @@ define(function LiveDevelopment(require, exports, module) {
             // load only enabled agents
             enabledAgents = _enabledAgentNames;
         }
-        
+
         return Object.keys(enabledAgents);
     }
-    
+
     /**
      * @private
      * Setup agents that need inspector domains enabled before loading
@@ -587,10 +587,10 @@ define(function LiveDevelopment(require, exports, module) {
         if (_loadAgentsPromise) {
             return _loadAgentsPromise;
         }
-        
+
         var result = new $.Deferred(),
             allAgentsPromise;
-        
+
         _loadAgentsPromise = result.promise();
 
         _setStatus(STATUS_LOADING_AGENTS);
@@ -618,7 +618,7 @@ define(function LiveDevelopment(require, exports, module) {
                 if (_docIsOutOfSync(doc)) {
                     status = STATUS_OUT_OF_SYNC;
                 }
-                
+
                 _setStatus(status);
                 result.resolve();
             } else {
@@ -627,7 +627,7 @@ define(function LiveDevelopment(require, exports, module) {
         });
 
         allAgentsPromise.fail(result.reject);
-        
+
         _loadAgentsPromise
             .fail(function () {
                 // show error loading live dev dialog
@@ -653,7 +653,7 @@ define(function LiveDevelopment(require, exports, module) {
      * available for currently opened document. We are searching for these files:
      *  - index.html
      *  - index.htm
-     * 
+     *
      * If the project is configured with a custom base url for live development, then
      * the list of possible index files is extended to contain these index files too:
      *  - index.php
@@ -670,10 +670,10 @@ define(function LiveDevelopment(require, exports, module) {
      *  - index.jspx
      *  - index.shm
      *  - index.shml
-     * 
+     *
      * If a file was found, the promise will be resolved with the full path to this file. If no file
      * was found in the whole project tree, the promise will be resolved with null.
-     * 
+     *
      * @return {jQuery.Promise} A promise that is resolved with a full path
      * to a file if one could been determined, or null if there was no suitable index
      * file.
@@ -701,19 +701,19 @@ define(function LiveDevelopment(require, exports, module) {
                 containingFolder,
                 indexFileFound = false,
                 stillInProjectTree = true;
-            
+
             if (refPath) {
                 containingFolder = FileUtils.getDirectoryPath(refPath);
             } else {
                 containingFolder = projectRoot;
             }
-            
+
             var filteredFiltered = allFiles.filter(function (item) {
                 var parent = FileUtils.getParentPath(item.fullPath);
-                
+
                 return (containingFolder.indexOf(parent) === 0);
             });
-            
+
             var filterIndexFile = function (fileInfo) {
                 if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
                     if (FileUtils.getFilenameWithoutExtension(fileInfo.name) === "index") {
@@ -751,7 +751,7 @@ define(function LiveDevelopment(require, exports, module) {
                 DocumentManager.getDocumentForPath(filteredFiltered[i].fullPath).then(result.resolve, result.resolve);
                 return;
             }
-            
+
             result.resolve(null);
         });
 
@@ -759,10 +759,10 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /**
-     * If the current editor is for a CSS preprocessor file, then add it to the style sheet 
+     * If the current editor is for a CSS preprocessor file, then add it to the style sheet
      * so that we can track cursor positions in the editor to show live preview highlighting.
-     * For normal CSS we only do highlighting from files we know for sure are referenced by the 
-     * current live preview document, but for preprocessors we just assume that any preprocessor 
+     * For normal CSS we only do highlighting from files we know for sure are referenced by the
+     * current live preview document, but for preprocessors we just assume that any preprocessor
      * file you edit is probably related to the live preview.
      *
      * @param {Event} event (unused)
@@ -774,7 +774,7 @@ define(function LiveDevelopment(require, exports, module) {
         if (previous && previous.document &&
                 CSSUtils.isCSSPreprocessorFile(previous.document.file.fullPath)) {
             var prevDocUrl = _server && _server.pathToUrl(previous.document.file.fullPath);
-            
+
             if (_relatedDocuments && _relatedDocuments[prevDocUrl]) {
                 _closeRelatedDocument(_relatedDocuments[prevDocUrl]);
             }
@@ -785,7 +785,7 @@ define(function LiveDevelopment(require, exports, module) {
             _styleSheetAdded(null, docUrl);
         }
     }
-    
+
     /**
      * @private
      * While still connected to the Inspector, do cleanup for agents,
@@ -799,7 +799,7 @@ define(function LiveDevelopment(require, exports, module) {
             connected   = Inspector.connected();
 
         EditorManager.off("activeEditorChange", onActiveEditorChange);
-        
+
         Inspector.Page.off(".livedev");
         Inspector.off(".livedev");
 
@@ -809,10 +809,10 @@ define(function LiveDevelopment(require, exports, module) {
         } else {
             unloadAgents();
         }
-        
-        // Close live documents 
+
+        // Close live documents
         _closeDocuments();
-        
+
         if (_server) {
             // Stop listening for requests when disconnected
             _server.stop();
@@ -866,7 +866,7 @@ define(function LiveDevelopment(require, exports, module) {
          * the status accordingly.
          */
         function cleanup() {
-            // Need to do this in order to trigger the corresponding CloseLiveBrowser cleanups required on 
+            // Need to do this in order to trigger the corresponding CloseLiveBrowser cleanups required on
             // the native Mac side
             var closeDeferred = (brackets.platform === "mac") ? NativeApp.closeLiveBrowser() : $.Deferred().resolve();
             closeDeferred.done(function () {
@@ -885,7 +885,7 @@ define(function LiveDevelopment(require, exports, module) {
                 _closeDeferred.resolve();
             });
         }
-        
+
         if (_isPromisePending(_openDeferred)) {
             // Reject calls to open if requests are still pending
             _openDeferred.reject();
@@ -897,7 +897,7 @@ define(function LiveDevelopment(require, exports, module) {
         } else {
             _doInspectorDisconnect(doCloseWindow).always(cleanup);
         }
-        
+
         return promise;
     }
 
@@ -965,7 +965,7 @@ define(function LiveDevelopment(require, exports, module) {
         }
 
         unloadAgents();
-        
+
         // Clear any existing related documents before we reload the agents.
         // We need to recreate them for the reloaded document due to some
         // desirable side-effects (see #7606). Eventually, we should simplify
@@ -997,12 +997,12 @@ define(function LiveDevelopment(require, exports, module) {
     function close() {
         return _close(true);
     }
-    
+
     /**
      * @private
      * Create a promise that resolves when the interstitial page has
      * finished loading.
-     * 
+     *
      * @return {jQuery.Promise} Resolves once page is loaded
      */
     function _waitForInterstitialPageLoad() {
@@ -1012,8 +1012,8 @@ define(function LiveDevelopment(require, exports, module) {
                 keepPolling = false;
                 deferred.reject();
             }, 10000); // 10 seconds
-        
-        /* 
+
+        /*
          * Asynchronously check to see if the interstitial page has
          * finished loading; if not, check again until timing out.
          */
@@ -1021,7 +1021,7 @@ define(function LiveDevelopment(require, exports, module) {
             if (keepPolling && Inspector.connected()) {
                 Inspector.Runtime.evaluate("window.isBracketsLiveDevelopmentInterstitialPageLoaded", function (response) {
                     var result = response.result;
-                    
+
                     if (result.type === "boolean" && result.value) {
                         window.clearTimeout(timer);
                         deferred.resolve();
@@ -1033,14 +1033,14 @@ define(function LiveDevelopment(require, exports, module) {
                 deferred.reject();
             }
         }
-        
+
         pollInterstitialPage();
         return deferred.promise();
     }
-        
+
     /**
      * @private
-     * Load agents and navigate to the target document once the 
+     * Load agents and navigate to the target document once the
      * interstitial page has finished loading.
      */
     function _onInterstitialPageLoad() {
@@ -1053,7 +1053,7 @@ define(function LiveDevelopment(require, exports, module) {
         var enablePromise = Inspector.Page.enable().then(function () {
             return Inspector.DOM.enable().then(_enableAgents, _enableAgents);
         });
-        
+
         enablePromise.done(function () {
             // Some agents (e.g. DOMAgent and RemoteAgent) require us to
             // navigate to the page first before loading can complete.
@@ -1085,7 +1085,7 @@ define(function LiveDevelopment(require, exports, module) {
             });
         });
     }
-    
+
     /** Triggered by Inspector.connect */
     function _onConnect(event) {
         // When the browser navigates away from the primary live document
@@ -1093,7 +1093,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         // When the Inspector WebSocket disconnects unexpectedely
         Inspector.on("disconnect.livedev", _onDisconnect);
-		
+
         _waitForInterstitialPageLoad()
             .fail(function () {
                 close();
@@ -1124,11 +1124,11 @@ define(function LiveDevelopment(require, exports, module) {
         );
         _openDeferred.reject();
     }
-    
+
     function _openInterstitialPage() {
         var browserStarted  = false,
             retryCount      = 0;
-        
+
         // Open the live browser if the connection fails, retry 3 times
         Inspector.connectToURL(launcherUrl).fail(function onConnectFail(err) {
             if (err === "CANCEL") {
@@ -1209,7 +1209,7 @@ define(function LiveDevelopment(require, exports, module) {
                         } else {
                             message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
                         }
-                        
+
                         Dialogs.showModalDialog(
                             DefaultDialogs.DIALOG_ID_ERROR,
                             Strings.ERROR_LAUNCHING_BROWSER_TITLE,
@@ -1219,7 +1219,7 @@ define(function LiveDevelopment(require, exports, module) {
                         _openDeferred.reject("OPEN_LIVE_BROWSER");
                     });
             }
-                
+
             if (exports.status !== STATUS_ERROR) {
                 window.setTimeout(function retryConnect() {
                     Inspector.connectToURL(launcherUrl).fail(onConnectFail);
@@ -1240,10 +1240,10 @@ define(function LiveDevelopment(require, exports, module) {
 
         // Install a one-time event handler when connected to the launcher page
         Inspector.one("connect", _onConnect);
-        
+
         // open browser to the interstitial page to prepare for loading agents
         _openInterstitialPage();
-        
+
         // Once all agents loaded (see _onInterstitialPageLoad()), begin Live Highlighting for preprocessor documents
         _openDeferred.done(function () {
             // Setup activeEditorChange event listener so that we can track cursor positions in
@@ -1256,11 +1256,11 @@ define(function LiveDevelopment(require, exports, module) {
             onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
         });
     }
-    
+
     function _prepareServer(doc) {
         var deferred = new $.Deferred(),
             showBaseUrlPrompt = false;
-        
+
         _server = LiveDevServerManager.getServer(doc.file.fullPath);
 
         // Optionally prompt for a base URL if no server was found but the
@@ -1295,7 +1295,7 @@ define(function LiveDevelopment(require, exports, module) {
             // No server found
             deferred.reject();
         }
-        
+
         return deferred.promise();
     }
 
@@ -1306,15 +1306,15 @@ define(function LiveDevelopment(require, exports, module) {
             root: ProjectManager.getProjectRoot().fullPath
         };
     }
-    
+
     function _createUserServer() {
         return new UserServer(getCurrentProjectServerConfig());
     }
-    
+
     function _createFileServer() {
         return new FileServer(getCurrentProjectServerConfig());
     }
-    
+
     /**
      * Open the Connection and go live
      *
@@ -1340,11 +1340,11 @@ define(function LiveDevelopment(require, exports, module) {
                 });
             }
         }
-        
+
         // Register user defined server provider and keep handlers for further clean-up
         _regServers.push(LiveDevServerManager.registerServer({ create: _createUserServer }, 99));
         _regServers.push(LiveDevServerManager.registerServer({ create: _createFileServer }, 0));
-        
+
         // TODO: need to run _onFileChanged() after load if doc != currentDocument here? Maybe not, since activeEditorChange
         // doesn't trigger it, while inline editors can still cause edits in doc other than currentDoc...
         _getInitialDocFromCurrent().done(function (doc) {
@@ -1372,11 +1372,11 @@ define(function LiveDevelopment(require, exports, module) {
 
         return _openDeferred.promise();
     }
-    
+
     /** Enable highlighting */
     function showHighlight() {
         var doc = getLiveDocForEditor(EditorManager.getActiveEditor());
-        
+
         if (doc && doc.updateHighlight) {
             doc.updateHighlight();
         }
@@ -1388,7 +1388,7 @@ define(function LiveDevelopment(require, exports, module) {
             agents.highlight.hide();
         }
     }
-    
+
     /** Redraw highlights **/
     function redrawHighlight() {
         if (Inspector.connected() && agents.highlight) {
@@ -1398,21 +1398,21 @@ define(function LiveDevelopment(require, exports, module) {
 
     /**
      * @private
-     * MainViewManager.currentFileChange event handler. 
+     * MainViewManager.currentFileChange event handler.
      */
     function _onFileChanged() {
         var doc = _getCurrentDocument();
-        
+
         if (!doc || !Inspector.connected()) {
             return;
         }
-        
+
         // close the current session and begin a new session if the current
         // document changes to an HTML document that was not loaded yet
         var docUrl = _server && _server.pathToUrl(doc.file.fullPath),
             wasRequested = agents.network && agents.network.wasURLRequested(docUrl),
             isViewable = exports.config.experimental || (_server && _server.canServe(doc.file.fullPath));
-        
+
         if (!wasRequested && isViewable) {
             // Update status
             _setStatus(STATUS_CONNECTING);
@@ -1445,19 +1445,19 @@ define(function LiveDevelopment(require, exports, module) {
         if (!Inspector.connected() || !_server) {
             return;
         }
-        
+
         var absolutePath            = doc.file.fullPath,
             liveDocument            = absolutePath && _server.get(absolutePath),
             liveEditingEnabled      = liveDocument && liveDocument.isLiveEditingEnabled  && liveDocument.isLiveEditingEnabled();
-        
+
         // Skip reload if the saved document has live editing enabled
         if (liveEditingEnabled) {
             return;
         }
-        
+
         var documentUrl     = _server.pathToUrl(absolutePath),
             wasRequested    = agents.network && agents.network.wasURLRequested(documentUrl);
-        
+
         if (wasRequested) {
             reload();
         }
@@ -1475,14 +1475,14 @@ define(function LiveDevelopment(require, exports, module) {
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
-        
+
         Inspector.on("error", _onError);
         Inspector.Inspector.on("detached", _onDetached);
 
         // Only listen for styleSheetAdded
         // We may get interim added/removed events when pushing incremental updates
         CSSAgent.on("styleSheetAdded.livedev", _styleSheetAdded);
-        
+
         MainViewManager
             .on("currentFileChange", _onFileChanged);
         DocumentManager
@@ -1503,9 +1503,9 @@ define(function LiveDevelopment(require, exports, module) {
         return _server && _server.getBaseUrl();
     }
 
-    
+
     EventDispatcher.makeEventDispatcher(exports);
-    
+
     // For unit testing
     exports.launcherUrl               = launcherUrl;
     exports._getServer                = _getServer;

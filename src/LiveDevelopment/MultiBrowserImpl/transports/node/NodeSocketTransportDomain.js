@@ -1,62 +1,62 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, node: true */
 
 (function () {
     "use strict";
-    
+
     var WebSocketServer = require("ws").Server,
         _ = require("lodash");
-    
+
     /**
      * @private
      * The WebSocket server we listen for incoming connections on.
      * @type {?WebSocketServer}
      */
     var _wsServer;
-    
+
     /**
      * @private
      * The Brackets domain manager for registering node extensions.
      * @type {?DomainManager}
      */
     var _domainManager;
-    
+
     /**
      * @private
      * The ID that should be allocated to the next client that connects to the transport.
      * @type {number}
      */
     var _nextClientId = 1;
-    
+
     /**
      * @private
      * A map of client IDs to the URL and WebSocket for the given ID.
      * @type {Object.<number, {id: number, url: string, socket: WebSocket}>}
      */
     var _clients = {};
-    
+
     // This must match the port declared in NodeSocketTransport.js.
     // TODO: randomize this?
     var SOCKET_PORT = 8123;
@@ -72,7 +72,7 @@
             return (client.socket === ws);
         });
     }
-    
+
     /**
      * @private
      * Creates the WebSocketServer and handles incoming connections.
@@ -91,7 +91,7 @@
                         console.error("nodeSocketTransport: Error parsing message: " + msg);
                         return;
                     }
-                    
+
                     // See the comment in NodeSocketTransportRemote.connect() for why we have an extra
                     // layer of transport-layer message objects surrounding the protocol messaging.
 
@@ -134,7 +134,7 @@
             });
         }
     }
-    
+
     /**
      * Initializes the socket server.
      * @param {string} url
@@ -142,7 +142,7 @@
     function _cmdStart(url) {
         _createServer();
     }
-    
+
     /**
      * Sends a transport-layer message over the socket.
      * @param {number|Array.<number>} idOrArray A client ID or array of client IDs to send the message to.
@@ -161,7 +161,7 @@
             }
         });
     }
-    
+
     /**
      * Closes the connection for a given client ID.
      * @param {number} clientId
@@ -173,7 +173,7 @@
             delete _clients[clientId];
         }
     }
-    
+
     /**
      * Initializes the domain and registers commands.
      * @param {DomainManager} domainManager The DomainManager for the server
@@ -238,7 +238,7 @@
             ]
         );
     }
-    
+
     exports.init = init;
-    
+
 }());

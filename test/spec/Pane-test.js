@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         var myPane,
             myView,
             $container = $("<div>");
-            
+
         function createMockPane(name) {
             return new Pane(name, $container);
         }
@@ -70,27 +70,31 @@ define(function (require, exports, module) {
                 },
                 notifyVisibilityChange: function (visible) {
                     this._visible = visible;
+                },
+                markPaneId: function (id) {
+                    this._paneId = id;
                 }
+
             };
         }
-        
+
         function createTestView() {
             myView = createMockView("test-view");
         }
 
-        
+
         beforeEach(function () {
             createTestPane();
             createTestView();
         });
-        
+
         afterEach(function () {
             myPane.destroy();
             myPane = null;
             myView = null;
             expect($container.contents().length).toEqual(0);
         });
-        
+
         describe("Basic Pane Attributes", function () {
             it("should have an id", function () {
                 expect(myPane.id).toEqual("test-pane");
@@ -115,9 +119,9 @@ define(function (require, exports, module) {
                 spyOn(myView, "notifyVisibilityChange").andCallThrough();
                 spyOn(myView, "getFile").andCallThrough();
                 spyOn(myView, "updateLayout");
-                
+
                 myPane.showView(myView);
-                
+
                 expect(myView.notifyVisibilityChange).toHaveBeenCalled();
                 expect(myView.updateLayout).toHaveBeenCalled();
                 expect(myView.getFile).toHaveBeenCalled();
@@ -140,10 +144,10 @@ define(function (require, exports, module) {
             });
             it("should destroy a view", function () {
                 spyOn(myView, "destroy");
-                
+
                 myPane.showView(myView);
                 myPane._reset();
-                
+
                 expect(Object.keys(myPane._views).length).toBe(0);
                 expect(myView.destroy).toHaveBeenCalled();
             });
@@ -152,25 +156,25 @@ define(function (require, exports, module) {
 
                 myPane.showView(myView);
                 expect(myPane.$el.find(".not-editor").css("display")).toEqual("none");
-                
+
                 myPane._reset();
                 expect(myPane.$el.find(".not-editor").css("display")).toBeFalsy();
             });
             it("should destroy view when new view is added", function () {
                 var secondView = createMockView("second-view");
                 spyOn(myView, "destroy");
-                
+
                 myPane.addView(secondView);
                 myPane.showView(myView);
                 myPane.showView(secondView);
-                
+
                 expect(myView.destroy).toHaveBeenCalled();
             });
             it("should remove view when file is deleted", function () {
                 spyOn(myView, "destroy");
                 myPane.showView(myView);
                 myPane._handleFileDeleted(undefined, myView.getFullPath());
-                
+
                 expect(myView.destroy).toHaveBeenCalled();
                 expect(myPane.$el.find(".not-editor").css("display")).toBeFalsy();
             });
@@ -181,37 +185,37 @@ define(function (require, exports, module) {
             it("should swap view container when pane is merged with another", function () {
                 var secondView = createMockView("second-view"),
                     secondPane = createMockPane("second-pane");
-                
+
                 spyOn(secondView, "notifyContainerChange");
                 spyOn(secondView, "destroy");
-                
+
                 myPane.addToViewList(myView.getFile());
-                
+
                 secondPane.addToViewList(secondView.getFile());
                 secondPane.addView(secondView);
-                
+
                 myPane.showView(myView);
                 secondPane.showView(secondView);
-                
+
                 myPane.mergeFrom(secondPane);
                 expect(secondView.notifyContainerChange).toHaveBeenCalled();
                 expect(secondView.destroy).not.toHaveBeenCalled();
-                
+
                 secondPane.destroy();
             });
             it("should destroy temporary views when merging panes", function () {
                 var secondView = createMockView("second-view"),
                     secondPane = createMockPane("second-pane");
-                
+
                 spyOn(secondView, "destroy");
-                
+
                 myPane.addToViewList(myView.getFile());
-                
+
                 secondPane.addView(secondView);
-                
+
                 myPane.showView(myView);
                 secondPane.showView(secondView);
-                
+
                 myPane.mergeFrom(secondPane);
                 expect(secondView.destroy).toHaveBeenCalled();
 
@@ -220,35 +224,35 @@ define(function (require, exports, module) {
             it("should interstitial page after merging", function () {
                 var secondView = createMockView("second-view"),
                     secondPane = createMockPane("second-pane");
-                
+
                 myPane.addToViewList(myView.getFile());
-                
+
                 secondPane.addView(secondView);
-                
+
                 myPane.showView(myView);
                 secondPane.showView(secondView);
-                
+
                 myPane.mergeFrom(secondPane);
                 expect(secondPane.$el.find(".not-editor").css("display")).toBeFalsy();
-                
+
                 secondPane.destroy();
             });
             it("should hide current view when merging", function () {
                 var secondView = createMockView("second-view"),
                     secondPane = createMockPane("second-pane");
-                
+
                 myPane.addToViewList(myView.getFile());
-                
+
                 secondPane.addToViewList(secondView.getFile());
                 secondPane.addView(secondView);
-                
+
                 myPane.addView(myView, true);
                 secondPane.addView(secondView, true);
-                
+
                 spyOn(secondPane, "_setViewVisibility");
-                
+
                 myPane.mergeFrom(secondPane);
-                
+
                 expect(secondPane._setViewVisibility).toHaveBeenCalled();
                 expect(secondPane._setViewVisibility.calls[0].args[0]).toBe(secondView);
                 expect(secondPane._setViewVisibility.calls[0].args[1]).toBeFalsy();
@@ -267,16 +271,16 @@ define(function (require, exports, module) {
                     myPane.showView(myPane._views[fullPath]);
                     return new $.Deferred().resolve().promise();
                 });
-                
+
                 var secondView = createMockView("second-view");
 
                 myPane.addToViewList(myView.getFile());
                 myPane.addToViewList(secondView.getFile());
                 myPane.addView(secondView);
-                
+
                 myPane.showView(myView);
                 myPane.showView(secondView);
-                
+
                 myPane.removeView(secondView.getFile());
                 expect(myPane._currentView).toEqual(myView);
             });
@@ -284,22 +288,22 @@ define(function (require, exports, module) {
                 spyOn(myPane, "_execOpenFile").andCallFake(function (fullPath) {
                     return new $.Deferred().reject().promise();
                 });
-                
+
                 var secondView = createMockView("second-view");
 
                 spyOn(myPane, "_hideCurrentView").andCallThrough();
                 spyOn(myPane, "showInterstitial").andCallThrough();
-                
+
                 myPane.addToViewList(myView.getFile());
                 myPane.addToViewList(secondView.getFile());
                 myPane.addView(secondView);
-                
+
                 myPane.showView(myView);
                 myPane.showView(secondView);
-                
+
                 myPane.removeView(secondView.getFile());
                 expect(myPane._currentView).toEqual(null);
-                // should be called twice -- 
+                // should be called twice --
                 //  the second time to show the interstitial due to the removal
                 expect(myPane.showInterstitial.calls[1].args[0]).toBeTruthy();
                 expect(myPane._hideCurrentView).toHaveBeenCalled();
@@ -307,16 +311,16 @@ define(function (require, exports, module) {
             });
             it("should not switch views when removing view", function () {
                 spyOn(myPane, "_execOpenFile");
-                
+
                 var secondView = createMockView("second-view");
 
                 myPane.addToViewList(myView.getFile());
                 myPane.addToViewList(secondView.getFile());
                 myPane.addView(secondView);
-                
+
                 myPane.showView(myView);
                 myPane.showView(secondView);
-                
+
                 myPane.removeView(secondView.getFile(), true);
                 expect(myPane._currentView).toEqual(null);
                 expect(myPane._execOpenFile).not.toHaveBeenCalled();
@@ -327,10 +331,10 @@ define(function (require, exports, module) {
                 myPane.addToViewList(myView.getFile());
                 myPane.addToViewList(secondView.getFile());
                 myPane.addView(secondView);
-                
+
                 myPane.showView(myView);
                 myPane.showView(secondView);
-                
+
                 expect(myView._visible).toBeFalsy();
             });
         });
@@ -377,25 +381,25 @@ define(function (require, exports, module) {
                     previous,
                     views = [],
                     files = [];
-                
+
                 for (i = 0; i < 5; i++) {
                     views[i] = createMockView("view/" + i.toString());
                     files[i] = views[i].getFile();
                 }
 
                 myPane.addListToViewList(files);
-                
+
                 for (i = 0; i < 5; i++) {
                     previous = myPane.traverseViewListByMRU(1, previous && previous.fullPath);
                     expect(previous.fullPath).toEqual("view/" + i.toString());
                 }
-                
+
                 var order = [1, 3, 4, 2, 0];
 
                 for (i = 0; i < order.length; i++) {
                     myPane.makeViewMostRecent(files[order[i]]);
                 }
-                
+
                 for (previous = undefined, i = order.length; i > 0; i--) {
                     previous = myPane.traverseViewListByMRU(1, previous && previous.fullPath);
                     expect(previous).toEqual(files[order[i - 1]]);
@@ -405,17 +409,17 @@ define(function (require, exports, module) {
                 var i,
                     views = [],
                     files = [];
-                
+
                 for (i = 0; i < 5; i++) {
                     views[i] = createMockView("view/" + i.toString());
                     files[i] = views[i].getFile();
                 }
 
                 myPane.addListToViewList(files);
-                
+
                 myPane.swapViewListIndexes(0, 4);
                 myPane.swapViewListIndexes(1, 3);
-                
+
                 var order = [4, 3, 2, 1, 0];
 
                 for (i = 0; i < order.length; i++) {
@@ -426,25 +430,25 @@ define(function (require, exports, module) {
                 var i,
                     views = [],
                     files = [];
-                
+
                 for (i = 0; i < 5; i++) {
                     views[i] = createMockView("view/" + i.toString());
                     files[i] = views[i].getFile();
                 }
 
                 myPane.addListToViewList(files);
-                
+
                 var order = [1, 3, 4, 2, 0];
 
                 for (i = 0; i < order.length; i++) {
                     myPane.makeViewMostRecent(files[order[i]]);
                 }
-                
+
                 myPane.swapViewListIndexes(0, 4);
                 myPane.swapViewListIndexes(1, 3);
-                
+
                 files.reverse();
-                
+
                 for (i = 0; i < files.length; i++) {
                     expect(myPane._viewListAddedOrder[i]).toEqual(files[i]);
                 }
@@ -456,9 +460,9 @@ define(function (require, exports, module) {
             });
             it("should dispatch events when a file is removed", function () {
                 var eventHandler = jasmine.createSpy();
-                
+
                 myPane.on("viewListChange.test", eventHandler);
-                
+
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
                 myPane._handleFileDeleted(undefined, myView.getFullPath());
@@ -468,9 +472,9 @@ define(function (require, exports, module) {
             });
             it("should dispatch events when file is renamed", function () {
                 var eventHandler = jasmine.createSpy();
-                
+
                 myPane.on("viewListChange.test", eventHandler);
-                
+
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
 
@@ -484,9 +488,9 @@ define(function (require, exports, module) {
             });
             it("should dispatch events when the view has changed", function () {
                 var eventHandler = jasmine.createSpy();
-                
+
                 myPane.on("currentViewChange.test", eventHandler);
-                
+
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
 
@@ -495,9 +499,9 @@ define(function (require, exports, module) {
             });
             it("should dispatch events when all views are closed", function () {
                 var eventHandler = jasmine.createSpy();
-                
+
                 myPane.on("currentViewChange.test", eventHandler);
-                
+
                 myPane.addToViewList(myView.getFile());
                 myPane.showView(myView);
                 myPane._reset();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         MainViewManager         = require("view/MainViewManager"),
@@ -39,30 +39,30 @@ define(function (require, exports, module) {
         AppInit                 = require("utils/AppInit"),
         Strings                 = require("strings"),
         _                       = require("thirdparty/lodash");
-    
+
     /**
      * List of sorting method objects
      * @private
      * @type {Array.<Sort>}
      */
     var _sorts = [];
-    
+
     /**
      * Denotes the current sort method object
      * @private
      * @type {Sort}
      */
     var _currentSort = null;
-    
+
     /**
      * Denotes if automatic sorting is enabled or not
      * @private
      * @type {boolean}
      */
     var _automaticSort = false;
-    
 
-    /** 
+
+    /**
      * Maps Legacy sort method names  to new sort method names
      * @private
      * @type {object.<string: string>} oldname: newname
@@ -72,28 +72,28 @@ define(function (require, exports, module) {
         "view.sortWorkingSetByName"  : "cmd.sortWorkingSetByName",
         "view.sortWorkingSetByType"  : "cmd.sortWorkingSetByType"
     };
-    
+
     /**
      * Events which the sort command will listen for to trigger a sort
-     * @constant {string} 
+     * @constant {string}
      * @private
      */
     var _SORT_EVENT_NAMES = "workingSetAdd workingSetAddList";
-    
+
     /**
      * Preference name
-     * @constant {string} 
+     * @constant {string}
      * @private
      */
     var _WORKING_SET_SORT_PREF = "workingSetSortMethod";
 
     /**
      * Legacy preference name
-     * @constant {string} 
+     * @constant {string}
      * @private
      */
     var _LEGACY_SORT_PREF = "currentSort";
-    
+
     /**
      * Retrieves a Sort object by id
      * @param {(string|Command)} command A command ID or a command object.
@@ -105,7 +105,7 @@ define(function (require, exports, module) {
             console.error("Attempting to get a Sort method with a missing required parameter: command");
             return;
         }
-        
+
         if (typeof command === "string") {
             commandID = command;
         } else {
@@ -113,7 +113,7 @@ define(function (require, exports, module) {
         }
         return _sorts[commandID];
     }
-    
+
     /**
      * Converts the old brackets working set sort preference into the modern paneview sort preference
      * @private
@@ -124,24 +124,24 @@ define(function (require, exports, module) {
         if (!sortMethod) {
             return null;
         }
-        
+
         if (_sortPrefConversionMap.hasOwnProperty(sortMethod)) {
             sortMethod = _sortPrefConversionMap[sortMethod];
             PreferencesManager.setViewState(_WORKING_SET_SORT_PREF, sortMethod);
         } else {
             sortMethod = null;
         }
-        
+
         return sortMethod;
     }
-    
+
     /**
      * @return {boolean} Enabled state of Automatic Sort.
      */
     function getAutomatic() {
         return _automaticSort;
     }
-    
+
     /**
      * Removes the sort listeners.
      * @private
@@ -149,7 +149,7 @@ define(function (require, exports, module) {
     function _removeListeners() {
         MainViewManager.off(".sort");
     }
-    
+
     /**
      * Enables/Disables Automatic Sort depending on the value.
      * @param {boolean} enable True to enable, false to disable.
@@ -159,14 +159,14 @@ define(function (require, exports, module) {
         PreferencesManager.setViewState("automaticSort", _automaticSort);
         CommandManager.get(Commands.CMD_WORKING_SORT_TOGGLE_AUTO).setChecked(_automaticSort);
         _currentSort.setChecked(_automaticSort);
-        
+
         if (_automaticSort) {
             _currentSort.sort();
         } else {
             _removeListeners();
         }
     }
-    
+
     /**
      * Adds the current sort MainViewManager listeners.
      * @private
@@ -182,8 +182,8 @@ define(function (require, exports, module) {
                 });
         }
     }
-    
-    
+
+
     /**
      * Sets the current sort method and checks it on the context menu.
      * @private
@@ -197,14 +197,14 @@ define(function (require, exports, module) {
             if (_automaticSort) {
                 newSort.setChecked(true);
             }
-            
+
             CommandManager.get(Commands.CMD_WORKING_SORT_TOGGLE_AUTO).setEnabled(!!newSort.getEvents());
             PreferencesManager.setViewState(_WORKING_SET_SORT_PREF, newSort.getCommandID());
             _currentSort = newSort;
         }
     }
-    
-    
+
+
     /**
      * @constructor
      * @param {string} commandID A valid command identifier.
@@ -218,7 +218,7 @@ define(function (require, exports, module) {
         this._compareFn = compareFn;
         this._events    = events;
     }
-    
+
     /**
      * The Command ID
      * @return {string}
@@ -226,7 +226,7 @@ define(function (require, exports, module) {
     Sort.prototype.getCommandID = function () {
         return this._commandID;
     };
-    
+
     /**
      * The compare function
      * @return {function(File, File): number}
@@ -234,7 +234,7 @@ define(function (require, exports, module) {
     Sort.prototype.getCompareFn = function () {
         return this._compareFn;
     };
-    
+
     /**
      * Gets the event that this sort object is listening to
      * @return {string}
@@ -242,7 +242,7 @@ define(function (require, exports, module) {
     Sort.prototype.getEvents = function () {
         return this._events;
     };
-    
+
     /**
      * Checks/Unchecks the command which will show a check in the menu
      * @param {boolean} value
@@ -253,7 +253,7 @@ define(function (require, exports, module) {
             command.setChecked(value);
         }
     };
-    
+
     /**
      * Performs the sort and makes it the current sort method.
      */
@@ -261,7 +261,7 @@ define(function (require, exports, module) {
         _setCurrentSort(this);
         this.sort();
     };
-    
+
     /**
      * Only performs the working set sort if this is the current sort.
      */
@@ -272,8 +272,8 @@ define(function (require, exports, module) {
             _addListeners();
         }
     };
-    
-    
+
+
     /**
      * Registers a working set sort method.
      * @param {(string|Command)} command A command ID or a command object
@@ -292,7 +292,7 @@ define(function (require, exports, module) {
      */
     function register(command, compareFn, events) {
         var commandID = "";
-        
+
         if (!command || !compareFn) {
             console.log("Attempting to register a Sort method with a missing required parameter: command or compare function");
             return;
@@ -302,12 +302,12 @@ define(function (require, exports, module) {
         } else {
             commandID = command.getID();
         }
-        
+
         if (_sorts[commandID]) {
             console.log("Attempting to register an already-registered Sort method: " + command);
             return;
         }
-        
+
         // Adds ".sort" to the end of each event to make them specific for the automatic sort.
         if (events) {
             events = events.split(" ");
@@ -316,39 +316,39 @@ define(function (require, exports, module) {
             });
             events = events.join(" ");
         }
-        
+
         var sort = new Sort(commandID, compareFn, events);
         _sorts[commandID] = sort;
         return sort;
     }
-    
-    
-    /** 
+
+
+    /**
      * Command Handler for CMD_WORKING_SORT_TOGGLE_AUTO
      * @private
      */
     function _handleToggleAutoSort() {
         setAutomatic(!getAutomatic());
     }
-    
-    /** 
-     * Command Handler for CMD_WORKINGSET_SORT_BY_* 
+
+    /**
+     * Command Handler for CMD_WORKINGSET_SORT_BY_*
      * @private
-     * @param {!string} commandId identifies the sort method to use 
+     * @param {!string} commandId identifies the sort method to use
      */
     function _handleSort(commandId) {
         get(commandId).execute();
     }
-    
+
     /**
-     * Register Sort Methods 
+     * Register Sort Methods
      */
     register(
         Commands.CMD_WORKINGSET_SORT_BY_ADDED,
         function (paneId, file1, file2) {
             var index1 = MainViewManager.findInWorkingSetByAddedOrder(paneId, file1.fullPath),
                 index2 = MainViewManager.findInWorkingSetByAddedOrder(paneId, file2.fullPath);
-            
+
             return index1 - index2;
         },
         _SORT_EVENT_NAMES
@@ -367,8 +367,8 @@ define(function (require, exports, module) {
         },
         _SORT_EVENT_NAMES
     );
-    
-    
+
+
     /**
      * Register Command Handlers
      */
@@ -376,26 +376,26 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_WORKINGSET_SORT_BY_NAME,  Commands.CMD_WORKINGSET_SORT_BY_NAME,  _.partial(_handleSort, Commands.CMD_WORKINGSET_SORT_BY_NAME));
     CommandManager.register(Strings.CMD_WORKINGSET_SORT_BY_TYPE,  Commands.CMD_WORKINGSET_SORT_BY_TYPE,  _.partial(_handleSort, Commands.CMD_WORKINGSET_SORT_BY_TYPE));
     CommandManager.register(Strings.CMD_WORKING_SORT_TOGGLE_AUTO,   Commands.CMD_WORKING_SORT_TOGGLE_AUTO,    _handleToggleAutoSort);
-    
-    
+
+
     /**
      * Initialize default values for sorting preferences
      */
     PreferencesManager.stateManager.definePreference("automaticSort", "boolean", false);
     PreferencesManager.convertPreferences(module, {_LEGACY_SORT_PREF: "user", "automaticSort": "user"}, true);
-    
-    /** 
+
+    /**
      * Define a default sort method that's empty so that we
-     *   just convert and use the legacy sort method 
+     *   just convert and use the legacy sort method
      */
     PreferencesManager.stateManager.definePreference(_WORKING_SET_SORT_PREF, "string", "");
-    
+
     /*
-     * initializes global sort method from preference settings or the default 
+     * initializes global sort method from preference settings or the default
      */
     function initSortMethod() {
         var sortMethod = PreferencesManager.getViewState(_WORKING_SET_SORT_PREF);
-        
+
         if (!sortMethod) {
             sortMethod = _convertSortPref(PreferencesManager.getViewState(_LEGACY_SORT_PREF));
         }
@@ -405,7 +405,7 @@ define(function (require, exports, module) {
         }
         return sortMethod;
     }
-    
+
     /**
      * Initialize items dependent on extensions/workingSetList
      */
@@ -413,7 +413,7 @@ define(function (require, exports, module) {
         var sortMethod = initSortMethod(),
             curSort    = get(sortMethod),
             autoSort = PreferencesManager.getViewState("automaticSort");
-        
+
         if (curSort) {
             _setCurrentSort(curSort);
         }
@@ -424,7 +424,7 @@ define(function (require, exports, module) {
             curSort.sort();
         }
     });
-    
+
     // Public API
     exports.register        = register;
     exports.get             = get;

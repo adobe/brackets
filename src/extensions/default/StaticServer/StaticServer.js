@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -34,10 +34,10 @@ define(function (require, exports, module) {
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         Strings              = brackets.getModule("strings");
 
-    
+
     /**
      * @private
-     * 
+     *
      * Prefences manager for this extension
      */
     var _prefs = PreferencesManager.getExtensionPrefs("staticserver");
@@ -65,7 +65,7 @@ define(function (require, exports, module) {
 
         BaseServer.call(this, config);
     }
-    
+
     StaticServer.prototype = Object.create(BaseServer.prototype);
     StaticServer.prototype.constructor = StaticServer;
 
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
         if (!this._nodeDomain.ready()) {
             return false;
         }
-        
+
         // If we can't transform the local path to a project relative path,
         // the path cannot be served
         if (localPath === this._pathResolver(localPath)) {
@@ -111,7 +111,7 @@ define(function (require, exports, module) {
      * The domain itself handles starting a server if necessary (when
      * the staticServer.getServer command is called).
      *
-     * @return {jQuery.Promise} A promise that resolves/rejects when 
+     * @return {jQuery.Promise} A promise that resolves/rejects when
      *     the server is ready/failed.
      */
     StaticServer.prototype.readyToServe = function () {
@@ -167,9 +167,9 @@ define(function (require, exports, module) {
             // enable instrumentation
             liveDocument.setInstrumentationEnabled(true);
         }
-        
+
         BaseServer.prototype.add.call(this, liveDocument);
-        
+
         // update the paths to watch
         this._updateRequestFilterPaths();
     };
@@ -179,7 +179,7 @@ define(function (require, exports, module) {
      */
     StaticServer.prototype.remove = function (liveDocument) {
         BaseServer.prototype.remove.call(this, liveDocument);
-        
+
         this._updateRequestFilterPaths();
     };
 
@@ -188,10 +188,10 @@ define(function (require, exports, module) {
      */
     StaticServer.prototype.clear = function () {
         BaseServer.prototype.clear.call(this);
-        
+
         this._updateRequestFilterPaths();
     };
-    
+
     /**
      * @private
      * Send HTTP response data back to the StaticServerSomain
@@ -199,7 +199,7 @@ define(function (require, exports, module) {
     StaticServer.prototype._send = function (location, response) {
         this._nodeDomain.exec("writeFilteredResponse", location.root, location.pathname, response);
     };
-    
+
     /**
      * @private
      * Event handler for StaticServerDomain requestFilter event
@@ -210,7 +210,7 @@ define(function (require, exports, module) {
         var key             = request.location.pathname,
             liveDocument    = this._liveDocuments[key],
             response;
-        
+
         // send instrumented response or null to fallback to static file
         if (liveDocument && liveDocument.getResponseData) {
             response = liveDocument.getResponseData();
@@ -218,10 +218,10 @@ define(function (require, exports, module) {
             response = {};  // let server fall back on loading file off disk
         }
         response.id = request.id;
-        
+
         this._send(request.location, response);
     };
-    
+
     /**
      * See BaseServer#start. Starts listenting to StaticServerDomain events.
      */

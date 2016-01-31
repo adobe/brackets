@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
@@ -89,26 +89,26 @@ define(function (require, exports, module) {
         NodeSocketTransport  = require("LiveDevelopment/MultiBrowserImpl/transports/NodeSocketTransport"),
         LiveDevProtocol      = require("LiveDevelopment/MultiBrowserImpl/protocol/LiveDevProtocol"),
         DefaultLauncher      = require("LiveDevelopment/MultiBrowserImpl/launchers/Launcher");
-    
+
     // Documents
     var LiveCSSDocument      = require("LiveDevelopment/MultiBrowserImpl/documents/LiveCSSDocument"),
         LiveHTMLDocument     = require("LiveDevelopment/MultiBrowserImpl/documents/LiveHTMLDocument");
-    
-    /** 
+
+    /**
      * @private
      * The live HTML document for the currently active preview.
-     * @type {LiveHTMLDocument} 
+     * @type {LiveHTMLDocument}
      */
     var _liveDocument;
-    
-    /** 
+
+    /**
      * @private
      * Live documents related to the active HTML document - for example, CSS files
      * that are used by the document.
      * @type {Object.<string: {LiveHTMLDocument|LiveCSSDocument}>}
      */
     var _relatedDocuments = {};
-    
+
     /**
      * @private
      * Protocol handler that provides the actual live development API on top of the current transport.
@@ -120,7 +120,7 @@ define(function (require, exports, module) {
      * Current browser launcher for preview.
      */
     var _launcher;
-    
+
     /**
      * @private
      * Current live preview server
@@ -128,7 +128,7 @@ define(function (require, exports, module) {
      */
     var _server;
 
-    /** 
+    /**
      * @private
      * Determine which live document class should be used for a given document
      * @param {Document} document The document we want to create a live document for.
@@ -145,7 +145,7 @@ define(function (require, exports, module) {
 
         return null;
     }
-    
+
     /**
      * Returns true if the global Live Development mode is on (might be in the middle of connecting).
      * @return {boolean}
@@ -153,7 +153,7 @@ define(function (require, exports, module) {
     function isActive() {
         return exports.status > STATUS_INACTIVE;
     }
-    
+
     /**
      * Returns the live document for a given path, or null if there is no live document for it.
      * @param {string} path
@@ -163,7 +163,7 @@ define(function (require, exports, module) {
         if (!_server) {
             return null;
         }
-        
+
         return _server.get(path);
     }
 
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
         liveDocument.off(".livedev");
         liveDocument.close();
     }
-    
+
     /**
      * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
      * given file is no longer associated with the HTML document that is live (e.g.
@@ -188,7 +188,7 @@ define(function (require, exports, module) {
         if (liveDoc) {
             delete _relatedDocuments[url];
         }
-            
+
         if (_server) {
             _server.remove(liveDoc);
         }
@@ -206,9 +206,9 @@ define(function (require, exports, module) {
         if (status === exports.status) {
             return;
         }
-        
+
         exports.status = status;
-        
+
         var reason = status === STATUS_INACTIVE ? closeReason : null;
         exports.trigger("statusChange", status, reason);
     }
@@ -222,18 +222,18 @@ define(function (require, exports, module) {
             _closeDocument(_liveDocument);
             _liveDocument = undefined;
         }
-        
+
         Object.keys(_relatedDocuments).forEach(function (url) {
             _closeDocument(_relatedDocuments[url]);
             delete _relatedDocuments[url];
         });
-        
+
         // Clear all documents from request filtering
         if (_server) {
             _server.clear();
         }
     }
-    
+
     /**
      * @private
      * Returns the URL that we would serve the given path at.
@@ -256,11 +256,11 @@ define(function (require, exports, module) {
     function _createLiveDocument(doc, editor, roots) {
         var DocClass = _classForDocument(doc),
             liveDocument;
-        
+
         if (!DocClass) {
             return null;
         }
-        
+
         liveDocument = new DocClass(_protocol, _resolveUrl, doc, editor, roots);
 
         liveDocument.on("errorStatusChanged.livedev", function (event, hasErrors) {
@@ -272,7 +272,7 @@ define(function (require, exports, module) {
         return liveDocument;
     }
 
-    /** 
+    /**
      * Documents are considered to be out-of-sync if they are dirty and
      * do not have "update while editing" support
      * @param {Document} doc
@@ -331,7 +331,7 @@ define(function (require, exports, module) {
      * available for currently opened document. We are searching for these files:
      *  - index.html
      *  - index.htm
-     * 
+     *
      * If the project is configured with a custom base url for live development, then
      * the list of possible index files is extended to contain these index files too:
      *  - index.php
@@ -348,10 +348,10 @@ define(function (require, exports, module) {
      *  - index.jspx
      *  - index.shm
      *  - index.shml
-     * 
+     *
      * If a file was found, the promise will be resolved with the full path to this file. If no file
      * was found in the whole project tree, the promise will be resolved with null.
-     * 
+     *
      * @return {jQuery.Promise} A promise that is resolved with a full path
      * to a file if one could been determined, or null if there was no suitable index
      * file.
@@ -379,19 +379,19 @@ define(function (require, exports, module) {
                 containingFolder,
                 indexFileFound = false,
                 stillInProjectTree = true;
-            
+
             if (refPath) {
                 containingFolder = FileUtils.getDirectoryPath(refPath);
             } else {
                 containingFolder = projectRoot;
             }
-            
+
             var filteredFiltered = allFiles.filter(function (item) {
                 var parent = FileUtils.getParentPath(item.fullPath);
-                
+
                 return (containingFolder.indexOf(parent) === 0);
             });
-            
+
             var filterIndexFile = function (fileInfo) {
                 if (fileInfo.fullPath.indexOf(containingFolder) === 0) {
                     if (FileUtils.getFilenameWithoutExtension(fileInfo.name) === "index") {
@@ -429,7 +429,7 @@ define(function (require, exports, module) {
                 DocumentManager.getDocumentForPath(filteredFiltered[i].fullPath).then(result.resolve, result.resolve);
                 return;
             }
-            
+
             result.resolve(null);
         });
 
@@ -444,11 +444,11 @@ define(function (require, exports, module) {
      */
     function _close(doCloseWindow, reason) {
         if (exports.status !== STATUS_INACTIVE) {
-            // Close live documents 
+            // Close live documents
             _closeDocuments();
             // Close all active connections
             _protocol.closeAllConnections();
-            
+
             if (_server) {
                 // Stop listening for requests when disconnected
                 _server.stop();
@@ -459,7 +459,7 @@ define(function (require, exports, module) {
         }
     //TODO: implement closeWindow together with launchers.
 //        if (doCloseWindow) {
-//            
+//
 //        }
         _setStatus(STATUS_INACTIVE, reason || "explicit_close");
     }
@@ -473,7 +473,7 @@ define(function (require, exports, module) {
         _close(true);
         return new $.Deferred().resolve().promise();
     }
-    
+
     /**
      * @private
      * Displays an error when no HTML file can be found to preview.
@@ -510,8 +510,8 @@ define(function (require, exports, module) {
         _liveDocument = _createLiveDocument(doc, doc._masterEditor);
         _server.add(_liveDocument);
     }
-    
-    
+
+
      /**
      * Launches the given URL in the default browser.
      * @param {string} url
@@ -520,14 +520,14 @@ define(function (require, exports, module) {
     function _launch(url) {
         // open default browser
         // TODO: fail?
-        // 
+        //
         _launcher.launch(url);
     }
-    
+
     /**
      * @private
      * Launches the given document in the browser, given that a live document has already
-     * been created for it. 
+     * been created for it.
      * @param {Document} doc
      */
     function _open(doc) {
@@ -591,13 +591,13 @@ define(function (require, exports, module) {
             close();
         }
     }
-    
+
     /**
      * @private
-     * Creates the live document in preparation for launching the 
-     * preview of the given document, then launches it. (The live document 
+     * Creates the live document in preparation for launching the
+     * preview of the given document, then launches it. (The live document
      * must already exist before we launch it so that the server can
-     * ask it for the instrumented version of the document when the browser 
+     * ask it for the instrumented version of the document when the browser
      * requests it.)
      * TODO: could probably just consolidate this with _open()
      * @param {Document} doc
@@ -612,7 +612,7 @@ define(function (require, exports, module) {
         // open browser to the url
         _open(initialDoc);
     }
-    
+
     /**
      * @private
      * Create the server in preparation for opening a live preview.
@@ -623,7 +623,7 @@ define(function (require, exports, module) {
     function _prepareServer(doc) {
         var deferred = new $.Deferred(),
             showBaseUrlPrompt = false;
-        
+
         _server = LiveDevServerManager.getServer(doc.file.fullPath);
 
         // Optionally prompt for a base URL if no server was found but the
@@ -657,7 +657,7 @@ define(function (require, exports, module) {
             // No server found
             deferred.reject();
         }
-        
+
         return deferred.promise();
     }
 
@@ -671,11 +671,11 @@ define(function (require, exports, module) {
         if (!isActive() || !doc) {
             return;
         }
-        
+
         // close the current session and begin a new session
         var docUrl = _server && _server.pathToUrl(doc.file.fullPath),
             isViewable = _server && _server.canServe(doc.file.fullPath);
-        
+
         if (_liveDocument.doc.url !== docUrl && isViewable) {
             // clear live doc and related docs
             _closeDocuments();
@@ -687,7 +687,7 @@ define(function (require, exports, module) {
         }
     }
 
-    
+
     /**
      * Open a live preview on the current docuemnt.
      */
@@ -706,7 +706,7 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.CMD_OPEN, { fullPath: doc.file.fullPath });
                 }
             }
-            
+
             // wait for server (StaticServer, Base URL or file:)
             prepareServerPromise
                 .done(function () {
@@ -718,7 +718,7 @@ define(function (require, exports, module) {
                 });
         });
     }
-    
+
     /**
      * For files that don't support as-you-type live editing, but are loaded by live HTML documents
      * (e.g. JS files), we want to reload the full document when they're saved.
@@ -729,17 +729,17 @@ define(function (require, exports, module) {
         if (!isActive() || !_server) {
             return;
         }
-        
+
         var absolutePath            = doc.file.fullPath,
             liveDocument            = absolutePath && _server.get(absolutePath),
             liveEditingEnabled      = liveDocument && liveDocument.isLiveEditingEnabled  && liveDocument.isLiveEditingEnabled();
-        
+
         // Skip reload if the saved document has live editing enabled
         if (liveEditingEnabled) {
             return;
         }
-        
-        // reload the page if the given document is a JS file related 
+
+        // reload the page if the given document is a JS file related
         // to the current live document.
         if (_liveDocument.isRelated(absolutePath)) {
             if (doc.getLanguage().getId() === "javascript") {
@@ -749,7 +749,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** 
+    /**
      * For files that don't support as-you-type live editing, but are loaded by live HTML documents
      * (e.g. JS files), we want to show a dirty indicator on the live development icon when they
      * have unsaved changes, so the user knows s/he needs to save in order to have the page reload.
@@ -760,9 +760,9 @@ define(function (require, exports, module) {
         if (!isActive() || !_server) {
             return;
         }
-        
+
         var absolutePath = doc.file.fullPath;
-        
+
         if (_liveDocument.isRelated(absolutePath)) {
             // Set status to out of sync if dirty. Otherwise, set it to active status.
             _setStatus(_docIsOutOfSync(doc) ? STATUS_OUT_OF_SYNC : STATUS_ACTIVE);
@@ -783,7 +783,7 @@ define(function (require, exports, module) {
      *
      * It must also dispatch the following jQuery events:
      *
-     * - "connect": When a target browser connects back to the transport. Must provide two parameters: 
+     * - "connect": When a target browser connects back to the transport. Must provide two parameters:
      *   - clientID - a unique number representing this connection
      *   - url - the URL of the page in the target browser that's connecting to us
      * - "message": When a message is received by the transport. Must provide two parameters:
@@ -791,7 +791,7 @@ define(function (require, exports, module) {
      *   - message - the text of the message as a JSON string
      * - "close": When the remote browser closes the connection. Must provide one parameter:
      *   - clientID - the ID of the client closing the connection
-     * 
+     *
      * @param {{launch: function(string), send: function(number|Array.<number>, string), close: function(number), getRemoteScript: function(): ?string}} transport
      */
     function setTransport(transport) {
@@ -826,10 +826,10 @@ define(function (require, exports, module) {
             .on("dirtyFlagChange", _onDirtyFlagChange);
         ProjectManager
             .on("beforeProjectClose beforeAppClose", close);
-        
+
         // Default transport for live connection messages - can be changed
         setTransport(NodeSocketTransport);
-        
+
         // Default launcher for preview browser - can be changed
         setLauncher(DefaultLauncher);
 
@@ -843,13 +843,13 @@ define(function (require, exports, module) {
         }
         return getLiveDocForPath(editor.document.file.fullPath);
     }
-    
+
     /**
-     *  Enable highlighting 
+     *  Enable highlighting
      */
     function showHighlight() {
         var doc = getLiveDocForEditor(EditorManager.getActiveEditor());
-        
+
         if (doc && doc.updateHighlight) {
             doc.updateHighlight();
         }
@@ -863,16 +863,16 @@ define(function (require, exports, module) {
             _protocol.evaluate("_LD.hideHighlight()");
         }
     }
-    
+
     /**
-     * Redraw highlights 
+     * Redraw highlights
      */
     function redrawHighlight() {
         if (_protocol) {
             _protocol.evaluate("_LD.redrawHighlights()");
         }
     }
-    
+
     /**
      * Originally unload and reload agents. It doesn't apply for this new implementation.
      * @return {jQuery.Promise} Already resolved promise.
@@ -880,7 +880,7 @@ define(function (require, exports, module) {
     function reconnect() {
         return $.Deferred().resolve();
     }
-    
+
     /**
      * Reload current page in all connected browsers.
      */
@@ -889,7 +889,7 @@ define(function (require, exports, module) {
             _protocol.reload();
         }
     }
-    
+
     /**
      * Returns current project server config. Copied from original LiveDevelopment.
      */
@@ -900,7 +900,7 @@ define(function (require, exports, module) {
             root: ProjectManager.getProjectRoot().fullPath
         };
     }
-    
+
     /**
      * @private
      * Returns the base URL of the current server serving the active live document, or null if
@@ -910,14 +910,14 @@ define(function (require, exports, module) {
     function getServerBaseUrl() {
         return _server && _server.getBaseUrl();
     }
-    
+
     // for unit testing only
     function _getCurrentLiveDoc() {
         return _liveDocument;
     }
-    
+
     EventDispatcher.makeEventDispatcher(exports);
-    
+
     // For unit testing
     exports._server                   = _server;
     exports._getCurrentLiveDoc        = _getCurrentLiveDoc;

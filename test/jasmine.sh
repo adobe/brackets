@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+# Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
 #  
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"), 
@@ -28,4 +28,20 @@ BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo $BASEDIR
 
 # open the Jasmine SpecRunner
-open ${BASEDIR}/../../bin/mac/Brackets.app --args file:///${BASEDIR}/SpecRunner.html
+case $OSTYPE in
+darwin*)
+    open ${BASEDIR}/../../bin/mac/Brackets.app --args file:///${BASEDIR}/SpecRunner.html
+    ;;
+linux*)
+    echo Linux Not Yet Implemented
+    ;;
+cygwin* | msys | win32 )
+    echo Windows Not Yet Implemented
+    ;;
+freebsd*)
+    echo FreeBSD Not Yet Implemented
+    ;;
+*)
+    echo Unknown operating system $OSTYPE
+    ;;
+esac

@@ -10,7 +10,7 @@
     "defaultExtension": "js",
     "language": {
         "javascript": {
-            "linting.prefer": ["JSLint", "JSHint"],
+            "linting.prefer": ["ESLint", "JSLint"],
             "linting.usePreferredOnly": true
         }
     },

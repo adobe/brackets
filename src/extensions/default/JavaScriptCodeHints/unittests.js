@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
@@ -42,7 +42,7 @@ define(function (require, exports, module) {
         HintUtils            = require("HintUtils"),
         HintUtils2           = require("HintUtils2"),
         ParameterHintManager = require("ParameterHintManager");
-    
+
     var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
         testPath        = extensionPath + "/unittest-files/basic-test-files/file1.js",
         testHtmlPath    = extensionPath + "/unittest-files/basic-test-files/index.html",
@@ -56,12 +56,12 @@ define(function (require, exports, module) {
             MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
         });
     });
-    
+
     describe("JavaScript Code Hinting", function () {
         /*
          * Ask provider for hints at current cursor position; expect it to
          * return some
-         * 
+         *
          * @param {Object} provider - a CodeHintProvider object
          * @param {string} key - the charCode of a key press that triggers the
          *      CodeHint provider
@@ -76,17 +76,17 @@ define(function (require, exports, module) {
             expect(provider.hasHints(testEditor, key)).toBe(true);
             return provider.getHints(null);
         }
-        
+
         /*
          * Ask provider for hints at current cursor position; expect it NOT to
          * return any
-         * 
+         *
          * @param {Object} provider - a CodeHintProvider object
          * @param {string} key - the charCode of a key press that triggers the
          *      CodeHint provider
          */
         function expectNoHints(provider, key) {
-            
+
             if (key === undefined) {
                 key = null;
             }
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
 
         /*
          * Return the index at which hint occurs in hintList
-         * 
+         *
          * @param {Array.<Object>} hintList - the list of hints
          * @param {string} hint - the hint to search for
          * @return {number} - the index into hintList at which the hint occurs,
@@ -105,7 +105,7 @@ define(function (require, exports, module) {
         function _indexOf(hintList, hint) {
             var index = -1,
                 counter = 0;
-            
+
             for (counter; counter < hintList.length; counter++) {
                 if (hintList[counter].data("token").value === hint) {
                     index = counter;
@@ -114,11 +114,11 @@ define(function (require, exports, module) {
             }
             return index;
         }
-        
+
         /*
          * Wait for a hint response object to resolve, then apply a callback
          * to the result
-         * 
+         *
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
          * @param {Function} callback - the callback to apply to the resolved
@@ -166,7 +166,7 @@ define(function (require, exports, module) {
         /*
          * Expect a given list of hints to be absent from a given hint
          * response object
-         * 
+         *
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
          * @param {Array.<string>} absentHints - a list of hints that should not
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
         /*
          * Expect a given list of hints to be present in a given hint
          * response object
-         * 
+         *
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
          * @param {Array.<string>} expectedHints - a list of hints that should be
@@ -202,7 +202,7 @@ define(function (require, exports, module) {
         /*
          * Expect a given list of hints to be present in the given order in a
          * given hint response object
-         * 
+         *
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
          * @param {Array.<string>} expectedHints - a list of hints that should be
@@ -211,7 +211,7 @@ define(function (require, exports, module) {
         function hintsPresentOrdered(hintObj, expectedHints) {
             var prevIndex = -1,
                 currIndex;
-            
+
             _waitForHints(hintObj, function (hintList) {
                 expect(hintList).toBeTruthy();
                 expectedHints.forEach(function (expectedHint) {
@@ -225,7 +225,7 @@ define(function (require, exports, module) {
         /*
          * Expect a given list of hints to be present in a given hint
          * response object, and no more.
-         * 
+         *
          * @param {Object + jQuery.Deferred} hintObj - a hint response object,
          *      possibly deferred
          * @param {Array.<string>} expectedHints - a list of hints that should be
@@ -260,9 +260,9 @@ define(function (require, exports, module) {
         }
         /*
          * Simulation of selection of a particular hint in a hint list.
-         * Presumably results in side effects in the hint provider's 
+         * Presumably results in side effects in the hint provider's
          * current editor context.
-         * 
+         *
          * @param {Object} provider - a CodeHint provider object
          * @param {Object} hintObj - a hint response object from that provider,
          *      possibly deferred
@@ -288,11 +288,11 @@ define(function (require, exports, module) {
         function _waitForJump(jumpPromise, callback) {
             var cursor = null,
                 complete = false;
-            
+
             jumpPromise.done(function () {
                 complete = true;
             });
-            
+
             waitsFor(function () {
                 var activeEditor = EditorManager.getActiveEditor();
                 cursor = activeEditor.getCursorPos();
@@ -301,22 +301,22 @@ define(function (require, exports, module) {
 
             runs(function () { callback(cursor); });
         }
-        
+
         /**
-         * Trigger a jump to definition, and verify that the editor jumped to 
+         * Trigger a jump to definition, and verify that the editor jumped to
          * the expected location. The new location is the variable definition
          * or function definition of the variable or function at the current
          * cursor location. Jumping to the new location will cause a new editor
          * to be opened or open an existing editor.
          *
-         * @param {{line:number, ch:number, file:string}} expectedLocation - the 
+         * @param {{line:number, ch:number, file:string}} expectedLocation - the
          *  line, column, and optionally the new file the editor should jump to.  If the
-         *  editor is expected to stay in the same file, then file may be omitted.  
+         *  editor is expected to stay in the same file, then file may be omitted.
          */
         function editorJumped(expectedLocation) {
             var jumpPromise = JSCodeHints.handleJumpToDefinition();
-            
-            
+
+
             _waitForJump(jumpPromise, function (newCursor) {
                 expect(newCursor.line).toBe(expectedLocation.line);
                 expect(newCursor.ch).toBe(expectedLocation.ch);
@@ -325,7 +325,7 @@ define(function (require, exports, module) {
                     expect(activeEditor.document.file.name).toBe(expectedLocation.file);
                 }
             });
-            
+
         }
 
         /**
@@ -449,21 +449,21 @@ define(function (require, exports, module) {
                     noReset: true
                 });
             });
-            
+
             afterLast(function () {
                 brackets._configureJSCodeHints({
                     noReset: false
                 });
             });
-            
+
             beforeEach(function () {
                 setupTest(testPath, false);
             });
-            
+
             afterEach(function () {
                 tearDownTest();
             });
-            
+
             it("should not list hints in string literal", function () {
                 testEditor.setCursorPos({ line: 20, ch: 22 });
                 expectNoHints(JSCodeHints.jsHintProvider);
@@ -493,37 +493,37 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresent(hintObj, ["brackets", "$"]);
             });
-            
+
             xit("should list implicitly defined globals from JSLint annotations", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresent(hintObj, ["alert", "console", "confirm", "navigator", "window", "frames"]);
             });
- 
+
             it("should NOT list implicitly defined globals from missing JSLint annotations", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsAbsent(hintObj, ["ActiveXObject", "CScript", "VBArray"]);
             });
-            
+
             it("should NOT list explicitly defined globals from JSLint annotations in other files", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsAbsent(hintObj, ["crazyGlobal", "anotherCrazyGlobal"]);
             });
-            
+
             it("should NOT list implicitly defined globals from JSLint annotations in other files", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsAbsent(hintObj, ["spawn", "version", "toint32"]);
             });
-            
+
             it("should list literal constants", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresent(hintObj, ["null", "undefined", "true", "false"]);
             });
-            
+
             it("should NOT list variables, function names and parameter names out of scope", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -535,13 +535,13 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsAbsent(hintObj, ["E1", "E2"]);
             });
-            
+
             it("should NOT list property names on value lookups", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsAbsent(hintObj, ["propA", "propB", "propC"]);
             });
-            
+
             it("should list declared variable, function and parameter names in inner scope", function () {
                 testEditor.setCursorPos({ line: 12, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -559,25 +559,25 @@ define(function (require, exports, module) {
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsAbsent(hintObj, ["a very nice string"]);
             });
-            
+
             it("should list property names that have been declared in the file", function () {
                 testEditor.setCursorPos({ line: 17, ch: 11 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresent(hintObj, ["propB"]);
             });
-            
+
             it("should list identifier names that occur in other files", function () {
                 testEditor.setCursorPos({ line: 16, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsPresent(hintObj, ["D1", "D2"]);
             });
-            
+
             it("should NOT list variable, parameter or function names on property lookups", function () {
                 testEditor.setCursorPos({ line: 17, ch: 11 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 hintsAbsent(hintObj, ["A1", "A2", "funB", "paramB1", "paramB2", "B1", "B2", "funC", "paramC1", "paramC2"]);
             });
-            
+
             it("should NOT list keywords on property lookups", function () {
                 testEditor.setCursorPos({ line: 17, ch: 11 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -637,13 +637,13 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 expectNoHints(JSCodeHints.jsHintProvider, "{");
             });
-            
+
             it("should list explicit hints for variable and function names", function () {
                 testEditor.setCursorPos({ line: 6, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider, null);
                 hintsPresent(hintObj, ["A2", "A3", "funB", "A1"]);
             });
-            
+
             it("should list implicit hints when typing property lookups", function () {
                 testEditor.setCursorPos({ line: 17, ch: 10 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider, ".");
@@ -656,7 +656,7 @@ define(function (require, exports, module) {
                 hintsPresentOrdered(hintObj, ["C1", "B1"]);
                 hintsPresentOrdered(hintObj, ["C2", "B2"]);
             });
-            
+
             it("should give priority to property names associated with the current context from other files", function () {
                 testEditor.setCursorPos({ line: 16, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -665,7 +665,7 @@ define(function (require, exports, module) {
                 hintsPresentOrdered(hintObj, ["A1", "D1"]);
                 hintsPresentOrdered(hintObj, ["funB", "funE"]);
             });
-            
+
             xit("should choose the correct delimiter for string literal hints with no query", function () {
                 var start = { line: 18, ch: 0 },
                     end   = { line: 18, ch: 18 };
@@ -678,7 +678,7 @@ define(function (require, exports, module) {
                     expect(testDoc.getRange(start, end)).toEqual('"hello\\\\\\" world!"');
                 });
             });
-            
+
             it("should insert value hints with no current query", function () {
                 var start = { line: 6, ch: 0 },
                     end   = { line: 6, ch: 2 };
@@ -706,47 +706,47 @@ define(function (require, exports, module) {
                     expect(testDoc.getRange(before, end)).toEqual("A1");
                 });
             });
-            
+
             it("should insert property hints with no current query", function () {
                 var start   = { line: 6, ch: 0 },
                     middle  = { line: 6, ch: 3 },
                     end     = { line: 6, ch: 8 };
-                
+
                 testDoc.replaceRange("A1.", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
-                
+
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
                     expect(testDoc.getRange(start, end)).toEqual("A1.propA");
                     expect(testDoc.getLine(end.line).length).toEqual(8);
                 });
             });
-            
+
             it("should insert, not replace, property hints with no current query", function () {
                 var start   = { line: 6, ch: 0 },
                     middle  = { line: 6, ch: 3 },
                     end     = { line: 6, ch: 8 },
                     endplus = { line: 6, ch: 12 };
-                
+
                 testDoc.replaceRange("A1.prop", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 selectHint(JSCodeHints.jsHintProvider, hintObj, "propA");
-                
+
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
                     expect(testDoc.getRange(start, endplus)).toEqual("A1.propAprop");
                     expect(testDoc.getLine(end.line).length).toEqual(12);
                 });
             });
-            
+
             it("should insert, not replace, property hints with a partial current query", function () {
                 var start   = { line: 6, ch: 0 },
                     middle  = { line: 6, ch: 6 },
                     end     = { line: 6, ch: 8 };
-                
+
                 testDoc.replaceRange("A1.pro", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -796,7 +796,7 @@ define(function (require, exports, module) {
             it("should list hints for string, as string assigned to 's', 's' assigned to 'r' and 'r' assigned to 't'", function () {
                 var start = { line: 26, ch: 0 },
                     middle = { line: 26, ch: 6 };
-                
+
                 // pad spaces here as tern has issue,without space, no code hint
                 testDoc.replaceRange("    t.", start);
                 testEditor.setCursorPos(middle);
@@ -809,7 +809,7 @@ define(function (require, exports, module) {
             it("should list function type", function () {
                 var start = { line: 37, ch: 0 },
                     middle = { line: 37, ch: 5 };
-                
+
                 testDoc.replaceRange("funD(", start, start);
                 testEditor.setCursorPos(middle);
                 runs(function () {
@@ -820,7 +820,7 @@ define(function (require, exports, module) {
 
             it("should list exports from a requirejs module", function () {
                 var start = { line: 40, ch: 21 };
-                
+
                 testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
@@ -830,18 +830,18 @@ define(function (require, exports, module) {
 
             it("should list later defined property names", function () {
                 var start = { line: 17, ch: 11 };
-                
+
                 testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
                     hintsPresentExact(hintObj, ["foo", "propB"]);
                 });
             });
-            
+
             it("should list matching property names", function () {
                 var cursor1 = { line: 12, ch: 0 },
                     cursor2 = { line: 12, ch: 6 };
-                
+
                 testDoc.replaceRange("paramB", cursor1, cursor1);
                 testEditor.setCursorPos(cursor2);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -849,10 +849,10 @@ define(function (require, exports, module) {
                     hintsPresentExact(hintObj, ["paramB1", "paramB2"]);
                 });
             });
- 
+
             it("should take anotation parameter type:String", function () {
                 var start = { line: 37, ch: 21 };
-                
+
                 testDoc.replaceRange("var k= funD(10,11).x.", start, start);
                 testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -863,7 +863,7 @@ define(function (require, exports, module) {
 
             it("should take anotation parameter type:Number", function () {
                 var start = { line: 37, ch: 21 };
-                
+
                 testDoc.replaceRange("var k= funD(10,11).y.", start, start);
                 testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -871,7 +871,7 @@ define(function (require, exports, module) {
                     hintsPresentOrdered(hintObj, ["toExponential", "toFixed", "toString"]);
                 });
             });
-     
+
             it("should add new method on String .prototype", function () {
                 var start = { line: 37, ch: 0 };
                 var testPos = { line: 40, ch: 12 };
@@ -885,7 +885,7 @@ define(function (require, exports, module) {
 
             it("should list function defined from .prototype", function () {
                 var start = { line: 59, ch: 5 };
-                
+
                 testEditor.setCursorPos(start);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
@@ -900,7 +900,7 @@ define(function (require, exports, module) {
                     expectParameterHint([{name: "a4", type: "Number"}, {name: "b4", type: "Number"}], 0);
                 });
             });
-            
+
             it("should list function inherited from super class", function () {
                 var start = { line: 79, ch: 11 };
                 testEditor.setCursorPos(start);
@@ -913,39 +913,39 @@ define(function (require, exports, module) {
             it("should show argument from from .prototype.Method", function () {
                 var start = { line: 80, ch: 0 },
                     testPos = { line: 80, ch: 24 };
-                
+
                 testDoc.replaceRange("myCustomer.setAmountDue(", start);
                 testEditor.setCursorPos(testPos);
                 runs(function () {
                     expectParameterHint([{name: "amountDue", type: "Object"}], 0);
                 });
             });
-            
+
             it("should show inner function type", function () {
                 var testPos = { line: 96, ch: 23 };
-                
+
                 testEditor.setCursorPos(testPos);
                 runs(function () {
                     expectParameterHint([{name: "arg", type: "String"}], 0);
                 });
             });
-            
+
             it("should show type for inner function returned function", function () {
                 var testPos = { line: 96, ch: 33 };
-                
+
                 testEditor.setCursorPos(testPos);
                 expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
                     expectParameterHint([], 0);
                 });
-                
+
             });
-            
+
             // parameter type anotation tests, due to another bug #3670: first argument has ?
             xit("should list parameter Date,boolean type", function () {
                 var start = { line: 109, ch: 0 },
                     testPos = { line: 109, ch: 11 };
-                
+
                 testDoc.replaceRange("funTypeAn1(", start);
                 testEditor.setCursorPos(testPos);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -953,11 +953,11 @@ define(function (require, exports, module) {
                     hintsPresentExact(hintObj, ["funTypeAn1((a: bool, b: Date) -> {x, y}"]);
                 });
             });
-            
+
             // parameter type anotation tests, due to another bug #3670: first argument has ?
             xit("should list parameter function type and best guess for its argument/return types", function () {
                 var testPos = { line: 123, ch: 11 };
-                
+
                 testEditor.setCursorPos(testPos);
                 runs(function () {
                     expectParameterHint([{name: "f", type: "function(): number"}], 0);
@@ -967,7 +967,7 @@ define(function (require, exports, module) {
             // parameter type annotation tests
             it("should list parameter function type and best guess for function call/return types", function () {
                 var testPos = { line: 139, ch: 12 };
-                
+
                 testEditor.setCursorPos(testPos);
                 runs(function () {
                     expectParameterHint([{name: "f", type: "function(String, Number):String"}], 0);
@@ -976,7 +976,7 @@ define(function (require, exports, module) {
 
             it("should list array containing functions", function () {
                 var testPos = { line: 142, ch: 7 };
-                
+
                 testEditor.setCursorPos(testPos);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
@@ -987,7 +987,7 @@ define(function (require, exports, module) {
             it("should list function reference", function () {
                 var start = { line: 144, ch: 0 },
                     testPos = { line: 144, ch: 14 };
-                
+
                 testDoc.replaceRange("funArr.index1(", start);
                 testEditor.setCursorPos(testPos);
                 runs(function () {
@@ -999,7 +999,7 @@ define(function (require, exports, module) {
                 var start = { line: 49, ch: 0 },
                     middle = { line: 49, ch: 5 },
                     end = { line: 49, ch: 13 };
-                
+
                 testDoc.replaceRange("arr.m", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -1015,7 +1015,7 @@ define(function (require, exports, module) {
                 var start = { line: 49, ch: 0 },
                     middle = { line: 49, ch: 4 },
                     end = { line: 49, ch: 13 };
-                
+
                 testDoc.replaceRange("arr.", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -1031,7 +1031,7 @@ define(function (require, exports, module) {
                 var start = { line: 49, ch: 0 },
                     middle = { line: 49, ch: 5 },
                     end = { line: 49, ch: 7 };
-                
+
                 testDoc.replaceRange("arr.f", start, start);
                 testEditor.setCursorPos(middle);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -1045,7 +1045,7 @@ define(function (require, exports, module) {
 
             it("should jump to function", function () {
                 var start = { line: 43, ch: 0 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 7, ch: 13});
@@ -1054,25 +1054,25 @@ define(function (require, exports, module) {
 
             it("should jump to var", function () {
                 var start = { line: 44, ch: 10 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 3, ch: 6});
                 });
             });
-            
+
             it("should jump to closure, early defined var", function () {
                 var start = { line: 17, ch: 9 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 10, ch: 10});
                 });
             });
-            
+
             it("should jump to the definition in new module file", function () {
                 var start = { line: 40, ch: 22 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 4, ch: 13, file: "MyModule.js"}); //jump to another file
@@ -1081,7 +1081,7 @@ define(function (require, exports, module) {
 
             it("should jump to the method definition in .prototype", function () {
                 var start = { line: 59, ch: 8 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 53, ch: 21}); //jump to prototype.calc
@@ -1090,25 +1090,25 @@ define(function (require, exports, module) {
 
             it("should jump to parameter passed in the method", function () {
                 var start = { line: 63, ch: 20 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 61, ch: 27});
                 });
             });
-            
+
             it("should jump to parameter passed in anonymous method", function () {
                 var start = { line: 83, ch: 25 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 81, ch: 53});
                 });
             });
-            
+
             it("should jump to inner method", function () {
                 var start = { line: 96, ch: 32 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 94, ch: 17});
@@ -1117,18 +1117,18 @@ define(function (require, exports, module) {
 
             it("should jump to the actual function definition, and not the exports line", function () {
                 var start = { line: 159, ch: 22 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 11, ch: 14, file: "MyModule.js"}); //jump to another file
                 });
             });
-            
+
             it("should not hint function, variable, or param decls", function () {
                 var func = { line: 7, ch: 12 },
                     param = { line: 7, ch: 18 },
                     variable = { line: 10, ch: 10 };
-                
+
                 runs(function () {
                     testEditor.setCursorPos(func);
                     expectNoParameterHint();
@@ -1138,7 +1138,7 @@ define(function (require, exports, module) {
                     expectNoHints(JSCodeHints.jsHintProvider);
                 });
             });
-            
+
             it("should sort underscore names to the bottom", function () {
                 testEditor.setCursorPos({ line: 146, ch: 0 });
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -1299,13 +1299,13 @@ define(function (require, exports, module) {
                 PreferencesManager.set("jscodehints.noHintsOnDot", !!noHintsOnDot);
             });
         });
-        
+
         describe("JavaScript Code Hinting in a HTML file", function () {
-   
+
             beforeEach(function () {
                 setupTest(testHtmlPath, false);
             });
-            
+
             afterEach(function () {
                 tearDownTest();
             });
@@ -1313,7 +1313,7 @@ define(function (require, exports, module) {
             it("basic codehints in html file", function () {
                 var start = { line: 37, ch: 9 },
                     end   = { line: 37, ch: 13};
-                
+
                 testDoc.replaceRange("x100.", start);
                 testEditor.setCursorPos(end);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -1324,16 +1324,16 @@ define(function (require, exports, module) {
 
             it("function type hint in html file", function () {
                 var start = { line: 36, ch: 12 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     expectParameterHint([{name: "a", type: "Number"}], 0);
                 });
             });
-            
+
             it("should show function type code hint for function in script file inside html file", function () {
                 var start = { line: 22, ch: 17 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     expectParameterHint([{name: "a", type: "String"}, {name: "b", type: "Number"}], 0);
@@ -1342,7 +1342,7 @@ define(function (require, exports, module) {
 
             it("should show function type code hint for function in another script file inside html file", function () {
                 var start = { line: 23, ch: 17 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     expectParameterHint([{name: "paramE1", type: "D1"}, {name: "paramE2", type: "Number"}], 0);
@@ -1354,9 +1354,9 @@ define(function (require, exports, module) {
                     end          = { line: 27, ch: 13},
                     testPosStart = { line: 27, ch: 11},
                     testPosEnd   = { line: 27, ch: 21};
-                
+
                 testDoc.replaceRange("arr.m", start);
-                
+
                 testEditor.setCursorPos(end);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
                 runs(function () {
@@ -1367,19 +1367,19 @@ define(function (require, exports, module) {
                     expect(testDoc.getRange(testPosStart, testPosEnd)).toEqual("[\"my-key\"]");
                 });
             });
-            
+
             it("should jump to definition inside html file", function () {
                 var start = { line: 36, ch: 10 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 19, ch: 20});
                 });
             });
-            
+
             it("should jump to funtion definition to loaded file1", function () {
                 var start = { line: 22, ch: 15 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 33, ch: 13});
@@ -1388,32 +1388,32 @@ define(function (require, exports, module) {
 
             it("should jump to funtion definition to loaded file2", function () {
                 var start = { line: 23, ch: 15 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 6, ch: 13});
                 });
             });
-            
+
             it("should jump to property definition to loaded file1", function () {
                 var start = { line: 23, ch: 28 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 4, ch: 16});
                 });
             });
-            
+
             it("should jump to property definition to loaded file2", function () {
                 var start = { line: 23, ch: 18 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 3, ch: 6});
                 });
             });
-            
-            
+
+
         });
 
         describe("JavaScript Code Hinting without modules", function () {
@@ -1461,7 +1461,7 @@ define(function (require, exports, module) {
                     hintsPresentExact(hintObj, ["addMessage", "name", "privilegedMethod", "publicMethod1"]);
                 });
             });
-            
+
             // bug: wait for fix in tern
             xit("should read methods created in submodule", function () {
                 var start = { line: 19, ch: 15 };
@@ -1472,11 +1472,11 @@ define(function (require, exports, module) {
                     hintsPresentExact(hintObj, ["addMessage", "name", "privilegedMethod", "publicMethod1"]);
                 });
             });
-            
+
             it("should read properties created in parent module", function () {
                 var start        = { line: 30, ch: 8 },
                     testPos          = { line: 30, ch: 15};
-                
+
                 testDoc.replaceRange("parent.", start);
                 runs(function () {
                     testEditor.setCursorPos(testPos);
@@ -1489,7 +1489,7 @@ define(function (require, exports, module) {
             xit("should read methods created in submodule module", function () {
                 var start        = { line: 62, ch: 0 },
                     testPos          = { line: 62, ch: 13};
-                
+
                 testDoc.replaceRange("SearchEngine.", start);
                 runs(function () {
                     testEditor.setCursorPos(testPos);
@@ -1497,10 +1497,10 @@ define(function (require, exports, module) {
                     hintsPresentExact(hintObj, ["getYourLuckyNumber", "subSearch"]);
                 });
             });
-            
+
             it("should read methods created in parent module", function () {
                 var start        = { line: 78, ch: 41 };
-                
+
                 runs(function () {
                     testEditor.setCursorPos(start);
                     var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -1510,7 +1510,7 @@ define(function (require, exports, module) {
 
             it("should load module by file path from require", function () {
                 var start        = { line: 88, ch: 20 };
-                
+
                 runs(function () {
                     testEditor.setCursorPos(start);
                     var hintObj = expectHints(JSCodeHints.jsHintProvider);
@@ -1522,7 +1522,7 @@ define(function (require, exports, module) {
             xit("should read properties from exported module", function () {
                 var start        = { line: 96, ch: 0 },
                     testPos          = { line: 96, ch: 9};
-                
+
                 testDoc.replaceRange("hondaCar.", start);
                 runs(function () {
                     testEditor.setCursorPos(testPos);
@@ -1530,12 +1530,12 @@ define(function (require, exports, module) {
                     hintsPresentExact(hintObj, ["model", "name"]);
                 });
             });
-            
+
             // bug in test framework? can't run sequential jump, verification is wrong
             xit("should jump to a module, depending module", function () {
                 var start        = { line: 93, ch: 25 },
                     testPos      = { line: 8, ch: 35 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 5, ch: 23});
@@ -1662,7 +1662,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("regression tests", function () {
 
             it("should return true for valid identifier, false for invalid one", function () {
@@ -1670,19 +1670,19 @@ define(function (require, exports, module) {
                                       "KingGeorgeⅦ", "π", "ಠ_ಠ",
                                       "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
                 var invalidIdentifierList = [" break", "\tif", "\ntrade"];
-                
+
                 invalidIdentifierList.forEach(function (element) {
                     var result = HintUtils.maybeIdentifier(element);
                     expect(result).toBe(false);
                 });
-                
+
                 identifierList.forEach(function (element) {
                     var result = HintUtils.maybeIdentifier(element);
                     expect(result).toBe(true);
                 });
             });
         });
-        
+
         describe("JavaScript Code Hinting with test.html file", function () {
             var testFile = extensionPath + "/unittest-files/basic-test-files/test.html";
 
@@ -1692,7 +1692,7 @@ define(function (require, exports, module) {
 
             afterEach(function () {
                 tearDownTest();
-                
+
             });
 
             // FIXME (issue #3915)
@@ -1711,10 +1711,10 @@ define(function (require, exports, module) {
                     hintsPresentExact(hintObj, ["fun測试()"]);
                 });
             });
-            
+
             it("should jump to function name with double byte chars", function () {
                 var start        = { line: 16, ch: 9 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 12, ch: 20});
@@ -1731,17 +1731,17 @@ define(function (require, exports, module) {
                     hintsPresentExact(hintObj, ["frenchçProp()"]);
                 });
             });
-            
+
             it("should jump to function name with non ascii chars", function () {
                 var start        = { line: 16, ch: 12 };
-                
+
                 testEditor.setCursorPos(start);
                 runs(function () {
                     editorJumped({line: 12, ch: 20});
                 });
             });
         });
-        
+
         describe("Code Hinting Regression", function () {
             var testFile = extensionPath + "/unittest-files/module-test-files/china/cupFiller.js";
 

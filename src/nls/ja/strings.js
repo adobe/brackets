@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -194,7 +194,7 @@ define({
 	"FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
 	"FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
 	"FIND_IN_FILES_EXPAND_COLLAPSE": "Ctrl / Command キーをクリックしてすべて展開 / 折りたたみ",
-	"FIND_IN_FILES_INDEXING": "Indexing for Instant Search\u2026",
+	"FIND_IN_FILES_INDEXING": "クイック検索のインデックスを作成中\u2026",
 	"REPLACE_IN_FILES_ERRORS_TITLE": "置換エラー",
 	"REPLACE_IN_FILES_ERRORS": "次のファイルは検索の後で変更されているか、書き込むことができないため、変更されていません。",
 
@@ -252,11 +252,17 @@ define({
 	"SPLITVIEW_MULTIPANE_WARNING": "ファイルは他のペインで既に開かれています。{APP_NAME} ではまもなく複数のペインで同じファイルを開くことが可能になる予定です。それまでは、ファイルは既に開かれているペインで表示されます。<br /><br />(このメッセージは一度しか表示されません。)",
 
     /**
-     * Keyboard modifier names
+     * Keyboard modifiers and special key names
      */
 	"KEYBOARD_CTRL": "Ctrl",
 	"KEYBOARD_SHIFT": "Shift",
 	"KEYBOARD_SPACE": "Space",
+	"KEYBOARD_PAGE_UP": "上に移動",
+	"KEYBOARD_PAGE_DOWN": "下に移動",
+	"KEYBOARD_HOME": "ホーム",
+	"KEYBOARD_END": "終了",
+	"KEYBOARD_INSERT": "挿入",
+	"KEYBOARD_DELETE": "削除",
 
     /**
      * StatusBar strings
@@ -374,6 +380,9 @@ define({
 	"VIEW_MENU": "表示",
 	"CMD_HIDE_SIDEBAR": "サイドバーを隠す",
 	"CMD_SHOW_SIDEBAR": "サイドバーを表示する",
+	"CMD_TOGGLE_SIDEBAR": "サイドバーの切り替え",
+	"CMD_TOGGLE_PANELS": "パネルの表示切り替え",
+	"CMD_TOGGLE_PURE_CODE": "中断なし",
 	"CMD_INCREASE_FONT_SIZE": "フォントサイズを大きく",
 	"CMD_DECREASE_FONT_SIZE": "フォントサイズを小さく",
 	"CMD_RESTORE_FONT_SIZE": "フォントサイズを元に戻す",
@@ -455,7 +464,10 @@ define({
 	"BASEURL_ERROR_HASH_DISALLOWED": "ベース URL には、「{0}」のようなハッシュ記号は使用できません。",
 	"BASEURL_ERROR_INVALID_CHAR": "「{0}」のような特殊文字は、パーセントエンコーディングする必要があります。",
 	"BASEURL_ERROR_UNKNOWN_ERROR": "ベース URL の解析中に不明なエラーが発生しました",
+
+    // Strings for Pane.js
 	"EMPTY_VIEW_HEADER": "<em>このペインにフォーカスがあるときにファイルを開く</em>",
+	"FLIPVIEW_BTN_TOOLTIP": "{0} ペインにこのビューを反転",
 
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "現在のテーマ",
@@ -594,7 +606,7 @@ define({
 	"CMD_RESTART_NODE": "Node を再起動",
 	"CMD_SHOW_ERRORS_IN_STATUS_BAR": "ステータスバーにエラーを表示",
 	"CMD_OPEN_BRACKETS_SOURCE": "{APP_NAME} ソースを開く",
-    
+
 	"CREATING_LAUNCH_SCRIPT_TITLE": "{APP_NAME} コマンドラインショートカット",
 	"ERROR_CREATING_LAUNCH_SCRIPT": "コマンドラインショートカットのインストール中にエラーが発生しました。<a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>これらのトラブルシューティングの提案</a>をお試しください。<br/><br/>理由 : {0}",
 	"ERROR_CLTOOLS_RMFAILED": "既存の <code>/usr/local/bin/brackets</code> シンボリックリンクを削除できません。",
@@ -616,7 +628,7 @@ define({
 	"HEALTH_DATA_DO_TRACK": "{APP_NAME} の使用方法に関する情報を匿名で共有します",
 	"HEALTH_DATA_NOTIFICATION_MESSAGE": "{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>匿名の</strong>統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<br><br>お客様のデータを確認するには、または、データを共有しないように選択するには、<strong>ヘルプ／正常性レポート</strong>を選択してください。<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポートに関する詳細情報</a>",
 	"HEALTH_DATA_PREVIEW": "{APP_NAME} の正常性レポート",
-	"HEALTH_DATA_PREVIEW_INTRO": "<p>{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>匿名の</strong>統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポート</a>について、またこれが {APP_NAME} コミュニティにどのように役立ち、プライバシーの保護するかついて詳細をご確認ください。</p><p>有効にした場合に、次回のお客様の正常性レポートで送信されるデータのプレビューを以下に示します。<em></em></p>",
+	"HEALTH_DATA_PREVIEW_INTRO": "<p>{APP_NAME} 品質向上のため、アドビでは、お客様の {APP_NAME} の使用方法に関する限られた<strong>匿名の</strong>統計をアドビに定期的に送信しています。この情報は、機能を優先順位付けし、バグを発見し、操作性の問題を検出する際に役立ちます。<a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} の正常性レポート</a>について、またこれが {APP_NAME} コミュニティにどのように役立ち、プライバシーを保護するかついて詳細をご確認ください。</p><p>有効にした場合に、次回のお客様の正常性レポートで送信されるデータのプレビューを以下に示します。<em></em></p>",
 
     // extensions/default/InlineTimingFunctionEditor
 	"INLINE_TIMING_EDITOR_TIME": "時間",
@@ -658,7 +670,7 @@ define({
 	"EXPAND_ALL": "すべて展開",
 	"COLLAPSE_CURRENT": "現在のコードをたたむ",
 	"EXPAND_CURRENT": "現在のコードを展開",
-    
+
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "中括弧、角括弧、丸括弧を自動的に閉じるには true",
 	"DESCRIPTION_CLOSE_OTHERS_ABOVE": "「作業中ファイル」コンテキストメニューから「上をすべて閉じる」を削除するには false",
@@ -675,9 +687,11 @@ define({
 	"DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL": "「すべて折りたたむ」を適用するレベル数を制限します",
 	"DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE": "次の行数に達したら折りたたみ可能なセクションのアイコンを表示する",
 	"DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES": "ファイルまたはプロジェクトを閉じて再度開く場合に折りたたまれたセクションを記憶するには true",
+	"DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "エディター内の選択したテキストでコード折りたたみを有効にするには true",
 	"DESCRIPTION_ATTR_HINTS": "HTML 属性ヒントを有効化/無効化",
 	"DESCRIPTION_CSS_PROP_HINTS": "CSS/LESS/SCSS プロパティヒントを有効化/無効化",
 	"DESCRIPTION_JS_HINTS": "JavaScript のコードヒントを有効化/無効化",
+	"DESCRIPTION_JS_HINTS_TYPE_DETAILS": "JavaScript コードヒントのデータタイプの詳細を有効化/無効化",
 	"DESCRIPTION_PREF_HINTS": "環境設定のコードヒントを有効化/無効化",
 	"DESCRIPTION_SPECIAL_CHAR_HINTS": "HTML エンティティヒントを有効化/無効化",
 	"DESCRIPTION_SVG_HINTS": "SVG のコードヒントを有効化/無効化",
@@ -754,12 +768,15 @@ define({
 	"DESCRIPTION_USE_THEME_SCROLLBARS": "カスタムスクロールバーを許可するには true",
 	"DESCRIPTION_LINTING_COLLAPSED": "構文チェックパネルを閉じるには true",
 	"DESCRIPTION_FONT_FAMILY": "フォントファミリーを変更",
-	"DESCRIPTION_FONT_SIZE": "Change font size; e.g. 13px",
-	"DESCRIPTION_FIND_IN_FILES_NODE": "true to enable node based search",
-	"DESCRIPTION_FIND_IN_FILES_INSTANT": "true to enable instant search",
+	"DESCRIPTION_FONT_SIZE": "フォントサイズを変更 (例 : 13 px)",
+	"DESCRIPTION_FIND_IN_FILES_NODE": "ノードベースの検索を有効にするには true",
+	"DESCRIPTION_FIND_IN_FILES_INSTANT": "クイック検索を有効にするには true",
 	"DESCRIPTION_FONT_SMOOTHING": "Mac のみ : サブピクセルアンチエイリアスを有効にするには subpixel-antialiased、グレースケールアンチエイリアスの場合は antialiased",
 	"DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW": "分割ビューで環境設定ファイルを開けないようにするには false",
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "左側/上部のペインでユーザーの環境設定ファイルを開くには false",
+	"DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED": "ペインからの最後のファイルがペインのヘッダーの閉じるボタンにより閉じられた後、ペインを折りたたむには true",
+	"DESCRIPTION_SHOW_PANE_HEADER_BUTTONS": "ヘッダーの閉じるボタンと反転表示ボタンを表示するタイミングを切り替えます。",
 	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * これは、{APP_NAME} で環境設定がサポートされた\n読み取り専用ファイルです。\n * このファイルは、他のペインで開かれた環境設定ファイル brackets.json を\n * 変更する際の参照資料として使用します。\n * {APP_NAME} 内で環境設定を使用する方法については、Web ページ\n *  (https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences) を参照してください。\n */",
-	"DEFAULT_PREFERENCES_JSON_DEFAULT": "デフォルト"
+	"DEFAULT_PREFERENCES_JSON_DEFAULT": "デフォルト",
+	"DESCRIPTION_PURE_CODING_SURFACE": "{APP_NAME} でコードのみモードを有効にし、その他すべての UI エレメントを非表示にするには true"
 });

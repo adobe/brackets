@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -29,7 +29,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _            = require("thirdparty/lodash"),
         StringUtils  = require("utils/StringUtils");
 
@@ -41,15 +41,15 @@ define(function (require, exports, module) {
      * @type {boolean} enabled
      */
     var enabled = brackets && !!brackets.app.getElapsedMilliseconds;
-    
+
     /**
      * Peformance data is stored in this hash object. The key is the name of the
-     * test (passed to markStart/addMeasurement), and the value is the time, in 
+     * test (passed to markStart/addMeasurement), and the value is the time, in
      * milliseconds, that it took to run the test. If multiple runs of the same test
      * are made, the value is an Array with each run stored as an entry in the Array.
      */
     var perfData = {};
-    
+
     /**
      * Active tests. This is a hash of all tests that have had markStart() called,
      * but have not yet had addMeasurement() called.
@@ -62,14 +62,14 @@ define(function (require, exports, module) {
      * from this list using finalizeMeasurement()
      */
     var updatableTests = {};
-    
+
     /**
      * @private
      * Keeps the track of measurements sequence number for re-entrant sequences with
      * the same name currently running. Entries are created and deleted as needed.
      */
     var _reentTests = {};
-    
+
     /**
      * @private
      * A unique key to log performance data
@@ -87,7 +87,7 @@ define(function (require, exports, module) {
             this.id = (reent) ? "[reent " + this.reent + "] " + name : name;
         }
     }
-    
+
     /**
      * Override toString() to allow using PerfMeasurement as an array key without
      * explicit conversion.
@@ -95,7 +95,7 @@ define(function (require, exports, module) {
     PerfMeasurement.prototype.toString = function () {
         return this.name;
     };
-    
+
     /**
      * Create a new PerfMeasurement key. Adds itself to the module export.
      * Can be accessed on the module, e.g. PerfUtils.MY_PERF_KEY.
@@ -106,10 +106,10 @@ define(function (require, exports, module) {
     function createPerfMeasurement(id, name) {
         var pm = new PerfMeasurement(id, name);
         exports[id] = pm;
-        
+
         return pm;
     }
-    
+
     /**
      * @private
      * Generates PerfMeasurements based on the name or array of names.
@@ -131,7 +131,7 @@ define(function (require, exports, module) {
         }
         return id;
     }
-    
+
     /**
      * @private
      * Helper function for markStart()
@@ -143,17 +143,17 @@ define(function (require, exports, module) {
         if (activeTests[id.id]) {
             console.error("Recursive tests with the same id are not supported. Timer id: " + id.id);
         }
-        
+
         activeTests[id.id] = { startTime: time };
     }
-    
+
     /**
      * Start a new named timer. The name should be as descriptive as possible, since
-     * this name will appear as an entry in the performance report. 
+     * this name will appear as an entry in the performance report.
      * For example: "Open file: /Users/brackets/src/ProjectManager.js"
      *
      * Multiple timers can be opened simultaneously.
-     * 
+     *
      * Returns an opaque set of timer ids which can be stored and used for calling
      * addMeasurement(). Since name is often creating via concatenating strings this
      * return value allows clients to construct the name once.
@@ -175,7 +175,7 @@ define(function (require, exports, module) {
         }
         return id.length > 1 ? id : id[0];
     }
-    
+
     /**
      * Stop a timer and add its measurements to the performance data.
      *
@@ -191,18 +191,18 @@ define(function (require, exports, module) {
         if (!enabled) {
             return;
         }
-        
+
         if (!(id instanceof PerfMeasurement)) {
             id = new PerfMeasurement(id, id);
         }
 
         var elapsedTime = brackets.app.getElapsedMilliseconds();
-        
+
         if (activeTests[id.id]) {
             elapsedTime -= activeTests[id.id].startTime;
             delete activeTests[id.id];
         }
-        
+
         if (perfData[id]) {
             // We have existing data, add to it
             if (Array.isArray(perfData[id])) {
@@ -214,7 +214,7 @@ define(function (require, exports, module) {
         } else {
             perfData[id] = elapsedTime;
         }
-        
+
         if (id.reent !== undefined) {
             if (_reentTests[id] === 0) {
                 delete _reentTests[id];
@@ -250,7 +250,7 @@ define(function (require, exports, module) {
         if (updatableTests[id.id]) {
             // update existing measurement
             elapsedTime -= updatableTests[id].startTime;
-            
+
             // update
             if (perfData[id] && Array.isArray(perfData[id])) {
                 // We have existing data and it's an array, so update the last entry
@@ -259,7 +259,7 @@ define(function (require, exports, module) {
                 // No current data or a single entry, so set/update it
                 perfData[id] = elapsedTime;
             }
-            
+
         } else {
             // not yet in updatable list
 
@@ -267,7 +267,7 @@ define(function (require, exports, module) {
                 // save startTime in updatable list before addMeasurement() deletes it
                 updatableTests[id.id] = { startTime: activeTests[id.id].startTime };
             }
-            
+
             // let addMeasurement() handle the initial case
             addMeasurement(id);
         }
@@ -275,7 +275,7 @@ define(function (require, exports, module) {
 
     /**
      * Remove timer from lists so next action starts a new measurement
-     * 
+     *
      * updateMeasurement may not have been called, so timer may be
      * in either or neither list, but should never be in both.
      *
@@ -285,12 +285,12 @@ define(function (require, exports, module) {
         if (activeTests[id.id]) {
             delete activeTests[id.id];
         }
-        
+
         if (updatableTests[id.id]) {
             delete updatableTests[id.id];
         }
     }
-    
+
     /**
      * Returns whether a timer is active or not, where "active" means that
      * timer has been started with addMark(), but has not been added to perfdata
@@ -351,7 +351,7 @@ define(function (require, exports, module) {
 
         return result;
     }
-    
+
     /**
      * Returns the measured value for the given measurement name.
      * @param {Object} id The measurement to retreive.
@@ -360,10 +360,10 @@ define(function (require, exports, module) {
         if (!id) {
             return perfData;
         }
-        
+
         return perfData[id];
     }
-    
+
     /**
      * Returns the Performance metrics to be logged for health report
      * @return {Object} An object with the health data logs to be sent
@@ -393,16 +393,16 @@ define(function (require, exports, module) {
         var keys = Object.keys(perfData).filter(function (key) {
             return regExp.test(key);
         });
-        
+
         var datas = [];
-        
+
         keys.forEach(function (key) {
             datas.push(perfData[key]);
         });
-        
+
         return datas;
     }
-    
+
     /**
      * Clear all logs including metric data and active tests.
      */
@@ -412,11 +412,11 @@ define(function (require, exports, module) {
         updatableTests = {};
         _reentTests = {};
     }
-    
+
     // create performance measurement constants
     createPerfMeasurement("INLINE_WIDGET_OPEN", "Open inline editor or docs");
     createPerfMeasurement("INLINE_WIDGET_CLOSE", "Close inline editor or docs");
-    
+
     // extensions may create additional measurement constants during their lifecycle
 
     exports.addMeasurement          = addMeasurement;

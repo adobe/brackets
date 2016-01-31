@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
@@ -46,7 +46,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns a base url for current project. 
+     * Returns a base url for current project.
      *
      * @return {string}
      * Base url for current project.
@@ -127,7 +127,7 @@ define(function (require, exports, module) {
             // Use base url to translate to local file path.
             // Need to use encoded project path because it's decoded below.
             path = url.replace(baseUrl, encodeURI(this._root));
-        
+
             return decodeURI(path);
         }
 
@@ -148,7 +148,7 @@ define(function (require, exports, module) {
         // Base implementation always resolves
         return $.Deferred().resolve().promise();
     };
-    
+
     /**
      * Determines if this server can serve local file. LiveDevServerManager
      * calls this method when determining if a server can serve a file.
@@ -171,10 +171,10 @@ define(function (require, exports, module) {
         if (!liveDocument) {
             return;
         }
-        
+
         // use the project relative path as a key to lookup requests
         var key = this._documentKey(liveDocument.doc.file.fullPath);
-        
+
         this._setDocInfo(liveDocument);
         this._liveDocuments[key] = liveDocument;
     };
@@ -187,9 +187,9 @@ define(function (require, exports, module) {
         if (!liveDocument) {
             return;
         }
-        
+
         var key = this._liveDocuments[this._documentKey(liveDocument.doc.file.fullPath)];
-        
+
         if (key) {
             delete this._liveDocuments[key];
         }

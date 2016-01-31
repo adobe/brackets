@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -53,9 +53,9 @@ define(function (require, exports, module) {
     function TagHints() {
         this.exclusion = null;
     }
-    
+
     /**
-     * Check whether the exclusion is still the same as text after the cursor. 
+     * Check whether the exclusion is still the same as text after the cursor.
      * If not, reset it to null.
      */
     TagHints.prototype.updateExclusion = function () {
@@ -67,27 +67,27 @@ define(function (require, exports, module) {
             }
         }
     };
-    
+
     /**
      * Determines whether HTML tag hints are available in the current editor
      * context.
-     * 
-     * @param {Editor} editor 
+     *
+     * @param {Editor} editor
      * A non-null editor object for the active window.
      *
-     * @param {string} implicitChar 
+     * @param {string} implicitChar
      * Either null, if the hinting request was explicit, or a single character
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {boolean} 
+     * @return {boolean}
      * Determines whether the current provider is able to provide hints for
      * the given editor context and, in case implicitChar is non- null,
      * whether it is appropriate to do so.
      */
     TagHints.prototype.hasHints = function (editor, implicitChar) {
         var pos = editor.getCursorPos();
-        
+
         this.tagInfo = HTMLUtils.getTagInfo(editor, pos);
         this.editor = editor;
         if (implicitChar === null) {
@@ -110,10 +110,10 @@ define(function (require, exports, module) {
             return false;
         }
     };
-       
+
     /**
      * Returns a list of availble HTML tag hints if possible for the current
-     * editor context. 
+     * editor context.
      *
      * @return {jQuery.Deferred|{
      *              hints: Array.<string|jQueryObject>,
@@ -144,7 +144,7 @@ define(function (require, exports, module) {
                         return key;
                     }
                 }).sort();
-                
+
                 return {
                     hints: result,
                     match: query,
@@ -153,17 +153,17 @@ define(function (require, exports, module) {
                 };
             }
         }
-        
+
         return null;
     };
-    
+
     /**
-     * Inserts a given HTML tag hint into the current editor context. 
-     * 
-     * @param {string} hint 
+     * Inserts a given HTML tag hint into the current editor context.
+     *
+     * @param {string} hint
      * The hint to be inserted into the editor context.
      *
-     * @return {boolean} 
+     * @return {boolean}
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
             }
             this.exclusion = null;
         }
-        
+
         return false;
     };
 
@@ -222,30 +222,30 @@ define(function (require, exports, module) {
 
     /**
      * Helper function that determines the possible value hints for a given html tag/attribute name pair
-     * 
+     *
      * @param {{queryStr: string}} query
      * The current query
      *
-     * @param {string} tagName 
+     * @param {string} tagName
      * HTML tag name
      *
-     * @param {string} attrName 
+     * @param {string} attrName
      * HTML attribute name
      *
      * @return {!Array.<string>|$.Deferred}
      * The (possibly deferred) hints.
      */
     AttrHints.prototype._getValueHintsForAttr = function (query, tagName, attrName) {
-        // We look up attribute values with tagName plus a slash and attrName first.  
-        // If the lookup fails, then we fall back to look up with attrName only. Most 
-        // of the attributes in JSON are using attribute name only as their properties, 
-        // but in some cases like "type" attribute, we have different properties like 
+        // We look up attribute values with tagName plus a slash and attrName first.
+        // If the lookup fails, then we fall back to look up with attrName only. Most
+        // of the attributes in JSON are using attribute name only as their properties,
+        // but in some cases like "type" attribute, we have different properties like
         // "script/type", "link/type" and "button/type".
         var hints = [];
-        
+
         var tagPlusAttr = tagName + "/" + attrName,
             attrInfo = attributes[tagPlusAttr] || attributes[attrName];
-        
+
         if (attrInfo) {
             if (attrInfo.type === "boolean") {
                 hints = ["false", "true"];
@@ -253,12 +253,12 @@ define(function (require, exports, module) {
                 hints = attrInfo.attribOption;
             }
         }
-        
+
         return hints;
     };
-    
+
     /**
-     * Check whether the exclusion is still the same as text after the cursor. 
+     * Check whether the exclusion is still the same as text after the cursor.
      * If not, reset it to null.
      *
      * @param {boolean} attrNameOnly
@@ -270,7 +270,7 @@ define(function (require, exports, module) {
             var tokenType = this.tagInfo.position.tokenType,
                 offset = this.tagInfo.position.offset,
                 textAfterCursor;
-            
+
             if (tokenType === HTMLUtils.ATTR_NAME) {
                 textAfterCursor = this.tagInfo.attr.name.substr(offset);
             } else if (!attrNameOnly && tokenType === HTMLUtils.ATTR_VALUE) {
@@ -281,20 +281,20 @@ define(function (require, exports, module) {
             }
         }
     };
-    
+
     /**
-     * Determines whether HTML attribute hints are available in the current 
+     * Determines whether HTML attribute hints are available in the current
      * editor context.
-     * 
-     * @param {Editor} editor 
+     *
+     * @param {Editor} editor
      * A non-null editor object for the active window.
      *
-     * @param {string} implicitChar 
+     * @param {string} implicitChar
      * Either null, if the hinting request was explicit, or a single character
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {boolean} 
+     * @return {boolean}
      * Determines whether the current provider is able to provide hints for
      * the given editor context and, in case implicitChar is non-null,
      * whether it is appropriate to do so.
@@ -304,14 +304,14 @@ define(function (require, exports, module) {
             tokenType,
             offset,
             query;
-        
+
         this.editor = editor;
         this.tagInfo = HTMLUtils.getTagInfo(editor, pos);
         tokenType = this.tagInfo.position.tokenType;
         offset = this.tagInfo.position.offset;
         if (implicitChar === null) {
             query = null;
-             
+
             if (tokenType === HTMLUtils.ATTR_NAME) {
                 if (offset >= 0) {
                     query = this.tagInfo.attr.name.slice(0, offset);
@@ -320,12 +320,12 @@ define(function (require, exports, module) {
                 if (this.tagInfo.position.offset >= 0) {
                     query = this.tagInfo.attr.value.slice(0, offset);
                 } else {
-                    // We get negative offset for a quoted attribute value with some leading whitespaces 
+                    // We get negative offset for a quoted attribute value with some leading whitespaces
                     // as in <a rel= "rtl" where the cursor is just to the right of the "=".
-                    // So just set the queryStr to an empty string. 
+                    // So just set the queryStr to an empty string.
                     query = "";
                 }
-                
+
                 // If we're at an attribute value, check if it's an attribute name that has hintable values.
                 if (this.tagInfo.attr.name) {
                     var hints = this._getValueHintsForAttr({queryStr: query},
@@ -354,7 +354,7 @@ define(function (require, exports, module) {
                     this.updateExclusion(false);
                 }
             }
-            
+
             return query !== null;
         } else {
             if (implicitChar === " " || implicitChar === "'" ||
@@ -367,10 +367,10 @@ define(function (require, exports, module) {
             return false;
         }
     };
-    
+
     /**
-     * Returns a list of availble HTML attribute hints if possible for the 
-     * current editor context. 
+     * Returns a list of availble HTML attribute hints if possible for the
+     * current editor context.
      *
      * @return {jQuery.Deferred|{
      *              hints: Array.<string|jQueryObject>,
@@ -393,13 +393,13 @@ define(function (require, exports, module) {
             tokenType,
             offset,
             result = [];
- 
+
         this.tagInfo = HTMLUtils.getTagInfo(this.editor, cursor);
         tokenType = this.tagInfo.position.tokenType;
         offset = this.tagInfo.position.offset;
         if (tokenType === HTMLUtils.ATTR_NAME || tokenType === HTMLUtils.ATTR_VALUE) {
             query.tag = this.tagInfo.tagName;
-            
+
             if (offset >= 0) {
                 if (tokenType === HTMLUtils.ATTR_NAME) {
                     query.queryStr = this.tagInfo.attr.name.slice(0, offset);
@@ -409,9 +409,9 @@ define(function (require, exports, module) {
                 }
                 this.updateExclusion(false);
             } else if (tokenType === HTMLUtils.ATTR_VALUE) {
-                // We get negative offset for a quoted attribute value with some leading whitespaces 
+                // We get negative offset for a quoted attribute value with some leading whitespaces
                 // as in <a rel= "rtl" where the cursor is just to the right of the "=".
-                // So just set the queryStr to an empty string. 
+                // So just set the queryStr to an empty string.
                 query.queryStr = "";
                 query.attrName = this.tagInfo.attr.name;
             }
@@ -434,7 +434,7 @@ define(function (require, exports, module) {
                     return $.inArray(attr, query.usedAttr) < 0;
                 });
             }
-            
+
             if (hints instanceof Array && hints.length) {
                 console.assert(!result.length);
                 result = $.map(hints, function (item) {
@@ -464,16 +464,16 @@ define(function (require, exports, module) {
             }
         }
 
-        
+
     };
-    
+
     /**
      * Inserts a given HTML attribute hint into the current editor context.
-     * 
-     * @param {string} hint 
+     *
+     * @param {string} hint
      * The hint to be inserted into the editor context.
-     * 
-     * @return {boolean} 
+     *
+     * @return {boolean}
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
@@ -512,13 +512,13 @@ define(function (require, exports, module) {
             if (CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
                 charCount = offset;
                 // Set exclusion to null only after attribute value insertion,
-                // not after attribute name insertion since we need to keep it 
+                // not after attribute name insertion since we need to keep it
                 // for attribute value insertion.
                 this.exclusion = null;
             } else {
                 charCount = this.tagInfo.attr.value.length;
             }
-            
+
             if (!this.tagInfo.attr.hasEndQuote) {
                 endQuote = this.tagInfo.attr.quoteChar;
                 if (endQuote) {
@@ -553,7 +553,7 @@ define(function (require, exports, module) {
             // Move the cursor to the right of the existing end quote after value insertion.
             this.editor.setCursorPos(start.line, start.ch + completion.length + 1);
         }
-        
+
         return false;
     };
 
@@ -561,13 +561,13 @@ define(function (require, exports, module) {
         // Parse JSON files
         tags = JSON.parse(HTMLTags);
         attributes = JSON.parse(HTMLAttributes);
-        
+
         // Register code hint providers
         var tagHints = new TagHints();
         var attrHints = new AttrHints();
         CodeHintManager.registerHintProvider(tagHints, ["html"], 0);
         CodeHintManager.registerHintProvider(attrHints, ["html"], 0);
-    
+
         // For unit testing
         exports.tagHintProvider = tagHints;
         exports.attrHintProvider = attrHints;

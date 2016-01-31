@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2015 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -26,18 +26,18 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependencies.
     var TokenUtils  = require("utils/TokenUtils");
-    
+
     // Enums of token types.
     var TOKEN_TAG    = 1,
         TOKEN_ATTR   = 2,
         TOKEN_VALUE  = 3;
-    
+
     // Regex to find whitespace.
     var regexWhitespace = /^\s+$/;
-    
+
     /**
      * Returns an object that represents all its params.
      *
@@ -61,7 +61,7 @@ define(function (require, exports, module) {
             shouldReplace: shouldReplace || false
         };
     }
-    
+
     /**
      * Return the tagName and a list of attributes used by the tag.
      *
@@ -71,10 +71,10 @@ define(function (require, exports, module) {
      */
     function _getTagAttributes(editor, constPos) {
         var pos, ctx, ctxPrev, ctxNext, ctxTemp, tagName, exclusionList = [], shouldReplace;
-        
+
         pos = $.extend({}, constPos);
         ctx = TokenUtils.getInitialContext(editor._codeMirror, pos);
-        
+
         // Stop if the cursor is before = or an attribute value.
         ctxTemp = $.extend(true, {}, ctx);
         if (ctxTemp.token.type === null && regexWhitespace.test(ctxTemp.token.string)) {
@@ -86,7 +86,7 @@ define(function (require, exports, module) {
                 TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctxTemp);
             }
         }
-        
+
         // Incase an attribute is followed by an equal sign, shouldReplace will be used
         // to prevent from appending ="" again.
         if (ctxTemp.token.type === "attribute") {
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         // Look-Back and get the attributes and tag name.
         pos = $.extend({}, constPos);
         ctxPrev = TokenUtils.getInitialContext(editor._codeMirror, pos);
@@ -107,12 +107,12 @@ define(function (require, exports, module) {
                     return null;
                 }
             }
-            
+
             // Get attributes.
             if (ctxPrev.token.type === "attribute") {
                 exclusionList.push(ctxPrev.token.string);
             }
-            
+
             // Get tag.
             if (ctxPrev.token.type === "tag") {
                 tagName = ctxPrev.token.string;
@@ -124,7 +124,7 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         // Look-Ahead and find rest of the attributes.
         pos = $.extend({}, constPos);
         ctxNext = TokenUtils.getInitialContext(editor._codeMirror, pos);
@@ -132,7 +132,7 @@ define(function (require, exports, module) {
             if (ctxNext.token.type === "string" && ctxNext.token.string === "\"") {
                 return null;
             }
-            
+
             // Stop on closing bracket of its own tag or opening bracket of next tag.
             if (ctxNext.token.type === "tag bracket" &&
                     (ctxNext.token.string.indexOf(">") >= 0 || ctxNext.token.string === "<")) {
@@ -148,7 +148,7 @@ define(function (require, exports, module) {
             shouldReplace: shouldReplace
         };
     }
-    
+
     /**
      * Return the tag name, attribute name and a list of options used by the attribute
      *
@@ -158,21 +158,21 @@ define(function (require, exports, module) {
      */
     function _getTagAttributeValue(editor, pos) {
         var ctx, tagName, attrName, exclusionList = [], offset, textBefore, textAfter;
-        
+
         ctx = TokenUtils.getInitialContext(editor._codeMirror, pos);
         offset = TokenUtils.offsetInToken(ctx);
-        
+
         // To support multiple options on the same attribute, we have
         // to break the value, these values will not be available then.
         if (ctx.token.type === "string" && /\s+/.test(ctx.token.string)) {
             textBefore = ctx.token.string.substr(1, offset);
             textAfter = ctx.token.string.substr(offset);
-            
+
             // Remove quote from end of the string.
             if (/^['"]$/.test(ctx.token.string.substr(-1, 1))) {
                 textAfter = textAfter.substr(0, textAfter.length - 1);
             }
-            
+
             // Split the text before and after the offset, skipping the current query.
             exclusionList = exclusionList.concat(textBefore.split(/\s+/).slice(0, -1));
             exclusionList = exclusionList.concat(textAfter.split(/\s+/));
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
                 }
             });
         }
-        
+
         // Look-back and find tag and attributes.
         while (TokenUtils.movePrevToken(ctx)) {
             if (ctx.token.type === "tag bracket") {
@@ -197,12 +197,12 @@ define(function (require, exports, module) {
                     break;
                 }
             }
-            
+
             // Get the first previous attribute.
             if (ctx.token.type === "attribute" && !attrName) {
                 attrName = ctx.token.string;
             }
-            
+
             // Stop if we get a bracket after tag.
             if (ctx.token.type === "tag") {
                 tagName = ctx.token.string;
@@ -214,14 +214,14 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         return {
             tagName: tagName,
             attrName: attrName,
             exclusionList: exclusionList
         };
     }
-    
+
     /**
      * Return the tag info at a given position in the active editor
      *
@@ -231,10 +231,10 @@ define(function (require, exports, module) {
      */
     function getTagInfo(editor, pos) {
         var ctx, offset, tagAttrs, tagAttrValue;
-        
+
         ctx = TokenUtils.getInitialContext(editor._codeMirror, pos);
         offset = TokenUtils.offsetInToken(ctx);
-        
+
         if (ctx.token && ctx.token.type === "tag bracket" && ctx.token.string === "<") {
             // Returns tagInfo when an angle bracket is created.
             return _createTagInfo(ctx.token, TOKEN_TAG);
@@ -263,7 +263,7 @@ define(function (require, exports, module) {
                     ctx.token.end === pos.ch) {
                 return _createTagInfo();
             }
-            
+
             tagAttrValue = _getTagAttributeValue(editor, pos);
             if (tagAttrValue && tagAttrValue.tagName && tagAttrValue.attrName) {
                 return _createTagInfo(ctx.token, TOKEN_VALUE, offset, tagAttrValue.exclusionList, tagAttrValue.tagName, tagAttrValue.attrName);
@@ -271,10 +271,10 @@ define(function (require, exports, module) {
         }
         return _createTagInfo();
     }
-    
+
     /**
      * Return the query text of a value.
-     * 
+     *
      * @param {!{token: Object, tokenType: number, offset: number, exclusionList: Array.<string>, tagName: string, attrName: string, shouldReplace: boolean}}
      * @return {string}  The query to use to matching hints.
      */
@@ -285,11 +285,11 @@ define(function (require, exports, module) {
         }
         // Remove quotation marks in query.
         query = tagInfo.token.string.substr(1, tagInfo.offset - 1);
-        
+
         // Get the last option to use as a query to support multiple options.
         return query.split(/\s+/).slice(-1)[0];
     }
-    
+
     // Expose public API.
     exports.getTagInfo      = getTagInfo;
     exports.getValueQuery   = getValueQuery;

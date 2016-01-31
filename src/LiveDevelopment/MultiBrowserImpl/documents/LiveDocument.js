@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -27,12 +27,12 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var EditorManager       = require("editor/EditorManager"),
         EventDispatcher     = require("utils/EventDispatcher"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         _                   = require("thirdparty/lodash");
-        
+
     /**
      * @const
      * CSS class to use for live preview errors.
@@ -65,7 +65,7 @@ define(function (require, exports, module) {
         this.urlResolver = urlResolver;
         this.doc = doc;
         this.roots = roots || [];
-        
+
         this._onActiveEditorChange = this._onActiveEditorChange.bind(this);
         this._onCursorActivity = this._onCursorActivity.bind(this);
         this._onHighlightPrefChange = this._onHighlightPrefChange.bind(this);
@@ -74,7 +74,7 @@ define(function (require, exports, module) {
 
         PreferencesManager.stateManager.getPreference("livedev.highlight")
             .on("change", this._onHighlightPrefChange);
-       
+
         // Redraw highlights when window gets focus. This ensures that the highlights
         // will be in sync with any DOM changes that may have occurred.
         $(window).focus(this._onHighlightPrefChange);
@@ -84,30 +84,30 @@ define(function (require, exports, module) {
             this._attachToEditor(editor);
         }
     }
-    
+
     EventDispatcher.makeEventDispatcher(LiveDocument.prototype);
-    
+
     /**
      * Closes the live document, terminating its connection to the browser.
      */
     LiveDocument.prototype.close = function () {
-        
+
         this._clearErrorDisplay();
         this._detachFromEditor();
         EditorManager.off("activeEditorChange", this._onActiveEditorChange);
         PreferencesManager.stateManager.getPreference("livedev.highlight")
             .off("change", this._onHighlightPrefChange);
     };
-    
+
     /**
      * Returns true if document edits appear live in the connected browser.
      * Should be overridden by subclasses.
-     * @return {boolean} 
+     * @return {boolean}
      */
     LiveDocument.prototype.isLiveEditingEnabled = function () {
         return false;
     };
-    
+
     /**
      * Called to turn instrumentation on or off for this file. Triggered by being
      * requested from the browser. Should be implemented by subclasses if instrumentation
@@ -119,7 +119,7 @@ define(function (require, exports, module) {
     LiveDocument.prototype.setInstrumentationEnabled = function (enabled) {
         // Does nothing in base class.
     };
-    
+
     /**
      * Returns the instrumented version of the file. By default, just returns
      * the document text. Should be overridden by subclasses for cases if instrumentation
@@ -131,7 +131,7 @@ define(function (require, exports, module) {
             body: this.doc.getText()
         };
     };
-    
+
     /**
      * @private
      * Handles changes to the "Live Highlight" preference, switching it on/off in the browser as appropriate.
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
             this.hideHighlight();
         }
     };
-    
+
     /**
      * @private
      * Handles when the active editor changes, attaching to the new editor if it's for the current document.
@@ -152,16 +152,16 @@ define(function (require, exports, module) {
      * @param {?Editor} oldActive
      */
     LiveDocument.prototype._onActiveEditorChange = function (event, newActive, oldActive) {
- 
+
         //FIXME: #7 prevents the page to be reloaded when editing JS files.
         //       Temporarily disabling this code to make JS editing work.
 //      this._detachFromEditor();
-        
+
         if (newActive && newActive.document === this.doc) {
             this._attachToEditor(newActive);
         }
     };
-    
+
     /**
      * @private
      * Attaches to an editor for our associated document when it becomes active.
@@ -169,13 +169,13 @@ define(function (require, exports, module) {
      */
     LiveDocument.prototype._attachToEditor = function (editor) {
         this.editor = editor;
-        
+
         if (this.editor) {
             this.editor.on("cursorActivity", this._onCursorActivity);
             this.updateHighlight();
         }
     };
-    
+
     /**
      * @private
      * Detaches from the current editor.
@@ -200,7 +200,7 @@ define(function (require, exports, module) {
         }
         this.updateHighlight();
     };
-    
+
     /**
      * @private
      * Update errors shown by the live document in the editor. Should be called by subclasses
@@ -212,7 +212,7 @@ define(function (require, exports, module) {
             endLine,
             i,
             lineHandle;
-        
+
         if (!this.editor) {
             return;
         }
@@ -221,23 +221,23 @@ define(function (require, exports, module) {
         this.editor._codeMirror.operation(function () {
             // Remove existing errors before marking new ones
             self._clearErrorDisplay();
-            
+
             self._errorLineHandles = self._errorLineHandles || [];
-    
+
             self.errors.forEach(function (error) {
                 startLine = error.startPos.line;
                 endLine = error.endPos.line;
-                
+
                 for (i = startLine; i < endLine + 1; i++) {
                     lineHandle = self.editor._codeMirror.addLineClass(i, "wrap", SYNC_ERROR_CLASS);
                     self._errorLineHandles.push(lineHandle);
                 }
             });
         });
-        
+
         this.trigger("errorStatusChanged", !!this.errors.length);
     };
-    
+
     /**
      * @private
      * Clears the errors shown in the attached editor.
@@ -245,27 +245,27 @@ define(function (require, exports, module) {
     LiveDocument.prototype._clearErrorDisplay = function () {
         var self = this,
             lineHandle;
-        
+
         if (!this.editor ||
                 !this._errorLineHandles ||
                 !this._errorLineHandles.length) {
             return;
         }
-        
+
         this.editor._codeMirror.operation(function () {
             while (true) {
                 // Iterate over all lines that were previously marked with an error
                 lineHandle = self._errorLineHandles.pop();
-                
+
                 if (!lineHandle) {
                     break;
                 }
-                
+
                 self.editor._codeMirror.removeLineClass(lineHandle, "wrap", SYNC_ERROR_CLASS);
             }
         });
     };
-    
+
     /**
      * Returns true if we should be highlighting.
      * @return {boolean}
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
     LiveDocument.prototype.isHighlightEnabled = function () {
         return PreferencesManager.getViewState("livedev.highlight");
     };
-    
+
     /**
      * Called when the highlight in the browser should be updated because the user has
      * changed the selection. Does nothing in base class, should be implemented by subclasses
@@ -282,7 +282,7 @@ define(function (require, exports, module) {
     LiveDocument.prototype.updateHighlight = function () {
         // Does nothing in base class
     };
-    
+
     /**
      * Hides the current highlight in the browser.
      * @param {boolean=} temporary If true, this isn't a change of state - we're just about
@@ -307,8 +307,8 @@ define(function (require, exports, module) {
         this._lastHighlight = name;
         this.protocol.evaluate("_LD.highlightRule(" + JSON.stringify(name) + ")");
     };
-    
-    /** 
+
+    /**
      * Highlight all nodes with 'data-brackets-id' value
      * that matches id, or if id is an array, matches any of the given ids.
      * Should be called by subclass implementations of
@@ -329,7 +329,7 @@ define(function (require, exports, module) {
         });
         this.highlightRule(selector);
     };
-    
+
     /**
      * Redraw active highlights.
      */
@@ -338,6 +338,6 @@ define(function (require, exports, module) {
             this.protocol.evaluate("_LD.redrawHighlights()");
         }
     };
-    
+
     module.exports = LiveDocument;
 });
