@@ -421,7 +421,7 @@ define(function (require, exports, module) {
             lastWheelDelta = 0;
         function windowsScrollFix(e) {
             winCancelWheelEvent = !winCancelWheelEvent;
-            if (Math.abs(e.wheelDelta) < Math.abs(lastWheelDelta) && Math.sign(e.wheelDelta) === Math.sign(lastWheelDelta)) {
+            if (winCancelWheelEvent && Math.abs(e.wheelDelta) <= Math.abs(lastWheelDelta) && Math.sign(e.wheelDelta) === Math.sign(lastWheelDelta)) {
                 // CEF's spurious second scroll event would scroll a whole lot more at
                 // times, so make sure we always stop the spurious one (#11083)
                 winCancelWheelEvent = false;
