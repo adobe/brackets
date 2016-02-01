@@ -61,12 +61,6 @@ define(function (require, exports, module) {
     // Data about available updates in the registry
     PreferencesManager.stateManager.definePreference("extensionUpdateInfo", "Array", []);
 
-    PreferencesManager.convertPreferences(module, {
-        "lastNotifiedBuildNumber": "user",
-        "lastInfoURLFetchTime": "user",
-        "updateInfo": "user"
-    }, true);
-
     // URL to load version info from. By default this is loaded no more than once a day. If
     // you force an update check it is always loaded.
 

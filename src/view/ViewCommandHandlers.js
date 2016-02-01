@@ -493,21 +493,6 @@ define(function (require, exports, module) {
         ThemeSettings.showDialog();
     }
 
-
-    /**
-     * @private
-     * Convert the old "fontSizeAdjustment" preference to the new view state.
-     *
-     * @param {string} key  The key of the preference to be examined for migration
-     *      of old preferences. Not used since we only have one in this module.
-     * @param {string} value  The value of "fontSizeAdjustment" preference
-     * @return {Object} JSON object for the new view state equivalent to
-     *      the old "fontSizeAdjustment" preference.
-     */
-    function _convertToNewViewState(key, value) {
-        return { "fontSizeStyle": (DEFAULT_FONT_SIZE + value) + "px" };
-    }
-
     // Register command handlers
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE,  _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE,  _handleDecreaseFontSize);
@@ -515,8 +500,6 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LINE_UP,      _handleScrollLineUp);
     CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,    _handleScrollLineDown);
     CommandManager.register(Strings.CMD_THEMES,             Commands.CMD_THEMES_OPEN_SETTINGS, _handleThemeSettings);
-
-    PreferencesManager.convertPreferences(module, {"fontSizeAdjustment": "user"}, true, _convertToNewViewState);
 
     prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px", {
         description: Strings.DESCRIPTION_FONT_SIZE
