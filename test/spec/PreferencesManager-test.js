@@ -27,80 +27,11 @@ define(function (require, exports, module) {
     'use strict';
 
     // Load dependent modules
-    var PreferenceStorage       = require("preferences/PreferenceStorage").PreferenceStorage,
-        SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
+    var SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         testPath                = SpecRunnerUtils.getTestPath("/spec/PreferencesBase-test-files"),
         nonProjectFile          = SpecRunnerUtils.getTestPath("/spec/PreferencesBase-test.js"),
         PreferencesManager,
         testWindow;
-
-    var CLIENT_ID = "PreferencesManager-test";
-
-    describe("PreferenceStorage", function () {
-
-        it("should read initial preferences from JSON", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {"foo": "bar", hello: "world"});
-            expect(store.getValue("foo")).toBe("bar");
-            expect(store.getValue("hello")).toBe("world");
-        });
-
-        it("should store values as JSON", function () {
-            var json = {};
-            var store = new PreferenceStorage(CLIENT_ID, json);
-            store.setValue("foo", 42);
-
-            expect(json.foo).toEqual(42);
-            expect(store.getValue("foo")).toBe(42);
-        });
-
-        it("should output preferences as JSON", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {});
-            store.setValue("foo", 42);
-            var json = store.getAllValues();
-
-            expect(json.foo).toEqual(42);
-        });
-
-        it("should remove values", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {"foo": "bar"});
-            expect(store.getValue("foo")).toBe("bar");
-
-            store.remove("foo");
-            expect(store.getValue("foo")).toBe(undefined);
-        });
-
-        it("should use setAllValues to append multiple new name/value pairs", function () {
-            var initial = {"foo": "bar"};
-            var store = new PreferenceStorage(CLIENT_ID, initial);
-
-            // append
-            store.setAllValues({"hello": ["world", "!"], "goodbye": 42}, true);
-            expect(store.getValue("foo")).toBe("bar");
-            expect(store.getValue("hello")).toEqual(["world", "!"]);
-            expect(store.getValue("goodbye")).toBe(42);
-
-            // overwrite
-            store.setAllValues({"winning": false}, false);
-            expect(store.getValue("foo")).toBe(undefined);
-            expect(store.getValue("hello")).toBe(undefined);
-            expect(store.getValue("goodbye")).toBe(undefined);
-            expect(store.getValue("winning")).toBe(false);
-        });
-
-        it("should throw errors for invalid values", function () {
-            var store = new PreferenceStorage(CLIENT_ID, {"foo": 42});
-
-            expect(store.getValue("foo")).toBe(42);
-            // function data is not valid JSON
-            store.setValue("foo", function () {});
-            expect(store.getValue("foo")).toBe(42);
-
-            // number key is not valid JSON
-            store.setValue(42, "bar");
-            expect(store.getValue(42)).toBe(undefined);
-        });
-
-    });
 
     describe("PreferencesManager", function () {
         this.category = "integration";
@@ -151,13 +82,6 @@ define(function (require, exports, module) {
             runs(function () {
                 expect(PreferencesManager.get("spaceUnits")).not.toBe(9);
             });
-        });
-
-
-        // Old tests follow
-        it("should use default preferences", function () {
-            var store = PreferencesManager.getPreferenceStorage(CLIENT_ID, {foo: "default"});
-            expect(store.getValue("foo")).toEqual("default");
         });
 
         describe("Create clientID for preference store", function () {
