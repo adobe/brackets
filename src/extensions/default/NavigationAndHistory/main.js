@@ -450,7 +450,7 @@ define(function (require, exports, module) {
         ExtensionUtils.loadStyleSheet(module, "styles/recent-files.css");
         
         // Command to show recent files list
-        //CommandManager.register("Open Recent", SHOW_RECENT_FILES, _showRecentFileList);
+        CommandManager.register("Open Recent", SHOW_RECENT_FILES, _showRecentFileList);
         
         // Keybooard only - Navigate to the next doc in MROF list
         CommandManager.register("Next in Recent", NEXT_IN_RECENT_FILES, _moveNext);
@@ -458,7 +458,7 @@ define(function (require, exports, module) {
         // Keybooard only - Navigate to the prev doc in MROF list
         CommandManager.register("Prev in Recent", PREV_IN_RECENT_FILES, _movePrev);
         
-        /*var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
-        menu.addMenuItem(SHOW_RECENT_FILES, "", Menus.AFTER, Commands.FILE_OPEN_FOLDER);*/
+        var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
+        menu.addMenuItem(SHOW_RECENT_FILES, "", Menus.AFTER, Commands.FILE_OPEN_FOLDER);
     });
 });
