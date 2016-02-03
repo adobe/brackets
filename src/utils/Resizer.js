@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -225,7 +225,8 @@ define(function (require, exports, module) {
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",
             contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
 
-        if (PreferencesManager.get(PREFS_PURE_CODE)) {
+        if (PreferencesManager.get(PREFS_PURE_CODE) &&
+                ($element.hasClass("bottom-panel") || $element.hasClass("sidebar"))) {
             elementPrefs.visible = false;
         }
 

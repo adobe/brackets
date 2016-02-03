@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -120,6 +120,10 @@ a, img {
         left: @sidebar-width;  // changed dynamically via Resizer
         right: @main-toolbar-width;
     }
+    
+    .force-right-zero {
+        right: 0;
+    }
 }
 
 #titlebar, .modal-bar {
@@ -138,10 +142,6 @@ a, img {
 
 .forced-hidden {
     display: none !important;
-}
-
-.force-right-zero {
-    right: 0 !important;
 }
 
 .busyCursor {
@@ -330,7 +330,7 @@ a, img {
     /* Placeholder shown when there is no editor open */
 
     .view-pane {
-        display: block;
+        display: block !important;
         margin: 0;
         overflow: hidden;
     }
@@ -372,12 +372,12 @@ a, img {
         }
 
         .image-preview {
-            background: url(images/preview_bg.png);
+            background: url(images/preview-bg.svg);
             box-shadow: 0 1px 3px @bc-shadow;
             max-height: 100%;
 
             .dark & {
-                background: url(images/preview_bg_dark.png);
+                background: url(images/preview-bg-dark.svg);
                 box-shadow: 0 1px 3px @dark-bc-shadow;
             }
         }
