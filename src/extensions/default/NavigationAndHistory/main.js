@@ -411,7 +411,7 @@ define(function (require, exports, module) {
                 $nextContext = event.which === LEFT ? $context.prev() : $context.next();
                 if ($nextContext.length > 0) {
                     $currentContext = $nextContext;
-                    _resetOpenFileTimer();
+                    //_resetOpenFileTimer();
                     $nextContext.find("a.mroitem").trigger("focus");
                 }
             } else {
