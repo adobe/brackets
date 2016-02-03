@@ -25,45 +25,10 @@
 
 "use strict";
 
-var fspath = require("path"),
-    fs = require("fs"),
-    os = require("os"),
-    fsevents;
-
-/*
- * NOTE: The fsevents package is a temporary solution for file-watching on darwin.
- * Node's native fs.watch call would be preferable, but currently has a hard limit
- * of 451 watched directories and fails silently after that! In the next stable
- * version of Node (0.12), fs.watch on darwin will support a new "recursive" option
- * that will allow us to only request a single watched path per directory structure.
- * When that is stable, we should switch back to fs.watch for all platforms, and
- * we should use the recursive option where available. As of January 2014, the
- * current experimental Node branch (0.11) only supports the recursive option for
- * darwin.
- *
- * In the meantime, the fsevents package makes direct use of the Mac OS fsevents
- * API to provide file watching capabilities. Its behavior is also recursive
- * (like fs.watch with the recursive option), but the events it emits are not
- * exactly the same as those emitted by Node watchers. Consequently, we require,
- * for now, dual implementations of the FileWatcher domain.
- *
- * ALSO NOTE: the fsevents package as installed by NPM is not suitable for
- * distribution with Brackets! The problem is that the native code embedded in
- * the fsevents module is compiled by default for x86-64, but the Brackets-node
- * process is compiled for x86-32. Consequently, the fsevents module must be
- * compiled manually, which is why it is checked into Brackets source control
- * and not managed by NPM. Changing compilation from 64- to 32-bit just requires
- * changing a couple of definitions in the .gyp file used to build fsevents.
- */
-if (process.platform === "darwin") {
-    fsevents = require("fsevents");
-} else if (process.platform === "win32") {
-    var version = os.release();
-    // XP will use node's built in file watcher module.
-    if (version && version.length > 0 && version[0] !== "5") {
-        fsevents = require("fsevents_win/fsevents_win");
-    }
-}
+var fspath = require("path");
+var fs = require("fs");
+var os = require("os");
+var chokidar = require('chokidar');
 
 var _domainManager,
     _watcherMap = {};
@@ -78,11 +43,7 @@ function _unwatchPath(path) {
 
     if (watcher) {
         try {
-            if (fsevents) {
-                watcher.stop();
-            } else {
-                watcher.close();
-            }
+            watcher.close();
         } catch (err) {
             console.warn("Failed to unwatch file " + path + ": " + (err && err.message));
         } finally {
@@ -113,32 +74,41 @@ function watchPath(path) {
     }
 
     try {
-        var watcher;
+        var watcher = chokidar.watch(path, {
+            persistent: true,
+            ignoreInitial: true,
+            ignorePermissionErrors: true,
+            followSymlinks: true
+            // ignored: "?" // TODO: maybe unwatch file/folder filtered in the current search
+        });
 
-        if (fsevents) {
-            watcher = fsevents(path);
-            watcher.on("change", function (filename, info) {
-                var parent = filename && (fspath.dirname(filename) + "/"),
-                    name = filename && fspath.basename(filename),
-                    type;
+        watcher.on("all", function (event, filename, stats) {
+            var filename_ = filename.replace(/\\/g, "/");
+            var parent = filename_ && (fspath.dirname(filename_) + "/");
+            var name = filename_ && fspath.basename(filename_);
+            var type;
 
-                switch (info.event) {
-                case "modified":    // triggered by file content changes
-                case "unknown":     // triggered by metatdata-only changes
-                    type = "change";
-                    break;
-                default:
-                    type = "rename";
-                }
+            switch (event) {
+            case "change":
+            case "ready":
+                type = "change";
+                break;
+            case "add":
+            case "addDir":
+            case "unlink":
+            case "unlinkDir":
+                type = "rename";
+                break;
+            case "raw":
+            case "error":
+                return;
+            default:
+                console.error("Unknown watching event for file " + path + ": " + event);
+                return;
+            }
 
-                _domainManager.emitEvent("fileWatcher", "change", [parent, type, name]);
-            });
-        } else {
-            watcher = fs.watch(path, {persistent: false}, function (event, filename) {
-                // File/directory changes are emitted as "change" events on the fileWatcher domain.
-                _domainManager.emitEvent("fileWatcher", "change", [path, event, filename]);
-            });
-        }
+            _domainManager.emitEvent("fileWatcher", "change", [parent, type, name]);
+        });
 
         _watcherMap[path] = watcher;
 
