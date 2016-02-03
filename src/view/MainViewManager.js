@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -830,6 +830,8 @@ define(function (require, exports, module) {
 
         sourcePane.moveView(file, destinationPane, destinationIndex)
             .done(function () {
+                // remove existing entry from mrulist for the same document if present 
+                _removeFileFromMRU(destinationPane.id, file);
                 // update the mru list
                 _mruList.every(function (record) {
                     if (record.file === file && record.paneId === sourcePane.id) {
@@ -838,7 +840,6 @@ define(function (require, exports, module) {
                     }
                     return true;
                 });
-
                 exports.trigger("workingSetMove", file, sourcePane.id, destinationPane.id);
                 result.resolve();
             });
