@@ -286,7 +286,7 @@ define(function (require, exports, module) {
         }
     }
     
-    function _hideMROFListOnAltlUp() {
+    function _hideMROFListOnAltlUp(event) {
         if ($mrofContainer && event.keyCode === 18) {
             _openFile();
             _hideMROFList();
