@@ -79,7 +79,8 @@ function watchPath(path) {
             persistent: true,
             ignoreInitial: true,
             ignorePermissionErrors: true,
-            followSymlinks: true
+            followSymlinks: true,
+            depth: 0
             // ignored: "?" // TODO: maybe unwatch file/folder filtered in the current search
         });
 
