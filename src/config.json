@@ -60,7 +60,9 @@
         "q": "0.9.2",
         "semver": "^4.1.0",
         "xmldoc": "^0.1.2",
-        "grunt-cleanempty": "1.0.3"
+        "grunt-cleanempty": "1.0.3",
+        "amdrequire": "0.0.3",
+        "less": "2.5.1"
     },
     "scripts": {
         "postinstall": "grunt install",
