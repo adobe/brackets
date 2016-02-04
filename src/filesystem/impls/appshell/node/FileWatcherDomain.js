@@ -78,8 +78,9 @@ function watchPath(path) {
             persistent: true,
             ignoreInitial: true,
             ignorePermissionErrors: true,
-            followSymlinks: true
-            // ignored: "?" // TODO: maybe unwatch file/folder filtered in the current search
+            followSymlinks: true,
+            // TODO: configurable? And maybe unwatch file/folder filtered in the current search
+            ignored: ["**/node_modules/**"]
         });
 
         watcher.on("all", function (event, filename, stats) {
