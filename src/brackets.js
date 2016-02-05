@@ -39,7 +39,6 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent non-module scripts
-    require("thirdparty/path-utils/path-utils.min");
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
     require("widgets/bootstrap-twipsy-mod");
@@ -124,6 +123,18 @@ define(function (require, exports, module) {
         get: function () {
             DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/mustache/mustache") instead of global Mustache.', true);
             return Mustache;
+        }
+    });
+
+    // DEPRECATED: In future we want to remove the global PathUtils, but for now we
+    // expose our required PathUtils globally so as to avoid breaking extensions in the
+    // interim.
+    var PathUtils = require("thirdparty/path-utils/path-utils");
+
+    Object.defineProperty(window, "PathUtils", {
+        get: function () {
+            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/path-utils/path-utils") instead of global PathUtils.', true);
+            return PathUtils;
         }
     });
 
