@@ -45,13 +45,7 @@ Adobe provides translations for the following languages:
 * Japanese (ja)
 
 These translations cannot be modified through our normal pull request
-process. Please contribute changes one of these ways:
-
-1. File an issue in our GitHub repository
-   https://github.com/adobe/brackets/issues
-2. Submit a proposal at the Adobe® Translation Center (ATC), [under the Brackets
-   product](http://bit.ly/TranslateBrackets). At ATC, proposals can be voted on
-   by peers and are eventually accepted by moderators.
+process. Please contribute changes by filing an issue in our GitHub repository https://github.com/adobe/brackets/issues
 
 ### Community-maintained translations
 
