@@ -214,13 +214,13 @@ define(function (require, exports, module) {
         describe("Line comment/uncomment with indentLineComment enabled", function () {
 
             beforeEach(function () {
-                    setupFullEditor();
-                    PreferencesManager.set("indentLineComment",true);
-                });
+                setupFullEditor();
+                PreferencesManager.set("indentLineComment",true);
+            });
 
             afterEach(function () {
-                    PreferencesManager.set("indentLineComment", shouldIndentLineComment);
-                });
+                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+            });
 
 
             it("should comment/uncomment a single line, cursor at start", function () {
@@ -621,13 +621,13 @@ define(function (require, exports, module) {
         describe("Line comment/uncomment with indentLineComment disabled", function () {
 
             beforeEach(function () {
-                    setupFullEditor();
-                    PreferencesManager.set("indentLineComment",false);
-                });
+                setupFullEditor();
+                PreferencesManager.set("indentLineComment",false);
+            });
 
             afterEach(function () {
-                    PreferencesManager.set("indentLineComment", shouldIndentLineComment);
-                });
+                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+            });
 
 
             it("should comment/uncomment a single line, cursor at start", function () {
@@ -2123,7 +2123,7 @@ define(function (require, exports, module) {
             });
         });
 
-        describe("Comment/uncomment with mixed syntax modes", function () {
+        describe("Comment/uncomment with mixed syntax modes with indentLineComment Disabled", function () {
 
             var htmlContent = "<html>\n" +
                               "    <head>\n" +
@@ -2148,6 +2148,11 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 setupFullEditor(htmlContent, "html");
+                PreferencesManager.set("indentLineComment",false);
+            });
+
+            afterEach(function () {
+                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
             });
 
             // Correct behavior for line and block comment commands
@@ -2173,39 +2178,23 @@ define(function (require, exports, module) {
             });
 
             it("should line comment/uncomment generic JS code", function () {
-                if (shouldIndentLineComment) {
-                    myEditor.setCursorPos(10, 0);
+                
+                myEditor.setCursorPos(10, 0);
 
-                    CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
 
-                    var lines = htmlContent.split("\n");
-                    lines[10] = "                    //a();";
-                    var expectedText = lines.join("\n");
+                var lines = htmlContent.split("\n");
+                lines[10] = "//                    a();";
+                var expectedText = lines.join("\n");
 
-                    expect(myDocument.getText()).toEqual(expectedText);
-                    expectCursorAt({line: 10, ch: 0});
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 10, ch: 2});
 
-                    // Uncomment
-                    CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-                    expect(myDocument.getText()).toEqual(htmlContent);
-                    expectCursorAt({line: 10, ch: 0});
-                } else {
-                    myEditor.setCursorPos(10, 0);
-
-                    CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-
-                    var lines = htmlContent.split("\n");
-                    lines[10] = "//                    a();";
-                    var expectedText = lines.join("\n");
-
-                    expect(myDocument.getText()).toEqual(expectedText);
-                    expectCursorAt({line: 10, ch: 2});
-
-                    // Uncomment
-                    CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-                    expect(myDocument.getText()).toEqual(htmlContent);
-                    expectCursorAt({line: 10, ch: 0});
-                }
+                // Uncomment
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                expect(myDocument.getText()).toEqual(htmlContent);
+                expectCursorAt({line: 10, ch: 0});
+                
             });
 
             it("should block comment/uncomment generic JS code", function () {
@@ -2240,6 +2229,15 @@ define(function (require, exports, module) {
             });
 
             describe("with multiple selections", function () {
+                
+                beforeEach(function () {
+                    PreferencesManager.set("indentLineComment",false);
+                });
+
+                afterEach(function () {
+                    PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+                });
+                
                 it("should handle multiple selections in different regions, toggling block selection in each", function () {
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
                                             {start: {line: 4, ch: 16}, end: {line: 4, ch: 32}},
@@ -2257,33 +2255,20 @@ define(function (require, exports, module) {
                 });
 
                 it("should handle multiple selections in different regions, toggling line selection (but falling back to block selection in HTML/CSS)", function () {
-                    if (shouldIndentLineComment) {
-                        myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
-                                            {start: {line: 4, ch: 16}, end: {line: 4, ch: 32}},
-                                            {start: {line: 10, ch: 0}, end: {line: 10, ch: 0}}]);
+                    
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
+                                        {start: {line: 4, ch: 16}, end: {line: 4, ch: 32}},
+                                        {start: {line: 10, ch: 0}, end: {line: 10, ch: 0}}]);
 
-                        var lines = htmlContent.split("\n");
-                        lines[1] = "<!--    <head>-->";
-                        lines[4] = "/*                font-size: 15px;*/";
-                        lines[10] = "                    //a();";
+                    var lines = htmlContent.split("\n");
+                    lines[1] = "<!--    <head>-->";
+                    lines[4] = "/*                font-size: 15px;*/";
+                    lines[10] = "//                    a();";
 
-                        testToggleLine(lines.join("\n"), [{start: {line: 1, ch: 8 }, end: {line: 1, ch: 14 }, reversed: false, primary: false},
-                                                          {start: {line: 4, ch: 18 }, end: {line: 4, ch: 34 }, reversed: false, primary: false},
-                                                          {start: {line: 10, ch: 0 }, end: {line: 10, ch: 0 }, reversed: false, primary: true}]);
-                    } else {
-                         myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
-                                            {start: {line: 4, ch: 16}, end: {line: 4, ch: 32}},
-                                            {start: {line: 10, ch: 0}, end: {line: 10, ch: 0}}]);
-
-                        var lines = htmlContent.split("\n");
-                        lines[1] = "<!--    <head>-->";
-                        lines[4] = "/*                font-size: 15px;*/";
-                        lines[10] = "//                    a();";
-
-                        testToggleLine(lines.join("\n"), [{start: {line: 1, ch: 8}, end: {line: 1, ch: 14}, primary: false, reversed: false},
-                                                          {start: {line: 4, ch: 18}, end: {line: 4, ch: 34}, primary: false, reversed: false},
-                                                          {start: {line: 10, ch: 2}, end: {line: 10, ch: 2}, primary: true, reversed: false}]);
-                        }
+                    testToggleLine(lines.join("\n"), [{start: {line: 1, ch: 8}, end: {line: 1, ch: 14}, primary: false, reversed: false},
+                                                      {start: {line: 4, ch: 18}, end: {line: 4, ch: 34}, primary: false, reversed: false},
+                                                      {start: {line: 10, ch: 2}, end: {line: 10, ch: 2}, primary: true, reversed: false}]);
+                        
                 });
 
                 it("shouldn't comment anything in a mixed-mode selection, but should track it properly and comment the other selections", function () {
@@ -2301,6 +2286,89 @@ define(function (require, exports, module) {
                     testToggleBlock(lines.join("\n"), [{start: {line: 2, ch: 0}, end: {line: 3, ch: 0}, primary: false, reversed: false},
                                                        {start: {line: 7, ch: 0}, end: {line: 9, ch: 0}, primary: true, reversed: true},
                                                        {start: {line: 11, ch: 0}, end: {line: 16, ch: 0}, primary: false, reversed: false}]);
+                });
+            });
+
+        });
+        
+        describe("Comment/uncomment with mixed syntax modes with indentLineComment Enabled", function () {
+
+            var htmlContent = "<html>\n" +
+                              "    <head>\n" +
+                              "        <style type='text/css'>\n" +
+                              "            body {\n" +
+                              "                font-size: 15px;\n" +
+                              "            }\n" +
+                              "        </style>\n" +
+                              "        <script type='text/javascript'>\n" +
+                              "            function foo() {\n" +
+                              "                function bar() {\n" +
+                              "                    a();\n" +
+                              "                }\n" +
+                              "            }\n" +
+                              "        </script>\n" +
+                              "    </head>\n" +
+                              "    <body>\n" +
+                              "        <p>Hello</p>\n" +
+                              "        <p>World</p>\n" +
+                              "    </body>\n" +
+                              "</html>";
+
+            beforeEach(function () {
+                setupFullEditor(htmlContent, "html");
+                PreferencesManager.set("indentLineComment",true);
+            });
+
+            afterEach(function () {
+                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+            });
+
+            it("should line comment/uncomment generic JS code", function () {
+                
+                myEditor.setCursorPos(10, 0);
+
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+
+                var lines = htmlContent.split("\n");
+                lines[10] = "                    //a();";
+                var expectedText = lines.join("\n");
+
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 10, ch: 0});
+
+                // Uncomment
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                expect(myDocument.getText()).toEqual(htmlContent);
+                expectCursorAt({line: 10, ch: 0});
+             
+            });
+
+            describe("with multiple selections", function () {
+                
+                beforeEach(function () {
+                    PreferencesManager.set("indentLineComment",true);
+                });
+
+                afterEach(function () {
+                    PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+                });
+                
+
+                it("should handle multiple selections in different regions, toggling line selection (but falling back to block selection in HTML/CSS)", function () {
+                    
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
+                                        {start: {line: 4, ch: 16}, end: {line: 4, ch: 32}},
+                                        {start: {line: 10, ch: 0}, end: {line: 10, ch: 0}}]);
+
+                    var lines = htmlContent.split("\n");
+                    lines[1] = "<!--    <head>-->";
+                    lines[4] = "/*                font-size: 15px;*/";
+                    lines[10] = "                    //a();";
+
+                    testToggleLine(lines.join("\n"), [{start: {line: 1, ch: 8 }, end: {line: 1, ch: 14 }, reversed: false, primary: false},
+                                                      {start: {line: 4, ch: 18 }, end: {line: 4, ch: 34 }, reversed: false, primary: false},
+                                                      {start: {line: 10, ch: 0 }, end: {line: 10, ch: 0 }, reversed: false, primary: true}]);
+                    
                 });
             });
 
