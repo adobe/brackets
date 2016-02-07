@@ -74,13 +74,15 @@ function watchPath(path) {
     }
 
     try {
+        console.log("Start watcher at: " + path);
+
         var watcher = chokidar.watch(path, {
             persistent: true,
             ignoreInitial: true,
             ignorePermissionErrors: true,
             followSymlinks: true,
             // TODO: configurable? And maybe unwatch file/folder filtered in the current search
-            ignored: ["**/node_modules/**"]
+            ignored: ["**/node_modules/**", "**/.git/**", "**/.svn/**"]
         });
 
         watcher.on("all", function (event, filename, stats) {
@@ -108,6 +110,7 @@ function watchPath(path) {
                 return;
             }
 
+            console.log([parent, type, name]);
             _domainManager.emitEvent("fileWatcher", "change", [parent, type, name]);
         });
 
