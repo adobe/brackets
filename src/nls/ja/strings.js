@@ -776,7 +776,7 @@ define({
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "左側/上部のペインでユーザーの環境設定ファイルを開くには false",
 	"DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED": "ペインからの最後のファイルがペインのヘッダーの閉じるボタンにより閉じられた後、ペインを折りたたむには true",
 	"DESCRIPTION_SHOW_PANE_HEADER_BUTTONS": "ヘッダーの閉じるボタンと反転表示ボタンを表示するタイミングを切り替えます。",
-	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * これは、{APP_NAME} で環境設定がサポートされた\n読み取り専用ファイルです。\n * このファイルは、他のペインで開かれた環境設定ファイル brackets.json を\n * 変更する際の参照資料として使用します。\n * {APP_NAME} 内で環境設定を使用する方法については、Web ページ\n *  (https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences) を参照してください。\n */",
+	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * これは、{APP_NAME} がサポートしている環境設定が 記録された読み取り\n * 専用ファイルです。\n * もう片方のペインで開かれた環境設定ファイル brackets.json を変更\n * する際の参考としてお使いください。\n * {APP_NAME} 内で環境設定を使用する方法について は、Web ページ\n * https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n * を参照してください。\n*/",
 	"DEFAULT_PREFERENCES_JSON_DEFAULT": "デフォルト",
 	"DESCRIPTION_PURE_CODING_SURFACE": "{APP_NAME} でコードのみモードを有効にし、その他すべての UI エレメントを非表示にするには true"
 });
