@@ -312,7 +312,7 @@ define({
     "CMD_FILE_NEW"                        : "Nuovo File",
     "CMD_FILE_NEW_FOLDER"                 : "Nuova cartella",
     "CMD_FILE_OPEN"                       : "Apri\u2026",
-    "CMD_ADD_TO_WORKING_SET"              : "Apri un Working Set",
+    "CMD_ADD_TO_WORKING_SET"              : "Aggiungi all'area di lavoro",
     "CMD_OPEN_DROPPED_FILES"              : "Apri un file abbandonato",
     "CMD_OPEN_FOLDER"                     : "Apri cartella\u2026",
     "CMD_FILE_CLOSE"                      : "Chiudi",
@@ -380,8 +380,8 @@ define({
     "VIEW_MENU"                         : "Vista",
     "CMD_HIDE_SIDEBAR"                  : "Nascondi barra laterale",
     "CMD_SHOW_SIDEBAR"                  : "Mostra barra laterale",
-    "CMD_TOGGLE_SIDEBAR"                : "Toggle Sidebar",
-    "CMD_TOGGLE_PANELS"                 : "Toggle Panels",
+    "CMD_TOGGLE_SIDEBAR"                : "Apri/Chiudi la barra laterale",
+    "CMD_TOGGLE_PANELS"                 : "Apri/Chiudi i pannelli",
     "CMD_TOGGLE_PURE_CODE"              : "Nessuna distrazione",
     "CMD_INCREASE_FONT_SIZE"            : "Aumenta la dimensione del testo",
     "CMD_DECREASE_FONT_SIZE"            : "Diminuisci la dimensione del testo",
@@ -467,7 +467,7 @@ define({
     
     // Strings for Pane.js
     "EMPTY_VIEW_HEADER"                 : "<em>Aprire un file mentre questo riquadro è attivo</em>",
-    "FLIPVIEW_BTN_TOOLTIP"              : "Capovolgere questa vista per {0 } riquadro",
+    "FLIPVIEW_BTN_TOOLTIP"              : "Spostare questa vista nel riquadro {0}",
    
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema attuale",
@@ -485,7 +485,7 @@ define({
     "REMOVE"                               : "Rimuovi",
     "OVERWRITE"                            : "Sovrascrivi",
     "DISABLE"                              : "Disabilita",
-    "ENABLE"                               : "Attiva",
+    "ENABLE"                               : "Abilita",
     "CANT_REMOVE_DEV"                      : "Le estensioni nella cartella \"dev\" devono essere eliminate manualmente.",
     "CANT_UPDATE"                          : "L’aggiornamento non è compatibile con questa versione di {APP_NAME}.",
     "CANT_UPDATE_DEV"                      : "Le estensioni nella cartella \"dev\" non possono essere aggiornate automaticamente.",
@@ -553,8 +553,8 @@ define({
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Impossibile rimuovere una o più estensioni: {0}. {APP_NAME} si riavvierà comunque.",
     "EXTENSION_MANAGER_UPDATE"             : "Aggiorna Estensioni",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "Impossibile aggiornare una o più estensioni: {0}. {APP_NAME} si riavvierà comunque.",
-    "EXTENSION_MANAGER_DISABLE"            : "Disabilità estensione",
-    "EXTENSION_MANAGER_DISABLE_ERROR"      : "Impossibile disattivare una o più estensioni: { 0 }. { APP_NAME } sarà ricaricato nuovamente.",
+    "EXTENSION_MANAGER_DISABLE"            : "Disabilita estensione",
+    "EXTENSION_MANAGER_DISABLE_ERROR"      : "Impossibile disattivare una o più estensioni: {0}. {APP_NAME} si riavvierà comunque.",
     "MARKED_FOR_REMOVAL"                   : "Marcato per la rimozione",
     "UNDO_REMOVE"                          : "Annulla",
     "MARKED_FOR_UPDATE"                    : "Marcato per l’aggiornamento",
@@ -566,7 +566,7 @@ define({
     "REMOVE_AND_RELOAD"                    : "Rimuovi le estensioni e riavvia",
     "CHANGE_AND_RELOAD"                    : "Modifica le estensioni e riavvia",
     "UPDATE_AND_RELOAD"                    : "Aggiorna Rimuovi le estensioni e riavvia",
-    "DISABLE_AND_RELOAD"                   : "Disabilità estensioni e ricarica",
+    "DISABLE_AND_RELOAD"                   : "Disabilita le estensioni e riavvia",
     "PROCESSING_EXTENSIONS"                : "Processo le modifiche alle estensioni\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Impossibile rimuovere l’estensione {0}. Non era installata.",
     "NO_EXTENSIONS"                        : "Nessuna estensione ancora installata.<br />Clicca nel tab delle Disponibili per iniziare.",
@@ -691,7 +691,7 @@ define({
     "DESCRIPTION_ATTR_HINTS"                         : "Abilita/Disabilita i suggerimenti per gli attributi HTML",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Abilita/Disabilita i suggerimenti delle proprietà CSS/LESS/SCSS",
     "DESCRIPTION_JS_HINTS"                           : "Abilita/Disabilita i suggerimenti del codice JavaScript",
-    "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "Abilita/Disabilita particolari tipo di dati in suggerimenti sul codice JavaScript",
+    "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "Abilita/Disabilita i dettagli sul tipo delle variabili nei suggerimenti del codice JavaScript",
     "DESCRIPTION_PREF_HINTS"                         : "Abilita/Disabilita i suggerimenti del codice delle Preferenze",
     "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "Abilita/Disabilita i suggerimenti delle entità HTML",
     "DESCRIPTION_SVG_HINTS"                          : "Abilita/Disabilita i suggerimenti del codice SVG",
@@ -772,13 +772,13 @@ define({
     "DESCRIPTION_FIND_IN_FILES_NODE"                 : "true per attivare la ricerca basata su Node",
     "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "true per attivare la ricerca immediata",
     "DESCRIPTION_FONT_SMOOTHING"                     : "Solo per Mac: \"subpixel-antialias\" per consentire sub-pixel antialiasing o \"antialias\" per la scala dei grigi antialiasing",
-    "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "falso per disabilitare l'apertura delle preferenze in Split View",
-    "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "falso per aprire le preferenze nel pannello sinistra / alto",
-    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true al collasso riquadri dopo l'ultimo file dal riquadro è chiusa tramite pannello delle intestazioni pulsante di chiusura",
-    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Alternare quando mostrare i pulsanti di visualizzazione flip-view sull'intestazione.",
-    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Si tratta di un file di sola lettura con le preferenze supportati\n * by {APP_NAME}.\n * Usa questo file come riferimento per le modifiche\n * file \"brackets.json\" apri ijn un'altro pannello.\n * Per ulteriori informazioni su come utilizzare le preferenze all'interno\n * {APP_NAME}, riferimento al sito web: https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false per disabilitare l'apertura delle preferenze in Split View",
+    "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false per aprire le preferenze nel pannello di sinistra / superiore",
+    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true per chiudere la finestra quando l'ultimo file che contiene viene chiuso tramite il pulsante di chiusura",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Alterna i pulsanti chiudi e flip-view nell'header",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Questo è un file non modificabile che contiene le preferenze supportate da\n * {APP_NAME}. Basati su questo file per modificare le preferenze del file\n * "brackets.json" aperto nell'altra scheda.\n * Per ulteriori informazioni sull'utilizzo delle preferenze vedere\n * https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default",
-    "DESCRIPTION_PURE_CODING_SURFACE"                : "true per abilitare il codice in modalità solo e nascondere tutti gli altri elementi dell'interfaccia utente in {APP_NAME}"
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "true per abilitare il codice in modalità senza distrazioni e nascondere tutti gli altri elementi dell'interfaccia utente di {APP_NAME}"
 });
 
 /* Last translation of: fcd2e98ef35c110e00aebfbb6d3c3816e5156552*/
