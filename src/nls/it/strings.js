@@ -776,7 +776,7 @@ define({
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false per aprire le preferenze nel pannello di sinistra / superiore",
     "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true per chiudere la finestra quando l'ultimo file che contiene viene chiuso tramite il pulsante di chiusura",
     "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Alterna i pulsanti chiudi e flip-view nell'header",
-    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Questo è un file non modificabile che contiene le preferenze supportate da\n * {APP_NAME}. Basati su questo file per modificare le preferenze del file\n * "brackets.json" aperto nell'altra scheda.\n * Per ulteriori informazioni sull'utilizzo delle preferenze vedere\n * https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Questo è un file non modificabile che contiene le preferenze supportate da\n * {APP_NAME}.\n * Basati su questo file per modificare le preferenze del file\n * \"brackets.json\" aperto nell'altra scheda.\n * Per ulteriori informazioni sull'utilizzo delle preferenze vedere\n * https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default",
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true per abilitare il codice in modalità senza distrazioni e nascondere tutti gli altri elementi dell'interfaccia utente di {APP_NAME}"
 });
