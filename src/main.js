@@ -63,9 +63,10 @@ if (window.location.search.indexOf("testEnvironment") > -1) {
      * extension).
      */
     var urlLocale = window.location.search && /locale=([^&]+)&?/.exec(window.location.search);
+    urlLocale = urlLocale && urlLocale[1] && urlLocale[1].toLowerCase();
 
     require.config({
-        locale: urlLocale ? urlLocale[1] : (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
+        locale: urlLocale || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
     });
 }
 
