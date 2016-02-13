@@ -147,9 +147,9 @@ define(function (require, exports, module) {
             if (e.keyCode !== KeyEvent.DOM_VK_LEFT &&
                     e.keyCode !== KeyEvent.DOM_VK_RIGHT) {
                 // update the width of the input field
-                var domNode = this.refs.name,
-                    newWidth = _measureText(domNode.value);
-                $(domNode).width(newWidth);
+                var node = this.refs.name,
+                    newWidth = _measureText(node.value);
+                $(node).width(newWidth);
             }
         },
 
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
 
             var node = this.refs.name;
             node.setSelectionRange(0, _getName(fullname, extension).length);
-            ViewUtils.scrollElementIntoView($("#project-files-container"), $(ReactDOM.findDOMNode(node)), true);
+            ViewUtils.scrollElementIntoView($("#project-files-container"), $(node), true);
         },
 
         render: function () {
@@ -557,7 +557,7 @@ define(function (require, exports, module) {
 
             var node = this.refs.name;
             node.setSelectionRange(0, fullname.length);
-            ViewUtils.scrollElementIntoView($("#project-files-container"), $(ReactDOM.findDOMNode(node)), true);
+            ViewUtils.scrollElementIntoView($("#project-files-container"), $(node), true);
         },
 
         render: function () {
