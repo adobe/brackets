@@ -43,13 +43,13 @@
         "new-parens": 2,
         "no-new-object": 2,
         "no-invalid-this": 0,
-        indent: [0, 4],
+        indent: [2, 4],
 
         "valid-jsdoc": 0,
         "valid-typeof": 2,
 
-        "no-trailing-spaces": 0,
-        "eol-last": 0
+        "no-trailing-spaces": [2, { "skipBlankLines": true }],
+        "eol-last": 2
     },
     "globals": {
         "brackets": false,
