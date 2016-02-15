@@ -91,6 +91,7 @@ define(function (require, exports, module) {
     require("editor/CSSInlineEditor");
     require("project/WorkingSetSort");
     require("search/QuickOpen");
+	require("search/QuickOpenHelper");
     require("file/FileUtils");
     require("project/SidebarView");
     require("utils/Resizer");
