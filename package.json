@@ -47,9 +47,15 @@
         "grunt-cleanempty": "1.0.3"
     },
     "devDependencies": {
-        "http-server": "^0.8.0"
+        "bluebird": "3.2.2",
+        "http-server": "^0.8.0",
+        "mkdirp": "0.5.1",
+        "nunjucks": "2.3.0",
+        "properties-parser": "0.3.1",
+        "requirejs": "2.1.22"
     },
     "scripts": {
+        "localize": "node scripts/properties2js",
         "postinstall": "grunt install",
         "build": "grunt build-browser",
         "test": "grunt test && grunt build-browser-compressed",

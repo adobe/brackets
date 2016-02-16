@@ -1,0 +1,9 @@
+{% include "license.template" %}
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define */
+
+define({
+{% for key, string in localizedStrings %}
+    "{{ key }}": "{{ string }}"{{ "" if loop.last else "," }}
+{%- endfor %}
+});
