@@ -47,7 +47,7 @@ var CONCURRENCY = { concurrency: 3 };
 
 var root = process.cwd();
 var src = path.join(root, "locales");
-var dest = path.join(root, "src", L10N_DIR);
+var dest = path.join(root, process.argv.length > 2 ? process.argv[2] : "src", L10N_DIR);
 var templates = new Nunjucks.Environment(new Nunjucks.FileSystemLoader(path.join(root, "templates")));
 var destLocalizedStrings = {};
 var locales;
@@ -142,7 +142,7 @@ function getExistingLocalizedContent(locale) {
 function run() {
     "use strict";
 
-    fs.readdirAsync(src)
+    return fs.readdirAsync(src)
     .then(function(folders) {
         locales = folders;
         return Promise.map(locales, getExistingLocalizedContent, CONCURRENCY);

@@ -36,7 +36,7 @@ module.exports = function (grunt) {
     var autoprefixer = require('autoprefixer-core');
 
     // load dependencies
-    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty', 'grunt-npm', 'grunt-git', 'grunt-update-submodules']});
+    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty', 'grunt-npm', 'grunt-git', 'grunt-update-submodules', 'grunt-exec']});
     grunt.loadTasks('tasks');
 
     // Project configuration.
@@ -506,6 +506,9 @@ module.exports = function (grunt) {
                     to: ''
                 }]
             }
+        },
+        exec: {
+            localize: 'node scripts/properties2js dist'
         }
     });
 
@@ -598,6 +601,7 @@ module.exports = function (grunt) {
         'build',
         'replace:ternDefs',
         'requirejs:iframe',
+        'exec:localize',
         'uglify'
     ]);
 
