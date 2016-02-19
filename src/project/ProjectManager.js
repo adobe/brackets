@@ -1323,9 +1323,14 @@ define(function (require, exports, module) {
                     if (errorInfo.type === ProjectModel.ERROR_INVALID_FILENAME) {
                         _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
                     } else {
-                        var errString = errorInfo.type === FileSystemError.ALREADY_EXISTS ?
-                                Strings.FILE_EXISTS_ERR :
-                                FileUtils.getFileErrorString(errorInfo.type);
+                        var errString;
+                        if (errorInfo.type === FileSystemError.ALREADY_EXISTS) {
+                            errString = Strings.FILE_EXISTS_ERR;
+                        } else if (errorInfo.type === ProjectModel.ERROR_NOT_IN_PROJECT) {
+                            errString = Strings.ERROR_RENAMING_NOT_IN_PROJECT;
+                        } else {
+                            errString = FileUtils.getFileErrorString(errorInfo.type);
+                        }
 
                         _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, errString, errorInfo.fullPath);
                     }
