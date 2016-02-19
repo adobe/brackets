@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-- '4.2'
+- '4.3'
 sudo: false
 before_script:
 - npm install -g grunt-cli
@@ -27,7 +27,7 @@ deploy:
     skip_cleanup: true
     detect_encoding: true
     on:
-      repo: humphd/brackets
+      repo: mozilla/brackets
       branch: bramble
   - provider: s3
     access_key_id: AKIAI7XHSZFYVHFRTRIA
@@ -39,7 +39,7 @@ deploy:
     skip_cleanup: true
     detect_encoding: true
     on:
-      repo: humphd/brackets
+      repo: mozilla/brackets
       branch: production
 after_deploy:
 - node invalidate.js

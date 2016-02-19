@@ -2,13 +2,13 @@
     "name": "Brackets",
     "version": "1.4.0-0",
     "apiVersion": "1.4.0",
-    "homepage": "http://brackets.io",
+    "homepage": "https://mozillathimblelivepreview.net/bramble/staging/dist/hosted.html",
     "issues": {
-        "url": "http://github.com/adobe/brackets/issues"
+        "url": "http://github.com/mozilla/brackets/issues"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/adobe/brackets.git",
+        "url": "https://github.com/mozilla/brackets.git",
         "branch": "",
         "SHA": ""
     },
