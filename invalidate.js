@@ -17,7 +17,7 @@ var cloudfront = new AWS.CloudFront();
 // invalidate staging or prod
 var invalidationPath;
 var distribution;
-if (process.env.TRAVIS_BRANCH === 'bramble') {
+if (process.env.TRAVIS_BRANCH === 'master') {
   invalidationPath = '/bramble/staging/dist/*'
   distribution = 'staging';
 } else {

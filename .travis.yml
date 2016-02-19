@@ -7,7 +7,7 @@ before_script:
 script: grunt build-browser-compressed
 branches:
   only:
-  - bramble
+  - master
   - production
 notifications:
   irc: "irc.mozilla.org#thimble"
@@ -28,7 +28,7 @@ deploy:
     detect_encoding: true
     on:
       repo: mozilla/brackets
-      branch: bramble
+      branch: master
   - provider: s3
     access_key_id: AKIAI7XHSZFYVHFRTRIA
     secret_access_key:
