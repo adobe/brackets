@@ -195,7 +195,7 @@
     "python": {
         "name": "Python",
         "mode": "python",
-        "fileExtensions": ["py", "pyw", "wsgi"],
+        "fileExtensions": ["py", "pyw", "wsgi", "gyp", "gypi"],
         "lineComment": ["#"]
     },
 
