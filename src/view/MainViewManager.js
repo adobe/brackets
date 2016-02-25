@@ -1338,7 +1338,7 @@ define(function (require, exports, module) {
     function _close(paneId, file, optionsIn) {
         var options = optionsIn || {};
         _forEachPaneOrPanes(paneId, function (pane) {
-            if (pane.removeView(file, options.noOpenNextFile) && pane.id === paneId) {
+            if (pane.removeView(file, options.noOpenNextFile) && (paneId === ACTIVE_PANE || pane.id === paneId)) {
                 _removeFileFromMRU(pane.id, file);
                 exports.trigger("workingSetRemove", file, false, pane.id);
                 return false;
