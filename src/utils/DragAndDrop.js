@@ -1,24 +1,24 @@
  /*
  * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -27,7 +27,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-   
+
     var Async           = require("utils/Async"),
         CommandManager  = require("command/CommandManager"),
         Commands        = require("command/Commands"),
@@ -80,7 +80,7 @@ define(function (require, exports, module) {
         }
 
         var message = Strings.ERROR_OPENING_FILES;
-        
+
         message += "<ul class='dialog-list'>";
         errorFiles.forEach(function (info) {
             message += "<li><span class='dialog-filename'>" +
@@ -101,15 +101,15 @@ define(function (require, exports, module) {
      * Open dropped files
      * @param {Array.<string>} files Array of files dropped on the application.
      * @return {Promise} Promise that is resolved if all files are opened, or rejected
-     *     if there was an error. 
+     *     if there was an error.
      */
     function openDroppedFiles(paths) {
         var errorFiles = [],
             ERR_MULTIPLE_ITEMS_WITH_DIR = {};
-        
+
         return Async.doInParallel(paths, function (path, idx) {
             var result = new $.Deferred();
-            
+
             // Only open files.
             FileSystem.resolve(path, function (err, item) {
                 if (!err && item.isFile) {
@@ -122,7 +122,7 @@ define(function (require, exports, module) {
                             return;
                         }
                     }
-                    
+
                     CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,
                                            {fullPath: path, silent: true})
                         .done(function () {
@@ -147,15 +147,15 @@ define(function (require, exports, module) {
                     result.reject();
                 }
             });
-            
+
             return result.promise();
         }, false)
             .fail(function () {
                 _showErrorDialog(errorFiles);
             });
     }
-    
-    
+
+
     /**
      * Attaches global drag & drop handlers to this window. This enables dropping files/folders to open them, and also
      * protects the Brackets app from being replaced by the browser trying to load the dropped file in its place.
@@ -226,14 +226,14 @@ define(function (require, exports, module) {
                 }
             });
         }
-        
+
         // For most of the window, only respond if nothing more specific in the UI has already grabbed the event (e.g.
         // the Extension Manager drop-to-install zone, or an extension with a drop-to-upload zone in its panel)
         $(options.elem)
             .on("dragover", handleDragOver)
             .on("dragleave", handleDragLeave)
             .on("drop", handleDrop);
-        
+
         // Over CodeMirror specifically, always pre-empt CodeMirror's drag event handling if files are being dragged - CM stops
         // propagation on any drag event it sees, even when it's not a text drag/drop. But allow CM to handle all non-file drag
         // events. See bug #10617.
@@ -256,7 +256,7 @@ define(function (require, exports, module) {
         options.elem.addEventListener("dragleave", codeMirrorDragLeaveHandler, true);
         options.elem.addEventListener("drop", codeMirrorDropHandler, true);
     }
-    
+
     // XXXBramble: given a list of dropped files, write them into the fs, unzipping zip files.
     function processFiles(files, callback) {
         var pathList = [];
@@ -292,15 +292,15 @@ define(function (require, exports, module) {
 
             ArchiveUtils.unzip(buffer, function(err) {
                 if (err) {
-                    errorList.push({path: filename, error: "unable to unzip file: " + err.message || ""});
+                    errorList.push({path: filename, error: Strings.DND_ERROR_UNZIP});
                     deferred.reject(err);
                     return;
                 }
 
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_INFO,
-                    "Unzip Completed Successfully",
-                    "Successfully unzipped <b>" + basename + "</b>."
+                    Strings.DND_SUCCESS_UNZIP_TITLE,
+                    StringUtils.format(Strings.DND_SUCCESS_UNZIP, basename)
                 ).getPromise().then(deferred.resolve, deferred.reject);
             });
         }
@@ -310,15 +310,15 @@ define(function (require, exports, module) {
 
             ArchiveUtils.untar(buffer, function(err) {
                 if (err) {
-                    errorList.push({path: filename, error: "unable to untar file: " + err.message || ""});
+                    errorList.push({path: filename, error: Strings.DND_ERROR_UNTAR});
                     deferred.reject(err);
                     return;
                 }
 
                 Dialogs.showModalDialog(
                     DefaultDialogs.DIALOG_ID_INFO,
-                    "Untar Completed Successfully",
-                    "Successfully untarred <b>" + basename + "</b>."
+                    Strings.DND_SUCCESS_UNTAR_TITLE,
+                    StringUtils.format(Strings.DND_SUCCESS_UNTAR, basename)
                 ).getPromise().then(deferred.resolve, deferred.reject);
             });
         }
@@ -329,7 +329,7 @@ define(function (require, exports, module) {
          */
         function rejectImport(item) {
             if (item.size > byteLimit) {
-                return new Error("file exceeds maximum supported size: 3MB");
+                return new Error(Strings.DND_MAX_FILE_SIZE_EXCEEDED);
             }
 
             // If we don't know about this language type, or the OS doesn't think
@@ -341,7 +341,7 @@ define(function (require, exports, module) {
             if (languageIsSupported || typeIsText) {
                 return null;
             }
-            return new Error("unsupported file type");
+            return new Error(Strings.DND_UNSUPPORTED_FILE_TYPE);
         }
 
         function prepareDropPaths(fileList) {
@@ -442,7 +442,7 @@ define(function (require, exports, module) {
                 callback(errorList);
             });
     }
-    
+
     CommandManager.register(Strings.CMD_OPEN_DROPPED_FILES, Commands.FILE_OPEN_DROPPED_FILES, openDroppedFiles);
 
     // Export public API

@@ -11,6 +11,7 @@ define(function (require, exports, module) {
     var Dialogs        = brackets.getModule("widgets/Dialogs");
     var DragAndDrop    = brackets.getModule("utils/DragAndDrop");
     var KeyEvent       = brackets.getModule("utils/KeyEvent");
+    var Strings        = brackets.getModule("strings");
 
     var dialogHTML     = require("text!htmlContent/upload-files-dialog.html");
 
@@ -47,7 +48,7 @@ define(function (require, exports, module) {
 
         // We ignore the promise returned by showModalDialogUsingTemplate, since we're managing the
         // lifecycle of the dialog ourselves.
-        Dialogs.showModalDialogUsingTemplate(Mustache.render(dialogHTML), false);
+        Dialogs.showModalDialogUsingTemplate(Mustache.render(dialogHTML, Strings), false);
 
         var $dlg = $(".upload-files-dialog.instance");
         var $dragFilesAreaDiv = $dlg.find(".drag-files-area");
