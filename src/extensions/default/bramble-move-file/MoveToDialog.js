@@ -16,6 +16,8 @@ define(function (require, exports, module) {
     var FileSystem             = brackets.getModule("filesystem/FileSystem");
     var BracketsFiler          = brackets.getModule("filesystem/impls/filer/BracketsFiler");
     var Path                   = BracketsFiler.Path;
+    var Strings                = brackets.getModule("strings");
+    var StringUtils            = brackets.getModule("utils/StringUtils");
 
     var MoveUtils              = require("MoveUtils");
     var dialogTemplate         = require("text!htmlContent/move-to-dialog.html");
@@ -74,14 +76,16 @@ define(function (require, exports, module) {
 
         if(error.type === MoveUtils.NEEDS_RENAME) {
             Dialogs.showModalDialog(DefaultDialogs.DIALOG_ID_ERROR,
-                "Move Error",
-                "A file or folder with the name " + from + " already exists in " + to + ". Consider renaming either one to continue.");
+                Strings.ERROR_MOVING_FILE_DIALOG_HEADER,
+                StringUtils.format(Strings.ERROR_MOVING_FILE_SAME_NAME, from, to)
+            );
             return;
         }
 
         Dialogs.showModalDialog(DefaultDialogs.DIALOG_ID_ERROR,
-            "Move Error",
-            "An unexpected error occurred when attempting to move " + from + " to " + to);
+            Strings.ERROR_MOVING_FILE_DIALOG_HEADER,
+            StringUtils.format(Strings.ERROR_MOVING_FILE, from, to)
+        );
 
         console.error("[Bramble] Failed to move `", source, "` to `", destination, "` with: ", error);
     }
@@ -136,7 +140,7 @@ define(function (require, exports, module) {
         var parentPath = projectRoot.replace(/\/?$/, "");
         var directories = [{
             path: parentPath,
-            name: "Project Root",
+            name: Strings.PROJECT_ROOT,
             children: false,
             indent: 0,
             noIcon: true,
@@ -194,7 +198,10 @@ define(function (require, exports, module) {
 
             var dialogContents = {
                 defaultPath: defaultPath,
-                source: context.fullPath
+                source: context.fullPath,
+                PICK_A_FOLDER_TO_MOVE_TO: Strings.PICK_A_FOLDER_TO_MOVE_TO,
+                OK: Strings.OK,
+                CANCEL: Strings.CANCEL
             };
             var subdirectoryContents = {
                 subdirectories: directoryTreeTemplate

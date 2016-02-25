@@ -8,11 +8,12 @@ define(function (require, exports, module) {
     var Commands       = brackets.getModule("command/Commands");
     var Menus          = brackets.getModule("command/Menus");
     var ExtensionUtils = brackets.getModule("utils/ExtensionUtils");
+    var Strings        = brackets.getModule("strings");
     var MoveToDialog   = require("MoveToDialog");
 
     var MOVE_FILE = "bramble-move-file.moveFile";
 
-    CommandManager.register("Move To...", MOVE_FILE, MoveToDialog.open);
+    CommandManager.register(Strings.CMD_MOVE_FILE, MOVE_FILE, MoveToDialog.open);
     var menu = Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
     menu.addMenuItem(MOVE_FILE, null, Menus.AFTER, Commands.FILE_RENAME);
 
