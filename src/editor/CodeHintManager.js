@@ -249,7 +249,8 @@ define(function (require, exports, module) {
         hintList         = null,
         deferredHints    = null,
         keyDownEditor    = null,
-        codeHintsEnabled = true;
+        codeHintsEnabled = true,
+        codeHintOpened   = false;
 
 
     PreferencesManager.definePreference("showCodeHints", "boolean", true, {
@@ -379,6 +380,7 @@ define(function (require, exports, module) {
         }
         hintList.close();
         hintList = null;
+        codeHintOpened = false;
         keyDownEditor = null;
         sessionProvider = null;
         sessionEditor = null;
@@ -410,7 +412,48 @@ define(function (require, exports, module) {
         }
         return false;
     }
+    function _callMoveUp(event) {
+        if (deferredHints) {
+            deferredHints.reject();
+            deferredHints = null;
+        }
 
+        var response = sessionProvider.getHints(lastChar);
+        lastChar = null;
+
+        if (!response) {
+            // the provider wishes to close the session
+            _endSession();
+        } else {
+            // if the response is true, end the session and begin another
+            if (response === true) {
+                var previousEditor = sessionEditor;
+                //_endSession();
+                //_beginSession(previousEditor);
+            } else if (response.hasOwnProperty("hints")) { // a synchronous response
+                if (hintList.isOpen()) {
+                    // the session is open
+                    hintList.callMoveUp(event);
+                }
+            } else { // response is a deferred
+                deferredHints = response;
+                response.done(function (hints) {
+                    // Guard against timing issues where the session ends before the
+                    // response gets a chance to execute the callback.  If the session
+                    // ends first while still waiting on the response, then hintList
+                    // will get cleared up.
+                    if (!hintList) {
+                        return;
+                    }
+
+                    if (hintList.isOpen()) {
+                        // the session is open
+                        hintList.callMoveUp(event);
+                    }
+                });
+            }
+        }
+    }
     /**
      * From an active hinting session, get hints from the current provider and
      * render the hint list window.
@@ -500,7 +543,6 @@ define(function (require, exports, module) {
             }
 
             sessionEditor = editor;
-
             hintList = new CodeHintList(sessionEditor, insertHintOnTab, maxCodeHints);
             hintList.onSelect(function (hint) {
                 var restart = sessionProvider.insertHint(hint),
@@ -524,6 +566,10 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     function _startNewSession(editor) {
+        if (codeHintOpened) {
+            return;
+        }
+
         if (!editor) {
             editor = EditorManager.getFocusedEditor();
         }
@@ -535,6 +581,8 @@ define(function (require, exports, module) {
             }
             // Begin a new explicit session
             _beginSession(editor);
+
+            codeHintOpened = true;
         }
     }
 
@@ -583,6 +631,8 @@ define(function (require, exports, module) {
                 // We do this in "keyup" because we want the cursor position to be updated before
                 // we redraw the list.
                 _updateHintList();
+            } else if (event.ctrlKey === true && event.keyCode === KeyEvent.DOM_VK_SPACE) {
+                _callMoveUp(event);
             }
         }
     }
@@ -701,7 +751,6 @@ define(function (require, exports, module) {
     // may make the current hinting session irrevalent after execution.
     // For example, when the user hits Ctrl+K to open Quick Doc, it is
     // pointless to keep the hint list since the user wants to view the Quick Doc.
-    CommandManager.on("beforeExecuteCommand", _endSession);
 
     CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
 

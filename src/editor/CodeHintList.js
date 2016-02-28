@@ -306,14 +306,17 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Check whether keyCode is one of the keys that we handle or not.
+     * Check whether Event is one of the keys that we handle or not.
      *
-     * @param {number} keyCode
+     * @param {KeyBoardEvent} keyEvent
      */
-    CodeHintList.prototype.isHandlingKeyCode = function (keyCode) {
+    CodeHintList.prototype.isHandlingEvent = function (event) {
+        var keyCode = event.keyCode;
         return (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
                 keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
                 keyCode === KeyEvent.DOM_VK_RETURN ||
+                keyCode === KeyEvent.DOM_VK_CONTROL ||
+                (event.ctrlKey === true && keyCode === KeyEvent.DOM_VK_SPACE) ||
                 (keyCode === KeyEvent.DOM_VK_TAB && this.insertHintOnTab));
     };
 
@@ -384,7 +387,7 @@ define(function (require, exports, module) {
         }
 
         // (page) up, (page) down, enter and tab key are handled by the list
-        if (event.type === "keydown" && this.isHandlingKeyCode(event.keyCode)) {
+        if (event.type === "keydown" && this.isHandlingEvent(event)) {
             keyCode = event.keyCode;
 
             if (event.shiftKey &&
@@ -396,7 +399,8 @@ define(function (require, exports, module) {
 
                 // Let the event bubble.
                 return false;
-            } else if (keyCode === KeyEvent.DOM_VK_UP) {
+            } else if (keyCode === KeyEvent.DOM_VK_UP ||
+                (event.ctrlKey === true && keyCode === KeyEvent.DOM_VK_SPACE)) {
                 _rotateSelection.call(this, -1);
             } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
                 _rotateSelection.call(this, 1);
@@ -480,8 +484,6 @@ define(function (require, exports, module) {
                 .css({"left": hintPos.left, "top": hintPos.top, "width": hintPos.width + "px"});
             this.opened = true;
 
-            PopUpManager.addPopUp(this.$hintMenu, this.handleClose, true);
-
             KeyBindingManager.addGlobalKeydownHook(this._keydownHook);
         }
     };
@@ -503,7 +505,16 @@ define(function (require, exports, module) {
                                 "width": hintPos.width + "px"});
         }
     };
-
+    /**
+     * Calls the move up keybind to move hint suggestion selector
+     *
+     * @param {KeyBoardEvent} keyEvent
+     */
+    CodeHintList.prototype.callMoveUp = function (event) {
+        delete event.type;
+        event.type = "keydown";
+        this._keydownHook(event);
+    };
     /**
      * Closes the hint list
      */
