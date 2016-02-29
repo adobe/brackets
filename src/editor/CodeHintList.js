@@ -309,15 +309,18 @@ define(function (require, exports, module) {
     /**
      * Check whether Event is one of the keys that we handle or not.
      *
-     * @param {KeyBoardEvent} keyEvent
+     * @param {KeyBoardEvent|keyBoardEvent.keyCode} keyEvent
      */
-    CodeHintList.prototype.isHandlingEvent = function (event) {
-        var keyCode = event.keyCode;
+    CodeHintList.prototype.isHandlingKeyCode = function (keyCodeOrEvent) {
+        var keyCode = typeof keyCodeOrEvent === "object" ? keyCodeOrEvent.keyCode : keyCodeOrEvent;
+        var ctrlKey = typeof keyCodeOrEvent === "object" ? keyCodeOrEvent.ctrlKey : false;
+
+
         return (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
                 keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
                 keyCode === KeyEvent.DOM_VK_RETURN ||
                 keyCode === KeyEvent.DOM_VK_CONTROL ||
-                (event.ctrlKey === true && keyCode === KeyEvent.DOM_VK_SPACE) ||
+                (ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE) ||
                 (keyCode === KeyEvent.DOM_VK_TAB && this.insertHintOnTab));
     };
 
@@ -388,7 +391,7 @@ define(function (require, exports, module) {
         }
 
         // (page) up, (page) down, enter and tab key are handled by the list
-        if (event.type === "keydown" && this.isHandlingEvent(event)) {
+        if (event.type === "keydown" && this.isHandlingKeyCode(event)) {
             keyCode = event.keyCode;
 
             if (event.shiftKey &&
@@ -401,7 +404,7 @@ define(function (require, exports, module) {
                 // Let the event bubble.
                 return false;
             } else if (keyCode === KeyEvent.DOM_VK_UP ||
-                (event.ctrlKey === true && keyCode === KeyEvent.DOM_VK_SPACE)) {
+                (event.ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE)) {
                 _rotateSelection.call(this, -1);
             } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
                 _rotateSelection.call(this, 1);

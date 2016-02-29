@@ -412,55 +412,16 @@ define(function (require, exports, module) {
         }
         return false;
     }
-    function _callMoveUp(event) {
-        if (deferredHints) {
-            deferredHints.reject();
-            deferredHints = null;
-        }
-
-        var response = sessionProvider.getHints(lastChar);
-        lastChar = null;
-
-        if (!response) {
-            // the provider wishes to close the session
-            _endSession();
-        } else {
-            // if the response is true, end the session and begin another
-            if (response === true) {
-                var previousEditor = sessionEditor;
-                //_endSession();
-                //_beginSession(previousEditor);
-            } else if (response.hasOwnProperty("hints")) { // a synchronous response
-                if (hintList.isOpen()) {
-                    // the session is open
-                    hintList.callMoveUp(event);
-                }
-            } else { // response is a deferred
-                deferredHints = response;
-                response.done(function (hints) {
-                    // Guard against timing issues where the session ends before the
-                    // response gets a chance to execute the callback.  If the session
-                    // ends first while still waiting on the response, then hintList
-                    // will get cleared up.
-                    if (!hintList) {
-                        return;
-                    }
-
-                    if (hintList.isOpen()) {
-                        // the session is open
-                        hintList.callMoveUp(event);
-                    }
-                });
-            }
-        }
-    }
     /**
      * From an active hinting session, get hints from the current provider and
      * render the hint list window.
      *
      * Assumes that it is called when a session is active (i.e. sessionProvider is not null).
      */
-    function _updateHintList() {
+    function _updateHintList(callMoveUpEvent) {
+
+        var callMoveUpEvent = typeof callMoveUpEvent === "undefined" ? false : callMoveUpEvent;
+
         if (deferredHints) {
             deferredHints.reject();
             deferredHints = null;
@@ -476,12 +437,19 @@ define(function (require, exports, module) {
             // if the response is true, end the session and begin another
             if (response === true) {
                 var previousEditor = sessionEditor;
-                _endSession();
-                _beginSession(previousEditor);
+
+                if (!callMoveUpEvent) {
+                    _endSession();
+                    _beginSession(previousEditor);
+                }
             } else if (response.hasOwnProperty("hints")) { // a synchronous response
                 if (hintList.isOpen()) {
                     // the session is open
-                    hintList.update(response);
+                    if (callMoveUpEvent) {
+                        hintList.callMoveUp(callMoveUpEvent);
+                    } else {
+                        hintList.update(response);
+                    }
                 } else {
                     hintList.open(response);
                 }
@@ -498,7 +466,11 @@ define(function (require, exports, module) {
 
                     if (hintList.isOpen()) {
                         // the session is open
-                        hintList.update(hints);
+                        if (callMoveUpEvent) {
+                            hintList.callMoveUp(callMoveUpEvent);
+                        } else {
+                            hintList.update(response);
+                        }
                     } else {
                         hintList.open(hints);
                     }
@@ -579,10 +551,10 @@ define(function (require, exports, module) {
             if (_inSession(editor)) {
                 _endSession();
             }
-            // Begin a new explicit session
-            _beginSession(editor);
 
+            // Begin a new explicit session
             codeHintOpened = true;
+            _beginSession(editor);
         }
     }
 
@@ -631,8 +603,8 @@ define(function (require, exports, module) {
                 // We do this in "keyup" because we want the cursor position to be updated before
                 // we redraw the list.
                 _updateHintList();
-            } else if (event.ctrlKey === true && event.keyCode === KeyEvent.DOM_VK_SPACE) {
-                _callMoveUp(event);
+            } else if (event.ctrlKey && event.keyCode === KeyEvent.DOM_VK_SPACE) {
+                _updateHintList(event);
             }
         }
     }
@@ -746,11 +718,6 @@ define(function (require, exports, module) {
     activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
 
     EditorManager.on("activeEditorChange", activeEditorChangeHandler);
-
-    // Dismiss code hints before executing any command since the command
-    // may make the current hinting session irrevalent after execution.
-    // For example, when the user hits Ctrl+K to open Quick Doc, it is
-    // pointless to keep the hint list since the user wants to view the Quick Doc.
 
     CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
 
