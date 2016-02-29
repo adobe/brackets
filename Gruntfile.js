@@ -65,7 +65,6 @@ module.exports = function (grunt) {
                     cwd: 'src/',
                     src: [
                         /* static files */
-                        'nls/{,*/}*.js',
                         'xorigin.js',
                         'dependencies.js',
                         'thirdparty/requirejs/require.js',
@@ -91,6 +90,14 @@ module.exports = function (grunt) {
                         'thirdparty/text/*.js'
                     ],
                     dest: 'dist/'
+                }]
+            },
+            nls: {
+                files: [{
+                    expand: true,
+                    cwd: 'dist/nls',
+                    src: [ '**/*.js' ],
+                    dest: 'dist/nls'
                 }]
             }
         },
