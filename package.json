@@ -59,6 +59,9 @@
         "localize": "node scripts/properties2js",
         "postinstall": "grunt install",
         "build": "grunt build-browser",
+        "preproduction": "grunt build-browser-compressed && grunt unlocalize",
+        "production": "npm start",
+        "unlocalize": "grunt unlocalize",
         "test": "grunt test && grunt build-browser-compressed",
         "start": "http-server -p 8000 --cors"
     },

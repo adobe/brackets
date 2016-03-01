@@ -515,7 +515,9 @@ module.exports = function (grunt) {
             }
         },
         exec: {
-            localize: 'node scripts/properties2js dist'
+            localize: 'node scripts/properties2js',
+            'localize-dist': 'node scripts/properties2js dist',
+            'clean-nls': 'git checkout -- src/nls'
         }
     });
 
@@ -593,6 +595,7 @@ module.exports = function (grunt) {
         'targethtml',
         'useminPrepare',
         'htmlmin',
+        'exec:localize',
         'requirejs:dist',
         'concat',
         /*'cssmin',*/
@@ -608,12 +611,15 @@ module.exports = function (grunt) {
         'build',
         'replace:ternDefs',
         'requirejs:iframe',
-        'exec:localize',
+        'exec:localize-dist',
         'uglify'
     ]);
 
     // task: build dist/ for browser, pre-compressed with gzip
     grunt.registerTask('build-browser-compressed', ['build-browser', 'compress']);
+
+    // task: undo changes to the src/nls directory
+    grunt.registerTask('unlocalize', ['exec:clean-nls']);
 
     // Default task.
     grunt.registerTask('default', ['test']);

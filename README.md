@@ -59,9 +59,13 @@ However, if you wish to run your own static server, there are several options av
 
 Assuming you have Bramble running on port `8000`. Now you can visit [http://localhost:8000/src](http://localhost:8000/src).
 
-NOTE: Bramble expects to be run in an iframe, which hosts its filesystem. For local
+**NOTE 1:** Bramble expects to be run in an iframe, which hosts its filesystem. For local
 development, use `src/hosted.html` instead of `src/index.html`.  To see how the remote end
 should host Bramble's iframe, see `src/hosted.js`.
+
+**NOTE 2:** Using `npm run build` will overwrite contents in the `src/nls` folder. These changes are necessary if you access Bramble using [http://localhost:8000/src](http://localhost:8000/src). After using Bramble, you can undo the changes by running `npm run unlocalize`.
+
+**NOTE 3:** To use Bramble in a production setting locally, you can run `npm run production` and access Bramble at [http://localhost:8000/dist](http://localhost:8000/dist)
 
 # Optional Extension Loading
 
