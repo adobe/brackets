@@ -70,7 +70,7 @@ define(function (require, exports, module) {
         return false;
     }
 
-    function _showErrorDialog(errorFiles) {
+    function _showErrorDialog(errorFiles, callback) {
         function errorToString(err) {
             return FileUtils.getFileErrorString(err);
         }
@@ -90,11 +90,15 @@ define(function (require, exports, module) {
         });
         message += "</ul>";
 
-        Dialogs.showModalDialog(
+        var dlg = Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
             Strings.ERROR_OPENING_FILE_TITLE,
             message
         );
+
+        if(callback) {
+            dlg.done(callback);
+        }
     }
 
     /**
@@ -386,10 +390,8 @@ define(function (require, exports, module) {
             // Check whether we want to import this file at all before we start.
             var wasRejected = rejectImport(item);
             if (wasRejected) {
-                setTimeout(function(){
-                    errorList.push({path: item.name, error: wasRejected.message});
-                    deferred.reject(wasRejected);
-                }, 5);
+                errorList.push({path: item.name, error: wasRejected.message});
+                deferred.reject(wasRejected);
                 return deferred.promise();
             }
 
@@ -438,8 +440,9 @@ define(function (require, exports, module) {
                 callback(null, pathList);
             })
             .fail(function() {
-                _showErrorDialog(errorList);
-                callback(errorList);
+                _showErrorDialog(errorList, function() {
+                    callback(errorList);
+                });
             });
     }
 
