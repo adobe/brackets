@@ -541,14 +541,14 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     function _startNewSession(editor) {
-        if (codeHintOpened) {
+
+        if (isOpen()) {
             return;
         }
 
         if (!editor) {
             editor = EditorManager.getFocusedEditor();
         }
-
         if (editor) {
             lastChar = null;
             if (_inSession(editor)) {
@@ -556,7 +556,6 @@ define(function (require, exports, module) {
             }
 
             // Begin a new explicit session
-            codeHintOpened = true;
             _beginSession(editor);
         }
     }

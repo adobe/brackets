@@ -403,8 +403,7 @@ define(function (require, exports, module) {
 
                 // Let the event bubble.
                 return false;
-            } else if (keyCode === KeyEvent.DOM_VK_UP ||
-                (event.ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE)) {
+            } else if (keyCode === KeyEvent.DOM_VK_UP) {
                 _rotateSelection.call(this, -1);
             } else if (keyCode === KeyEvent.DOM_VK_DOWN ||
                 (event.ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE)) {
