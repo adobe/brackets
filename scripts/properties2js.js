@@ -39,7 +39,7 @@ var mkdirp = Promise.promisify(require("mkdirp"));
 // Unchanging values
 var EN_US_DIR = "root";
 var L10N_DIR = "nls";
-var L10N_PROP_FILE = "messages.properties";
+var L10N_PROP_FILE = "editor.properties";
 var L10N_STR_FILE = "strings.js";
 var L10N_TEMPLATE_FILE = "strings.template";
 var LOCALE_LIST_TEMPLATE_FILE = "locale-list.template";
