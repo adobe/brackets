@@ -39,7 +39,7 @@ var mkdirp = Promise.promisify(require("mkdirp"));
 // Unchanging values
 var EN_US_DIR = "root";
 var L10N_DIR = "nls";
-var L10N_PROP_FILE = "messages.properties";
+var L10N_PROP_FILE = "editor.properties";
 var L10N_STR_FILE = "strings.js";
 var L10N_TEMPLATE_FILE = "strings.template";
 var LOCALE_LIST_TEMPLATE_FILE = "locale-list.template";
@@ -83,27 +83,54 @@ function localizeBrackets(locale) {
     var strings = destLocalizedStrings[locale];
     var isNewLocale = !(Object.keys(strings).length);
 
-    return mkdirp(path.join(dest, localeDir))
-    .then(function() {
-        return properties.readAsync(path.join(src, locale, L10N_PROP_FILE));
-    })
-    .then(function(newStrings) {
+    function combineAndWriteStrings(newStrings) {
+        if(newStrings) {
+            Object.assign(strings, newStrings);
+        }
+
+        if(!(Object.keys(strings).length)) {
+            // Our string file is empty and Brackets does not have any strings
+            console.log("No strings to write for `", localeDir, "`");
+            return Promise.resolve();
+        }
+
         if(isNewLocale) {
             destLocales.push(localeDir);
         }
 
-        Object.assign(strings, newStrings);
         var localizedFileContents = templates.render(L10N_TEMPLATE_FILE, { localizedStrings: strings });
+        var destLocaleDir = path.join(dest, localeDir);
 
-        return fs.writeFileAsync(path.join(dest, localeDir, L10N_STR_FILE), localizedFileContents);
-    })
-    .then(function() {
-        console.log("Updated l10n file for `", localeDir, "`");
-        return Promise.resolve();
-    })
+        return mkdirp(destLocaleDir)
+        .then(function() {
+            return fs.writeFileAsync(path.join(destLocaleDir, L10N_STR_FILE), localizedFileContents);
+        })
+        .then(function() {
+            console.log("Updated l10n file for `", localeDir, "`");
+            return Promise.resolve();
+        })
+        .catch(function(err) {
+            console.error("Failed to update l10n file for `", localeDir, "`");
+            return Promise.reject(err);
+        });
+    }
+
+    return properties.readAsync(path.join(src, locale, L10N_PROP_FILE))
+    .then(combineAndWriteStrings)
     .catch(function(err) {
-        console.error("Failed to update l10n file for `", localeDir, "`");
-        return Promise.reject(err);
+        if(err.code !== "ENOENT") {
+            console.error("Failed to update l10n file for `", localeDir, "`");
+            return Promise.reject(err);
+        }
+
+        if(!isNewLocale) {
+            // We need to write the strings that brackets provides
+            return combineAndWriteStrings();
+        }
+
+        // Our string file nor their's have any strings
+        console.log("No strings to write for `", localeDir, "`");
+        return Promise.resolve();
     });
 }
 
