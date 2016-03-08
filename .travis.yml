@@ -14,6 +14,7 @@ notifications:
 env:
   global:
     - secure: OvDWteGJ/ctOzXudDb8icaLCtdJTd1HbQq5T9HvS7ZF8IDs6xM+atqxYWeyC+2sm7fLNkWjndcKrXFqZ3TRltW7ibaKreUMtUVaVKc7mGBNBn/gVfCNvHRlbDYr6bMUVapk9x1Ql6p2jE/Ss+p2EEGkzvHPKn2RMRWOQQQM7wTQ=
+    - secure: "QBOXtZywpMPKVrYqu04c+7Qum6fzNWuerk81J68NNdjvILo0BoV0SPyASEEJVgRieMIUGpE+nKy1WMG5QnL1mL/qLbQJmotGjd7IBj+hSdz8aIfg01sGVe3IyHWv6T/aKCMzCvHqypwuP3O0yclU9gybyWjiRFCtiBuHCpLSRe4="
   matrix:
     - AWS_ACCESS_KEY_ID=AKIAI7XHSZFYVHFRTRIA CLOUDFRONT_DISTRIBUTION_ID=ENS8DUD0WOHD9
 deploy:
@@ -29,6 +30,7 @@ deploy:
     on:
       repo: mozilla/brackets
       branch: master
+      condition: $UPDATE_STRINGS != true
   - provider: s3
     access_key_id: AKIAI7XHSZFYVHFRTRIA
     secret_access_key:
@@ -41,5 +43,6 @@ deploy:
     on:
       repo: mozilla/brackets
       branch: production
+      condition: $UPDATE_STRINGS != true
 after_deploy:
 - node invalidate.js

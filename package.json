@@ -53,6 +53,7 @@
         "mkdirp": "0.5.1",
         "nunjucks": "2.3.0",
         "properties-parser": "0.3.1",
+        "request": "^2.69.0",
         "requirejs": "2.1.22"
     },
     "scripts": {
