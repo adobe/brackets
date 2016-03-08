@@ -467,7 +467,7 @@ define({
 
     // Strings for Pane.js
 	"EMPTY_VIEW_HEADER": "<em>Ouvrir un fichier quand ce panneau est actif</em>",
-	"FLIPVIEW_BTN_TOOLTIP": "Transférer cette vue dans le volet {0}",
+	"FLIPVIEW_BTN_TOOLTIP": "Transférer cette vue dans le volet de {0}",
 
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "Thème actuel ",
