@@ -5,7 +5,7 @@ if [ "$UPDATE_STRINGS" == "true" ]
 then
     # Get the latest tarball of Thimble and extract the locales/ directory
     curl -L https://api.github.com/repos/mozilla/thimble.mozilla.org/tarball/master | \
-        tar -xv --include '/locales/' --strip-components 1
+        tar -xv --strip-components=1 *locales*
 
     # Temporarily stage any changes between the thimble locales folder and the
     # Brackets locales folder so that we can diff them
