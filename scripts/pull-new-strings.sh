@@ -4,8 +4,7 @@ set -e # exit with nonzero exit code if anything fails
 if [ "$UPDATE_STRINGS" == "true" ]
 then
     # Get the latest tarball of Thimble and extract the locales/ directory
-    curl -L https://api.github.com/repos/mozilla/thimble.mozilla.org/tarball/master | \
-        tar -xvzf --overwrite --wildcards --wildcards-match-slash --strip-components=1 *locales*
+    node scripts/get-thimble-locale-files.js
 
     # Temporarily stage any changes between the thimble locales folder and the
     # Brackets locales folder so that we can diff them
@@ -14,6 +13,8 @@ then
     # Get the list of files that are new or that were changed
     CHANGED="$(git diff --cached --name-only --diff-filter=M locales)"
     ADDED="$(git diff --cached --name-only --diff-filter=A locales)"
+
+    echo "Changes detected for: $CHANGED $ADDED"
 
     for CHANGED_FILE in $CHANGED
     do
@@ -34,7 +35,7 @@ then
             -H "Content-Type: application/json" \
             -H "Accept: application/json" \
             -H "Authorization: token $GH_TOKEN" \
-            -d "$body"
+            -d "$body" \
             "https://api.github.com/repos/mozilla/brackets/contents/$CHANGED_FILE"
 
         echo "Successfully updated strings for $locale"
@@ -56,7 +57,7 @@ then
             -H "Content-Type: application/json" \
             -H "Accept: application/json" \
             -H "Authorization: token $GH_TOKEN" \
-            -d "$body"
+            -d "$body" \
             "https://api.github.com/repos/mozilla/brackets/contents/$ADDED_FILE"
         echo "Successfully added strings for $locale"
     done

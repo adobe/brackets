@@ -49,12 +49,14 @@
     },
     "devDependencies": {
         "bluebird": "3.2.2",
+        "gunzip-maybe": "^1.3.1",
         "http-server": "^0.8.0",
         "mkdirp": "0.5.1",
         "nunjucks": "2.3.0",
         "properties-parser": "0.3.1",
         "request": "^2.69.0",
-        "requirejs": "2.1.22"
+        "requirejs": "2.1.22",
+        "tar-fs": "^1.11.1"
     },
     "scripts": {
         "localize": "node scripts/properties2js",
