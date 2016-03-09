@@ -73,7 +73,7 @@ define(function (require, exports, module) {
         ProjectModel        = require("project/ProjectModel"),
         FileTreeView        = require("project/FileTreeView"),
         ViewUtils           = require("utils/ViewUtils");
-    
+
     // Needed to ensure that menus are set up when we need them.
     // See #10115
     require("command/DefaultMenus");
@@ -127,10 +127,10 @@ define(function (require, exports, module) {
      * @type {jQueryObject}
      */
     var $projectTreeContainer;
-    
+
     /**
      * @private
-     * 
+     *
      * Reference to the container of the React component. Everything in this
      * node is managed by React.
      * @type {Element}
@@ -178,7 +178,7 @@ define(function (require, exports, module) {
             var error = errorInfo.type,
                 isFolder = errorInfo.isFolder,
                 name = errorInfo.name;
-            
+
             if (error === FileSystemError.ALREADY_EXISTS) {
                 _showErrorDialog(ERR_TYPE_CREATE_EXISTS, isFolder, null, name);
             } else if (error === ProjectModel.ERROR_INVALID_FILENAME) {
@@ -192,12 +192,12 @@ define(function (require, exports, module) {
             }
         }, 10);
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Reverts to the previous selection (useful if there's an error).
-     * 
+     *
      * @param {string|File} previousPath The previously selected path.
      * @param {boolean} switchToWorkingSet True if we need to switch focus to the Working Set
      */
@@ -519,10 +519,10 @@ define(function (require, exports, module) {
         });
         return d.promise();
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Saves the project path.
      */
     var _saveProjectPath = function () {
@@ -560,22 +560,34 @@ define(function (require, exports, module) {
             message;
         path = StringUtils.breakableUrl(path);
 
+        /*
+         * Bramble - We have modified this to use different strings for
+         * directories and files instead of replacing the word "file" or
+         * "directory" in the string itself due to different contexts with
+         * certain locales. However, we still pass the "file"/"directory"
+         * strings into the `format` function so that in case the placeholder
+         * for that is somehow present in the string (for locales we haven't
+         * translated yet), we won't break compatibility and instead fallback
+         * to the original localization strategy of replacing the placeholder
+         * with "file"/"directory"
+         */
+
         switch (errType) {
         case ERR_TYPE_CREATE:
-            title = StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, titleType);
-            message = StringUtils.format(Strings.ERROR_CREATING_FILE, entryType, path, error);
+            title = StringUtils.format(Strings[isFolder ? "ERROR_CREATING_DIRECTORY_TITLE" : "ERROR_CREATING_FILE_TITLE"], titleType);
+            message = StringUtils.format(Strings[isFolder ? "ERROR_CREATING_DIRECTORY" : "ERROR_CREATING_FILE"], entryType, path, error);
             break;
         case ERR_TYPE_CREATE_EXISTS:
-            title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType);
+            title = StringUtils.format(Strings[isFolder ? "INVALID_DIRNAME_TITLE" : "INVALID_FILENAME_TITLE"], titleType);
             message = StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS, path);
             break;
         case ERR_TYPE_RENAME:
-            title = StringUtils.format(Strings.ERROR_RENAMING_FILE_TITLE, titleType);
-            message = StringUtils.format(Strings.ERROR_RENAMING_FILE, path, error, entryType);
+            title = StringUtils.format(Strings[isFolder ? "ERROR_RENAMING_DIRECTORY_TITLE" : "ERROR_RENAMING_FILE_TITLE"], titleType);
+            message = StringUtils.format(Strings[isFolder ? "ERROR_RENAMING_DIRECTORY" : "ERROR_RENAMING_FILE"], path, error, entryType);
             break;
         case ERR_TYPE_DELETE:
-            title = StringUtils.format(Strings.ERROR_DELETING_FILE_TITLE, titleType);
-            message = StringUtils.format(Strings.ERROR_DELETING_FILE, path, error, entryType);
+            title = StringUtils.format(Strings[isFolder ? "ERROR_DELETING_DIRECTORY_TITLE" : "ERROR_DELETING_FILE_TITLE"], titleType);
+            message = StringUtils.format(Strings[isFolder ? "ERROR_DELETING_DIRECTORY" : "ERROR_DELETING_FILE"], path, error, entryType);
             break;
         case ERR_TYPE_LOADING_PROJECT:
             title = Strings.ERROR_LOADING_PROJECT;
@@ -594,8 +606,8 @@ define(function (require, exports, module) {
             message = StringUtils.format(Strings.OPEN_DIALOG_ERROR, error);
             break;
         case ERR_TYPE_INVALID_FILENAME:
-            title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME);
-            message = StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE, error);
+            title = StringUtils.format(Strings[isFolder ? "INVALID_DIRNAME_TITLE" : "INVALID_FILENAME_TITLE"], isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME);
+            message = StringUtils.format(Strings[isFolder ? "INVALID_DIRNAME_MESSAGE" : "INVALID_FILENAME_MESSAGE"], isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE, error);
             break;
         }
 
@@ -615,7 +627,7 @@ define(function (require, exports, module) {
      * @private
      *
      * Rerender the file tree view.
-     * 
+     *
      * @param {boolean} forceRender Force the tree to rerender. Should only be needed by extensions that call rerenderTree.
      */
     _renderTreeSync = function (forceRender) {
@@ -707,7 +719,7 @@ define(function (require, exports, module) {
                     deferred.reject();
                 }
             });
-            
+
             return deferred.promise();
         }
 
@@ -720,7 +732,7 @@ define(function (require, exports, module) {
                 // Last resort is Brackets source folder which is guaranteed to exist
                 deferred.resolve(FileUtils.getNativeBracketsDirectoryPath());
             });
-        
+
         return deferred.promise();
     }
 
@@ -824,7 +836,7 @@ define(function (require, exports, module) {
 
         var projectPrefFullPath = (rootPath + SETTINGS_FILENAME),
             file   = FileSystem.getFileForPath(projectPrefFullPath);
-            
+
         //Verify that the project preferences file (.brackets.json) is NOT corrupted.
         //If corrupted, display the error message and open the file in editor for the user to edit.
         FileUtils.readAsText(file)
@@ -906,7 +918,7 @@ define(function (require, exports, module) {
                     var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                     _projectWarnedForTooManyFiles = false;
-                    
+
                     _setProjectRoot(rootEntry).always(function () {
                         model.setBaseUrl(PreferencesManager.getViewState("project.baseUrl", context) || "");
 
@@ -970,7 +982,7 @@ define(function (require, exports, module) {
 
     /**
      * Refresh the project's file tree, maintaining the current selection.
-     * 
+     *
      * Note that the original implementation of this returned a promise to be resolved when the refresh is complete.
      * That use is deprecated and `refreshFileTree` is now a "fire and forget" kind of function.
      */
@@ -978,7 +990,7 @@ define(function (require, exports, module) {
         FileSystem.clearAllCaches();
         return new $.Deferred().resolve().promise();
     };
-    
+
     refreshFileTree = _.debounce(refreshFileTree, _refreshDelay);
 
     /**
@@ -1124,7 +1136,7 @@ define(function (require, exports, module) {
         FileSyncManager.syncOpenDocuments();
 
         model.handleFSEvent(entry, added, removed);
-        
+
         // @TODO: DocumentManager should implement its own fsChange  handler
         //          we can clean up the calls to DocumentManager.notifyPathDeleted
         //          and privatize DocumentManager.notifyPathDeleted as well
@@ -1133,7 +1145,7 @@ define(function (require, exports, module) {
         if (removed) {
             removed.forEach(function (file) {
                 // The call to syncOpenDocuemnts above will not nofify
-                //  document manager about deleted images that are 
+                //  document manager about deleted images that are
                 //  not in the working set -- try to clean that up here
                 DocumentManager.notifyPathDeleted(file.fullPath);
             });
@@ -1156,37 +1168,37 @@ define(function (require, exports, module) {
     function forceFinishRename() {
         actionCreator.performRename();
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Sets the width of the selection bar in the file tree.
-     * 
+     *
      * @param {int} width New width value
      */
     function _setFileTreeSelectionWidth(width) {
         model.setSelectionWidth(width);
         _renderTree();
     }
-    
+
     // Initialize variables and listeners that depend on the HTML DOM
     AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
         $projectTreeContainer.addClass("jstree jstree-brackets");
         $projectTreeContainer.css("overflow", "auto");
         $projectTreeContainer.css("position", "relative");
-        
+
         fileTreeViewContainer = $("<div>").appendTo($projectTreeContainer)[0];
-        
+
         model.setSelectionWidth($projectTreeContainer.width());
-        
+
         $(".main-view").click(function (jqEvent) {
             if (!jqEvent.target.classList.contains("jstree-rename-input")) {
                 forceFinishRename();
                 actionCreator.setContext(null);
             }
         });
-        
+
         $("#working-set-list-container").on("contentChanged", function () {
             $projectTreeContainer.trigger("contentChanged");
         });
@@ -1202,7 +1214,7 @@ define(function (require, exports, module) {
         $projectTreeContainer.on("contextmenu", function () {
             forceFinishRename();
         });
-        
+
         // When a context menu item is selected, we need to clear the context
         // because we don't get a beforeContextMenuClose event since Bootstrap
         // handles this directly.
@@ -1219,9 +1231,9 @@ define(function (require, exports, module) {
             // we need to render the tree without a delay to not cause selection extension issues (#10573)
             _renderTreeSync();
         });
-        
+
         _renderTree();
-        
+
         ViewUtils.addScrollerShadow($projectTreeContainer[0]);
     });
 
@@ -1256,7 +1268,7 @@ define(function (require, exports, module) {
         return null;
     }
 
-    
+
     EventDispatcher.makeEventDispatcher(exports);
 
     // Init default project path to welcome project
@@ -1277,7 +1289,7 @@ define(function (require, exports, module) {
     EventDispatcher.on_duringInit(FileViewController, "documentSelectionFocusChange", _documentSelectionFocusChange);
     EventDispatcher.on_duringInit(FileViewController, "fileViewFocusChange", _fileViewControllerChange);
     EventDispatcher.on_duringInit(MainViewManager, "currentFileChange", _currentFileChange);
-    
+
     // Commands
     CommandManager.register(Strings.CMD_OPEN_FOLDER,      Commands.FILE_OPEN_FOLDER,      openProject);
     CommandManager.register(Strings.CMD_PROJECT_SETTINGS, Commands.FILE_PROJECT_SETTINGS, _projectSettings);
@@ -1288,7 +1300,7 @@ define(function (require, exports, module) {
         .on("change", function () {
             actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
         });
-    
+
     actionCreator.setSortDirectoriesFirst(PreferencesManager.get(SORT_DIRECTORIES_FIRST));
 
     /**
@@ -1308,7 +1320,7 @@ define(function (require, exports, module) {
      */
     renameItemInline = function (entry) {
         var d = new $.Deferred();
-        
+
         model.startRename(entry)
             .done(function () {
                 d.resolve();
@@ -1414,12 +1426,12 @@ define(function (require, exports, module) {
     function rerenderTree() {
         _renderTree(true);
     }
-    
-    
+
+
     // Private API helpful in testing
     exports._actionCreator                = actionCreator;
     exports._RENDER_DEBOUNCE_TIME         = _RENDER_DEBOUNCE_TIME;
-    
+
     // Private API for use with SidebarView
     exports._setFileTreeSelectionWidth    = _setFileTreeSelectionWidth;
 
