@@ -3,64 +3,28 @@ set -e # exit with nonzero exit code if anything fails
 
 if [ "$UPDATE_STRINGS" == "true" ]
 then
+    # Temporarily stash any changes that were made
+    git stash
+
+    # Fetch the latest Brackets master branch
+    git fetch -f https://github.com/mozilla/brackets.git master:master
+
+    # Switch to the updated master branch
+    git checkout master
+
     # Get the latest tarball of Thimble and extract the locales/ directory
     node scripts/get-thimble-locale-files.js
 
-    # Temporarily stage any changes between the thimble locales folder and the
-    # Brackets locales folder so that we can diff them
+    # Stage any changes between the thimble locales folder and the
+    # Brackets locales folder
     git add locales
 
-    # Get the list of files that are new or that were changed
-    CHANGED="$(git diff --cached --name-only --diff-filter=M locales)"
-    ADDED="$(git diff --cached --name-only --diff-filter=A locales)"
+    # Commit the locale changes
+    git commit -m "Thimble-L10N - Pull new strings from Thimble"
 
-    echo "Changes detected for: $CHANGED $ADDED"
+    # Push the changes to master (if possible)
+    git push https://github.com/mozilla/brackets master
 
-    for CHANGED_FILE in $CHANGED
-    do
-        # Get the SHA of the existing version of the locale file in Brackets
-        sha="$(node scripts/get-file-sha.js $CHANGED_FILE)"
-        # Get the locale that was changed
-        locale="$(echo $CHANGED_FILE | sed -e 's/locales\///g' -e 's/\/editor\.properties//g')"
-        # Base64 encode the new file's contents
-        content="$(base64 $CHANGED_FILE)"
-        body="{ \
-            \"message\": \"Thimble-L10N - Update strings for $locale\", \
-            \"content\": \"$content\", \
-            \"sha\": \"$sha\" \
-        }"
-
-        # Commit the change to the repo
-        curl -X PUT \
-            -H "Content-Type: application/json" \
-            -H "Accept: application/json" \
-            -H "Authorization: token $GH_TOKEN" \
-            -d "$body" \
-            "https://api.github.com/repos/mozilla/brackets/contents/$CHANGED_FILE"
-
-        echo "Successfully updated strings for $locale"
-    done
-
-    for ADDED_FILE in $ADDED
-    do
-        # Get the locale that was changed
-        locale="$(echo $ADDED_FILE | sed -e 's/locales\///g' -e 's/\/editor\.properties//g')"
-        # Base64 encode the new file's contents
-        content="$(base64 $ADDED_FILE)"
-        body="{ \
-            \"message\": \"Thimble-L10N - Add strings for $locale\", \
-            \"content\": \"$content\", \
-        }"
-
-        # Commit the new file to the repo
-        curl -X PUT \
-            -H "Content-Type: application/json" \
-            -H "Accept: application/json" \
-            -H "Authorization: token $GH_TOKEN" \
-            -d "$body" \
-            "https://api.github.com/repos/mozilla/brackets/contents/$ADDED_FILE"
-        echo "Successfully added strings for $locale"
-    done
-
-    git reset locales
+    # Reset the state of the build to what it was before
+    git checkout - && git stash pop
 fi
