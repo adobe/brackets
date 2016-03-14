@@ -28,7 +28,7 @@
 /**
  * Compatibility shims for running Brackets in various environments, browsers.
  */
-define(function () {
+define(function (require, exports, module) {
     "use strict";
 
     // [IE10] String.prototype missing trimRight() and trimLeft()
@@ -44,5 +44,40 @@ define(function () {
     if (typeof (new Error()).stack === "undefined") {
         Error.prototype.stack = "";
     }
+
+    var memoryStorage = {
+        _items: {},
+        getItem: function(key) {
+            return memoryStorage._items[key];
+        },
+        setItem: function(key, value) {
+            // Mimic localStorage string storage
+            value = "" + value;
+            memoryStorage._items[key] = value;
+        },
+        removeItem: function(key) {
+            delete memoryStorage._item[key];
+        },
+        clear: function() {
+            memoryStorage._items = {};
+        }
+    };
+
+    exports.localStorage = (function(window) {
+        var localStorage;
+
+        try {
+            localStorage = window.localStorage;
+            if(typeof window.localStorage === 'undefined') {
+                console.warn("localStorage is unavailable, using temporary memory storage instead");
+                localStorage = memoryStorage;
+            }
+        } catch(e) {
+            console.warn("Unable to use localStorage in Brackets with: ", e);
+            localStorage = memoryStorage;
+        } finally {
+            return localStorage;
+        }
+    }(window));
 
 });
