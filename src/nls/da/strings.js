@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
@@ -45,7 +45,7 @@ define({
     "FILENAMES_LEDE"                    : "Filnavne",
     "FILENAME"                          : "filnavn",
     "DIRECTORY_NAME"                    : "mappenavn",
-    
+
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Fejl ved indlæsning af projekt",
@@ -78,7 +78,7 @@ define({
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} virker ikke i browsere endnu.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} er lavet i HTML, men lige nu fungerer det som et almindeligt computerprogram, så du kan bruge det til at redigere lokale filer. Brug venligst programskallen fra <b>github.com/adobe/brackets-shell</b> til at køre {APP_NAME}.",
-    
+
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "Fejl ved indeksering af filer",
     "ERROR_MAX_FILES"                   : "Det maksimale antal filer er blevet indekseret. Handlinger som tilgår filindekset fungerer måske ikke korrekt.",
@@ -87,7 +87,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Fejl ved start af browser",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome browseren kunne ikke findes. Undersøg venligst om det er installeret korrekt.",
     "ERROR_LAUNCHING_BROWSER"           : "Der skete en fejl ved start af browseren. (fejl {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fejl ved Live-Forhåndsvisning",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Forbinder til browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "For at Live-Forhåndsvisning kan forbinde, bliver Chrome nødt til at blive genstartet med fjern-fejlsøgning slået til.<br /><br />Ønsker du at genstarte Chrome med fjern-fejlsøgning slået til?",
@@ -98,7 +98,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Velkommen til Live-Forhåndsvisning!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live-Forhåndsvisning forbinder {APP_NAME} til din browser. Der åbnes en forhåndsvisning af din HTML-fil i browseren, som opdateres samtidig med at du redigerer i koden.<br /><br />I denne tidlige version af {APP_NAME}, virker Live-Forhåndsvisning kun med <strong>Google Chrome</strong> og opdaterer direkte imens du redigerer i <strong>CSS- eller HTML-filer</strong>. Ændringer i JavaScript-filer bliver automatisk genindlæst når du gemmer.<br /><br />(Denne besked bliver ikke vist igen.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "For yderligere information, se <a href='{0}' title='{0}'>Løsningsforslag til forbindelsesfejl vedrørende Live-Forhåndsvisning</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live-Forhåndsvisning",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live-Forhåndsvisning: Forbinder\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live-Forhåndsvisning: Starter op\u2026",
@@ -110,7 +110,7 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Live-Forhåndsvisning blev afbrudt fordi siden blev lukket i browseren",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Live-Forhåndsvisning blev afbrudt fordi browseren navigerede til en side udenfor projektet",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Live-Forhåndsvisning blev afbrudt af ukendte årsager ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Gem ændringer",
     "SAVE_CLOSE_MESSAGE"                : "Ønsker du at gemme ændringerne i dokumentet <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Ønsker du at gemme ændringerne i følgende filer?",
@@ -121,7 +121,7 @@ define({
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> er blevet ændret på disken.<br /><br />Ønsker du at gemme filen og overskrive disse ændringer?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> er blevet ændret på disken, men har også ikke-gemte ændringer i {APP_NAME}.<br /><br />Hvilken version ønsker du at beholde?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> er blevet slettet på disken, men har ikke-gemte ændringer i {APP_NAME}.<br /><br />Ønsker du at beholde disse ændringer?",
-    
+
     // Generic dialog/button labels
     "DONE"                              : "Færdig",
     "OK"                                : "OK",
@@ -133,7 +133,7 @@ define({
     "DELETE"                            : "Slet",
     "BUTTON_YES"                        : "Ja",
     "BUTTON_NO"                         : "Nej",
-        
+
     // Find, Replace, Find in Files
     "FIND_NO_RESULTS"                   : "Ingen resultater",
     "FIND_QUERY_PLACEHOLDER"            : "Søg\u2026",
@@ -180,10 +180,10 @@ define({
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl-/Cmd-klik for at udfolde/sammenfolde alt",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Fejl ved erstatning",
     "REPLACE_IN_FILES_ERRORS"           : "Følgende filer blev ikke behandlet, da de har ændret sig siden søgningen eller ikke kunne gemmes.",
-    
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fejl ved hentning af opdateringsinformation",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Der opstod en fejl ved hentning af seneste opdateringsinformationer fra serveren. Sørg venligst for at du er forbundet til internettet og prøv igen.",
-    
+
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Nyt udelukkelsessæt\u2026",
     "CLEAR_FILE_FILTER"                 : "Udeluk ingen filer",
@@ -223,7 +223,7 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Skift",
     "KEYBOARD_SPACE"  : "Mellemrum",
-    
+
     /**
      * StatusBar strings
      */
@@ -256,8 +256,8 @@ define({
     "NOTHING_TO_LINT"                       : "Intet at linte",
     "LINTER_TIMED_OUT"                      : "{0} har opgivet at vente efter {1} ms",
     "LINTER_FAILED"                         : "{0} afsluttede med fejl: {1}",
-    
-    
+
+
     /**
      * Command Name Constants
      */
@@ -315,7 +315,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Åbn linjen nedenunder",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Luk parenteser automatisk",
     "CMD_SHOW_CODE_HINTS"                 : "Vis kodehjælp",
-    
+
     // Search menu commands
     "FIND_MENU"                           : "Søg",
     "CMD_FIND"                            : "Søg",
@@ -329,7 +329,7 @@ define({
     "CMD_REPLACE"                         : "Erstat",
     "CMD_REPLACE_IN_FILES"                : "Erstat i filer",
     "CMD_REPLACE_IN_SUBTREE"              : "Erstat i\u2026",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "Vis",
     "CMD_HIDE_SIDEBAR"                    : "Skjul sidepanel",
@@ -366,7 +366,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "Vis i Stifinder",
     "CMD_SHOW_IN_FINDER"                  : "Vis i Finder",
     "CMD_SHOW_IN_OS"                      : "Vis i OS",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Hjælp",
     "CMD_CHECK_FOR_UPDATE"                : "Kontrollér for opdateringer",
@@ -409,10 +409,10 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Basis-URL'en kan ikke indeholde interne henvisninger såsom \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Specielle tegn såsom '{0}' skal kodes med %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ukendt fejl ved tolkning af Basis-URL",
-    
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Ny regel",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Installér",
     "UPDATE"                               : "Opdatér",
@@ -493,14 +493,14 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "Installeret",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Udvalg",
     "EXTENSIONS_UPDATES_TITLE"             : "Opdateringer",
-    
+
     "INLINE_EDITOR_NO_MATCHES"             : "Ingen forekomster.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Der eksisterer ingen CSS-regler, som matcher det markerede element.<br> Klik \"Ny regel\" for at oprette en.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Der er ingen stylesheets i dit projekt.<br>Opret et for at tilføje CSS-regler.",
 
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "største",
-    
+
     /**
      * Unit names
      */
@@ -521,20 +521,20 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Log Node tilstand til konsol",
     "CMD_RESTART_NODE"                          : "Genstart Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Vis fejl i statuslinjen",
-    
+
     "LANGUAGE_TITLE"                            : "Skift sprog",
     "LANGUAGE_MESSAGE"                          : "Sprog:",
     "LANGUAGE_SUBMIT"                           : "Genindlæs {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Annuller",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Systemets sprog",
-    
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tid",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Forløb",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Flyt valgte punkt<br><kbd class='text'>Skift</kbd> Flyt ti enheder af gangen<br><kbd class='text'>Tab</kbd> Skift punkter",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Forøg eller formindsk antal trin<br><kbd>←</kbd><kbd>→</kbd> 'Start' eller 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "Den gamle værdi <code>{0}</code> er ikke gyldig, så den viste funktion blev ændret til <code>{1}</code>. Dokumentet vil blive opdateret ved første redigering.",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Nuværende farve",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Oprindelig farve",
@@ -543,21 +543,21 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa-format",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Brugt {1} gang)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Brugt {1} gange)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Hop til definition",
     "CMD_SHOW_PARAMETER_HINT"                   : "Vis parameterhjælp",
     "NO_ARGUMENTS"                              : "<ingen parametre>",
-    
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Lyn-visning af det du peger på",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Seneste projekter",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Læs mere"
 });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -518,7 +518,7 @@ define({
     "EXTENSION_INCOMPATIBLE_OLDER"         : " نسخه فعلی این افزونه فقط با نسخه های قبلی {APP_NAME} سازگار است.",
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "نسخه {0} از این افزونه نیازمند نسخه جدیدی از {APP_NAME} می باشد. ولی شما می توانید یک نسخه پایین تر از {1} را نصب کنید.",
     "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "نسخه {0} از این افزونه فقط با نسخه قدیمی از {APP_NAME} کار می کند. اما شما به راحتی می توانید نصب کنید نسخه {1} را ",
-    
+
 
     "EXTENSION_NO_DESCRIPTION"             : "بدون شرح",
     "EXTENSION_MORE_INFO"                  : "اطلاعات بیشتر...",

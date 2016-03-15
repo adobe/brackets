@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 // A simple HTML tokenizer, originally adapted from https://github.com/fb55/htmlparser2
@@ -29,10 +29,10 @@
 /*unittests: HTML Tokenizer*/
 
 define(function (require, exports, module) {
-    
+
     "use strict";
     var i = 0,
-    
+
         TEXT = i++,
         BEFORE_TAG_NAME = i++, //after <
         IN_TAG_NAME = i++,
@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         IN_CLOSING_TAG_NAME = i++,
         AFTER_CLOSING_TAG_NAME = i++,
         AFTER_SELFCLOSE_SLASH = i++,
-    
+
         //attributes
         BEFORE_ATTRIBUTE_NAME = i++,
         AFTER_QUOTED_ATTRIBUTE_VALUE = i++,
@@ -50,20 +50,20 @@ define(function (require, exports, module) {
         IN_ATTRIBUTE_VALUE_DOUBLE_QUOTES = i++, // "
         IN_ATTRIBUTE_VALUE_SINGLE_QUOTES = i++, // '
         IN_ATTRIBUTE_VALUE_NO_QUOTES = i++,
-    
+
         //declarations
         BEFORE_DECLARATION = i++, // !
         IN_DECLARATION = i++,
-    
+
         //processing instructions
         IN_PROCESSING_INSTRUCTION = i++, // ?
-    
+
         //comments
         BEFORE_COMMENT = i++,
         IN_COMMENT = i++,
         AFTER_COMMENT_1 = i++,
         AFTER_COMMENT_2 = i++,
-    
+
         //cdata
         BEFORE_CDATA_1 = i++, // [
         BEFORE_CDATA_2 = i++, // C
@@ -74,11 +74,11 @@ define(function (require, exports, module) {
         IN_CDATA = i++,// [
         AFTER_CDATA_1 = i++, // ]
         AFTER_CDATA_2 = i++, // ]
-    
+
         //special tags
         BEFORE_SPECIAL = i++, //S
         BEFORE_SPECIAL_END = i++,   //S
-    
+
         BEFORE_SCRIPT_1 = i++, //C
         BEFORE_SCRIPT_2 = i++, //R
         BEFORE_SCRIPT_3 = i++, //I
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
         AFTER_SCRIPT_3 = i++, //I
         AFTER_SCRIPT_4 = i++, //P
         AFTER_SCRIPT_5 = i++, //T
-    
+
         BEFORE_STYLE_1 = i++, //T
         BEFORE_STYLE_2 = i++, //Y
         BEFORE_STYLE_3 = i++, //L
@@ -107,7 +107,7 @@ define(function (require, exports, module) {
     function isWhitespace(c) {
         return c === " " || c === "\t" || c === "\r" || c === "\n";
     }
-    
+
     /**
      * @private
      * @param {string} c the character to test
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
         // and will be legal in the web components spec.
         return (/[A-Za-z0-9\-]/).test(c);
     }
-    
+
     /**
      * @private
      * @param {string} c the character to test
@@ -127,7 +127,7 @@ define(function (require, exports, module) {
     function isLegalInAttributeName(c) {
         return c !== '"' && c !== "'" && c !== "<" && c !== "=";
     }
-    
+
     /**
      * @private
      * @param {string} c the character to test
@@ -136,11 +136,11 @@ define(function (require, exports, module) {
     function isLegalInUnquotedAttributeValue(c) {
         return c !== "<" && c !== "=";
     }
-    
+
     function _clonePos(pos, offset) {
         return pos ? { line: pos.line, ch: pos.ch + (offset || 0)} : null;
     }
-    
+
     /**
      * A simple HTML tokenizer. See the description of nextToken() for usage details.
      * @constructor
@@ -157,7 +157,7 @@ define(function (require, exports, module) {
         this._token = null;
         this._nextToken = null;
     }
-    
+
     /**
      * Returns the next token in the HTML document, or null if we're at the end of the document.
      * @return {?{type: string, contents: string, start: number, end: number}} token The next token, with the following fields:
@@ -181,13 +181,13 @@ define(function (require, exports, module) {
      */
     Tokenizer.prototype.nextToken = function () {
         this._token = null;
-        
+
         if (this._nextToken) {
             var result = this._nextToken;
             this._nextToken = null;
             return result;
         }
-        
+
         while (this._index < this._buffer.length && !this._token) {
             var c = this._buffer.charAt(this._index);
             if (this._state === TEXT) {
@@ -285,7 +285,7 @@ define(function (require, exports, module) {
                     this._emitSpecialToken("error");
                     break;
                 }
-    
+
             /*
             *	attributes
             */
@@ -385,7 +385,7 @@ define(function (require, exports, module) {
                     this._emitSpecialToken("error");
                     break;
                 }
-    
+
             /*
             *	declarations
             */
@@ -403,8 +403,8 @@ define(function (require, exports, module) {
                     this._state = TEXT;
                     this._startSection(1);
                 }
-            
-    
+
+
             /*
             *	processing instructions
             */
@@ -414,8 +414,8 @@ define(function (require, exports, module) {
                     this._state = TEXT;
                     this._startSection(1);
                 }
-            
-    
+
+
             /*
             *	comments
             */
@@ -448,8 +448,8 @@ define(function (require, exports, module) {
                     this._state = IN_COMMENT;
                 }
                 // else: stay in AFTER_COMMENT_2 (`--->`)
-            
-    
+
+
             /*
             *	cdata
             */
@@ -512,8 +512,8 @@ define(function (require, exports, module) {
                     this._state = IN_CDATA;
                 }
                 //else: stay in AFTER_CDATA_2 (`]]]>`)
-            
-    
+
+
             /*
             * special tags
             */
@@ -534,8 +534,8 @@ define(function (require, exports, module) {
                 } else {
                     this._state = TEXT;
                 }
-            
-    
+
+
             /*
             * script
             */
@@ -605,8 +605,8 @@ define(function (require, exports, module) {
                 } else {
                     this._state = TEXT;
                 }
-            
-    
+
+
             /*
             * style
             */
@@ -677,25 +677,25 @@ define(function (require, exports, module) {
             }
             this._index++;
         }
-        
+
         if (this._index === this._buffer.length && this._state !== TEXT) {
             // We hit EOF in the middle of processing something else.
             this._emitSpecialToken("error");
         }
         return this._token;
     };
-    
+
     Tokenizer.prototype._startSection = function (offset) {
         offset = offset || 0;
         this._sectionStart = this._index + offset;
-        
+
         // Normally it wouldn't be safe to assume that we can just add the offset to the
         // character position, because there might be a newline, which would require us to
         // move to the next line. However, in all the cases where this is called, we are
         // adjusting for characters that we know are not newlines.
         this._sectionStartPos = _clonePos(this._indexPos, offset);
     };
-    
+
     /**
      * @private
      * Extract the portion of the buffer since _sectionStart and set it to be the next token we return
@@ -743,7 +743,7 @@ define(function (require, exports, module) {
         this._sectionStart = -1;
         this._sectionStartPos = null;
     };
-    
+
     /**
      * @private
      * Like `_emitToken()`, but used for special tokens that don't have real content (like opentagend and selfclosingtag).
@@ -757,7 +757,7 @@ define(function (require, exports, module) {
         this._sectionStartPos = null;
         this._emitToken(type, index, indexPos);
     };
-    
+
     /**
      * @private
      * Like `_emitToken()`, but only emits a token if there is actually content in it. Note that this still
@@ -772,6 +772,6 @@ define(function (require, exports, module) {
         this._sectionStart = -1;
         this._sectionStartPos = null;
     };
-    
+
     exports.Tokenizer = Tokenizer;
 });

@@ -1,31 +1,31 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*global define */
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var FileUtils       = require("file/FileUtils"),
         EventDispatcher = require("utils/EventDispatcher"),
         FindUtils       = require("search/FindUtils"),
@@ -43,13 +43,13 @@ define(function (require, exports, module) {
     }
     EventDispatcher.makeEventDispatcher(SearchModel.prototype);
 
-    /** @const Constant used to define the maximum results found. 
+    /** @const Constant used to define the maximum results found.
      *  Note that this is a soft limit - we'll likely go slightly over it since
      *  we always add all the searches in a given file.
      */
     SearchModel.MAX_TOTAL_RESULTS = 100000;
-        
-    /** 
+
+    /**
      * The current set of results.
      * @type {Object.<fullPath: string, {matches: Array.<Object>, collapsed: boolean, timestamp: Date}>}
      */
@@ -60,7 +60,7 @@ define(function (require, exports, module) {
      * @type {{query: string, caseSensitive: boolean, isRegexp: boolean}}
      */
     SearchModel.prototype.queryInfo = null;
-    
+
     /**
      * The compiled query, expressed as a regexp.
      * @type {RegExp}
@@ -84,31 +84,31 @@ define(function (require, exports, module) {
      * @type {FileSystemEntry}
      */
     SearchModel.prototype.scope = null;
-    
+
     /**
      * A file filter (as returned from FileFilters) to apply within the main scope.
      * @type {string}
      */
     SearchModel.prototype.filter = null;
 
-    /** 
+    /**
      * The total number of matches in the model.
      * @type {number}
      */
     SearchModel.prototype.numMatches = 0;
-    
+
     /**
      * Whether or not we hit the maximum number of results for the type of search we did.
      * @type {boolean}
      */
     SearchModel.prototype.foundMaximum = false;
-    
+
     /**
      * Whether or not we exceeded the maximum number of results in the search we did.
      * @type {boolean}
      */
     SearchModel.prototype.exceedsMaximum = false;
-    
+
     /**
      * Clears out the model to an empty state.
      */
@@ -124,7 +124,7 @@ define(function (require, exports, module) {
         this.exceedsMaximum = false;
         this.fireChanged();
     };
-    
+
     /**
      * Sets the given query info and stores a compiled RegExp query in this.queryExpr.
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo
@@ -154,20 +154,20 @@ define(function (require, exports, module) {
      */
     SearchModel.prototype.setResults = function (fullpath, resultInfo) {
         this.removeResults(fullpath);
-        
+
         if (this.foundMaximum || !resultInfo.matches.length) {
             return;
         }
-        
+
         // Make sure that the optional `collapsed` property is explicitly set to either true or false,
         // to avoid logic issues later with comparing values.
         resultInfo.collapsed = !!resultInfo.collapsed;
-        
+
         this.results[fullpath] = resultInfo;
         this.numMatches += resultInfo.matches.length;
         if (this.numMatches >= SearchModel.MAX_TOTAL_RESULTS) {
             this.foundMaximum = true;
-            
+
             // Remove final result if there have been over MAX_TOTAL_RESULTS found
             if (this.numMatches > SearchModel.MAX_TOTAL_RESULTS) {
                 this.results[fullpath].matches.pop();
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
             }
         }
     };
-    
+
     /**
      * Removes the given result's matches from the search results and updates the total match count.
      * @param {string} fullpath Full path to the file containing the matches.
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
             delete this.results[fullpath];
         }
     };
-    
+
     /**
      * @return {boolean} true if there are any results in this model.
      */
@@ -268,7 +268,7 @@ define(function (require, exports, module) {
     SearchModel.prototype.fireChanged = function (quickChange) {
         this.trigger("change", quickChange);
     };
-    
+
     // Public API
     exports.SearchModel = SearchModel;
 });

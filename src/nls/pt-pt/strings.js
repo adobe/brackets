@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -234,8 +234,8 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "O URL base não pode conter cardinal como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Caracteres especiais como '{0}' têm que ser %-codificados.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Erro desconhecido na análise do URL base",
-    
-    
+
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                           : "Debug",
     "CMD_SHOW_DEV_TOOLS"                   : "Mostrar ferramentas de desenvolvimento",
@@ -244,7 +244,7 @@ define({
     "CMD_SWITCH_LANGUAGE"                  : "Mudar linguagem",
     "CMD_RUN_UNIT_TESTS"                   : "Executar testes",
     "CMD_SHOW_PERF_DATA"                   : "Mostrar dados de desempenho",
-    
+
     "LANGUAGE_TITLE"                       : "Mudar idioma",
     "LANGUAGE_MESSAGE"                     : "Por favor, selecione o idioma desejado na lista abaixo:",
     "LANGUAGE_SUBMIT"                      : "Recarregar {APP_NAME}",

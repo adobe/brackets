@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
@@ -93,7 +93,7 @@ define({
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} 暂无法在浏览器中运行。",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} 是建立在 HTML 上的一个桌面程序, 你可以用它修改本地文件. 可以前往此处下载系统对应的版本<b>github.com/adobe/brackets-shell</b>, 然后重新运行 {APP_NAME}.",
-    
+
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "索引文件错误",
     "ERROR_MAX_FILES"                   : "索引文件过多, 可能无法通过索引查找文件。",
@@ -102,7 +102,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "启动浏览器失败",
     "ERROR_CANT_FIND_CHROME"            : "没有找到 Google Chrome 浏览器, 请确定您已安装了 Chrome 浏览器。",
     "ERROR_LAUNCHING_BROWSER"           : "启动浏览器时发生错误。 (错误 {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "实时预览错误",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "正在连接浏览器",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "要使用实时预览, 需要重启 Chrome 并打开远程调试功能。<br /><br />你确定重新启动 Chrome 浏览器, 并且打开远程调试功能吗？",
@@ -113,7 +113,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "欢迎使用实时预览！",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME} 将通过实时预览连接至你的浏览器. 你的 HTML 文件将在浏览器中预览, 修改你的代码将会即时更新你浏览器中的预览。<br /><br />目前版本的 {APP_NAME} 实时预览只能运行于 <strong>Google Chrome</strong> 浏览器更新实时编辑时的 <strong>CSS 和 HTML 文件</strong>，当你保存了 JavaScript 文件, 实时预览将在浏览器中重新加载它们。<br /><br />(此消息仅会出现一次)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "更多信息, 请参考<a href='{0}' title='{0}'>实时预览连接错误信息</a>。",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "实时预览",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "实时预览: 连接中\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "实时预览: 初始化\u2026",
@@ -125,7 +125,7 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "由于浏览器中页面已关闭, 实时预览已关闭",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "由于浏览器打开一个不属于本项目的页面, 实时预览已关闭",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "未知原因 ({0}) 导致实时预览关闭",
-    
+
     "SAVE_CLOSE_TITLE"                  : "保存更新",
     "SAVE_CLOSE_MESSAGE"                : "保存 <span class='dialog-filename'>{0}</span> 文件中所做的修改？",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "是否保存以下文件的修改？",
@@ -148,7 +148,7 @@ define({
     "DELETE"                            : "删除",
     "BUTTON_YES"                        : "是",
     "BUTTON_NO"                         : "否",
-    
+
     // Find, Replace, Find in Files
     "FIND_MATCH_INDEX"                  : "{1} 条中的 {0} 条",
     "FIND_NO_RESULTS"                   : "未找到匹配项",
@@ -415,7 +415,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "在资源管理器中显示",
     "CMD_SHOW_IN_FINDER"                  : "在 Finder 中显示",
     "CMD_SHOW_IN_OS"                      : "打开文件所在目录",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "帮助",
     "CMD_CHECK_FOR_UPDATE"                : "检查更新",
@@ -462,7 +462,7 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "特殊字符 '{0}' 必须 %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "地址解析错误, 请确认地址格式",
     "EMPTY_VIEW_HEADER"                    : "<em>保持此窗格的焦点，打开文件</em>",
-    
+
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "当前主题",
     "USE_THEME_SCROLLBARS"                 : "使用主题自带滚动条",
@@ -472,7 +472,7 @@ define({
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "新 CSS 规则",
-    
+
     // Extension Management strings
     "INSTALL"                              : "安装",
     "UPDATE"                               : "升级",
@@ -570,12 +570,12 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "可获取",
     "EXTENSIONS_THEMES_TITLE"              : "主题",
     "EXTENSIONS_UPDATES_TITLE"             : "升级",
-    
+
     "INLINE_EDITOR_NO_MATCHES"             : "未找到匹配项。",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "所有匹配项已折叠。展开右侧列出的文件以查看匹配项。",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "符合选择的 CSS 规则不存在。<br> 点击 \"新 CSS 规则\" 来创建。",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "您的项目中没有样式表。<br>建立一个来添加 CSS 规则。",
-    
+
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "最大化",
 
@@ -630,7 +630,7 @@ define({
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 移动选中点<br><kbd class='text'>Shift</kbd> 10倍移动<br><kbd class='text'>Tab</kbd> 切换点",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> 增减步进<br><kbd>←</kbd><kbd>→</kbd> 切换 'Start' 或 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "原值 <code>{0}</code> 无效, 函数值已变为 <code>{1}</code>. 文档将在首次编辑时更新.",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前的颜色",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "原来的颜色",
@@ -639,23 +639,23 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa 格式",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (使用 {1} 次)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (使用 {1} 次)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "跳转到源代码定义处",
     "CMD_SHOW_PARAMETER_HINT"                   : "显示参数提示",
     "NO_ARGUMENTS"                              : "<无相应参数>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript 文件引用问题",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets 处理文件遇到问题： <br><br>{0}<br><br> 该文件不再用于处理代码提示，并会跳转到源码定义处。 为避免这个问题, 请打开项目中的 <code>.brackets.json</code> ,从 jscodehints.detectedExclusions 删除该文件",
-    
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "鼠标悬停时启用快速查看",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "最近的项目",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "更多信息",
 

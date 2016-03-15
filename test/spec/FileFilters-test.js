@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- * 
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,7 +26,7 @@
 
 define(function (require, exports, module) {
     'use strict';
-    
+
     var FileFilters        = require("search/FileFilters"),
         SpecRunnerUtils    = require("spec/SpecRunnerUtils"),
         Dialogs            = require("widgets/Dialogs"),
@@ -36,7 +36,7 @@ define(function (require, exports, module) {
         StringUtils        = require("utils/StringUtils");
 
     describe("FileFilters", function () {
-        
+
         describe("Filter matching", function () {
             // filterPath() == true means the path does NOT match the glob, i.e. it passes the filter
             // filterPath() == false means the path DOES match the glob, i.e. it got filtered out
@@ -46,7 +46,7 @@ define(function (require, exports, module) {
             function expectNotMatch(compiledFilter, path) {
                 expect(FileFilters.filterPath(compiledFilter, path)).toBe(true);
             }
-            
+
             it("empty filter should accept everything", function () {
                 var filter = FileFilters.compile([]);
                 expectNotMatch(filter, "/foo");
@@ -54,7 +54,7 @@ define(function (require, exports, module) {
                 expectNotMatch(filter, "/foo/bbb/file");
                 expectNotMatch(filter, "/foo/bbb/file.txt");
             });
-            
+
             it("should match simple substring", function () {
                 var filter = FileFilters.compile(["foo"]);
                 expectMatch(filter, "/foo/bbb/file.txt");
@@ -67,11 +67,11 @@ define(function (require, exports, module) {
                 expectMatch(filter, "/aaa/bbb/Xfoo.txt");
                 expectMatch(filter, "/aaa/bbb/ccc.fooX");
                 expectMatch(filter, "/aaa/bbb/ccc.Xfoo");
-                
+
                 expectNotMatch(filter, "/aaa/bbb/ccc.txt");
                 expectNotMatch(filter, "/aaa/fo/o.txt");
             });
-            
+
             it("should match file extension", function () {
                 var filter = FileFilters.compile(["*.css"]);
                 expectMatch(filter,    "/file.css");
@@ -87,7 +87,7 @@ define(function (require, exports, module) {
                 expectMatch(filter,    "/aaa/bbb/.css");
                 expectNotMatch(filter, "/aaa/bbb/.css/");
             });
-            
+
             it("should match file name", function () {
                 var filter = FileFilters.compile(["/jquery.js"]);
                 expectMatch(filter,    "/jquery.js");
@@ -101,7 +101,7 @@ define(function (require, exports, module) {
                 expectNotMatch(filter, "/aaa/jquery.js/file.txt");
                 expectMatch(filter,    "/aaa/jquery.js/jquery.js");
             });
-            
+
             it("should match folder name", function () {
                 var filter = FileFilters.compile(["/node_modules/"]);
                 expectMatch(filter,    "/node_modules/");
@@ -113,7 +113,7 @@ define(function (require, exports, module) {
                 expectNotMatch(filter, "/aaa/node_modulesX/file.js");
                 expectNotMatch(filter, "/aaa/bbb/node_modules.js");
             });
-            
+
             it("should match multi-segment path part", function () {
                 var filter = FileFilters.compile(["/foo/bar/"]);
                 expectMatch(filter,    "/foo/bar/");
@@ -127,7 +127,7 @@ define(function (require, exports, module) {
                 expectNotMatch(filter, "/foo/Xbar");
                 expectNotMatch(filter, "/foo/barX");
                 expectMatch(filter,    "/foo/aaa/foo/bar/file.txt");
-                
+
                 filter = FileFilters.compile(["/foo/bar.js"]);
                 expectNotMatch(filter, "/foo/bar");
                 expectNotMatch(filter, "/foo/bar/");
@@ -145,7 +145,7 @@ define(function (require, exports, module) {
                 expectNotMatch(filter, "/foo/bar.jsX");
                 expectMatch(filter,    "/foo/aaa/foo/bar.js");
             });
-            
+
             it("should match * within path segment", function () {
                 var filter = FileFilters.compile(["a*c"]);
                 expectMatch(filter,    "/ac");
@@ -166,7 +166,7 @@ define(function (require, exports, module) {
                 expectNotMatch(filter, "/ab/cd");
                 expectNotMatch(filter, "/ab/cd/");
                 expectMatch(filter,    "/abcd/cd/");
-                
+
                 filter = FileFilters.compile(["/foo*.js"]);
                 expectMatch(filter,    "/foo.js");
                 expectMatch(filter,    "/aaa/foo.js");
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
                 expectNotMatch(filter, "/foojs");
                 expectNotMatch(filter, "/foo.js/bar");
                 expectNotMatch(filter, "/foo/bar.js");
-                
+
                 filter = FileFilters.compile(["*foo*"]);  // this might as well be ** on either side, since implied ones are added
                 expectMatch(filter,    "/aaa/foo/ccc");
                 expectMatch(filter,    "/foo/bbb/ccc");
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
                 expectMatch(filter,    "/Xfoo/bbb/ccc");
                 expectMatch(filter,    "/fooX/bbb/ccc");
                 expectNotMatch(filter, "/aaaf/oo/bbb");
-                
+
                 filter = FileFilters.compile(["/*foo*/"]);
                 expectMatch(filter,    "/aaa/foo/ccc");
                 expectMatch(filter,    "/foo/bbb/ccc");
@@ -200,23 +200,23 @@ define(function (require, exports, module) {
                 expectMatch(filter,    "/Xfoo/bbb/ccc");
                 expectMatch(filter,    "/fooX/bbb/ccc");
                 expectNotMatch(filter, "/aaaf/oo/bbb");
-                
+
                 filter = FileFilters.compile(["node_*"]);
                 expectMatch(filter,    "/code/node_modules/foo.js");
                 expectMatch(filter,    "/code/node_core/foo.js");
                 expectMatch(filter,    "/code/node_foo.txt");
                 expectMatch(filter,    "/code/Xnode_foo.txt");
-                
+
                 filter = FileFilters.compile(["/node_*"]);
                 expectNotMatch(filter, "/code/Xnode_foo.txt");
-                
+
                 filter = FileFilters.compile(["/*/"]);  // remember there's an implied ** on either side of this
                 expectMatch(filter,    "/aaa/bbb/ccc");
                 expectMatch(filter,    "/aaa/");
                 expectMatch(filter,    "/aaa/bbb/file.txt");
                 expectMatch(filter,    "/aaa/file.txt");
                 expectNotMatch(filter, "/file.txt");
-                
+
                 filter = FileFilters.compile(["/aaa/*/ccc/"]);
                 expectMatch(filter,    "/aaa/bbb/ccc/");
                 expectMatch(filter,    "/aaa/bbb/ccc/file.txt");
@@ -226,7 +226,7 @@ define(function (require, exports, module) {
                 expectNotMatch(filter, "/X/aaa/bbb/xxx/ccc/");
                 expectNotMatch(filter, "/aaa/bbb/aaa/ccc/");
                 expectMatch(filter,    "/aaa/aaa/bbb/ccc/");
-                
+
                 filter = FileFilters.compile(["/aaa*/bbb/"]);
                 expectMatch(filter,    "/aaa/bbb/");
                 expectMatch(filter,    "/aaa/bbb/file.txt");
@@ -235,7 +235,7 @@ define(function (require, exports, module) {
                 expectNotMatch(filter, "/aaa/xxx/bbb/");
                 expectNotMatch(filter, "/Xaaa/bbb/");
                 expectNotMatch(filter, "/aaa/bbbX/");
-                
+
                 // Multiple wildcards
                 filter = FileFilters.compile(["/thirdparty/*/jquery*.js"]);
                 expectNotMatch(filter, "/thirdparty/jquery.js");
@@ -252,11 +252,11 @@ define(function (require, exports, module) {
                 expectNotMatch(filter, "/thirdparty/jquery-1.7.js.md");
                 expectNotMatch(filter, "/thirdparty/jquery-docs.js/foo.js");
             });
-            
+
             it("should match ** across path segments", function () {
                 // Note: many of the other testcases also cover ** since they're implied at the start & end of most filters
                 // (see docs in FileFilters.compile() and at https://github.com/adobe/brackets/wiki/Using-File-Filters)
-                
+
                 var filter = FileFilters.compile(["a**c"]);
                 expectMatch(filter,    "/ac");
                 expectMatch(filter,    "/abc");
@@ -280,7 +280,7 @@ define(function (require, exports, module) {
                 expectMatch(filter,    "/abcd/cd/");
                 expectNotMatch(filter, "/ab/d/");
                 expectNotMatch(filter, "/c/a/d/");
-                
+
                 filter = FileFilters.compile(["foo**"]);  // this is equivalent to just "foo"
                 expectMatch(filter,    "/foo");
                 expectMatch(filter,    "/aaa/foo");
@@ -292,7 +292,7 @@ define(function (require, exports, module) {
                 expectMatch(filter,    "/Xfoo/aaa");
                 expectMatch(filter,    "/fooX/aaa");
                 expectNotMatch(filter, "/fo/oaaa");
-                
+
                 filter = FileFilters.compile(["/foo**"]);
                 expectMatch(filter,    "/foo");
                 expectMatch(filter,    "/aaa/foo");
@@ -303,7 +303,7 @@ define(function (require, exports, module) {
                 expectMatch(filter,    "/aaa/fooX");
                 expectNotMatch(filter, "/Xfoo/aaa");
                 expectMatch(filter,    "/fooX/aaa");
-                
+
                 filter = FileFilters.compile(["/aaa/**/ccc/"]);
                 expectMatch(filter,    "/aaa/ccc/");    // important: slashes delimiting a ** can collapse to a single slash
                 expectMatch(filter,    "/aaa/ccc/file.txt");
@@ -319,7 +319,7 @@ define(function (require, exports, module) {
                 expectMatch(filter,    "/aaa/bbb/aaa/ccc/");
                 expectMatch(filter,    "/aaa/aaa/bbb/ccc/");
                 expectMatch(filter,    "/ccc/aaa/bbb/ccc/");
-                
+
                 // Combining wildcards
                 filter = FileFilters.compile(["/thirdparty/**/jquery*.js"]);
                 expectMatch(filter,    "/thirdparty/jquery.js");
@@ -336,7 +336,7 @@ define(function (require, exports, module) {
                 expectNotMatch(filter, "/thirdparty/jquery-1.7.js.md");
                 expectNotMatch(filter, "/thirdparty/jquery-docs.js/foo.js");
             });
-            
+
             it("should match ? against single non-slash char", function () {
                 var filter = FileFilters.compile(["a?c"]);
                 expectNotMatch(filter, "/ac");
@@ -358,22 +358,22 @@ define(function (require, exports, module) {
                 expectMatch(filter,    "/a.cX/");
                 expectNotMatch(filter, "/a/c");
                 expectNotMatch(filter, "/a/c/");
-                
+
                 filter = FileFilters.compile(["jquery-1.?.js"]);
                 expectMatch(filter,    "/foo/jquery-1.6.js");
                 expectNotMatch(filter, "/foo/jquery-1.6.1.js");
-                
+
                 filter = FileFilters.compile(["jquery-?.?.js"]);
                 expectMatch(filter,    "/foo/jquery-1.6.js");
                 expectMatch(filter,    "/foo/jquery-2.0.js");
                 expectNotMatch(filter, "/foo/jquery-1.6.1.js");
-                
+
                 filter = FileFilters.compile(["jquery-1.??.js"]);
                 expectNotMatch(filter, "/foo/jquery-1.6.js");
                 expectMatch(filter,    "/foo/jquery-1.10.js");
                 expectNotMatch(filter, "/foo/jquery-1.6.1.js");
                 expectNotMatch(filter, "/foo/jquery-1./a.js");
-                
+
                 filter = FileFilters.compile(["jquery-1.?*.js"]);  // this is essentially a way of saying '1 or more chars', like regexp + quantifier
                 expectMatch(filter,    "/foo/jquery-1.6.js");
                 expectMatch(filter,    "/foo/jquery-1.10.js");
@@ -382,14 +382,14 @@ define(function (require, exports, module) {
                 expectNotMatch(filter, "/foo/jquery-1.6/a.js");
             });
         });
-        
+
         describe("Automatic glob prefixes/suffixes", function () {
             function expectEquivalent(orig, wrapped) {
                 var compiled1 = FileFilters.compile([orig]);
                 var compiled2 = FileFilters.compile([wrapped]);
                 expect(compiled1).toEqual(compiled2);
             }
-            
+
             it("should add ** prefix & suffix", function () {
                 expectEquivalent("node_modules", "**node_modules**");
                 expectEquivalent("/node_modules/", "**/node_modules/**");
@@ -409,55 +409,55 @@ define(function (require, exports, module) {
                 expectEquivalent("/jquery-1.?.js", "**/jquery-1.?.js");
                 expectEquivalent("thirdparty/**/jquery*.js", "**thirdparty/**/jquery*.js");
             });
-            
+
             it("shouldn't add extra ** prefix", function () {
                 expectEquivalent("**node_modules", "**node_modules**");
                 expectEquivalent("**/node_modules/**", "**/node_modules/**");
                 expectEquivalent("**README.md", "**README.md");
             });
-            
+
             it("empty filter shouldn't be prefixed/suffixed", function () {
                 expect(FileFilters.compile([])).toEqual("");
             });
         });
-        
+
         describe("Multiple filter sets preferences", function () {
             it("should not have any filter sets in preferences initially", function () {
                 expect(PreferencesManager.get("fileFilters")).toBeFalsy();
             });
-            
+
             it("should migrate old filter sets to the new multiple filter sets pref", function () {
                 PreferencesManager.setViewState("search.exclusions", "*.css, *.less");
                 expect(FileFilters.getActiveFilter()).toEqual({name: "", patterns: "*.css, *.less"});
                 expect(PreferencesManager.get("fileFilters")).toEqual([{name: "", patterns: "*.css, *.less"}]);
                 expect(PreferencesManager.getViewState("activeFileFilter")).toBe(0);
             });
-            
+
             it("should select the newly added filter set as the active one", function () {
                 var existingFilters = [{name: "Node Modules", patterns: "node_module"},
                                        {name: "Mark Down Files", patterns: "*.md"}],
                     newFilterSet    = {name: "CSS Files", patterns: "*.css, *.less"};
-                
+
                 // Create two filter sets and make the first one active.
                 PreferencesManager.set("fileFilters", existingFilters);
                 PreferencesManager.setViewState("activeFileFilter", 0);
-                
+
                 // Add a new filter set as the last one.
                 FileFilters.setActiveFilter(newFilterSet, -1);
                 expect(FileFilters.getActiveFilter()).toEqual(newFilterSet);
                 expect(PreferencesManager.getViewState("activeFileFilter")).toBe(2);
                 expect(PreferencesManager.get("fileFilters")).toEqual(existingFilters.concat([newFilterSet]));
             });
-            
+
             it("should select the just edited filter set as the active one", function () {
                 var existingFilters = [{name: "Node Modules", patterns: "node_module"},
                                        {name: "Mark Down Files", patterns: "*.md"}],
                     newFilterSet    = {name: "CSS Files", patterns: "*.css, *.less"};
-                
+
                 // Create two filter sets and make the first one active.
                 PreferencesManager.set("fileFilters", existingFilters);
                 PreferencesManager.setViewState("activeFileFilter", 0);
-                
+
                 // Replace the second filter set with a new one.
                 FileFilters.setActiveFilter(newFilterSet, 1);
                 expect(FileFilters.getActiveFilter()).toEqual(newFilterSet);
@@ -466,29 +466,29 @@ define(function (require, exports, module) {
                 existingFilters.splice(1, 1, newFilterSet);
                 expect(PreferencesManager.get("fileFilters")).toEqual(existingFilters);
             });
-            
+
             it("should not have an active filter set after removing the current active one", function () {
                 var existingFilters = [{name: "Node Modules", patterns: "node_module"},
                                        {name: "Mark Down Files", patterns: "*.md"}];
-                
+
                 // Create two filter sets and make the second one active.
                 PreferencesManager.set("fileFilters", existingFilters);
                 PreferencesManager.setViewState("activeFileFilter", 1);
-                
+
                 expect(PreferencesManager.get("fileFilters")).toEqual(existingFilters);
                 expect(PreferencesManager.getViewState("activeFileFilter")).toBe(1);
 
                 // Remove the current active filter
                 FileFilters.setActiveFilter();
-                
+
                 expect(PreferencesManager.getViewState("activeFileFilter")).toBe(-1);
             });
         });
-        
+
         describe("Integration", function () {
-            
+
             this.category = "integration";
-            
+
             var testPath = SpecRunnerUtils.getTestPath("/spec/InlineEditorProviders-test-files"),
                 testWindow,
                 FileFilters,
@@ -497,7 +497,7 @@ define(function (require, exports, module) {
                 FindInFilesUI,
                 CommandManager,
                 $;
-            
+
             // We don't directly call beforeFirst/afterLast here because it appears that we need
             // separate test windows for the nested describe suites.
             function setupTestWindow(spec) {
@@ -512,7 +512,7 @@ define(function (require, exports, module) {
                     FindInFilesUI   = testWindow.brackets.test.FindInFilesUI;
                     CommandManager  = testWindow.brackets.test.CommandManager;
                     $               = testWindow.$;
-                    
+
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 });
             }
@@ -527,7 +527,7 @@ define(function (require, exports, module) {
                 $ = null;
                 SpecRunnerUtils.closeTestWindow();
             }
-            
+
             // These helper functions are slight variations of the ones in FindInFiles, so need to be
             // kept in sync with those. It's a bit awkward to try to share them, and as long as
             // it's just these few functions it's probably okay to just keep them in sync manually,
@@ -564,7 +564,7 @@ define(function (require, exports, module) {
                     setupTestWindow(this);
                 });
                 afterLast(teardownTestWindow);
-                
+
                 it("should search all files by default", function () {
                     openSearchBar();
                     runs(function () {
@@ -691,7 +691,7 @@ define(function (require, exports, module) {
                     });
                 });
             });
-        
+
             describe("Filter picker UI", function () {
                 beforeFirst(function () {
                     setupTestWindow(this);

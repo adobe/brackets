@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -27,7 +27,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Brackets modules
     var MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
         EditorManager           = brackets.getModule("editor/EditorManager"),
@@ -36,7 +36,7 @@ define(function (require, exports, module) {
         PerfUtils               = brackets.getModule("utils/PerfUtils"),
         ProjectManager          = brackets.getModule("project/ProjectManager"),
         Strings                 = brackets.getModule("strings");
-    
+
     /**
      * Return the token string that is at the specified position.
      *
@@ -46,13 +46,13 @@ define(function (require, exports, module) {
      */
     function _getFunctionName(hostEditor, pos) {
         var token = hostEditor._codeMirror.getTokenAt(pos, true);
-        
-        // If the pos is at the beginning of a name, token will be the 
+
+        // If the pos is at the beginning of a name, token will be the
         // preceding whitespace or dot. In that case, try the next pos.
         if (!/\S/.test(token.string) || token.string === ".") {
             token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1}, true);
         }
-        
+
         // Return valid function expressions only (function call or reference)
         if (!((token.type === "variable") ||
               (token.type === "variable-2") ||
@@ -62,13 +62,13 @@ define(function (require, exports, module) {
                 reason: Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND
             };
         }
-        
+
         return {
             functionName: token.string,
             reason: null
         };
     }
-    
+
     /**
      * @private
      * For unit and performance tests. Allows lookup by function name instead of editor offset
@@ -79,13 +79,13 @@ define(function (require, exports, module) {
      */
     function _findInProject(functionName) {
         var result = new $.Deferred();
-        
+
         PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
-        
+
         function _nonBinaryFileFilter(file) {
             return !LanguageManager.getLanguageForPath(file.fullPath).isBinary();
         }
-        
+
         ProjectManager.getAllFiles(_nonBinaryFileFilter)
             .done(function (files) {
                 JSUtils.findMatchingFunctions(functionName, files)
@@ -101,10 +101,10 @@ define(function (require, exports, module) {
             .fail(function () {
                 result.reject();
             });
-        
+
         return result.promise();
     }
-    
+
     /**
      * @private
      * For unit and performance tests. Allows lookup by function name instead of editor offset .
@@ -140,7 +140,7 @@ define(function (require, exports, module) {
                             if (functions && functions.length > 0) {
                                 var jsInlineEditor = new MultiRangeInlineEditor(functions);
                                 jsInlineEditor.load(hostEditor);
-                                
+
                                 PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
                                 result.resolve(jsInlineEditor);
                             } else {
@@ -160,7 +160,7 @@ define(function (require, exports, module) {
                         if (functions && functions.length > 0) {
                             var jsInlineEditor = new MultiRangeInlineEditor(functions);
                             jsInlineEditor.load(hostEditor);
-                            
+
                             PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
                             result.resolve(jsInlineEditor);
                         } else {
@@ -183,7 +183,7 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-    
+
     /**
      * This function is registered with EditorManager as an inline editor provider. It creates an inline editor
      * when the cursor is on a JavaScript function name, finds all functions that match the name
@@ -199,7 +199,7 @@ define(function (require, exports, module) {
         if (hostEditor.getModeForSelection() !== "javascript") {
             return null;
         }
-        
+
         // Only provide JavaScript editor if the selection is within a single line
         var sel = hostEditor.getSelection();
         if (sel.start.line !== sel.end.line) {
@@ -207,7 +207,7 @@ define(function (require, exports, module) {
         }
 
         // Always use the selection start for determining the function name. The pos
-        // parameter is usually the selection end.        
+        // parameter is usually the selection end.
         var functionResult = _getFunctionName(hostEditor, sel.start);
         if (!functionResult.functionName) {
             return functionResult.reason || null;
@@ -220,7 +220,7 @@ define(function (require, exports, module) {
     EditorManager.registerInlineEditProvider(javaScriptFunctionProvider);
     PerfUtils.createPerfMeasurement("JAVASCRIPT_INLINE_CREATE", "JavaScript Inline Editor Creation");
     PerfUtils.createPerfMeasurement("JAVASCRIPT_FIND_FUNCTION", "JavaScript Find Function");
-    
+
     // for unit tests only
     exports.javaScriptFunctionProvider  = javaScriptFunctionProvider;
     exports._createInlineEditor         = _createInlineEditor;

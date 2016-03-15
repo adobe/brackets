@@ -1,31 +1,31 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- * 
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
@@ -72,7 +72,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Hiba a böngésző megnyitása közben",
     "ERROR_CANT_FIND_CHROME"            : "A Google Chrome böngésző nem található. Bizonyosodj meg hogy telepítve van.",
     "ERROR_LAUNCHING_BROWSER"           : "Hiba a böngésző megnyitása közben: (hiba {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Élő Előnézet hiba",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Csatlakozás a Böngészőhöz",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Az Élő Előnézet használatához muszály újraindítani a Chrome-ot a megfelelő beállításokkal.<br /><br />Szeretnéd most újraindítani a Chrome-ot ezekkel a beállításokkal?",
@@ -83,7 +83,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Üdv az Élő Előnézetben!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Az Élő Előnézet összeköti a {APP_NAME}-et a böngésződdel. Megnyitja a HTML fájl előnézetét a Böngészőben, majd rögtön frissül amikor szerkeszted a kódodat.<br /><br />Ebben a kezdetleges {APP_NAME} verzióban, az Élő Előnézet csak a <strong>Google Chrome</strong>-ban működik és élőben változik<strong>CSS fájlok</strong> szerkesztésekor. A HTML vagy JavaScript változások automatikusan frissülnek mentéskor.<br /><br />(Ezt az üzenetet csak egyszer fogod látni.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "További információért lásd: <a href='{0}' title='{0}'>Élő Előnézet csatlakozási hibák kiküszöbölése</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Élő Előnézet",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Élő Előnézet: Csatlakozás\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Élő Előnézet: Inicializálás\u2026",
@@ -94,7 +94,7 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Az Élő Előnézet lecsatlakozott mert az oldal be lett zárva a böngészőben",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Az Élő Előnézet lecsatlakozott mert a böngésző olyan oldalra lépett amely nem része a jelenlegi projektnek",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Az Élő Előnézet lecsatlakozott ismeretlen ok miatt ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Változtatások mentése",
     "SAVE_CLOSE_MESSAGE"                : "El szeretnéd menteni a változtatásokat itt: <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "El szeretnéd menteni a változtatásokat a következő fájlokban?",
@@ -102,7 +102,7 @@ define({
     "FILE_DELETED_TITLE"                : "Fájl törölve",
     "EXT_MODIFIED_MESSAGE"              : "A/az <span class='dialog-filename'>{0}</span> meg lett változtatva a lemezen, de tartalmaz nem mentet változtatásokat is a {APP_NAME}-ben.<br /><br />Melyik verziót szeretnéd megtartani?",
     "EXT_DELETED_MESSAGE"               : "A/az <span class='dialog-filename'>{0}</span> törölve lett a lemezen, de tartalmaz nem mentet változtatásokat is a {APP_NAME}-ben.<br /><br />Meg szeretnéd tartani a változtatásokat?",
-    
+
     // Find, Replace, Find in Files
     "BUTTON_YES"                        : "Igen",
     "BUTTON_NO"                         : "Nem",
@@ -114,7 +114,7 @@ define({
     "RELEASE_NOTES"                     : "Kiadási megjegyzések",
     "NO_UPDATE_TITLE"                   : "A legfrissebb verziót használod!",
     "NO_UPDATE_MESSAGE"                 : "A legfrissebb {APP_NAME} fut.",
-    
+
     "FIND_IN_FILES_SCOPED"              : "a <span class='dialog-filename'>{0}</span>-ban",
     "FIND_IN_FILES_NO_SCOPE"            : "a projektben",
     "FIND_IN_FILES_FILE"                : "fájl",
@@ -140,7 +140,7 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Szóköz",
-    
+
     /**
      * StatusBar strings
      */
@@ -209,7 +209,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Sor Nyitása Alul",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Zárójelek Automatikus Bezárása",
     "CMD_SHOW_CODE_HINTS"                 : "Kód Súgó megjelenítése",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "Nézet",
     "CMD_HIDE_SIDEBAR"                    : "Oldalsáv Elrejtése",
@@ -240,7 +240,7 @@ define({
     "CMD_PREV_DOC"                        : "Előző Dokumentum",
     "CMD_SHOW_IN_TREE"                    : "Megjelenítés a Fastruktúrában",
     "CMD_SHOW_IN_OS"                      : "Megjelenítés Intézőben",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Súgó",
     "CMD_CHECK_FOR_UPDATE"                : "Frissítések keresése",
@@ -281,7 +281,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Az alap URL nem tartalmazhat hash-okat mint: \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Speciális karakterek mint: '{0}' muszáj enkódolni %-be.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ismeretlen hiba az alap URL beolvasásakor",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Telepítés",
     "REMOVE"                               : "Eltávolítás",
@@ -346,13 +346,13 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "A {0} bővítményt nem lehet eltávolítani, mert nincs telepítve.",
     "NO_EXTENSIONS"                        : "Nincs még telepített bővítmény.<br>Kattints a Telepítés URL-ről gombra a kezdéshez.",
     "NO_EXTENSION_MATCHES"                 : "Nincs bővítmény a keresett szavakra.",
-    
+
     /**
      * Unit names
      */
 
     "UNIT_PIXELS"                          : "pixelek",
-    
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Hibakeresés",
     "CMD_SHOW_DEV_TOOLS"                        : "Fejlesztői Eszközök megjelenítése",
@@ -364,13 +364,13 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Node Hibakereső engedélyezése",
     "CMD_LOG_NODE_STATE"                        : "Node naplózása a konzolban",
     "CMD_RESTART_NODE"                          : "Node újraindítása",
-    
+
     "LANGUAGE_TITLE"                            : "Nyelv változtatása",
     "LANGUAGE_MESSAGE"                          : "Nyelv:",
     "LANGUAGE_SUBMIT"                           : "{APP_NAME} újratöltése",
     "LANGUAGE_CANCEL"                           : "Mégsem",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Rendszer Alapértelmezett",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Jelenlegi szín",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Eredeti szín",
@@ -379,13 +379,13 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa Formátum",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} ({1}-szer használva)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} ({1}-szer használva)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Ugrás a Definícióhoz",
-    
-    // extensions/default/QuickView 
+
+    // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Gyors Nézet rámutatáskor",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Olvasd tovább"
 });

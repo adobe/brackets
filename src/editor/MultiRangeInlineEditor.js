@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 // FUTURE: Merge part (or all) of this class with InlineTextEditor
@@ -27,19 +27,19 @@
 /*global define, $, window */
 
 /**
- * An inline editor for displaying and editing multiple text ranges. Each range corresponds to a 
- * contiguous set of lines in a file. 
- * 
+ * An inline editor for displaying and editing multiple text ranges. Each range corresponds to a
+ * contiguous set of lines in a file.
+ *
  * In the current implementation, only one range is visible at a time. A list on the right side
- * of the editor allows the user to select which range is visible. 
+ * of the editor allows the user to select which range is visible.
  *
  * This module does not dispatch any events.
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _ = require("thirdparty/lodash");
-    
+
     // Load dependent modules
     var TextRange           = require("document/TextRange").TextRange,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
         CommandManager      = require("command/CommandManager");
-    
+
     var _prevMatchCmd, _nextMatchCmd;
 
     /**
@@ -62,14 +62,14 @@ define(function (require, exports, module) {
     function _parseStyleSize($target, styleName) {
         return parseInt($target.css(styleName), 10);
     }
-    
+
     /** Returns a 'context' object for getting/setting project-specific preferences */
     function _getPrefsContext() {
         var projectRoot = ProjectManager.getProjectRoot();  // note: null during unit tests!
         return { location : { scope: "user", layer: "project", layerID: projectRoot && projectRoot.fullPath } };
     }
-    
-    
+
+
     /**
      * Stores one search result: its source file, line range, etc. plus the DOM node representing it
      * in the results list.
@@ -83,7 +83,7 @@ define(function (require, exports, module) {
     SearchResultItem.prototype.name = null;
     SearchResultItem.prototype.textRange = null;
     SearchResultItem.prototype.$listItem = null;
-    
+
     function _updateRangeLabel(listItem, range, labelCB) {
         if (labelCB) {
             range.name = labelCB(range.textRange);
@@ -92,8 +92,8 @@ define(function (require, exports, module) {
         listItem.html(text);
         listItem.attr("title", listItem.text());
     }
-    
-    
+
+
     /**
      * @constructor
      * @param {Array.<{name:String,document:Document,lineStart:number,lineEnd:number}>} ranges The text
@@ -109,7 +109,7 @@ define(function (require, exports, module) {
      */
     function MultiRangeInlineEditor(ranges, messageCB, labelCB, fileComparator) {
         InlineTextEditor.call(this);
-        
+
         // Store the results to show in the range list. This creates TextRanges bound to the Document,
         // which will stay up to date automatically (but we must be sure to detach them later)
         this._ranges = ranges.map(function (rangeResult) {
@@ -117,10 +117,10 @@ define(function (require, exports, module) {
         });
         this._messageCB = messageCB;
         this._labelCB = labelCB;
-        
+
         this._selectedRangeIndex = -1;
         this._collapsedFiles = {};
-        
+
         // Set up list sort order
         this._fileComparator = fileComparator || function defaultComparator(file1, file2) {
             return FileUtils.comparePaths(file1.fullPath, file2.fullPath);
@@ -132,40 +132,40 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype = Object.create(InlineTextEditor.prototype);
     MultiRangeInlineEditor.prototype.constructor = MultiRangeInlineEditor;
     MultiRangeInlineEditor.prototype.parentClass = InlineTextEditor.prototype;
-    
+
     MultiRangeInlineEditor.prototype.$messageDiv = null;
     MultiRangeInlineEditor.prototype.$relatedContainer = null;
     MultiRangeInlineEditor.prototype.$related = null;
     MultiRangeInlineEditor.prototype.$selectedMarker = null;
-    
+
     /** Includes all the _ranges[i].$listItem items, as well as section headers */
     MultiRangeInlineEditor.prototype.$rangeList = null;
-    
+
     /**
      * List of search results. Section headers are not represented in this list (they are implied before each group of
      * of consecutive results from the same Document).
      * @type {!Array.<SearchResultItem>}
      */
     MultiRangeInlineEditor.prototype._ranges = null;
-    
+
     /** Index into this._ranges - indices do not include section headers */
     MultiRangeInlineEditor.prototype._selectedRangeIndex = null;
-    
+
     /**
      * Map from fullPath to true if collapsed. May not agree with preferences, in cases where multiple inline editors make
      * concurrent changes.
      * @type {!Object.<string, boolean>}
      */
     MultiRangeInlineEditor.prototype._collapsedFiles = null;
-    
+
     MultiRangeInlineEditor.prototype._messageCB = null;
     MultiRangeInlineEditor.prototype._labelCB = null;
     MultiRangeInlineEditor.prototype._fileComparator = null;
-    
+
     /** @type {!Object.<string, jQueryObject>} Map from fullPath to section header DOM node */
     MultiRangeInlineEditor.prototype._$headers = null;
-    
-    
+
+
     /**
      * @private
      * Add a new result item <li> to the range list UI ($rangeList) and saves it in range.$listItem
@@ -174,12 +174,12 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype._createListItem = function (range) {
         var self = this,
             $rangeItem = $("<li/>");
-        
+
         // Attach filename for unit test use
         $rangeItem.data("filename", range.textRange.document.file.name);
-        
+
         $rangeItem.appendTo(this.$rangeList);
-        
+
         _updateRangeLabel($rangeItem, range);
         $rangeItem.mousedown(function () {
             self.setSelectedIndex(self._ranges.indexOf(range));
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
 
         range.$listItem = $rangeItem;
     };
-    
+
     /** Collapses/expands a file section in the range list UI */
     MultiRangeInlineEditor.prototype._toggleSection = function (fullPath, duringInit) {
         var $headerItem = this._$headers[fullPath];
@@ -211,10 +211,10 @@ define(function (require, exports, module) {
 
         // Show/hide selection indicator if selection was in collapsed section
         this._updateSelectedMarker(false);
-        
+
         // Changing height of rule list may change ht of overall editor
         this._ruleListHeightChanged();
-        
+
         // If user expands collapsed section and nothing selected yet, select first result in this section
         if (this._selectedRangeIndex === -1 && !isCollapsing && !duringInit) {
             var index = _.findIndex(this._ranges, function (resultItem) {
@@ -223,29 +223,29 @@ define(function (require, exports, module) {
             this.setSelectedIndex(index);
         }
     };
-    
+
     /** Adds a file section header <li> to the range list UI ($rangeList) and adds it to the this._$headers map */
     MultiRangeInlineEditor.prototype._createHeaderItem = function (doc) {
         var $headerItem = $("<li class='section-header'><span class='disclosure-triangle expanded'/><span class='filename'>" + _.escape(doc.file.name) + "</span></li>")
             .attr("title", ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
             .appendTo(this.$rangeList);
-        
+
         $headerItem.click(function () {
             this._toggleSection(doc.file.fullPath);
         }.bind(this));
-        
+
         this._$headers[doc.file.fullPath] = $headerItem;
     };
-    
+
     /** Refresh the contents of $rangeList */
     MultiRangeInlineEditor.prototype._renderList = function () {
         this.$rangeList.empty();
         this._$headers = {};
-        
+
         var self = this,
             lastSectionDoc,
             numItemsInSection = 0;
-        
+
         // After seeing all results for a given file, update its header with total # of results
         function finalizeSection() {
             if (lastSectionDoc) {
@@ -255,40 +255,40 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         this._ranges.forEach(function (resultItem) {
             if (lastSectionDoc !== resultItem.textRange.document) {
                 // Finalize previous section
                 finalizeSection();
-                
+
                 // Initialize new section
                 lastSectionDoc = resultItem.textRange.document;
                 numItemsInSection = 0;
-                
+
                 // Create filename header for new section
                 this._createHeaderItem(lastSectionDoc);
             }
             numItemsInSection++;
             this._createListItem(resultItem);
         }, this);
-        
+
         // Finalize last section
         finalizeSection();
     };
-    
-    
-    /** 
+
+
+    /**
      * @override
      * @param {!Editor} hostEditor  Outer Editor instance that inline editor will sit within.
-     * 
+     *
      */
     MultiRangeInlineEditor.prototype.load = function (hostEditor) {
         MultiRangeInlineEditor.prototype.parentClass.load.apply(this, arguments);
-        
+
         // Create the message area
         this.$messageDiv = $("<div/>")
             .addClass("inline-editor-message");
-        
+
         // Prevent touch scroll events from bubbling up to the parent editor.
         this.$editorHolder.on("mousewheel.MultiRangeInlineEditor", function (e) {
             e.stopPropagation();
@@ -296,30 +296,30 @@ define(function (require, exports, module) {
 
         // Outer container for border-left and scrolling
         this.$relatedContainer = $("<div/>").addClass("related-container");
-        
+
         // List "selection" highlight
         this.$selectedMarker = $("<div/>").appendTo(this.$relatedContainer).addClass("selection");
 
         // Inner container
         this.$related = $("<div/>").appendTo(this.$relatedContainer).addClass("related");
-        
+
         // Range list
         this.$rangeList = $("<ul/>").appendTo(this.$related);
-        
+
         // Determine which sections are initially collapsed (the actual collapsing happens after onAdded(),
         // because jQuery.hide() requires the computed value of 'display' to work properly)
         var toCollapse = PreferencesManager.getViewState("inlineEditor.collapsedFiles", _getPrefsContext()) || {};
         Object.keys(toCollapse).forEach(function (fullPath) {
             this._collapsedFiles[fullPath] = true;
         }.bind(this));
-        
+
         // Render list & section headers (matching collapsed state set above)
         this._renderList();
-        
+
         if (this._ranges.length > 1) {      // attach to main container
             this.$wrapper.before(this.$relatedContainer);
         }
-                
+
         // Add TextRange listeners to update UI as text changes
         var self = this;
         this._ranges.forEach(function (range, index) {
@@ -329,13 +329,13 @@ define(function (require, exports, module) {
             }).on("contentChange", function () {
                 _updateRangeLabel(range.$listItem, range, self._labelCB);
             });
-            
+
             // If TextRange lost sync, remove it from the list (and close the widget if no other ranges are left)
             range.textRange.on("lostSync", function () {
                 self._removeRange(range);
             });
         });
-        
+
         // Initial selection is the first non-collapsed result item
         var indexToSelect = _.findIndex(this._ranges, function (range) {
             return !this._collapsedFiles[range.textRange.document.file.fullPath];
@@ -344,7 +344,7 @@ define(function (require, exports, module) {
             // If no right-hand rule list shown, select the one result even if it's in a collapsed file (since no way to expand)
             indexToSelect = 0;
         }
-        
+
         if (indexToSelect !== -1) {
             // select the first visible range
             this.setSelectedIndex(indexToSelect);
@@ -352,19 +352,19 @@ define(function (require, exports, module) {
             // force the message div to show
             this.setSelectedIndex(-1);
         }
-        
+
         // Listen for clicks directly on us, so we can set focus back to the editor
         var clickHandler = this._onClick.bind(this);
         this.$htmlContent.on("click.MultiRangeInlineEditor", clickHandler);
         // Also handle mouseup in case the user drags a little bit
         this.$htmlContent.on("mouseup.MultiRangeInlineEditor", clickHandler);
-        
+
         // Update the rule list navigation menu items when we gain/lose focus.
         this.$htmlContent
             .on("focusin.MultiRangeInlineEditor", this._updateCommands.bind(this))
             .on("focusout.MultiRangeInlineEditor", this._updateCommands.bind(this));
     };
-    
+
     /**
      * @private
      * Updates the enablement for the rule list navigation commands.
@@ -374,7 +374,7 @@ define(function (require, exports, module) {
         _prevMatchCmd.setEnabled(enabled && this._selectedRangeIndex > 0);
         _nextMatchCmd.setEnabled(enabled && this._selectedRangeIndex !== -1 && this._selectedRangeIndex < this._ranges.length - 1);
     };
-    
+
     /**
      * @override
      */
@@ -387,7 +387,7 @@ define(function (require, exports, module) {
 
         // Initially size the inline widget (calls sizeInlineWidgetToContents())
         this._ruleListHeightChanged();
-        
+
         this._updateCommands();
     };
 
@@ -402,7 +402,7 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype.setSelectedIndex = function (index, force) {
         var newIndex = Math.min(Math.max(-1, index), this._ranges.length - 1),
             self = this;
-        
+
         if (!force && newIndex !== -1 && newIndex === this._selectedRangeIndex) {
             return;
         }
@@ -412,14 +412,14 @@ define(function (require, exports, module) {
         if ($previousItem) {
             $previousItem.removeClass("selected");
         }
-        
+
         // Clear our listeners on the previous editor since it'll be destroyed in setInlineContent().
         if (this.editor) {
             this.editor.off(".MultiRangeInlineEditor");
         }
 
         this._selectedRangeIndex = newIndex;
-        
+
         if (newIndex === -1) {
             // show the message div
             this.setInlineContent(null);
@@ -437,29 +437,29 @@ define(function (require, exports, module) {
             this.sizeInlineWidgetToContents();
         } else {
             this.$messageDiv.remove();
-            
+
             var range = this._getSelectedRange();
             range.$listItem.addClass("selected");
-    
+
             // Add new editor
             this.setInlineContent(range.textRange.document, range.textRange.startLine, range.textRange.endLine);
             this.editor.focus();
-    
+
             this._updateEditorMinHeight();
             this.editor.refresh();
-            
+
             // Ensure the cursor position is visible in the host editor as the user is arrowing around.
             this.editor.on("cursorActivity.MultiRangeInlineEditor", this._ensureCursorVisible.bind(this));
-            
+
             // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
             this.sizeInlineWidgetToContents();
-    
+
             this._updateSelectedMarker(true);
         }
-        
+
         this._updateCommands();
     };
-    
+
     /**
      * Ensures that the editor's min-height is set so it never gets shorter than the rule list.
      * This is necessary to make sure the editor's horizontal scrollbar stays at the bottom of the
@@ -469,7 +469,7 @@ define(function (require, exports, module) {
         if (!this.editor) {
             return;
         }
-        
+
         // Set the scroller's min-height to the natural height of the rule list, so the editor
         // always stays at least as tall as the rule list.
         var ruleListNaturalHeight = this.$related.outerHeight(),
@@ -479,7 +479,7 @@ define(function (require, exports, module) {
         if (!ruleListNaturalHeight || !headerHeight) {
             return;
         }
-        
+
         // We have to set this on the scroller instead of the wrapper because:
         // * we want the wrapper's actual height to remain "auto"
         // * if we set a min-height on the wrapper, the scroller's height: 100% doesn't
@@ -487,12 +487,12 @@ define(function (require, exports, module) {
         $(this.editor.getScrollerElement())
             .css("min-height", (ruleListNaturalHeight - headerHeight) + "px");
     };
-    
+
     /** Update inline widget height to reflect changed rule-list height */
     MultiRangeInlineEditor.prototype._ruleListHeightChanged = function () {
         // Editor's min height depends on rule list height
         this._updateEditorMinHeight();
-        
+
         // Overall widget height may have changed too
         this.sizeInlineWidgetToContents();
     };
@@ -503,10 +503,10 @@ define(function (require, exports, module) {
             this.close();
             return;  // note: the dispose() that would normally happen below is covered by close()
         }
-        
+
         // Now we know there is at least one other range -> found out which one this is
         var index = this._ranges.indexOf(range);
-        
+
         // If the range to be removed is the selected one, first switch to another one
         if (index === this._selectedRangeIndex) {
             // If possible, select the one below, else select the one above
@@ -520,7 +520,7 @@ define(function (require, exports, module) {
         // Now we can remove this range
         range.textRange.dispose();
         this._ranges.splice(index, 1);
-        
+
         // Re-render list & section headers
         this._renderList();
 
@@ -529,20 +529,20 @@ define(function (require, exports, module) {
             this._selectedRangeIndex--;
             this._updateSelectedMarker(true);
         }
-        
+
         if (this._ranges.length === 1) {
             this.$relatedContainer.remove();
-            
+
             // Refresh the height of the inline editor since we remove
             // the entire selector list.
             if (this.editor) {
                 this.editor.refresh();
             }
         }
-        
+
         this._updateCommands();
     };
-    
+
     /**
      * Adds a new range to the inline editor and selects it. The range will be inserted
      * immediately below the last range for the same document, or at the end of the list
@@ -560,7 +560,7 @@ define(function (require, exports, module) {
                 lineEnd: lineEnd
             }),
             i;
-        
+
         // Insert the new range after the last range from the same doc, or at the
         // end of the list.
         for (i = 0; i < this._ranges.length; i++) {
@@ -569,20 +569,20 @@ define(function (require, exports, module) {
             }
         }
         this._ranges.splice(i, 0, newRange);
-        
+
         // Update rule list display
         this._renderList();
-        
+
         // Ensure rule list is visible if there are now multiple results
         if (this._ranges.length > 1 && !this.$relatedContainer.parent().length) {
             this.$wrapper.before(this.$relatedContainer);
         }
-        
+
         // If added rule is in a collapsed item, expand it for clarity
         if (this._collapsedFiles[doc.file.fullPath]) {
             this._toggleSection(doc.file.fullPath);
         }
-        
+
         // Select new range, showing it in the editor
         this.setSelectedIndex(i, true);  // force, since i might be same as before
 
@@ -595,9 +595,9 @@ define(function (require, exports, module) {
             this.$selectedMarker.hide();
             return;
         }
-        
+
         var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
-        
+
         // scroll the selection to the rangeItem
         var containerHeight = this.$relatedContainer.height(),
             itemTop = $rangeItem.position().top,
@@ -642,7 +642,7 @@ define(function (require, exports, module) {
         this.$htmlContent.off(".MultiRangeInlineEditor");
         this.$editorHolder.off(".MultiRangeInlineEditor");
     };
-    
+
     /**
      * Prevent clicks in the dead areas of the inlineWidget from changing the focus and insertion point in the editor.
      * This is done by detecting clicks in the inlineWidget that are not inside the editor or the range list and
@@ -652,15 +652,15 @@ define(function (require, exports, module) {
         if (!this.editor) {
             return;
         }
-        
+
         var childEditor = this.editor,
             editorRoot = childEditor.getRootElement(),
             editorPos = $(editorRoot).offset();
-        
+
         function containsClick($parent) {
             return $parent.find(event.target).length > 0 || $parent[0] === event.target;
         }
-        
+
         // Ignore clicks in editor and clicks on filename link
         // Check clicks on filename link in the context of the current inline widget.
         if (!containsClick($(editorRoot)) && !containsClick($(".filename", this.$htmlContent))) {
@@ -676,7 +676,7 @@ define(function (require, exports, module) {
             }
         }
     };
-    
+
     /**
      * Based on the position of the cursor in the inline editor, determine whether we need to change the
      * vertical scroll position of the host editor to ensure that the cursor is visible.
@@ -685,11 +685,11 @@ define(function (require, exports, module) {
         if (!this.editor) {
             return;
         }
-        
+
         if ($.contains(this.editor.getRootElement(), window.document.activeElement)) {
             var hostScrollPos = this.hostEditor.getScrollPos(),
                 cursorCoords = this.editor._codeMirror.cursorCoords();
-            
+
             // Vertically, we want to set the scroll position relative to the overall host editor, not
             // the lineSpace of the widget itself. We don't want to modify the horizontal scroll position.
             var scrollerTop = this.hostEditor.getVirtualScrollAreaTop();
@@ -735,18 +735,18 @@ define(function (require, exports, module) {
         if (this._selectedRangeIndex === -1) {
             return;
         }
-        
+
         // Traverse up or down the list until we find an item eligible for selection
         var origDoc = this._ranges[this._selectedRangeIndex].textRange.document,
             i;
         for (i = this._selectedRangeIndex + dir; i >= 0 && i < this._ranges.length; i += dir) {
             var doc = this._ranges[i].textRange.document;
-            
+
             // If first candidate is in same collapsed group as current selection, expand it
             if (doc === origDoc && this._collapsedFiles[doc.file.fullPath]) {
                 this._toggleSection(doc.file.fullPath);
             }
-                
+
             // Only consider expanded groups now
             if (!this._collapsedFiles[doc.file.fullPath]) {
                 this.setSelectedIndex(i);
@@ -756,14 +756,14 @@ define(function (require, exports, module) {
         // If we got here, we couldn't find any eligible item - so do nothing. Happens if selection is
         // already the first/last item, or if all remaining items above/below the selection are collapsed.
     };
-    
+
     /**
      * Display the next range in the range list
      */
     MultiRangeInlineEditor.prototype._selectNextRange = function () {
         this._selectNextPrev(1);
     };
-    
+
     /**
      *  Display the previous range in the range list
      */
@@ -773,12 +773,12 @@ define(function (require, exports, module) {
 
     /**
      * Sizes the inline widget height to be the maximum between the range list height and the editor height
-     * @override 
+     * @override
      */
     MultiRangeInlineEditor.prototype.sizeInlineWidgetToContents = function () {
         // Size the code mirror editors height to the editor content
         MultiRangeInlineEditor.prototype.parentClass.sizeInlineWidgetToContents.call(this);
-        
+
         // Size the widget height to the max between the editor/message content and the related ranges list
         var widgetHeight = Math.max(this.$related.height(),
                                     this.$header.outerHeight() +
@@ -788,7 +788,7 @@ define(function (require, exports, module) {
             this.hostEditor.setInlineWidgetHeight(this, widgetHeight, false);
         }
     };
-    
+
     /**
      * Called when the editor containing the inline is made visible. Updates UI based on
      * state that might have changed while the editor was hidden.
@@ -797,7 +797,7 @@ define(function (require, exports, module) {
         MultiRangeInlineEditor.prototype.parentClass.onParentShown.apply(this, arguments);
         this._updateSelectedMarker(false);
     };
-    
+
     /**
      * Refreshes the height of the inline editor and all child editors.
      * @override
@@ -832,7 +832,7 @@ define(function (require, exports, module) {
             focusedMultiRangeInlineEditor._selectPreviousRange();
         }
     }
-    
+
     /**
      * Next Range command handler
      */
@@ -842,7 +842,7 @@ define(function (require, exports, module) {
             focusedMultiRangeInlineEditor._selectNextRange();
         }
     }
-    
+
     _prevMatchCmd = CommandManager.register(Strings.CMD_QUICK_EDIT_PREV_MATCH, Commands.QUICK_EDIT_PREV_MATCH, _previousRange);
     _prevMatchCmd.setEnabled(false);
     _nextMatchCmd = CommandManager.register(Strings.CMD_QUICK_EDIT_NEXT_MATCH, Commands.QUICK_EDIT_NEXT_MATCH, _nextRange);

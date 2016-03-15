@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
@@ -26,7 +26,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
         MainViewManager     = require("view/MainViewManager"),
@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         _                   = require("thirdparty/lodash");
-    
+
     var nodeSearchDisabled = false,
         instantSearchDisabled = false,
         indexingInProgress = false,
@@ -119,7 +119,7 @@ define(function (require, exports, module) {
         // replace in the first place (due to the fact that we immediately close the search
         // results panel whenever we detect a filesystem change that affects the results),
         // but we want to double-check in case we don't happen to get the change in time.
-        // This will *not* handle cases where the document has been edited in memory since 
+        // This will *not* handle cases where the document has been edited in memory since
         // the matchInfo was generated.
         if (doc.diskTimestamp.getTime() !== matchInfo.timestamp.getTime()) {
             return new $.Deferred().reject(exports.ERROR_FILE_CHANGED).promise();
@@ -133,10 +133,10 @@ define(function (require, exports, module) {
                 }
             });
         });
-        
+
         return new $.Deferred().resolve().promise();
     }
-    
+
     /**
      * Does a set of replacements in a single file on disk.
      * @param {string} fullPath The full path to the file.
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
             return Async.promisify(file, "write", newContents);
         });
     }
-    
+
     /**
      * Does a set of replacements in a single file. If the file is already open in a Document in memory,
      * will do the replacement there, otherwise does it directly on disk.
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
      * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`.
      * @param {string} replaceText The text to replace each result with.
      * @param {Object=} options An options object:
-     *      forceFilesOpen: boolean - Whether to open the file in an editor and do replacements there rather than doing the 
+     *      forceFilesOpen: boolean - Whether to open the file in an editor and do replacements there rather than doing the
      *          replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
      *          done in memory.
      *      isRegexp: boolean - Whether the original query was a regexp. If true, $-substitution is performed on the replaceText.
@@ -205,7 +205,7 @@ define(function (require, exports, module) {
             return _doReplaceOnDisk(fullPath, matchInfo, replaceText, options.isRegexp);
         }
     }
-    
+
     /**
      * @private
      * Returns true if a search result has any checked matches.
@@ -213,7 +213,7 @@ define(function (require, exports, module) {
     function hasCheckedMatches(result) {
         return result.matches.some(function (match) { return match.isChecked; });
     }
-        
+
     /**
      * Given a set of search results, replaces them with the given replaceText, either on disk or in memory.
      * Checks timestamps to ensure replacements are not performed in files that have changed on disk since
@@ -221,7 +221,7 @@ define(function (require, exports, module) {
      * in in-memory documents since the search; it's up to the caller to guarantee this hasn't happened.
      * (When called from the standard Find in Files UI, SearchResultsView guarantees this. If called headlessly,
      * the caller needs to track changes.)
-     * 
+     *
      * Replacements in documents that are already open in memory at the start of the replacement are guaranteed to
      * happen synchronously; replacements in files on disk will return an error if the on-disk file changes between
      * the time performReplacements() is called and the time the replacement actually happens.
@@ -230,13 +230,13 @@ define(function (require, exports, module) {
      *      The list of results to replace, as returned from _doSearch..
      * @param {string} replaceText The text to replace each result with.
      * @param {?Object} options An options object:
-     *      forceFilesOpen: boolean - Whether to open all files in editors and do replacements there rather than doing the 
+     *      forceFilesOpen: boolean - Whether to open all files in editors and do replacements there rather than doing the
      *          replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
      *          done in memory.
      *      isRegexp: boolean - Whether the original query was a regexp. If true, $-substitution is performed on the replaceText.
      * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an array of errors
      *      if there were one or more errors. Each individual item in the array will be a {item: string, error: string} object,
-     *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one 
+     *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one
      *      of the `FindUtils.ERROR_*` constants.
      */
     function performReplacements(results, replaceText, options) {
@@ -258,19 +258,19 @@ define(function (require, exports, module) {
                         firstPath = _.find(sortedPaths, function (path) {
                             return hasCheckedMatches(results[path]);
                         });
-                    
+
                     if (firstPath) {
                         var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
                         // newDoc might be null if the replacement failed.
                         if (newDoc) {
                             // @todo change the `_edit` call to this:
-                            //     
+                            //
                             ///    CommandManager.execute(Commands.FILE_OPEN, {fullPath: firstPath});
                             //
                             // The problem with doing that is that the promise returned by this
                             // function has already been resolved by `Async.doInParallel()` and
                             // `CommandManager.execute` is an asynchronous operation.
-                            // An asynchronous open can't be waited on (since the promise has been  
+                            // An asynchronous open can't be waited on (since the promise has been
                             //  resolved already) so use the synchronous version so that the next `done`
                             //  handler is blocked until the open completes
                             MainViewManager._edit(MainViewManager.ACTIVE_PANE, newDoc);
@@ -280,7 +280,7 @@ define(function (require, exports, module) {
             }
         });
     }
-    
+
     /**
      * Returns label text to indicate the search scope. Already HTML-escaped.
      * @param {?Entry} scope

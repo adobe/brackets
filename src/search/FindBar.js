@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
@@ -29,7 +29,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _                  = require("thirdparty/lodash"),
         EventDispatcher    = require("utils/EventDispatcher"),
         Commands           = require("command/Commands"),
@@ -42,18 +42,20 @@ define(function (require, exports, module) {
         ViewUtils          = require("utils/ViewUtils"),
         FindUtils          = require("search/FindUtils"),
         HealthLogger       = require("utils/HealthLogger");
-    
+
     /**
      * @private
      * The template we use for all Find bars.
      * @type {string}
      */
     var _searchBarTemplate = require("text!htmlContent/findreplace-bar.html");
-    
+
     var lastTypedTime = 0,
         currentTime = 0,
         intervalId = 0,
-        lastQueriedText = "";
+        lastQueriedText = "",
+        lastTypedText = "",
+        lastKeyCode;
 
     /**
      * @constructor
@@ -92,17 +94,18 @@ define(function (require, exports, module) {
         this._closed = false;
         this._enabled = true;
         this.lastQueriedText = "";
+        this.lastTypedText = "";
     }
     EventDispatcher.makeEventDispatcher(FindBar.prototype);
-    
+
     /*
      * Global FindBar functions for making sure only one is open at a time.
      */
-    
+
     // TODO: this is temporary - we should do this at the ModalBar level, but can't do that until
     // we land the simplified Quick Open UI (#7227) that eliminates some asynchronicity in closing
     // its ModalBar.
-    
+
     /**
      * @private
      * Register a find bar so we can close it later if another one tries to open.
@@ -113,7 +116,7 @@ define(function (require, exports, module) {
         FindBar._bars = FindBar._bars || [];
         FindBar._bars.push(findBar);
     };
-    
+
     /**
      * @private
      * Remove a find bar from the list.
@@ -125,7 +128,7 @@ define(function (require, exports, module) {
             _.pull(FindBar._bars, findBar);
         }
     };
-    
+
     /**
      * @private
      * Close all existing find bars. In theory there should be only one, but since there can be
@@ -141,38 +144,38 @@ define(function (require, exports, module) {
             bars = [];
         }
     };
-    
+
     /*
      * Instance properties/functions
      */
-    
+
     /**
      * @private
      * Options passed into the FindBar.
      * @type {!{multifile: boolean, replace: boolean, queryPlaceholder: string, initialQuery: string, scopeLabel: string}}
      */
     FindBar.prototype._options = null;
-    
+
     /**
      * @private
      * Whether the FindBar has been closed.
      * @type {boolean}
      */
     FindBar.prototype._closed = false;
-    
+
     /**
      * @private
      * Whether the FindBar is currently enabled.
      * @type {boolean}
      */
     FindBar.prototype._enabled = true;
-    
-    /** 
+
+    /**
      * @private
      * @type {?ModalBar} Modal bar containing this find bar's UI
      */
     FindBar.prototype._modalBar = null;
-    
+
     /**
      * @private
      * Returns the jQuery object for an element in this Find bar.
@@ -187,9 +190,9 @@ define(function (require, exports, module) {
             return $();
         }
     };
-    
+
     // TODO: change IDs to classes
-    
+
     /**
      * @private
      * Set the state of the toggles in the Find bar to the saved prefs state.
@@ -200,7 +203,7 @@ define(function (require, exports, module) {
         this.$("#find-case-sensitive").toggleClass("active", !!PreferencesManager.getViewState("caseSensitive"));
         this.$("#find-regexp").toggleClass("active", !!PreferencesManager.getViewState("regexp"));
     };
-    
+
     /**
      * @private
      * Save the prefs state based on the state of the toggles.
@@ -209,7 +212,7 @@ define(function (require, exports, module) {
         PreferencesManager.setViewState("caseSensitive", this.$("#find-case-sensitive").is(".active"));
         PreferencesManager.setViewState("regexp",        this.$("#find-regexp").is(".active"));
     };
-    
+
     /**
      * @private
      * Shows the keyboard shortcut for the given command in the element's tooltip.
@@ -230,23 +233,23 @@ define(function (require, exports, module) {
      */
     FindBar.prototype.open = function () {
         var self = this;
-        
+
         // Normally, creating a new Find bar will simply cause the old one to close
         // automatically. This can cause timing issues because the focus change might
         // cause the new one to think it should close, too. So we simply explicitly
-        // close the old Find bar (with no animation) before creating a new one. 
+        // close the old Find bar (with no animation) before creating a new one.
         // TODO: see note above - this will move to ModalBar eventually.
         FindBar._closeFindBars();
         if (this._options.multifile) {
             HealthLogger.searchDone(HealthLogger.SEARCH_NEW);
         }
-        
+
         var templateVars = _.clone(this._options);
         templateVars.Strings = Strings;
         templateVars.replaceAllLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_ALL);
-        
+
         this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur
-        
+
         // When the ModalBar closes, clean ourselves up.
         this._modalBar.on("close", function (event) {
             // Hide error popup, since it hangs down low enough to make the slide-out look awkward
@@ -260,13 +263,14 @@ define(function (require, exports, module) {
             MainViewManager.focusActivePane();
             self.trigger("close");
         });
-        
+
         FindBar._addFindBar(this);
-        
+
         var $root = this._modalBar.getRoot();
         $root
             .on("input", "#find-what", function () {
                 self.trigger("queryChange");
+                lastTypedText = self.getQueryInfo().query;
             })
             .on("click", "#find-case-sensitive, #find-regexp", function (e) {
                 $(e.currentTarget).toggleClass("active");
@@ -278,6 +282,7 @@ define(function (require, exports, module) {
             })
             .on("keydown", "#find-what, #replace-with", function (e) {
                 lastTypedTime = new Date().getTime();
+                lastKeyCode = e.keyCode;
                 var executeSearchIfNeeded = function () {
                     // We only do instant search via node.
                     if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
@@ -289,7 +294,7 @@ define(function (require, exports, module) {
                     }
                     currentTime = new Date().getTime();
                     if (lastTypedTime && (currentTime - lastTypedTime >= 100) && self.getQueryInfo().query !==  lastQueriedText &&
-                            !FindUtils.isNodeSearchInProgress() && e.keyCode !== KeyEvent.DOM_VK_CONTROL) {
+                            !FindUtils.isNodeSearchInProgress()) {
                         // init Search
                         if (self._options.multifile) {
                             if ($(e.target).is("#find-what")) {
@@ -308,6 +313,7 @@ define(function (require, exports, module) {
                 if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
                     e.preventDefault();
                     e.stopPropagation();
+                    lastQueriedText = self.getQueryInfo().query;
                     if (self._options.multifile) {
                         if ($(e.target).is("#find-what")) {
                             if (self._options.replace) {
@@ -329,7 +335,7 @@ define(function (require, exports, module) {
                     }
                 }
             });
-        
+
         if (!this._options.multifile) {
             this._addShortcutToTooltip($("#find-next"), Commands.CMD_FIND_NEXT);
             this._addShortcutToTooltip($("#find-prev"), Commands.CMD_FIND_PREVIOUS);
@@ -341,7 +347,7 @@ define(function (require, exports, module) {
                     self.trigger("doFind", true);
                 });
         }
-        
+
         if (this._options.replace) {
             this._addShortcutToTooltip($("#replace-yes"), Commands.CMD_REPLACE);
             $root
@@ -365,7 +371,7 @@ define(function (require, exports, module) {
                     }
                 });
         }
-        
+
         if (this._options.multifile && FindUtils.isIndexingInProgress()) {
             this.showIndexingSpinner();
         }
@@ -385,21 +391,21 @@ define(function (require, exports, module) {
             this._modalBar.close(true, !suppressAnimation);
         }
     };
-    
+
     /**
      * @return {boolean} true if this FindBar has been closed.
      */
     FindBar.prototype.isClosed = function () {
         return this._closed;
     };
-    
+
     /**
      * @return {Object} The options passed into the FindBar.
      */
     FindBar.prototype.getOptions = function () {
         return this._options;
     };
-    
+
     /**
      * Returns the current query and parameters.
      * @return {{query: string, caseSensitive: boolean, isRegexp: boolean}}
@@ -411,7 +417,7 @@ define(function (require, exports, module) {
             isRegexp:        this.$("#find-regexp").is(".active")
         };
     };
-    
+
     /**
      * Show or clear an error message related to the query.
      * @param {?string} error The error message to show, or null to hide the error display.
@@ -430,7 +436,7 @@ define(function (require, exports, module) {
             $error.hide();
         }
     };
-    
+
     /**
      * Set the find count.
      * @param {string} count The find count message to show. Can be the empty string to hide it.
@@ -438,7 +444,7 @@ define(function (require, exports, module) {
     FindBar.prototype.showFindCount = function (count) {
         this.$("#find-counter").text(count);
     };
-    
+
     /**
      * Show or hide the no-results indicator and optional message. This is also used to
      * indicate regular expression errors.
@@ -447,7 +453,7 @@ define(function (require, exports, module) {
      */
     FindBar.prototype.showNoResults = function (showIndicator, showMessage) {
         ViewUtils.toggleClass(this.$("#find-what"), "no-results", showIndicator);
-        
+
         var $msg = this.$(".no-results-message");
         if (showMessage) {
             $msg.show();
@@ -455,7 +461,7 @@ define(function (require, exports, module) {
             $msg.hide();
         }
     };
-    
+
     /**
      * Returns the current replace text.
      * @return {string}
@@ -463,7 +469,7 @@ define(function (require, exports, module) {
     FindBar.prototype.getReplaceText = function () {
         return this.$("#replace-with").val() || "";
     };
-    
+
     /**
      * Enables or disables the controls in the Find bar. Note that if enable is true, *all* controls will be
      * re-enabled, even if some were previously disabled using enableNavigation() or enableReplace(), so you
@@ -474,25 +480,25 @@ define(function (require, exports, module) {
         this.$("#find-what, #replace-with, #find-prev, #find-next, #find-case-sensitive, #find-regexp").prop("disabled", !enable);
         this._enabled = enable;
     };
-    
+
     FindBar.prototype.focus = function (enable) {
         this.$("#find-what").focus();
     };
-    
+
     /**
      * @return {boolean} true if the FindBar is enabled.
      */
     FindBar.prototype.isEnabled = function () {
         return this._enabled;
     };
-    
+
     /**
      * @return {boolean} true if the Replace button is enabled.
      */
     FindBar.prototype.isReplaceEnabled = function () {
         return this.$("#replace-yes").is(":enabled");
     };
-    
+
     /**
      * Enable or disable the navigation controls if present. Note that if the Find bar is currently disabled
      * (i.e. isEnabled() returns false), this will have no effect.
@@ -503,7 +509,7 @@ define(function (require, exports, module) {
             this.$("#find-prev, #find-next").prop("disabled", !enable);
         }
     };
-    
+
     /**
      * Enable or disable the replace controls if present. Note that if the Find bar is currently disabled
      * (i.e. isEnabled() returns false), this will have no effect.
@@ -525,21 +531,21 @@ define(function (require, exports, module) {
             .focus()
             .get(0).select();
     };
-    
+
     /**
      * Sets focus to the query field and selects its text.
      */
     FindBar.prototype.focusQuery = function () {
         this._focus("#find-what");
     };
-    
+
     /**
      * Sets focus to the replace field and selects its text.
      */
     FindBar.prototype.focusReplace = function () {
         this._focus("#replace-with");
     };
-    
+
     /**
      * The indexing spinner is usually shown when node is indexing files
      */
@@ -566,7 +572,7 @@ define(function (require, exports, module) {
      * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
      */
     FindBar.getInitialQuery = function (currentFindBar, editor) {
-        var query = "",
+        var query = lastTypedText,
             replaceText = "";
 
         /*
@@ -598,7 +604,7 @@ define(function (require, exports, module) {
                 query = openedFindBar.getQueryInfo().query;
                 replaceText = openedFindBar.getReplaceText();
             } else if (editor) {
-                query = getInitialQueryFromSelection(editor);
+                query = getInitialQueryFromSelection(editor) || lastTypedText;
             }
         }
 
@@ -608,6 +614,6 @@ define(function (require, exports, module) {
     PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
     PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
     PreferencesManager.convertPreferences(module, {"caseSensitive": "user", "regexp": "user"}, true);
-    
+
     exports.FindBar = FindBar;
 });

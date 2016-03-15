@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2015 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4,
@@ -27,7 +27,7 @@ maxerr: 50, node: true */
 
 (function () {
     "use strict";
-    
+
     var fs = require("fs"),
         projectCache = [],
         files,
@@ -37,7 +37,7 @@ maxerr: 50, node: true */
         MAX_TOTAL_RESULTS = 100000, // only 100,000 search results are supported
         MAX_RESULTS_IN_A_FILE = MAX_TOTAL_RESULTS,
         MAX_RESULTS_TO_RETURN = 120;
-    
+
     var results = {},
         numMatches = 0,
         numFiles = 0,
@@ -51,7 +51,7 @@ maxerr: 50, node: true */
         crawlEventSent = false,
         collapseResults = false,
         cacheSize = 0;
-    
+
     /**
      * Copied from StringUtils.js
      * Returns a line number corresponding to an offset in some text. The text can
@@ -74,7 +74,7 @@ maxerr: 50, node: true */
                 line;
             for (line = 0; line < lines.length; line++) {
                 if (total < offset) {
-                    // add 1 per line since /n were removed by splitting, but they needed to 
+                    // add 1 per line since /n were removed by splitting, but they needed to
                     // contribute to the total offset count
                     total += lines[line].length + 1;
                 } else if (total === offset) {
@@ -94,7 +94,7 @@ maxerr: 50, node: true */
             return textOrLines.substr(0, offset).split("\n").length - 1;
         }
     }
-    
+
     /**
      * Searches through the contents and returns an array of matches
      * @param {string} contents
@@ -180,7 +180,7 @@ maxerr: 50, node: true */
 
         return matches;
     }
-    
+
     /**
      * Clears the cached file contents of the project
      */
@@ -226,7 +226,7 @@ maxerr: 50, node: true */
         }
         return projectCache[filePath];
     }
-    
+
     /**
      * Sets the list of matches for the given path, removing the previous match info, if any, and updating
      * the total match count. Note that for the count to remain accurate, the previous match info must not have
@@ -258,7 +258,7 @@ maxerr: 50, node: true */
             foundMaximum = true;
         }
     }
-    
+
     /**
      * Finds search results in the given file and adds them to 'results'
      * @param {string} filepath
@@ -270,7 +270,7 @@ maxerr: 50, node: true */
         var matches = getSearchMatches(text, queryExpr);
         setResults(filepath, {matches: matches}, maxResultsToReturn);
     }
-    
+
     /**
      * Search in the list of files given and populate the results
      * @param {array} fileList           array of file paths
@@ -292,12 +292,12 @@ maxerr: 50, node: true */
             lastSearchedIndex = i;
         }
     }
-    
+
     // Copied from StringUtils.js
     function regexEscape(str) {
         return str.replace(/([.?*+\^$\[\]\\(){}|\-])/g, "\\$1");
     }
-    
+
     /**
      * Parses the given query into a regexp, and returns whether it was valid or not.
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo
@@ -337,7 +337,7 @@ maxerr: 50, node: true */
         }
         return {valid: true, queryExpr: queryExpr};
     }
-    
+
     /**
      * Crawls through the files in the project ans stores them in cache. Since that could take a while
      * we do it in batches so that node wont be blocked.
@@ -380,7 +380,7 @@ maxerr: 50, node: true */
         clearProjectCache();
         crawlEventSent = false;
     }
-    
+
     /**
      * Counts the number of matches matching the queryExpr in the given contents
      * @param   {String} contents  The contents to search on
@@ -425,7 +425,7 @@ maxerr: 50, node: true */
      * @return {Object}   search results
      */
     function doSearch(searchObject, nextPages) {
-        
+
         savedSearchObject = searchObject;
         if (!files) {
             console.log("no file object found");
@@ -466,7 +466,7 @@ maxerr: 50, node: true */
         }
         return send_object;
     }
-    
+
     /**
      * Remove the list of given files from the project cache
      * @param   {Object}   updateObject
@@ -683,7 +683,7 @@ maxerr: 50, node: true */
         );
         setTimeout(fileCrawler, 5000);
     }
-    
+
     exports.init = init;
-    
+
 }());

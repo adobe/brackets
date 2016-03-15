@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -49,7 +49,7 @@ define(function (require, exports, module) {
         _                   = require("thirdparty/lodash");
 
     var KeyboardPrefs       = JSON.parse(require("text!base-config/keyboard.json"));
-    
+
     var KEYMAP_FILENAME     = "keymap.json",
         _userKeyMapFilePath = brackets.app.getApplicationSupportDirectory() + "/" + KEYMAP_FILENAME;
 
@@ -66,7 +66,7 @@ define(function (require, exports, module) {
      * @typedef {{shortcut: !string,
      *            commandID: ?string}} UserKeyBinding
      */
-    
+
     /**
      * @private
      * Maps shortcut descriptor to a command id.
@@ -74,14 +74,14 @@ define(function (require, exports, module) {
      */
     var _customKeyMap      = {},
         _customKeyMapCache = {};
-    
+
     /**
      * @private
      * Maps commandID to the list of shortcuts that are bound to it.
      * @type {!Object.<string, Array.<{key: string, displayKey: string}>>}
      */
     var _commandMap  = {};
-    
+
     /**
      * @private
      * An array of command ID for all the available commands including the commands
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
      * @type {Array.<string>}
      */
     var _allCommands = [];
-    
+
     /**
      * @private
      * Maps key names to the corresponding unicode symols
@@ -110,9 +110,9 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Flag to show key binding errors in the key map file. Default is true and 
-     * it will be set to false when reloading without extensions. This flag is not 
-     * used to suppress errors in loading or parsing the key map file. So if the key 
+     * Flag to show key binding errors in the key map file. Default is true and
+     * it will be set to false when reloading without extensions. This flag is not
+     * used to suppress errors in loading or parsing the key map file. So if the key
      * map file is corrupt, then the error dialog still shows up.
      *
      * @type {boolean}
@@ -125,14 +125,14 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _enabled = true;
-    
+
     /**
      * @private
      * Stack of registered global keydown hooks.
      * @type {Array.<function(Event): boolean>}
      */
     var _globalKeydownHooks = [];
-    
+
     /**
      * @private
      * Forward declaration for JSLint.
@@ -150,11 +150,11 @@ define(function (require, exports, module) {
         "DETECTED"            : 1,
         "DETECTED_AND_IGNORED": 2   // For consecutive ctrl keydown events while a Ctrl key is being hold down
     };
-    
+
     /**
      * @private
-     * Flags used to determine whether right Alt key is pressed. When it is pressed, 
-     * the following two keydown events are triggered in that specific order. 
+     * Flags used to determine whether right Alt key is pressed. When it is pressed,
+     * the following two keydown events are triggered in that specific order.
      *
      *    1. _ctrlDown - flag used to record { ctrlKey: true, keyIdentifier: "Control", ... } keydown event
      *    2. _altGrDown - flag used to record { ctrlKey: true, altKey: true, keyIdentifier: "Alt", ... } keydown event
@@ -163,7 +163,7 @@ define(function (require, exports, module) {
      */
     var _ctrlDown = CtrlDownStates.NOT_YET_DETECTED,
         _altGrDown = false;
-    
+
     /**
      * @private
      * Used to record the timeStamp property of the last keydown event.
@@ -177,16 +177,16 @@ define(function (require, exports, module) {
      * @type {string}
      */
     var _lastKeyIdentifier;
-    
-    /* 
+
+    /*
      * @private
      * Constant used for checking the interval between Control keydown event and Alt keydown event.
-     * If the right Alt key is down we get Control keydown followed by Alt keydown within 30 ms. if 
+     * If the right Alt key is down we get Control keydown followed by Alt keydown within 30 ms. if
      * the user is pressing Control key and then Alt key, the interval will be larger than 30 ms.
      * @type {number}
      */
     var MAX_INTERVAL_FOR_CTRL_ALT_KEYS = 30;
-    
+
     /**
      * @private
      * Forward declaration for JSLint.
@@ -197,7 +197,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Resets all the flags and removes _onCtrlUp event listener.
-     * 
+     *
      */
     function _quitAltGrMode() {
         _enabled = true;
@@ -207,11 +207,11 @@ define(function (require, exports, module) {
         _lastKeyIdentifier = null;
         $(window).off("keyup", _onCtrlUp);
     }
-    
+
     /**
      * @private
      * Detects the release of AltGr key by checking all keyup events
-     * until we receive one with ctrl key code. Once detected, reset 
+     * until we receive one with ctrl key code. Once detected, reset
      * all the flags and also remove this event listener.
      *
      * @param {!KeyboardEvent} e keyboard event object
@@ -222,14 +222,14 @@ define(function (require, exports, module) {
             _quitAltGrMode();
         }
     };
-    
+
     /**
      * @private
-     * Detects whether AltGr key is pressed. When it is pressed, the first keydown event has 
-     * ctrlKey === true with keyIdentifier === "Control". The next keydown event with 
-     * altKey === true, ctrlKey === true and keyIdentifier === "Alt" is sent within 30 ms. Then 
-     * the next keydown event with altKey === true, ctrlKey === true and keyIdentifier === "Control" 
-     * is sent. If the user keep holding AltGr key down, then the second and third 
+     * Detects whether AltGr key is pressed. When it is pressed, the first keydown event has
+     * ctrlKey === true with keyIdentifier === "Control". The next keydown event with
+     * altKey === true, ctrlKey === true and keyIdentifier === "Alt" is sent within 30 ms. Then
+     * the next keydown event with altKey === true, ctrlKey === true and keyIdentifier === "Control"
+     * is sent. If the user keep holding AltGr key down, then the second and third
      * keydown events are repeatedly sent out alternately. If the user is also holding down Ctrl
      * key, then either keyIdentifier === "Control" or keyIdentifier === "Alt" is repeatedly sent
      * but not alternately.
@@ -250,7 +250,7 @@ define(function (require, exports, module) {
             if (_ctrlDown !== CtrlDownStates.DETECTED_AND_IGNORED && e.ctrlKey && e.keyIdentifier === "Control") {
                 _ctrlDown = CtrlDownStates.DETECTED;
             } else if (e.repeat && e.ctrlKey && e.keyIdentifier === "Control") {
-                // We get here if the user is holding down left/right Control key. Set it to false 
+                // We get here if the user is holding down left/right Control key. Set it to false
                 // so that we don't misidentify the combination of Ctrl and Alt keys as AltGr key.
                 _ctrlDown = CtrlDownStates.DETECTED_AND_IGNORED;
             } else if (_ctrlDown === CtrlDownStates.DETECTED && e.altKey && e.ctrlKey && e.keyIdentifier === "Alt" &&
@@ -267,7 +267,7 @@ define(function (require, exports, module) {
             _lastTimeStamp = e.timeStamp;
         } else if (e.keyIdentifier === "Control" || e.keyIdentifier === "Alt") {
             // If the user is NOT holding down AltGr key or is also pressing Ctrl key,
-            // then _lastKeyIdentifier will be the same as keyIdentifier in the current 
+            // then _lastKeyIdentifier will be the same as keyIdentifier in the current
             // key event. So we need to quit AltGr mode to re-enable KBM.
             if (e.altKey && e.ctrlKey && e.keyIdentifier === _lastKeyIdentifier) {
                 _quitAltGrMode();
@@ -276,7 +276,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     /**
      * @private
      */
@@ -305,9 +305,9 @@ define(function (require, exports, module) {
             console.log("KeyBindingManager _buildKeyDescriptor() - No key provided!");
             return "";
         }
-        
+
         var keyDescriptor = [];
-       
+
         if (hasMacCtrl) {
             keyDescriptor.push("Ctrl");
         }
@@ -328,11 +328,11 @@ define(function (require, exports, module) {
         }
 
         keyDescriptor.push(key);
-        
+
         return keyDescriptor.join("-");
     }
-    
-    
+
+
     /**
      * normalizes the incoming key descriptor so the modifier keys are always specified in the correct order
      * @param {string} The string for a key descriptor, can be in any order, the result will be Ctrl-Alt-Shift-<Key>
@@ -352,10 +352,10 @@ define(function (require, exports, module) {
             }
             left = left.trim().toLowerCase();
             right = right.trim().toLowerCase();
-            
+
             return (left.length > 0 && left === right);
         }
-        
+
         origDescriptor.split("-").forEach(function parseDescriptor(ele, i, arr) {
             if (_compareModifierString("ctrl", ele)) {
                 if (brackets.platform === "mac") {
@@ -386,7 +386,7 @@ define(function (require, exports, module) {
                 key = ele;
             }
         });
-        
+
         if (error) {
             return null;
         }
@@ -395,37 +395,37 @@ define(function (require, exports, module) {
         if (key === "" && origDescriptor.search(/^.+--$/) !== -1) {
             key = "-";
         }
-        
+
         // '+' char is valid if it's the only key. Keyboard shortcut strings should use
         // unicode characters (unescaped). Keyboard shortcut display strings may use
         // unicode escape sequences (e.g. \u20AC euro sign)
         if ((key.indexOf("+")) >= 0 && (key.length > 1)) {
             return null;
         }
-        
+
         // Ensure that the first letter of the key name is in upper case and the rest are
         // in lower case. i.e. 'a' => 'A' and 'up' => 'Up'
         if (/^[a-z]/i.test(key)) {
             key = _.capitalize(key.toLowerCase());
         }
-        
+
         // Also make sure that the second word of PageUp/PageDown has the first letter in upper case.
         if (/^Page/.test(key)) {
             key = key.replace(/(up|down)$/, function (match, p1) {
                 return _.capitalize(p1);
             });
         }
-        
-        // No restriction on single character key yet, but other key names are restricted to either 
+
+        // No restriction on single character key yet, but other key names are restricted to either
         // Function keys or those listed in _keyNames array.
         if (key.length > 1 && !/F\d+/.test(key) &&
                 _keyNames.indexOf(key) === -1) {
             return null;
         }
-        
+
         return _buildKeyDescriptor(hasMacCtrl, hasCtrl, hasAlt, hasShift, key);
     }
-    
+
     /**
      * @private
      * Looks for keycodes that have os-inconsistent keys and fixes them.
@@ -443,8 +443,8 @@ define(function (require, exports, module) {
         } else if (keycode >= KeyEvent.DOM_VK_NUMPAD0 && keycode <= KeyEvent.DOM_VK_NUMPAD9) {
             return String(keycode - KeyEvent.DOM_VK_NUMPAD0);
         }
-        
-        
+
+
         switch (keycode) {
         case KeyEvent.DOM_VK_SEMICOLON:
             return ";";
@@ -477,7 +477,7 @@ define(function (require, exports, module) {
             return key;
         }
     }
-    
+
     /**
      * Takes a keyboard event and translates it into a key in a key map
      */
@@ -487,7 +487,7 @@ define(function (require, exports, module) {
             hasAlt = (event.altKey),
             hasShift = (event.shiftKey),
             key = String.fromCharCode(event.keyCode);
-        
+
         //From the W3C, if we can get the KeyboardEvent.keyIdentifier then look here
         //As that will let us use keys like then function keys "F5" for commands. The
         //full set of values we can use is here
@@ -502,7 +502,7 @@ define(function (require, exports, module) {
                 key = ident;
             }
         }
-        
+
         // Translate some keys to their common names
         if (key === "\t") {
             key = "Tab";
@@ -520,7 +520,7 @@ define(function (require, exports, module) {
 
         return _buildKeyDescriptor(hasMacCtrl, hasCtrl, hasAlt, hasShift, key);
     }
-    
+
     /**
      * Convert normalized key representation to display appropriate for platform.
      * @param {!string} descriptor Normalized key descriptor.
@@ -528,7 +528,7 @@ define(function (require, exports, module) {
      */
     function formatKeyDescriptor(descriptor) {
         var displayStr;
-        
+
         if (brackets.platform === "mac") {
             displayStr = descriptor.replace(/-(?!$)/g, "");     // remove dashes
             displayStr = displayStr.replace("Ctrl", "\u2303");  // Ctrl > control symbol
@@ -575,23 +575,23 @@ define(function (require, exports, module) {
         }
 
         var normalizedKey = normalizeKeyDescriptorString(key);
-        
+
         if (!normalizedKey) {
             console.log("Fail to nomalize " + key);
         } else if (_isKeyAssigned(normalizedKey)) {
             var binding = _keyMap[normalizedKey],
                 command = CommandManager.get(binding.commandID),
                 bindings = _commandMap[binding.commandID];
-            
+
             // delete key binding record
             delete _keyMap[normalizedKey];
-            
+
             if (bindings) {
                 // delete mapping from command to key binding
                 _commandMap[binding.commandID] = bindings.filter(function (b) {
                     return (b.key !== normalizedKey);
                 });
-    
+
                 if (command) {
                     command.trigger("keyBindingRemoved", {key: normalizedKey, displayKey: binding.displayKey});
                 }
@@ -603,25 +603,25 @@ define(function (require, exports, module) {
      * @private
      *
      * Updates _allCommands array and _defaultKeyMap with the new key binding
-     * if it is not yet in the _allCommands array. _allCommands array is initialized 
+     * if it is not yet in the _allCommands array. _allCommands array is initialized
      * only in extensionsLoaded event. So any new commands or key bindings added after
      * that will be updated here.
      *
-     * @param {{commandID: string, key: string, displayKey:string, explicitPlatform: string}} newBinding 
+     * @param {{commandID: string, key: string, displayKey:string, explicitPlatform: string}} newBinding
      */
     function _updateCommandAndKeyMaps(newBinding) {
         if (_allCommands.length === 0) {
             return;
         }
-        
+
         if (newBinding && newBinding.commandID && _allCommands.indexOf(newBinding.commandID) === -1) {
             _defaultKeyMap[newBinding.commandID] = _.cloneDeep(newBinding);
-            
+
             // Process user key map again to catch any reassignment to all new key bindings added from extensions.
             _loadUserKeyMap();
         }
     }
-    
+
     /**
      * @private
      *
@@ -652,8 +652,8 @@ define(function (require, exports, module) {
         } else {
             targetPlatform = brackets.platform;
         }
-        
-        
+
+
         // Skip if the key binding is not for this platform.
         if (explicitPlatform === "mac" && brackets.platform !== "mac") {
             return null;
@@ -668,18 +668,18 @@ define(function (require, exports, module) {
                 keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
             }
         }
-        
+
         normalized = normalizeKeyDescriptorString(key);
-        
-        // skip if the key binding is invalid 
+
+        // skip if the key binding is invalid
         if (!normalized) {
             console.error("Unable to parse key binding " + key + ". Permitted modifiers: Ctrl, Cmd, Alt, Opt, Shift; separated by '-' (not '+').");
             return null;
         }
-        
+
         // check for duplicate key bindings
         existing = _keyMap[normalized];
-        
+
         // for cross-platform compatibility
         if (exports.useWindowsCompatibleBindings) {
             // windows-only key bindings are used as the default binding
@@ -693,17 +693,17 @@ define(function (require, exports, module) {
                     // do not clobber existing binding with windows-only binding
                     return null;
                 }
-                
+
                 // target this windows binding for the current platform
                 targetPlatform = brackets.platform;
             }
         }
-        
+
         // skip if this binding doesn't match the current platform
         if (targetPlatform !== brackets.platform) {
             return null;
         }
-        
+
         // skip if the key is already assigned
         if (existing) {
             if (!existing.explicitPlatform && explicitPlatform) {
@@ -712,7 +712,7 @@ define(function (require, exports, module) {
                 existing = false;
             }
         }
-        
+
         // delete existing bindings when
         // (1) replacing a windows-compatible binding with a generic or
         //     platform-specific binding
@@ -721,16 +721,16 @@ define(function (require, exports, module) {
             isWindowsCompatible,
             isReplaceGeneric,
             ignoreGeneric;
-        
+
         existingBindings.forEach(function (binding) {
             // remove windows-only bindings in _commandMap
             isWindowsCompatible = exports.useWindowsCompatibleBindings &&
                 binding.explicitPlatform === "win";
-            
+
             // remove existing generic binding
             isReplaceGeneric = !binding.explicitPlatform &&
                 explicitPlatform;
-            
+
             if (isWindowsCompatible || isReplaceGeneric) {
                 bindingsToDelete.push(binding);
             } else {
@@ -743,34 +743,34 @@ define(function (require, exports, module) {
             // explicit command binding overrides this one
             return null;
         }
-        
+
         if (existing) {
             // do not re-assign a key binding
             console.error("Cannot assign " + normalized + " to " + commandID + ". It is already assigned to " + _keyMap[normalized].commandID);
             return null;
         }
-        
+
         // remove generic or windows-compatible bindings
         bindingsToDelete.forEach(function (binding) {
             removeBinding(binding.key);
         });
-        
+
         // optional display-friendly string (e.g. CMD-+ instead of CMD-=)
         normalizedDisplay = (keyBinding.displayKey) ? normalizeKeyDescriptorString(keyBinding.displayKey) : normalized;
-        
+
         // 1-to-many commandID mapping to key binding
         if (!_commandMap[commandID]) {
             _commandMap[commandID] = [];
         }
-        
+
         result = {
             key                 : normalized,
             displayKey          : normalizedDisplay,
             explicitPlatform    : explicitPlatform
         };
-        
+
         _commandMap[commandID].push(result);
-        
+
         // 1-to-1 key binding to commandID
         _keyMap[normalized] = {
             commandID           : commandID,
@@ -778,18 +778,18 @@ define(function (require, exports, module) {
             displayKey          : normalizedDisplay,
             explicitPlatform    : explicitPlatform
         };
-        
+
         if (!userBindings) {
             _updateCommandAndKeyMaps(_keyMap[normalized]);
         }
-        
+
         // notify listeners
         command = CommandManager.get(commandID);
-        
+
         if (command) {
             command.trigger("keyBindingAdded", result);
         }
-        
+
         return result;
     }
 
@@ -852,31 +852,31 @@ define(function (require, exports, module) {
     function addBinding(command, keyBindings, platform) {
         var commandID = "",
             results;
-        
+
         if (!command) {
             console.error("addBinding(): missing required parameter: command");
             return;
         }
-        
+
         if (!keyBindings) { return; }
-        
+
         if (typeof (command) === "string") {
             commandID = command;
         } else {
             commandID = command.getID();
         }
-        
+
         if (Array.isArray(keyBindings)) {
             var keyBinding;
             results = [];
 
             // process platform-specific bindings first
             keyBindings.sort(_sortByPlatform);
-            
+
             keyBindings.forEach(function addSingleBinding(keyBindingRequest) {
                 // attempt to add keybinding
                 keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
-                
+
                 if (keyBinding) {
                     results.push(keyBinding);
                 }
@@ -884,7 +884,7 @@ define(function (require, exports, module) {
         } else {
             results = _addBinding(commandID, keyBindings, platform);
         }
-        
+
         return results;
     }
 
@@ -897,22 +897,22 @@ define(function (require, exports, module) {
     function getKeyBindings(command) {
         var bindings    = [],
             commandID   = "";
-        
+
         if (!command) {
             console.error("getKeyBindings(): missing required parameter: command");
             return [];
         }
-        
+
         if (typeof (command) === "string") {
             commandID = command;
         } else {
             commandID = command.getID();
         }
-        
+
         bindings = _commandMap[commandID];
         return bindings || [];
     }
-    
+
     /**
      * Adds default key bindings when commands are registered to CommandManager
      * @param {$.Event} event jQuery event
@@ -921,34 +921,34 @@ define(function (require, exports, module) {
     function _handleCommandRegistered(event, command) {
         var commandId   = command.getID(),
             defaults    = KeyboardPrefs[commandId];
-        
+
         if (defaults) {
             addBinding(commandId, defaults);
         }
     }
-    
+
     /**
-     * Adds a global keydown hook that gets first crack at keydown events 
-     * before standard keybindings do. This is intended for use by modal or 
-     * semi-modal UI elements like dialogs or the code hint list that should 
-     * execute before normal command bindings are run. 
-     * 
-     * The hook is passed one parameter, the original keyboard event. If the 
-     * hook handles the event (or wants to block other global hooks from 
+     * Adds a global keydown hook that gets first crack at keydown events
+     * before standard keybindings do. This is intended for use by modal or
+     * semi-modal UI elements like dialogs or the code hint list that should
+     * execute before normal command bindings are run.
+     *
+     * The hook is passed one parameter, the original keyboard event. If the
+     * hook handles the event (or wants to block other global hooks from
      * handling the event), it should return true. Note that this will *only*
      * stop other global hooks and KeyBindingManager from handling the
      * event; to prevent further event propagation, you will need to call
      * stopPropagation(), stopImmediatePropagation(), and/or preventDefault()
      * as usual.
      *
-     * Multiple keydown hooks can be registered, and are executed in order, 
+     * Multiple keydown hooks can be registered, and are executed in order,
      * most-recently-added first.
-     * 
+     *
      * (We have to have a special API for this because (1) handlers are normally
-     * called in least-recently-added order, and we want most-recently-added; 
-     * (2) native DOM events don't have a way for us to find out if 
+     * called in least-recently-added order, and we want most-recently-added;
+     * (2) native DOM events don't have a way for us to find out if
      * stopImmediatePropagation()/stopPropagation() has been called on the
-     * event, so we have to have some other way for one of the hooks to 
+     * event, so we have to have some other way for one of the hooks to
      * indicate that it wants to block the other hooks from running.)
      *
      * @param {function(Event): boolean} hook The global hook to add.
@@ -956,7 +956,7 @@ define(function (require, exports, module) {
     function addGlobalKeydownHook(hook) {
         _globalKeydownHooks.push(hook);
     }
-    
+
     /**
      * Removes a global keydown hook added by `addGlobalKeydownHook`.
      * Does not need to be the most recently added hook.
@@ -969,7 +969,7 @@ define(function (require, exports, module) {
             _globalKeydownHooks.splice(index, 1);
         }
     }
-    
+
     /**
      * Handles a given keydown event, checking global hooks first before
      * deciding to handle it ourselves.
@@ -997,14 +997,14 @@ define(function (require, exports, module) {
             _handleKeyEvent,
             true
         );
-        
+
         exports.useWindowsCompatibleBindings = (brackets.platform !== "mac") &&
             (brackets.platform !== "win");
     });
-    
+
     /**
      * @private
-     * Displays an error dialog and also opens the user key map file for editing only if 
+     * Displays an error dialog and also opens the user key map file for editing only if
      * the error is not the loading file error.
      *
      * @param {?string} err Error type returned from JSON parser or open file operation
@@ -1014,13 +1014,13 @@ define(function (require, exports, module) {
         // Asynchronously loading Dialogs module to avoid the circular dependency
         require(["widgets/Dialogs"], function (Dialogs) {
             var errorMessage = Strings.ERROR_KEYMAP_CORRUPT;
-            
+
             if (err === FileSystemError.UNSUPPORTED_ENCODING) {
                 errorMessage = Strings.ERROR_LOADING_KEYMAP;
             } else if (message) {
                 errorMessage = message;
             }
-            
+
             Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_ERROR,
                 Strings.ERROR_KEYMAP_TITLE,
@@ -1033,11 +1033,11 @@ define(function (require, exports, module) {
                 });
         });
     }
-    
+
     /**
      * @private
      *
-     * Checks whether the given command ID is a special command that the user can't bind 
+     * Checks whether the given command ID is a special command that the user can't bind
      * to another shortcut.
      * @param {!string} commandID A string referring to a specific command
      * @return {boolean} true if normalizedKey is a special command, false otherwise.
@@ -1046,10 +1046,10 @@ define(function (require, exports, module) {
         if (brackets.platform === "mac" && commandID === "file.quit") {
             return true;
         }
-        
+
         return (_specialCommands.indexOf(commandID) > -1);
     }
-    
+
     /**
      * @private
      *
@@ -1062,24 +1062,24 @@ define(function (require, exports, module) {
         if (!normalizedKey) {
             return false;
         }
-        
+
         if (_reservedShortcuts.indexOf(normalizedKey) > -1 ||
                 _reservedShortcuts.indexOf(normalizedKey.replace("Cmd", "Ctrl")) > -1) {
             return true;
         }
-        
+
         if (brackets.platform === "mac" && _macReservedShortcuts.indexOf(normalizedKey) > -1) {
             return true;
         }
-        
+
         return false;
     }
-    
+
     /**
      * @private
      *
      * Creates a bullet list item for any item in the given list.
-     * @param {Array.<string>} list An array of strings to be converted into a 
+     * @param {Array.<string>} list An array of strings to be converted into a
      * message string with a bullet list.
      * @return {string} the html text version of the list
      */
@@ -1091,13 +1091,13 @@ define(function (require, exports, module) {
         message += "</ul>";
         return message;
     }
-    
+
     /**
      * @private
      *
      * Gets the corresponding unicode symbol of an arrow key for display in the menu.
      * @param {string} key The non-modifier key used in the shortcut. It does not need to be normalized.
-     * @return {string} An empty string if key is not one of those we want to show with the unicode symbol. 
+     * @return {string} An empty string if key is not one of those we want to show with the unicode symbol.
      *                  Otherwise, the corresponding unicode symbol is returned.
      */
     function _getDisplayKey(key) {
@@ -1108,12 +1108,12 @@ define(function (require, exports, module) {
         }
         return displayKey;
     }
-    
+
     /**
      * @private
      *
-     * Applies each user key binding to all the affected commands and updates _keyMap. 
-     * Shows errors in a dialog and then opens the user key map file if any of the following 
+     * Applies each user key binding to all the affected commands and updates _keyMap.
+     * Shows errors in a dialog and then opens the user key map file if any of the following
      * is detected while applying the user key bindings.
      *     - A key binding is attempting to modify a special command.
      *     - A key binding is attempting to assign a shortcut of a special command to another one.
@@ -1132,19 +1132,19 @@ define(function (require, exports, module) {
             multipleKeys       = [],
             duplicateBindings  = [],
             errorMessage       = "";
-        
+
         _.forEach(_customKeyMap, function (commandID, key) {
             var normalizedKey    = normalizeKeyDescriptorString(key),
                 existingBindings = _commandMap[commandID] || [];
 
-            // Skip this since we don't allow user to update key binding of a special 
+            // Skip this since we don't allow user to update key binding of a special
             // command like cut, copy, paste, undo, redo and select all.
             if (_isSpecialCommand(commandID)) {
                 restrictedCommands.push(commandID);
                 return;
             }
 
-            // Skip this since we don't allow user to update a shortcut used in 
+            // Skip this since we don't allow user to update a shortcut used in
             // a special command or any Mac system command.
             if (_isReservedShortcuts(normalizedKey)) {
                 restrictedKeys.push(key);
@@ -1156,11 +1156,11 @@ define(function (require, exports, module) {
                 invalidKeys.push(key);
                 return;
             }
-            
+
             if (_isKeyAssigned(normalizedKey)) {
                 if (remappedKeys.indexOf(normalizedKey) !== -1) {
                     // JSON parser already removed all the duplicates that have the exact
-                    // same case or order in their keys. So we're only detecting duplicate 
+                    // same case or order in their keys. So we're only detecting duplicate
                     // bindings that have different orders or different cases used in the key.
                     duplicateBindings.push(key);
                     return;
@@ -1234,7 +1234,7 @@ define(function (require, exports, module) {
             _showErrorsAndOpenKeyMap("", errorMessage);
         }
     }
-    
+
     /**
      * @private
      *
@@ -1266,7 +1266,7 @@ define(function (require, exports, module) {
                 addBinding(commandID, defaults, brackets.platform);
             }
 
-            // Reassign the default key binding of the previously modified command. 
+            // Reassign the default key binding of the previously modified command.
             // e.g. "Cmd-W": "file.open" in _customKeyMapCache will require us to reassign Cmd-W
             // shortcut to file.close command.
             if (defaultCommand && defaultCommand.key) {
@@ -1274,7 +1274,7 @@ define(function (require, exports, module) {
             }
         });
     }
-    
+
     /**
      * @private
      *
@@ -1296,7 +1296,7 @@ define(function (require, exports, module) {
      *
      * Reads in the user key map file and parses its content into JSON.
      * Returns the user key bindings if JSON has "overrides".
-     * Otherwise, returns an empty object or an error if the file 
+     * Otherwise, returns an empty object or an error if the file
      * cannot be parsed or loaded.
      *
      * @return {$.Promise} a jQuery promise that will be resolved with the JSON
@@ -1307,7 +1307,7 @@ define(function (require, exports, module) {
     function _readUserKeyMap() {
         var file   = FileSystem.getFileForPath(_getUserKeyMapFilePath()),
             result = new $.Deferred();
-       
+
         file.exists(function (err, doesExist) {
             if (doesExist) {
                 FileUtils.readAsText(file)
@@ -1343,20 +1343,20 @@ define(function (require, exports, module) {
      * @private
      *
      * Reads in the user key bindings and updates the key map with each user key
-     * binding by removing the existing one assigned to each key and adding 
-     * new one for the specified command id. Shows errors and opens the user 
+     * binding by removing the existing one assigned to each key and adding
+     * new one for the specified command id. Shows errors and opens the user
      * key map file if it cannot be parsed.
      *
      * This function is wrapped with debounce so that its execution is always delayed
-     * by 200 ms. The delay is required because when this function is called some 
+     * by 200 ms. The delay is required because when this function is called some
      * extensions may still be adding some commands and their key bindings asychronously.
      */
     _loadUserKeyMap = _.debounce(function () {
         _readUserKeyMap()
             .then(function (keyMap) {
                 // Some extensions may add a new command without any key binding. So
-                // we always have to get all commands again to ensure that we also have 
-                // those from any extensions installed during the current session. 
+                // we always have to get all commands again to ensure that we also have
+                // those from any extensions installed during the current session.
                 _allCommands = CommandManager.getAll();
 
                 _customKeyMapCache = _.cloneDeep(_customKeyMap);
@@ -1367,11 +1367,11 @@ define(function (require, exports, module) {
                 _showErrorsAndOpenKeyMap(err);
             });
     }, 200);
-        
+
     /**
      * @private
      *
-     * Opens the existing key map file or creates a new one with default content 
+     * Opens the existing key map file or creates a new one with default content
      * if it does not exist.
      */
     function _openUserKeyMap() {
@@ -1384,7 +1384,7 @@ define(function (require, exports, module) {
                 var defaultContent = "{\n    \"documentation\": \"https://github.com/adobe/brackets/wiki/User-Key-Bindings\"," +
                                      "\n    \"overrides\": {" +
                                      "\n        \n    }\n}\n";
-                
+
                 FileUtils.writeText(file, defaultContent, true)
                     .done(function () {
                         CommandManager.execute(Commands.FILE_OPEN, { fullPath: userKeyMapPath });
@@ -1392,7 +1392,7 @@ define(function (require, exports, module) {
             }
         });
     }
-    
+
     // Due to circular dependencies, not safe to call on() directly
     EventDispatcher.on_duringInit(CommandManager, "commandRegistered", _handleCommandRegistered);
     CommandManager.register(Strings.CMD_OPEN_KEYMAP, Commands.FILE_OPEN_KEYMAP, _openUserKeyMap);
@@ -1405,7 +1405,7 @@ define(function (require, exports, module) {
             }
         });
     });
-    
+
     /**
      * @private
      *
@@ -1417,11 +1417,11 @@ define(function (require, exports, module) {
         // Keep a copy of the default key bindings before loading user key bindings.
         _defaultKeyMap = _.cloneDeep(_keyMap);
     }
-    
+
     /**
      * @private
      *
-     * Sets the full file path to the user key map file. Only used by unit tests 
+     * Sets the full file path to the user key map file. Only used by unit tests
      * to load a test file instead of the actual user key map file.
      *
      * @param {string} fullPath file path to the user key map file.
@@ -1429,7 +1429,7 @@ define(function (require, exports, module) {
     function _setUserKeyMapFilePath(fullPath) {
         _userKeyMapFilePath = fullPath;
     }
-    
+
     AppInit.extensionsLoaded(function () {
         var params  = new UrlParams();
         params.parse();
@@ -1457,7 +1457,7 @@ define(function (require, exports, module) {
     exports.getKeyBindings = getKeyBindings;
     exports.addGlobalKeydownHook = addGlobalKeydownHook;
     exports.removeGlobalKeydownHook = removeGlobalKeydownHook;
-    
+
     /**
      * Use windows-specific bindings if no other are found (e.g. Linux).
      * Core Brackets modules that use key bindings should always define at
@@ -1467,7 +1467,7 @@ define(function (require, exports, module) {
      * not Linux.
      */
     exports.useWindowsCompatibleBindings = false;
-    
+
     // For unit testing only
     exports._handleKey = _handleKey;
     exports._handleKeyEvent = _handleKeyEvent;

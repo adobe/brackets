@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Chyby
      */
@@ -75,7 +75,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Chyba pri spúšťaní prehliadača",
     "ERROR_CANT_FIND_CHROME"            : "Prehliadač Google Chrome nebol nájdený. Prosím uistite sa, že je nainštalovaný.",
     "ERROR_LAUNCHING_BROWSER"           : "Nastala chyba pri spúšťaní prehliadača. (chyba {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Chyba pri živom náhľade",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Pripojovanie k prehliadaču",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "V prípade využitia živého náhľadu je treba reštarovať Chrome zo zapnutým vzdialeným ladením.<br /><br />Chceli by ste reštartovať Chrome a zapnúť vzdialené ladenie?",
@@ -86,7 +86,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Vitajte v živom náhľade!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Živý náhľad pripája {APP_NAME} k vášmu prehliadaču. Spustí náhľad vášho HTML súboru v prehliadači, potom aktualizuje náhľad okamžite, vždy keď upravíte svoj kód.<br /><br />V tejto verzii {APP_NAME}, živý náhľad funguje iba s <strong>Google Chrome</strong> a aktualizuje keď upravíte <strong>CSS súbory</strong>. Zmeny pre HTML alebo JavaScript súbory sú automaticky načítané, keď súbor uložíte.<br /><br />(Túto správu uvidíte iba jeden krát.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pre viac informácií pozrite <a class=\"clickable-link\" data-href=\"{0}\">Riešenie chýb pri pripojení do živého náhľadu</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Živý náhľad",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Živý náhľad: Pripájanie\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Živý náhľad: Inicializácia\u2026",
@@ -97,7 +97,7 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Živý náhľad bol zrušený kvôli tomu, že stránka bola zatvorená v prehliadači",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Živý náhľad bol zrušený kvôli tomu, že prehliadač odkazoval na stránku, ktorá nie je súčasťou aktuálneho projektu",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Živý náhľad bol zrušený pre neznámy dôvod ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Uložiť zmeny",
     "SAVE_CLOSE_MESSAGE"                : "Chcete uložiť zmeny, ktoré ste spravili v dokumente <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Chcete uložiť zmeny v následujúcich súboroch?",
@@ -107,7 +107,7 @@ define({
     "FILE_DELETED_TITLE"                : "Súbor odstránený",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> bol upravený na disku, ale tiež ma neuložené zmeny in {APP_NAME}.<br /><br />Ktorú verziu chcete ponechať?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> bol zmazaný z disku, ale zmeny sa neuložili v {APP_NAME}.<br /><br />Chcete uložiť zmeny?",
-    
+
     // Find, Replace, Find in Files
     "BUTTON_YES"                        : "Áno",
     "BUTTON_NO"                         : "Nie",
@@ -147,7 +147,7 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Medzerník",
-    
+
     /**
      * StatusBar strings
      */
@@ -191,7 +191,7 @@ define({
     "CMD_EXTENSION_MANAGER"               : "Správca rozšírení\u2026",
     "CMD_FILE_REFRESH"                    : "Obnoviť strom súborov",
     "CMD_QUIT"                            : "Koniec",
-    // Použité v natívnom menu Súborov na Windows 
+    // Použité v natívnom menu Súborov na Windows
     "CMD_EXIT"                            : "Koniec",
 
     // Edit menu commands
@@ -221,7 +221,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "O riadok nižšie",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Uzatvárať zátvorky",
     "CMD_SHOW_CODE_HINTS"                 : "Zobraziť tipy",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "Zobraziť",
     "CMD_HIDE_SIDEBAR"                    : "Skryť bočný panel",
@@ -252,7 +252,7 @@ define({
     "CMD_PREV_DOC"                        : "Predchádzajúci dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobraziť stromovú štruktúru",
     "CMD_SHOW_IN_OS"                      : "Zobraziť v OS",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Nápoveda",
     "CMD_CHECK_FOR_UPDATE"                : "Skontrolovať aktualizácie",
@@ -294,7 +294,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL adresa nemôže obsahovať znaky ako \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštné znaky ako '{0}' musia byť %-enkódované.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznáma chyba pri spracovávaní URL",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Inštalovať",
     "UPDATE"                               : "Aktualizovať",
@@ -366,13 +366,13 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "Nainštalované",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dostupné",
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizácie",
-    
+
     /**
      * Mená jednotiek
      */
 
     "UNIT_PIXELS"                          : "pixely",
-    
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Ladenie",
     "CMD_SHOW_DEV_TOOLS"                        : "Zobraziť vývojárske nástroje",
@@ -384,13 +384,13 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Zapnúť Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Uložiť stav Node do konzole",
     "CMD_RESTART_NODE"                          : "Reštartovať Node",
-    
+
     "LANGUAGE_TITLE"                            : "Zmeniť jazyk",
     "LANGUAGE_MESSAGE"                          : "Jazyk:",
     "LANGUAGE_SUBMIT"                           : "Reštartovať {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Zrušiť",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Predvolený v systéme",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuálna farba",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Pôvodná farba",
@@ -399,15 +399,15 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa formát",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Použité {1} krát)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Použité {1} krát)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Prejsť na definíciu",
     "CMD_SHOW_PARAMETER_HINT"                   : "Ukázať pomôcku parametra",
     "NO_ARGUMENTS"                              : "<žiadne parametre>",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Rýchly náhľad",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Viac"
 });

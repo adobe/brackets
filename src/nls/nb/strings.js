@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -389,7 +389,7 @@ define({
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Ny regel",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Installer",
     "UPDATE"                               : "Oppdater",
@@ -477,7 +477,7 @@ define({
 
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "største",
-    
+
     /**
      * Unit names
      */
@@ -504,7 +504,7 @@ define({
     "LANGUAGE_SUBMIT"                           : "Gjenåpne {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Avbryt",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Sett systemforvalg",
-    
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tid",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progresjon",

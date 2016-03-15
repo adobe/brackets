@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- * 
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -69,7 +69,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Tarayıcı çalıştırılırken hata",
     "ERROR_CANT_FIND_CHROME"            : "Google Chrome tarayıcısı bulunamadı. Lütfen kurulu olduğundan emin olun.",
     "ERROR_LAUNCHING_BROWSER"           : "Tarayıcı açılırken hata meydana geldi. (hata {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Canlı Önizleme Hatası",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Tarayıcıya bağlanılıyor",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Canlı önizleme özelliğini kullanabilmek için uzaktan hata ayıklayıcı ile Chrome'un tekrardan açılması gerekiyor.<br /><br />Chrome'u uzaktan hata ayıklayıcı ile tekrardan açılmasını ister misiniz?",
@@ -78,20 +78,20 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Canlı Önizlemeye Hoşgeldiniz!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Canlı önizleme için {APP_NAME} programı tarayıcınıza bağlanıyor ve sizin HTML dosyanızın örnek görüntüsünü tarayıcınızda açıyor. Sonrasında ise değişiklik yaptığınız sayfayı anında tarayıcıda yenileyerek gösteriyor.<br /><br />{APP_NAME} programının bu versiyonunda, Canlı önizleme özelliği sadece <strong>CSS dosyaları</strong> değişikliğine izin veriyor ve sadece <strong>Google Chrome</strong> üzerinde çalışıyor. Yakında HTML ve Javascript değişikliğini de ekleyeceğiz!<br /><br />(Bu mesaj sadece tek sefer gösterilecektir.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Detaylı bilgi için lütfen <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a> sayfasına bakınız.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Canlı Önizleme",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Canlı Önizleme: Bağlanılıyor\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Canlı Önizleme: Başlıyor\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Canlı Önizleme'den Çık",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Canlı Önizleme: Kapatmak için tıklayın (Yenilemek için dosyayı kaydedin)",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Değişiklikleri kaydet",
     "SAVE_CLOSE_MESSAGE"                : "<span class='dialog-filename'>{0}</span> dosyasında yaptığınız değişiklikleri kaydetmek istiyor musunuz?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Dosyalardaki değişiklikleri kaydetmek istiyor musunuz?",
     "EXT_MODIFIED_TITLE"                : "Harici değişiklikler",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> dosyası dışarıdan değiştirildi ama {APP_NAME} programında kaydetmediğiniz değişiklikler bulunmakta.<br /><br />Hangi versiyonun kalmasını istiyorsunuz?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> dosyası hafızadan silind ama {APP_NAME} programında kaydetmediğiniz değişiklikler bulunmakta.<br /><br />Değişikliklerin kalmasını istiyor musunuz?",
-    
+
     // Find, Replace, Find in Files
     "BUTTON_YES"                        : "Evet",
     "BUTTON_NO"                         : "Hayır",
@@ -102,7 +102,7 @@ define({
     "RELEASE_NOTES"                     : "Yeni Versiyon Bilgileri",
     "NO_UPDATE_TITLE"                   : "En son versiyon!",
     "NO_UPDATE_MESSAGE"                 : "{APP_NAME} programının en son versiyonunu kullanıyorsunuz.",
-    
+
     "FIND_IN_FILES_SCOPED"              : "<span class='dialog-filename'>{0}</span> dosyası içinde",
     "FIND_IN_FILES_NO_SCOPE"            : "proje içinde",
     "FIND_IN_FILES_FILE"                : "dosya",
@@ -114,7 +114,7 @@ define({
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Versiyon bilgisi alınırken hata",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Sunucudan yeni versiyon bilgisi alınırken hata oluştu. Lütfen internete bağlı olduğunuzdan emin olun ve tekrar deneyin.",
-    
+
     /**
      * ProjectManager
      */
@@ -189,7 +189,7 @@ define({
     "CMD_LINE_DOWN"                       : "Satırı Aşağıya Taşı",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Parantezleri Otomatik Tamamla",
     "CMD_SHOW_CODE_HINTS"                 : "Kod İpuçlarını Göster",
-    
+
     // Search menu commands
     "FIND_MENU"                           : "Bul",
     "CMD_FIND"                            : "Bul",
@@ -201,7 +201,7 @@ define({
     "CMD_FIND_IN_FILES"                   : "Dosyalarda Bul",
     "CMD_FIND_IN_SUBTREE"                 : "\u2026içinde bul",
     "CMD_REPLACE"                         : "Değiştir",
-     
+
     // View menu commands
     "VIEW_MENU"                           : "Göster",
     "CMD_HIDE_SIDEBAR"                    : "Kenar Çubuğunu Gizle",
@@ -229,7 +229,7 @@ define({
     "CMD_PREV_DOC"                        : "Önceki Dosya",
     "CMD_SHOW_IN_TREE"                    : "Dosya Listesinde Göster",
     "CMD_SHOW_IN_OS"                      : "Bulunduğu Konumu Aç",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Yardım",
     "CMD_HOW_TO_USE_BRACKETS"             : "{APP_NAME} Nasıl Kullanılır",
@@ -270,11 +270,11 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Ana URL \"{0}\" gibi karakterler bulunduramaz.",
     "BASEURL_ERROR_INVALID_CHAR"           : "'{0}' gibi özel karakterler %-kodlanması gerekiyor.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Ana URL'yi işlerken bilinmeyen hata",
-    
+
     // Extension Management strings
     // For NOT_FOUND_ERR, see generic strings above
     "EXTENSION_MANAGER_TITLE"              : "Eklenti Yöneticisi",
-    
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                           : "Ayıkla",
     "CMD_SHOW_DEV_TOOLS"                   : "Geliştirici Araçlarını Göster",
@@ -287,7 +287,7 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"             : "Node Hata Ayıklayıcısını Etkinleştir",
     "CMD_LOG_NODE_STATE"                   : "Node Durumunu Konsola Yaz",
     "CMD_RESTART_NODE"                     : "Node'u Yeniden Başlat",
-    
+
     "LANGUAGE_TITLE"                       : "Dili değiştir",
     "LANGUAGE_MESSAGE"                     : "Lütfen aşağıdaki dillerden istediğiniz dili seçin:",
     "LANGUAGE_SUBMIT"                      : "{APP_NAME} Yenile",

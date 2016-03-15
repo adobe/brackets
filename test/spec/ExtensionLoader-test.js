@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,7 @@ define(function (require, exports, module) {
                 spyOn(console, "error").andCallFake(function () {
                     originalConsoleErrorFn.apply(console, arguments);
 
-                    if (typeof arguments[0] === "string" && 
+                    if (typeof arguments[0] === "string" &&
                         arguments[0].indexOf("[Extension]") === 0) {
                         consoleErrors.push(Array.prototype.join.call(arguments));
                     }

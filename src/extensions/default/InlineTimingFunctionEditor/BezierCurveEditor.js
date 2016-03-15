@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
@@ -26,15 +26,15 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var KeyEvent        = brackets.getModule("utils/KeyEvent"),
         Strings         = brackets.getModule("strings");
 
     var TimingFunctionUtils = require("TimingFunctionUtils");
-    
+
     /** Mustache template that forms the bare DOM structure of the UI */
     var BezierCurveEditorTemplate = require("text!BezierCurveEditorTemplate.html");
-    
+
     /** @const @type {number} */
     var HEIGHT_ABOVE    =  75,    // extra height above main grid
         HEIGHT_BELOW    =  75,    // extra height below main grid
@@ -70,7 +70,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     /**
      * BezierCanvas object constructor
      *
@@ -235,7 +235,7 @@ define(function (require, exports, module) {
     };
 
     // Event handlers
-    
+
     /**
      * Handle click in <canvas> element
      *
@@ -518,7 +518,7 @@ define(function (require, exports, module) {
         // Create the DOM structure, filling in localized strings via Mustache
         this.$element = $(Mustache.render(BezierCurveEditorTemplate, Strings));
         $parent.append(this.$element);
-        
+
         this._callback = callback;
         this.dragElement = null;
 
@@ -542,7 +542,7 @@ define(function (require, exports, module) {
         this.P1.bezierEditor = this.P2.bezierEditor = this.curve.bezierEditor = this;
 
         this.bezierCanvas = new BezierCanvas(this.curve, null, [0, 0]);
-        
+
         // redraw canvas
         this._updateCanvas();
 
@@ -681,7 +681,7 @@ define(function (require, exports, module) {
             this.bezierCanvas.plot();
         }
     };
-    
+
     /**
      * Handle external update
      *
@@ -699,6 +699,6 @@ define(function (require, exports, module) {
         }
     };
 
-    
+
     exports.BezierCurveEditor = BezierCurveEditor;
 });

@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
@@ -30,7 +30,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _                  = require("thirdparty/lodash"),
         Dialogs            = require("widgets/Dialogs"),
         DropdownButton     = require("widgets/DropdownButton").DropdownButton,
@@ -40,21 +40,21 @@ define(function (require, exports, module) {
         FindUtils          = require("search/FindUtils"),
         EditFilterTemplate = require("text!htmlContent/edit-filter-dialog.html"),
         FilterNameTemplate = require("text!htmlContent/filter-name.html");
-  
+
     /**
      * Constant: first filter index in the filter dropdown list
      * @type {number}
      */
     var FIRST_FILTER_INDEX = 3;
-    
+
     /**
-     * Context Info on which files the filter will be applied to. 
-     * It will be initialized when createFilterPicker is called and if specified, editing UI will 
+     * Context Info on which files the filter will be applied to.
+     * It will be initialized when createFilterPicker is called and if specified, editing UI will
      * indicate how many files are excluded by the filter. Label should be of the form "in ..."
      * @type {?{label:string, promise:$.Promise}}
      */
     var _context = null;
-    
+
     /**
      * @type {DropdownButton}
      */
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
         if (!_.isArray(filter)) {
             return "";
         }
-        
+
         // Format filter in condensed form
         if (filter.length > 2) {
             return filter.slice(0, 2).join(", ") + " " +
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
         }
         return filter.join(", ");
     }
-    
+
     /**
      * Populate the list of dropdown menu with two filter commands and
      * the list of saved filter sets.
@@ -102,7 +102,7 @@ define(function (require, exports, module) {
         }
         _picker.items = dropdownItems;
     }
-    
+
     /**
      * Find the index of a filter set in the list of saved filter sets.
      * @param {Array.<{name: string, patterns: Array.<string>}>} filterSets
@@ -110,14 +110,14 @@ define(function (require, exports, module) {
      */
     function _getFilterIndex(filterSets, filter) {
         var index = -1;
-        
+
         if (!filter || !filterSets.length) {
             return index;
         }
-        
+
         return _.findIndex(filterSets, _.partial(_.isEqual, filter));
     }
-    
+
     /**
      * A search filter is an array of one or more glob strings. The filter must be 'compiled' via compile()
      * before passing to filterPath()/filterFileList().
@@ -132,7 +132,7 @@ define(function (require, exports, module) {
         if (activeFilterIndex === undefined && oldFilter.length) {
             activeFilter = { name: "", patterns: oldFilter };
             activeFilterIndex = _getFilterIndex(filterSets, activeFilter);
-            
+
             // Migrate the old filter into the new filter storage
             if (activeFilterIndex === -1) {
                 activeFilterIndex = filterSets.length;
@@ -143,12 +143,12 @@ define(function (require, exports, module) {
         } else if (activeFilterIndex > -1 && activeFilterIndex < filterSets.length) {
             activeFilter = filterSets[activeFilterIndex];
         }
-        
+
         return activeFilter;
     }
-    
+
     /**
-     * Update the picker button label with the name/patterns of the selected filter or 
+     * Update the picker button label with the name/patterns of the selected filter or
      * No Files Excluded if no filter is selected.
      */
     function _updatePicker() {
@@ -160,7 +160,7 @@ define(function (require, exports, module) {
             _picker.setButtonLabel(Strings.NO_FILE_FILTER);
         }
     }
-    
+
     /**
      * Sets and save the index of the active filter. Automatically set when editFilter() is completed.
      * If no filter is passed in, then clear the last active filter index by setting it to -1.
@@ -170,7 +170,7 @@ define(function (require, exports, module) {
      */
     function setActiveFilter(filter, index) {
         var filterSets = PreferencesManager.get("fileFilters") || [];
-        
+
         if (filter) {
             if (index === -1) {
                 // Add a new filter set
@@ -195,8 +195,8 @@ define(function (require, exports, module) {
         }
         FindUtils.notifyFileFiltersChanged();
     }
-    
-    
+
+
     /**
      * Converts a user-specified filter object (as chosen in picker or retrieved from getFilters()) to a 'compiled' form
      * that can be used with filterPath()/filterFileList().
@@ -219,7 +219,7 @@ define(function (require, exports, module) {
             }
             return glob;
         });
-        
+
         // Convert to regular expression for fast matching
         var regexStrings = wrappedGlobs.map(function (glob) {
             var reStr = "", i;
@@ -251,13 +251,13 @@ define(function (require, exports, module) {
         });
         return regexStrings.join("|");
     }
-    
-    
+
+
     /**
      * Returns false if the given path matches any of the exclusion globs in the given filter. Returns true
      * if the path does not match any of the globs. If filtering many paths at once, use filterFileList()
      * for much better performance.
-     * 
+     *
      * @param {?string} compiledFilter  'Compiled' filter object as returned by compile(), or null to no-op
      * @param {!string} fullPath
      * @return {boolean}
@@ -266,14 +266,14 @@ define(function (require, exports, module) {
         if (!compiledFilter) {
             return true;
         }
-        
+
         var re = new RegExp(compiledFilter);
         return !fullPath.match(re);
     }
-    
+
     /**
      * Returns a copy of 'files' filtered to just those that don't match any of the exclusion globs in the filter.
-     * 
+     *
      * @param {?string} compiledFilter  'Compiled' filter object as returned by compile(), or null to no-op
      * @param {!Array.<File>} files
      * @return {!Array.<File>}
@@ -282,13 +282,13 @@ define(function (require, exports, module) {
         if (!compiledFilter) {
             return files;
         }
-        
+
         var re = new RegExp(compiledFilter);
         return files.filter(function (f) {
             return !re.test(f.fullPath);
         });
     }
-    
+
     /**
      * Returns a copy of 'file path' strings that match any of the exclusion globs in the filter.
      *
@@ -307,18 +307,18 @@ define(function (require, exports, module) {
         });
     }
 
-    
+
     /**
      * Opens a dialog box to edit the given filter. When editing is finished, the value of getActiveFilter() changes to
      * reflect the edits. If the dialog was canceled, the preference is left unchanged.
      * @param {!{name: string, patterns: Array.<string>}} filter
-     * @param {number} index The index of the filter set to be edited or created. The value is -1 if it is for a new one 
+     * @param {number} index The index of the filter set to be edited or created. The value is -1 if it is for a new one
      *          to be created.
      * @return {!$.Promise} Dialog box promise
      */
     function editFilter(filter, index) {
         var lastFocus = window.document.activeElement;
-        
+
         var templateVars = {
                 instruction: StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url),
                 Strings: Strings
@@ -326,10 +326,10 @@ define(function (require, exports, module) {
         var dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(EditFilterTemplate, templateVars)),
             $nameField = dialog.getElement().find(".exclusions-name"),
             $editField = dialog.getElement().find(".exclusions-editor");
-        
+
         $nameField.val(filter.name);
         $editField.val(filter.patterns.join("\n")).focus();
-        
+
         function getValue() {
             var newFilter = $editField.val().split("\n");
 
@@ -338,7 +338,7 @@ define(function (require, exports, module) {
                 return glob.trim().length;
             });
         }
-        
+
         dialog.done(function (buttonId) {
             if (buttonId === Dialogs.DIALOG_BTN_OK) {
                 // Update saved filter preference
@@ -348,10 +348,10 @@ define(function (require, exports, module) {
             }
             lastFocus.focus();  // restore focus to old pos
         });
-        
+
         // Code to update the file count readout at bottom of dialog (if context provided)
         var $fileCount = dialog.getElement().find(".exclusions-filecount");
-        
+
         function updateFileCount() {
             _context.promise.done(function (files) {
                 var filter = getValue();
@@ -363,7 +363,7 @@ define(function (require, exports, module) {
                 }
             });
         }
-        
+
         // Code to enable/disable the OK button at the bottom of dialog (whether filter is empty or not)
         var $primaryBtn = dialog.getElement().find(".primary");
 
@@ -382,11 +382,11 @@ define(function (require, exports, module) {
         } else {
             $fileCount.hide();
         }
-        
+
         return dialog.getPromise();
     }
-    
-    
+
+
     /**
      * Marks the filter picker's currently selected item as most-recently used, and returns the corresponding
      * 'compiled' filter object ready for use with filterPath().
@@ -397,14 +397,14 @@ define(function (require, exports, module) {
         var filter = getActiveFilter();
         return (filter && filter.patterns.length) ? compile(filter.patterns) : "";
     }
-    
+
     /**
      * Remove the target item from the filter dropdown list and update dropdown button
      * and dropdown list UI.
      * @param {!Event} e Mouse events
      */
     function _handleDeleteFilter(e) {
-        // Remove the filter set from the preferences and 
+        // Remove the filter set from the preferences and
         // clear the active filter set index from view state.
         var filterSets        = PreferencesManager.get("fileFilters") || [],
             activeFilterIndex = PreferencesManager.getViewState("activeFileFilter"),
@@ -417,7 +417,7 @@ define(function (require, exports, module) {
         PreferencesManager.set("fileFilters", filterSets);
 
         if (activeFilterIndex === filterIndex) {
-            // Removing the active filter, so clear the active filter 
+            // Removing the active filter, so clear the active filter
             // both in the view state.
             setActiveFilter(null);
         } else if (activeFilterIndex > filterIndex) {
@@ -442,7 +442,7 @@ define(function (require, exports, module) {
         // Don't let the click bubble upward.
         e.stopPropagation();
 
-        // Close the dropdown first before opening the edit filter dialog 
+        // Close the dropdown first before opening the edit filter dialog
         // so that it will restore focus to the DOM element that has focus
         // prior to opening it.
         _picker.closeDropdown();
@@ -463,37 +463,37 @@ define(function (require, exports, module) {
 
         $dropdown.find(".filter-trash-icon")
             .on("click", _handleDeleteFilter);
-        
+
         $dropdown.find(".filter-edit-icon")
             .on("click", _handleEditFilter);
     }
-                      
+
     /**
      * Creates a UI element for selecting a filter, populated with a list of recently used filters, an option to
-     * edit the selected filter and another option to create a new filter. The client should call commitDropdown() 
-     * when the UI containing the filter picker is confirmed (which updates the MRU order) and then use the 
+     * edit the selected filter and another option to create a new filter. The client should call commitDropdown()
+     * when the UI containing the filter picker is confirmed (which updates the MRU order) and then use the
      * returned filter object as needed.
-     * 
-     * @param {?{label:string, promise:$.Promise}} context Info on files that filter will apply to. 
+     *
+     * @param {?{label:string, promise:$.Promise}} context Info on files that filter will apply to.
      *      This will be saved as _context for later use in creating a new filter or editing an
      *      existing filter in Edit Filter dialog.
      * @return {!jQueryObject} Picker UI. To retrieve the selected value, use commitPicker().
      */
     function createFilterPicker(context) {
-        
+
         function itemRenderer(item, index) {
             if (index < FIRST_FILTER_INDEX) {
                 // Prefix the two filter commands with 'recent-filter-name' so that
                 // they also get the same margin-left as the actual filters.
                 return "<span class='recent-filter-name'></span>" + _.escape(item);
             }
-            
+
             var condensedPatterns = _getCondensedForm(item.patterns),
                 templateVars = {
                     "filter-name"    : _.escape(item.name || condensedPatterns),
                     "filter-patterns": item.name ? " - " + _.escape(condensedPatterns) : ""
                 };
-                
+
             return Mustache.render(FilterNameTemplate, templateVars);
         }
 
@@ -502,16 +502,16 @@ define(function (require, exports, module) {
 
         _updatePicker();
         _doPopulate();
-        
+
         // Add 'file-filter-picker' to keep some margin space on the left of the button
         _picker.$button.addClass("file-filter-picker no-focus");
-        
+
         // Set up mouse click event listeners for 'Delete' and 'Edit' buttons
         _picker.on("listRendered", _handleListRendered);
-        
+
         _picker.on("select", function (event, item, itemIndex) {
             if (itemIndex === 0) {
-                // Close the dropdown first before opening the edit filter dialog 
+                // Close the dropdown first before opening the edit filter dialog
                 // so that it will restore focus to the DOM element that has focus
                 // prior to opening it.
                 _picker.closeDropdown();
@@ -521,7 +521,7 @@ define(function (require, exports, module) {
             } else if (itemIndex === 1) {
                 // Uncheck the prior active filter in the dropdown list.
                 _picker.setChecked(itemIndex, false);
-                
+
                 // Clear the active filter
                 setActiveFilter(null);
                 _updatePicker();
@@ -531,10 +531,10 @@ define(function (require, exports, module) {
                 _updatePicker();
             }
         });
-        
+
         return _picker.$button;
     }
-    
+
     /**
      * Allows unit tests to open the file filter dropdown list.
      */
@@ -543,7 +543,7 @@ define(function (require, exports, module) {
             _picker.showDropdown();
         }
     }
-    
+
     /**
      * Allows unit tests to close the file filter dropdown list.
      */
@@ -552,7 +552,7 @@ define(function (require, exports, module) {
             _picker.closeDropdown();
         }
     }
-    
+
     // For unit tests only
     exports.showDropdown       = showDropdown;
     exports.closeDropdown      = closeDropdown;

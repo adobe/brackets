@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
@@ -47,8 +47,8 @@ define({
     "FILENAMES_LEDE"                    : "nomes de arquivos",
     "FILENAME"                          : "Nome de arquivo",
     "DIRECTORY_NAME"                    : "Nome de directorio",
-    
-    
+
+
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Erro abrindo o proxecto",
     "OPEN_DIALOG_ERROR"                 : "Houbo un erro ó amosar o aviso de apertura de arquivo. (error {0})",
@@ -77,7 +77,7 @@ define({
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Erro lendo os axustes",
     "ERROR_PREFS_CORRUPT"               : "O arquivo de axustes non ten o formato JSON válido. O arquivo abrirase para que poida correxir o formato. Despois deberá reiniciar {APP_NAME} para que os cambios surtan efecto.",
-    
+
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Vaia... parece que {APP_NAME} aínda non funciona en navegadores.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} está desenvolvido en HTML, pero por agora funciona como unha aplicación de escritorio para que poidas editar arquivos en local. Por favor, utiliza a aplicación do repositorio <b>github.com/adobe/brackets-shell</b> para executar {APP_NAME}.",
@@ -90,7 +90,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Erro iniciando navegador",
     "ERROR_CANT_FIND_CHROME"            : "No se puido atopar o navegador Google Chrome. Por favor, asegúrate de que está instalado correctamente.",
     "ERROR_LAUNCHING_BROWSER"           : "Houbo un erro ó iniciar o navegador. (erro {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Erro na Vista Previa en Vivo",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectando co navegador",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar o modo de Vista Previa en Vivo, Chrome debe ser iniciado habilitando a depuración remota.<br /><br />¿Queres reiniciar Chrome e habilitar a depuración remota?",
@@ -101,19 +101,19 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Benvido á Vista Previa en Vivo!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista Previa en Vivo conecta {APP_NAME} co teu navegador. Lanza unha vista previa do teu arquivo HTML no navegador e actualízaa a medida que modificas o teu código.<br /><br />Nesta versión preliminar de {APP_NAME}, Desenvolvemento en Vivo só funciona para cambios de <strong>arquivos CSS ou HTML</strong> e únicamente con <strong>Google Chrome</strong>. Os cambios nos arquivos Javascript son recargados automáticamente cando se gardan.<br /><br />(Non volverás a ver ésta mensaxe.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para máis información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Vista Previa en Vivo</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Vista Previa en Vivo",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Vista Previa en Vivo: Conectando\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Vista Previa en Vivo: Inicializando\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Rematar Vista Previa en Vivo",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Vista Previa en Vivo (garda o arquivo para actualizar)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Vista Previa en Vivo (non se está actualizando debido a un erro de sintaxis)",
-    
+
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Vista Previa en Vivo detiuse porque abríronse as ferramentas de desenvolvemento",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Vista Previa en Vivo detiuse porque cerrouse a páxina no navegador",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Vista Previa en Vivo detiuse porque accediuse a unha páxina que non é parte do proxecto actual",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Vista Previa en Vivo detiuse por motivos descoñecidos ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Gardar cambios",
     "SAVE_CLOSE_MESSAGE"                : "¿Queres gardar os cambios existentes no documento <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "¿Queres gardar os teus cambios nos seguintes documentos?",
@@ -124,7 +124,7 @@ define({
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> foi modificado no disco.<br /><br />¿Desexa gardar o arquivo e sobrescribir eses cambios?",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> foi modificado, pero tamén ten cambios en {APP_NAME}.<br /><br />¿Qué versión queres conservar?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> foi eliminado, pero ten cambios sen gardar en {APP_NAME}.<br /><br />¿Qieres conservar os teus cambios?",
-    
+
     // Generic dialog/button labels
     "DONE"                              : "Aceptar",
     "OK"                                : "Aceptar",
@@ -136,7 +136,7 @@ define({
     "SAVE_AND_OVERWRITE"                : "Sobrescribir",
     "BUTTON_YES"                        : "Sí",
     "BUTTON_NO"                         : "Non",
-    
+
     // Find, Replace, Find in Files
     "FIND_MATCH_INDEX"                  : "{0} de {1}",
     "FIND_NO_RESULTS"                   : "Non hai resultados",
@@ -154,7 +154,7 @@ define({
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Reemplazar sen volta atrás",
     "REPLACE_WITHOUT_UNDO_WARNING"      : "Debido a que máis de {0} arquivos precisan ser cambiados, {APP_NAME} modificará arquivos non abertos.<br />Non poderás desfacer estes cambios.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Reemplazar sen volta atrás",
-    
+
     "OPEN_FILE"                         : "Abrir arquivo",
     "SAVE_FILE_AS"                      : "Gardar arquivo",
     "CHOOSE_FOLDER"                     : "Elixe unha carpeta",
@@ -162,7 +162,7 @@ define({
     "RELEASE_NOTES"                     : "Notas sobre a versión",
     "NO_UPDATE_TITLE"                   : "¡Estás actualizado!",
     "NO_UPDATE_MESSAGE"                 : "Estás utilizando a última versión de {APP_NAME}.",
-    
+
     // Find and Replace
     "FIND_REPLACE_TITLE_LABEL"          : "Reemprazar",
     "FIND_REPLACE_TITLE_WITH"           : "con",
@@ -184,10 +184,10 @@ define({
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click para expandir/colapsar todo",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Reemprazar Erros",
     "REPLACE_IN_FILES_ERRORS"           : "Os seguintes arquivos non se modificaron porque se cambiaron despois da búsqueda ou non poden ser modificados.",
-    
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Erro obtendo información sobre actualizacións",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Houbo un problema ó obter a información sobre as últimas actualizacións dende o servidor. Por favor, asegúrate de estar conectado a internet e volve a intentalo.",
-    
+
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Novo conxunto de filtros\u2026",
     "CLEAR_FILE_FILTER"                 : "Non excluir arquivos",
@@ -201,7 +201,7 @@ define({
     "FILTER_COUNTING_FILES"             : "Contando arquivos\u2026",
     "FILTER_FILE_COUNT"                 : "Permite {0} de {1} arquivos {2}",
     "FILTER_FILE_COUNT_ALL"             : "Permite tódolos {0} arquivos {1}",
-    
+
     // Quick Edit
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "A Edición Rápida non está dispoñible para a posición actual do cursor",
     "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "Edición Rápida para CSS: ubique o cursor sobre o nome de unha clase",
@@ -210,17 +210,17 @@ define({
     "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "Edición Rápida para CSS: ubique o cursor sobre unha etiqueta, clase ou id",
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Edición Rápida para Funcións de Temporización de CSS: sintaxis inválida",
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "Edición Rápida para JS: ubique o cursor sobre o nome de unha función",
-    
+
     // Quick Docs
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "A Documentación Rápida non está dispoñible para a posición actual do cursor",
-    
+
     /**
      * ProjectManager
      */
     "PROJECT_LOADING"   : "Cargando\u2026",
     "UNTITLED"          : "Sen título",
     "WORKING_FILES"     : "Área de traballo",
-    
+
     /**
      * MainViewManager
      */
@@ -238,14 +238,14 @@ define({
     "SPLITVIEW_INFO_TITLE"              : "Xa está aberto",
     "SPLITVIEW_MULTIPANE_WARNING"       : "O arquivo xa está aberto noutro panel. {APP_NAME} pronto soportará abrir o mesmo arquivo noutro panel. Ata entón, o arquivo amosarase no panel que xa está aberto en.<br /><br />(Só verás esta mensaxe unha vez.)",
 
-    
+
     /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "May",
     "KEYBOARD_SPACE"  : "Espacio",
-    
+
     /**
      * StatusBar strings
      */
@@ -271,7 +271,7 @@ define({
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Fai click para amosar/ocultar o panel de reportes.",
     "STATUSBAR_DEFAULT_LANG"                : "(por defecto)",
     "STATUSBAR_SET_DEFAULT_LANG"            : "Marcar como predeterminado para os arquivos .{0}",
-    
+
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "Problemas de {0}",
     "SINGLE_ERROR"                          : "1 problema de {0}",
@@ -283,8 +283,8 @@ define({
     "NOTHING_TO_LINT"                       : "Non hai nada para inspeccionar",
     "LINTER_TIMED_OUT"                      : "{0} esgotou o tempo despois de esperar {1} ms",
     "LINTER_FAILED"                         : "{0} rematou con erro: {1}",
-    
-    
+
+
     /**
      * Command Name Constants
      */
@@ -318,7 +318,7 @@ define({
     "CMD_QUIT"                            : "Saír",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Saír",
-    
+
     // Edit menu commands
     "EDIT_MENU"                           : "Edición",
     "CMD_UNDO"                            : "Desfacer",
@@ -343,7 +343,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Crear liña abaixo",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Completar paréntesis automáticamente",
     "CMD_SHOW_CODE_HINTS"                 : "Amosar suxerencias de código",
-    
+
     // Search menu commands
     "FIND_MENU"                           : "Buscar",
     "CMD_FIND"                            : "Buscar",
@@ -357,7 +357,7 @@ define({
     "CMD_REPLACE"                         : "Reemplazar",
     "CMD_REPLACE_IN_FILES"                : "Reemplazar en Arquivos",
     "CMD_REPLACE_IN_SUBTREE"              : "Reemplazar en\u2026",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "Ver",
     "CMD_HIDE_SIDEBAR"                    : "Ocultar menú lateral",
@@ -395,7 +395,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "Amosar no Explorador",
     "CMD_SHOW_IN_FINDER"                  : "Amosar en Finder",
     "CMD_SHOW_IN_OS"                      : "Amosar no Sistema Operativo",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Axuda",
     "CMD_CHECK_FOR_UPDATE"                : "Buscar actualizacións",
@@ -409,7 +409,7 @@ define({
     "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
     "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Abrir arquivo de axustes",
-    
+
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
     "DEVELOPMENT_BUILD"                    : "versión de desenvolvemento",
@@ -440,16 +440,16 @@ define({
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Erro descoñecido analizando a URL base",
     "EMPTY_VIEW_HEADER"                    : "<em>Selecciona un arquivo mentres esta vista está activa</em>",
 
-    // Strings for themes-settings.html and themes-general.html 
+    // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema actual",
     "USE_THEME_SCROLLBARS"                 : "Usar scrollbars do tema",
     "FONT_SIZE"                            : "Tamaño de letra",
     "FONT_FAMILY"                          : "Tipo de letra",
     "THEMES_SETTINGS"                      : "Preferencias dos temas",
-    
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nova regra",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Instalar",
     "UPDATE"                               : "Actualizar",
@@ -540,14 +540,14 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dispoñibles",
     "EXTENSIONS_THEMES_TITLE"              : "Temas",
     "EXTENSIONS_UPDATES_TITLE"             : "Actualizacións",
-    
+
     "INLINE_EDITOR_NO_MATCHES"             : "Non hai coincidencias dispoñibles.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Non hai reglas CSS existentes que coincidan cua túa selección.<br> Fai click en \"Nova regra\" para crear unha.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Non hai follas de estilos no teu proxecto.<br>Crea unha para añadir regras CSS.",
-    
+
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "máis grande",
-    
+
     /**
      * Unit names
      */
@@ -575,14 +575,14 @@ define({
     "LANGUAGE_SUBMIT"                           : "Reiniciar {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Cancelar",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Idioma predeterminado",
-    
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tempo",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progresión",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Moven o punto seleccionado<br><kbd class='text'>Shift</kbd> Move de a dez unidades<br><kbd class='text'>Tab</kbd> Cambia o punto seleccionado",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Incrementa ou decrementa os pasos<br><kbd>←</kbd><kbd>→</kbd> 'Start' ou 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "O valor vello <code>{0}</code> non é válido, polo tanto, foi modificado a <code>{1}</code>. O documento será actualizado despois da primeira edición.",
-  
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Color orixinal",
@@ -591,7 +591,7 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Formato HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Utilizado {1} vez)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Utilizado {1} veces)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Saltar á definición",
     "CMD_SHOW_PARAMETER_HINT"                   : "Amosar suxerencias de parámetros",
@@ -601,13 +601,13 @@ define({
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Vista rápida co cursor",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Proxectos recentes",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Máis"
 });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -73,7 +73,7 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Gagal Membuat {0}",
     "ERROR_CREATING_FILE"               : "Terjadi kesalahan saat mencoba membuat {0} <span class='dialog-filename'>{1}</span>. {2}",
     "ERROR_MIXED_DRAGDROP"              : "Tidak dapat membuka folder di saat yang sama sedang membuka file lain.",
-    
+
     // User key map error strings
     "ERROR_KEYMAP_TITLE"                : "Gagal Membaca Peta Kunci Pengguna",
     "ERROR_KEYMAP_CORRUPT"              : "File kunci peta Anda bukan JSON yang valid. File akan dibuka agar Anda dapat memperbaikinya.",
@@ -88,7 +88,7 @@ define({
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Gagal Membaca Preferensi",
     "ERROR_PREFS_CORRUPT"               : "File preferensi Anda bukan merupakan JSON yang valid. File akan dibuka agar Anda dapat memperbaikinya. Anda perlu memulai ulang {APP_NAME} untuk memberlakukan perubahan.",
-    
+
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} Belum Dapat Dijalankan di Peramban.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} dibuat menggunakan HTML, tetapi saat ini berjalan sebagai aplikasi desktop agar Anda dapat mengedit file lokal. Gunakan shell aplikasi di repositori <b>github.com/adobe/brackets-shell</b> untuk menjalankan {APP_NAME}.",
@@ -165,7 +165,7 @@ define({
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Ganti Tanpa Urung",
     "REPLACE_WITHOUT_UNDO_WARNING"      : "Karena lebih dari {0} file perlu diubah, {APP_NAME} akan memodifikasi file yang tidak dibuka di disk.<br />Anda tidak akan bisa membatalkan perubahan pada file tersebut.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Ganti Tanpa Urung",
-    
+
     "OPEN_FILE"                         : "Buka File",
     "SAVE_FILE_AS"                      : "Simpan File",
     "CHOOSE_FOLDER"                     : "Pilih folder",
@@ -173,7 +173,7 @@ define({
     "RELEASE_NOTES"                     : "Catatan Rilis",
     "NO_UPDATE_TITLE"                   : "Versi terbaru!",
     "NO_UPDATE_MESSAGE"                 : "Anda sedang menjalankan versi terbaru dari {APP_NAME}.",
-    
+
     // Find and Replace
     "FIND_REPLACE_TITLE_LABEL"          : "Ganti",
     "FIND_REPLACE_TITLE_WITH"           : "dengan",
@@ -195,10 +195,10 @@ define({
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd klik untuk melebarkan/melipat semua",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Gagal Mengganti",
     "REPLACE_IN_FILES_ERRORS"           : "File berikut tidak termodifikasi karena berubah setelah pencarian atau tidak dapat ditulisi.",
-    
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Gagal Mendapat Informasi Pembaruan",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ada masalah saat mengambil data pembaruan dari server. Pastikan Anda terhubung ke internet dan coba lagi.",
-    
+
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Daftar Pengecualian Baru\u2026",
     "CLEAR_FILE_FILTER"                 : "Jangan Kecualikan File",
@@ -212,7 +212,7 @@ define({
     "FILTER_COUNTING_FILES"             : "Menghitung file\u2026",
     "FILTER_FILE_COUNT"                 : "Izinkan {0} dari {1} file {2}",
     "FILTER_FILE_COUNT_ALL"             : "Izinkan semua {0} file {1}",
-    
+
     // Quick Edit
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "Edit Cepat tidak tersedia untuk posisi kursor saat ini",
     "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "Edit Cepat CSS: letakkan kursor pada satu nama class",
@@ -221,7 +221,7 @@ define({
     "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "Edit Cepat CSS: letakkan kursor pada tag, class, atau id",
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Edit Cepat Fungsi Waktu CSS: sintaks tidak valid",
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "Edit Cepat JS: letakkan kursor pada nama fungsi",
-    
+
     // Quick Docs
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "Dokumentasi Cepat tidak tersedia untuk posisi kursor saat ini",
 
@@ -231,7 +231,7 @@ define({
     "PROJECT_LOADING"   : "Memuat\u2026",
     "UNTITLED"          : "Tanpa Judul",
     "WORKING_FILES"     : "File Kerja",
-    
+
     /**
      * MainViewManager
      */
@@ -239,13 +239,13 @@ define({
     "BOTTOM"            : "Bawah",
     "LEFT"              : "Kiri",
     "RIGHT"             : "Kanan",
-    
+
     "CMD_SPLITVIEW_NONE"        : "Tanpa Sekat",
     "CMD_SPLITVIEW_VERTICAL"    : "Sekat Vertikal",
     "CMD_SPLITVIEW_HORIZONTAL"  : "Sekat Horisontal",
     "SPLITVIEW_MENU_TOOLTIP"    : "Beri sekat pada editor secara horisontal atau vertikal",
     "GEAR_MENU_TOOLTIP"         : "Atur Daftar Kerja",
-    
+
     "SPLITVIEW_INFO_TITLE"              : "Sudah Terbuka",
     "SPLITVIEW_MULTIPANE_WARNING"       : "File telah terbuka di panel lain. {APP_NAME} akan segera mendukung pembukaan file yang sama pada lebih dari satu panel. Sementara itu, file akan ditampilkan di panel yang telah membukanya.<br /><br />(Anda hanya melihat pesan ini sekali.)",
 
@@ -353,7 +353,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Buka Baris di Bawah",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Tutup Kurung Otomatis",
     "CMD_SHOW_CODE_HINTS"                 : "Tampilkan Petunjuk Kode",
-    
+
     // Search menu commands
     "FIND_MENU"                           : "Temukan",
     "CMD_FIND"                            : "Temukan",
@@ -451,7 +451,7 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "Karakter spesial seperti '{0}' harus ter-encode dalam format %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Gagal membuka URL Dasar",
     "EMPTY_VIEW_HEADER"                    : "<em>Buka file ketika panel ini mendapat fokus</em>",
-    
+
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema Saat Ini",
     "USE_THEME_SCROLLBARS"                 : "Gunakan Scrollbar Tema",
@@ -557,7 +557,7 @@ define({
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "Semua hasil disembunyikan. Perbesar file yang ditampilkan di sebelah kanan untuk menampilkannya.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Tidak ada aturan CSS yang cocok dengan kriteria Anda.<br> Klik \"Aturan Baru\" untuk membuat baru.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Proyek Anda tidak mempunyai stylesheet.<br>Buat baru untuk menambahkan aturan CSS.",
-    
+
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "paling besar",
 

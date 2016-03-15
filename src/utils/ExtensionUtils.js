@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -30,7 +30,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var Async      = require("utils/Async"),
         FileSystem = require("filesystem/FileSystem"),
         FileUtils  = require("file/FileUtils");
@@ -44,7 +44,7 @@ define(function (require, exports, module) {
     function addEmbeddedStyleSheet(css) {
         return $("<style>").text(css).appendTo("head")[0];
     }
-    
+
     /**
      * Appends a <link> tag to the document's head.
      *
@@ -58,15 +58,15 @@ define(function (require, exports, module) {
             rel:  "stylesheet",
             href: url
         };
-        
+
         var $link = $("<link/>").attr(attributes);
-        
+
         if (deferred) {
             $link.on('load', deferred.resolve).on('error', deferred.reject);
         }
-        
+
         $link.appendTo("head");
-        
+
         return $link[0];
     }
 
@@ -96,10 +96,10 @@ define(function (require, exports, module) {
     function parseLessCode(code, url) {
         var result = new $.Deferred(),
             options;
-        
+
         if (url) {
             var dir = url.slice(0, url.lastIndexOf("/") + 1);
-            
+
             options = {
                 filename: url,
                 rootpath: dir
@@ -115,7 +115,7 @@ define(function (require, exports, module) {
                 };
             }
         }
-        
+
         less.render(code, options, function onParse(err, tree) {
             if (err) {
                 result.reject(err);
@@ -123,10 +123,10 @@ define(function (require, exports, module) {
                 result.resolve(tree.css);
             }
         });
-        
+
         return result.promise();
     }
-    
+
     /**
      * Returns a path to an extension module.
      *
@@ -139,10 +139,10 @@ define(function (require, exports, module) {
         if (path) {
             modulePath += path;
         }
-        
+
         return modulePath;
     }
-    
+
     /**
      * Returns a URL to an extension module.
      *
@@ -152,7 +152,7 @@ define(function (require, exports, module) {
      **/
     function getModuleUrl(module, path) {
         var url = encodeURI(getModulePath(module, path));
-        
+
         // On Windows, $.get() fails if the url is a full pathname. To work around this,
         // prepend "file:///". On the Mac, $.get() works fine if the url is a full pathname,
         // but *doesn't* work if it is prepended with "file://". Go figure.
@@ -160,15 +160,15 @@ define(function (require, exports, module) {
         if (brackets.platform === "win" && url.indexOf(":") !== -1) {
             url = "file:///" + url;
         }
-        
+
         return url;
     }
-    
+
     /**
      * Performs a GET request using a path relative to an extension module.
      *
      * The resulting URL can be retrieved in the resolve callback by accessing
-     * 
+     *
      * @param {!module} module Module provided by RequireJS
      * @param {!string} path Relative path from the extension folder to a file
      * @return {!$.Promise} A promise object that is resolved with the contents of the requested file
@@ -179,7 +179,7 @@ define(function (require, exports, module) {
 
         return promise;
     }
-    
+
     /**
      * Loads a style sheet (CSS or LESS) relative to the extension module.
      *
@@ -193,7 +193,7 @@ define(function (require, exports, module) {
         loadFile(module, path)
             .done(function (content) {
                 var url = this.url;
-                
+
                 if (url.slice(-5) === ".less") {
                     parseLessCode(content, url)
                         .done(function (css) {
@@ -203,7 +203,7 @@ define(function (require, exports, module) {
                 } else {
                     var deferred = new $.Deferred(),
                         link = addLinkedStyleSheet(url, deferred);
-                    
+
                     deferred
                         .done(function () {
                             result.resolve(link);
@@ -212,7 +212,7 @@ define(function (require, exports, module) {
                 }
             })
             .fail(result.reject);
-        
+
         // Summarize error info to console for easier debugging
         result.fail(function (error, textStatus, httpError) {
             if (error.readyState !== undefined) {
@@ -222,10 +222,10 @@ define(function (require, exports, module) {
                 console.error("[Extension] Unable to process stylesheet " + path, error);
             }
         });
-        
+
         return result.promise();
     }
-    
+
     /**
      * Loads the package.json file in the given extension folder as well as any additional
      * metadata.
@@ -275,7 +275,7 @@ define(function (require, exports, module) {
             });
         return result.promise();
     }
-    
+
     exports.addEmbeddedStyleSheet = addEmbeddedStyleSheet;
     exports.addLinkedStyleSheet   = addLinkedStyleSheet;
     exports.parseLessCode         = parseLessCode;

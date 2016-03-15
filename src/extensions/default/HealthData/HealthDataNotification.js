@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2015 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,27 +26,27 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var AppInit                      = brackets.getModule("utils/AppInit"),
         PreferencesManager           = brackets.getModule("preferences/PreferencesManager"),
         UrlParams                    = brackets.getModule("utils/UrlParams").UrlParams,
         HealthDataPreview            = require("HealthDataPreview"),
         HealthDataPopup              = require("HealthDataPopup");
-    
+
     // Parse URL params
     var params = new UrlParams();
 
     function handleHealthDataStatistics() {
         HealthDataPreview.previewHealthData();
     }
-    
+
     AppInit.appReady(function () {
         params.parse();
         // Check whether the notification dialog should be shown. It will be shown one time. Does not check in testing environment.
         if (!params.get("testEnvironment")) {
             var alreadyShown = PreferencesManager.getViewState("healthDataNotificationShown");
-
-            if (!alreadyShown) {
+            var prefs = PreferencesManager.getExtensionPrefs("healthData");
+            if (!alreadyShown && prefs.get("healthDataTracking")) {
                 HealthDataPopup.showFirstLaunchTooltip()
                     .done(function () {
                         PreferencesManager.setViewState("healthDataNotificationShown", true);
@@ -54,7 +54,7 @@ define(function (require, exports, module) {
             }
         }
     });
-    
-    
+
+
     exports.handleHealthDataStatistics       = handleHealthDataStatistics;
 });

@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
     // Global vars and preferences
     var prefs                   = PreferencesManager.getExtensionPrefs("closeOthers"),
         menuEntriesShown        = {};
-    
+
     prefs.definePreference("below",  "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_OTHERS_BELOW
     });
@@ -53,8 +53,8 @@ define(function (require, exports, module) {
     prefs.definePreference("above",  "boolean", true, {
         description: Strings.DESCRIPTION_CLOSE_OTHERS_ABOVE
     });
-    
-    
+
+
     /**
      * Handle the different Close Other commands
      * @param {string} mode
@@ -72,32 +72,32 @@ define(function (require, exports, module) {
                 files.push(workingSetList[i]);
             }
         }
-        
+
         CommandManager.execute(Commands.FILE_CLOSE_LIST, {fileList: files});
     }
-    
+
     /**
      * Enable/Disable the menu items depending on which document is selected in the working set
      */
     function contextMenuOpenHandler() {
         var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
-        
+
         if (file) {
             var targetIndex  = MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, file.fullPath),
                 workingSetListSize = MainViewManager.getWorkingSetSize(MainViewManager.ACTIVE_PANE);
-            
+
             if (targetIndex === workingSetListSize - 1) { // hide "Close Others Below" if the last file in Working Files is selected
                 CommandManager.get(closeBelow).setEnabled(false);
             } else {
                 CommandManager.get(closeBelow).setEnabled(true);
             }
-            
+
             if (workingSetListSize === 1) { // hide "Close Others" if there is only one file in Working Files
                 CommandManager.get(closeOthers).setEnabled(false);
             } else {
                 CommandManager.get(closeOthers).setEnabled(true);
             }
-            
+
             if (targetIndex === 0) { // hide "Close Others Above" if the first file in Working Files is selected
                 CommandManager.get(closeAbove).setEnabled(false);
             } else {
@@ -105,8 +105,8 @@ define(function (require, exports, module) {
             }
         }
     }
-    
-    
+
+
     /**
      * Returns the preferences used to add/remove the menu items
      * @return {{closeBelow: boolean, closeOthers: boolean, closeAbove: boolean}}
@@ -120,13 +120,13 @@ define(function (require, exports, module) {
             closeAbove  : prefs.get("above",  PreferencesManager.CURRENT_PROJECT)
         };
     }
-    
+
     /**
      * When the preferences changed, add/remove the required menu items
      */
     function prefChangeHandler() {
         var prefs = getPreferences();
-        
+
         if (prefs.closeBelow !== menuEntriesShown.closeBelow) {
             if (prefs.closeBelow) {
                 workingSetListCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
@@ -134,7 +134,7 @@ define(function (require, exports, module) {
                 workingSetListCmenu.removeMenuItem(closeBelow);
             }
         }
-        
+
         if (prefs.closeOthers !== menuEntriesShown.closeOthers) {
             if (prefs.closeOthers) {
                 workingSetListCmenu.addMenuItem(closeOthers, "", Menus.AFTER, Commands.FILE_CLOSE);
@@ -142,7 +142,7 @@ define(function (require, exports, module) {
                 workingSetListCmenu.removeMenuItem(closeOthers);
             }
         }
-        
+
         if (prefs.closeAbove !== menuEntriesShown.closeAbove) {
             if (prefs.closeAbove) {
                 workingSetListCmenu.addMenuItem(closeAbove, "", Menus.AFTER, Commands.FILE_CLOSE);
@@ -150,16 +150,16 @@ define(function (require, exports, module) {
                 workingSetListCmenu.removeMenuItem(closeAbove);
             }
         }
-        
+
         menuEntriesShown = prefs;
     }
-    
+
     /**
      * Register the Commands and add the Menu Items, if required
      */
     function initializeCommands() {
         var prefs = getPreferences();
-        
+
         CommandManager.register(Strings.CMD_FILE_CLOSE_BELOW, closeBelow, function () {
             handleClose(closeBelow);
         });
@@ -169,7 +169,7 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_FILE_CLOSE_ABOVE, closeAbove, function () {
             handleClose(closeAbove);
         });
-        
+
         if (prefs.closeBelow) {
             workingSetListCmenu.addMenuItem(closeBelow, "", Menus.AFTER, Commands.FILE_CLOSE);
         }
@@ -182,7 +182,7 @@ define(function (require, exports, module) {
         menuEntriesShown = prefs;
     }
 
-    
+
     // Initialize using the prefs
     initializeCommands();
 

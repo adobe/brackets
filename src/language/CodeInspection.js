@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,7 +59,7 @@ define(function (require, exports, module) {
         Async                   = require("utils/Async"),
         PanelTemplate           = require("text!htmlContent/problems-panel.html"),
         ResultsTemplate         = require("text!htmlContent/problems-panel-table.html");
-    
+
     var INDICATOR_ID = "status-inspection";
 
     /** Values for problem's 'type' property */
@@ -80,14 +80,14 @@ define(function (require, exports, module) {
         PREF_ASYNC_TIMEOUT      = "asyncTimeout",
         PREF_PREFER_PROVIDERS   = "prefer",
         PREF_PREFERRED_ONLY     = "usePreferredOnly";
-    
+
     var prefs = PreferencesManager.getExtensionPrefs("linting");
-    
+
     PreferencesManager.convertPreferences(module, {
         "enabled": "user linting.enabled",
         "collapsed": "user linting.collapsed"
     });
-    
+
     /**
      * When disabled, the errors panel is closed and the status bar icon is grayed out.
      * Takes precedence over _collapsed.
@@ -132,7 +132,7 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _hasErrors;
-    
+
     /**
      * Promise of the returned by the last call to inspectFile or null if linting is disabled. Used to prevent any stale promises
      * to cause updates of the UI.
@@ -170,12 +170,12 @@ define(function (require, exports, module) {
 
             prefPreferredProviderNames  = prefs.get(PREF_PREFER_PROVIDERS, context),
             prefPreferredOnly           = prefs.get(PREF_PREFERRED_ONLY, context),
-        
+
             providers;
-        
+
         // ensure there is an instance and that a copy is returned, always
         installedProviders = (installedProviders && installedProviders.slice(0)) || [];
-        
+
         if (prefPreferredProviderNames && prefPreferredProviderNames.length) {
             if (typeof prefPreferredProviderNames === "string") {
                 prefPreferredProviderNames = [prefPreferredProviderNames];
@@ -218,7 +218,7 @@ define(function (require, exports, module) {
      * the set of providers that are registered for the file's language.
      * This method doesn't update the Brackets UI, just provides inspection results.
      * These results will reflect any unsaved changes present in the file if currently open.
-     * 
+     *
      * The Promise yields an array of provider-result pair objects (the result is the return value of the
      * provider's scanFile() - see register() for details). The result object may be null if there were no
      * errors from that provider.
@@ -238,7 +238,7 @@ define(function (require, exports, module) {
             response.resolve(null);
             return response.promise();
         }
-        
+
         DocumentManager.getDocumentText(file)
             .done(function (fileText) {
                 var perfTimerInspector = PerfUtils.markStart("CodeInspection:\t" + file.fullPath),
@@ -247,11 +247,11 @@ define(function (require, exports, module) {
                 masterPromise = Async.doInParallel(providerList, function (provider) {
                     var perfTimerProvider = PerfUtils.markStart("CodeInspection '" + provider.name + "':\t" + file.fullPath),
                         runPromise = new $.Deferred();
-                    
+
                     runPromise.done(function (scanResult) {
                         results.push({provider: provider, result: scanResult});
                     });
-                    
+
                     if (provider.scanFileAsync) {
                         window.setTimeout(function () {
                             // timeout error
@@ -296,7 +296,7 @@ define(function (require, exports, module) {
                     return runPromise.promise();
 
                 }, false);
-                
+
                 masterPromise.then(function () {
                     // sync async may have pushed results in different order, restore the original order
                     results.sort(function (a, b) {
@@ -318,7 +318,7 @@ define(function (require, exports, module) {
     /**
      * Update the title of the problem panel and the tooltip of the status bar icon. The title and the tooltip will
      * change based on the number of problems reported and how many provider reported problems.
-     * 
+     *
      * @param {Number} numProblems - total number of problems across all providers
      * @param {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>} providersReportingProblems - providers that reported problems
      * @param {boolean} aborted - true if any provider returned a result with the 'aborted' flag set
@@ -361,7 +361,7 @@ define(function (require, exports, module) {
      * Run inspector applicable to current document. Updates status bar indicator and refreshes error list in
      * bottom panel. Does not run if inspection is disabled or if a providerName is given and does not
      * match the current doc's provider name.
-     * 
+     *
      * @param {?string} providerName name of the provider that is requesting a run
      */
     function run() {
@@ -390,7 +390,7 @@ define(function (require, exports, module) {
                 if (this !== _currentPromise) {
                     return;
                 }
-                
+
                 // how many errors in total?
                 var errors = results.reduce(function (a, item) { return a + (item.result ? item.result.errors.length : 0); }, 0);
 
@@ -411,7 +411,7 @@ define(function (require, exports, module) {
                 }
 
                 var perfTimerDOM = PerfUtils.markStart("ProblemsPanel render:\t" + currentDoc.file.fullPath);
-                
+
                 // Augment error objects with additional fields needed by Mustache template
                 results.forEach(function (inspectionResult) {
                     var provider = inspectionResult.provider;
@@ -426,11 +426,11 @@ define(function (require, exports, module) {
                                 error.friendlyLine = error.pos.line + 1;
                                 error.codeSnippet = error.codeSnippet.substr(0, 175);  // limit snippet width
                             }
-                            
+
                             if (error.type !== Type.META) {
                                 numProblems++;
                             }
-                            
+
                             // Hide the errors when the provider is collapsed.
                             error.display = isExpanded ? "" : "forced-hidden";
                         });
@@ -451,10 +451,10 @@ define(function (require, exports, module) {
                         }
                     }
                 });
-                
+
                 // Update results table
                 html = Mustache.render(ResultsTemplate, {reportList: allErrors});
-                
+
                 $problemsPanelTable
                     .empty()
                     .append(html)
@@ -489,16 +489,16 @@ define(function (require, exports, module) {
      * The provider is passed the text of the file and its fullPath. Providers should not assume
      * that the file is open (i.e. DocumentManager.getOpenDocumentForPath() may return null) or
      * that the file on disk matches the text given (file may have unsaved changes).
-     * 
+     *
      * Registering any provider for the "javascript" language automatically unregisters the built-in
      * Brackets JSLint provider. This is a temporary convenience until UI exists for disabling
      * registered providers.
-     * 
+     *
      * Providers implement scanFile() if results are available synchronously, or scanFileAsync() if results
      * may require an async wait (if both are implemented, scanFile() is ignored). scanFileAsync() returns
      * a {$.Promise} object resolved with the same type of value as scanFile() is expected to return.
      * Rejecting the promise is treated as an internal error in the provider.
-     * 
+     *
      * @param {string} languageId
      * @param {{name:string, scanFileAsync:?function(string, string):!{$.Promise},
      *         scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}} provider
@@ -511,9 +511,9 @@ define(function (require, exports, module) {
         if (!_providers[languageId]) {
             _providers[languageId] = [];
         }
-        
+
         _providers[languageId].push(provider);
-        
+
         run();  // in case a file of this type is open currently
     }
 
@@ -551,12 +551,12 @@ define(function (require, exports, module) {
         if (enabled === undefined) {
             enabled = !_enabled;
         }
-        
+
         // Take no action when there is no change.
         if (enabled === _enabled) {
             return;
         }
-        
+
         _enabled = enabled;
 
         CommandManager.get(Commands.VIEW_TOGGLE_INSPECTION).setChecked(_enabled);
@@ -565,7 +565,7 @@ define(function (require, exports, module) {
             prefs.set(PREF_ENABLED, _enabled);
             prefs.save();
         }
-    
+
         // run immediately
         run();
     }
@@ -582,7 +582,7 @@ define(function (require, exports, module) {
         if (collapsed === undefined) {
             collapsed = !_collapsed;
         }
-        
+
         if (collapsed === _collapsed) {
             return;
         }
@@ -592,7 +592,7 @@ define(function (require, exports, module) {
             prefs.set(PREF_COLLAPSED, _collapsed);
             prefs.save();
         }
-        
+
         if (_collapsed) {
             Resizer.hide($problemsPanel);
         } else {
@@ -613,7 +613,7 @@ define(function (require, exports, module) {
     // Register command handlers
     CommandManager.register(Strings.CMD_VIEW_TOGGLE_INSPECTION, Commands.VIEW_TOGGLE_INSPECTION,        toggleEnabled);
     CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
-    
+
     // Register preferences
     prefs.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"], {
         description: Strings.DESCRIPTION_LINTING_ENABLED
@@ -621,14 +621,14 @@ define(function (require, exports, module) {
         .on("change", function (e, data) {
             toggleEnabled(prefs.get(PREF_ENABLED), true);
         });
-    
+
     prefs.definePreference(PREF_COLLAPSED, "boolean", false, {
         description: Strings.DESCRIPTION_LINTING_COLLAPSED
     })
         .on("change", function (e, data) {
             toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
         });
-    
+
     prefs.definePreference(PREF_ASYNC_TIMEOUT, "number", 10000, {
         description: Strings.DESCRIPTION_ASYNC_TIMEOUT
     });
@@ -683,7 +683,7 @@ define(function (require, exports, module) {
                     // if there is no line number available, don't do anything
                     if (!isNaN(line)) {
                         var character = lineTd.data("character");
-    
+
                         var editor = EditorManager.getCurrentFullEditor();
                         editor.setCursorPos(line, character, true);
                         MainViewManager.focusActivePane();

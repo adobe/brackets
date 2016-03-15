@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -27,7 +27,7 @@
 
 /*
  * Text field with attached dropdown list that is updated (based on a provider) whenever the text changes.
- * 
+ *
  * For styling, the DOM structure of the popup is as follows:
  *  body
  *      ol.quick-search-container
@@ -40,10 +40,10 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var KeyEvent = require("utils/KeyEvent");
-    
-    
+
+
     /**
      * Attaches to an existing <input> tag
      *
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
      *          the Promise's result will be ignored.
      *          If the provider yields [], or a non-null error string, input is decorated with ".no-results"; if
      *          the provider yields a null error string, input is not decorated.
-     * 
+     *
      * @param {!function(*, string):string} options.formatter
      *          Converts one result object to a string of HTML text. Passed the item and the current query. The
      *          outermost element must be <li>. The ".highlight" class can be ignored as it is applied automatically.
@@ -81,47 +81,47 @@ define(function (require, exports, module) {
     function QuickSearchField($input, options) {
         this.$input = $input;
         this.options = options;
-        
+
         options.maxResults = options.maxResults || 10;
-        
+
         this._handleInput   = this._handleInput.bind(this);
         this._handleKeyDown = this._handleKeyDown.bind(this);
-        
+
         $input.on("input", this._handleInput);
         $input.on("keydown", this._handleKeyDown);
-        
+
         this._dropdownTop = $input.offset().top + $input.height() + (options.verticalAdjust || 0);
     }
-    
+
     /** @type {!Object} */
     QuickSearchField.prototype.options = null;
-    
+
     /** @type {?$.Promise} Promise corresponding to latest resultProvider call. Any earlier promises ignored */
     QuickSearchField.prototype._pending = null;
-    
+
     /** @type {boolean} True if Enter already pressed & just waiting for results to arrive before committing */
     QuickSearchField.prototype._commitPending = false;
-    
+
     /** @type {?string} Value of $input corresponding to the _displayedResults list */
     QuickSearchField.prototype._displayedQuery = null;
-    
+
     /** @type {?Array.<*>}  Latest resultProvider result */
     QuickSearchField.prototype._displayedResults = null;
-    
+
     /** @type {?number} */
     QuickSearchField.prototype._highlightIndex = null;
-    
+
     /** @type {?jQueryObject} Dropdown's <ol>, while open; null while closed */
     QuickSearchField.prototype._$dropdown = null;
-    
+
     /** @type {!jQueryObject} */
     QuickSearchField.prototype.$input = null;
-    
-    
+
+
     /** When text field changes, update results list */
     QuickSearchField.prototype._handleInput = function () {
         this._pending = null;  // immediately invalidate any previous Promise
-        
+
         var valueAtEvent = this.$input.val();
         var self = this;
         // The timeout lets us skip over a backlog of multiple keyboard events when the provider is responding
@@ -133,7 +133,7 @@ define(function (require, exports, module) {
             }
         }, 0);
     };
-    
+
     /** Handle special keys: Enter, Up/Down */
     QuickSearchField.prototype._handleKeyDown = function (event) {
         if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
                 this._updateHighlight(true);
             }
             event.preventDefault(); // treated as Home key otherwise
-            
+
         } else if (event.keyCode === KeyEvent.DOM_VK_UP) {
             if (this._displayedResults && this._displayedResults.length) {
                 if (this._highlightIndex === null || this._highlightIndex === 0) {
@@ -171,7 +171,7 @@ define(function (require, exports, module) {
             event.preventDefault(); // treated as End key otherwise
         }
     };
-    
+
     /** Call onCommit() immediately */
     QuickSearchField.prototype._doCommit = function (index) {
         var item;
@@ -181,25 +181,25 @@ define(function (require, exports, module) {
         }
         this.options.onCommit(item, this._displayedQuery);
     };
-    
+
     /** Update display to reflect value of _highlightIndex, & call onHighlight() */
     QuickSearchField.prototype._updateHighlight = function (explicit) {
         var $items = this._$dropdown.find("li");
         $items.removeClass("highlight");
         if (this._highlightIndex !== null) {
             $items.eq(this._highlightIndex).addClass("highlight");
-            
+
             this.options.onHighlight(this._displayedResults[this._highlightIndex], this.$input.val(), explicit);
         }
     };
-    
+
     /**
      * Refresh the results dropdown, as if the user had changed the search text. Useful for providers that
      * want to show cached data initially, then update the results with fresher data once available.
      */
     QuickSearchField.prototype.updateResults = function () {
         this._pending = null;  // immediately invalidate any previous Promise
-        
+
         var query = this.$input.val();
         var results = this.options.resultProvider(query);
         if (results.done && results.fail) {
@@ -224,8 +224,8 @@ define(function (require, exports, module) {
             this._render(results, query);
         }
     };
-    
-    
+
+
     /** Close dropdown result list if visible */
     QuickSearchField.prototype._closeDropdown = function () {
         if (this._$dropdown) {
@@ -233,7 +233,7 @@ define(function (require, exports, module) {
             this._$dropdown = null;
         }
     };
-    
+
     /**
      * Open dropdown result list & populate with the given content
      * @param {!string} htmlContent
@@ -258,7 +258,7 @@ define(function (require, exports, module) {
         }
         this._$dropdown.html(htmlContent);
     };
-    
+
     /**
      * Given finished provider result, format it into HTML and show in dropdown, and update "no-results" style.
      * If an Enter key commit was pending from earlier, process it now.
@@ -270,7 +270,7 @@ define(function (require, exports, module) {
         this._displayedResults = results;
         this._highlightIndex = 0;
         // TODO: fixup to match prev value's item if possible?
-        
+
         if (results.error || results.length === 0) {
             this._closeDropdown();
             this.$input.addClass("no-results");
@@ -280,7 +280,7 @@ define(function (require, exports, module) {
             this.$input.removeClass("no-results");
         } else {
             this.$input.removeClass("no-results");
-            
+
             var count = Math.min(results.length, this.options.maxResults),
                 html = "",
                 i;
@@ -288,19 +288,19 @@ define(function (require, exports, module) {
                 html += this.options.formatter(results[i], query);
             }
             this._openDropdown(html);
-            
+
             // Highlight top item and trigger highlight callback
             this._updateHighlight(false);
         }
-        
+
         // If Enter key was pressed earlier, handle it now that we've gotten results back
         if (this._commitPending) {
             this._commitPending = false;
             this._doCommit();
         }
     };
-    
-    
+
+
     /**
      * Programmatically changes the search text and updates the results.
      * @param {!string} value
@@ -309,7 +309,7 @@ define(function (require, exports, module) {
         this.$input.val(value);
         this.updateResults();  // programmatic changes don't trigger "input" event
     };
-    
+
     /**
      * Closes the dropdown, and discards any pending Promises.
      */
@@ -317,7 +317,7 @@ define(function (require, exports, module) {
         this._pending = null;  // immediately invalidate any pending Promise
         this._closeDropdown();
     };
-    
-    
+
+
     exports.QuickSearchField = QuickSearchField;
 });

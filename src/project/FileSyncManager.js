@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -41,7 +41,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependent modules
     var ProjectManager  = require("project/ProjectManager"),
         DocumentManager = require("document/DocumentManager"),
@@ -54,20 +54,20 @@ define(function (require, exports, module) {
         FileUtils       = require("file/FileUtils"),
         FileSystemError = require("filesystem/FileSystemError");
 
-    
+
     /**
      * Guard to spot re-entrancy while syncOpenDocuments() is still in progress
      * @type {boolean}
      */
     var _alreadyChecking = false;
-    
+
     /**
      * If true, we should bail from the syncOpenDocuments() process and then re-run it. See
      * comments in syncOpenDocuments() for how this works.
      * @type {boolean}
      */
     var _restartPending = false;
-    
+
     /**
      * @type {Array.<Document>}
      */
@@ -87,8 +87,8 @@ define(function (require, exports, module) {
      * @type {Array.<{doc: Document, fileTime: number}>}
      */
     var deleteConflicts;
-    
-    
+
+
     /**
      * Scans all the given Documents for changes on disk, and sorts them into four buckets,
      * populating the corresponding arrays:
@@ -107,12 +107,12 @@ define(function (require, exports, module) {
         toClose = [];
         editConflicts = [];
         deleteConflicts = [];
-    
+
         function checkDoc(doc) {
             var result = new $.Deferred();
-            
+
             // Check file timestamp / existence
-            
+
             if (doc.isUntitled()) {
                 result.resolve();
             } else {
@@ -167,12 +167,12 @@ define(function (require, exports, module) {
 
             return result.promise();
         }
-        
+
         // Check all docs in parallel
         // (fail fast b/c we won't continue syncing if there was any error fetching timestamps)
         return Async.doInParallel(docs, checkDoc, true);
     }
-    
+
     /**
      * Scans all the files in the working set that do not have Documents (and thus were not scanned
      * by findExternalChanges()). If any were deleted on disk, removes them from the working set.
@@ -182,10 +182,10 @@ define(function (require, exports, module) {
         var unopenWorkingSetFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES).filter(function (wsFile) {
             return !DocumentManager.getOpenDocumentForPath(wsFile.fullPath);
         });
-        
+
         function checkWorkingSetFile(file) {
             var result = new $.Deferred();
-            
+
             file.stat(function (err, stat) {
                 if (!err) {
                     // File still exists
@@ -204,12 +204,12 @@ define(function (require, exports, module) {
             });
             return result.promise();
         }
-        
+
         // Check all these files in parallel
         return Async.doInParallel(unopenWorkingSetFiles, checkWorkingSetFile, false);
     }
-    
-    
+
+
     /**
      * Reloads the Document's contents from disk, discarding any unsaved changes in the editor.
      *
@@ -218,9 +218,9 @@ define(function (require, exports, module) {
      *      file's new content. Errors are logged but no UI is shown.
      */
     function reloadDoc(doc) {
-        
+
         var promise = FileUtils.readAsText(doc.file);
-        
+
         promise.done(function (text, readTimestamp) {
             doc.refreshText(text, readTimestamp);
         });
@@ -229,7 +229,7 @@ define(function (require, exports, module) {
         });
         return promise;
     }
-    
+
     /**
      * Reloads all the documents in "toReload" silently (no prompts). The operations are all run
      * in parallel.
@@ -240,7 +240,7 @@ define(function (require, exports, module) {
         // Reload each doc in turn, and once all are (async) done, signal that we're done
         return Async.doInParallel(toReload, reloadDoc, false);
     }
-    
+
     /**
      * @param {FileError} error
      * @param {!Document} doc
@@ -257,8 +257,8 @@ define(function (require, exports, module) {
             )
         );
     }
-    
-    
+
+
     /**
      * Closes all the documents in "toClose" silently (no prompts). Completes synchronously.
      */
@@ -267,8 +267,8 @@ define(function (require, exports, module) {
             DocumentManager.notifyFileDeleted(doc.file);
         });
     }
-    
-    
+
+
     /**
      * Walks through all the documents in "editConflicts" & "deleteConflicts" and prompts the user
      * about each one. Processing is sequential: if the user chooses to reload a document, the next
@@ -280,26 +280,26 @@ define(function (require, exports, module) {
      *      one reload failed.
      */
     function presentConflicts(title) {
-        
+
         var allConflicts = editConflicts.concat(deleteConflicts);
-        
+
         function presentConflict(docInfo, i) {
             var result = new $.Deferred(),
                 promise = result.promise(),
                 doc = docInfo.doc,
                 fileTime = docInfo.fileTime;
-            
+
             // If window has been re-focused, skip all remaining conflicts so the sync can bail & restart
             if (_restartPending) {
                 result.resolve();
                 return promise;
             }
-            
+
             var toClose;
             var dialogId;
             var message;
             var buttons;
-            
+
             // Prompt UI varies depending on whether the file on disk was modified vs. deleted
             if (i < editConflicts.length) {
                 toClose = false;
@@ -322,7 +322,7 @@ define(function (require, exports, module) {
                         text:      Strings.KEEP_CHANGES_IN_EDITOR
                     }
                 ];
-                
+
             } else {
                 toClose = true;
                 dialogId = DefaultDialogs.DIALOG_ID_EXT_DELETED;
@@ -345,7 +345,7 @@ define(function (require, exports, module) {
                     }
                 ];
             }
-            
+
             Dialogs.showModalDialog(dialogId, title, message, buttons)
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
@@ -368,7 +368,7 @@ define(function (require, exports, module) {
                                         });
                                 });
                         }
-                        
+
                     } else {
                         // Cancel - if user doesn't manually save or close, remember that they
                         // chose to keep the changes in the editor and don't prompt again unless the
@@ -376,25 +376,25 @@ define(function (require, exports, module) {
                         // OR programmatically canceled due to _resetPending - we'll skip all
                         // remaining files in the conflicts list (see above)
 
-                        // If this wasn't programmatically cancelled, remember that the user 
+                        // If this wasn't programmatically cancelled, remember that the user
                         // has accepted conflicting changes as of this file version.
                         if (!_restartPending) {
                             doc.keepChangesTime = fileTime;
                         }
-                            
+
                         result.resolve();
                     }
                 });
-            
+
             return promise;
         }
-        
+
         // Begin walking through the conflicts, one at a time
         return Async.doSequentially(allConflicts, presentConflict, false);
     }
-    
-    
-    
+
+
+
     /**
      * Check to see whether any open files have been modified by an external app since the last time
      * Brackets synced up with the copy on disk (either by loading or saving the file). For clean
@@ -404,9 +404,9 @@ define(function (require, exports, module) {
      * @param {string} title Title to use for document. Default is "External Changes".
      */
     function syncOpenDocuments(title) {
-        
+
         title = title || Strings.EXT_MODIFIED_TITLE;
-        
+
         // We can become "re-entrant" if the user leaves & then returns to Brackets before we're
         // done -- easy if a prompt dialog is left open. Since the user may have left Brackets to
         // revert some of the disk changes, etc. we want to cancel the current sync and immediately
@@ -414,18 +414,18 @@ define(function (require, exports, module) {
         // bail; if we're already there we programmatically close the dialog to bail right away.
         if (_alreadyChecking) {
             _restartPending = true;
-            
+
             // Close dialog if it was open. This will 'unblock' presentConflict(), which bails back
             // to us immediately upon seeing _restartPending. We then restart the sync - see below
             Dialogs.cancelModalDialogIfOpen(DefaultDialogs.DIALOG_ID_EXT_CHANGED);
             Dialogs.cancelModalDialogIfOpen(DefaultDialogs.DIALOG_ID_EXT_DELETED);
-            
+
             return;
         }
-        
+
         _alreadyChecking = true;
-        
-        
+
+
         // Syncing proceeds in four phases:
         //  1) Check all open files for external modifications
         //  2) Check any other working set entries (that are not open) for deletion, and remove
@@ -434,11 +434,11 @@ define(function (require, exports, module) {
         //  4) Close all Documents that are clean (if file deleted on disk)
         //  5) Prompt about any Documents that are dirty (if file changed/deleted on disk)
         // Each phase fully completes (asynchronously) before the next one begins.
-        
-        
+
+
         // 1) Check for external modifications
         var allDocs = DocumentManager.getAllOpenDocuments();
-        
+
         findExternalChanges(allDocs)
             .done(function () {
                 // 2) Check un-open working set entries for deletion (& "close" if needed)
@@ -447,14 +447,14 @@ define(function (require, exports, module) {
                         // If we were unable to check any un-open files for deletion, silently ignore
                         // (after logging to console). This doesn't have any bearing on syncing truly
                         // open Documents (which we've already successfully checked).
-                        
+
                         // 3) Reload clean docs as needed
                         reloadChangedDocs()
                             .always(function () {
                                 // 4) Close clean docs as needed
                                 // This phase completes synchronously
                                 closeDeletedDocs();
-                                
+
                                 // 5) Prompt for dirty editors (conflicts)
                                 presentConflicts(title)
                                     .always(function () {
@@ -466,12 +466,12 @@ define(function (require, exports, module) {
                                         } else {
                                             // We're really done!
                                             _alreadyChecking = false;
-                                            
+
                                             // If we showed a dialog, restore focus to editor
                                             if (editConflicts.length > 0 || deleteConflicts.length > 0) {
                                                 MainViewManager.focusActivePane();
                                             }
-                                            
+
                                             // (Any errors that ocurred during presentConflicts() have already
                                             // shown UI & been dismissed, so there's no fail() handler here)
                                         }
@@ -486,14 +486,14 @@ define(function (require, exports, module) {
                 // Unable to fetch timestamps for some reason - silently ignore (after logging to console)
                 // (We'll retry next time window is activated... and evenually we'll also be double
                 // checking before each Save).
-                
+
                 // We can't go on without knowing which files are dirty, so bail now
                 _alreadyChecking = false;
             });
-        
+
     }
-    
-    
+
+
     // Define public API
     exports.syncOpenDocuments = syncOpenDocuments;
 });

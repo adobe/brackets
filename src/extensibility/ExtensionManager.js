@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -887,8 +887,8 @@ define(function (require, exports, module) {
         .on("load", _handleExtensionLoad)
         .on("loadFailed", _handleExtensionLoad)
         .on("disabled", _handleExtensionLoad);
-    
-    
+
+
     EventDispatcher.makeEventDispatcher(exports);
 
     // Public exports
@@ -918,9 +918,9 @@ define(function (require, exports, module) {
     exports.updateExtensions        = updateExtensions;
     exports.getAvailableUpdates     = getAvailableUpdates;
     exports.cleanAvailableUpdates   = cleanAvailableUpdates;
-    
+
     exports.hasDownloadedRegistry   = false;
-    
+
     exports.ENABLED       = ENABLED;
     exports.DISABLED      = DISABLED;
     exports.START_FAILED  = START_FAILED;
@@ -929,7 +929,7 @@ define(function (require, exports, module) {
     exports.LOCATION_DEV      = LOCATION_DEV;
     exports.LOCATION_USER     = LOCATION_USER;
     exports.LOCATION_UNKNOWN  = LOCATION_UNKNOWN;
-    
+
     // For unit testing only
     exports._getAutoInstallFiles    = _getAutoInstallFiles;
     exports._reset                  = _reset;

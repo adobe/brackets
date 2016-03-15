@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -76,10 +76,10 @@ define(function CSSDocumentModule(require, exports, module) {
 
         this.doc.on("change.CSSDocument", this.onChange);
         this.doc.on("deleted.CSSDocument", this.onDeleted);
-        
+
         this.onActiveEditorChange = this.onActiveEditorChange.bind(this);
         EditorManager.on("activeEditorChange", this.onActiveEditorChange);
-        
+
         if (editor) {
             // Attach now
             this.attachToEditor(editor);
@@ -113,7 +113,7 @@ define(function CSSDocumentModule(require, exports, module) {
         var deferred = new $.Deferred(),
             styleSheetHeader = this._getStyleSheetHeader(),
             styleSheet = getOnlyValue(styleSheetHeader);
-        
+
         if (styleSheet) {
             Inspector.CSS.getStyleSheetText(styleSheet.styleSheetId).then(function (res) {
                 deferred.resolve(res.text);
@@ -121,10 +121,10 @@ define(function CSSDocumentModule(require, exports, module) {
         } else {
             deferred.reject();
         }
-        
+
         return deferred.promise();
     };
- 
+
     /** Close the document */
     CSSDocument.prototype.close = function close() {
         this.doc.off(".CSSDocument");
@@ -147,14 +147,14 @@ define(function CSSDocumentModule(require, exports, module) {
 
     CSSDocument.prototype.attachToEditor = function (editor) {
         this.editor = editor;
-        
+
         if (this.editor) {
             HighlightAgent.on("highlight", this.onHighlight);
             this.editor.on("cursorActivity.CSSDocument", this.onCursorActivity);
             this.updateHighlight();
         }
     };
-    
+
     CSSDocument.prototype.detachFromEditor = function () {
         if (this.editor) {
             HighlightAgent.hide();
@@ -182,24 +182,24 @@ define(function CSSDocumentModule(require, exports, module) {
             }
         }
     };
-    
+
     /**
      * Enable instrumented CSS
-     * @param enabled {boolean} 
+     * @param enabled {boolean}
      */
     CSSDocument.prototype.setInstrumentationEnabled = function setInstrumentationEnabled(enabled) {
         // no-op
         // "Instrumentation" is always enabled for CSS, we make no modifications
     };
-    
+
     /**
      * Returns true if document edits appear live in the connected browser
-     * @return {boolean} 
+     * @return {boolean}
      */
     CSSDocument.prototype.isLiveEditingEnabled = function () {
         return true;
     };
-    
+
     /**
      * Returns a JSON object with HTTP response overrides
      * @return {{body: string}}
@@ -236,12 +236,12 @@ define(function CSSDocumentModule(require, exports, module) {
     /** Triggered when the active editor changes */
     CSSDocument.prototype.onActiveEditorChange = function (event, newActive, oldActive) {
         this.detachFromEditor();
-        
+
         if (newActive && newActive.document === this.doc) {
             this.attachToEditor(newActive);
         }
     };
-    
+
     /** Triggered by the HighlightAgent to highlight a node in the editor */
     CSSDocument.prototype.onHighlight = function onHighlight(event, node) {
         // clear an existing highlight

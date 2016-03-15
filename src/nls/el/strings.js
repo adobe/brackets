@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
@@ -75,7 +75,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Σφάλμα ανοίγματος browser",
     "ERROR_CANT_FIND_CHROME"            : "Ο Google Chrome browser δεν βρέθηκε. Παρακαλούμε σιγουρευτείτε ότι είναι εγκατεστημένος.",
     "ERROR_LAUNCHING_BROWSER"           : "Σφάλμα προέκυψε κατά τη διαδικασία ανοίγματος του browser. (error {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Σφάλμα Live Preview",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Σύνδεση στον Browser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Για να συνδεθεί το Live Preview, ο Chrome πρέπει να επανεκκινηθεί με το remote debugging (απομακρυσμένη αποσφαλμάτωση) ενεργοποιημένο.<br /><br />Θέλετε να επανεκκινήσετε τον Chrome και να ενεργοποιήσετε το remote debugging;",
@@ -86,7 +86,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Καλώς ήρθατε στο Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Το Live Preview συνδέει το {APP_NAME} με τον browser σας. Ανοίγει μια προεπισκόπηση του HTML αρχείου σας στον browser, και την ανανεώνει στιγμιαία ενώ επεξεργάζεστε τον κώδικα.<br /><br />Σε τούτη την πρώιμη έκδοση του {APP_NAME}, το Live Preview δουλεύει μόνο με <strong>Google Chrome</strong> και ανανεώνει άμεσα την σελίδα ενώ επεξεργάζεστε <strong>αρχεία CSS ή HTML</strong>. Αλλαγές σε αρχεία JavaScript ανανεώνονται αυτόματα όταν κάνετε αποθήκευση.<br /><br />(Το μήνυμα αυτό θα αυτοκαταστραφεί μετά την πρώτη εμφάνιση του.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Για περισσότερες πληροφορίες δείτε εδώ: <a href='{0}' title='{0}'>Troubleshooting Live Development connection errors</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Σύνδεση\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Εκκίνηση\u2026",
@@ -98,7 +98,7 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Το Live Preview ακυρώθηκε επειδή η σελίδα στον browser έκλεισε",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Το Live Preview ακυρώθηκε επειδή ο browser πήγε σε μια σελίδα που δεν είναι μέρος του τρέχων project",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Το Live Preview ακυρώθηκε. Δεν ξέρουμε γιατί. ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Αποθήκευση Αλλαγών",
     "SAVE_CLOSE_MESSAGE"                : "Θέλετε να αποθηκεύσετε τις αλλαγές που κάνατε στο έγγραφο <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Θέλετε να αποθηκεύσετε τις αλλαγές σας στα παρακάτω αρχεία;",
@@ -108,14 +108,14 @@ define({
     "FILE_DELETED_TITLE"                : "Το Αρχείο Διαγράφηκε",
     "EXT_MODIFIED_MESSAGE"              : "Το <span class='dialog-filename'>{0}</span> έχει τροποποιηθεί στο δίσκο, αλλά υπάρχουν και μη αποθηκευμένες αλλαγές στο {APP_NAME}.<br /><br />Ποια έκδοση θέλετε να κρατήσετε;",
     "EXT_DELETED_MESSAGE"               : "Το <span class='dialog-filename'>{0}</span> έχει διαγραφεί στον δίσκο, αλλά έχει μη αποθηκευμένες αλλαγές στο {APP_NAME}.<br /><br />Θέλετε να κρατήσετε τις αλλαγές σας;",
-    
+
     // Find, Replace, Find in Files
     "FIND_NO_RESULTS"                   : "Δεν βρέθηκαν αποτελέσματα",
     "BUTTON_YES"                        : "Ναι",
     "BUTTON_NO"                         : "Όχι",
     "BUTTON_REPLACE_ALL"                : "Όλα\u2026",
     "BUTTON_REPLACE"                    : "Αντικατάσταση",
-            
+
     "BUTTON_NEXT"                       : "\u25B6",
     "BUTTON_PREV"                       : "\u25C0",
     "BUTTON_NEXT_HINT"                  : "Επόμενη Αντιστοιχία",
@@ -154,7 +154,7 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
-    
+
     /**
      * StatusBar strings
      */
@@ -179,8 +179,8 @@ define({
     "LINT_DISABLED"                         : "Το Linting είναι απενεργοποιημένο",
     "NO_LINT_AVAILABLE"                     : "Δεν υπάρχει linter διαθέσιμος για {0}",
     "NOTHING_TO_LINT"                       : "Δεν υπάρχει κάτι για να γίνει lint",
-    
-    
+
+
     /**
      * Command Name Constants
      */
@@ -241,7 +241,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Δημιουργία Γραμμής από κάτω",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Αυτόματο Κλείσιμο Αγκίστρων",
     "CMD_SHOW_CODE_HINTS"                 : "Προβολή Υποδείξεων Κώδικα",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "Προβολή",
     "CMD_HIDE_SIDEBAR"                    : "Απόκρυψη Πλευρικής Εργαλειοθήκης",
@@ -276,7 +276,7 @@ define({
     "CMD_PREV_DOC"                        : "Προηγούμενο Έγγραφο",
     "CMD_SHOW_IN_TREE"                    : "Προβολή στο Δέντρο Αρχείων",
     "CMD_SHOW_IN_OS"                      : "Προβολή στο Λειτουργικό Σύστημα",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Βοήθεια",
     "CMD_CHECK_FOR_UPDATE"                : "Έλεγχος για Αναβαθμίσεις",
@@ -318,10 +318,10 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Η διεύθυνση URL δεν μπορεί να περιέχει hashes σαν και αυτά \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Οι ειδικοί χαρακτήρες όπως '{0}' πρέπει να είναι %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Άγνωστο σφάλμα κατά την προσπέλαση της διεύθυνσης URL",
-    
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Νέος Κανόνας",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Εγκατάσταση",
     "UPDATE"                               : "Αναβάθμιση",
@@ -395,7 +395,7 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "Εγκατεστημένες",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Διαθέσιμες",
     "EXTENSIONS_UPDATES_TITLE"             : "Αναβαθμίσεις",
-    
+
     "INLINE_EDITOR_NO_MATCHES"             : "Δεν υπάρχουν διαθέσιμες αντιστοιχίες.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "Δεν υπάρχουν κανόνες CSS που να ταιριάζουν με την επιλογή σας.<br> Κάντε κλικ στο \"Νέος Κανόνας\" για να δημιουργήσετε ένα νέο.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Δεν υπάρχουν stylesheets στο project σας.<br>Δημιουργήστε ένα για να προσθέσετε κανόνες CSS.",
@@ -405,7 +405,7 @@ define({
      */
 
     "UNIT_PIXELS"                          : "pixels",
-    
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Debug",
     "CMD_SHOW_DEV_TOOLS"                        : "Προβολή Developer Tools",
@@ -417,17 +417,17 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Ενεργοποίηση του Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Καταγραφή Node State στη Console",
     "CMD_RESTART_NODE"                          : "Επανεκκίνηση του Node",
-    
+
     "LANGUAGE_TITLE"                            : "Αλλαγή Γλώσσας",
     "LANGUAGE_MESSAGE"                          : "Γλώσσες:",
     "LANGUAGE_SUBMIT"                           : "Επανεκκίνηση του {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Ακύρωση",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Προεπιλογή Συστήματος",
-    
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Χρόνος",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Πρόοδος",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Τρέχων Χρώμα",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Αρχικό Χρώμα",
@@ -436,21 +436,21 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Μορφή HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Χρησιμοποιήθηκε {1} φορά)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Χρησιμοποιήθηκε {1} φορές)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Πήγαινε στον Ορισμό",
     "CMD_SHOW_PARAMETER_HINT"                   : "Προβολή Υποδείξεων Παραμέτρων",
     "NO_ARGUMENTS"                              : "<χωρίς παραμέτρους>",
-    
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Γρήγορη Προβολή στο Hover",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Πρόσφατα Project",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Διαβάστε Περισσότερα"
 });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -116,12 +116,12 @@ define(function (require, exports, module) {
         function getRuleListSections(inlineWidget) {
             return inlineWidget.$relatedContainer.find("li.section-header");
         }
-        
+
         function expectListItem($ruleListItem, ruleLabel, filename, lineNum) {  // TODO: duplicated with MultiRangeInlineEditor-test
             expect($ruleListItem.text()).toBe(ruleLabel + " :" + lineNum);
             expect($ruleListItem.data("filename")).toBe(filename);
         }
-        
+
         function loadFile(file) {
             runs(function () {
                 var promise = SpecRunnerUtils.openProjectFiles([file]);
@@ -151,10 +151,10 @@ define(function (require, exports, module) {
 
             return document.getRange({line: ranges.textRange.startLine, ch: 0}, {line: ranges.textRange.endLine, ch: document.getLine(ranges.textRange.endLine).length});
         }
-        
-        
+
+
         describe("CSS", function () {
-            
+
             function resetCollapsedPrefs() {
                 var context = null; // for unit tests, we don't really need a project-specific setting
                 PreferencesManager.setViewState("inlineEditor.collapsedFiles", {}, context);
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
                 setting[fullPath] = true;
                 PreferencesManager.setViewState("inlineEditor.collapsedFiles", setting, context);
             }
-            
+
             beforeEach(function () {
                 resetCollapsedPrefs();
                 loadFile("index-css.html");
@@ -225,7 +225,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var inlineWidget = getInlineEditorWidgets()[0];
-                    
+
                     // verify New Rule dropdown contents
                     dropdownButton().click();
                     var availableFilesInDropdown = dropdownMenu().children();
@@ -233,9 +233,9 @@ define(function (require, exports, module) {
 
                     expect(inlineWidget._getSelectedRange()).toBe(null);
                     expect(inlineWidget.editor).toBeNull();
-                    
+
                     expect(inlineEditorMessage().html()).toEqual(Strings.CSS_QUICK_EDIT_NO_MATCHES);
-                    
+
                     expect(inlineWidget.$htmlContent.find(".related-container").length).toBe(0);  // rule list hidden
                 });
             });
@@ -249,7 +249,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var inlineWidget = getInlineEditorWidgets()[0];
                     expect(inlineWidget._ranges.length).toBe(1);
-                    
+
                     // verify New Rule dropdown contents
                     dropdownButton().click();
                     var availableFilesInDropdown = dropdownMenu().children();
@@ -260,7 +260,7 @@ define(function (require, exports, module) {
                     var range = inlineWidget._ranges[0].textRange;
                     var document = range.document;
                     expect(document.getRange({line: range.startLine, ch: 0}, {line: range.endLine, ch: document.getLine(range.endLine).length})).toEqual(".banner {\n    background-color: red;\n}");
-                    
+
                     expect(inlineWidget.$htmlContent.find(".related-container").length).toBe(0);  // rule list hidden
                 });
             });
@@ -279,7 +279,7 @@ define(function (require, exports, module) {
                     dropdownButton().click();
                     var availableFilesInDropdown = dropdownMenu().children();
                     checkAvailableStylesheets(availableFilesInDropdown);
-                    
+
                     expect(inlineEditorFileName(inlineWidget)).toEqual("test.css : 8");
 
                     var range = inlineWidget._ranges[0].textRange;
@@ -290,7 +290,7 @@ define(function (require, exports, module) {
                     expect(files.length).toBe(2);
                     expectListItem(files.eq(0), ".banner-new", "test.css", 8);
                     expectListItem(files.eq(1), ".banner-new", "test2.css", 8);
-                    
+
                     expect(inlineWidget.$htmlContent.find(".related-container").length).toBe(1);
                 });
             });
@@ -306,7 +306,7 @@ define(function (require, exports, module) {
                     expect(inlineWidget._ranges.length).toBe(2);
 
                     expect(inlineEditorFileName(inlineWidget)).toEqual("test.css : 8");
-                    
+
                     var $ruleListSections = getRuleListSections(inlineWidget);
                     expect($ruleListSections.eq(0).text()).toBe("test.css (1)");
                     expect($ruleListSections.eq(1).text()).toBe("test2.css (1)");
@@ -315,13 +315,13 @@ define(function (require, exports, module) {
 
                     // Collapse test.css section (which contains the selection)
                     $ruleListSections.eq(0).click();
-                    
+
                     $ruleListSections = getRuleListSections(inlineWidget);
                     expect($ruleListSections.eq(0).text()).toBe("test.css (1)");
                     expect($ruleListSections.eq(1).text()).toBe("test2.css (1)");
                     expect($ruleListSections.eq(0).find(".disclosure-triangle:not(.expanded)").length).toBe(1); // test.css is now collapsed
                     expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);  // test2.css is expanded
-                    
+
                     // File in collapsed section is still selected - selection unchanged
                     expect(inlineEditorFileName(inlineWidget)).toEqual("test.css : 8");
 
@@ -345,11 +345,11 @@ define(function (require, exports, module) {
                     expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);  // test2.css is expanded
                 });
             });
-            
+
             it("should initially select first non-collapsed result, and not change selection when expanding other groups", function () {
                 runs(function () {
                     makeInitiallyCollapsed(testPath + "/css/test.css");
-                    
+
                     var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 20, ch: 25});
                     waitsForDone(promise, "Open inline editor");
                 });
@@ -363,14 +363,14 @@ define(function (require, exports, module) {
                     expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);   // test2.css is expanded
 
                     expect(inlineEditorFileName(inlineWidget)).toEqual("test2.css : 8");
-                    
+
                     expect(inlineWidget.$htmlContent.find(".related-container").length).toBe(1);
-                    
+
                     // Opening a collapsed section shouldn't change the existing selection
                     $ruleListSections.eq(0).click();
                     expect($ruleListSections.eq(0).find(".disclosure-triangle.expanded").length).toBe(1); // test.css now expanded
                     expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);  // test2.css still expanded
-                    
+
                     expect(inlineEditorFileName(inlineWidget)).toEqual("test2.css : 8");
                 });
             });
@@ -379,7 +379,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     makeInitiallyCollapsed(testPath + "/css/test.css");
                     makeInitiallyCollapsed(testPath + "/css/test2.css");
-                    
+
                     var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 20, ch: 25});
                     waitsForDone(promise, "Open inline editor");
                 });
@@ -394,15 +394,15 @@ define(function (require, exports, module) {
 
                     expect(inlineWidget._getSelectedRange()).toBe(null);
                     expect(inlineWidget.editor).toBeNull();
-                    
+
                     expect(inlineEditorMessage().html()).toEqual(Strings.INLINE_EDITOR_HIDDEN_MATCHES);
                     expect(inlineWidget.$htmlContent.find(".related-container").length).toBe(1);    // rule list still visible though
-                    
+
                     // Opening a collapsed section should select its first result
                     $ruleListSections.eq(1).click();
                     expect($ruleListSections.eq(0).find(".disclosure-triangle:not(.expanded)").length).toBe(1); // test.css still collapsed
                     expect($ruleListSections.eq(1).find(".disclosure-triangle.expanded").length).toBe(1);  // test2.css now expanded
-                    
+
                     expect(inlineWidget._getSelectedRange()).toBeTruthy();
                     expect(inlineEditorFileName(inlineWidget)).toEqual("test2.css : 8");
                 });
@@ -411,7 +411,7 @@ define(function (require, exports, module) {
             it("should select collapsed result anyway if there's only one result total", function () {
                 runs(function () {
                     makeInitiallyCollapsed(testPath + "/less/test.less");
-                    
+
                     var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 17, ch: 15});
                     waitsForDone(promise, "Open inline editor");
                 });
@@ -421,11 +421,11 @@ define(function (require, exports, module) {
                     expect(inlineWidget._ranges.length).toBe(1);
 
                     expect(inlineEditorFileName(inlineWidget)).toEqual("test.less : 5");
-                    
+
                     expect(inlineWidget.$htmlContent.find(".related-container").length).toBe(0);    // rule list hidden
                 });
             });
-            
+
             it("should add the css file to the working set when modified in inline editor", function () {
                 runs(function () {
                     var promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 48, ch: 25});
@@ -449,8 +449,8 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
-        
+
+
         describe("LESS", function () {
             beforeEach(function () {
                 loadFile("index-less.html");
@@ -854,8 +854,8 @@ define(function (require, exports, module) {
             });
 
         });
-        
-        
+
+
         describe("SCSS", function () {
             beforeEach(function () {
                 loadFile("index-css.html");
