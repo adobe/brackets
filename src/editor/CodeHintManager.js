@@ -447,11 +447,7 @@ define(function (require, exports, module) {
             } else if (response.hasOwnProperty("hints")) { // a synchronous response
                 if (hintList.isOpen()) {
                     // the session is open
-                    if (callMoveUpEvent) {
-                        hintList.callMoveUp(callMoveUpEvent);
-                    } else {
-                        hintList.update(response);
-                    }
+                    hintList.update(response);
                 } else {
                     hintList.open(response);
                 }
@@ -468,11 +464,7 @@ define(function (require, exports, module) {
 
                     if (hintList.isOpen()) {
                         // the session is open
-                        if (callMoveUpEvent) {
-                            hintList.callMoveUp(callMoveUpEvent);
-                        } else {
-                            hintList.update(response);
-                        }
+                        hintList.update(hints);
                     } else {
                         hintList.open(hints);
                     }
@@ -536,31 +528,6 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Explicitly start a new session. If we have an existing session,
-     * then close the current one and restart a new one.
-     * @param {Editor} editor
-     */
-    function _startNewSession(editor) {
-
-        if (isOpen()) {
-            return;
-        }
-
-        if (!editor) {
-            editor = EditorManager.getFocusedEditor();
-        }
-        if (editor) {
-            lastChar = null;
-            if (_inSession(editor)) {
-                _endSession();
-            }
-
-            // Begin a new explicit session
-            _beginSession(editor);
-        }
-    }
-
-    /**
      * Handles keys related to displaying, searching, and navigating the hint list.
      * This gets called before handleChange.
      *
@@ -596,7 +563,8 @@ define(function (require, exports, module) {
     function _handleKeyupEvent(jqEvent, editor, event) {
         keyDownEditor = editor;
         if (_inSession(editor)) {
-            if (event.keyCode === KeyEvent.DOM_VK_HOME || event.keyCode === KeyEvent.DOM_VK_END) {
+          if (event.keyCode === KeyEvent.DOM_VK_HOME || 
+                  event.keyCode === KeyEvent.DOM_VK_END) {
                 _endSession();
             } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
                        event.keyCode === KeyEvent.DOM_VK_RIGHT ||
@@ -744,6 +712,16 @@ define(function (require, exports, module) {
     activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
 
     EditorManager.on("activeEditorChange", activeEditorChangeHandler);
+ 
+    // Dismiss code hints before executing any command other than showing code hints since the command
+    // may make the current hinting session irrevalent after execution.
+    // For example, when the user hits Ctrl+K to open Quick Doc, it is
+    // pointless to keep the hint list since the user wants to view the Quick Doc
+    CommandManager.on("beforeExecuteCommand", function (event, commandId) {
+        if (commandId !== Commands.SHOW_CODE_HINTS) {
+            _endSession();
+        }
+    });
 
     CommandManager.register(Strings.CMD_SHOW_CODE_HINTS, Commands.SHOW_CODE_HINTS, _startNewSession);
 

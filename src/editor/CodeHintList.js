@@ -320,6 +320,7 @@ define(function (require, exports, module) {
                 keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
                 keyCode === KeyEvent.DOM_VK_RETURN ||
                 keyCode === KeyEvent.DOM_VK_CONTROL ||
+                keyCode === KeyEvent.DOM_VK_ESCAPE ||
                 (ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE) ||
                 (keyCode === KeyEvent.DOM_VK_TAB && this.insertHintOnTab));
     };
@@ -394,11 +395,12 @@ define(function (require, exports, module) {
         if (event.type === "keydown" && this.isHandlingKeyCode(event)) {
             keyCode = event.keyCode;
 
-            if (event.shiftKey &&
+            if (event.keyCode === KeyEvent.DOM_VK_ESCAPE || 
+                  (event.shiftKey &&
                     (event.keyCode === KeyEvent.DOM_VK_UP ||
                      event.keyCode === KeyEvent.DOM_VK_DOWN ||
                      event.keyCode === KeyEvent.DOM_VK_PAGE_UP ||
-                     event.keyCode === KeyEvent.DOM_VK_PAGE_DOWN)) {
+                     event.keyCode === KeyEvent.DOM_VK_PAGE_DOWN))) {
                 this.handleClose();
 
                 // Let the event bubble.
@@ -406,7 +408,7 @@ define(function (require, exports, module) {
             } else if (keyCode === KeyEvent.DOM_VK_UP) {
                 _rotateSelection.call(this, -1);
             } else if (keyCode === KeyEvent.DOM_VK_DOWN ||
-                (event.ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE)) {
+                    (event.ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE)) {
                 _rotateSelection.call(this, 1);
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_UP) {
                 _rotateSelection.call(this, -_itemsPerPage());
