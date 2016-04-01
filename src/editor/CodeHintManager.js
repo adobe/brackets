@@ -427,6 +427,10 @@ define(function (require, exports, module) {
             deferredHints = null;
         }
 
+        if (callMoveUpEvent) {
+            return hintList.callMoveUp(callMoveUpEvent);
+        }
+
         var response = sessionProvider.getHints(lastChar);
         lastChar = null;
 
@@ -438,18 +442,12 @@ define(function (require, exports, module) {
             if (response === true) {
                 var previousEditor = sessionEditor;
 
-                if (!callMoveUpEvent) {
-                    _endSession();
-                    _beginSession(previousEditor);
-                }
+                _endSession();
+                _beginSession(previousEditor);
             } else if (response.hasOwnProperty("hints")) { // a synchronous response
                 if (hintList.isOpen()) {
                     // the session is open
-                    if (callMoveUpEvent) {
-                        hintList.callMoveUp(callMoveUpEvent);
-                    } else {
-                        hintList.update(response);
-                    }
+                    hintList.update(response);
                 } else {
                     hintList.open(response);
                 }
@@ -466,11 +464,7 @@ define(function (require, exports, module) {
 
                     if (hintList.isOpen()) {
                         // the session is open
-                        if (callMoveUpEvent) {
-                            hintList.callMoveUp(callMoveUpEvent);
-                        } else {
-                            hintList.update(response);
-                        }
+                        hintList.update(response);
                     } else {
                         hintList.open(hints);
                     }
@@ -532,31 +526,6 @@ define(function (require, exports, module) {
             lastChar = null;
         }
     };
-
-    /**
-     * Explicitly start a new session. If we have an existing session,
-     * then close the current one and restart a new one.
-     * @param {Editor} editor
-     */
-    function _startNewSession(editor) {
-
-        if (isOpen()) {
-            return;
-        }
-
-        if (!editor) {
-            editor = EditorManager.getFocusedEditor();
-        }
-        if (editor) {
-            lastChar = null;
-            if (_inSession(editor)) {
-                _endSession();
-            }
-
-            // Begin a new explicit session
-            _beginSession(editor);
-        }
-    }
 
     /**
      * Handles keys related to displaying, searching, and navigating the hint list.
@@ -687,6 +656,30 @@ define(function (require, exports, module) {
      */
     function isOpen() {
         return (hintList && hintList.isOpen());
+    }
+
+    /**
+     * Explicitly start a new session. If we have an existing session,
+     * then close the current one and restart a new one.
+     * @param {Editor} editor
+     */
+    function _startNewSession(editor) {
+        if (isOpen()) {
+            return;
+        }
+
+        if (!editor) {
+            editor = EditorManager.getFocusedEditor();
+        }
+        if (editor) {
+            lastChar = null;
+            if (_inSession(editor)) {
+                _endSession();
+            }
+
+            // Begin a new explicit session
+            _beginSession(editor);
+        }
     }
 
     /**
