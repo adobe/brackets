@@ -420,7 +420,7 @@ define(function (require, exports, module) {
      */
     function _updateHintList(callMoveUpEvent) {
 
-        var callMoveUpEvent = typeof callMoveUpEvent === "undefined" ? false : callMoveUpEvent;
+        callMoveUpEvent = typeof callMoveUpEvent === "undefined" ? false : callMoveUpEvent;
 
         if (deferredHints) {
             deferredHints.reject();
