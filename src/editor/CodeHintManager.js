@@ -464,7 +464,7 @@ define(function (require, exports, module) {
 
                     if (hintList.isOpen()) {
                         // the session is open
-                        hintList.update(response);
+                        hintList.update(hints);
                     } else {
                         hintList.open(hints);
                     }
