@@ -34,19 +34,20 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var CommandManager      = require("command/CommandManager"),
-        Commands            = require("command/Commands"),
-        MainViewManager     = require("view/MainViewManager"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        Editor              = require("editor/Editor"),
-        EditorManager       = require("editor/EditorManager"),
-        FindBar             = require("search/FindBar").FindBar,
-        FindUtils           = require("search/FindUtils"),
-        FindInFilesUI       = require("search/FindInFilesUI"),
-        ScrollTrackMarkers  = require("search/ScrollTrackMarkers"),
-        _                   = require("thirdparty/lodash"),
-        CodeMirror          = require("thirdparty/CodeMirror/lib/codemirror");
+    var CommandManager       = require("command/CommandManager"),
+        Commands             = require("command/Commands"),
+        MainViewManager      = require("view/MainViewManager"),
+        Strings              = require("strings"),
+        StringUtils          = require("utils/StringUtils"),
+        Editor               = require("editor/Editor"),
+        EditorManager        = require("editor/EditorManager"),
+        FindBar              = require("search/FindBar").FindBar,
+        FindUtils            = require("search/FindUtils"),
+        FindInFilesUI        = require("search/FindInFilesUI"),
+        ScrollTrackMarkers   = require("search/ScrollTrackMarkers"),
+        BracketsSearchCursor = require("search/BracketsSearchCursor"),
+        _                    = require("thirdparty/lodash"),
+        CodeMirror           = require("thirdparty/CodeMirror/lib/codemirror");
 
     /**
      * Maximum file size to search within (in chars)
@@ -86,7 +87,7 @@ define(function (require, exports, module) {
 
     function getSearchCursor(cm, state, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
-        return cm.getSearchCursor(state.parsedQuery, pos, !state.queryInfo.isCaseSensitive);
+        return BracketsSearchCursor.createSearchCursor(cm.getDoc(), state, pos);
     }
 
     function parseQuery(queryInfo) {
@@ -528,12 +529,10 @@ define(function (require, exports, module) {
             // Find *all* matches, searching from start of document
             // (Except on huge documents, where this is too expensive)
             var cursor = getSearchCursor(cm, state);
-            if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
-                // FUTURE: if last query was prefix of this one, could optimize by filtering last result set
-                state.resultSet = [];
-                while (cursor.findNext()) {
-                    state.resultSet.push(cursor.pos);  // pos is unique obj per search result
-                }
+
+            // if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
+            if (cursor.getDocCharacterCount() <= 10000000) {
+                state.resultSet = cursor.executeSearch();
 
                 // Highlight all matches if there aren't too many
                 if (state.resultSet.length <= FIND_HIGHLIGHT_MAX) {
@@ -588,8 +587,10 @@ define(function (require, exports, module) {
             // is in the middle of typing, not navigating explicitly; viewport jumping would be distracting.
             findNext(editor, false, true, state.searchStartPos);
         } else if (!initial) {
-            // Blank or invalid query: just jump back to initial pos
-            editor._codeMirror.setCursor(state.searchStartPos);
+            if (state.searchStartPos)
+                editor._codeMirror.setCursor(state.searchStartPos);
+            else
+                console.log("start position is null");
         }
     }
 
@@ -656,10 +657,12 @@ define(function (require, exports, module) {
     function doSearch(editor, searchBackwards) {
         var state = getSearchState(editor._codeMirror);
         if (state.parsedQuery) {
+            // TODO need to update search cursor document
+            // can we determine if doc changed before we update?
             findNext(editor, searchBackwards);
             return;
         }
-
+        state.searchCursor = null;
         openSearchBar(editor, false);
     }
 
@@ -686,7 +689,7 @@ define(function (require, exports, module) {
             FindInFilesUI.searchAndShowResults(state.queryInfo, editor.document.file, null, replaceText);
         } else {
             cm.replaceSelection(state.queryInfo.isRegexp ? FindUtils.parseDollars(replaceText, state.lastMatch) : replaceText);
-
+            state.searchCursor = null;
             updateResultSet(editor);  // we updated the text, so result count & tickmarks must be refreshed
 
             findNext(editor);
