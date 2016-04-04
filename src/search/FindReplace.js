@@ -87,7 +87,7 @@ define(function (require, exports, module) {
 
     function getSearchCursor(cm, state, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
-        return BracketsSearchCursor.createSearchCursor(cm.getDoc(), state, pos);
+        return BracketsSearchCursor.createSearchCursor(cm.getDoc(), state, pos, !state.queryInfo.isCaseSensitive);
     }
 
     function parseQuery(queryInfo) {

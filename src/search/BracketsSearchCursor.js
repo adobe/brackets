@@ -26,19 +26,36 @@
 
 define(function (require, exports, module) {
     "use strict";
-    var CodeMirror = require("thirdparty/CodeMirror/lib/codemirror");
+    var CodeMirror  = require("thirdparty/CodeMirror/lib/codemirror");
+    var StringUtils = require("utils/StringUtils");
 
     var Pos = CodeMirror.Pos;
+    // store document text and index
+    // key: doc
+    // value: {text, index}
+    var documentMap = new WeakMap();
 
-    function createLineCharacterCountIndex(text) {
+    function needToIndexDocument(doc) {
+        var docInfo = documentMap.get(doc);
+
+        // TODO: fails to properly test when using undo.  lastModTime does not change
+        if ((docInfo) && (docInfo.lastModTime === doc.history.lastModTime)) {
+            // document has not changed since we indexed
+            return false;
+        }
+        return true;
+    }
+
+    function createLineCharacterCountIndex(text, lineSeparator) {
         console.time('createLineCharacterCountIndex');
         // splitting is actually faster than using doc.getLine()
-        var lines = text.split('\n');
+        var lines = text.split(lineSeparator);
+        var lineSeparatorLength = lineSeparator.length;
         var lineCharacterCountIndex = [];
         var lineCount = lines.length;
         var totalCharacterCount = 0;
         for (var lineNumber = 0; lineNumber < lineCount; lineNumber++) {
-            totalCharacterCount += lines[lineNumber].length + 1;  // adding 1 to match the line delimeter that is added when we do doc.getValue()
+            totalCharacterCount += lines[lineNumber].length + lineSeparatorLength;
             lineCharacterCountIndex[lineNumber] = totalCharacterCount;
         }
         console.timeEnd('createLineCharacterCountIndex');
@@ -63,19 +80,26 @@ define(function (require, exports, module) {
     }
 
     SearchCursor.prototype = {
-        initialize: function(query, pos, doc) {
+        initialize: function(query, pos, doc, ignoreCase) {
             this.atOccurrence = false;
             this.resultArray = [];
             this.currentMatchIndex = 0;
+            this.setIgnoreCase(ignoreCase);
             this.setDoc(doc);
             this.setQuery(query);
             this.setPos(pos);
         },
+        setIgnoreCase: function(ignoreCase) {
+            this.ignoreCase = ignoreCase;
+        },
         setQuery: function(query) {
-            if (typeof query != "string") {
-                if (!query.global) query = new RegExp(query.source, query.ignoreCase ? "igm" : "gm");
-                this.query = query;
+            if (typeof query === "string") {
+                // transform plain text query into a regular expression
+                this.query = new RegExp(StringUtils.regexEscape(query), this.ignoreCase ? "igm" : "gm");
+            } else {
+                this.query = new RegExp(query.source, this.ignoreCase ? "igm" : "gm");
             }
+
         },
         setPos: function(pos) {
             pos = pos ? this.doc.clipPos(pos) : Pos(0, 0);
@@ -85,15 +109,19 @@ define(function (require, exports, module) {
             };
         },
         setDoc: function(doc) {
+            console.time('setDoc');
             this.doc = doc;
-            console.time('getValue');
-            this.docText = doc.getValue();
-            console.timeEnd('getValue');
-            this.docLineIndex = createLineCharacterCountIndex(this.docText);
+            if (needToIndexDocument(doc)) {
+                var docText = doc.getValue();
+                var docLineIndex = createLineCharacterCountIndex(docText, doc.lineSeparator());
+                documentMap.set(doc, {text: docText, index: docLineIndex, lastModTime: doc.history.lastModTime});
+            }
+            console.timeEnd('setDoc');
         },
 
         getDocCharacterCount: function(){
-            return this.docLineIndex[this.docLineIndex.length - 1];
+            var docLineIndex = documentMap.get(this.doc).index;
+            return docLineIndex[docLineIndex.length - 1];
         },
         findNext: function () {
             if ( this.currentMatchIndex < this.resultArray.length ) {
@@ -123,20 +151,21 @@ define(function (require, exports, module) {
             var matchArray = reverse ? this.findPrevious() : this.findNext() ;
             this.pos = matchArray;
             this.atOccurrence = !(!matchArray);
-            console.log(this.atOccurrence, this.pos, this.currentMatchIndex);
             return matchArray;
         },
 
         executeSearch: function () {
+            console.time("exec");
             this.resultArray = [];
             this.currentMatchIndex = -1;
             var matchArray;
-            console.time("exec");
             var lastMatchedLine = 0;
             var index = 0;
-            while ((matchArray = this.query.exec(this.docText)) != null) {
-                var fromPos = createPosFromIndex(this.docLineIndex, lastMatchedLine, matchArray.index);
-                var toPos   = createPosFromIndex(this.docLineIndex, fromPos.line,    this.query.lastIndex);
+            var docText = documentMap.get(this.doc).text;
+            var docLineIndex = documentMap.get(this.doc).index;
+            while ((matchArray = this.query.exec(docText)) != null) {
+                var fromPos = createPosFromIndex(docLineIndex, lastMatchedLine, matchArray.index);
+                var toPos   = createPosFromIndex(docLineIndex, fromPos.line,    this.query.lastIndex);
                 lastMatchedLine = toPos.line;
                 this.resultArray[index++] = {from: fromPos, to: toPos};
                 // This is to stop infinite loop.  Some regular expressions can return 0 length match
@@ -157,15 +186,16 @@ define(function (require, exports, module) {
         }
     };
 
-    function createSearchCursor(doc, searchState, pos) {
+    function createSearchCursor(doc, searchState, pos, ignoreCase) {
         if (searchState.searchCursor) {
+            searchState.searchCursor.setIgnoreCase(ignoreCase);
             searchState.searchCursor.setQuery(searchState.parsedQuery);
             searchState.searchCursor.setPos(pos);
             return searchState.searchCursor;
         } else {
             console.log("creating new search cursor");
             searchState.searchCursor = new SearchCursor();
-            searchState.searchCursor.initialize(searchState.parsedQuery, pos, doc);
+            searchState.searchCursor.initialize(searchState.parsedQuery, pos, doc, ignoreCase);
             return searchState.searchCursor;
         }
     }
