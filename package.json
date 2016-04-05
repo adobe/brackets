@@ -43,7 +43,6 @@
         "load-grunt-tasks": "0.2.0",
         "q": "0.9.2",
         "semver": "^4.1.0",
-        "jshint": "2.1.4",
         "xmldoc": "^0.1.2",
         "grunt-cleanempty": "1.0.3"
     },
@@ -56,6 +55,7 @@
         "properties-parser": "0.3.1",
         "request": "^2.69.0",
         "requirejs": "2.1.22",
+        "sw-precache": "^3.1.1",
         "tar-fs": "^1.11.1"
     },
     "scripts": {
