@@ -32,14 +32,15 @@ define(function (require, exports, module) {
     var Pos = CodeMirror.Pos;
     // store document text and index
     // key: doc
-    // value: {text, index}
+    // value: {text, index, generation}
     var documentMap = new WeakMap();
 
     function needToIndexDocument(doc) {
         var docInfo = documentMap.get(doc);
 
-        // TODO: fails to properly test when using undo.  lastModTime does not change
-        if ((docInfo) && (docInfo.lastModTime === doc.history.lastModTime)) {
+        // lastmodtime is not changed when undo is invoked.
+        // so we will use the generation count to determine if the document has changed
+        if ((docInfo) && (docInfo.generation === doc.history.generation)) {
             // document has not changed since we indexed
             return false;
         }
@@ -114,7 +115,7 @@ define(function (require, exports, module) {
             if (needToIndexDocument(doc)) {
                 var docText = doc.getValue();
                 var docLineIndex = createLineCharacterCountIndex(docText, doc.lineSeparator());
-                documentMap.set(doc, {text: docText, index: docLineIndex, lastModTime: doc.history.lastModTime});
+                documentMap.set(doc, {text: docText, index: docLineIndex, generation: doc.history.generation});
             }
             console.timeEnd('setDoc');
         },
