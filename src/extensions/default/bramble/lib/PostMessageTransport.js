@@ -201,10 +201,31 @@ define(function (require, exports, module) {
     // URL of document being rewritten/launched (if any)
     var _pendingReloadUrl;
 
-    function reload() {
+    // Whether or not to allow reloads in the general case (true by default)
+    var _autoUpdate = true;
+
+    function setAutoUpdate(value) {
+        _autoUpdate = value;
+
+        // Force a reload if we switch back to auto-updates
+        if(_autoUpdate) {
+            reload(true);
+        }
+    }
+
+    /**
+     * Reload the LiveDev preview if not auto-updates aren't disabled.
+     * If force=true, we ignore the current state of auto-updates and do it.
+     */
+    function reload(force) {
         var launcher = Launcher.getCurrentInstance();
         var liveDoc = LiveDevMultiBrowser._getCurrentLiveDoc();
         var url;
+
+        // If auto-updates are disabled, and force wasn't passed, bail.
+        if(!_autoUpdate && !force) {
+            return;
+        }
 
         // Don't go any further if we don't have a live doc yet (nothing to reload)
         if(!liveDoc) {
@@ -226,6 +247,7 @@ define(function (require, exports, module) {
 
     // Exports
     module.exports.getRemoteScript = getRemoteScript;
+    module.exports.setAutoUpdate   = setAutoUpdate;
     module.exports.setIframe       = setIframe;
     module.exports.start           = start;
     module.exports.send            = send;
