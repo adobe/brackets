@@ -76,6 +76,20 @@ define(function (require, exports, module) {
         this.resultSet = [];
         this.matchIndex = -1;
         this.markedCurrent = null;
+        this.searchCursor = null;
+    }
+    SearchState.prototype.getSearchCursor = function getSearchCursor(cm, pos) {
+        // Heuristic: if the query string is all lowercase, do a case insensitive search.
+        if (this.searchCursor) {
+            this.searchCursor.setDoc(cm.getDoc());
+            this.searchCursor.setIgnoreCase(!this.queryInfo.isCaseSensitive);
+            this.searchCursor.setQuery(this.parsedQuery);
+            this.searchCursor.setPos(pos);
+
+            return this.searchCursor;
+        }
+        this.searchCursor = BracketsSearchCursor.createSearchCursor(cm.getDoc(), this.parsedQuery, pos, !this.queryInfo.isCaseSensitive);
+        return this.searchCursor;
     }
 
     function getSearchState(cm) {
@@ -83,11 +97,6 @@ define(function (require, exports, module) {
             cm._searchState = new SearchState();
         }
         return cm._searchState;
-    }
-
-    function getSearchCursor(cm, state, pos) {
-        // Heuristic: if the query string is all lowercase, do a case insensitive search.
-        return BracketsSearchCursor.createSearchCursor(cm.getDoc(), state, pos, !state.queryInfo.isCaseSensitive);
     }
 
     function parseQuery(queryInfo) {
@@ -189,12 +198,12 @@ define(function (require, exports, module) {
     function _getNextMatch(editor, searchBackwards, pos, wrap) {
         var cm = editor._codeMirror;
         var state = getSearchState(cm);
-        var cursor = getSearchCursor(cm, state, pos || editor.getCursorPos(false, searchBackwards ? "start" : "end"));
+        var cursor = state.getSearchCursor(cm, pos || editor.getCursorPos(false, searchBackwards ? "start" : "end"));
 
         state.lastMatch = cursor.find(searchBackwards);
         if (!state.lastMatch && wrap !== false) {
             // If no result found before hitting edge of file, try wrapping around
-            cursor = getSearchCursor(cm, state, searchBackwards ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
+            cursor = state.getSearchCursor(cm, searchBackwards ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
             state.lastMatch = cursor.find(searchBackwards);
         }
         if (!state.lastMatch) {
@@ -203,6 +212,7 @@ define(function (require, exports, module) {
             return null;
         }
 
+        // TODO: check this might always be same as lastMatch
         return {start: cursor.from(), end: cursor.to()};
     }
 
@@ -528,7 +538,7 @@ define(function (require, exports, module) {
 
             // Find *all* matches, searching from start of document
             // (Except on huge documents, where this is too expensive)
-            var cursor = getSearchCursor(cm, state);
+            var cursor = state.getSearchCursor(cm);
 
             // if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
             if (cursor.getDocCharacterCount() <= 10000000) {
@@ -662,7 +672,7 @@ define(function (require, exports, module) {
             findNext(editor, searchBackwards);
             return;
         }
-        state.searchCursor = null;
+        //state.searchCursor = null;
         openSearchBar(editor, false);
     }
 
@@ -689,7 +699,7 @@ define(function (require, exports, module) {
             FindInFilesUI.searchAndShowResults(state.queryInfo, editor.document.file, null, replaceText);
         } else {
             cm.replaceSelection(state.queryInfo.isRegexp ? FindUtils.parseDollars(replaceText, state.lastMatch) : replaceText);
-            state.searchCursor = null;
+            //state.searchCursor = null;
             updateResultSet(editor);  // we updated the text, so result count & tickmarks must be refreshed
 
             findNext(editor);
