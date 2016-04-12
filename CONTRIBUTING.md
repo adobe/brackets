@@ -121,3 +121,12 @@ code contributions, reviewing pull requests, and providing feedback and suggesti
 direction of the project.
 
 Even if you're not a committer, you're still welcome to give feedback on any pull request!
+
+## Adding New Files
+
+When run in production (i.e., the resulting `dist/` dir from running `grunt build-browser-compressed`),
+Bramble uses a Service Worker to cache and serve the app offline.  In order to do this, the
+`swPrecache` grunt task generates a Service Worker ready to cache and serve all the necessary
+files.  This file list is generated statically at build time based on the contents of the
+`sw-cache-file-list.json` file.  If you add new files (e.g., a new default extension), make sure
+you add URL entries to this cache list.
