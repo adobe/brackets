@@ -69,7 +69,7 @@ define(function (require, exports, module) {
         case "BRAMBLE_RELOAD":
             // If JS is disabled, re-enable it just for this next reload.
             HTMLRewriter.forceScriptsOnce();
-            PostMessageTransport.reload();
+            PostMessageTransport.reload(true);
             break;
         case "BRAMBLE_MOBILE_PREVIEW":
             UI.showMobileView();
@@ -82,6 +82,12 @@ define(function (require, exports, module) {
             break;
         case "BRAMBLE_DISABLE_FULLSCREEN_PREVIEW":
             UI.disableFullscreenPreview();
+            break;
+        case "BRAMBLE_ENABLE_AUTO_UPDATE":
+            PostMessageTransport.setAutoUpdate(true);
+            break;
+        case "BRAMBLE_DISABLE_AUTO_UPDATE":
+            PostMessageTransport.setAutoUpdate(false);
             break;
         case "BRAMBLE_ENABLE_SCRIPTS":
             HTMLRewriter.enableScripts();

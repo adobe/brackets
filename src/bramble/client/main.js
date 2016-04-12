@@ -814,6 +814,14 @@ define([
         this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DISABLE_FULLSCREEN_PREVIEW"}, callback);
     };
 
+    BrambleProxy.prototype.enableAutoUpdate = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_ENABLE_AUTO_UPDATE"}, callback);
+    };
+
+    BrambleProxy.prototype.disableAutoUpdate = function(callback) {
+        this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_DISABLE_AUTO_UPDATE"}, callback);
+    };
+
     BrambleProxy.prototype.enableJavaScript = function(callback) {
         this._executeRemoteCommand({commandCategory: "bramble", command: "BRAMBLE_ENABLE_SCRIPTS"}, callback);
     };
