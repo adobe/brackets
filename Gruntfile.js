@@ -517,7 +517,7 @@ module.exports = function (grunt) {
         exec: {
             localize: 'node scripts/properties2js',
             'localize-dist': 'node scripts/properties2js dist',
-            'clean-nls': 'git checkout -- src/nls'
+            'clean-nls': 'rm -fr src/nls && git checkout -- src/nls'
         }
     });
 
