@@ -17,7 +17,7 @@
         "dist/thirdparty/CodeMirror/mode/javascript/javascript.js",
         "dist/thirdparty/CodeMirror/mode/xml/xml.js",
         "dist/thirdparty/CodeMirror/mode/markdown/markdown.js",
-        "dist/thirdparty/CodeMirror/mode/meta/meta.js",
+        "dist/thirdparty/CodeMirror/mode/meta.js",
         "dist/thirdparty/CodeMirror/addon/fold/brace-fold.js",
         "dist/thirdparty/CodeMirror/addon/fold/comment-fold.js",
         "dist/thirdparty/CodeMirror/addon/fold/markdown-fold.js",
