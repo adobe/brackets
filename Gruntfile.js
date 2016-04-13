@@ -592,7 +592,7 @@ module.exports = function (grunt) {
         }());
 
         var config = {
-            cacheId: 'bramble-cache::' + Date.now(),
+            cacheId: 'bramble',
             logger: grunt.log.writeln,
             staticFileGlobs: files,
             stripPrefix: 'dist/',
