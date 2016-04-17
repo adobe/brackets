@@ -65,6 +65,7 @@ The following languages have been contributed by the Brackets community:
 * Indonesia (id)
 * Italian (it)
 * Korean (ko)
+* Latvian (lv)
 * Norwegian (nb)
 * Dutch (nl)
 * Polish (pl)

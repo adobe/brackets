@@ -47,6 +47,7 @@ define({
     "LOCALE_IT"                                 : "italiano",
     "LOCALE_JA"                                 : "日本語",
     "LOCALE_KO"                                 : "한국어",
+    "LOCALE_LV"                                 : "latviešu",
     "LOCALE_NB"                                 : "norsk",
     "LOCALE_NL"                                 : "Nederlands",
     "LOCALE_PL"                                 : "polski",
