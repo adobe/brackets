@@ -5,8 +5,7 @@
 
     function handleClick(e) {
         var anchor = e.currentTarget;
-        var url = anchor.href;
-        var href = anchor.getAttribute("href");
+        var url = anchor.getAttribute("href");
         var element;
 
         // For local paths vs. absolute URLs, try to open the right file.
@@ -19,12 +18,12 @@
         var pathNav = !(/\:?\/\//.test(url));
         // `fragmentId` handles the special case of fragment ids in the
         // same html page in preview mode (not tutorial mode)
-        var fragmentId = /^\s*#/.test(href);
+        var fragmentId = /^\s*#/.test(url);
 
         if(pathNav && window._Brackets_LiveDev_Transport) {
             window._Brackets_LiveDev_Transport.send("bramble-navigate:" + url);
         } else if(fragmentId) {
-            element = document.querySelector(href) || document.getElementsByName(href.slice(1));
+            element = document.querySelector(url) || document.getElementsByName(url.slice(1));
             if(element) {
                 element = element[0] || element;
                 element.scrollIntoView(true);
