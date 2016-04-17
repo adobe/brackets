@@ -71,7 +71,7 @@ define(function (require, exports, module) {
             if (lineCharacterCountIndexArray[lineNumber] > indexWithinDoc) {
                 var previousLineEndingCharacterIndex = lineNumber > 0 ? lineCharacterCountIndexArray[lineNumber - 1] : 0;
                 // create a Pos with the line number and the character offset relative to the beginning of this line
-                return Pos(lineNumber, indexWithinDoc - previousLineEndingCharacterIndex  );
+                return {line: lineNumber, ch: indexWithinDoc - previousLineEndingCharacterIndex };
             }
         }
     }
@@ -87,6 +87,9 @@ define(function (require, exports, module) {
             var toPos   = createPosFromIndex(docLineIndex, fromPos.line,    query.lastIndex);
             lastMatchedLine = toPos.line;
             resultArray[index++] = {from: fromPos, to: toPos};
+            // maximum performance
+            //resultArray[index++] = matchArray.index;
+            //resultArray[index++] = query.lastIndex;
             // This is to stop infinite loop.  Some regular expressions can return 0 length match
             // which will not advance the lastindex property.  Ex ".*"
             if ( matchArray.index === query.lastIndex ) query.lastIndex++;
@@ -112,7 +115,7 @@ define(function (require, exports, module) {
         }
     }
 
-    function findNextResultIndexNearPos(resultArray, pos, reverse, fnCompare) {
+    function findResultIndexNearPos(resultArray, pos, reverse, fnCompare) {
         console.time("findNext");
 
         var lowerBound = 0;
@@ -133,13 +136,16 @@ define(function (require, exports, module) {
             }
         }
         console.timeEnd("findNext");
-        // no exact match
-        if ( compare === -1 ) {
-            if (!reverse)
-                return searchIndex + 1;
-            else
-                return searchIndex + 2;
-        }
+        // no exact match, we are at the lower bound
+        // if going forward return the next index
+        if (( compare === -1 ) && (!reverse))
+            return searchIndex + 1;
+        // no exact match, we are at the upper bound
+        // if going reverse return the next lower index
+        if (( compare === 1 ) && (reverse))
+            return searchIndex - 1;
+
+        // no exact match, we are already at the closest match in the search direction
         return searchIndex;
     }
 
@@ -230,7 +236,7 @@ define(function (require, exports, module) {
         find: function(reverse) {
             this.updateResultsIfNeeded();
             if (this.currentMatchIndex === -1) {
-                this.currentMatchIndex = findNextResultIndexNearPos(this.resultArray, this.currentMatch, reverse, compareMatchResultToPos) - 1;
+                this.currentMatchIndex = findResultIndexNearPos(this.resultArray, this.currentMatch, reverse, compareMatchResultToPos) - 1;
             }
             var matchArray = reverse ? this.findPrevious() : this.findNext() ;
             if (matchArray) {
