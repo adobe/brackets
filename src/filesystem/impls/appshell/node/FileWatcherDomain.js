@@ -110,8 +110,8 @@ function watchPath(path) {
                 return;
             }
 
-            console.log([parent, type, name]);
-            _domainManager.emitEvent("fileWatcher", "change", [parent, type, name]);
+            console.log([parent, type, name, stats]);
+            _domainManager.emitEvent("fileWatcher", "change", [parent, type, name, stats]);
         });
 
         _watcherMap[path] = watcher;
@@ -184,7 +184,8 @@ function init(domainManager) {
         [
             {name: "path", type: "string"},
             {name: "event", type: "string"},
-            {name: "filename", type: "string"}
+            {name: "filename", type: "string"},
+            {name: "stats", type: "object"}
         ]
     );
 

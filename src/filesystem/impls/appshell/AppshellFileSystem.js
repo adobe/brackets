@@ -78,10 +78,12 @@ define(function (require, exports, module) {
      * Enqueue a file change event for eventual reporting back to the FileSystem.
      *
      * @param {string} changedPath The path that was changed
-     * @param {boolean} needsStats Whether or not the eventual change event should include stats
+     * @param {object} stats Stats coming from the underlying watcher,
+     *                       iff false the eventual change event should not include stats
      * @private
      */
-    function _enqueueChange(changedPath, needsStats) {
+    function _enqueueChange(changedPath, stats) {
+        var needsStats = stats !== false;
         _pendingChanges[changedPath] = _pendingChanges[changedPath] || needsStats;
 
         if (!_changeTimeout) {
@@ -90,14 +92,7 @@ define(function (require, exports, module) {
                     Object.keys(_pendingChanges).forEach(function (path) {
                         var needsStats = _pendingChanges[path];
                         if (needsStats) {
-                            exports.stat(path, function (err, stats) {
-                                if (err) {
-                                    // warning has been removed due to spamming the console - see #7332
-                                    // console.warn("Unable to stat changed path: ", path, err);
-                                    return;
-                                }
-                                _changeCallback(path, stats);
-                            });
+                            _changeCallback(path, stats);
                         } else {
                             _changeCallback(path);
                         }
@@ -119,15 +114,17 @@ define(function (require, exports, module) {
      * @param {string=} filename The name of the file that changed.
      * @private
      */
-    function _fileWatcherChange(evt, path, event, filename) {
+    function _fileWatcherChange(evt, path, event, filename, stats) {
         var change;
+
+        stats.mtime = new Date(stats.mtime);
 
         if (event === "change") {
             // Only register change events if filename is passed
             if (filename) {
                 // an existing file was modified; stats are needed
                 change = path + filename;
-                _enqueueChange(change, true);
+                _enqueueChange(change, stats);
             }
         } else if (event === "rename") {
             // a new file was created; no stats are needed
