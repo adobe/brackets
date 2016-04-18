@@ -17,7 +17,8 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
+ * DEALINGS IN THE
+ SOFTWARE.
  *
  */
 
@@ -76,36 +77,19 @@ define(function (require, exports, module) {
         }
     }
 
-    function createSearchResults(docText, docLineIndex, query) {
-        console.time("exec");
-        var resultArray = [];
-        var matchArray;
-        var lastMatchedLine = 0;
-        var index = 0;
-        while ((matchArray = query.exec(docText)) != null) {
-            var fromPos = createPosFromIndex(docLineIndex, lastMatchedLine, matchArray.index);
-            var toPos   = createPosFromIndex(docLineIndex, fromPos.line,    query.lastIndex);
-            lastMatchedLine = toPos.line;
-            resultArray[index++] = {from: fromPos, to: toPos};
-            // maximum performance
-            //resultArray[index++] = matchArray.index;
-            //resultArray[index++] = query.lastIndex;
-            // This is to stop infinite loop.  Some regular expressions can return 0 length match
-            // which will not advance the lastindex property.  Ex ".*"
-            if ( matchArray.index === query.lastIndex ) query.lastIndex++;
-        };
-        console.timeEnd("exec");
-        return resultArray;
+    function indexFromPos(lineCharacterCountIndexArray, pos) {
+        var indexAtStartOfLine = lineCharacterCountIndexArray[pos.from.line];
+        return indexAtStartOfLine + pos.from.ch;
     }
 
+    function createSearchResult(docLineIndex, indexStart, indexEnd) {
+        var fromPos = createPosFromIndex(docLineIndex, 0, indexStart);
+        var toPos   = createPosFromIndex(docLineIndex, fromPos.line,    indexEnd);
+            //lastMatchedLine = toPos.line;
+        return {from: fromPos, to: toPos};
+    }
 
-    function compareMatchResultToPos(matchItem, pos) {
-        var matchIndex = matchItem.from.line;
-        var posIndex = pos.from.line;
-        if ( matchIndex === posIndex ) {
-            matchIndex += matchItem.from.ch;
-            posIndex += pos.from.ch;
-        }
+    function compareMatchResultToPos(matchIndex, posIndex) {
         if (matchIndex === posIndex) {
             return 0;
         } else if (matchIndex < posIndex) {
@@ -115,15 +99,15 @@ define(function (require, exports, module) {
         }
     }
 
-    function findResultIndexNearPos(resultArray, pos, reverse, fnCompare) {
+    function findResultIndexNearPos(regexIndexer, pos, reverse, fnCompare) {
         console.time("findNext");
 
         var lowerBound = 0;
-        var upperBound = resultArray.length - 1;
+        var upperBound = regexIndexer.getItemCount() - 1;
         var searchIndex;
         while(lowerBound <= upperBound) {
             searchIndex = Math.floor((upperBound + lowerBound) / 2);
-            var compare = fnCompare(resultArray[searchIndex], pos);
+            var compare = fnCompare(regexIndexer.getMatchIndexStart(searchIndex), pos);
             if (compare === 0) {
                 console.timeEnd("findNext");
                 return searchIndex;
@@ -149,6 +133,90 @@ define(function (require, exports, module) {
         return searchIndex;
     }
 
+
+    function createIndexer(docText, docLineIndex, query) {
+        var resultArray = [];
+        var currentMatchIndex = 0;
+
+        function nextMatch() {
+            if ( currentMatchIndex < resultArray.length - 2 ) {
+                currentMatchIndex += 2;
+            } else {
+                currentMatchIndex = -2;
+                return false;
+            }
+            return createSearchResult(docLineIndex, resultArray[currentMatchIndex], resultArray[currentMatchIndex+1]);
+        }
+
+        function prevMatch() {
+            if ( currentMatchIndex > 1 ) {
+                currentMatchIndex -= 2;
+            } else {
+                currentMatchIndex = -2;
+                return false;
+            }
+            return createSearchResult(docLineIndex, resultArray[currentMatchIndex], resultArray[currentMatchIndex+1]);
+        }
+
+        function getItemByMatchNumber(matchNumber) {
+            matchNumber *=2;
+            return createSearchResult(docLineIndex, resultArray[matchNumber], resultArray[matchNumber+1]);
+        }
+
+        function getItemCount() {
+            return resultArray.length / 2;
+        }
+
+        function getCurrentMatch() {
+            if (currentMatchIndex > 0)
+                return createSearchResult(docLineIndex, resultArray[currentMatchIndex], resultArray[currentMatchIndex+1]);
+        }
+
+        function getMatchIndexStart(matchNumber) {
+            return resultArray[matchNumber * 2];
+        }
+
+        function getMatchIndexEnd(matchNumber) {
+            return resultArray[matchNumber * 2 + 1]
+        }
+
+        function setCurrentMatchNumber(number) {
+            currentMatchIndex = number * 2;
+        }
+
+        function getCurrentMatchNumber() {
+            return currentMatchIndex / 2;
+        }
+
+        function createSearchResults(docText, query) {
+            console.time("exec");
+            var matchArray;
+            var lastMatchedLine = 0;
+            var index = 0;
+            while ((matchArray = query.exec(docText)) != null) {
+                resultArray[index++] = matchArray.index;
+                resultArray[index++] = query.lastIndex;
+                // This is to stop infinite loop.  Some regular expressions can return 0 length match
+                // which will not advance the lastindex property.  Ex ".*"
+                if ( matchArray.index === query.lastIndex ) query.lastIndex++;
+            };
+            console.timeEnd("exec");
+            return resultArray;
+        }
+        createSearchResults(docText, query);
+        return {nextMatch:nextMatch,
+                prevMatch:prevMatch,
+                getItemByMatchNumber:getItemByMatchNumber,
+                getItemCount:getItemCount,
+                getCurrentMatch:getCurrentMatch,
+                setCurrentMatchNumber:setCurrentMatchNumber,
+                getMatchIndexStart:getMatchIndexStart,
+                getMatchIndexEnd:getMatchIndexEnd,
+                getCurentMatchNumber:getCurrentMatchNumber
+               }
+    }
+
+
     function SearchCursor() {
 
     }
@@ -156,8 +224,6 @@ define(function (require, exports, module) {
     SearchCursor.prototype = {
         initialize: function(query, pos, doc, ignoreCase) {
             this.atOccurrence = false;
-            this.resultArray = [];
-            this.currentMatchIndex = 0;
             this.setIgnoreCase(ignoreCase);
             this.setDoc(doc);
             this.setQuery(query);
@@ -203,27 +269,32 @@ define(function (require, exports, module) {
             var docLineIndex = documentMap.get(this.doc).index;
             return docLineIndex[docLineIndex.length - 1];
         },
+
+        getMatchCount: function() {
+            return this.regexIndexer.getItemCount();
+        },
+
+        getCurrentMatchIndex: function() {
+            return this.regexIndexer.getCurentMatchNumber();
+        },
+
         findNext: function() {
-            if ( this.currentMatchIndex < this.resultArray.length - 1 ) {
-                this.currentMatchIndex++;
-            } else {
+            var match = this.regexIndexer.nextMatch();
+            if ( !match ) {
                 this.atOccurrence = false;
                 this.currentMatch = Pos(this.doc.lineCount(), 0);
-                this.currentMatchIndex = -1;
                 return false;
             }
-            return this.resultArray[this.currentMatchIndex];
+            return match;
         },
         findPrevious: function() {
-            if ( this.currentMatchIndex > 0 ) {
-                this.currentMatchIndex--;
-            } else {
+            var match = this.regexIndexer.prevMatch();
+            if ( !match ) {
                 this.atOccurrence = false;
                 this.currentMatch = Pos(0,0);
-                this.currentMatchIndex = -1;
                 return false;
             }
-            return this.resultArray[this.currentMatchIndex];
+            return match;
         },
 
         from: function () {
@@ -235,8 +306,10 @@ define(function (require, exports, module) {
 
         find: function(reverse) {
             this.updateResultsIfNeeded();
-            if (this.currentMatchIndex === -1) {
-                this.currentMatchIndex = findResultIndexNearPos(this.resultArray, this.currentMatch, reverse, compareMatchResultToPos) - 1;
+            if (!this.regexIndexer.getCurrentMatch()) {
+                var docLineIndex = documentMap.get(this.doc).index;
+                var matchIndex = findResultIndexNearPos(this.regexIndexer, indexFromPos(docLineIndex, this.currentMatch), reverse, compareMatchResultToPos)-1;
+                this.regexIndexer.setCurrentMatchNumber(matchIndex);
             }
             var matchArray = reverse ? this.findPrevious() : this.findNext() ;
             if (matchArray) {
@@ -246,6 +319,14 @@ define(function (require, exports, module) {
             return matchArray;
         },
 
+        forEachResult: function(fnResult) {
+            var resultIndex = 0;
+            var length = this.regexIndexer.getItemCount();
+            for(resultIndex = 0; resultIndex < length; resultIndex++) {
+                fnResult(this.regexIndexer.getItemByMatchNumber(resultIndex));
+            }
+        },
+
         updateResultsIfNeeded: function() {
             if (!this.resultsCurrent) {
                 this.executeSearch();
@@ -253,12 +334,12 @@ define(function (require, exports, module) {
         },
 
         executeSearch: function () {
-            this.currentMatchIndex = -1;
+            this.currentMatchIndex = -2;
             var docText = documentMap.get(this.doc).text;
             var docLineIndex = documentMap.get(this.doc).index;
-            this.resultArray = createSearchResults(docText, docLineIndex, this.query);
+            this.regexIndexer = createIndexer(docText, docLineIndex, this.query);
             this.resultsCurrent = true;
-            return this.resultArray;
+            return this.getMatchCount();
         }
     };
 

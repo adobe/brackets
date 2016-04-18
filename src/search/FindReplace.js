@@ -159,25 +159,25 @@ define(function (require, exports, module) {
         }
 
         if (findBar) {
-            if (state.matchIndex === -1) {
-                state.matchIndex = _.findIndex(state.resultSet, matchRange);
-            } else {
-                state.matchIndex = searchBackwards ? state.matchIndex - 1 : state.matchIndex + 1;
-                // Adjust matchIndex for modulo wraparound
-                state.matchIndex = (state.matchIndex + state.resultSet.length) % state.resultSet.length;
-
-                // Confirm that we find the right matchIndex. If not, then search
-                // matchRange in the entire resultSet.
-                if (!_.isEqual(state.resultSet[state.matchIndex], matchRange)) {
-                    state.matchIndex = _.findIndex(state.resultSet, matchRange);
-                }
-            }
-
+//            if (state.matchIndex === -1) {
+//                state.matchIndex = _.findIndex(state.resultSet, matchRange);
+//            } else {
+//                state.matchIndex = searchBackwards ? state.matchIndex - 1 : state.matchIndex + 1;
+//                // Adjust matchIndex for modulo wraparound
+//                state.matchIndex = (state.matchIndex + state.searchCursor.getMatchCount()) % state.searchCursor.getMatchCount();
+//
+//                // Confirm that we find the right matchIndex. If not, then search
+//                // matchRange in the entire resultSet.
+//                if (!_.isEqual(state.resultSet[state.matchIndex], matchRange)) {
+//                    state.matchIndex = _.findIndex(state.resultSet, matchRange);
+//                }
+//            }
+            state.matchIndex = state.searchCursor.getCurrentMatchIndex();
             console.assert(state.matchIndex !== -1);
             if (state.matchIndex !== -1) {
                 // Convert to 1-based by adding one before showing the index.
                 findBar.showFindCount(StringUtils.format(Strings.FIND_MATCH_INDEX,
-                                                        state.matchIndex + 1, state.resultSet.length));
+                                                        state.matchIndex + 1, state.searchCursor.getMatchCount()));
             }
         }
     }
@@ -440,7 +440,7 @@ define(function (require, exports, module) {
             var nextMatch = _getNextMatch(editor, searchBackwards, pos);
             if (nextMatch) {
                 // Update match index indicators - only possible if we have resultSet saved (missing if FIND_MAX_FILE_SIZE threshold hit)
-                if (state.resultSet.length) {
+                if (state.searchCursor.getMatchCount()) {
                     _updateFindBarWithMatchInfo(state,
                                                 {from: nextMatch.start, to: nextMatch.end}, searchBackwards);
                     // Update current-tickmark indicator - only if highlighting enabled (disabled if FIND_HIGHLIGHT_MAX threshold hit)
@@ -542,33 +542,33 @@ define(function (require, exports, module) {
 
             // if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
             if (cursor.getDocCharacterCount() <= 10000000) {
-                state.resultSet = cursor.executeSearch();
+                var resultCount = cursor.executeSearch();
 
                 // Highlight all matches if there aren't too many
-                if (state.resultSet.length <= FIND_HIGHLIGHT_MAX) {
+                if (resultCount <= FIND_HIGHLIGHT_MAX) {
                     toggleHighlighting(editor, true);
 
-                    state.resultSet.forEach(function (result) {
+                    cursor.forEachResult(function (result) {
                         state.marked.push(cm.markText(result.from, result.to,
                              { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
                     });
-                    var scrollTrackPositions = state.resultSet.map(function (result) {
-                        return result.from;
-                    });
+//                    var scrollTrackPositions = state.resultSet.map(function (result) {
+//                        return result.from;
+//                    });
 
-                    ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
+                    //ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
                 }
 
                 // Here we only update find bar with no result. In the case of a match
                 // a findNext() call is guaranteed to be followed by this function call,
                 // and findNext() in turn calls _updateFindBarWithMatchInfo() to show the
                 // match index.
-                if (state.resultSet.length === 0) {
+                if (state.searchCursor.getMatchCount() === 0) {
                     findBar.showFindCount(Strings.FIND_NO_RESULTS);
                 }
 
-                state.foundAny = (state.resultSet.length > 0);
-                indicateHasMatches(state.resultSet.length);
+                state.foundAny = (state.searchCursor.getMatchCount() > 0);
+                indicateHasMatches(state.searchCursor.getMatchCount());
 
             } else {
                 // On huge documents, just look for first match & then stop
