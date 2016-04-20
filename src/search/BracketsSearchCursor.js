@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     "use strict";
     var CodeMirror  = require("thirdparty/CodeMirror/lib/codemirror");
     var StringUtils = require("utils/StringUtils");
+    var _           = require("thirdparty/lodash");
 
     var Pos = CodeMirror.Pos;
     // store document text and index
@@ -78,11 +79,18 @@ define(function (require, exports, module) {
     }
 
     function indexFromPos(lineCharacterCountIndexArray, pos) {
-        var indexAtStartOfLine = lineCharacterCountIndexArray[pos.from.line];
+        var indexAtStartOfLine = 0;
+        if ( pos.from.line > 0) {
+            // Start with the sum of the character count at the end of previous line
+            indexAtStartOfLine = lineCharacterCountIndexArray[pos.from.line - 1];
+        }
+        // Add the number of characters offset from the start and return
         return indexAtStartOfLine + pos.from.ch;
     }
 
     function createSearchResult(docLineIndex, indexStart, indexEnd) {
+        // TODO, need to fix the linear search start
+        // use binary search when possible
         var fromPos = createPosFromIndex(docLineIndex, 0, indexStart);
         var toPos   = createPosFromIndex(docLineIndex, fromPos.line,    indexEnd);
             //lastMatchedLine = toPos.line;
@@ -133,59 +141,83 @@ define(function (require, exports, module) {
         return searchIndex;
     }
 
+    function enhanceArray(array, groupSize) {
+        var currentGroupIndex = 0;
+        _.assign(array, {
+            nextGroupIndex: function() {
+                if ( currentGroupIndex < array.length - groupSize ) {
+                    currentGroupIndex += groupSize;
+                } else {
+                    currentGroupIndex = -groupSize;
+                    return false;
+                }
+                return currentGroupIndex;
+            },
+            prevGroupIndex: function() {
+                if ( currentGroupIndex - groupSize > -1 ) {
+                    currentGroupIndex -= groupSize;
+                } else {
+                    currentGroupIndex = -groupSize;
+                    return false;
+                }
+                return currentGroupIndex;
+            },
+            getGroupIndex: function(groupNumber) { return groupSize * groupNumber},
+            getGroupValue: function(groupNumber, valueIndexWithinGroup) {return array[(groupSize * groupNumber) + valueIndexWithinGroup]},
+            currentGroupIndex: function() { return currentGroupIndex },
+            currentGroupNumber: function() { return currentGroupIndex / groupSize},
+            setCurrentGroup: function(groupNumber) {currentGroupIndex = groupNumber * groupSize},
+            groupSize: function() { return groupSize },
+            itemCount: function() { return array.length / groupSize},
+
+        });
+        return array;
+    }
 
     function createIndexer(docText, docLineIndex, query) {
-        var resultArray = [];
-        var currentMatchIndex = 0;
+        var resultArray = enhanceArray([], 2);
 
         function nextMatch() {
-            if ( currentMatchIndex < resultArray.length - 2 ) {
-                currentMatchIndex += 2;
-            } else {
-                currentMatchIndex = -2;
-                return false;
-            }
+            var currentMatchIndex = resultArray.nextGroupIndex();
+            if (!currentMatchIndex) return false;
             return createSearchResult(docLineIndex, resultArray[currentMatchIndex], resultArray[currentMatchIndex+1]);
         }
 
         function prevMatch() {
-            if ( currentMatchIndex > 1 ) {
-                currentMatchIndex -= 2;
-            } else {
-                currentMatchIndex = -2;
-                return false;
-            }
+            var currentMatchIndex = resultArray.prevGroupIndex();
+            if (!currentMatchIndex) return false;
             return createSearchResult(docLineIndex, resultArray[currentMatchIndex], resultArray[currentMatchIndex+1]);
         }
 
         function getItemByMatchNumber(matchNumber) {
-            matchNumber *=2;
-            return createSearchResult(docLineIndex, resultArray[matchNumber], resultArray[matchNumber+1]);
+            var groupIndex = resultArray.getGroupIndex(matchNumber);
+            return createSearchResult(docLineIndex, resultArray[groupIndex], resultArray[groupIndex+1]);
         }
 
         function getItemCount() {
-            return resultArray.length / 2;
+            return resultArray.itemCount();
         }
 
         function getCurrentMatch() {
-            if (currentMatchIndex > 0)
+            var currentMatchIndex = resultArray.currentGroupIndex();
+            if (currentMatchIndex > -1)
                 return createSearchResult(docLineIndex, resultArray[currentMatchIndex], resultArray[currentMatchIndex+1]);
         }
 
         function getMatchIndexStart(matchNumber) {
-            return resultArray[matchNumber * 2];
+            return resultArray.getGroupValue(matchNumber, 0);
         }
 
         function getMatchIndexEnd(matchNumber) {
-            return resultArray[matchNumber * 2 + 1]
+            return resultArray.getGroupValue(matchNumber, 1);
         }
 
         function setCurrentMatchNumber(number) {
-            currentMatchIndex = number * 2;
+            resultArray.setCurrentGroup(number);
         }
 
         function getCurrentMatchNumber() {
-            return currentMatchIndex / 2;
+            return resultArray.currentGroupNumber();
         }
 
         function createSearchResults(docText, query) {
@@ -306,12 +338,18 @@ define(function (require, exports, module) {
 
         find: function(reverse) {
             this.updateResultsIfNeeded();
+            var matchArray;
             if (!this.regexIndexer.getCurrentMatch()) {
+                // There is currently no match position
+                // This is our first time or we hit the top or end of document using next or prev
                 var docLineIndex = documentMap.get(this.doc).index;
-                var matchIndex = findResultIndexNearPos(this.regexIndexer, indexFromPos(docLineIndex, this.currentMatch), reverse, compareMatchResultToPos)-1;
+                var matchIndex = findResultIndexNearPos(this.regexIndexer, indexFromPos(docLineIndex, this.currentMatch), reverse, compareMatchResultToPos);
                 this.regexIndexer.setCurrentMatchNumber(matchIndex);
+                matchArray = regexIndexer.getCurrentMatch();
             }
-            var matchArray = reverse ? this.findPrevious() : this.findNext() ;
+            if (!matchArray) {
+                matchArray = reverse ? this.findPrevious() : this.findNext() ;
+            }
             if (matchArray) {
                 this.currentMatch = matchArray;
                 this.atOccurrence = !(!matchArray);
@@ -319,10 +357,15 @@ define(function (require, exports, module) {
             return matchArray;
         },
 
+        forEachResultWithGroupArray: function() {
+            // TODO provide implementation that returns group arrays
+        },
+
         forEachResult: function(fnResult) {
             var resultIndex = 0;
             var length = this.regexIndexer.getItemCount();
             for(resultIndex = 0; resultIndex < length; resultIndex++) {
+                // TODO pass back only the indexes without a new object
                 fnResult(this.regexIndexer.getItemByMatchNumber(resultIndex));
             }
         },
