@@ -404,7 +404,7 @@ define({
     "NAVIGATE_MENU"                       : "Nawigacja",
     "CMD_QUICK_OPEN"                      : "Otwórz szybko",
     "CMD_GOTO_LINE"                       : "Przejdź do linii",
-    "CMD_GOTO_DEFINITION"                 : "Przejdź do definicji",
+    "CMD_GOTO_DEFINITION"                 : "Znajdź szybko definicję",
     "CMD_GOTO_FIRST_PROBLEM"              : "Przejdź do pierwszego błędu",
     "CMD_TOGGLE_QUICK_EDIT"               : "Szybka edycja",
     "CMD_TOGGLE_QUICK_DOCS"               : "Szybka dokumentacja",
