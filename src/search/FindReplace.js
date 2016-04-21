@@ -548,10 +548,12 @@ define(function (require, exports, module) {
                 if (resultCount <= FIND_HIGHLIGHT_MAX) {
                     toggleHighlighting(editor, true);
 
+                    console.time("highlight");
                     cursor.forEachResult(function (result) {
                         state.marked.push(cm.markText(result.from, result.to,
                              { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
                     });
+                    console.timeEnd("highlight");
 //                    var scrollTrackPositions = state.resultSet.map(function (result) {
 //                        return result.from;
 //                    });

@@ -142,7 +142,7 @@ define(function (require, exports, module) {
     }
 
     function enhanceArray(array, groupSize) {
-        var currentGroupIndex = 0;
+        var currentGroupIndex = -groupSize;
         _.assign(array, {
             nextGroupIndex: function() {
                 if ( currentGroupIndex < array.length - groupSize ) {
@@ -179,13 +179,13 @@ define(function (require, exports, module) {
 
         function nextMatch() {
             var currentMatchIndex = resultArray.nextGroupIndex();
-            if (!currentMatchIndex) return false;
+            if (currentMatchIndex === false) return false;
             return createSearchResult(docLineIndex, resultArray[currentMatchIndex], resultArray[currentMatchIndex+1]);
         }
 
         function prevMatch() {
             var currentMatchIndex = resultArray.prevGroupIndex();
-            if (!currentMatchIndex) return false;
+            if (currentMatchIndex === false) return false;
             return createSearchResult(docLineIndex, resultArray[currentMatchIndex], resultArray[currentMatchIndex+1]);
         }
 
@@ -345,7 +345,7 @@ define(function (require, exports, module) {
                 var docLineIndex = documentMap.get(this.doc).index;
                 var matchIndex = findResultIndexNearPos(this.regexIndexer, indexFromPos(docLineIndex, this.currentMatch), reverse, compareMatchResultToPos);
                 this.regexIndexer.setCurrentMatchNumber(matchIndex);
-                matchArray = regexIndexer.getCurrentMatch();
+                matchArray = this.regexIndexer.getCurrentMatch();
             }
             if (!matchArray) {
                 matchArray = reverse ? this.findPrevious() : this.findNext() ;
@@ -377,7 +377,6 @@ define(function (require, exports, module) {
         },
 
         executeSearch: function () {
-            this.currentMatchIndex = -2;
             var docText = documentMap.get(this.doc).text;
             var docLineIndex = documentMap.get(this.doc).index;
             this.regexIndexer = createIndexer(docText, docLineIndex, this.query);
