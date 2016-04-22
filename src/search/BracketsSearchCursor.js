@@ -110,8 +110,9 @@ define(function (require, exports, module) {
     function findResultIndexNearPos(regexIndexer, pos, reverse, fnCompare) {
         console.time("findNext");
 
+        var length = regexIndexer.getItemCount();
+        var upperBound = length - 1;
         var lowerBound = 0;
-        var upperBound = regexIndexer.getItemCount() - 1;
         var searchIndex;
         while(lowerBound <= upperBound) {
             searchIndex = Math.floor((upperBound + lowerBound) / 2);
@@ -131,11 +132,14 @@ define(function (require, exports, module) {
         // no exact match, we are at the lower bound
         // if going forward return the next index
         if (( compare === -1 ) && (!reverse))
-            return searchIndex + 1;
+            searchIndex+=1;
         // no exact match, we are at the upper bound
         // if going reverse return the next lower index
         if (( compare === 1 ) && (reverse))
-            return searchIndex - 1;
+            searchIndex-=1;
+
+        // If we went beyond the length or start, there was no match and no next index to match
+        if ((searchIndex < 0) || (searchIndex >= length)) return false;
 
         // no exact match, we are already at the closest match in the search direction
         return searchIndex;
@@ -162,11 +166,12 @@ define(function (require, exports, module) {
                 }
                 return currentGroupIndex;
             },
+            setCurrentGroup: function(groupNumber) {currentGroupIndex = groupNumber * groupSize},
+
             getGroupIndex: function(groupNumber) { return groupSize * groupNumber},
             getGroupValue: function(groupNumber, valueIndexWithinGroup) {return array[(groupSize * groupNumber) + valueIndexWithinGroup]},
             currentGroupIndex: function() { return currentGroupIndex },
             currentGroupNumber: function() { return currentGroupIndex / groupSize},
-            setCurrentGroup: function(groupNumber) {currentGroupIndex = groupNumber * groupSize},
             groupSize: function() { return groupSize },
             itemCount: function() { return array.length / groupSize},
 
@@ -344,8 +349,10 @@ define(function (require, exports, module) {
                 // This is our first time or we hit the top or end of document using next or prev
                 var docLineIndex = documentMap.get(this.doc).index;
                 var matchIndex = findResultIndexNearPos(this.regexIndexer, indexFromPos(docLineIndex, this.currentMatch), reverse, compareMatchResultToPos);
-                this.regexIndexer.setCurrentMatchNumber(matchIndex);
-                matchArray = this.regexIndexer.getCurrentMatch();
+                if (matchIndex) {
+                    this.regexIndexer.setCurrentMatchNumber(matchIndex);
+                    matchArray = this.regexIndexer.getCurrentMatch();
+                }
             }
             if (!matchArray) {
                 matchArray = reverse ? this.findPrevious() : this.findNext() ;
