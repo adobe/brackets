@@ -541,7 +541,7 @@ define(function (require, exports, module) {
             var cursor = state.getSearchCursor(cm);
 
             // if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
-            if (cursor.getDocCharacterCount() <= 10000000) {
+            if (cursor.getDocCharacterCount() <= 100000000) {
                 var resultCount = cursor.executeSearch();
 
                 // Highlight all matches if there aren't too many
@@ -549,16 +549,19 @@ define(function (require, exports, module) {
                     toggleHighlighting(editor, true);
 
                     console.time("highlight");
-                    cursor.forEachResult(function (result) {
-                        state.marked.push(cm.markText(result.from, result.to,
+                    var scrollTrackPositions = [];
+                    cursor.forEachResult(function (fromPos, toPos) {
+                        state.marked.push(cm.markText(fromPos, toPos,
                              { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
+                        scrollTrackPositions.push(fromPos);
+
                     });
                     console.timeEnd("highlight");
 //                    var scrollTrackPositions = state.resultSet.map(function (result) {
 //                        return result.from;
 //                    });
 
-                    //ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
+                    ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
                 }
 
                 // Here we only update find bar with no result. In the case of a match
