@@ -380,13 +380,6 @@ define(function (require, exports, module) {
                 return match;
             },
 
-            from: function () {
-                if (this.atOccurrence) return this.currentMatch.from;
-            },
-            to: function () {
-                if (this.atOccurrence) return this.currentMatch.to;
-            },
-
             find: function(reverse) {
                 this.updateResultsIfNeeded();
                 var matchArray;

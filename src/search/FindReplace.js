@@ -53,13 +53,19 @@ define(function (require, exports, module) {
      * Maximum file size to search within (in chars)
      * @const {number}
      */
-    var FIND_MAX_FILE_SIZE  = 500000;
+    var FIND_MAX_FILE_SIZE  = 10000000;
 
     /**
-     * If the number of matches exceeds this limit, inline text highlighting and scroll-track tickmarks are disabled
+     * If the number of matches exceeds this limit, inline text highlighting is disabled
      * @const {number}
      */
-    var FIND_HIGHLIGHT_MAX  = 2000;
+    var FIND_HIGHLIGHT_MAX  = 10000;
+
+    /**
+     * If the number of matches exceeds this limit, scroll-track tickmarks are disabled
+     * @const {number}
+     */
+    var FIND_SCROLLTICK_MAX = 2000;
 
     /**
      * Currently open Find or Find/Replace bar, if any
@@ -212,8 +218,7 @@ define(function (require, exports, module) {
             return null;
         }
 
-        // TODO: check this might always be same as lastMatch
-        return {start: cursor.from(), end: cursor.to()};
+        return {start: state.lastMatch.from, end: state.lastMatch.to};
     }
 
     /**
@@ -540,8 +545,7 @@ define(function (require, exports, module) {
             // (Except on huge documents, where this is too expensive)
             var cursor = state.getSearchCursor(cm);
 
-            // if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
-            if (cursor.getDocCharacterCount() <= 100000000) {
+            if (cursor.getDocCharacterCount() <= FIND_MAX_FILE_SIZE) {
                 var resultCount = cursor.executeSearch();
 
                 // Highlight all matches if there aren't too many
@@ -557,11 +561,9 @@ define(function (require, exports, module) {
 
                     });
                     console.timeEnd("highlight");
-//                    var scrollTrackPositions = state.resultSet.map(function (result) {
-//                        return result.from;
-//                    });
 
-                    ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
+                    if (resultCount <= FIND_SCROLLTICK_MAX)
+                        ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
                 }
 
                 // Here we only update find bar with no result. In the case of a match
