@@ -478,7 +478,7 @@ define(function (require, exports, module) {
         // Determine whether or not this URL/path is likely to be an image.
         var parsed = PathUtils.parseUrl(tokenString);
         // If the URL has a protocol, check if it's one of the supported protocols
-        var hasProtocol = parsed.protocol !== "" && validProtocols.indexOf(parsed.protocol.trim()) !== -1;
+        var hasProtocol = parsed.protocol !== "" && validProtocols.indexOf(parsed.protocol.trim().toLowerCase()) !== -1;
         var ext = parsed.filenameExtension.replace(/^\./, '');
         var language = LanguageManager.getLanguageForExtension(ext);
         var id = language && language.getId();
