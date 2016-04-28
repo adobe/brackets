@@ -165,20 +165,7 @@ define(function (require, exports, module) {
         }
 
         if (findBar) {
-//            if (state.matchIndex === -1) {
-//                state.matchIndex = _.findIndex(state.resultSet, matchRange);
-//            } else {
-//                state.matchIndex = searchBackwards ? state.matchIndex - 1 : state.matchIndex + 1;
-//                // Adjust matchIndex for modulo wraparound
-//                state.matchIndex = (state.matchIndex + state.searchCursor.getMatchCount()) % state.searchCursor.getMatchCount();
-//
-//                // Confirm that we find the right matchIndex. If not, then search
-//                // matchRange in the entire resultSet.
-//                if (!_.isEqual(state.resultSet[state.matchIndex], matchRange)) {
-//                    state.matchIndex = _.findIndex(state.resultSet, matchRange);
-//                }
-//            }
-            state.matchIndex = state.searchCursor.getCurrentMatchIndex();
+            state.matchIndex = state.searchCursor.getCurrentMatchNumber();
             console.assert(state.matchIndex !== -1);
             if (state.matchIndex !== -1) {
                 // Convert to 1-based by adding one before showing the index.
@@ -674,12 +661,9 @@ define(function (require, exports, module) {
     function doSearch(editor, searchBackwards) {
         var state = getSearchState(editor._codeMirror);
         if (state.parsedQuery) {
-            // TODO need to update search cursor document
-            // can we determine if doc changed before we update?
             findNext(editor, searchBackwards);
             return;
         }
-        //state.searchCursor = null;
         openSearchBar(editor, false);
     }
 
@@ -706,7 +690,6 @@ define(function (require, exports, module) {
             FindInFilesUI.searchAndShowResults(state.queryInfo, editor.document.file, null, replaceText);
         } else {
             cm.replaceSelection(state.queryInfo.isRegexp ? FindUtils.parseDollars(replaceText, state.lastMatch) : replaceText);
-            //state.searchCursor = null;
             updateResultSet(editor);  // we updated the text, so result count & tickmarks must be refreshed
 
             findNext(editor);

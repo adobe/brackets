@@ -63,7 +63,7 @@ define(function (require, exports, module) {
         // splitting is actually faster than using doc.getLine()
         var lines = text.split(lineSeparator);
         var lineSeparatorLength = lineSeparator.length;
-        var lineCharacterCountIndex = [];
+        var lineCharacterCountIndex = new Uint32Array(lines.length);
         var lineCount = lines.length;
         var totalCharacterCount = 0;
         for (var lineNumber = 0; lineNumber < lineCount; lineNumber++) {
@@ -81,6 +81,9 @@ define(function (require, exports, module) {
      */
     function createPosFromIndex(lineCharacterCountIndexArray, startSearchingWithLine, indexWithinDoc) {
         var lineCount = lineCharacterCountIndexArray.length;
+        // linear search for line number turns out to be usually faster than binary search
+        // as matches tend to come relatively close together and we can boost the linear
+        // search performance using starting position since we often know our progress through the document.
         for ( var lineNumber = startSearchingWithLine; lineNumber < lineCount; lineNumber++) {
             // If the total character count at this line is greater than the index
             // then the index must be somewhere on this line
@@ -134,6 +137,13 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Finds the result that is at or nearest the position passed to function.
+     * If a match result is not at the position, it will then locate the closest
+     * match result which is in the search direction.
+     * If there is no match found before the end or beginning of the document
+     * then this function returns false.
+     */
     function findResultIndexNearPos(regexIndexer, pos, reverse, fnCompare) {
         console.time("findNext");
 
@@ -174,7 +184,9 @@ define(function (require, exports, module) {
 
     /**
      * enhance array with functions which facilitate managing the array contents
-     * by groups of items
+     * by groups of items.
+     * This is useful for both performance and memory consumption to store the indexes
+     * of the match result beginning and ending locations.
      */
     function makeGroupArray(array, groupSize) {
         var currentGroupIndex = -groupSize;
@@ -210,7 +222,7 @@ define(function (require, exports, module) {
         return array;
     }
 
-    function createIndexer(docText, docLineIndex, query) {
+    function createMatchIndexer(docText, docLineIndex, query) {
         var resultArray = makeGroupArray([], 2);
 
         function nextMatch() {
@@ -298,12 +310,35 @@ define(function (require, exports, module) {
                 getMatchIndexEnd:getMatchIndexEnd,
                 getCurentMatchNumber:getCurrentMatchNumber,
                 forEachMatch:forEachMatch
-
-               }
+        }
     }
 
 
     function createCursor() {
+        function findNext(cursor) {
+            var match = cursor.regexIndexer.nextMatch();
+            if ( !match ) {
+                cursor.atOccurrence = false;
+                cursor.currentMatch = Pos(cursor.doc.lineCount(), 0);
+                return false;
+            }
+            return match;
+        }
+        function findPrevious(cursor) {
+            var match = cursor.regexIndexer.prevMatch();
+            if ( !match ) {
+                cursor.atOccurrence = false;
+                cursor.currentMatch = Pos(0,0);
+                return false;
+            }
+            return match;
+        }
+
+        function updateResultsIfNeeded(cursor) {
+            if (!cursor.resultsCurrent) {
+                cursor.executeSearch();
+            }
+        }
         return _.assign(Object.create(null), {
             initialize: function(query, pos, doc, ignoreCase) {
                 this.atOccurrence = false;
@@ -357,31 +392,12 @@ define(function (require, exports, module) {
                 return this.regexIndexer.getItemCount();
             },
 
-            getCurrentMatchIndex: function() {
+            getCurrentMatchNumber: function() {
                 return this.regexIndexer.getCurentMatchNumber();
             },
 
-            findNext: function() {
-                var match = this.regexIndexer.nextMatch();
-                if ( !match ) {
-                    this.atOccurrence = false;
-                    this.currentMatch = Pos(this.doc.lineCount(), 0);
-                    return false;
-                }
-                return match;
-            },
-            findPrevious: function() {
-                var match = this.regexIndexer.prevMatch();
-                if ( !match ) {
-                    this.atOccurrence = false;
-                    this.currentMatch = Pos(0,0);
-                    return false;
-                }
-                return match;
-            },
-
             find: function(reverse) {
-                this.updateResultsIfNeeded();
+                updateResultsIfNeeded(this);
                 var matchArray;
                 if (!this.regexIndexer.getCurrentMatch()) {
                     // There is currently no match position
@@ -394,7 +410,7 @@ define(function (require, exports, module) {
                     }
                 }
                 if (!matchArray) {
-                    matchArray = reverse ? this.findPrevious() : this.findNext() ;
+                    matchArray = reverse ? findPrevious(this) : findNext(this) ;
                 }
                 if (matchArray) {
                     this.currentMatch = matchArray;
@@ -411,16 +427,10 @@ define(function (require, exports, module) {
                 this.regexIndexer.forEachMatch(fnResult);
             },
 
-            updateResultsIfNeeded: function() {
-                if (!this.resultsCurrent) {
-                    this.executeSearch();
-                }
-            },
-
             executeSearch: function () {
                 var docText = documentMap.get(this.doc).text;
                 var docLineIndex = documentMap.get(this.doc).index;
-                this.regexIndexer = createIndexer(docText, docLineIndex, this.query);
+                this.regexIndexer = createMatchIndexer(docText, docLineIndex, this.query);
                 this.resultsCurrent = true;
                 return this.getMatchCount();
             }
