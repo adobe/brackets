@@ -99,11 +99,8 @@ define(function (require, exports, module) {
         UPPERCASE_COLORS    = "uppercaseColors",
         USE_TAB_CHAR        = "useTabChar",
         WORD_WRAP           = "wordWrap",
-<<<<<<< HEAD
-        AUTO_HIDE_SEARCH    = "autoHideSearch";
-=======
+        AUTO_HIDE_SEARCH    = "autoHideSearch",
         INDENT_LINE_COMMENT   = "indentLineComment";
->>>>>>> 51582db1932617e4c1faf8a91fafacfb8681c47b
     
 
     var cmOptions         = {};
@@ -213,20 +210,14 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
         description: Strings.DESCRIPTION_WORD_WRAP
     });
-<<<<<<< HEAD
     PreferencesManager.definePreference(AUTO_HIDE_SEARCH,   "boolean", true, {
         description: Strings.DESCRIPTION_SEARCH_AUTOHIDE
     });
-    
-
-=======
-    
     PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
         description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
     });
     
     
->>>>>>> 51582db1932617e4c1faf8a91fafacfb8681c47b
     var editorOptions = Object.keys(cmOptions);
 
     /** Editor preferences */
