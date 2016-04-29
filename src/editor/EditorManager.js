@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -505,6 +505,7 @@ define(function (require, exports, module) {
         // first and showing it after the visible range is set, we avoid that initial render.
         $(inlineContent).hide();
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, range);
+        inlineEditor._hostEditor = getCurrentFullEditor();
         $(inlineContent).show();
 
         return { content: inlineContent, editor: inlineEditor };

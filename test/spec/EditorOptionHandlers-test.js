@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -434,7 +434,7 @@ define(function (require, exports, module) {
                     checkCloseBraces(editor, {line: 0, ch: 16}, {line: 0, ch: 34}, OPEN_BRACKET, "var myContent = [\"This is awesome!\"];");
 
                     runs(function () {
-                        expect(editor.getSelection()).toEqual({start: {line: 0, ch: 16}, end: {line: 0, ch: 36}, reversed: false});
+                        expect(editor.getSelection()).toEqual({start: {line: 0, ch: 17}, end: {line: 0, ch: 35}, reversed: false});
                     });
                 });
             });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -817,7 +817,7 @@ define(function (require, exports, module) {
             var oldStat = entry._stat;
             if (entry.isFile) {
                 // Update stat and clear contents, but only if out of date
-                if (!(stat && oldStat && stat.mtime.getTime() === oldStat.mtime.getTime())) {
+                if (!(stat && oldStat && stat.mtime.getTime() <= oldStat.mtime.getTime())) {
                     entry._clearCachedData();
                     entry._stat = stat;
                     this._fireChangeEvent(entry);

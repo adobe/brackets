@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -131,6 +131,9 @@
                         console.error("nodeSocketTransport: Socket closed, but couldn't locate client");
                     }
                 });
+            }).on("error", function (e) {
+                // TODO: emit error event
+                console.error("nodeSocketTransport: Error on live preview server creation: " + e);
             });
         }
     }
