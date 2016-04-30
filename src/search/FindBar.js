@@ -33,7 +33,6 @@ define(function (require, exports, module) {
     var _                  = require("thirdparty/lodash"),
         EventDispatcher    = require("utils/EventDispatcher"),
         Commands           = require("command/Commands"),
-        DropdownButton     = require("widgets/DropdownButton").DropdownButton,
         KeyBindingManager  = require("command/KeyBindingManager"),
         KeyEvent           = require("utils/KeyEvent"),
         ModalBar           = require("widgets/ModalBar").ModalBar,
@@ -202,6 +201,8 @@ define(function (require, exports, module) {
         // Have to make sure we explicitly cast the second parameter to a boolean, because
         // toggleClass expects literal true/false.
         this.$("#find-case-sensitive").toggleClass("active", !!PreferencesManager.getViewState("caseSensitive"));
+        this.$("#find-regexp").toggleClass("active", !!PreferencesManager.getViewState("regexp"));
+        this.$("#find-whole-word").toggleClass("active", !!PreferencesManager.getViewState("wholeWord"));
     };
 
     /**
@@ -210,6 +211,8 @@ define(function (require, exports, module) {
      */
     FindBar.prototype._updatePrefsFromSearchBar = function () {
         PreferencesManager.setViewState("caseSensitive", this.$("#find-case-sensitive").is(".active"));
+        PreferencesManager.setViewState("regexp", this.$("#find-regexp").is(".active"));
+        PreferencesManager.setViewState("wholeWord", this.$("#find-whole-word").is(".active"));
     };
 
     /**
@@ -262,43 +265,17 @@ define(function (require, exports, module) {
             MainViewManager.focusActivePane();
             self.trigger("close");
         });
-        
-        function itemRenderer(item, index) {
-            return "<button id='" + item.id + "' class='btn find-toggle no-focus" + (PreferencesManager.getViewState(item.pref) ? " active" : "") + "' tabindex='-1' title='" + item.title + "'><div class='button-icon'></div></button> " + item.title;
-        }
-
-        var dropdownEntries = [
-            {
-                id: "find-whole-word",
-                title: Strings.BUTTON_WHOLE_WORD_HINT,
-                pref: "wholeWord"
-            },
-            {
-                id: "find-regexp",
-                title: Strings.BUTTON_REGEXP_HINT,
-                pref: "regexp"
-            }
-        ];
-
-        this._optionsDropdown = new DropdownButton("", dropdownEntries, itemRenderer);
 
         FindBar._addFindBar(this);
 
         var $root = this._modalBar.getRoot();
-        $root.find("#find-further-options").replaceWith(this._optionsDropdown.$button.attr("id", "find-further-options").addClass("no-focus"));
-        
-        this._optionsDropdown.on("select", function (item, itemIndex) {
-            var $item = self._optionsDropdown.$dropdown.find("#" + itemIndex.id).toggleClass("active");
-            PreferencesManager.setViewState(itemIndex.pref, $item.is(".active"));
-            self.trigger("queryChange");
-        });
 
         $root
             .on("input", "#find-what", function () {
                 self.trigger("queryChange");
                 lastTypedText = self.getQueryInfo().query;
             })
-            .on("click", "#find-case-sensitive", function (e) {
+            .on("click", ".find-toggle", function (e) {
                 $(e.currentTarget).toggleClass("active");
                 self._updatePrefsFromSearchBar();
                 self.trigger("queryChange");
@@ -504,7 +481,7 @@ define(function (require, exports, module) {
      * @param {boolean} enable Whether to enable or disable the controls.
      */
     FindBar.prototype.enable = function (enable) {
-        this.$("#find-what, #replace-with, #find-prev, #find-next, #find-case-sensitive, #find-further-options").prop("disabled", !enable);
+        this.$("#find-what, #replace-with, #find-prev, #find-next, .find-toggle").prop("disabled", !enable);
         this._enabled = enable;
     };
 

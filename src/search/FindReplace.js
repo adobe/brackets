@@ -324,7 +324,7 @@ define(function (require, exports, module) {
             // it will use the same query (but throw away the existing selection).
             var state = getSearchState(editor._codeMirror);
             setQueryInfo(state, { query: searchText, isCaseSensitive: false, isRegexp: false, isWholeWord: false });
-            
+
             // Skip over matches that are already in the selection.
             var searchStart = primarySel.end,
                 nextMatch,
@@ -390,7 +390,7 @@ define(function (require, exports, module) {
                 state = getSearchState(editor._codeMirror),
                 nextMatch;
             setQueryInfo(state, { query: editor.document.getRange(sel.start, sel.end), isCaseSensitive: false, isRegexp: false, isWholeWord: false });
-            
+
             while ((nextMatch = _getNextMatch(editor, false, searchStart, false)) !== null) {
                 if (_selEq(sel, nextMatch)) {
                     nextMatch.primary = true;

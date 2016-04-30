@@ -1614,22 +1614,6 @@ a, img {
         display: inline-block;
     }
 
-    #find-case-sensitive {
-        padding: 1px 5px;
-
-        &.active, &:active { // Make the toggle buttons' down states the same color as 'on' state to prevent a flash of different color.
-            background-color: @bc-bg-highlight;
-
-            .dark & {
-                background-color: @dark-bc-bg-highlight;
-            }
-        }
-    }
-    #find-further-options {
-        height: 28px;
-        padding-right: 10px;
-    }
-
     .navigator {  // next/prev buttons
         display: inline-block;
     }
@@ -1643,11 +1627,11 @@ a, img {
     }
 
     // Make button pairs snug
-    #find-prev, #replace-yes, #find-case-sensitive {
+    #find-prev, #replace-yes, #find-case-sensitive, #find-whole-word {
         border-right: none;
         margin-right: 0;
     }
-    #find-next, #replace-all, #find-further-options {
+    #find-next, #replace-all, #find-regexp, #find-whole-word {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
         margin-left: 0;
@@ -1659,7 +1643,7 @@ a, img {
 
     // Make find field snug with options buttons
     //    & replace snug with replace commands
-    #find-what, #replace-with {
+    #find-what, #replace-with, #find-whole-word {
         margin-right: 0px;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
@@ -1672,6 +1656,16 @@ a, img {
 }
 
 .find-toggle {
+    padding: 1px 5px;
+
+    &.active, &:active { // Make the toggle buttons' down states the same color as 'on' state to prevent a flash of different color.
+        background-color: @bc-bg-highlight;
+
+        .dark & {
+            background-color: @dark-bc-bg-highlight;
+        }
+    }
+    
     .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
         .sprite-icon(0, 0, 24px, 24px, @button-icon);
         background-repeat: no-repeat;
@@ -1694,10 +1688,6 @@ a, img {
     }
     &#find-whole-word.active .button-icon {
         .sprite-swap(0, 120px);
-    }
-    
-    .dropdownbutton-popup & {
-        padding: 0;
     }
 }
 
