@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -362,11 +362,9 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Додај следеће поклапање у селекцију",
     "CMD_SKIP_CURRENT_MATCH"              : "Прескочи и додај следеће поклапање",
     "CMD_FIND_IN_FILES"                   : "Пронађи међу датотекама",
-    "CMD_FIND_IN_SELECTED"                : "Пронађи у изабраној датотеци/директоријуму",
     "CMD_FIND_IN_SUBTREE"                 : "Пронађи у\u2026",
     "CMD_REPLACE"                         : "Замени",
     "CMD_REPLACE_IN_FILES"                : "Замени у датотекама",
-    "CMD_REPLACE_IN_SELECTED"             : "Замени у изабраној датотеци/директоријуму",
     "CMD_REPLACE_IN_SUBTREE"              : "Замени у\u2026",
 
     // View menu commands

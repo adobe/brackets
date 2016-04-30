@@ -1,3 +1,3 @@
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="15" height="15" viewBox="-7.5 7.5 15 15">
-	<path opacity="0.3" fill="#FFF" stroke="#000" d="M-0.001,9.094c-3.266,0-5.913,2.646-5.913,5.908c0,3.266,2.646,5.913,5.913,5.913s5.922-2.647,5.922-5.913C5.921,11.738,3.266,9.094-0.001,9.094z"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="-7.5 7.5 15 15">
+    <path fill="#fff" stroke="#000" opacity="0.3" d="M-0 9.09c-3.27 0-5.91 2.65-5.91 5.91c0 3.27 2.65 5.91 5.91 5.91s5.92-2.65 5.92-5.91C5.92 11.74 3.27 9.09-0 9.09"/>
 </svg>

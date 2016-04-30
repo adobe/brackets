@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -41,13 +41,13 @@ var fspath = require("path"),
  * we should use the recursive option where available. As of January 2014, the
  * current experimental Node branch (0.11) only supports the recursive option for
  * darwin.
- * 
+ *
  * In the meantime, the fsevents package makes direct use of the Mac OS fsevents
  * API to provide file watching capabilities. Its behavior is also recursive
  * (like fs.watch with the recursive option), but the events it emits are not
  * exactly the same as those emitted by Node watchers. Consequently, we require,
- * for now, dual implementations of the FileWatcher domain. 
- * 
+ * for now, dual implementations of the FileWatcher domain.
+ *
  * ALSO NOTE: the fsevents package as installed by NPM is not suitable for
  * distribution with Brackets! The problem is that the native code embedded in
  * the fsevents module is compiled by default for x86-64, but the Brackets-node
@@ -76,7 +76,7 @@ var _domainManager,
  */
 function _unwatchPath(path) {
     var watcher = _watcherMap[path];
-        
+
     if (watcher) {
         try {
             if (fsevents) {
@@ -112,17 +112,17 @@ function watchPath(path) {
     if (_watcherMap.hasOwnProperty(path)) {
         return;
     }
-        
+
     try {
         var watcher;
-        
+
         if (fsevents) {
             watcher = fsevents(path);
             watcher.on("change", function (filename, info) {
                 var parent = filename && (fspath.dirname(filename) + "/"),
                     name = filename && fspath.basename(filename),
                     type;
-                
+
                 switch (info.event) {
                 case "modified":    // triggered by file content changes
                 case "unknown":     // triggered by metatdata-only changes
@@ -131,7 +131,7 @@ function watchPath(path) {
                 default:
                     type = "rename";
                 }
-                
+
                 _domainManager.emitEvent("fileWatcher", "change", [parent, type, name]);
             });
         } else {
@@ -142,7 +142,7 @@ function watchPath(path) {
         }
 
         _watcherMap[path] = watcher;
-        
+
         watcher.on("error", function (err) {
             console.error("Error watching file " + path + ": " + (err && err.message));
             unwatchPath(path);
@@ -157,7 +157,7 @@ function watchPath(path) {
  */
 function unwatchAll() {
     var path;
-    
+
     for (path in _watcherMap) {
         if (_watcherMap.hasOwnProperty(path)) {
             unwatchPath(path);
@@ -173,7 +173,7 @@ function init(domainManager) {
     if (!domainManager.hasDomain("fileWatcher")) {
         domainManager.registerDomain("fileWatcher", {major: 0, minor: 1});
     }
-    
+
     domainManager.registerCommand(
         "fileWatcher",
         "watchPath",
@@ -214,7 +214,7 @@ function init(domainManager) {
             {name: "filename", type: "string"}
         ]
     );
-    
+
     _domainManager = domainManager;
 }
 

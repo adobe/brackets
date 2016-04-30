@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*
@@ -35,7 +35,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var _ = brackets.getModule("thirdparty/lodash");
-    
+
     var CodeMirror          = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
         DefaultDialogs      = brackets.getModule("widgets/DefaultDialogs"),
         Dialogs             = brackets.getModule("widgets/Dialogs"),
@@ -53,7 +53,7 @@ define(function (require, exports, module) {
     var HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
         Preferences         = require("Preferences");
-    
+
     var ternEnvironment     = [],
         pendingTernRequests = {},
         builtinFiles        = ["ecma5.json", "browser.json", "jquery.json"],
@@ -69,9 +69,9 @@ define(function (require, exports, module) {
         LARGE_LINE_CHANGE   = 100,
         LARGE_LINE_COUNT    = 10000,
         OFFSET_ZERO         = {line: 0, ch: 0};
-    
+
     var config = {};
-    
+
     /**
      *  An array of library names that contain JavaScript builtins definitions.
      *
@@ -242,12 +242,12 @@ define(function (require, exports, module) {
         if (file.name[0] === ".") {
             return true;
         }
-        
+
         var languageID = LanguageManager.getLanguageForPath(file.fullPath).getId();
         if (languageID !== HintUtils.LANGUAGE_ID) {
             return true;
         }
-        
+
         var excludes = preferences.getExcludedFiles();
         if (excludes && excludes.test(file.name)) {
             return true;
@@ -267,7 +267,7 @@ define(function (require, exports, module) {
      * @param {string} file - the name of the file
      * @param {{line: number, ch: number}} offset - the offset into the file the request is for
      * @param {string} type - the type of request
-     * @return {jQuery.Promise} - the promise for the request  
+     * @return {jQuery.Promise} - the promise for the request
      */
     function addPendingRequest(file, offset, type) {
         var requests,
@@ -278,7 +278,7 @@ define(function (require, exports, module) {
         if (isFileExcludedInternal(file)) {
             return (new $.Deferred()).reject().promise();
         }
-        
+
         if (_.has(pendingTernRequests, key)) {
             requests = pendingTernRequests[key];
         } else {
@@ -299,7 +299,7 @@ define(function (require, exports, module) {
      * @param {string} file - the file
      * @param {{line: number, ch: number}} offset - the offset into the file the request is for
      * @param {string} type - the type of request
-     * @return {jQuery.Deferred} - the $.Deferred for the request     
+     * @return {jQuery.Deferred} - the $.Deferred for the request
      */
     function getPendingRequest(file, offset, type) {
         var key = file + "@" + offset.line + "@" + offset.ch;
@@ -316,7 +316,7 @@ define(function (require, exports, module) {
             return requestType;
         }
     }
-    
+
     /**
      * @param {string} file a relative path
      * @return {string} returns the path we resolved when we tried to parse the file, or undefined
@@ -358,7 +358,7 @@ define(function (require, exports, module) {
         }
         return newText;
     }
-    
+
     /**
      * Get the text of a document, applying any size restrictions
      * if necessary
@@ -370,9 +370,9 @@ define(function (require, exports, module) {
         text = filterText(text);
         return text;
     }
-    
-    
-    
+
+
+
     /**
      * Request Jump-To-Definition from Tern.
      *
@@ -388,9 +388,9 @@ define(function (require, exports, module) {
                 name: path,
                 offsetLines: 0,
                 text: filterText(session.getJavascriptText())};
-        
+
         var ternPromise = getJumptoDef(fileInfo, offset);
-        
+
         return {promise: ternPromise};
     }
 
@@ -401,12 +401,12 @@ define(function (require, exports, module) {
      * @param response - the response from the worker
      */
     function handleJumptoDef(response) {
-        
+
         var file = response.file,
             offset = response.offset;
-        
+
         var $deferredJump = getPendingRequest(file, offset, MessageIds.TERN_JUMPTODEF_MSG);
-        
+
         if ($deferredJump) {
             response.fullPath = getResolvedPath(response.resultFile);
             $deferredJump.resolveWith(null, [response]);
@@ -439,7 +439,7 @@ define(function (require, exports, module) {
             offset: offset,
             isProperty: isProperty
         });
-        
+
         return addPendingRequest(fileInfo.name, offset, MessageIds.TERN_COMPLETIONS_MSG);
     }
 
@@ -488,7 +488,7 @@ define(function (require, exports, module) {
         for (p = start.line - 1, min = Math.max(0, p - 100); p >= min; --p) {
             line = session.getLine(p);
             var fn = line.search(/\bfunction\b/);
-            
+
             if (fn >= 0) {
                 indent = CodeMirror.countColumn(line, null, tabSize);
                 if (minIndent === null || minIndent > indent) {
@@ -602,7 +602,7 @@ define(function (require, exports, module) {
 
         return newOffset;
     }
-    
+
     /**
      * Get a Promise for all of the known properties from TernJS, for the directory and file.
      * The properties will be used as guesses in tern.
@@ -651,7 +651,7 @@ define(function (require, exports, module) {
             type = response.type,
             error = response.error,
             $deferredHints = getPendingRequest(file, offset, type);
-        
+
         if ($deferredHints) {
             if (error) {
                 $deferredHints.reject();
@@ -770,7 +770,7 @@ define(function (require, exports, module) {
         function getResolvedPath(file) {
             return resolvedFiles[file];
         }
-        
+
         /**
          *  Determine whether the current set of files are using modules to pull in
          *  additional files.
@@ -781,7 +781,7 @@ define(function (require, exports, module) {
         function usingModules() {
             return numInitialFiles !== numResolvedFiles;
         }
-        
+
         /**
          * Send a message to the tern worker - if the worker is being initialized,
          * the message will not be posted until initialization is complete
@@ -792,7 +792,7 @@ define(function (require, exports, module) {
                 if (!ternWorker) {
                     return;
                 }
-                
+
                 if (config.debug) {
                     console.debug("Sending message", msg);
                 }
@@ -821,7 +821,7 @@ define(function (require, exports, module) {
          */
         function updateTernFile(document) {
             var path  = document.file.fullPath;
-            
+
             _postMessageByPass({
                 type       : MessageIds.TERN_UPDATE_FILE_MSG,
                 path       : path,
@@ -830,15 +830,15 @@ define(function (require, exports, module) {
 
             return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_UPDATE_FILE_MSG);
         }
-        
+
         /**
          * Handle a request from the worker for text of a file
          *
          * @param {{file:string}} request - the request from the worker.  Should be an Object containing the name
-         *      of the file tern wants the contents of 
+         *      of the file tern wants the contents of
          */
         function handleTernGetFile(request) {
-    
+
             function replyWith(name, txt) {
                 _postMessageByPass({
                     type: MessageIds.TERN_GET_FILE_MSG,
@@ -846,9 +846,9 @@ define(function (require, exports, module) {
                     text: txt
                 });
             }
-    
+
             var name = request.file;
-    
+
             /**
              * Helper function to get the text of a given document and send it to tern.
              * If DocumentManager successfully gets the file's text then we'll send it to the tern worker.
@@ -862,10 +862,10 @@ define(function (require, exports, module) {
                         filePath.slice(0, 2) === "//") { // don't handle protocol-relative URLs like //example.com/main.js (see #10566)
                     return (new $.Deferred()).reject().promise();
                 }
-                
+
                 var file = FileSystem.getFileForPath(filePath),
                     promise = DocumentManager.getDocumentText(file);
-                
+
                 promise.done(function (docText) {
                     resolvedFiles[name] = filePath;
                     numResolvedFiles++;
@@ -873,10 +873,10 @@ define(function (require, exports, module) {
                 });
                 return promise;
             }
-            
+
             /**
              * Helper function to find any files in the project that end with the
-             * name we are looking for.  This is so we can find requirejs modules 
+             * name we are looking for.  This is so we can find requirejs modules
              * when the baseUrl is unknown, or when the project root is not the same
              * as the script root (e.g. if you open the 'brackets' dir instead of 'brackets/src' dir).
              */
@@ -887,14 +887,14 @@ define(function (require, exports, module) {
                 function _fileFilter(entry) {
                     return entry.name === fileName;
                 }
-                
+
                 ProjectManager.getAllFiles(_fileFilter).done(function (files) {
                     var file;
                     files = files.filter(function (file) {
                         var pos = file.fullPath.length - name.length;
                         return pos === file.fullPath.lastIndexOf(name);
                     });
-                    
+
                     if (files.length === 1) {
                         file = files[0];
                     }
@@ -907,7 +907,7 @@ define(function (require, exports, module) {
                     }
                 });
             }
-            
+
             if (!isFileExcludedInternal(name)) {
                 getDocText(name).fail(function () {
                     getDocText(rootTernDir + name).fail(function () {
@@ -920,7 +920,7 @@ define(function (require, exports, module) {
                 });
             }
         }
-    
+
         /**
          *  Prime the pump for a fast first lookup.
          *
@@ -966,31 +966,31 @@ define(function (require, exports, module) {
             var maxFileCount = preferences.getMaxFileCount();
             if (numResolvedFiles + numAddedFiles < maxFileCount) {
                 var available = maxFileCount - numResolvedFiles - numAddedFiles;
-    
+
                 if (available < files.length) {
                     files = files.slice(0, available);
                 }
-    
+
                 numAddedFiles += files.length;
                 ternPromise.done(function (worker) {
                     var msg = {
                         type        : MessageIds.TERN_ADD_FILES_MSG,
                         files       : files
                     };
-                    
+
                     if (config.debug) {
                         console.debug("Sending message", msg);
                     }
                     worker.postMessage(msg);
                 });
-    
+
             } else {
                 stopAddingFiles = true;
             }
-    
+
             return stopAddingFiles;
         }
-            
+
         /**
          *  Add the files in the directory and subdirectories of a given directory
          *  to tern.
@@ -1012,26 +1012,26 @@ define(function (require, exports, module) {
                             !stopAddingFiles;
                     }
                 }
-                
+
                 if (err) {
                     return;
                 }
-                
+
                 if (dir === FileSystem.getDirectoryForPath(rootTernDir)) {
                     doneCallback();
                     return;
                 }
-                
+
                 directory.visit(visitor, doneCallback);
             });
         }
-            
+
         /**
          * Init the web worker that does all the code hinting work.
          *
          * If a worker already exists, then this will terminate that worker and
-         * start a new worker - this helps alleviate leaks that may be ocurring in 
-         * the code that the worker runs.  
+         * start a new worker - this helps alleviate leaks that may be ocurring in
+         * the code that the worker runs.
          */
         function initTernWorker() {
             if (_ternWorker) {
@@ -1041,15 +1041,15 @@ define(function (require, exports, module) {
             ternPromise = workerDeferred.promise();
             var path = ExtensionUtils.getModulePath(module, "tern-worker.js");
             _ternWorker = new Worker(path);
-    
+
             _ternWorker.addEventListener("message", function (e) {
                 if (config.debug) {
                     console.debug("Message received", e);
                 }
-                
+
                 var response = e.data,
                     type = response.type;
-    
+
                 if (type === MessageIds.TERN_COMPLETIONS_MSG ||
                         type === MessageIds.TERN_CALLED_FUNC_TYPE_MSG) {
                     // handle any completions the worker calculated
@@ -1073,7 +1073,7 @@ define(function (require, exports, module) {
                     console.log("Worker: " + (response.log || response));
                 }
             });
-            
+
             // Set the initial configuration for the worker
             _ternWorker.postMessage({
                 type: MessageIds.SET_CONFIG,
@@ -1112,7 +1112,7 @@ define(function (require, exports, module) {
             });
             rootTernDir = dir + "/";
         }
-    
+
         /**
          *  We can skip tern initialization if we are opening a file that has
          *  already been added to tern.
@@ -1124,8 +1124,8 @@ define(function (require, exports, module) {
         function canSkipTernInitialization(newFile) {
             return resolvedFiles[newFile] !== undefined;
         }
-    
-    
+
+
         /**
          *  Do the work to initialize a code hinting session.
          *
@@ -1138,16 +1138,16 @@ define(function (require, exports, module) {
                 path        = file.fullPath,
                 dir         = file.parentPath,
                 pr;
-    
+
             var addFilesDeferred = $.Deferred();
-    
+
             documentChanges = null;
             addFilesPromise = addFilesDeferred.promise();
             pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot().fullPath : null;
-    
+
             // avoid re-initializing tern if possible.
             if (canSkipTernInitialization(path)) {
-    
+
                 // update the previous document in tern to prevent stale files.
                 if (isDocumentDirty && previousDocument) {
                     var updateFilePromise = updateTernFile(previousDocument);
@@ -1158,11 +1158,11 @@ define(function (require, exports, module) {
                 } else {
                     addFilesDeferred.resolveWith(null, [_ternWorker]);
                 }
-    
+
                 isDocumentDirty = false;
                 return;
             }
-    
+
             isDocumentDirty = false;
             resolvedFiles = {};
             projectRoot = pr;
@@ -1175,14 +1175,14 @@ define(function (require, exports, module) {
                         addFilesDeferred.resolveWith(null);
                         return;
                     }
-                    
+
                     directory.getContents(function (err, contents) {
                         if (err) {
                             console.error("Error getting contents for", directory);
                             addFilesDeferred.resolveWith(null);
                             return;
                         }
-                        
+
                         var files = contents
                             .filter(function (entry) {
                                 return entry.isFile && !isFileExcluded(entry);
@@ -1190,7 +1190,7 @@ define(function (require, exports, module) {
                             .map(function (entry) {
                                 return entry.fullPath;
                             });
-                        
+
                         initTernServer(dir, files);
 
                         var hintsPromise = primePump(path);
@@ -1209,7 +1209,7 @@ define(function (require, exports, module) {
                                             // prime the pump again but this time don't wait
                                             // for completion.
                                             primePump(path);
-    
+
                                             addFilesDeferred.resolveWith(null, [_ternWorker]);
                                         });
                                     } else {
@@ -1246,12 +1246,12 @@ define(function (require, exports, module) {
          * Do some cleanup when a project is closed.
          *
          * We can clean up the web worker we use to calculate hints now, since
-         * we know we will need to re-init it in any new project that is opened.  
+         * we know we will need to re-init it in any new project that is opened.
          */
         function closeWorker() {
             function terminateWorker() {
                 var worker = _ternWorker;
-                
+
                 // Worker can be null if an error condition came up previously
                 if (!worker) {
                     return;
@@ -1264,10 +1264,10 @@ define(function (require, exports, module) {
                 _ternWorker = null;
                 resolvedFiles = {};
             }
-            
+
             if (_ternWorker) {
                 if (addFilesPromise) {
-                    // If we're in the middle of added files, don't terminate 
+                    // If we're in the middle of added files, don't terminate
                     // until we're done or we might get NPEs
                     addFilesPromise.done(terminateWorker).fail(terminateWorker);
                 } else {
@@ -1279,20 +1279,20 @@ define(function (require, exports, module) {
         function whenReady(func) {
             addFilesPromise.done(func);
         }
-        
+
         this.closeWorker = closeWorker;
         this.handleEditorChange = handleEditorChange;
         this.postMessage = postMessage;
         this.getResolvedPath = getResolvedPath;
         this.whenReady = whenReady;
-        
+
         return this;
     }
 
     var resettingDeferred = null;
 
     /**
-     * reset the tern worker thread, if necessary.  
+     * reset the tern worker thread, if necessary.
      *
      * To avoid memory leaks in the worker thread we periodically kill
      * the web worker instance, and start a new one.  To avoid a performance
@@ -1309,7 +1309,7 @@ define(function (require, exports, module) {
      * @param {Session} session
      * @param {Document} document
      * @param {boolean} force true to force a reset regardless of how long since the last one
-     * @return {Promise} Promise resolved when the worker is ready. 
+     * @return {Promise} Promise resolved when the worker is ready.
      *                   The new (or current, if there was no reset) worker is passed to the callback.
      */
     function _maybeReset(session, document, force) {
@@ -1317,7 +1317,7 @@ define(function (require, exports, module) {
         // if we're in the middle of a reset, don't have to check
         // the new worker will be online soon
         if (!resettingDeferred) {
-            
+
             // We don't reset if the debugging flag is set
             // because it's easier to debug if the worker isn't
             // getting shut down all the time.
@@ -1325,7 +1325,7 @@ define(function (require, exports, module) {
                 if (config.debug) {
                     console.debug("Resetting tern worker");
                 }
-                
+
                 resettingDeferred = new $.Deferred();
                 newWorker = new TernWorker();
                 newWorker.handleEditorChange(session, document, null);
@@ -1344,7 +1344,7 @@ define(function (require, exports, module) {
                 return d.promise();
             }
         }
-        
+
         return resettingDeferred.promise();
     }
 
@@ -1382,9 +1382,9 @@ define(function (require, exports, module) {
      * clients that wish to modify those objects (e.g., by annotating them based
      * on some temporary context) should copy them first. See, e.g.,
      * Session.getHints().
-     * 
+     *
      * @param {Session} session - the active hinting session
-     * @param {Document} document - the document for which scope info is 
+     * @param {Document} document - the document for which scope info is
      *      desired
      * @return {jQuery.Promise} - The promise will not complete until the tern
      *      hints have completed.
@@ -1482,7 +1482,7 @@ define(function (require, exports, module) {
      * Do some cleanup when a project is closed.
      *
      * We can clean up the web worker we use to calculate hints now, since
-     * we know we will need to re-init it in any new project that is opened.  
+     * we know we will need to re-init it in any new project that is opened.
      */
     function handleProjectClose() {
         if (currentWorker) {
@@ -1501,15 +1501,15 @@ define(function (require, exports, module) {
     function handleProjectOpen(projectRootPath) {
         initPreferences(projectRootPath);
     }
-    
+
     /** Used to avoid timing bugs in unit tests */
     function _readyPromise() {
         return deferredPreferences;
     }
-    
+
     /**
      * @private
-     * 
+     *
      * Update the configuration in the worker.
      */
     function _setConfig(configUpdate) {

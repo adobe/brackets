@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -27,29 +27,29 @@
 
 define(function (require, exports, module) {
     'use strict';
-    
+
     var Editor              = require("editor/Editor").Editor,
         LanguageManager     = require("language/LanguageManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
-    
+
     var langNames = {
         css:        {mode: "css",           langName: "CSS"},
         javascript: {mode: "javascript",    langName: "JavaScript"},
         html:       {mode: "html",          langName: "HTML"},
         unknown:    {mode: null,            langName: "Text"}
     };
-    
+
     function compareMode(expected, actual) {
         if (typeof actual === "string") {
             return actual === expected;
         } else if (actual === null) {
             return expected === null;
         }
-        
+
         return actual === expected;
     }
-    
+
     function expectModeAndLang(editor, lang) {
         expect(editor.getModeForSelection()).toSpecifyModeNamed(lang.mode);
         expect(editor.getLanguageForSelection().getName()).toBe(lang.langName);
@@ -58,14 +58,14 @@ define(function (require, exports, module) {
     describe("Editor", function () {
         var defaultContent = "Brackets is going to be awesome!\n";
         var myDocument, myEditor;
-        
+
         function createTestEditor(content, languageId) {
             // create dummy Document and Editor
             var mocks = SpecRunnerUtils.createMockEditor(content, languageId);
             myDocument = mocks.doc;
             myEditor = mocks.editor;
         }
-        
+
         beforeEach(function () {
             this.addMatchers({
                 toSpecifyModeNamed: function (expected) {
@@ -86,12 +86,12 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 createTestEditor(defaultContent, "");
             });
-            
+
             it("should initialize with content", function () {
                 // verify editor content
                 expect(myEditor._codeMirror.getValue()).toEqual(defaultContent);
             });
-            
+
             // FUTURE: this should really be in a Document unit test, but there's no "official"
             // way to create the model for a Document without manually creating an Editor, so we're
             // testing this here for now until we get a real central model.
@@ -110,7 +110,7 @@ define(function (require, exports, module) {
                 myEditor._codeMirror.setValue("new content");
                 expect(changeFired).toBe(true);
             });
-            
+
             it("should send an array of multiple change records for an operation", function () {
                 var cm = myEditor._codeMirror,
                     changeHandler = jasmine.createSpy();
@@ -119,9 +119,9 @@ define(function (require, exports, module) {
                     cm.replaceRange("inserted", {line: 1, ch: 0});
                     cm.replaceRange("", {line: 0, ch: 0}, {line: 0, ch: 4});
                 });
-                
+
                 expect(changeHandler.callCount).toBe(1);
-                
+
                 var args = changeHandler.mostRecentCall.args;
                 expect(args[1]).toBe(myDocument);
                 expect(args[2][0].text).toEqual(["inserted"]);
@@ -131,21 +131,21 @@ define(function (require, exports, module) {
                 expect(args[2][1].from).toEqual({line: 0, ch: 0});
                 expect(args[2][1].to).toEqual({line: 0, ch: 4});
             });
-            
+
             it("should set mode based on Document language", function () {
                 createTestEditor(defaultContent, "html");
-                
+
                 var htmlLanguage = LanguageManager.getLanguage("html");
                 expect(myEditor.getModeForDocument()).toBe(htmlLanguage.getMode());
             });
-            
+
         });
-        
+
         describe("Focus", function () {
             beforeEach(function () {
                 createTestEditor(defaultContent, "");
             });
-            
+
             it("should not have focus until explicitly set", function () {
                 expect(myEditor.hasFocus()).toBe(false);
             });
@@ -153,14 +153,14 @@ define(function (require, exports, module) {
                 /*
                  * @note: This test really just ensures that
                  *          calling the editor's focus method
-                 *          will call the codeMirror focus method 
+                 *          will call the codeMirror focus method
                  *        This is due to the fact that focusing the editor
-                 *          may not actually focus the editor if the app 
+                 *          may not actually focus the editor if the app
                  *          doesn't have the keyboard focus which changed
                  *          with cef 2171
                  * @todo: This will need to be replaced with
                  *       checks to see that the editor is the "active" element
-                 *       rather than have the input focus after focusing 
+                 *       rather than have the input focus after focusing
                  *       the editor
                  * @see: https://github.com/adobe/brackets/issues/9972
                  */
@@ -169,7 +169,7 @@ define(function (require, exports, module) {
                 expect(myEditor._codeMirror.focus).toHaveBeenCalled();
             });
         });
-        
+
         describe("getModeForSelection()", function () {
             var jsContent = "var foo;";
             var htmlContent = "<html><head>\n" +
@@ -179,25 +179,25 @@ define(function (require, exports, module) {
                               "</head><body>\n" +
                               "  <p>Hello</p>\n" +
                               "</body></html>";
-            
+
             it("should get mode in homogeneous file", function () {
                 createTestEditor(jsContent, langNames.javascript.mode);
-                
+
                 // Mode at point
                 myEditor.setCursorPos(0, 0);    // first char in text
                 expectModeAndLang(myEditor, langNames.javascript);
                 myEditor.setCursorPos(0, 8);    // last char in text
                 expectModeAndLang(myEditor, langNames.javascript);
-                
+
                 myEditor.setCursorPos(0, 3);    // middle of text
                 expectModeAndLang(myEditor, langNames.javascript);
-                
+
                 // Mode for range
                 myEditor.setSelection({line: 0, ch: 4}, {line: 0, ch: 7});
                 expectModeAndLang(myEditor, langNames.javascript);
                 myEditor.setSelection({line: 0, ch: 0}, {line: 0, ch: 8});  // select all
                 expectModeAndLang(myEditor, langNames.javascript);
-                
+
                 // Mode for multiple cursors/selections
                 myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
                                         {start: {line: 0, ch: 5}, end: {line: 0, ch: 5}}]);
@@ -206,21 +206,21 @@ define(function (require, exports, module) {
                                         {start: {line: 0, ch: 5}, end: {line: 0, ch: 7}}]);
                 expectModeAndLang(myEditor, langNames.javascript);
             });
-            
+
             it("should get mode in HTML file", function () {
                 createTestEditor(htmlContent, "html");
-                
+
                 // Mode at point
                 myEditor.setCursorPos(0, 0);    // first char in text
                 expectModeAndLang(myEditor, langNames.html);
                 myEditor.setCursorPos(6, 14);    // last char in text
                 expectModeAndLang(myEditor, langNames.html);
-                
+
                 myEditor.setCursorPos(5, 7);    // middle of text - html
                 expectModeAndLang(myEditor, langNames.html);
                 myEditor.setCursorPos(2, 7);    // middle of text - js
                 expectModeAndLang(myEditor, langNames.javascript);
-                
+
                 // Mode for range - homogeneous mode
                 myEditor.setSelection({line: 5, ch: 2}, {line: 5, ch: 14});
                 expectModeAndLang(myEditor, langNames.html);
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
                 expectModeAndLang(myEditor, langNames.javascript);
                 myEditor.setSelection({line: 2, ch: 0}, {line: 3, ch: 0});  // whole line
                 expectModeAndLang(myEditor, langNames.javascript);
-                
+
                 // Mode for multiple cursors/selections - homogeneous mode
                 myEditor.setSelections([{start: {line: 2, ch: 0}, end: {line: 2, ch: 0}},
                                         {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]);
@@ -246,11 +246,11 @@ define(function (require, exports, module) {
                                         {start: {line: 5, ch: 7}, end: {line: 5, ch: 9}},
                                         {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
                 expectModeAndLang(myEditor, langNames.html);
-                
+
                 // Mode for range - mix of modes
                 myEditor.setSelection({line: 2, ch: 4}, {line: 3, ch: 7});
                 expectModeAndLang(myEditor, langNames.unknown);
-                
+
                 // Mode for multiple cursors/selections - mix of modes
                 myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
                                         {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}},
@@ -268,16 +268,16 @@ define(function (require, exports, module) {
                                         {start: {line: 2, ch: 4}, end: {line: 5, ch: 3}},
                                         {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
                 expectModeAndLang(myEditor, langNames.unknown);
-                
+
                 // Mode for range - mix of modes where start & endpoints are same mode
                 // Known limitation of getModeForSelection() that it does not spot where the mode
                 // differs in mid-selection
                 myEditor.setSelection({line: 0, ch: 0}, {line: 6, ch: 14});  // select all
                 expectModeAndLang(myEditor, langNames.html);
             });
-            
+
         });
-        
+
         describe("Column/ch conversion", function () {
             it("should get mode in HTML file", function () {
                 var content =
@@ -288,9 +288,9 @@ define(function (require, exports, module) {
                     "\n" +
                     "\tA\tB";
                 createTestEditor(content, "javascript");
-                
+
                 // Tab size 4
-                
+
                 expect(myEditor.getColOffset({line: 1, ch: 0})).toBe(0);
                 expect(myEditor.getColOffset({line: 1, ch: 1})).toBe(1);
                 expect(myEditor.getColOffset({line: 1, ch: 2})).toBe(2);
@@ -305,12 +305,12 @@ define(function (require, exports, module) {
                 expect(myEditor.getColOffset({line: 5, ch: 2})).toBe(5);
                 expect(myEditor.getColOffset({line: 5, ch: 3})).toBe(8);
                 expect(myEditor.getColOffset({line: 5, ch: 4})).toBe(9);
-                
+
                 // Tab size 2
                 var defaultTabSize = Editor.getTabSize();
                 expect(defaultTabSize).toBe(4);
                 Editor.setTabSize(2);
-                
+
                 expect(myEditor.getColOffset({line: 1, ch: 0})).toBe(0);  // first line is all spaces: should be unchanged
                 expect(myEditor.getColOffset({line: 1, ch: 1})).toBe(1);
                 expect(myEditor.getColOffset({line: 1, ch: 2})).toBe(2);
@@ -325,12 +325,12 @@ define(function (require, exports, module) {
                 expect(myEditor.getColOffset({line: 5, ch: 2})).toBe(3);
                 expect(myEditor.getColOffset({line: 5, ch: 3})).toBe(4);
                 expect(myEditor.getColOffset({line: 5, ch: 4})).toBe(5);
-                
+
                 // Restore default
                 Editor.setTabSize(defaultTabSize);
             });
         });
-        
+
         function makeDummyLines(num) {
             var content = [], i;
             for (i = 0; i < num; i++) {
@@ -338,24 +338,24 @@ define(function (require, exports, module) {
             }
             return content;
         }
-        
+
         describe("Selections", function () {
-            
+
             beforeEach(function () {
                 createTestEditor(makeDummyLines(10).join("\n"), "unknown");
             });
-                
+
             describe("hasSelection", function () {
                 it("should return false for a single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
                     expect(myEditor.hasSelection()).toBe(false);
                 });
-                
+
                 it("should return true for a single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
                     expect(myEditor.hasSelection()).toBe(true);
                 });
-                
+
                 it("should return false for multiple cursors", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
@@ -363,7 +363,7 @@ define(function (require, exports, module) {
                                                        ], 2);
                     expect(myEditor.hasSelection()).toBe(false);
                 });
-                
+
                 it("should return true for multiple selections", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
@@ -371,7 +371,7 @@ define(function (require, exports, module) {
                                                        ], 2);
                     expect(myEditor.hasSelection()).toBe(true);
                 });
-                
+
                 it("should return true for mixed cursors and selections", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
@@ -380,7 +380,7 @@ define(function (require, exports, module) {
                     expect(myEditor.hasSelection()).toBe(true);
                 });
             });
-            
+
             describe("getCursorPos", function () {
                 it("should return a single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
@@ -390,7 +390,7 @@ define(function (require, exports, module) {
                     expect(myEditor.getCursorPos(false, "end")).toEqual({line: 0, ch: 2});
                     expect(myEditor.getCursorPos(false, "head")).toEqual({line: 0, ch: 2});
                 });
-                
+
                 it("should return the correct ends of a single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
                     expect(myEditor.getCursorPos()).toEqual({line: 0, ch: 5});
@@ -399,7 +399,7 @@ define(function (require, exports, module) {
                     expect(myEditor.getCursorPos(false, "end")).toEqual({line: 0, ch: 5});
                     expect(myEditor.getCursorPos(false, "head")).toEqual({line: 0, ch: 5});
                 });
-                
+
                 it("should return the default primary cursor in a multiple cursor selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
@@ -411,7 +411,7 @@ define(function (require, exports, module) {
                     expect(myEditor.getCursorPos(false, "end")).toEqual({line: 2, ch: 1});
                     expect(myEditor.getCursorPos(false, "head")).toEqual({line: 2, ch: 1});
                 });
-                
+
                 it("should return the specific primary cursor in a multiple cursor selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
@@ -423,7 +423,7 @@ define(function (require, exports, module) {
                     expect(myEditor.getCursorPos(false, "end")).toEqual({line: 1, ch: 1});
                     expect(myEditor.getCursorPos(false, "head")).toEqual({line: 1, ch: 1});
                 });
-                
+
                 it("should return the correct ends of the default primary selection in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
@@ -435,7 +435,7 @@ define(function (require, exports, module) {
                     expect(myEditor.getCursorPos(false, "end")).toEqual({line: 2, ch: 4});
                     expect(myEditor.getCursorPos(false, "head")).toEqual({line: 2, ch: 4});
                 });
-                
+
                 it("should return the correct ends of a specific primary selection in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
@@ -448,7 +448,7 @@ define(function (require, exports, module) {
                     expect(myEditor.getCursorPos(false, "head")).toEqual({line: 1, ch: 4});
                 });
             });
-            
+
             describe("setCursorPos", function () {
                 it("should replace an existing single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
@@ -461,7 +461,7 @@ define(function (require, exports, module) {
                     myEditor.setCursorPos(1, 3);
                     expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
                 });
-                
+
                 it("should replace existing multiple cursors", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
@@ -470,7 +470,7 @@ define(function (require, exports, module) {
                     myEditor.setCursorPos(1, 3);
                     expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
                 });
-                
+
                 it("should replace existing multiple selections", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
@@ -480,13 +480,13 @@ define(function (require, exports, module) {
                     expect(myEditor.getCursorPos()).toEqual({line: 1, ch: 3});
                 });
             });
-            
+
             describe("getSelection", function () {
                 it("should return a single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
                     expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 2}, end: {line: 0, ch: 2}, reversed: false});
                 });
-                
+
                 it("should return a single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
                     expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: false});
@@ -501,12 +501,12 @@ define(function (require, exports, module) {
                     myEditor._codeMirror.setSelection({line: 0, ch: 5}, {line: 0, ch: 1});
                     expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: true});
                 });
-                
+
                 it("should return a multiline selection in the proper order when reversed", function () {
                     myEditor._codeMirror.setSelection({line: 1, ch: 3}, {line: 0, ch: 5});
                     expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: true});
                 });
-                
+
                 it("should return the default primary cursor in a multiple cursor selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
@@ -514,7 +514,7 @@ define(function (require, exports, module) {
                                                        ], 2);
                     expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false});
                 });
-                
+
                 it("should return the specific primary cursor in a multiple cursor selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
@@ -522,7 +522,7 @@ define(function (require, exports, module) {
                                                        ], 1);
                     expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, reversed: false});
                 });
-                
+
                 it("should return the default primary selection in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
@@ -530,7 +530,7 @@ define(function (require, exports, module) {
                                                        ], 2);
                     expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false});
                 });
-                
+
                 it("should return the default primary selection in the proper order when reversed", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
@@ -538,7 +538,7 @@ define(function (require, exports, module) {
                                                        ], 2);
                     expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true});
                 });
-                
+
                 it("should return the specific primary selection in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
@@ -546,7 +546,7 @@ define(function (require, exports, module) {
                                                        ], 1);
                     expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false});
                 });
-                
+
                 it("should return the specific primary selection in the proper order when reversed", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 4}, head: {line: 1, ch: 1}},
@@ -556,23 +556,23 @@ define(function (require, exports, module) {
                 });
 
             });
-            
+
             describe("getSelections", function () {
                 it("should return a single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
                     expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 2}, end: {line: 0, ch: 2}, reversed: false, primary: true}]);
                 });
-                
+
                 it("should return a single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
                     expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: false, primary: true}]);
                 });
-                
+
                 it("should properly reverse a single selection whose head is before its anchor", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 5}, {line: 0, ch: 1});
                     expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 0, ch: 5}, reversed: true, primary: true}]);
                 });
-                
+
                 it("should return multiple cursors", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
@@ -583,7 +583,7 @@ define(function (require, exports, module) {
                                                         {start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false, primary: true}
                                                        ]);
                 });
-                
+
                 it("should return a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
@@ -594,7 +594,7 @@ define(function (require, exports, module) {
                                                         {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false, primary: true}
                                                        ]);
                 });
-                
+
                 it("should properly reverse selections whose heads are before their anchors in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 4}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
@@ -605,7 +605,7 @@ define(function (require, exports, module) {
                                                         {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true, primary: true}
                                                        ]);
                 });
-                
+
                 it("should properly reverse multiline selections whose heads are before their anchors in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 1, ch: 3}, head: {line: 0, ch: 5}},
                                                         {anchor: {line: 4, ch: 4}, head: {line: 3, ch: 1}}
@@ -615,20 +615,20 @@ define(function (require, exports, module) {
                                                        ]);
                 });
             });
-            
+
             describe("getSelectedText", function () {
                 it("should return empty string for a cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
                     expect(myEditor.getSelectedText()).toEqual("");
                     expect(myEditor.getSelectedText(true)).toEqual("");
                 });
-                
+
                 it("should return the contents of a single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 8}, {line: 0, ch: 14});
                     expect(myEditor.getSelectedText()).toEqual("line 0");
                     expect(myEditor.getSelectedText(true)).toEqual("line 0");
                 });
-                
+
                 it("should return the primary selection by default, but concatenate contents if allSelections is true", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 8}, head: {line: 0, ch: 14}},
                                                         {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
@@ -656,7 +656,7 @@ define(function (require, exports, module) {
                     expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
             });
-            
+
             describe("setSelection", function () {
                 it("should replace an existing single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
@@ -669,12 +669,12 @@ define(function (require, exports, module) {
                     myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
                     expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
                 });
-                
+
                 it("should allow implicit end", function () {
                     myEditor.setSelection({line: 1, ch: 3});
                     expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 1, ch: 3}, reversed: false});
                 });
-                
+
                 it("should replace existing multiple cursors", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
@@ -683,7 +683,7 @@ define(function (require, exports, module) {
                     myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
                     expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
                 });
-                
+
                 it("should replace existing multiple selections", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
@@ -712,7 +712,7 @@ define(function (require, exports, module) {
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
                     expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
                 });
-                
+
                 it("should replace existing multiple cursors", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
@@ -724,7 +724,7 @@ define(function (require, exports, module) {
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
                     expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
                 });
-                
+
                 it("should replace existing multiple selections", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
                                                         {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
@@ -736,7 +736,7 @@ define(function (require, exports, module) {
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
                     expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
                 });
-                
+
                 it("should specify non-default primary selection", function () {
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, primary: true},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
@@ -744,7 +744,7 @@ define(function (require, exports, module) {
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: false}]);
                     expect(myEditor.getSelection()).toEqual({start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false});
                 });
-                
+
                 it("should sort and merge overlapping selections", function () {
                     myEditor.setSelections([{start: {line: 2, ch: 4}, end: {line: 3, ch: 0}},
                                             {start: {line: 2, ch: 3}, end: {line: 2, ch: 6}},
@@ -759,10 +759,10 @@ define(function (require, exports, module) {
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
                     expect(myEditor.getSelections()).toEqual([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: true, primary: false},
                                             {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
-                    
+
                 });
             });
-            
+
             describe("convertToLineSelections", function () {
                 it("should expand a cursor to a line selection, keeping original selection for tracking", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}}],
@@ -773,7 +773,7 @@ define(function (require, exports, module) {
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                 });
-                
+
                 it("should expand a range within a line to a line selection, keeping original selection for tracking", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 8}}],
                         result = myEditor.convertToLineSelections(origSelections);
@@ -783,7 +783,7 @@ define(function (require, exports, module) {
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                 });
-                
+
                 it("should expand a range that spans multiple lines to a line selection", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 1, ch: 8}}],
                         result = myEditor.convertToLineSelections(origSelections);
@@ -793,7 +793,7 @@ define(function (require, exports, module) {
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                 });
-                
+
                 it("should preserve the reversed attribute on a tracked range", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 8}, reversed: true}],
                         result = myEditor.convertToLineSelections(origSelections);
@@ -803,7 +803,7 @@ define(function (require, exports, module) {
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                 });
-                
+
                 it("should keep a line selection the same if expandEndAtStartOfLine is not set", function () {
                     var origSelections = [{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections);
@@ -813,7 +813,7 @@ define(function (require, exports, module) {
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                 });
-                
+
                 it("should expand a line selection if expandEndAtStartOfLine is set", function () {
                     var origSelections = [{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections, {expandEndAtStartOfLine: true});
@@ -823,7 +823,7 @@ define(function (require, exports, module) {
                     expect(result[0].selectionsToTrack.length).toBe(1);
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                 });
-                
+
                 it("should process a discontiguous mix of cursor, range, and line selections separately, preserving the primary tracked selection", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
                                           {start: {line: 2, ch: 4}, end: {line: 2, ch: 8}, primary: true},
@@ -865,7 +865,7 @@ define(function (require, exports, module) {
                     expect(result[1].selectionsToTrack.length).toBe(1);
                     expect(result[1].selectionsToTrack[0]).toEqual(origSelections[2]);
                 });
-                
+
                 it("should merge selections on adjacent lines by default", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
                                           {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
@@ -882,7 +882,7 @@ define(function (require, exports, module) {
                     expect(result[1].selectionsToTrack.length).toBe(1);
                     expect(result[1].selectionsToTrack[0]).toEqual(origSelections[2]);
                 });
-                
+
                 it("should merge adjacent multiline selections where the first selection ends on the same line where the second selection starts", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 1, ch: 4}, primary: true},
                                           {start: {line: 1, ch: 8}, end: {line: 2, ch: 8}}],
@@ -894,7 +894,7 @@ define(function (require, exports, module) {
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                     expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
                 });
-                
+
                 it("should not merge selections on adjacent lines if mergeAdjacent is false", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
                                           {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
@@ -914,7 +914,7 @@ define(function (require, exports, module) {
                     expect(result[2].selectionsToTrack.length).toBe(1);
                     expect(result[2].selectionsToTrack[0]).toEqual(origSelections[2]);
                 });
-                
+
                 it("should merge line selections separated by a one-line gap by default if expandEndAtStartOfLine is true", function () {
                     var origSelections = [{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}, primary: true},
                                           {start: {line: 2, ch: 0}, end: {line: 3, ch: 0}}],
@@ -926,7 +926,7 @@ define(function (require, exports, module) {
                     expect(result[0].selectionsToTrack[0]).toEqual(origSelections[0]);
                     expect(result[0].selectionsToTrack[1]).toEqual(origSelections[1]);
                 });
-                
+
                 it("should not merge line selections separated by a one-line gap if expandEndAtStartOfLine is true but mergeAdjacent is false", function () {
                     // Note that in this case, if you were to actually set this as a multiple selection, CodeMirror would
                     // merge the adjacent selections at that point. But while processing an edit you might not want that.
@@ -943,7 +943,7 @@ define(function (require, exports, module) {
                     expect(result[1].selectionsToTrack.length).toBe(1);
                     expect(result[1].selectionsToTrack[0]).toEqual(origSelections[1]);
                 });
-                
+
                 it("should merge multiple adjacent/overlapping selections together", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
                                           {start: {line: 1, ch: 4}, end: {line: 2, ch: 4}, primary: true, reversed: true},
@@ -959,7 +959,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("Soft tabs", function () {
             beforeEach(function () {
                 // Configure the editor's CM instance for 4-space soft tabs, regardless of prefs.
@@ -968,7 +968,7 @@ define(function (require, exports, module) {
                 instance.setOption("indentWithTabs", false);
                 instance.setOption("indentUnit", 4);
             });
-            
+
             function checkSoftTab(sel, dir, command, expectedSel, expectedText) {
                 expectedText = expectedText || myEditor.document.getText();
 
@@ -977,7 +977,7 @@ define(function (require, exports, module) {
                 } else {
                     myEditor.setCursorPos(sel);
                 }
-                
+
                 myEditor._handleSoftTabNavigation(dir, command);
 
                 if (Array.isArray(expectedSel)) {
@@ -987,7 +987,7 @@ define(function (require, exports, module) {
                 }
                 expect(myEditor.document.getText()).toEqual(expectedText);
             }
-            
+
             it("should move left by a soft tab if cursor is immediately after 1 indent level worth of spaces at beginning of line", function () {
                 myEditor.document.setText("    content");
                 checkSoftTab({line: 0, ch: 4}, -1, "moveH", {line: 0, ch: 0});
@@ -1004,7 +1004,7 @@ define(function (require, exports, module) {
                 myEditor.document.setText("    content");
                 checkSoftTab({line: 0, ch: 0}, 1, "deleteH", {line: 0, ch: 0}, "content");
             });
-            
+
             it("should move left by a soft tab if cursor is immediately after 2 indent levels worth of spaces at beginning of line", function () {
                 myEditor.document.setText("        content");
                 checkSoftTab({line: 0, ch: 8}, -1, "moveH", {line: 0, ch: 4});
@@ -1131,7 +1131,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}]);
                 });
-                
+
                 it("should move right over a soft tab from multiple aligned cursors", function () {
                     myEditor.document.setText("    one\n    two\n    three\n");
                     checkSoftTab([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
@@ -1142,7 +1142,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: true, reversed: false}]);
                 });
-                
+
                 it("should backspace over a soft tab from multiple aligned cursors", function () {
                     myEditor.document.setText("    one\n    two\n    three\n");
                     checkSoftTab([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
@@ -1166,7 +1166,7 @@ define(function (require, exports, module) {
                                   {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}],
                                 "one\ntwo\nthree\n");
                 });
-                
+
                 it("should move left to next soft tab from multiple cursors at same distance from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
@@ -1177,7 +1177,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}]);
                 });
-                
+
                 it("should move right to next soft tab from multiple cursors at same distance from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
@@ -1188,7 +1188,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
                 });
-                
+
                 it("should backspace to next soft tab from multiple cursors at same distance from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
@@ -1213,7 +1213,7 @@ define(function (require, exports, module) {
                                  "     one\n     two\n         three\n"
                                 );
                 });
-                
+
                 it("should do default move left from multiple cursors at different distances from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
@@ -1224,7 +1224,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}]);
                 });
-                
+
                 it("should do default move right from multiple cursors at different distances from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
@@ -1235,7 +1235,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 11}, end: {line: 2, ch: 11}, primary: true, reversed: false}]);
                 });
-                
+
                 it("should do default backspace from multiple cursors at different distances from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
@@ -1260,7 +1260,7 @@ define(function (require, exports, module) {
                                  "       one\n       two\n           three\n"
                                 );
                 });
-                
+
                 it("should do default move left from multiple cursors if one is inside content", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
@@ -1271,7 +1271,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}]);
                 });
-                
+
                 it("should do default move right from multiple cursors if one is inside content", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
@@ -1282,7 +1282,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}, primary: true, reversed: false}]);
                 });
-                
+
                 it("should do default backspace from multiple cursors if one is inside content", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 10}, end: {line: 0, ch: 10}},
@@ -1318,7 +1318,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}]);
                 });
-                
+
                 it("should collapse ranges and handle other consistent soft tabs when moving right", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 9}},
@@ -1329,7 +1329,7 @@ define(function (require, exports, module) {
                                   {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
                                   {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
                 });
-                
+
                 it("should delete ranges and do nothing with cursors when backspacing", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
@@ -1357,7 +1357,7 @@ define(function (require, exports, module) {
 
             });
         });
-        
+
         describe("Smart Tab handling", function () {
             function makeEditor(content, useTabs) {
                 createTestEditor(content, "javascript");
@@ -1365,7 +1365,7 @@ define(function (require, exports, module) {
                 instance.setOption("indentWithTabs", useTabs);
                 instance.setOption("indentUnit", 4);
             }
-            
+
             it("should indent and move cursor to correct position if at beginning of an empty line - spaces", function () {
                 var content = "function foo() {\n" +
                     "    if (bar) {\n" +
@@ -1376,7 +1376,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos({line: 2, ch: 0});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[2] = "        ";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
@@ -1392,12 +1392,12 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos({line: 2, ch: 0});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[2] = "\t\t";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
             });
-            
+
             it("should move cursor to end of whitespace (without adding more) if at beginning of a line with correct amount of whitespace - spaces", function () {
                 var content = "function foo() {\n" +
                     "    if (bar) {\n" +
@@ -1408,7 +1408,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos({line: 2, ch: 0});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
-                
+
                 expect(myEditor.document.getText()).toEqual(content);
             });
 
@@ -1424,7 +1424,7 @@ define(function (require, exports, module) {
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
                 expect(myEditor.document.getText()).toEqual(content);
             });
-            
+
             it("should add another indent whitespace if already past correct indent level on an all whitespace line - spaces", function () {
                 var content = "function foo() {\n" +
                     "    if (bar) {\n" +
@@ -1435,13 +1435,13 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos({line: 2, ch: 12});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 16}, end: {line: 2, ch: 16}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[2] = "    " + lines[2];
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
 
             });
-            
+
             it("should add another indent whitespace if already past correct indent level on an all whitespace line - tabs", function () {
                 var content = "function foo() {\n" +
                     "\tif (bar) {\n" +
@@ -1452,7 +1452,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos({line: 2, ch: 3});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[2] = "\t" + lines[2];
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
@@ -1469,7 +1469,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos({line: 2, ch: 2});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[2] = "        indentme();";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
@@ -1485,7 +1485,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos({line: 2, ch: 0});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[2] = "\t\tindentme();";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
@@ -1501,7 +1501,7 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos({line: 1, ch: 8});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 12}, end: {line: 1, ch: 12}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[1] = "            if (bar) {";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
@@ -1517,12 +1517,12 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos({line: 1, ch: 2});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 3}, end: {line: 1, ch: 3}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[1] = "\t\t\tif (bar) {";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
             });
-            
+
             it("should move cursor and not indent further if cursor is in whitespace before properly indented line - spaces", function () {
                 var content = "function foo() {\n" +
                     "    if (bar) {\n" +
@@ -1575,12 +1575,12 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos({line: 2, ch: 2});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 3}, end: {line: 2, ch: 3}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[2] = "\t\t\tindentme();";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
             });
-            
+
             it("should add an indent level to each line (regardless of existing indentation) if selection spans multiple lines - spaces", function () {
                 var content = "function foo() {\n" +
                     "    if (bar) {\n" +
@@ -1592,14 +1592,14 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 1, ch: 6}, {line: 3, ch: 3});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 10}, end: {line: 3, ch: 8}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 for (i = 1; i <= 3; i++) {
                     lines[i] = "    " + lines[i];
                 }
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
             });
-            
+
             it("should add an indent level to each line (regardless of existing indentation) if selection spans multiple lines - tabs", function () {
                 var content = "function foo() {\n" +
                     "\tif (bar) {\n" +
@@ -1611,14 +1611,14 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 1, ch: 0}, {line: 3, ch: 1});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 1, ch: 0}, end: {line: 3, ch: 2}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 for (i = 1; i <= 3; i++) {
                     lines[i] = "\t" + lines[i];
                 }
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
             });
-            
+
             it("should add spaces to indent to the next soft tab stop if cursor is in the middle of a line after non-whitespace content - spaces", function () {
                 var content = "function foo() {\n" +
                     "    if (bar) {\n" +
@@ -1629,12 +1629,12 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 2, ch: 9}, {line: 2, ch: 9}); // should add three spaces to get to column 12
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[2] = "    inden   tme();";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
             });
-            
+
             it("should insert a tab if cursor is in the middle of a line after non-whitespace content - tab", function () {
                 var content = "function foo() {\n" +
                     "\tif (bar) {\n" +
@@ -1645,12 +1645,12 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 2, ch: 5}, {line: 2, ch: 5});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 6}, end: {line: 2, ch: 6}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[2] = "\tinde\tntme();";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
             });
-            
+
             it("should add spaces to next soft tab before the beginning of the selection if it's a range in the middle of a line after non-whitespace content - spaces", function () {
                 var content = "function foo() {\n" +
                     "    if (bar) {\n" +
@@ -1661,12 +1661,12 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 2, ch: 9}, {line: 2, ch: 14}); // should add three spaces to get to column 12
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 12}, end: {line: 2, ch: 17}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[2] = "    inden   tme();";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
             });
-            
+
             it("should add a tab before the beginning of the selection if it's a range in the middle of a line after non-whitespace content - tabs", function () {
                 var content = "function foo() {\n" +
                     "\tif (bar) {\n" +
@@ -1677,7 +1677,7 @@ define(function (require, exports, module) {
                 myEditor.setSelection({line: 2, ch: 5}, {line: 2, ch: 8});
                 myEditor._handleTabKey();
                 expect(myEditor.getSelection()).toEqual({start: {line: 2, ch: 6}, end: {line: 2, ch: 9}, reversed: false});
-                
+
                 var lines = content.split("\n");
                 lines[2] = "\tinde\tntme();";
                 expect(myEditor.document.getText()).toEqual(lines.join("\n"));
@@ -1691,7 +1691,7 @@ define(function (require, exports, module) {
                 // whitespace at the beginning of the line get pushed to the first non-whitespace character on the line,
                 // so in tests below that fall back to "add one indent level before each line", the selections might change
                 // more than you would expect by just adding a single indent level.
-                
+
                 it("should add one indent level before all selected lines if any of the selections is multiline - spaces", function () {
                     var content = "function foo() {\n" +
                         "    if (bar) {\n" +
@@ -1711,7 +1711,7 @@ define(function (require, exports, module) {
                     lines[3] = "    " + lines[3];
                     expect(myEditor.document.getText()).toEqual(lines.join("\n"));
                 });
-                
+
                 it("should add one indent level before all selected lines if any of the selections is multiline - tabs", function () {
                     var content = "function foo() {\n" +
                         "\tif (bar) {\n" +
@@ -1753,7 +1753,7 @@ define(function (require, exports, module) {
                     lines[3] = "      }";
                     expect(myEditor.document.getText()).toEqual(lines.join("\n"));
                 });
-                
+
                 it("should add a tab before each cursor if any selection is after first non-whitespace character in its line - tabs", function () {
                     var content = "function foo() {\n" +
                         "\tif (bar) {\n" +
@@ -1775,7 +1775,7 @@ define(function (require, exports, module) {
                     lines[3] = "\t\t}";
                     expect(myEditor.document.getText()).toEqual(lines.join("\n"));
                 });
-                
+
                 it("should add spaces before beginning of each range to get to next tab stop if any selection is after first non-whitespace character in its line - spaces", function () {
                     var content = "function foo() {\n" +
                         "    if (bar) {\n" +
@@ -1797,7 +1797,7 @@ define(function (require, exports, module) {
                     lines[3] = "      }";
                     expect(myEditor.document.getText()).toEqual(lines.join("\n"));
                 });
-                
+
                 it("should add a tab before beginning of each range if any selection is after first non-whitespace character in its line - tabs", function () {
                     var content = "function foo() {\n" +
                         "\tif (bar) {\n" +
@@ -1819,7 +1819,7 @@ define(function (require, exports, module) {
                     lines[3] = "\t\t}";
                     expect(myEditor.document.getText()).toEqual(lines.join("\n"));
                 });
-                
+
                 it("should add spaces before each cursor to get to next tab stop (not autoindent) if any selection is exactly before the first non-whitespace character on the line - spaces", function () {
                     var content = "function foo() {\n" +
                         "    if (bar) {\n" +
@@ -1838,7 +1838,7 @@ define(function (require, exports, module) {
                     lines[2] = "        indentme();";
                     expect(myEditor.document.getText()).toEqual(lines.join("\n"));
                 });
-                
+
                 it("should add a tab at each cursor (not autoindent) if any selection is exactly before the first non-whitespace character on the line - tabs", function () {
                     var content = "function foo() {\n" +
                         "\tif (bar) {\n" +
@@ -1875,7 +1875,7 @@ define(function (require, exports, module) {
                     lines[2] = "        indentme();";
                     expect(myEditor.document.getText()).toEqual(lines.join("\n"));
                 });
-                
+
                 it("should try to autoindent each line if all cursors are in start-of-line whitespace, and if at least one cursor changed position or indent was added, do nothing further - tabs", function () {
                     var content = "function foo() {\n" +
                         "\tif (bar) {\n" +
@@ -1912,7 +1912,7 @@ define(function (require, exports, module) {
                     lines[2] = "            indentme();";
                     expect(myEditor.document.getText()).toEqual(lines.join("\n"));
                 });
-                
+
                 it("should try to autoindent each line if all cursors are in start-of-line whitespace, but if no cursors changed position or added indent, add an indent to the beginning of each line - tabs", function () {
                     var content = "function foo() {\n" +
                         "\tif (bar) {\n" +

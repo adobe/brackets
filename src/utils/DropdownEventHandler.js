@@ -1,24 +1,24 @@
  /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -27,12 +27,12 @@
 
 define(function (require, exports, module) {
     "use strict";
-   
+
     var KeyBindingManager = require("command/KeyBindingManager"),
         KeyEvent          = require("utils/KeyEvent"),
         PopUpManager      = require("widgets/PopUpManager"),
         ViewUtils         = require("utils/ViewUtils");
-    
+
     /**
      * Object to handle events for a dropdown list.
      *
@@ -56,13 +56,13 @@ define(function (require, exports, module) {
      * @param {Function} selectionCallback  function called when list item is selected.
      */
     function DropdownEventHandler($list, selectionCallback, closeCallback) {
-        
+
         this.$list = $list;
         this.$items = $list.find("li");
         this.selectionCallback = selectionCallback;
         this.closeCallback = closeCallback;
         this.scrolling = false;
-        
+
         /**
          * @private
          * The selected position in the list; otherwise -1.
@@ -85,11 +85,11 @@ define(function (require, exports, module) {
          */
         function _keydownHook(event) {
             var keyCode;
-    
+
             // (page) up, (page) down, enter and tab key are handled by the list
             if (event.type === "keydown") {
                 keyCode = event.keyCode;
-    
+
                 if (keyCode === KeyEvent.DOM_VK_TAB) {
                     self.close();
                 } else if (keyCode === KeyEvent.DOM_VK_UP) {
@@ -104,27 +104,27 @@ define(function (require, exports, module) {
                 } else if (keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
                     // Move down roughly one 'page', stopping at edges (not wrapping) (if nothing selected, selects the item one page down from the top)
                     self._tryToSelect((self._selectedIndex || 0) + self._itemsPerPage(), +1, true);
-                    
+
                 } else if (keyCode === KeyEvent.DOM_VK_HOME) {
                     self._tryToSelect(0, +1);
                 } else if (keyCode === KeyEvent.DOM_VK_END) {
                     self._tryToSelect(self.$items.length - 1, -1);
-                    
+
                 } else if (self._selectedIndex !== -1 &&
                         (keyCode === KeyEvent.DOM_VK_RETURN)) {
-    
+
                     // Trigger a click handler to commmit the selected item
                     self._selectionHandler();
                 } else {
                     // Let the event bubble.
                     return false;
                 }
-                
+
                 event.stopImmediatePropagation();
                 event.preventDefault();
                 return true;
             }
-            
+
             // If we didn't handle it, let other global keydown hooks handle it.
             return false;
         }
@@ -136,9 +136,9 @@ define(function (require, exports, module) {
             KeyBindingManager.removeGlobalKeydownHook(_keydownHook);
             self._cleanup();
         }
-        
+
         KeyBindingManager.addGlobalKeydownHook(_keydownHook);
-        
+
         if (this.$list) {
             this._registerMouseEvents();
             PopUpManager.addPopUp(this.$list, closeCallback, true);
@@ -222,7 +222,7 @@ define(function (require, exports, module) {
 
         return itemsPerPage;
     };
-    
+
     /**
      * Call selectionCallback with selected index
      */
@@ -231,11 +231,11 @@ define(function (require, exports, module) {
         if (this._selectedIndex === -1) {
             return;
         }
-        
+
         var $link = this.$items.eq(this._selectedIndex).find("a");
         this._clickHandler($link);
     };
-    
+
     /**
      * Call selectionCallback with selected item
      *
@@ -249,11 +249,11 @@ define(function (require, exports, module) {
         if ($link.hasClass("disabled")) {
             return;
         }
-        
+
         this.selectionCallback($link);
         PopUpManager.removePopUp(this.$list);
     };
-    
+
     /**
      * Select the item in the hint list at the specified index, or remove the
      * selection if index < 0.
@@ -262,10 +262,10 @@ define(function (require, exports, module) {
      * @param {number} index
      */
     DropdownEventHandler.prototype._setSelectedIndex = function (index, scrollIntoView) {
-        
+
         // Range check
         index = Math.max(-1, Math.min(index, this.$items.length - 1));
-        
+
         // Clear old highlight
         if (this._selectedIndex !== -1) {
             this.$items.eq(this._selectedIndex).find("a").removeClass("selected");
@@ -290,7 +290,7 @@ define(function (require, exports, module) {
      */
     DropdownEventHandler.prototype._registerMouseEvents = function () {
         var self = this;
-        
+
         this.$list
             .on("click.dropdownEventHandler", "a", function () {
                 self._clickHandler($(this));
@@ -301,7 +301,7 @@ define(function (require, exports, module) {
                     self.scrolling = false;
                     return;
                 }
-                
+
                 var $link = $(e.currentTarget),
                     $item = $link.closest("li"),
                     viewOffset = self.$list.offset(),
@@ -316,7 +316,7 @@ define(function (require, exports, module) {
                 }
             });
     };
-    
+
     /**
      * Re-register mouse event handlers
      * @param {!jQueryObject} $list  newly updated list object
@@ -324,10 +324,10 @@ define(function (require, exports, module) {
     DropdownEventHandler.prototype.reRegisterMouseHandlers = function ($list) {
         if (this.$list) {
             this.$list.off(".dropdownEventHandler");
-            
+
             this.$list = $list;
             this.$items = $list.find("li");
-            
+
             this._registerMouseEvents();
         }
     };

@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -27,17 +27,17 @@
 /**
  * PreferenceStorage defines an interface for persisting preference data as
  * name/value pairs for a module or plugin.
- * 
+ *
  * @deprecated Use PreferencesManager APIs instead.
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _ = require("thirdparty/lodash");
-    
+
     var PreferencesManager = require("preferences/PreferencesManager"),
         DeprecationWarning = require("utils/DeprecationWarning");
-    
+
     /**
      * @private
      * Validate JSON keys and values.
@@ -48,13 +48,13 @@ define(function (require, exports, module) {
             var temp = {},
                 error = null;
             temp[key] = value;
-            
+
             try {
                 temp = JSON.parse(JSON.stringify(temp));
             } catch (err) {
                 error = err;
             }
-            
+
             // set value to JSON storage if no errors occurred
             if (!error && (temp[key] !== undefined)) {
                 return true;
@@ -67,7 +67,7 @@ define(function (require, exports, module) {
             return false;
         }
     }
-    
+
     /**
      * @private
      * Save to persistent storage.
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
     function _commit() {
         PreferencesManager.savePreferences();
     }
-    
+
     /**
      * Creates a new PreferenceStorage object.
      * @param {!string} clientID Unique identifier for PreferencesManager to
@@ -86,7 +86,7 @@ define(function (require, exports, module) {
         this._clientID = clientID;
         this._json = json;
     }
-    
+
     /**
      * Unique clientID for this PreferenceStorage object.
      * @return {!string} clientID
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
     PreferenceStorage.prototype.getClientID = function () {
         return this._clientID;
     };
-    
+
     /**
      * Removes a preference from this PreferenceStorage object.
      * @param {!string} key A unique identifier
@@ -105,7 +105,7 @@ define(function (require, exports, module) {
         delete this._json[key];
         _commit();
     };
-    
+
     /**
      * Assigns a value for a key. Overwrites existing value if present.
      * @param {!string} key A unique identifier
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
             _commit();
         }
     };
-    
+
     /**
      * Retreive the value associated with the specified key.
      * @param {!string} key Key name to lookup.
@@ -128,7 +128,7 @@ define(function (require, exports, module) {
         DeprecationWarning.deprecationWarning("getValue is called to get preference '" + key + ",' use PreferencesManager.get instead.");
         return this._json[key];
     };
-    
+
     /**
      * Return all name-value pairs as a single JSON object.
      * @return {!object} JSON object containing name/value pairs for all keys
@@ -137,7 +137,7 @@ define(function (require, exports, module) {
     PreferenceStorage.prototype.getAllValues = function () {
         return JSON.parse(JSON.stringify(this._json));
     };
-    
+
     /**
      * Writes name-value pairs from a JSON object as preference properties.
      * Invalid JSON values report an error and all changes are discarded.
@@ -152,7 +152,7 @@ define(function (require, exports, module) {
 
         var self = this,
             error = null;
-        
+
         // validate all name/value pairs before committing
         _.some(obj, function (value, key) {
             try {
@@ -163,34 +163,34 @@ define(function (require, exports, module) {
                 return true;
             }
         });
-        
+
         // skip changes if any error is detected
         if (error) {
             console.error(error);
             return;
         }
-        
+
         // delete all exiting properties if not appending
         if (!append) {
             _.forEach(this._json, function (value, key) {
                 delete self._json[key];
             });
         }
-        
+
         // copy properties from incoming JSON object
         _.forEach(obj, function (value, key) {
             self._json[key] = value;
         });
-        
+
         _commit();
     };
-    
+
     /**
      * Converts preferences to the new-style file-based preferences according to the
      * rules. (See PreferencesManager.ConvertPreferences for information about the rules).
-     * 
+     *
      * @param {Object} rules Conversion rules.
-     * @param {Array.<string>} convertedKeys List of keys that were previously converted 
+     * @param {Array.<string>} convertedKeys List of keys that were previously converted
      *                                      (will not be reconverted)
      * @param {boolean=} isViewState If it is undefined or false, then the preferences
      *      listed in 'rules' are those normal user-editable preferences. Otherwise,
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
      * @param {function(string)=} prefCheckCallback Optional callback function that
      *      examines each preference key for migration.
      * @return {Promise} promise that is resolved once the conversion is done. Callbacks are given a
-     *                      `complete` flag that denotes whether everything from this object 
+     *                      `complete` flag that denotes whether everything from this object
      *                      was converted (making it safe to delete entirely).
      */
     PreferenceStorage.prototype.convert = function (rules, convertedKeys, isViewState, prefCheckCallback) {
@@ -207,16 +207,16 @@ define(function (require, exports, module) {
             complete = true,
             manager  = isViewState ? PreferencesManager.stateManager : PreferencesManager,
             deferred = new $.Deferred();
-        
+
         if (!convertedKeys) {
             convertedKeys = [];
         }
-        
+
         Object.keys(prefs).forEach(function (key) {
             if (convertedKeys.indexOf(key) > -1) {
                 return;
             }
-            
+
             var rule = rules[key];
             if (!rule && prefCheckCallback) {
                 rule = prefCheckCallback(key);
@@ -236,14 +236,14 @@ define(function (require, exports, module) {
                 if (parts[0] === "user") {
                     var newKey = parts.length > 1 ? parts[1] : key;
                     var options = null;
-                    
+
                     if (parts.length > 2 && parts[2].indexOf("/") !== -1) {
                         var projectPath = rule.substr(rule.indexOf(parts[2]));
                         options = { location: { scope: "user",
                                                 layer: "project",
                                                 layerID: projectPath } };
                     }
-                    
+
                     manager.set(newKey, prefs[key], options);
                     convertedKeys.push(key);
                 }
@@ -256,7 +256,7 @@ define(function (require, exports, module) {
                 complete = false;
             }
         });
-        
+
         if (convertedKeys.length > 0) {
             manager.save().done(function () {
                 _commit();
@@ -267,9 +267,9 @@ define(function (require, exports, module) {
         } else {
             deferred.resolve(complete, convertedKeys);
         }
-        
+
         return deferred.promise();
     };
-    
+
     exports.PreferenceStorage = PreferenceStorage;
 });

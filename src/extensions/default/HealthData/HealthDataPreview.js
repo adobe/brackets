@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2015 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,26 +26,26 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _                       = brackets.getModule("thirdparty/lodash"),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         Strings                 = brackets.getModule("strings"),
         Dialogs                 = brackets.getModule("widgets/Dialogs"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
-        
+
         HealthDataPreviewDialog = require("text!htmlContent/healthdata-preview-dialog.html"),
         HealthDataManager       = require("HealthDataManager");
 
     var prefs = PreferencesManager.getExtensionPrefs("healthData");
-    
+
     ExtensionUtils.loadStyleSheet(module, "styles.css");
-    
-    /** 
+
+    /**
      * Show the dialog for previewing the Health Data that will be sent.
      */
     function previewHealthData() {
         var result = new $.Deferred();
-        
+
         HealthDataManager.getHealthData().done(function (healthDataObject) {
             var content = JSON.stringify(healthDataObject, null, 4);
             content = _.escape(content);
@@ -55,11 +55,11 @@ define(function (require, exports, module) {
             var hdPref   = prefs.get("healthDataTracking"),
                 template = Mustache.render(HealthDataPreviewDialog, {Strings: Strings, content: content, hdPref: hdPref}),
                 $template = $(template);
-            
+
             Dialogs.addLinkTooltips($template);
-            
+
             Dialogs.showModalDialogUsingTemplate($template).done(function (id) {
-     
+
                 if (id === "save") {
                     var newHDPref = $template.find("[data-target]:checkbox").is(":checked");
                     if (hdPref !== newHDPref) {
@@ -70,9 +70,9 @@ define(function (require, exports, module) {
 
             return result.resolve();
         });
-        
+
         return result.promise();
     }
-    
+
     exports.previewHealthData = previewHealthData;
 });

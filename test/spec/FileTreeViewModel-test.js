@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
             it("returns undefined for a file in a path that mistakenly includes a file", function () {
                 expect(FileTreeViewModel._filePathToObjectPath(treeData, "subdir/afile.js/nofile.js")).toBeNull();
             });
-            
+
             it("can return if an a path is visible or not", function () {
                 var isFilePathVisible = _.partial(FileTreeViewModel._isFilePathVisible, treeData);
                 expect(isFilePathVisible("subdir/afile.js")).toBe(true);
@@ -95,7 +95,7 @@ define(function (require, exports, module) {
                 expect(vm.isPathLoaded("anothersub/")).toBe(true);
                 expect(vm.isPathLoaded("aclosedsub/")).toBe(false);
             });
-            
+
             it("can return whether a given path is loaded even when directories and files are added", function () {
                 var vm = new FileTreeViewModel.FileTreeViewModel();
                 vm._treeData = treeData;
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
                     }
                 });
             });
-            
+
             it("closes the top dir and its children without clearing the children", function () {
                 vm.closeSubtree("subdir/");
                 expect(changesFired).toBe(1);
@@ -197,11 +197,11 @@ define(function (require, exports, module) {
                 expect(vm._getObject("subdir/subsubdir/").get("open")).toBeUndefined();
                 expect(vm._getObject("subdir/").get("open")).toBeUndefined();
             });
-            
+
             it("doesn't fail on an unknown path", function () {
                 vm.closeSubtree("foo");
             });
-            
+
             it("will close a directory that's already hidden", function () {
                 vm.setDirectoryOpen("subdir/subsubdir/", false);
                 expect(vm._getObject("subdir/subsubdir/evensubbersubdir/").get("open")).toBe(true);
@@ -500,7 +500,7 @@ define(function (require, exports, module) {
                     ]
                 ]);
             });
-            
+
             it("should not return an open child node of a closed parent", function () {
                 vm._treeData = Immutable.fromJS({
                     subdir1: {
@@ -630,21 +630,21 @@ define(function (require, exports, module) {
                 expect(changesFired).toBe(1);
                 expect(vm._treeData.getIn(["subdir1", "children", "afile.js", "selected"])).toBe(true);
             });
-            
+
             it("should update selectionViewInfo for selections", function () {
                 vm.moveMarker("selected", null, "subdir1/afile.js");
                 expect(vm._selectionViewInfo.get("hasSelection")).toBe(true);
                 vm.moveMarker("selected", "subdir1/afile.js", null);
                 expect(vm._selectionViewInfo.get("hasSelection")).toBe(false);
             });
-            
+
             it("should update selectionViewInfo for context", function () {
                 vm.moveMarker("context", null, "subdir1/afile.js");
                 expect(vm._selectionViewInfo.get("hasContext")).toBe(true);
                 vm.moveMarker("context", "subdir1/afile.js", null);
                 expect(vm._selectionViewInfo.get("hasContext")).toBe(false);
             });
-            
+
             it("should signal a change when just selectionViewInfo changes", function () {
                 vm.moveMarker("context", null, "subdir1/afile.js");
                 vm.deleteAtPath("subdir1/afile.js");
@@ -786,7 +786,7 @@ define(function (require, exports, module) {
                 expect(vm._treeData).not.toBe(originalTreeData);
                 expect(vm._treeData.get("topfile.js")).toBeUndefined();
             });
-            
+
             it("shouldn't make changes for a new file in a directory that hasn't been loaded", function () {
                 vm._treeData = vm._treeData.set("unloaded", Immutable.Map({
                     children: null
@@ -802,11 +802,11 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("ensureDirectoryExists", function () {
             var vm,
                 changesFired;
-            
+
             beforeEach(function () {
                 vm = new FileTreeViewModel.FileTreeViewModel();
                 vm._treeData = Immutable.fromJS({
@@ -815,17 +815,17 @@ define(function (require, exports, module) {
                     }
                 });
                 changesFired = 0;
-                
+
                 vm.on(FileTreeViewModel.EVENT_CHANGE, function () {
                     changesFired++;
                 });
             });
-            
+
             it("should do nothing for a directory that already exists", function () {
                 vm.ensureDirectoryExists("subdir/");
                 expect(changesFired).toBe(0);
             });
-            
+
             it("should create a top-level directory", function () {
                 vm.ensureDirectoryExists("newdir/");
                 expect(changesFired).toBe(1);
@@ -833,13 +833,13 @@ define(function (require, exports, module) {
                     children: null
                 });
             });
-            
+
             it("should do nothing within a subdirectory that doesn't exist", function () {
                 vm.ensureDirectoryExists("newdir/bar/");
                 expect(changesFired).toBe(0);
                 expect(vm._treeData.get("newdir")).toBeUndefined();
             });
-            
+
             it("should create a directory within a directory", function () {
                 vm._treeData = Immutable.fromJS({
                     subdir: {
@@ -852,7 +852,7 @@ define(function (require, exports, module) {
                     children: null
                 });
             });
-            
+
             it("should do nothing in a directory that is not loaded", function () {
                 vm.ensureDirectoryExists("subdir/newdir/");
                 expect(changesFired).toBe(0);

@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -37,7 +37,7 @@ define(function (require, exports, module) {
 
 
     describe("Url Code Hinting", function () {
-        
+
         var extensionPath   = FileUtils.getNativeModuleDirectoryPath(module),
             testHtmlPath    = extensionPath + "/testfiles/test.html",
             testCssPath     = extensionPath + "/testfiles/subfolder/test.css",
@@ -45,7 +45,7 @@ define(function (require, exports, module) {
             testDocument,
             testEditor,
             hintsObj;
-        
+
         // IMPORTANT: By default, Mac sorts folder contents differently from other OS's,
         // so the files and folders in the "testfiles" and "subfolder" folder are named
         // strategically so that they sort the same on all OS's (i.e. folders are listed
@@ -54,7 +54,7 @@ define(function (require, exports, module) {
             subfolderDirHints       = [ "chevron.png", "test.css", "test.js", "test.scss"],
             UrlCodeHintsDirHintsMac = [ "../data.json", "../main.js", "../testfiles/", "../unittests.js"],
             UrlCodeHintsDirHints    = [ "../testfiles/", "../data.json", "../main.js", "../unittests.js"];
-        
+
         /**
          * Returns an Editor suitable for use in isolation, given a Document.
          *
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
                     testDocument = doc;
                 });
             });
-    
+
             waitsFor(function () {
                 return (testDocument);
             }, "Unable to open test document", 2000);
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
                 MasterMainViewManager._edit(MasterMainViewManager.ACTIVE_PANE, testDocument);
             });
         }
-        
+
         function tearDownTests() {
             runs(function () {
                 // The following call ensures that the document is reloaded
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
                 hintsObj = null;
             });
         }
-        
+
         // Helper method to ask provider for hints at current cursor position.
         // Provider returns either an array of hints, or a deferred promise.
         // If a promise is returned, wait for it to resolve.
@@ -115,17 +115,17 @@ define(function (require, exports, module) {
                     });
                 }
             });
-            
+
             waitsFor(function () {
                 return (!hintsObj || hintsObj.hints);
             }, "Unable to resolve hints", 2000);
         }
-        
+
         // Ask provider for hints at current cursor position; expect it NOT to return any
         function expectNoHints(provider) {
             expect(provider.hasHints(testEditor, null)).toBeFalsy();
         }
-        
+
         // Expect hintList to contain folder and file names.
         function verifyUrlHints(hintList, expectedHints) {
             expect(hintList).toEqual(expectedHints);
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
             beforeFirst(function () {
                 setupTests(testHtmlPath);
             });
-            
+
             afterLast(function () {
                 tearDownTests();
             });
@@ -149,7 +149,7 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
@@ -161,46 +161,58 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
             });
-            
+
+            it("should hint for poster attribute", function () {
+                runs(function () {
+                    testEditor.setCursorPos({ line: 24, ch: 17 });
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    verifyUrlHints(hintsObj.hints, testfilesDirHints);
+                });
+            });
+
             it("should not hint for type attribute", function () {
                 runs(function () {
                     testEditor.setCursorPos({ line: 15, ch: 21 });
                     expectNoHints(UrlCodeHints.hintProvider);
                 });
             });
-            
+
             it("should not hint in query part of url", function () {
                 runs(function () {
                     testEditor.setCursorPos({ line: 20, ch: 31 });
                     expectNoHints(UrlCodeHints.hintProvider);
                 });
             });
-            
+
             it("should hint up 1 folder for '../'", function () {
                 runs(function () {
                     testEditor.setCursorPos({ line: 21, ch: 14 });
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     var expectedHints = (brackets.platform !== "win") ? UrlCodeHintsDirHintsMac : UrlCodeHintsDirHints;
                     verifyUrlHints(hintsObj.hints, expectedHints);
                 });
             });
         });
-        
+
         describe("CSS Url Code Hints", function () {
-            
+
             beforeFirst(function () {
                 setupTests(testHtmlPath);
             });
-            
+
             afterLast(function () {
                 tearDownTests();
             });
@@ -211,7 +223,7 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
@@ -223,7 +235,7 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
@@ -235,19 +247,19 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
             });
-            
+
             it("should hint for list-style-image: url(\"\")", function () {
                 runs(function () {
                     testEditor.setCursorPos({ line: 8, ch: 25 });
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     verifyUrlHints(hintsObj.hints, testfilesDirHints);
                 });
@@ -382,14 +394,14 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("Url Insertion", function () {
 
             // These tests edit doc, so we need to setup/tear-down for each test
             beforeEach(function () {
                 setupTests(testHtmlPath);
             });
-            
+
             afterEach(function () {
                 tearDownTests();
             });
@@ -406,22 +418,22 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
                     expect(hintsObj.hints.length).toBe(2);
                     expect(hintsObj.hints[1]).toBe("test.html");
                     expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[1])).toBe(false);
-                    
+
                     // hint was added with closing paren
                     expect(testDocument.getRange(pos1, pos3)).toEqual("url(test.html)");
-                    
+
                     // Cursor was moved past closing paren
                     expect(testEditor.getCursorPos()).toEqual(pos3);
                 });
             });
-            
+
             it("should handle unclosed url( with unclosed single-quote", function () {
                 var pos1    = { line: 11, ch: 20 },
                     pos2    = { line: 11, ch: 25 },
@@ -434,19 +446,19 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
                     expect(hintsObj.hints.length).toBe(2);
                     expect(hintsObj.hints[1]).toBe("test.html");
-                    
+
                     // False indicates hints were closed after insertion
                     expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[1])).toBe(false);
-                    
+
                     // Hint was added with closing single-quote and closing paren
                     expect(testDocument.getRange(pos1, pos3)).toEqual("url('test.html')");
-                    
+
                     // Cursor was moved past closing single-quote and closing paren
                     expect(testEditor.getCursorPos()).toEqual(pos3);
                 });
@@ -463,20 +475,20 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
                     expect(hintsObj.hints.length).toBe(2);
                     expect(hintsObj.hints[0]).toBe("subfolder/");
-                    
+
                     // True indicates hints were remain open after insertion of folder
                     // (i.e. showing contents of inserted folder)
                     expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
-                    
+
                     // Hint was added with closing double-quote and closing paren
                     expect(testDocument.getRange(pos1, pos2)).toEqual("subfolder/");
-                    
+
                     // Cursor remains inside quote
                     expect(testEditor.getCursorPos()).toEqual(pos2);
 
@@ -484,7 +496,7 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
@@ -492,13 +504,13 @@ define(function (require, exports, module) {
 
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
-                    
+
                     // False indicates hints were closed after insertion
                     expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(false);
-                    
+
                     // Hint was added
                     expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/chevron.png");
-                    
+
                     // Cursor was moved past closing double-quote and closing paren
                     expect(testEditor.getCursorPos()).toEqual(pos4);
                 });
@@ -518,20 +530,20 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
                     expect(hintsObj.hints.length).toBe(2);
                     expect(hintsObj.hints[0]).toBe("subfolder/");
-                    
+
                     // True indicates hints were remain open after insertion of folder
                     // (i.e. showing contents of inserted folder)
                     expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
-                    
+
                     // Hint was added with closing double-quote and closing paren
                     expect(testDocument.getRange(pos1, pos4)).toEqual('url("subfolder/")');
-                    
+
                     // Cursor remains inside double-quote and closing paren
                     expect(testEditor.getCursorPos()).toEqual(pos3);
 
@@ -539,7 +551,7 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
@@ -547,13 +559,13 @@ define(function (require, exports, module) {
 
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
-                    
+
                     // False indicates hints were closed after insertion
                     expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(false);
-                    
+
                     // Hint was added
                     expect(testDocument.getRange(pos1, pos5)).toEqual('url("subfolder/chevron.png")');
-                    
+
                     // Cursor was moved past closing double-quote and closing paren
                     expect(testEditor.getCursorPos()).toEqual(pos5);
                 });
@@ -570,20 +582,20 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
                     expect(hintsObj.hints.length).toBe(2);
                     expect(hintsObj.hints[0]).toBe("subfolder/");
-                    
+
                     // True indicates hints were remain open after insertion of folder
                     // (i.e. showing contents of inserted folder)
                     expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
-                    
+
                     // Folder was inserted (i.e. filename was not removed)
                     expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/test2.html");
-                    
+
                     // Cursor is at end of inserted folder
                     expect(testEditor.getCursorPos()).toEqual(pos2);
 
@@ -591,18 +603,18 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
                     expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
-                    
+
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
-                    
+
                     // False indicates hints were closed after insertion
                     expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(false);
-                    
+
                     // Filename was replaced
                     expect(testDocument.getRange(pos1, pos4)).toEqual("subfolder/chevron.png");
                 });
@@ -667,20 +679,20 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
                     expect(hintsObj.hints.length).toBe(2);
                     expect(hintsObj.hints[0]).toBe("subfolder/");
-                    
+
                     // True indicates hints were remain open after insertion of folder
                     // (i.e. showing contents of inserted folder)
                     expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
-                    
+
                     // Folder was inserted (i.e. filename was not removed)
                     expect(testDocument.getRange(pos1, pos3)).toEqual("subfolder/dummy.jpg");
-                    
+
                     // Cursor is at end of inserted folder
                     expect(testEditor.getCursorPos()).toEqual(pos2);
 
@@ -688,18 +700,18 @@ define(function (require, exports, module) {
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
                 });
-                
+
                 runs(function () {
                     expect(hintsObj).toBeTruthy();
                     expect(hintsObj.hints).toBeTruthy();
                     expect(hintsObj.hints.length).toBe(subfolderDirHints.length);
-                    
+
                     // Complete path is displayed
                     expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
-                    
+
                     // False indicates hints were closed after insertion
                     expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(false);
-                    
+
                     // Filename was replaced
                     expect(testDocument.getRange(pos1, pos4)).toEqual("subfolder/chevron.png");
                 });
@@ -855,6 +867,6 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
     }); // describe("Url Code Hinting"
 });

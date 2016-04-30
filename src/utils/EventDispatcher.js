@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- * 
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,7 +32,7 @@
  *  - Events are fired via trigger()
  *  - The same listener can be attached twice, and will be called twice; but off() will detach all
  *    duplicate copies at once ('duplicate' means '===' equality - see http://jsfiddle.net/bf4p29g5/1/)
- * 
+ *
  * But it has some important differences from jQuery's non-DOM event mechanism:
  *  - More robust to listeners that throw exceptions (other listeners will still be called, and
  *    trigger() will still return control to its caller).
@@ -48,18 +48,20 @@
  *      - trigger() does not support namespaces
  *      - For simplicity, on() does not accept a map of multiple events -> multiple handlers, nor a
  *        missing arg standing in for a bare 'return false' handler.
- * 
+ *
  * For now, Brackets uses a jQuery patch to ensure $(obj).on() and obj.on() (etc.) are identical
  * for any obj that has the EventDispatcher pattern. In the future, this may be deprecated.
- * 
+ *
  * To add EventDispatcher methods to any object, call EventDispatcher.makeEventDispatcher(obj).
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _ = require("thirdparty/lodash");
 
-    
+    var LEAK_WARNING_THRESHOLD = 15;
+
+
     /**
      * Split "event.namespace" string into its two parts; both parts are optional.
      * @param {string} eventName Event name and/or trailing ".namespace"
@@ -73,10 +75,10 @@ define(function (require, exports, module) {
             return { eventName: eventStr.substring(0, dot), ns: eventStr.substring(dot) };
         }
     }
-    
-    
+
+
     // These functions are added as mixins to any object by makeEventDispatcher()
-    
+
     /**
      * Adds the given handler function to 'events': a space-separated list of one or more event names, each
      * with an optional ".namespace" (used by off() - see below). If the handler is already listening to this
@@ -87,7 +89,11 @@ define(function (require, exports, module) {
     var on = function (events, fn) {
         var eventsList = events.split(/\s+/).map(splitNs),
             i;
-        
+
+        if (!fn) {
+            throw new Error("EventListener.on() called with no listener fn for event '" + events + "'");
+        }
+
         // Check for deprecation warnings
         if (this._deprecatedEvents) {
             for (i = 0; i < eventsList.length; i++) {
@@ -101,7 +107,7 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         // Attach listener for each event clause
         for (i = 0; i < eventsList.length; i++) {
             var eventName = eventsList[i].eventName;
@@ -113,11 +119,16 @@ define(function (require, exports, module) {
             }
             eventsList[i].handler = fn;
             this._eventHandlers[eventName].push(eventsList[i]);
+
+            // Check for suspicious number of listeners being added to one object-event pair
+            if (this._eventHandlers[eventName].length > LEAK_WARNING_THRESHOLD) {
+                console.error("Possible memory leak: " + this._eventHandlers[eventName].length + " '" + eventName + "' listeners attached to", this);
+            }
         }
-        
+
         return this;  // for chaining
     };
-    
+
     /**
      * Removes one or more handler functions based on the space-separated 'events' list. Each item in
      * 'events' can be: bare event name, bare .namespace, or event.namespace pair. This yields a set of
@@ -130,17 +141,17 @@ define(function (require, exports, module) {
         if (!this._eventHandlers) {
             return this;
         }
-        
+
         var eventsList = events.split(/\s+/).map(splitNs),
             i;
-        
+
         var removeAllMatches = function (eventRec, eventName) {
             var handlerList = this._eventHandlers[eventName],
                 k;
             if (!handlerList) {
                 return;
             }
-            
+
             // Walk backwards so it's easy to remove items
             for (k = handlerList.length - 1; k >= 0; k--) {
                 // Look at ns & fn only - doRemove() has already taken care of eventName
@@ -155,7 +166,7 @@ define(function (require, exports, module) {
                 delete this._eventHandlers[eventName];
             }
         }.bind(this);
-        
+
         var doRemove = function (eventRec) {
             if (eventRec.eventName) {
                 // If arg calls out an event name, look at that handler list only
@@ -167,16 +178,16 @@ define(function (require, exports, module) {
                 });
             }
         }.bind(this);
-        
+
         // Detach listener for each event clause
         // Each clause may be: bare eventname, bare .namespace, full eventname.namespace
         for (i = 0; i < eventsList.length; i++) {
             doRemove(eventsList[i]);
         }
-        
+
         return this;  // for chaining
     };
-    
+
     /**
      * Attaches a handler so it's only called once (per event in the 'events' list).
      * @param {string} events
@@ -194,7 +205,7 @@ define(function (require, exports, module) {
         }
         return this.on(events, fn._eventOnceWrapper);
     };
-    
+
     /**
      * Invokes all handlers for the given event (in the order they were added).
      * @param {string} eventName
@@ -204,11 +215,11 @@ define(function (require, exports, module) {
         var event = { type: eventName, target: this },
             handlerList = this._eventHandlers && this._eventHandlers[eventName],
             i;
-        
+
         if (!handlerList) {
             return;
         }
-        
+
         // Use a clone of the list in case handlers call on()/off() while we're still in the loop
         handlerList = handlerList.slice();
 
@@ -226,8 +237,8 @@ define(function (require, exports, module) {
             }
         }
     };
-    
-    
+
+
     /**
      * Adds the EventDispatcher APIs to the given object: on(), one(), off(), and trigger(). May also be
      * called on a prototype object - each instance will still behave independently.
@@ -247,7 +258,7 @@ define(function (require, exports, module) {
         // Later, markDeprecated() may add _deprecatedEvents: Object.<string, string|boolean> - map from
         //   eventName to deprecation warning info
     }
-    
+
     /**
      * Utility for calling on() with an array of arguments to pass to event handlers (rather than a varargs
      * list). makeEventDispatcher() must have previously been called on 'dispatcher'.
@@ -259,17 +270,17 @@ define(function (require, exports, module) {
         var triggerArgs = [eventName].concat(argsArray);
         dispatcher.trigger.apply(dispatcher, triggerArgs);
     }
-    
+
     /**
      * Utility for attaching an event handler to an object that has not YET had makeEventDispatcher() called
      * on it, but will in the future. Once 'futureDispatcher' becomes a real event dispatcher, any handlers
      * attached here will be retained.
-     * 
+     *
      * Useful with core modules that have circular dependencies (one module initially gets an empty copy of the
      * other, with no on() API present yet). Unlike other strategies like waiting for htmlReady(), this helper
      * guarantees you won't miss any future events, regardless of how soon the other module finishes init and
      * starts calling trigger().
-     * 
+     *
      * @param {!Object} futureDispatcher
      * @param {string} events
      * @param {?function(!{type:string, target:!Object}, ...)} fn
@@ -277,7 +288,7 @@ define(function (require, exports, module) {
     function on_duringInit(futureDispatcher, events, fn) {
         on.call(futureDispatcher, events, fn);
     }
-    
+
     /**
      * Mark a given event name as deprecated, such that on() will emit warnings when called with it.
      * May be called before makeEventDispatcher(). May be called on a prototype where makeEventDispatcher()
@@ -294,8 +305,8 @@ define(function (require, exports, module) {
         }
         obj._deprecatedEvents[eventName] = insteadStr || true;
     }
-    
-    
+
+
     exports.makeEventDispatcher = makeEventDispatcher;
     exports.triggerWithArray    = triggerWithArray;
     exports.on_duringInit       = on_duringInit;

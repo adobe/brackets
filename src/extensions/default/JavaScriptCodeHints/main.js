@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -26,7 +26,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _ = brackets.getModule("thirdparty/lodash");
 
     var CodeHintManager      = brackets.getModule("editor/CodeHintManager"),
@@ -46,37 +46,43 @@ define(function (require, exports, module) {
         Session              = require("Session"),
         Acorn                = require("thirdparty/acorn/acorn");
 
-    var session        = null,  // object that encapsulates the current session state
-        cachedCursor   = null,  // last cursor of the current hinting session
-        cachedHints    = null,  // sorted hints for the current hinting session
-        cachedType     = null,  // describes the lookup type and the object context
-        cachedToken    = null,  // the token used in the current hinting session
-        matcher        = null,  // string matcher for hints
-        jsHintsEnabled = true,  // preference setting to enable/disable the hint session
-        noHintsOnDot   = false, // preference setting to prevent hints on dot
+    var session            = null,  // object that encapsulates the current session state
+        cachedCursor       = null,  // last cursor of the current hinting session
+        cachedHints        = null,  // sorted hints for the current hinting session
+        cachedType         = null,  // describes the lookup type and the object context
+        cachedToken        = null,  // the token used in the current hinting session
+        matcher            = null,  // string matcher for hints
+        jsHintsEnabled     = true,  // preference setting to enable/disable the hint session
+        hintDetailsEnabled = true,  // preference setting to enable/disable hint type details
+        noHintsOnDot       = false, // preference setting to prevent hints on dot
         ignoreChange;           // can ignore next "change" event if true;
 
     // Languages that support inline JavaScript
     var _inlineScriptLanguages = ["html", "php"];
-    
+
     // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
     PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", [], {
         description: Strings.DESCRIPTION_DETECTED_EXCLUSIONS
     });
-    
+
     // This preference controls when Tern will time out when trying to understand files
     PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 30000, {
         description: Strings.DESCRIPTION_INFERENCE_TIMEOUT
     });
-    
+
     // This preference controls whether to prevent hints from being displayed when dot is typed
     PreferencesManager.definePreference("jscodehints.noHintsOnDot", "boolean", false, {
         description: Strings.DESCRIPTION_NO_HINTS_ON_DOT
     });
-    
+
     // This preference controls whether to create a session and process all JS files or not.
     PreferencesManager.definePreference("codehint.JSHints", "boolean", true, {
         description: Strings.DESCRIPTION_JS_HINTS
+    });
+
+    // This preference controls whether detailed type metadata will be desplayed within hint list. Deafults to true.
+    PreferencesManager.definePreference("jscodehints.typedetails", "boolean", true, {
+        description: Strings.DESCRIPTION_JS_HINTS_TYPE_DETAILS
     });
 
     /**
@@ -91,15 +97,19 @@ define(function (require, exports, module) {
     PreferencesManager.on("change", "codehint.JSHints", function () {
         jsHintsEnabled = _areHintsEnabled();
     });
-    
+
     PreferencesManager.on("change", "showCodeHints", function () {
         jsHintsEnabled = _areHintsEnabled();
     });
-    
+
     PreferencesManager.on("change", "jscodehints.noHintsOnDot", function () {
         noHintsOnDot = !!PreferencesManager.get("jscodehints.noHintsOnDot");
     });
-    
+
+    PreferencesManager.on("change", "jscodehints.typedetails", function () {
+        hintDetailsEnabled = PreferencesManager.get("jscodehints.typedetails");
+    });
+
     /**
      * Sets the configuration, generally for testing/debugging use.
      * Configuration keys are merged into the current configuration.
@@ -115,10 +125,10 @@ define(function (require, exports, module) {
         Object.keys(configUpdate).forEach(function (key) {
             config[key] = configUpdate[key];
         });
-        
+
         ScopeManager._setConfig(configUpdate);
     }
-    
+
     setConfig.config = {};
 
     /**
@@ -138,7 +148,7 @@ define(function (require, exports, module) {
      * @param {Array.<Object>} hints - hints to be included in the response
      * @param {string} query - querystring with which to filter the hint list
      * @param {Object} type - the type of query, property vs. identifier
-     * @return {Object} - hint response as defined by the CodeHintManager API 
+     * @return {Object} - hint response as defined by the CodeHintManager API
      */
     function getHintResponse(hints, query, type) {
 
@@ -148,11 +158,48 @@ define(function (require, exports, module) {
         if (setConfig.config.debug) {
             console.debug("Hints", _.pluck(hints, "label"));
         }
-        
+
+        function formatTypeDataForToken($hintObj, token) {
+
+            if (!hintDetailsEnabled) {
+                return;
+            }
+
+            $hintObj.addClass('brackets-js-hints-with-type-details');
+
+            (function _appendLink() {
+                if (token.url) {
+                    $('<a></a>').appendTo($hintObj).addClass("jshint-link").attr('href', token.url).on("click", function (event) {
+                        event.stopImmediatePropagation();
+                        event.stopPropagation();
+                    });
+                }
+            }());
+
+            if (token.type) {
+                if (token.type.trim() !== '?') {
+                    if (token.type.length < 30) {
+                        $('<span>' + token.type.split('->').join(':').toString().trim() + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
+                    }
+                    $('<span>' + token.type.split('->').join(':').toString().trim() + '</span>').appendTo($hintObj).addClass("jshint-description");
+                }
+            } else {
+                if (token.keyword) {
+                    $('<span>keyword</span>').appendTo($hintObj).addClass("brackets-js-hints-keyword");
+                }
+            }
+
+            if (token.doc) {
+                $hintObj.attr('title', token.doc);
+                $('<span></span>').text(token.doc.trim()).appendTo($hintObj).addClass("jshint-jsdoc");
+            }
+        }
+
+
         /*
          * Returns a formatted list of hints with the query substring
          * highlighted.
-         * 
+         *
          * @param {Array.<Object>} hints - the list of hints to format
          * @param {string} query - querystring used for highlighting matched
          *      poritions of each hint
@@ -196,7 +243,7 @@ define(function (require, exports, module) {
                 if (token.literal) {
                     $hintObj.addClass("literal-hint");
                 }
-             
+
                 // highlight the matched portion of each hint
                 if (token.stringRanges) {
                     token.stringRanges.forEach(function (item) {
@@ -213,7 +260,9 @@ define(function (require, exports, module) {
                 }
 
                 $hintObj.data("token", token);
-                
+
+                formatTypeDataForToken($hintObj, token);
+
                 return $hintObj;
             });
         }
@@ -226,7 +275,7 @@ define(function (require, exports, module) {
         } else {
             formattedHints = [];
         }
-        
+
         return {
             hints: formattedHints,
             match: null, // the CodeHintManager should not format the results
@@ -340,7 +389,7 @@ define(function (require, exports, module) {
         var language = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
         return _inlineScriptLanguages.indexOf(language) !== -1;
     }
-    
+
     function isInlineScript(editor) {
         return editor.getModeForSelection() === "javascript";
     }
@@ -428,14 +477,14 @@ define(function (require, exports, module) {
 
     /**
      * Determine whether hints are available for a given editor context
-     * 
+     *
      * @param {Editor} editor - the current editor context
      * @param {string} key - charCode of the last pressed key
      * @return {boolean} - can the provider provide hints for this session?
      */
     JSHints.prototype.hasHints = function (editor, key) {
         if (session && HintUtils.hintableKey(key, !noHintsOnDot)) {
-            
+
             if (isInlineScriptSupported(session.editor.document)) {
                 if (!isInlineScript(session.editor)) {
                     return false;
@@ -461,9 +510,9 @@ define(function (require, exports, module) {
     };
 
     /**
-      * Return a list of hints, possibly deferred, for the current editor 
+      * Return a list of hints, possibly deferred, for the current editor
       * context
-      * 
+      *
       * @param {string} key - charCode of the last pressed key
       * @return {Object + jQuery.Deferred} - hint response (immediate or
       *     deferred) as defined by the CodeHintManager API
@@ -524,9 +573,9 @@ define(function (require, exports, module) {
 
     /**
      * Inserts the hint selected by the user into the current editor.
-     * 
+     *
      * @param {jQuery.Object} $hintObj - hint object to insert into current editor
-     * @return {boolean} - should a new hinting session be requested 
+     * @return {boolean} - should a new hinting session be requested
      *      immediately after insertion?
      */
     JSHints.prototype.insertHint = function ($hintObj) {
@@ -539,10 +588,10 @@ define(function (require, exports, module) {
             invalidPropertyName = false;
 
         if (session.getType().property) {
-            // if we're inserting a property name, we need to make sure the 
-            // hint is a valid property name.  
+            // if we're inserting a property name, we need to make sure the
+            // hint is a valid property name.
             // to check this, run the hint through Acorns tokenizer
-            // it should result in one token, and that token should either be 
+            // it should result in one token, and that token should either be
             // a 'name' or a 'keyword', as javascript allows keywords as property names
             var tokenizer = Acorn.tokenize(completion);
             var currentToken = tokenizer();
@@ -558,7 +607,7 @@ define(function (require, exports, module) {
                     invalidPropertyName = true;
                 }
             }
-            
+
             if (invalidPropertyName) {
                 // need to walk back to the '.' and replace
                 // with '["<hint>"]
@@ -586,9 +635,9 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
 
         /*
-         * When the editor is changed, reset the hinting session and cached 
+         * When the editor is changed, reset the hinting session and cached
          * information, and reject any pending deferred requests.
-         * 
+         *
          * @param {!Editor} editor - editor context to be initialized.
          * @param {?Editor} previousEditor - the previous editor.
          */
@@ -602,7 +651,7 @@ define(function (require, exports, module) {
 
         /*
          * Connects to the given editor, creating a new Session & adding listeners
-         * 
+         *
          * @param {?Editor} editor - editor context on which to listen for
          *      changes. If null, 'session' is cleared.
          * @param {?Editor} previousEditor - the previous editor
@@ -614,7 +663,7 @@ define(function (require, exports, module) {
             if (!jsHintsEnabled) {
                 return;
             }
-            
+
             if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
                 initializeSession(editor, previousEditor);
                 editor
@@ -633,13 +682,14 @@ define(function (require, exports, module) {
 
         /*
          * Uninstall editor change listeners
-         * 
+         *
          * @param {Editor} editor - editor context on which to stop listening
          *      for changes
          */
         function uninstallEditorListeners(editor) {
             if (editor) {
                 editor.off(HintUtils.eventName("change"));
+                ParameterHintManager.uninstallListeners(editor);
             }
         }
 
@@ -647,7 +697,7 @@ define(function (require, exports, module) {
          * Handle the activeEditorChange event fired by EditorManager.
          * Uninstalls the change listener on the previous editor
          * and installs a change listener on the new editor.
-         * 
+         *
          * @param {Event} event - editor change event (ignored)
          * @param {Editor} current - the new current editor context
          * @param {Editor} previous - the previous editor context
@@ -667,11 +717,11 @@ define(function (require, exports, module) {
                         installEditorListeners(current);
                     });
             }
-            
+
             uninstallEditorListeners(previous);
             installEditorListeners(current, previous);
         }
-        
+
         /*
          * Handle JumptoDefiniton menu/keyboard command.
          */
@@ -679,7 +729,7 @@ define(function (require, exports, module) {
             var offset,
                 handleJumpResponse;
 
-                        
+
             // Only provide jump-to-definition results when cursor is in JavaScript content
             if (!session || session.editor.getModeForSelection() !== "javascript") {
                 return null;
@@ -694,14 +744,14 @@ define(function (require, exports, module) {
              */
             function requestJumpToDef(session, offset) {
                 var response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
-    
+
                 if (response.hasOwnProperty("promise")) {
                     response.promise.done(handleJumpResponse).fail(function () {
                         result.reject();
                     });
                 }
             }
-            
+
 
             /**
              * Sets the selection to move the cursor to the result position.
@@ -721,7 +771,7 @@ define(function (require, exports, module) {
              * @param {boolean} isFunction - true if we are jumping to the source of a function def
              */
             function setJumpSelection(start, end, isFunction) {
-                
+
                 /**
                  * helper function to decide if the tokens on the RHS of an assignment
                  * look like an identifier, or member expr.
@@ -737,12 +787,12 @@ define(function (require, exports, module) {
                     if (type === "variable-2" || type === "variable" || type === "property") {
                         return true;
                     }
-                    
+
                     return false;
                 }
-                
+
                 var madeNewRequest = false;
-                
+
                 if (isFunction) {
                     // When jumping to function defs, follow the chain back
                     // to get to the original function def
@@ -750,7 +800,7 @@ define(function (require, exports, module) {
                         prev = session._getPreviousToken(cursor),
                         next,
                         offset;
-    
+
                     // see if the selection is preceded by a '.', indicating we're in a member expr
                     if (prev.string === ".") {
                         cursor = {line: end.line, ch: end.ch};
@@ -781,7 +831,7 @@ define(function (require, exports, module) {
             }
 
             /**
-             * handle processing of the completed jump-to-def request.              
+             * handle processing of the completed jump-to-def request.
              * will open the appropriate file, and set the selection based
              * on the response.
              */
@@ -803,11 +853,11 @@ define(function (require, exports, module) {
                     result.reject();
                 }
             };
-            
+
             offset = session.getOffset();
             // request a jump-to-def
             requestJumpToDef(session, offset);
-            
+
             return result.promise();
         }
 
@@ -820,19 +870,19 @@ define(function (require, exports, module) {
 
             return response;
         }
-        
+
         // Register quickEditHelper.
         brackets._jsCodeHintsHelper = quickEditHelper;
-        
+
         // Configuration function used for debugging
         brackets._configureJSCodeHints = setConfig;
-  
+
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
-        
+
         // uninstall/install change listener as the active editor changes
         EditorManager.on(HintUtils.eventName("activeEditorChange"),
                 handleActiveEditorChange);
-        
+
         ProjectManager.on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();
         });
@@ -840,7 +890,7 @@ define(function (require, exports, module) {
         ProjectManager.on("projectOpen", function () {
             ScopeManager.handleProjectOpen();
         });
-        
+
         // immediately install the current editor
         installEditorListeners(EditorManager.getActiveEditor());
 

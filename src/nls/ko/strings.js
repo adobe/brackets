@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
@@ -38,7 +38,7 @@ define({
     "NO_MODIFICATION_ALLOWED_ERR": "대상 디렉토리를 변경할 수 없습니다.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE": "파일을 수정할 수 있는 권한이 없습니다.",
     "CONTENTS_MODIFIED_ERR": "{APP_NAME} 외부에서 파일이 변경되었습니다.",
-    "UNSUPPORTED_ENCODING_ERR": "{APP_NAME}은 현재 UTF-8 인코딩된 파일만 지원합니다.",
+    "UNSUPPORTED_ENCODING_ERR": "{APP_NAME}는 현재 UTF-8 인코딩된 파일만 지원합니다.",
     "FILE_EXISTS_ERR": "파일 또는 디렉토리가 이미 있습니다.",
     "FILE": "파일",
     "FILE_TITLE": "파일",
@@ -48,7 +48,6 @@ define({
     "FILENAMES_LEDE": "파일 이름",
     "FILENAME": "파일 이름",
     "DIRECTORY_NAME": "디렉토리 이름",
-
 
     // Project error strings
     "ERROR_LOADING_PROJECT": "프로젝트 로드에 실패했습니다",
@@ -71,10 +70,10 @@ define({
     "INVALID_FILENAME_TITLE": "잘못된 {0}이름",
     "INVALID_FILENAME_MESSAGE": "파일 이름에는 다음 문자를 포함 할 수 없습니다: {0} 또는 시스템의 모든 예약어",
     "ENTRY_WITH_SAME_NAME_EXISTS": "<span class='dialog-filename'>{0}</span> 이름을 가진 파일 또는 디렉토리가 이미 존재합니다.",
-    "FILE_ALREADY_EXISTS": "{0} <span class='dialog-filename'>{1}</span>은 이미 존재 합니다.",
     "ERROR_CREATING_FILE_TITLE": "{0}를 만들던 중에 에러가 발생했습니다",
     "ERROR_CREATING_FILE": "{0} <span class='dialog-filename'>{1}</span>를 만들던 중에 에러가 발생했습니다.{2}",
-    
+    "ERROR_MIXED_DRAGDROP"              : "다른 파일을 여는 도중에는 폴더를 열 수 없습니다.",
+
     // User key map error strings
     "ERROR_KEYMAP_TITLE"                : "사용자 키맵 파일을 읽는 중 에러가 발생했습니다",
     "ERROR_KEYMAP_CORRUPT"              : "키맵 파일의 JSON 형식이 올바르지 않습니다. 형식을 올바르게 수정할 수 있도록 파일이 열릴 것입니다",
@@ -88,12 +87,13 @@ define({
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "환경설정을 읽는 중 에러가 발생했습니다",
-    "ERROR_PREFS_CORRUPT"               : "환경설정 파일의 JSON 형식이 올바르지 않습니다. 형식을 올바르게 수정할 수 있도록 파일이 열릴 것입니다. 수정한 내용을 반영하려면 {APP_NAME}을 재시작해야 합니다.",
+    "ERROR_PREFS_CORRUPT"               : "환경설정 파일의 JSON 형식이 올바르지 않습니다. 형식을 올바르게 수정할 수 있도록 파일이 열릴 것입니다. 수정한 내용을 반영하려면 {APP_NAME}를 재시작해야 합니다.",
+    "ERROR_PROJ_PREFS_CORRUPT"          : "프로젝트 환경설정 파일의 JSON 형식이 올바르지 않습니다. 형식을 올바르게 수정할 수 있도록 파일이 열릴 것입니다. 변경 사항을 적용하려면 프로젝트를 다시 로드해야 합니다.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE": "{APP_NAME}는 아직 브라우저에서 실행되지 않습니다.",
-    "ERROR_IN_BROWSER": "{APP_NAME}는 HTML로 구축되어 있지만 데스크톱 응용 프로그램으로 실행하여 로컬 파일을 편집 할 수 있습니다. {APP_NAME}을 실행하기 위해 <b>github.com / adobe / brackets-shell</b> 저장소 응용 프로그램 셸을 사용하십시오.",
-    
+    "ERROR_IN_BROWSER": "{APP_NAME}는 HTML로 구축되어 있지만 데스크톱 응용 프로그램으로 실행하여 로컬 파일을 편집 할 수 있습니다. {APP_NAME}를 실행하기 위해 <b>github.com / adobe / brackets-shell</b> 저장소 응용 프로그램 셸을 사용하십시오.",
+
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE": "파일을 인덱스 하던 중에 에러가 발생했습니다.",
     "ERROR_MAX_FILES": "인덱싱 할 수 있는 파일의 최대 수에 도달했습니다. 인덱스에서 파일 검색 기능이 제대로 작동하지 않을 수 있습니다.",
@@ -102,7 +102,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE": "브라우저 시작 에러",
     "ERROR_CANT_FIND_CHROME": "Google Chrome 브라우저를 찾을 수 없습니다. 설치되어 있는지 확인하십시오.",
     "ERROR_LAUNCHING_BROWSER": "브라우저를 시작하던 중에 에러가 발생했습니다. (에러 {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE": "실시간 미리보기 에러",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE": "브라우저에 연결합니다",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE": "실시간 미리보기에 연결하려면 원격 디버깅을 사용하여 Chrome을 다시 시작해야 합니다. <br /> Chrome을 다시 시작하고 원격 디버깅을 사용하시겠습니까?",
@@ -113,7 +113,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE": "실시간 미리보기에 오신 것을 환영합니다",
     "LIVE_DEVELOPMENT_INFO_MESSAGE": "{APP_NAME}가 실시간 미리보기를 통해 브라우저에 연결됐습니다. HTML 파일이 수정되면 브라우저에서 미리보기가 즉시 업데이트됩니다. <br />현재 사용 중인 {APP_NAME}의 초기 버전에서는 <strong>Google Chrome</strong> 에서만 실시간 미리보기를 지원하며, <strong>CSS 또는 HTML 파일</strong>을 편집할 때만 실시간으로 업데이트됩니다. 자바스크립트 파일에 대한 변경 사항은 저장할 때 자동으로 다시 로드됩니다. (이 메시지는 한 번만 표시됩니다)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING": "자세한 내용은 <a href='{0}' title='{0}'> Live Development 연결 오류 문제 해결 </a>를 참조하세요.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "실시간 미리보기",
     "LIVE_DEV_STATUS_TIP_PROGRESS1": "실시간 미리보기: 연결 중 \u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2": "실시간 미리보기: 초기화 중\u2026",
@@ -125,7 +125,7 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED": "브라우저에서 페이지가 닫혀 있으므로 실시간 미리보기가 취소되었습니다.",
     "LIVE_DEV_NAVIGATED_AWAY": "브라우저에서 현재 프로젝트에 포함되지 않은 페이지로 이동했기 때문에 실시간 미리보기가 취소되었습니다.",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON": "알 수없는 원인 ({0})에 의해 실시간 미리보기가 취소되었습니다.",
-    
+
     "SAVE_CLOSE_TITLE": "변경 사항 저장",
     "SAVE_CLOSE_MESSAGE": "문서 <span class='dialog-filename'>{0}</span> 변경 내용을 저장 하시겠습니까?",
     "SAVE_CLOSE_MULTI_MESSAGE": "다음 파일에 대한 변경 사항을 저장 하시겠습니까?",
@@ -136,7 +136,7 @@ define({
     "EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span>파일이 변경되었습니다.<br /><br />파일을 저장하여 이 변경 사항을 덮어씌우겠습니까?",
     "EXT_MODIFIED_MESSAGE": "<span class='dialog-filename'>{0}</span>파일에 저장되지 않은 변경 사항이 있습니다. <br /> 두 버전을 유지 하시겠습니까?",
     "EXT_DELETED_MESSAGE": "<span class='dialog-filename'>{0}</span>파일은 삭제되었지만 저장되지 않은 변경 사항이 있습니다. <br /> 변경을 유지 하시겠습니까?",
-    
+
     // Generic dialog/button labels
     "DONE"                              : "완료",
     "OK": "확인",
@@ -148,7 +148,7 @@ define({
     "DELETE": "삭제",
     "BUTTON_YES": "예",
     "BUTTON_NO": "아니오",
-    
+
     // Find, Replace, Find in Files
     "FIND_MATCH_INDEX": "{1}개 중 {0}번째",
     "FIND_NO_RESULTS": "결과 없음",
@@ -193,9 +193,10 @@ define({
     "FIND_IN_FILES_MORE_THAN": "이상",
     "FIND_IN_FILES_PAGING": "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH": "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
-	"FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd를 클릭하면 전부 펼치거나 접습니다",
-	"REPLACE_IN_FILES_ERRORS_TITLE"     : "바꾸기 에러",
-	"REPLACE_IN_FILES_ERRORS"           : "다음 파일은 검색 후에 변경되었거나 저장할 수 없는 파일이므로 수정할 수 없습니다.",
+    "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd를 클릭하면 전부 펼치거나 접습니다",
+    "FIND_IN_FILES_INDEXING"            : "빠른 검색을 위한 색인 중\u2026",
+    "REPLACE_IN_FILES_ERRORS_TITLE"     : "바꾸기 에러",
+    "REPLACE_IN_FILES_ERRORS"           : "다음 파일은 검색 후에 변경되었거나 저장할 수 없는 파일이므로 수정할 수 없습니다.",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE": "업데이트 정보를 검색하는 중 오류가 발생했습니다.",
     "ERROR_FETCHING_UPDATE_INFO_MSG": "서버에서 최신 업데이트를 검색하는 중 오류가 발생했습니다. 인터넷 연결을 확인하고 다시 시도하세요.",
@@ -232,7 +233,7 @@ define({
     "PROJECT_LOADING": "프로젝트 여는 중\u2026",
     "UNTITLED": "제목 없음",
     "WORKING_FILES": "현재 파일",
-    
+
     /**
      * MainViewManager
      */
@@ -256,7 +257,13 @@ define({
     "KEYBOARD_CTRL": "Ctrl",
     "KEYBOARD_SHIFT": "Shift",
     "KEYBOARD_SPACE": "Space",
-    
+    "KEYBOARD_PAGE_UP"      : "Page Up",
+    "KEYBOARD_PAGE_DOWN"    : "Page Down",
+    "KEYBOARD_HOME"         : "Home",
+    "KEYBOARD_END"          : "End",
+    "KEYBOARD_INSERT"       : "Insert",
+    "KEYBOARD_DELETE"       : "Delete",
+
     /**
      * StatusBar strings
      */
@@ -294,8 +301,7 @@ define({
     "NOTHING_TO_LINT": "Lint 검사기로 확인할 파일이 없습니다.",
     "LINTER_TIMED_OUT"                      : "{0} 검사기가 {1}ms 대기 후 타임아웃 되었습니다",
     "LINTER_FAILED"                         : "{0} 검사기가 에러때문에 종료되었습니다: {1}",
-    
-    
+
     /**
      * Command Name Constants
      */
@@ -319,6 +325,7 @@ define({
     "CMD_FILE_SAVE_ALL": "모두 저장",
     "CMD_FILE_SAVE_AS": "다른 이름으로 저장\u2026",
     "CMD_LIVE_FILE_PREVIEW": "실시간 미리보기",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "실험적 실시간 미리보기 활성화",
     "CMD_RELOAD_LIVE_PREVIEW"             : "실시간 미리보기 다시 읽기",
     "CMD_PROJECT_SETTINGS": "프로젝트 설정\u2026",
     "CMD_FILE_RENAME": "파일명 변경",
@@ -354,7 +361,7 @@ define({
     "CMD_OPEN_LINE_BELOW": "하단에 라인 열기",
     "CMD_TOGGLE_CLOSE_BRACKETS": "자동 괄호",
     "CMD_SHOW_CODE_HINTS": "코드 힌트 표시",
-    
+
     // Search menu commands
     "FIND_MENU"                           : "검색",
     "CMD_FIND"                            : "찾기",
@@ -364,17 +371,18 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "다음 일치하는 단어 찾은 후 선택영역에 추가",
     "CMD_SKIP_CURRENT_MATCH"              : "현재 영역 건너뛰고 다음 찾기",
     "CMD_FIND_IN_FILES"                   : "파일에서 찾기",
-    "CMD_FIND_IN_SELECTED"                : "선택한 파일/폴더에서 찾기",
     "CMD_FIND_IN_SUBTREE"                 : "다음에서 찾기\u2026",
     "CMD_REPLACE"                         : "바꾸기",
     "CMD_REPLACE_IN_FILES"                : "파일에서 바꾸기",
-    "CMD_REPLACE_IN_SELECTED"             : "선택한 파일/폴더에서 바꾸기",
     "CMD_REPLACE_IN_SUBTREE"              : "다음에서 바꾸기\u2026",
 
     // View menu commands
     "VIEW_MENU": "보기",
     "CMD_HIDE_SIDEBAR": "사이드 바 숨기기",
     "CMD_SHOW_SIDEBAR": "사이드 바 표시",
+    "CMD_TOGGLE_SIDEBAR"                  : "사이드바 표시 전환",
+    "CMD_TOGGLE_PANELS"                   : "패널 표시 전환",
+    "CMD_TOGGLE_PURE_CODE"                : "코드만 보기",
     "CMD_INCREASE_FONT_SIZE": "폰트 크기 키우기",
     "CMD_DECREASE_FONT_SIZE": "폰트 크기 줄이기",
     "CMD_RESTORE_FONT_SIZE": "폰트 크기 초기화",
@@ -385,10 +393,10 @@ define({
     "CMD_TOGGLE_WORD_WRAP": "자동 줄바꿈",
     "CMD_LIVE_HIGHLIGHT": "실시간 미리보기 하이라이트",
     "CMD_VIEW_TOGGLE_INSPECTION": "저장시 파일 Lint표시",
-    "CMD_SORT_WORKINGSET_BY_ADDED": "추가순으로 작업세트 정렬",
-    "CMD_SORT_WORKINGSET_BY_NAME": "이름순으로 작업세트 정렬",
-    "CMD_SORT_WORKINGSET_BY_TYPE": "타입별로 작업세트 정렬",
-    "CMD_SORT_WORKINGSET_AUTO": "자동으로 작업세트 정렬",
+    "CMD_WORKINGSET_SORT_BY_ADDED": "추가순으로 작업세트 정렬",
+    "CMD_WORKINGSET_SORT_BY_NAME": "이름순으로 작업세트 정렬",
+    "CMD_WORKINGSET_SORT_BY_TYPE": "타입별로 작업세트 정렬",
+    "CMD_WORKING_SORT_TOGGLE_AUTO": "자동으로 작업세트 정렬",
     "CMD_THEMES"                          : "테마\u2026",
 
     // Navigate menu Commands
@@ -404,11 +412,13 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE": "새 규칙",
     "CMD_NEXT_DOC": "다음 문서",
     "CMD_PREV_DOC": "이전 문서",
+    "CMD_NEXT_DOC_LIST_ORDER"             : "목록의 다음 문서",
+    "CMD_PREV_DOC_LIST_ORDER"             : "목록의 이전 문서",
     "CMD_SHOW_IN_TREE": "파일트리에서 보기",
     "CMD_SHOW_IN_EXPLORER"                : "탐색기에서 보기",
     "CMD_SHOW_IN_FINDER"                  : "파인더에서 보기",
     "CMD_SHOW_IN_OS": "파일 위치 열기",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "도움말",
     "CMD_CHECK_FOR_UPDATE"                : "업데이트 확인",
@@ -418,6 +428,7 @@ define({
     "CMD_RELEASE_NOTES"                   : "릴리즈 노트",
     "CMD_GET_INVOLVED"                    : "프로젝트 참여",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "확장 기능 폴더 열기",
+    "CMD_HEALTH_DATA_STATISTICS"          : "상태 보고서",
     "CMD_HOMEPAGE"                        : "{APP_TITLE} 홈페이지",
     "CMD_TWITTER"                         : "Twitter에서 {TWITTER_NAME} 팔로우하기",
     "CMD_ABOUT"                           : "{APP_TITLE} 정보",
@@ -453,25 +464,30 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED": "기본 URL에는 「{0}」과(와) 같은 해시 기호는 사용할 수 없습니다.",
     "BASEURL_ERROR_INVALID_CHAR": "「{0}」과(와) 같은 특수 문자는 퍼센트로 인코딩해야합니다.",
     "BASEURL_ERROR_UNKNOWN_ERROR": "기본 URL의 구문을 분석하는 동안 알 수 없는 오류가 발생했습니다",
-    "EMPTY_VIEW_HEADER": "<em>Open a file while this pane has focus</em>",
-    
+
+    // Strings for Pane.js
+    "EMPTY_VIEW_HEADER"                    : "<em>이 창에 포커스가 있을 때 파일 열기</em>",
+    "FLIPVIEW_BTN_TOOLTIP"                 : "{0} 창에 이 보기를 반전",
+
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "현재 테마",
     "USE_THEME_SCROLLBARS"                 : "테마에서 정의한 스크롤바 적용",
     "FONT_SIZE"                            : "글자 크기",
     "FONT_FAMILY"                          : "글꼴",
     "THEMES_SETTINGS"                      : "테마 설정",
-    
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE": "새 규칙",
-    
+
     // Extension Management strings
     "INSTALL": "설치",
     "UPDATE": "업데이트",
     "REMOVE": "삭제",
+    "DISABLE"                              : "비활성",
+    "ENABLE"                               : "활성",
     "OVERWRITE": "덮어쓰기",
     "CANT_REMOVE_DEV": "\"dev\" 폴더의 확장 기능은 수동으로 제거해야 합니다.",
-    "CANT_UPDATE": "업데이트가 이 버전의 {APP_NAME}과 호환되지 않습니다.",
+    "CANT_UPDATE": "업데이트가 이 버전의 {APP_NAME}와 호환되지 않습니다.",
     "CANT_UPDATE_DEV"                      : "\"dev\" 폴더의 확장 기능은 자동으로 업데이트 할 수 없습니다.",
     "INSTALL_EXTENSION_TITLE": "확장 기능 설치",
     "UPDATE_EXTENSION_TITLE": "확장 기능 업데이트",
@@ -494,7 +510,7 @@ define({
     "INVALID_VERSION_NUMBER": "패키지 버전 번호 ({0})가 잘못되었습니다.",
     "INVALID_BRACKETS_VERSION": "{APP_NAME} 호환 문자열 {0}이 잘못되었습니다.",
     "DISALLOWED_WORDS": "{1} {0} 필드에서는 사용할 수 없습니다.",
-    "API_NOT_COMPATIBLE": "확장 기능은 이 버전의 {APP_NAME}과 호환되지 않습니다. 잘못된 확장 기능 폴더에 설치됩니다.",
+    "API_NOT_COMPATIBLE": "확장 기능은 이 버전의 {APP_NAME}와 호환되지 않습니다. 잘못된 확장 기능 폴더에 설치됩니다.",
     "MISSING_MAIN": "패키지에 main.js 파일이 포함되어 있지 않습니다.",
     "EXTENSION_ALREADY_INSTALLED": "이 패키지를 설치하면 이전에 설치한 확장 기능이 무시됩니다. 이전 확장을 덮어 쓰시겠습니까?",
     "EXTENSION_SAME_VERSION": "이 패키지 버전은 현재 설치되어있는 버전과 동일합니다. 기존 설치를 겹쳐 쓰시겠습니까?",
@@ -517,7 +533,7 @@ define({
     "INSTALL_EXTENSION_VALIDATING"         : "유효성 검사중\u2026",
     "EXTENSION_AUTHOR": "제작자",
     "EXTENSION_DATE": "제작일",
-    "EXTENSION_INCOMPATIBLE_NEWER": "이 확장 기능은 새 버전의 {APP_NAME}이 필요합니다.",
+    "EXTENSION_INCOMPATIBLE_NEWER": "이 확장 기능은 새 버전의 {APP_NAME}가 필요합니다.",
     "EXTENSION_INCOMPATIBLE_OLDER": "이 확장 기능은 현재 이전 버전의 {APP_NAME}에서 작동하지 않습니다.",
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER": "이 확장 기능 버전 {0}에는 {APP_NAME}의 새 버전이 필요합니다. 그러나 이전 버전 {1}을 설치할 수 있습니다.",
     "EXTENSION_LATEST_INCOMPATIBLE_OLDER": "이 확장 기능 버전 {0} {APP_NAME}의 이전 버전에서만 작동합니다. 그러나 이전 버전 {1}을 설치할 수 있습니다.",
@@ -537,15 +553,20 @@ define({
     "EXTENSION_MANAGER_REMOVE_ERROR": "하나 이상의 확장 기능을 ({0}) 제거할 수 없습니다. {APP_NAME}가 종료 중입니다.",
     "EXTENSION_MANAGER_UPDATE": "확장 기능 업데이트",
     "EXTENSION_MANAGER_UPDATE_ERROR": "하나 이상의 확장 기능을 ({0}) 업데이트 할 수 없습니다. {APP_NAME}가 종료 중입니다.",
+    "EXTENSION_MANAGER_DISABLE"            : "확장 기능 비활성",
+    "EXTENSION_MANAGER_DISABLE_ERROR"      : "하나 이상의 확장 기능을 ({0}) 비활성화 할 수 없습니다. {APP_NAME}가 종료 중입니다.",
     "MARKED_FOR_REMOVAL": "삭제 예정",
     "UNDO_REMOVE": "삭제 취소",
     "MARKED_FOR_UPDATE": "업데이트 예정",
-    "UNDO_UPDATE": "취소",
+    "UNDO_UPDATE": "업데이트 취소",
+    "MARKED_FOR_DISABLING"                 : "비활성화 예정",
+    "UNDO_DISABLE"                         : "비활성화 취소",
     "CHANGE_AND_RELOAD_TITLE": "확장 기능 변경",
     "CHANGE_AND_RELOAD_MESSAGE": "업데이트 예정 또는 삭제 예정 확장 기능을 업데이트하거나 삭제하려면 {APP_NAME}를 재시작해야 합니다. 저장되지 않은 변경 내용은 저장여부를 확인합니다.",
     "REMOVE_AND_RELOAD": "확장 기능을 제거하고 재시작",
     "CHANGE_AND_RELOAD": "확장 기능을 변경하고 재시작",
     "UPDATE_AND_RELOAD": "확장 기능을 업데이트하고 재시작",
+    "DISABLE_AND_RELOAD"                   : "확장 기능을 비활성화하고 재시작",
     "PROCESSING_EXTENSIONS"                : "확장 기능 변경사항 처리 중\u2026",
     "EXTENSION_NOT_INSTALLED": "설치되지 않았기 때문에 확장 기능 {0}을 삭제할 수 없습니다.",
     "NO_EXTENSIONS": "설치되어있는 확장 기능이 아직 없습니다. <br>에서 「설치 가능」탭을 클릭하여 설치하세요.",
@@ -555,19 +576,18 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE": "설치 가능",
     "EXTENSIONS_THEMES_TITLE"              : "테마",
     "EXTENSIONS_UPDATES_TITLE": "업데이트",
-    
+
     "INLINE_EDITOR_NO_MATCHES": "일치하는 항목이 없습니다.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "All matches are collapsed. Expand the files listed at right to view matches.",
     "CSS_QUICK_EDIT_NO_MATCHES": "선택 일치하는 기존 CSS 규칙이 없습니다. <br> 「새 규칙」을 클릭하여 규칙을 작성하세요.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS": "프로젝트에는 스타일 시트가 없습니다. <br> 스타일 시트를 작성하여 CSS 규칙에 추가하세요.",
-    
+
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "최대",
-    
+
     /**
      * Unit names
      */
-
     "UNIT_PIXELS": "픽셀",
 
     // extensions/default/DebugCommands
@@ -576,7 +596,8 @@ define({
     "CMD_SHOW_DEV_TOOLS": "개발자 도구 보기",
     "CMD_REFRESH_WINDOW": "{APP_NAME} 재시작",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "확장 기능 없이 재시작",
-    "CMD_NEW_BRACKETS_WINDOW": "새로운 {APP_NAME}창",
+    "CMD_NEW_BRACKETS_WINDOW": "새로운 {APP_NAME} 창",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "명령 줄 바로가기 설치",
     "CMD_SWITCH_LANGUAGE": "언어 변경",
     "CMD_RUN_UNIT_TESTS": "테스트 실행",
     "CMD_SHOW_PERF_DATA": "성능 데이터를 표시",
@@ -585,12 +606,29 @@ define({
     "CMD_RESTART_NODE": "Node를 다시 시작",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "에러를 상태표시줄에 표시",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "{APP_NAME} 소스 열기",
-    
+
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} 명령 줄 바로가기",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "명령 줄 바로가기를 설치하는 동안 오류가 발생했습니다. <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>이런 문제를 해결하기 위한 제안</a>을 시도해 보세요.<br/><br/>원인: {0}",
+    "ERROR_CLTOOLS_RMFAILED"                    : "기존의 <code>/usr/local/bin/brackets</code> 심볼릭 링크를 제거할 수 없습니다.",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "<code>/usr/local/bin</code> 디렉토리를 만들 수 없습니다.",
+    "ERROR_CLTOOLS_LNFAILED"                    : "<code>/usr/local/bin/brackets</code> 심볼릭 링크를 만들 수 없습니다.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "내부 오류입니다.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "현재 운영체제(OS)가 명령줄 바로가기를 지원하지 않습니다.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "성공! 이제부터 명령 줄에서 쉽게 {APP_NAME}를 시작할 수 있습니다: 파일을 열기 위해 <code>brackets myFile.txt</code> 또는 프로젝트를 전환하기 위해 <code>brackets myFolder</code>. <br/><br/>명령 줄에서 {APP_NAME}를 사용하기 위한 <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>더 자세한 정보</a>.",
+
     "LANGUAGE_TITLE": "언어 변경",
     "LANGUAGE_MESSAGE": "언어:",
     "LANGUAGE_SUBMIT": "{APP_NAME} 재시작",
     "LANGUAGE_CANCEL": "취소",
     "LANGUAGE_SYSTEM_DEFAULT": "시스템 언어",
+
+    // extensions/default/HealthData
+    "HEALTH_DATA_NOTIFICATION"                  : "상태 보고서 환경설정",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME} 상태 보고서",
+    "HEALTH_DATA_DO_TRACK"                      : "{APP_NAME} 사용 행태 정보를 익명으로 공유",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "{APP_NAME} 개선을 위해 고객이 {APP_NAME}를 어떻게 사용하는지에 관한 제한된 <strong>익명</strong> 통계를 Adobe에 주기적으로 전송합니다. 이 정보는 기능의 우선 순위를 정하고, 버그를 찾고, 사용성 문제를 해결하는데 도움을 줍니다.<br><br>고객의 데이터를 보거나 또는 데이터를 공유하지 않도록 하려면 <strong>도움말 > 상태 보고서</strong>를 선택하세요. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} 상태 보고서에 관한 자세한 정보.</a>",
+    "HEALTH_DATA_PREVIEW"                       : "{APP_NAME} 상태 보고서",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>{APP_NAME} 개선을 위해 고객이 {APP_NAME}를 어떻게 사용하는지에 관한 제한된 <strong>익명</strong> 통계를 Adobe에 주기적으로 전송하고 있습니다. 이 정보는 기능의 우선 순위를 정하고, 버그를 찾고, 사용성 문제를 해결하는데 도움을 줍니다. 고객의 개인정보를 보호하면서 {APP_NAME} 커뮤니티에 어떤 이득을 주는지 <a href='https://github.com/adobe/brackets/wiki/Health-Data'>{APP_NAME} 상태 보고서에 관해 자세히 알아보세요</a>.</p><p><em>만약</em> 상태 보고서 전송이 가능한 상태라면 아래 미리보기 데이터는 고객의 다음 번 상태 보고서로 전송할 것입니다.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME": "시간",
@@ -598,7 +636,7 @@ define({
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Move selected point<br><kbd class='text'>Shift</kbd> Move by ten units<br><kbd class='text'>Tab</kbd> Switch points",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Increase or decrease steps<br><kbd>←</kbd><kbd>→</kbd> 'Start' or 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "The old value <code>{0}</code> is not valid, so the displayed function was changed to <code>{1}</code>. The document will be updated with the first edit.",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP": "현재색",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP": "원본색",
@@ -607,25 +645,140 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP": "HSLa 형식",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR": "{0} ({1}시간 사용)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL": "{0} ({1}시간 사용)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION": "정의로 이동",
     "CMD_SHOW_PARAMETER_HINT": "파라메터 정보를 표시",
     "NO_ARGUMENTS": "<매개변수가 없습니다>",
     "DETECTED_EXCLUSION_TITLE"                  : "자바스크립트 파일 추론 문제",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets에서 <span class='dialog-filename'>{0}</span> 파일을 처리하던 중 문제가 발생했습니다.<br><br>이 파일은 코드 힌트, 정의 이동, 빠른 편집 등에서 사용되지 않을 것입니다. 이 파일을 다시 사용하려면 프로젝트 폴더에 있는 <code>.brackets.json</code> 파일을 열고 <code>jscodehints.detectedExclusions</code> 항목을 수정하세요.<br><br>Backets의 버그일 수 있습니다. 이 파일의 사본을 제출할 수 있다면 여기서 말한 파일과 함께<a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>버그 보고</a>에 등록해주세요.",
-    
+
     // extensions/default/JSLint
     "JSLINT_NAME": "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW": "QuickView 사용",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS": "최근에 사용한 프로젝트",
-    
+
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK": "상세 정보"
+    "DOCS_MORE_LINK": "상세 정보",
+
+    // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "모두 접기",
+    "EXPAND_ALL"                    : "모두 펼치기",
+    "COLLAPSE_CURRENT"              : "현재 코드 접기",
+    "EXPAND_CURRENT"                : "현재 코드 펼치기",
+
+    // Descriptions of core preferences
+    "DESCRIPTION_CLOSE_BRACKETS"                     : "괄호(), 중괄호{}, 대괄호[]를 자동으로 닫으려면 true",
+    "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "작업중인 파일 콘텍스트 메뉴에서 \"위의 목록 닫기\"를 제거하려면 false",
+    "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "작업중인 파일 콘텍스트 메뉴에서 \"아래 목록 닫기\"를 제거하려면 false",
+    "DESCRIPTION_CLOSE_OTHERS"                       : "작업중인 파일 콘텍스트 메뉴에서 \"다른 파일 닫기\"를 제거하려면 false",
+    "DESCRIPTION_CLOSE_TAGS"                         : "태그 종료 옵션 설정",
+    "DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS"         : "자동으로 닫지 말아야 할 태그 목록",
+    "DESCRIPTION_CLOSE_TAGS_WHEN_OPENING"            : "시작 태그 > 입력 시 닫기",
+    "DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING"            : "종료 태그 / 입력 시 닫기",
+    "DESCRIPTION_CLOSE_TAGS_INDENT_TAGS"             : "열릴 때 빈 줄 하나를 포함해야 하는 태그 목록",
+    "DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD" : "들여쓰기 수준을 변경할 때 접을 수 있는 섹션 마커를 항상 생성하려면 true",
+    "DESCRIPTION_CODE_FOLDING_ENABLED"               : "코드 접기를 활성화 하려면 true",
+    "DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER"  : "빈 공간에 마우스 포인터를 두는 경우에만 섹션 접기 마커를 표시하려면 true",
+    "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "모두 접기를 얼마나 깊게 적용할 것인지 수준을 제한합니다",
+    "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "섹션 접기 아이콘을 표시하기 위한 최소 라인 수",
+    "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "파일 또는 프로젝트를 닫거나 다시 열 때 접은 섹션을 기억해야 한다면 true",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "편집기 안에서 선택한 텍스트에 대한 코드 접기 기능을 활성화 하려면 true",
+    "DESCRIPTION_ATTR_HINTS"                         : "HTML 속성 힌트 활성/비활성",
+    "DESCRIPTION_CSS_PROP_HINTS"                     : "CSS/LESS/SCSS 속성 힌트 활성/비활성",
+    "DESCRIPTION_JS_HINTS"                           : "JavaScript 코드 힌트 활성/비활성",
+    "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "JavaScript 코드 힌트에 데이터 타입 상세 활성/비활성",
+    "DESCRIPTION_PREF_HINTS"                         : "환경설정 코드 힌트 활성/비활성",
+    "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "HTML 엔터티 힌트 활성/비활성",
+    "DESCRIPTION_SVG_HINTS"                          : "SVG 코드 힌트 활성/비활성",
+    "DESCRIPTION_HTML_TAG_HINTS"                     : "HTML 태그 힌트 활성/비활성",
+    "DESCRIPTION_URL_CODE_HINTS"                     : "HTML & CSS/LESS/SCSS의 URL 힌트 활성/비활성",
+    "DESCRIPTION_DRAG_DROP_TEXT"                     : "드래그 앤 드롭 기능 활성/비활성",
+    "DESCRIPTION_HEALTH_DATA_TRACKING"               : "상태 데이터 추적 활성화",
+    "DESCRIPTION_HIGHLIGHT_MATCHES"                  : "문서 내에서 일치하는 문자열 자동 강조 활성화",
+    "DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN"       : "현재 커서가 있는 토큰과 일치하는 모든 문자열 강조(선택 불필요)",
+    "DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY"       : "선택 항목이 완전한 토큰인 경우에만 강조",
+    "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "탭에서 현재 선택한 코드 힌트를 삽입하려면 true",
+    "DESCRIPTION_NO_HINTS_ON_DOT"                    : ". 입력 시 JS 코드 힌트를 자동으로 표시하지 않으려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS"                     : "JSLint 기본 옵션 적용 객체",
+    "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "할당 표현식을 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "비트 연산자를 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "표준 브라우저의 전역 변수를 미리 정의하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_CLOSURE"             : "구글 클로저 관용구를 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "\"continue\" 문을 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_COUCH"               : "CouchDB 전역 변수를 미리 정의해야 하는 경우 true",
+    "DESCRIPTION_JSLINT_OPTIONS_DEBUG"               : "디버거 문을 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_DEVEL"               : "개발 편의를 위해 브라우저 전역 변수를 미리 정의하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_EQEQ"                : "==과 !=를 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_ES6"                 : "ES6 전역 변수를 미리 정의하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_EVIL"                : "eval을 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_FORIN"               : "필터링하지 않은 \"for ... in\"을 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_INDENT"              : "탭 폭 설정",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXERR"              : "최대 경고 수",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXLEN"              : "한개 행 최대 문자 수",
+    "DESCRIPTION_JSLINT_OPTIONS_NEWCAP"              : "알파벳 대문자로 시작하지 않는 생성자를 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_NODE"                : "Node.js 전역 변수를 미리 정의하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_NOMEN"               : "언더스코어(_)로 시작하는 식별자를 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_PASSFAIL"            : "첫 오류 발생 시 중지하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_PLUSPLUS"            : "++와 --를 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_REGEXP"              : "정규 표현식에서 .과 [^...].을 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_RHINO"               : "Rhino 전역 변수를 미리 정의하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_SLOPPY"              : "`use strict` 지시어 생략을 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_STUPID"              : "블록 ('...Sync') 메서드를 사용할 수 있는 경우 true.",
+    "DESCRIPTION_JSLINT_OPTIONS_SUB"                 : "비효율적인 첨자 지정을 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_TODO"                : "TODO 주석을 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_UNPARAM"             : "사용하지 않는 매개 변수를 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_VARS"                : "함수 안에서 하나 이상의 변수를 허용하려면 true",
+    "DESCRIPTION_JSLINT_OPTIONS_WHITE"               : "공백 규칙을 무시하려면 true",
+    "DESCRIPTION_LANGUAGE"                           : "언어 별 설정",
+    "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "파일 확장자를 통해 언어 이름 매핑",
+    "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "파일 이름을 통해 언어 이름 매핑",
+    "DESCRIPTION_LINTING_ENABLED"                    : "코드 검사를 활성화 하려면 true",
+    "DESCRIPTION_ASYNC_TIMEOUT"                      : "비동기 구문 검사 초과 시간을 밀리세컨드로 표기",
+    "DESCRIPTION_LINTING_PREFER"                     : "최초 실행 구문 검사 배열",
+    "DESCRIPTION_LIVE_DEV_MULTIBROWSER"              : "실험적 실시간 미리보기를 활성화 하려면 true",
+    "DESCRIPTION_USE_PREFERED_ONLY"                  : "제공자에 의해 기술된 linting.prefer 만으로 실행하려면 true",
+    "DESCRIPTION_MAX_CODE_HINTS"                     : "한 번에 표시되는 최대 코드 힌트",
+    "DESCRIPTION_PATH"                               : "경로 별 설정",
+    "DESCRIPTION_PROXY"                              : "확장기능 설치를 위해 사용된 프록시 서버 URL",
+    "DESCRIPTION_SCROLL_PAST_END"                    : "문서 끝을 넘어선 스크롤을 활성화 하려면 true",
+    "DESCRIPTION_SHOW_CODE_HINTS"                    : "모든 코드 힌트를 비활성화 하려면 false",
+    "DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING"         : "문자를 선택한 경우 깜빡이는 커서 표시",
+    "DESCRIPTION_SHOW_LINE_NUMBERS"                  : "코드 왼쪽의 “여백”에 행 번호를 표시하려면 true",
+    "DESCRIPTION_SMART_INDENT"                       : "새 블록을 만들 때 자동 들여쓰기",
+    "DESCRIPTION_SOFT_TABS"                          : "소프트 탭 작동을 끄려면 false",
+    "DESCRIPTION_SORT_DIRECTORIES_FIRST"             : "프로젝트 트리에서 디렉토리 우선 정렬하려면 true",
+    "DESCRIPTION_SPACE_UNITS"                        : "공백 기반의 들여쓰기를 위한 공백 수",
+    "DESCRIPTION_STATIC_SERVER_PORT"                 : "실시간 미리보기를 위한 빌트인 서버 포트 번호",
+    "DESCRIPTION_STYLE_ACTIVE_LINE"                  : "커서가 있는 행의 배경 색을 강조하려면 true",
+    "DESCRIPTION_TAB_SIZE"                           : "탭 표시를 위한 공백 수",
+    "DESCRIPTION_USE_TAB_CHAR"                       : "공백 대신 탭을 사용하려면 true",
+    "DESCRIPTION_UPPERCASE_COLORS"                   : "인라인 색상 편집기에서 대문자 16진수 색을 생성하려면 true",
+    "DESCRIPTION_WORD_WRAP"                          : "뷰포트 폭을 초과하는 행 감싸기",
+    "DESCRIPTION_DETECTED_EXCLUSIONS"                : "통제 불가능한 실행 Tern을 유발하도록 감지된 파일 목록",
+    "DESCRIPTION_INFERENCE_TIMEOUT"                  : "파일 인식 시 Tern이 초과될 때 까지의 시간",
+    "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "상태 표시 줄에 오류를 표시하려면 true",
+    "DESCRIPTION_QUICK_VIEW_ENABLED"                 : "빠른 보기를 활성화 하려면 true",
+    "DESCRIPTION_EXTENSION_LESS_IMAGE_PREVIEW"       : "URL 없는 확장 기능의 이미지 미리보기를 표시하려면 true",
+    "DESCRIPTION_THEME"                              : "{APP_NAME} 테마 선택",
+    "DESCRIPTION_USE_THEME_SCROLLBARS"               : "사용자 정의 스크롤 바를 허용하려면 true",
+    "DESCRIPTION_LINTING_COLLAPSED"                  : "구문 검사 패널을 접어 두려면 true",
+    "DESCRIPTION_FONT_FAMILY"                        : "글꼴 변경",
+    "DESCRIPTION_FONT_SIZE"                          : "글꼴 크기 변경(예: 13px)",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "노드 기반 검색을 활성화 하려면 true",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "빠른 검색을 활성화 하려면 true",
+    "DESCRIPTION_FONT_SMOOTHING"                     : "맥 전용: 서브픽셀 안티 에일리어싱을 활성화 하려면 \"subpixel-antialiased\" 회색조 안티 에일리어싱을 활성화 하려면 \"antialiased\"",
+    "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "분할 보기에서 파일 환경 설정 열기를 비 활성화 하려면 false",
+    "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "사용자 환경 설정 파일을 좌측/상단 창에서 열려면 false",
+    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "창 헤더의 닫기 버튼을 통해 마지막으로 닫힌 창을 접으려면 true",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "헤더에 닫기 버튼과 반전 보기 버튼 표시 전환.",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * 이것은 {APP_NAME}에 의해 환경 설정이 지원된 읽기 전용 파일입니다.\n * 이 파일은 다른 창에서 열린 \"brackets.json\" 환경 설정 파일을 수정하기 위한 참조로 사용합니다.\n * {APP_NAME} 환경 설정을 어떻게 하는지에 관한 더 많은 정보는 웹 페이지를 참고하세요.\n * https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "기본",
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "{APP_NAME}에서 코드 전용 모드를 실행하고 다른 모든 UI 요소 숨기기를 활성화 하려면 true"
 });
 
-/* Last translated for 50cbe1b8848786c6be27d4788e4b6a367244abc2 */
+/* Last translated for fcd2e98ef35c110e00aebfbb6d3c3816e5156552 */

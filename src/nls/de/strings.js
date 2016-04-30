@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -252,11 +252,17 @@ define({
     "SPLITVIEW_MULTIPANE_WARNING"       : "Diese Datei ist bereits in einer anderen Ansicht geöffnet. Das Öffnen einer Datei in mehreren Ansichten wird {APP_NAME} bald unterstützen. Bis dahin wird die Datei in der Ansicht angezeigt, in der sie bereits geöffnet ist.<br /><br />(Sie sehen diese Nachricht nur einmal.)",
 
     /**
-     * Keyboard modifier names
+     * Keyboard modifiers and special key names
      */
-    "KEYBOARD_CTRL"   : "Strg",
-    "KEYBOARD_SHIFT"  : "Umschalt",
-    "KEYBOARD_SPACE"  : "Leer",
+    "KEYBOARD_CTRL"         : "Strg",
+    "KEYBOARD_SHIFT"        : "Umschalt",
+    "KEYBOARD_SPACE"        : "Leer",
+    "KEYBOARD_PAGE_UP"      : "Bild\u2191",
+    "KEYBOARD_PAGE_DOWN"    : "Bild\u2193",
+    "KEYBOARD_HOME"         : "Pos 1",
+    "KEYBOARD_END"          : "Ende",
+    "KEYBOARD_INSERT"       : "Einfg",
+    "KEYBOARD_DELETE"       : "Entf",
 
     /**
      * StatusBar strings
@@ -675,6 +681,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limitiert die maximale Anzahl von \"Alle Einklappen\"-Markierungen",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Mindestzahl an Zeilen, bevor eine einklappbare Folding-Markierung erscheint",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "Aktiviert das Speichern der eingeklappten Abschnitte",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "Aktiviert das Einklappen von ausgewähltem Text",
     "DESCRIPTION_ATTR_HINTS"                         : "Aktiviert Code Hints für HTML-Attribute",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Aktiviert Code Hints für CSS/LESS/SCSS",
     "DESCRIPTION_JS_HINTS"                           : "Aktiviert Code Hints für JavaScript",
@@ -764,4 +771,4 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard"
 });
 
-/* Last translated for 1e5ba8f612dcf983d3cbffbbf1bfe455a90788c8 */
+/* Last translated for 1eba0ae1cb21e73752c8359132b972ec7e5997ab */

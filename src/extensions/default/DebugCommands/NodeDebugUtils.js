@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -26,9 +26,9 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var NodeConnection = brackets.getModule("utils/NodeConnection");
-    
+
     /**
      * @private
      * @type{NodeConnection}
@@ -60,7 +60,7 @@ define(function (require, exports, module) {
             console.error("[NodeDebugUtils] No brackets.app.getNodeState function. Maybe you're running the wrong shell?");
         }
     }
-    
+
     /**
      * Sends a command to node to cause a restart.
      */
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
             alert("Failed trying to enable Node debugger: " + e.message);
         }
     }
-    
+
     /**
      * @private
      * Handler for log events from Node. Stores the messages in an internal array
@@ -98,15 +98,15 @@ define(function (require, exports, module) {
         // For some reason, stringifying and then parsing a Date through JSON turns
         // it into a string.
         var timestampAsDate = new Date(timestamp);
-        
+
         _nodeLog.push({
             level: level,
             timestamp: timestampAsDate,
             message: message
         });
-    
+
         var formattedMessage = "[node-" + level + " " + timestampAsDate.toLocaleTimeString() +  "] " + message;
-        
+
         switch (level) {
         case "info":
         case "warn":
@@ -116,18 +116,18 @@ define(function (require, exports, module) {
         default:
             console.log(formattedMessage);
         }
-        
+
     }
-    
+
     _nodeConnection = new NodeConnection();
     _nodeConnection.connect(true);
-    
+
     // TODO: It would be nice to add a menu item that allows the user
     // to enable/disable forwarding of node logs to the console.
     _nodeConnection.on("base:log", handleLogEvent);
-    
+
     exports.logNodeState = logNodeState;
     exports.restartNode = restartNode;
     exports.enableDebugger = enableDebugger;
-    
+
 });

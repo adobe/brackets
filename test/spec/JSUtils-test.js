@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -42,7 +42,7 @@ define(function (require, exports, module) {
 
     // Verifies whether one of the results returned by JSUtils.findAllMatchingFunctionsInText()
     // came from the expected function name or not.
-    
+
     var toMatchFunctionName = function (expected) {
         return this.actual.functionName.trim() === expected;
     };
@@ -58,7 +58,7 @@ define(function (require, exports, module) {
     function init(spec, fileEntry) {
         if (fileEntry) {
             spec.addMatchers({toMatchFunctionName: toMatchFunctionName});
-            
+
             runs(function () {
                 FileUtils.readAsText(fileEntry)
                     .done(function (text) {
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
     describe("JSUtils", function () {
 
         describe("basics", function () {
-            
+
             it("should parse an empty string", function () {
                 runs(function () {
                     var result = JSUtils.findAllMatchingFunctionsInText("", "myFunc");
@@ -87,14 +87,14 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         // TODO (jason-sanjose): use offset markup in these test files
         describe("line offsets", function () {
-            
+
             afterEach(function () {
                 cleanup(this);
             });
-            
+
             // Checks the lines ranges of the results returned by JSUtils. Expects the numbers of
             // results to equal the length of 'ranges'; each entry in range gives the {start, end}
             // of the expected line range for that Nth result.
@@ -107,120 +107,120 @@ define(function (require, exports, module) {
                     spec.expect(result[i].lineEnd).toEqual(range.end);
                 });
             }
-            
+
             function expectNoFunction(jsCode, functionName) {
                 var result = JSUtils.findAllMatchingFunctionsInText(jsCode, functionName);
                 expect(result.length).toBe(0);
             }
-            
+
             it("should return correct start and end line numbers for simple functions", function () {
                 runs(function () {
                     doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "simple1", [ {start:  0, end:  2} ]);
                     expectFunctionRanges(this, this.fileJsContent, "simple2", [ {start:  7, end:  9} ]);
                     expectFunctionRanges(this, this.fileJsContent, "simple3", [ {start: 11, end: 13} ]);
                 });
             });
-            
+
             it("should return correct start and end line numbers for parameterized functions", function () {
                 runs(function () {
                     doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "param1", [ {start: 18, end: 19} ]);
                     expectFunctionRanges(this, this.fileJsContent, "param2", [ {start: 24, end: 26} ]);
                     expectFunctionRanges(this, this.fileJsContent, "param3", [ {start: 28, end: 32} ]);
                 });
             });
-            
+
             it("should return correct start and end line numbers for single line functions", function () {
                 runs(function () {
                     doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "single1", [ {start: 35, end: 35} ]);
                     expectFunctionRanges(this, this.fileJsContent, "single2", [ {start: 36, end: 36} ]);
                     expectFunctionRanges(this, this.fileJsContent, "single3", [ {start: 37, end: 37} ]);
                 });
             });
-            
+
             it("should return correct start and end line numbers for nested functions", function () {
                 runs(function () {
                     doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "nested1", [ {start: 42, end: 50} ]);
                     expectFunctionRanges(this, this.fileJsContent, "nested2", [ {start: 44, end: 49} ]);
                     expectFunctionRanges(this, this.fileJsContent, "nested3", [ {start: 47, end: 48} ]);
                 });
             });
-            
+
             it("should return correct start and end line numbers for functions with keyword 'function' in name", function () {
                 runs(function () {
                     doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     //expectFunctionRanges(this, this.fileJsContent, "functionX",   [ {start: 53, end: 55} ]);
                     expectFunctionRanges(this, this.fileJsContent, "my_function", [ {start: 56, end: 57} ]);
                     expectFunctionRanges(this, this.fileJsContent, "function3",   [ {start: 58, end: 60} ]);
                 });
             });
-            
+
             it("should ignore identifiers with whitespace", function () {
                 runs(function () {
                     doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     var negativeTests = ["invalid", "identifier", "invalid identifier"],
                         result,
                         content = this.fileJsContent;
-                    
+
                     negativeTests.forEach(function (name) {
                         result = JSUtils.findAllMatchingFunctionsInText(content, name);
                         expect(result.length).toBe(0);
                     });
                 });
             });
-            
+
             it("should return correct start and end line numbers for prototype method declarations", function () {
                 runs(function () {
                     doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "myMethod", [ {start: 66, end: 68} ]);
                 });
             });
-            
+
             it("should handle various whitespace variations", function () {
                 runs(function () {
                     doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "noSpaceBeforeFunc", [ {start: 71, end: 71} ]);
                     expectFunctionRanges(this, this.fileJsContent, "spaceBeforeColon", [ {start: 73, end: 75} ]);
@@ -231,34 +231,34 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "findMe", [ {start: 93, end: 93} ]);
                 });
             });
-            
+
             it("should work with high-ascii characters in function names", function () {
                 runs(function () {
                     doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "highAscÍÍChars", [ {start: 95, end: 97} ]);
                     expectFunctionRanges(this, this.fileJsContent, "moreHighAscÍÍChars", [ {start: 99, end: 101} ]);
                     expectFunctionRanges(this, this.fileJsContent, "ÅsciiExtendedIdentifierStart", [ {start: 103, end: 104} ]);
                 });
             });
-            
+
             it("should work with unicode characters in or around function names", function () {
                 runs(function () {
                     doneLoading = false;
                     init(this, simpleJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "ʸUnicodeModifierLettervalidIdentifierStart", [ {start: 106, end: 107} ]);
                     expectFunctionRanges(this, this.fileJsContent, "unicodeModifierLettervalidIdentifierPartʸ", [ {start: 112, end: 113} ]);
                 });
             });
-            
+
             // TODO (issue #1125): support escaped unicode
             xit("FAIL should work with unicode characters in or around function names", function () {
                 runs(function () {
@@ -266,7 +266,7 @@ define(function (require, exports, module) {
                     init(this, simpleJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "\u02b8UnicodeEscapedIdentifierStart", [ {start: 109, end: 110} ]);
                     expectFunctionRanges(this, this.fileJsContent, "unicodeEscapedIdentifierPart\u02b8", [ {start: 115, end: 116} ]);
@@ -274,28 +274,28 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "unicodeTabAfter", [ {start: 121, end: 122} ]);
                 });
             });
-            
+
             it("should work when colliding with prototype properties", function () { // #1390, #2813
                 runs(function () {
                     doneLoading = false;
                     init(this, trickyJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     expectFunctionRanges(this, this.fileJsContent, "toString", [ {start: 1, end: 3} ]);
                     expectFunctionRanges(this, this.fileJsContent, "length", [ {start: 6, end: 8} ]);
                     expectFunctionRanges(this, this.fileJsContent, "hasOwnProperty", [ {start: 11, end: 13} ]);
                 });
             });
-            
+
             it("should fail with invalid function names", function () {
                 runs(function () {
                     doneLoading = false;
                     init(this, invalidJsFileEntry);
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
-                
+
                 runs(function () {
                     expectNoFunction(this.fileJsContent, "0digitIdentifierStart");
                     expectNoFunction(this.fileJsContent, ".punctuationIdentifierStart");
@@ -303,7 +303,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("brace ends of functions", function () {
             beforeEach(function () {
                 runs(function () {
@@ -312,7 +312,7 @@ define(function (require, exports, module) {
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
             });
-            
+
             afterEach(function () {
                 cleanup(this);
             });
@@ -325,7 +325,7 @@ define(function (require, exports, module) {
                 var endMarker = spec.fileJsContent.slice(endPos);
                 expect(endMarker.indexOf("//END " + funcName)).toBe(0);
             }
-            
+
             it("should handle a simple function", function () {
                 expectEndBrace(this, "simpleFunction");
             });
@@ -363,7 +363,7 @@ define(function (require, exports, module) {
                 expectEndBrace(this, "itsComplicated");
             });
         });
-        
+
         describe("brace end of function that ends at end of file", function () {
             it("should find the end of a function that ends exactly at the end of the file", function () {
                 runs(function () {
@@ -378,7 +378,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("end of function that's unclosed at end of file", function () {
             it("should find the end of a function that is unclosed at the end of the file", function () {
                 runs(function () {
@@ -395,7 +395,7 @@ define(function (require, exports, module) {
         });
 
         describe("with real-world jQuery JS code", function () {
-            
+
             beforeEach(function () {
                 runs(function () {
                     doneLoading = false;
@@ -403,7 +403,7 @@ define(function (require, exports, module) {
                 });
                 waitsFor(function () { return doneLoading; }, 1000);
             });
-            
+
             afterEach(function () {
                 cleanup(this);
             });
@@ -412,17 +412,17 @@ define(function (require, exports, module) {
                 var funcNames = JSUtils.findAllMatchingFunctionsInText(this.fileJsContent, "pushStack");
                 expect(funcNames).toBeTruthy();
                 expect(funcNames.length).toBeGreaterThan(0);
-                
+
                 expect(funcNames[0]).toBeTruthy();
                 expect(funcNames[0].lineStart).toBe(243);
                 expect(funcNames[0].lineEnd).toBe(267);
             });
-            
+
             it("should find all instances of the ready function", function () {
                 var funcNames = JSUtils.findAllMatchingFunctionsInText(this.fileJsContent, "ready");
                 //expect(funcNames.length).toBe(3);
                 expect(funcNames.length).toBe(2);
-                
+
                 expect(funcNames[0].lineStart).toBe(276);
                 expect(funcNames[0].lineEnd).toBe(284);
                 expect(funcNames[1].lineStart).toBe(419);
@@ -430,22 +430,22 @@ define(function (require, exports, module) {
                 //expect(funcNames[2].lineStart).toBe(3422);    // not finding this one...
                 //expect(funcNames[2].lineEnd).toBe(3425);
             });
-            
+
             it("should return an empty array when findAllMatchingSelectors() can't find any matches", function () {
                 var funcNames = JSUtils.findAllMatchingFunctionsInText(this.fileJsContent, "NO-SUCH-FUNCTION");
                 expect(funcNames.length).toBe(0);
             });
         });
-        
+
     }); // describe("JSUtils")
-    
-    
+
+
     describe("JS Indexing", function () {
-        
+
         this.category = "integration";
-        
+
         var functions;  // populated by indexAndFind()
-        
+
         beforeEach(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                 // Load module instances from brackets.test
@@ -466,7 +466,7 @@ define(function (require, exports, module) {
             ProjectManager      = null;
             SpecRunnerUtils.closeTestWindow();
         });
-        
+
         function init(fileName) {
             runs(function () {
                 waitsForDone(
@@ -478,32 +478,30 @@ define(function (require, exports, module) {
                 );
             });
         }
-        
+
         /**
          * Builds a fileInfos index of the project, as required to call findMatchingFunctions(). Calls the
          * specified 'invoker' function with fileInfos, and populates the 'functions' var once it's done.
          * Does not need to be wrapped in a runs() block.
-         * @param {function(Array.<FileIndexManager.FileInfo>):$.Promise} invokeFind
+         * @param {function(Array.<File>):$.Promise} invokeFind
          */
         function indexAndFind(invokeFind) {
             runs(function () {
                 var result = new $.Deferred();
-                
                 ProjectManager.getAllFiles().done(function (files) {
                     invokeFind(files)
                         .done(function (functionsResult) { functions = functionsResult; })
                         .then(result.resolve, result.reject);
                 });
-                
+
                 waitsForDone(result, "Index and invoke JSUtils.findMatchingFunctions()");
             });
         }
-        
+
 
         describe("Index integrity", function () {
             it("should handle colliding with prototype properties", function () { // #2813
                 // no init() needed - don't need any editors to be open
-                
                 indexAndFind(function (fileInfos) {
                     return JSUtils.findMatchingFunctions("toString", fileInfos);
                 });
@@ -512,7 +510,7 @@ define(function (require, exports, module) {
                     expect(functions[0].lineStart).toBe(1);
                     expect(functions[0].lineEnd).toBe(3);
                 });
-                
+
                 indexAndFind(function (fileInfos) {
                     return JSUtils.findMatchingFunctions("length", fileInfos);
                 });
@@ -521,7 +519,7 @@ define(function (require, exports, module) {
                     expect(functions[0].lineStart).toBe(6);
                     expect(functions[0].lineEnd).toBe(8);
                 });
-                
+
                 indexAndFind(function (fileInfos) {
                     return JSUtils.findMatchingFunctions("hasOwnProperty", fileInfos);
                 });
@@ -532,13 +530,13 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
-        
+
+
         describe("Working with unsaved changes", function () {
-    
+
             function fileChangedTest(buildCache) {
                 init("edit.js");
-                
+
                 // Populate JSUtils cache
                 if (buildCache) {
                     // Look for "edit2" function
@@ -551,13 +549,13 @@ define(function (require, exports, module) {
                         expect(functions[0].lineEnd).toBe(9);
                     });
                 }
-                
+
                 // Add several blank lines at the beginning of the text
                 runs(function () {
                     var doc = DocumentManager.getCurrentDocument();
                     doc.setText("\n\n\n\n" + doc.getText());
                 });
-                
+
                 // Look for function again, expecting line offsets to have changed
                 indexAndFind(function (fileInfos) {
                     return JSUtils.findMatchingFunctions("edit2", fileInfos);
@@ -568,18 +566,18 @@ define(function (require, exports, module) {
                     expect(functions[0].lineEnd).toBe(13);
                 });
             }
-            
+
             it("should return the correct offsets if the file has changed", function () {
                 fileChangedTest(false);
             });
-            
+
             it("should return the correct offsets if the results were cached and the file has changed", function () {
                 fileChangedTest(true);
             });
-            
+
             function insertFunctionTest(buildCache) {
                 init("edit.js");
-                
+
                 // Populate JSUtils cache
                 if (buildCache) {
                     // Look for function that doesn't exist yet
@@ -590,13 +588,13 @@ define(function (require, exports, module) {
                         expect(functions.length).toBe(0);
                     });
                 }
-                
+
                 // Add a new function to the file
                 runs(function () {
                     var doc = DocumentManager.getCurrentDocument();
                     doc.setText(doc.getText() + "\n\nfunction TESTFUNCTION() {\n    return true;\n}\n");
                 });
-                
+
                 // Look for the function we just created
                 indexAndFind(function (fileInfos) {
                     return JSUtils.findMatchingFunctions("TESTFUNCTION", fileInfos);

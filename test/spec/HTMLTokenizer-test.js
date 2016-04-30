@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -28,9 +28,9 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var Tokenizer = require("language/HTMLTokenizer").Tokenizer;
-    
+
     describe("HTML Tokenizer", function () {
         it("should handle tags and text", function () {
             var t = new Tokenizer("<html>\n<body>Hello</body>\n</html>");
@@ -107,7 +107,7 @@ define(function (require, exports, module) {
                 endPos: {line: 2, ch: 6}
             });
         });
-        
+
         it("should handle attributes", function () {
             var t = new Tokenizer("<div class='foo bar' style=\"baz: quux\" checked></div>");
             expect(t.nextToken()).toEqual({
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
             });
             expect(t.nextToken()).toEqual(null);
         });
-        
+
         it("should handle various newline cases", function () {
             var t = new Tokenizer("<div \n    class='foo'\n    checked>\n    some text\n    with a newline\n    <br/>\n<!--multiline\ncomment-->\n</div>");
             expect(t.nextToken()).toEqual({
@@ -276,7 +276,7 @@ define(function (require, exports, module) {
                 endPos: {line: 8, ch: 5}
             });
         });
-        
+
         it("should notify of explicit shorttags like <br/>", function () {
             var t = new Tokenizer("<p>hello<br/></p>");
             expect(t.nextToken()).toEqual({
@@ -328,7 +328,7 @@ define(function (require, exports, module) {
                 endPos: {line: 0, ch: 16}
             });
         });
-        
+
         it("should parse a comment", function () {
             var t = new Tokenizer("<!--very important-->");
             expect(t.nextToken()).toEqual({
@@ -340,7 +340,7 @@ define(function (require, exports, module) {
                 endPos: {line: 0, ch: 18}
             });
         });
-        
+
         describe("error cases", function () {
             function expectError(text, isError) {
                 if (isError === undefined) {
@@ -361,7 +361,7 @@ define(function (require, exports, module) {
                     expect("found an error token").toBe(true);
                 }
             }
-            
+
             it("should not fail for a comment", function () {
                 expectError("<!--a comment-->", false);
             });

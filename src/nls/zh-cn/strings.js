@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Errors
      */
@@ -63,13 +63,13 @@ define({
     "ERROR_RELOADING_FILE"              : "尝试重新加载文件 <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
     "ERROR_SAVING_FILE_TITLE"           : "保存文件时发生错误",
     "ERROR_SAVING_FILE"                 : "尝试保存文件 <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
-    "ERROR_RENAMING_FILE_TITLE"         : "重命名文件失败",
-    "ERROR_RENAMING_FILE"               : "重命名文件 <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
-    "ERROR_DELETING_FILE_TITLE"         : "删除文件失败",
-    "ERROR_DELETING_FILE"               : "尝试删除文件 <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "重命名文件 {0} 失败",
+    "ERROR_RENAMING_FILE"               : "尝试重命名文件 {2} <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
+    "ERROR_DELETING_FILE_TITLE"         : "删除文件 {0} 失败",
+    "ERROR_DELETING_FILE"               : "尝试删除文件 {2} <span class='dialog-filename'>{0}</span> 时发生错误。 {1}",
     "INVALID_FILENAME_TITLE"            : "无效文件名: {0}",
     "INVALID_FILENAME_MESSAGE"          : "{0} 不能以(.)结尾或者包含系统保留字及以下字符：<code class='emphasized'>{1}</code>",
-    "ENTRY_WITH_SAME_NAME_EXISTS"       : "文件 {0} <span class='dialog-filename'>{1}</span> 已经存在。",
+    "ENTRY_WITH_SAME_NAME_EXISTS"       : "名为 <span class='dialog-filename'>{0}</span> 的文件/文件夹已经存在。",
     "ERROR_CREATING_FILE_TITLE"         : "创建文件 {0} 出现错误",
     "ERROR_CREATING_FILE"               : "尝试创建 {0} <span class='dialog-filename'>{1}</span> 时发生错误。 {2}",
     "ERROR_MIXED_DRAGDROP"              : "无法在打开文件夹的同时打开其他文件",
@@ -93,7 +93,7 @@ define({
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "囧! {APP_NAME} 暂无法在浏览器中运行。",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} 是建立在 HTML 上的一个桌面程序, 你可以用它修改本地文件. 可以前往此处下载系统对应的版本<b>github.com/adobe/brackets-shell</b>, 然后重新运行 {APP_NAME}.",
-    
+
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"             : "索引文件错误",
     "ERROR_MAX_FILES"                   : "索引文件过多, 可能无法通过索引查找文件。",
@@ -102,7 +102,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "启动浏览器失败",
     "ERROR_CANT_FIND_CHROME"            : "没有找到 Google Chrome 浏览器, 请确定您已安装了 Chrome 浏览器。",
     "ERROR_LAUNCHING_BROWSER"           : "启动浏览器时发生错误。 (错误 {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "实时预览错误",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "正在连接浏览器",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "要使用实时预览, 需要重启 Chrome 并打开远程调试功能。<br /><br />你确定重新启动 Chrome 浏览器, 并且打开远程调试功能吗？",
@@ -113,7 +113,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "欢迎使用实时预览！",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "{APP_NAME} 将通过实时预览连接至你的浏览器. 你的 HTML 文件将在浏览器中预览, 修改你的代码将会即时更新你浏览器中的预览。<br /><br />目前版本的 {APP_NAME} 实时预览只能运行于 <strong>Google Chrome</strong> 浏览器更新实时编辑时的 <strong>CSS 和 HTML 文件</strong>，当你保存了 JavaScript 文件, 实时预览将在浏览器中重新加载它们。<br /><br />(此消息仅会出现一次)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "更多信息, 请参考<a href='{0}' title='{0}'>实时预览连接错误信息</a>。",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "实时预览",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "实时预览: 连接中\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "实时预览: 初始化\u2026",
@@ -125,7 +125,7 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "由于浏览器中页面已关闭, 实时预览已关闭",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "由于浏览器打开一个不属于本项目的页面, 实时预览已关闭",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "未知原因 ({0}) 导致实时预览关闭",
-    
+
     "SAVE_CLOSE_TITLE"                  : "保存更新",
     "SAVE_CLOSE_MESSAGE"                : "保存 <span class='dialog-filename'>{0}</span> 文件中所做的修改？",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "是否保存以下文件的修改？",
@@ -148,7 +148,7 @@ define({
     "DELETE"                            : "删除",
     "BUTTON_YES"                        : "是",
     "BUTTON_NO"                         : "否",
-    
+
     // Find, Replace, Find in Files
     "FIND_MATCH_INDEX"                  : "{1} 条中的 {0} 条",
     "FIND_NO_RESULTS"                   : "未找到匹配项",
@@ -164,7 +164,7 @@ define({
     "BUTTON_CASESENSITIVE_HINT"         : "区分大小写",
     "BUTTON_REGEXP_HINT"                : "正则表达式",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "替换(无法撤销)",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "由于多个文件需要修改, {APP_NAME} 将修改磁盘中未打开的文件，<br />这些修改无法撤销。",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "由于有 {0} 个文件需要修改, {APP_NAME} 将修改磁盘中未打开的文件，<br />这些修改无法撤销。",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "替换(无法撤销)",
 
     "OPEN_FILE"                         : "打开文件",
@@ -194,6 +194,7 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "按住 Ctrl/Cmd 键以便展开/折叠全部结果",
+    "FIND_IN_FILES_INDEXING"            : "Indexing for Instant Search\u2026",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "替换出现错误",
     "REPLACE_IN_FILES_ERRORS"           : "以下文件未被修改，可能是搜索后发生变更或无法写入。",
 
@@ -253,9 +254,15 @@ define({
     /**
      * Keyboard modifier names
      */
-    "KEYBOARD_CTRL"   : "Ctrl",
-    "KEYBOARD_SHIFT"  : "Shift",
-    "KEYBOARD_SPACE"  : "空格",
+    "KEYBOARD_CTRL"         : "Ctrl",
+    "KEYBOARD_SHIFT"        : "Shift",
+    "KEYBOARD_SPACE"        : "空格",
+    "KEYBOARD_PAGE_UP"      : "向上翻页",
+    "KEYBOARD_PAGE_DOWN"    : "向下翻页",
+    "KEYBOARD_HOME"         : "Home",
+    "KEYBOARD_END"          : "End",
+    "KEYBOARD_INSERT"       : "插入",
+    "KEYBOARD_DELETE"       : "删除",
 
     /**
      * StatusBar strings
@@ -402,11 +409,13 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "新 CSS 规则",
     "CMD_NEXT_DOC"                        : "下一个文件",
     "CMD_PREV_DOC"                        : "上一个文件",
+    "CMD_NEXT_DOC_LIST_ORDER"             : "列表中下一个文件",
+    "CMD_PREV_DOC_LIST_ORDER"             : "列表中上一个文件",
     "CMD_SHOW_IN_TREE"                    : "在侧边栏显示",
     "CMD_SHOW_IN_EXPLORER"                : "在资源管理器中显示",
     "CMD_SHOW_IN_FINDER"                  : "在 Finder 中显示",
     "CMD_SHOW_IN_OS"                      : "打开文件所在目录",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "帮助",
     "CMD_CHECK_FOR_UPDATE"                : "检查更新",
@@ -453,7 +462,7 @@ define({
     "BASEURL_ERROR_INVALID_CHAR"           : "特殊字符 '{0}' 必须 %-encoded.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "地址解析错误, 请确认地址格式",
     "EMPTY_VIEW_HEADER"                    : "<em>保持此窗格的焦点，打开文件</em>",
-    
+
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "当前主题",
     "USE_THEME_SCROLLBARS"                 : "使用主题自带滚动条",
@@ -463,11 +472,13 @@ define({
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "新 CSS 规则",
-    
+
     // Extension Management strings
     "INSTALL"                              : "安装",
     "UPDATE"                               : "升级",
     "REMOVE"                               : "移除",
+    "DISABLE"                              : "禁用",
+    "ENABLE"                               : "启用",
     "OVERWRITE"                            : "覆盖",
     "CANT_REMOVE_DEV"                      : "\"dev\" 文件夹中扩展必须手动删除。",
     "CANT_UPDATE"                          : "升级与当前版本的 {APP_NAME} 不兼容。",
@@ -536,15 +547,20 @@ define({
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "无法移除一个或多个扩展: {0}. {APP_NAME} 仍会重新加载。",
     "EXTENSION_MANAGER_UPDATE"             : "升级扩展",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "无法升级一个或多个扩展: {0}. {APP_NAME} 仍会重新加载。",
+    "EXTENSION_MANAGER_DISABLE"            : "禁用扩展",
+    "EXTENSION_MANAGER_DISABLE_ERROR"      : "无法禁用一个或多个扩展: {0}. {APP_NAME} 仍会重新加载。",
     "MARKED_FOR_REMOVAL"                   : "标记为删除",
     "UNDO_REMOVE"                          : "撤销",
     "MARKED_FOR_UPDATE"                    : "标记为升级",
     "UNDO_UPDATE"                          : "撤销",
+    "MARKED_FOR_DISABLING"                 : "标记为禁用",
+    "UNDO_DISABLE"                         : "撤销",
     "CHANGE_AND_RELOAD_TITLE"              : "扩展更改",
     "CHANGE_AND_RELOAD_MESSAGE"            : "安装或移除已标记的扩展, 需要退出并重启 {APP_NAME}， 请保存未保存的更改。",
-    "REMOVE_AND_RELOAD"                    : "移除扩展并退出",
-    "CHANGE_AND_RELOAD"                    : "更改扩展并退出",
-    "UPDATE_AND_RELOAD"                    : "升级扩展并退出",
+    "REMOVE_AND_RELOAD"                    : "移除扩展并退出重启",
+    "CHANGE_AND_RELOAD"                    : "更改扩展并退出重启",
+    "UPDATE_AND_RELOAD"                    : "升级扩展并退出重启",
+    "DISABLE_AND_RELOAD"                   : "禁用扩展并退出重启",
     "PROCESSING_EXTENSIONS"                : "正在处理扩展的变更\u2026",
     "EXTENSION_NOT_INSTALLED"              : "无法移除扩展 {0} 其并未被安装.",
     "NO_EXTENSIONS"                        : "还没有安装扩展。<br>点击上方可用的标签开始安装。",
@@ -554,12 +570,12 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "可获取",
     "EXTENSIONS_THEMES_TITLE"              : "主题",
     "EXTENSIONS_UPDATES_TITLE"             : "升级",
-    
+
     "INLINE_EDITOR_NO_MATCHES"             : "未找到匹配项。",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "所有匹配项已折叠。展开右侧列出的文件以查看匹配项。",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "符合选择的 CSS 规则不存在。<br> 点击 \"新 CSS 规则\" 来创建。",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "您的项目中没有样式表。<br>建立一个来添加 CSS 规则。",
-    
+
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "最大化",
 
@@ -614,7 +630,7 @@ define({
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 移动选中点<br><kbd class='text'>Shift</kbd> 10倍移动<br><kbd class='text'>Tab</kbd> 切换点",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> 增减步进<br><kbd>←</kbd><kbd>→</kbd> 切换 'Start' 或 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "原值 <code>{0}</code> 无效, 函数值已变为 <code>{1}</code>. 文档将在首次编辑时更新.",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "当前的颜色",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "原来的颜色",
@@ -623,23 +639,23 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa 格式",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (使用 {1} 次)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (使用 {1} 次)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "跳转到源代码定义处",
     "CMD_SHOW_PARAMETER_HINT"                   : "显示参数提示",
     "NO_ARGUMENTS"                              : "<无相应参数>",
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript 文件引用问题",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets 处理文件遇到问题： <br><br>{0}<br><br> 该文件不再用于处理代码提示，并会跳转到源码定义处。 为避免这个问题, 请打开项目中的 <code>.brackets.json</code> ,从 jscodehints.detectedExclusions 删除该文件",
-    
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "鼠标悬停时启用快速查看",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "最近的项目",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "更多信息",
 
@@ -647,8 +663,112 @@ define({
     "COLLAPSE_ALL"                  : "收起所有",
     "EXPAND_ALL"                    : "展开所有",
     "COLLAPSE_CURRENT"              : "收起当前",
-    "EXPAND_CURRENT"                : "展开当前"
+    "EXPAND_CURRENT"                : "展开当前",
+
+    // Descriptions of core preferences
+    "DESCRIPTION_CLOSE_BRACKETS"                     : "值为真时，自动闭合括号",
+    "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "值为假时，从工作区右键菜单中移除 \"关闭上面的其他文件\" 项",
+    "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "值为假时，从工作区右键菜单中移除 \"关闭下面的其他文件\" 项",
+    "DESCRIPTION_CLOSE_OTHERS"                       : "值为假时，从工作区右键菜单中移除 \"关闭其他文件\" 项",
+    "DESCRIPTION_CLOSE_TAGS"                         : "设置标签自动闭合选项",
+    "DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS"         : "不应自动闭合的一组标签",
+    "DESCRIPTION_CLOSE_TAGS_WHEN_OPENING"            : "键入起始标签的 > 字符时闭合",
+    "DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING"            : "键入结束标签的 / 字符时闭合",
+    "DESCRIPTION_CLOSE_TAGS_INDENT_TAGS"             : "标签内容另起一行的一组标签",
+    "DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD" : "值为真时，总是在缩进级别改变后可折叠区域标记",
+    "DESCRIPTION_CODE_FOLDING_ENABLED"               : "值为真时，开启代码折叠",
+    "DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER"  : "值为真时，区域折叠标记只会在鼠标移动到折叠处显示",
+    "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "限制展开全部所限制的最大层级数",
+    "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "显示可折叠区域图标的最小行数",
+    "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "值为真时，关闭或打开文件/项目也会记住所折叠的区域",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "值为真时，在编辑器中开启选定文本的代码折叠功能",
+    "DESCRIPTION_ATTR_HINTS"                         : "开启/关闭 HTML 属性提示",
+    "DESCRIPTION_CSS_PROP_HINTS"                     : "开启/关闭 CSS/LESS/SCSS 属性名提示",
+    "DESCRIPTION_JS_HINTS"                           : "开启/关闭 JavaScript 代码提示",
+    "DESCRIPTION_PREF_HINTS"                         : "开启/关闭配置文件选项提示",
+    "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "开启/关闭 HTML 实体提示",
+    "DESCRIPTION_SVG_HINTS"                          : "开启/关闭 SVG 代码提示",
+    "DESCRIPTION_HTML_TAG_HINTS"                     : "开启/关闭 HTML 标签提示",
+    "DESCRIPTION_URL_CODE_HINTS"                     : "开启/关闭 HTML & CSS/LESS/SCSS 中的 URL 提示",
+    "DESCRIPTION_DRAG_DROP_TEXT"                     : "开启/关闭拖曳功能",
+    "DESCRIPTION_HEALTH_DATA_TRACKING"               : "开启健康数据跟踪",
+    "DESCRIPTION_HIGHLIGHT_MATCHES"                  : "开启文档中匹配字符串的自动高亮",
+    "DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN"       : "高亮匹配光标处符号的所有字符串(无需选区)",
+    "DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY"       : "仅在选区为完整符号时高亮",
+    "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "值为真时，插入在标签页上选择的代码",
+    "DESCRIPTION_NO_HINTS_ON_DOT"                    : "值为真时，不再在输入 . 符号后自动显示 JS 代码提示",
+    "DESCRIPTION_JSLINT_OPTIONS"                     : "用于 JSLint 默认选项的Object对象",
+    "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "值为真时，允许使用赋值表达式",
+    "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "值为真时，允许使用位运算符",
+    "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "值为真时，应事先定义标准浏览器全局变量",
+    "DESCRIPTION_JSLINT_OPTIONS_CLOSURE"             : "值为真时，允许使用 Google Closure 语法",
+    "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "值为真时，允许使用 \"continue\" 语句",
+    "DESCRIPTION_JSLINT_OPTIONS_COUCH"               : "值为真时，应事先定义 CouchDB 全局变量",
+    "DESCRIPTION_JSLINT_OPTIONS_DEBUG"               : "值为真时，允许使用调试器语句",
+    "DESCRIPTION_JSLINT_OPTIONS_DEVEL"               : "值为真时，应事先定义浏览器开发的全局变量",
+    "DESCRIPTION_JSLINT_OPTIONS_EQEQ"                : "值为真时，允许使用 == 及 !=",
+    "DESCRIPTION_JSLINT_OPTIONS_ES6"                 : "值为真时，应事先定义 ES6 全局变量",
+    "DESCRIPTION_JSLINT_OPTIONS_EVIL"                : "值为真时，允许使用 eval",
+    "DESCRIPTION_JSLINT_OPTIONS_FORIN"               : "值为真时，允许使用不经过筛选的 \"for ... in\"",
+    "DESCRIPTION_JSLINT_OPTIONS_INDENT"              : "设置特定 Tab 键大小",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXERR"              : "报告警告信息的最大值",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXLEN"              : "每行字符数的最大值",
+    "DESCRIPTION_JSLINT_OPTIONS_NEWCAP"              : "值为真时，允许使用非首字母大写的构造器函数",
+    "DESCRIPTION_JSLINT_OPTIONS_NODE"                : "值为真时，应事先定义 Node.js 全局变量",
+    "DESCRIPTION_JSLINT_OPTIONS_NOMEN"               : "值为真时，允许使用带前下划线的标识符",
+    "DESCRIPTION_JSLINT_OPTIONS_PASSFAIL"            : "值为真时，在第一处错误处停止执行",
+    "DESCRIPTION_JSLINT_OPTIONS_PLUSPLUS"            : "值为真时，允许使用 ++ 及 --",
+    "DESCRIPTION_JSLINT_OPTIONS_REGEXP"              : "值为真时，允许在正则表达式中使用 . 及 [^...].",
+    "DESCRIPTION_JSLINT_OPTIONS_RHINO"               : "值为真时，应事先定义 Rhino 全局变量",
+    "DESCRIPTION_JSLINT_OPTIONS_SLOPPY"              : "值为真时，允许不声明 `use strict` 语句",
+    "DESCRIPTION_JSLINT_OPTIONS_STUPID"              : "值为真时，允许使用阻塞性 ('...Sync') 方法",
+    "DESCRIPTION_JSLINT_OPTIONS_SUB"                 : "值为真时，允许使用不方便的括号语法",
+    "DESCRIPTION_JSLINT_OPTIONS_TODO"                : "值为真时，允许使用 TODO 语句",
+    "DESCRIPTION_JSLINT_OPTIONS_UNPARAM"             : "值为真时，允许含有未使用的参数",
+    "DESCRIPTION_JSLINT_OPTIONS_VARS"                : "值为真时，允许在函数中使用多个 var 语句",
+    "DESCRIPTION_JSLINT_OPTIONS_WHITE"               : "值为真时，忽略空格规则",
+    "DESCRIPTION_LANGUAGE"                           : "语言特定设置",
+    "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "扩展名到语言名的附加映射",
+    "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "文件名到语言名的附加映射",
+    "DESCRIPTION_LINTING_ENABLED"                    : "值为真时，开启代码检查器",
+    "DESCRIPTION_ASYNC_TIMEOUT"                      : "异步检查器的超时时间",
+    "DESCRIPTION_LINTING_PREFER"                     : "首先运行的代码检查器列表",
+    "DESCRIPTION_LIVE_DEV_MULTIBROWSER"              : "值为真时，开启实验性的实时预览",
+    "DESCRIPTION_USE_PREFERED_ONLY"                  : "值为真时，只使用 linting.prefer 指定的提供商",
+    "DESCRIPTION_MAX_CODE_HINTS"                     : "一次显示最多的提示数",
+    "DESCRIPTION_PATH"                               : "路径特定设置",
+    "DESCRIPTION_PROXY"                              : "扩展安装所用的代理服务器 URL",
+    "DESCRIPTION_SCROLL_PAST_END"                    : "值为真时，允许滚动超出文档末尾",
+    "DESCRIPTION_SHOW_CODE_HINTS"                    : "值为假时，关闭所有代码提示",
+    "DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING"         : "有蚊子选区时保持光标闪烁",
+    "DESCRIPTION_SHOW_LINE_NUMBERS"                  : "值为真时，在代码左侧显示行号",
+    "DESCRIPTION_SMART_INDENT"                       : "生成新区域时自动缩进",
+    "DESCRIPTION_SOFT_TABS"                          : "值为假时，关闭软 tab 功能",
+    "DESCRIPTION_SORT_DIRECTORIES_FIRST"             : "值为真时，给项目数中的文件夹排序",
+    "DESCRIPTION_SPACE_UNITS"                        : "空格缩进所使用的空格数",
+    "DESCRIPTION_STATIC_SERVER_PORT"                 : "内置服务器开启实时预览所使用的端口号",
+    "DESCRIPTION_STYLE_ACTIVE_LINE"                  : "值为真时，高亮显示光标所在行的背景颜色",
+    "DESCRIPTION_TAB_SIZE"                           : "一个 Tab 键所代表的空格数",
+    "DESCRIPTION_USE_TAB_CHAR"                       : "值为真时，使用 tab 字符而不用空格",
+    "DESCRIPTION_UPPERCASE_COLORS"                   : "值为真时，在内联的色彩编辑器中生成大写的16进制色彩值",
+    "DESCRIPTION_WORD_WRAP"                          : "超过可视区域时换行",
+    "DESCRIPTION_DETECTED_EXCLUSIONS"                : "检测会导致 Tern 失效的文件列表",
+    "DESCRIPTION_INFERENCE_TIMEOUT"                  : "Tern 尝试解析文件所需要的超时时长",
+    "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "值为真时，在状态栏显示错误",
+    "DESCRIPTION_QUICK_VIEW_ENABLED"                 : "值为真时，开启快速查看",
+    "DESCRIPTION_EXTENSION_LESS_IMAGE_PREVIEW"       : "值为真时，为缺少 URL 的扩展程序显示图像预览",
+    "DESCRIPTION_THEME"                              : "选择一个 {APP_NAME} 主题",
+    "DESCRIPTION_USE_THEME_SCROLLBARS"               : "值为真时，允许自定义滚动条",
+    "DESCRIPTION_LINTING_COLLAPSED"                  : "值为真时，折叠提示面板",
+    "DESCRIPTION_FONT_FAMILY"                        : "改变字体",
+    "DESCRIPTION_FONT_SIZE"                          : "改变字号，例如 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "值为真时，开启基于 node 的搜索",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "值为真时，开启实时搜索",
+    "DESCRIPTION_FONT_SMOOTHING"                     : "仅Mac: \"subpixel-antialiased\" 开启次像素防锯齿或者 \"antialiased\" 开启灰阶防锯齿",
+    "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "值为假时，不再划分一个窗口打开用户配置",
+    "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "值为假时，在左边/顶部窗格中打开用户设置",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported\n * by {APP_NAME}.\n * Use this file as a reference to modify your preferences\n * file \"brackets.json\" opened in the other pane.\n * For more information on how to use preferences inside\n * {APP_NAME}, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "默认"
 });
 
-/* Last translated for 50cbe1b8848786c6be27d4788e4b6a367244abc2 */
-
+/* Last translated for 1eba0ae1cb21e73752c8359132b972ec7e5997ab */

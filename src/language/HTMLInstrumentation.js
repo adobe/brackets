@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -38,8 +38,8 @@
  * These IDs are also included in "data-brackets-id" attributes that are inserted in the
  * HTML code that's served to the browser via the Live Development server.
  *
- * The primary function for that functionality is generateInstrumentedHTML(). This does just 
- * what it says - it will read the HTML content in the doc and generate instrumented code by 
+ * The primary function for that functionality is generateInstrumentedHTML(). This does just
+ * what it says - it will read the HTML content in the doc and generate instrumented code by
  * injecting "data-brackets-id" attributes. Additionally, it caches the parsed DOM for use
  * by future updates.
  *
@@ -57,15 +57,15 @@ define(function (require, exports, module) {
     var DocumentManager = require("document/DocumentManager"),
         HTMLSimpleDOM   = require("./HTMLSimpleDOM"),
         HTMLDOMDiff     = require("./HTMLDOMDiff");
-    
+
     var allowIncremental = true;
-    
+
     // Hash of scanned documents. Key is the full path of the doc. Value is an object
     // with two properties: timestamp and dom. Timestamp is the document timestamp,
     // dom is the root node of a simple DOM tree.
     var _cachedValues = {};
 
-    /** 
+    /**
      * @private
      * Removes the cached information (DOM, timestamp, etc.) used by HTMLInstrumentation
      * for the given document.
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
             document.off(".htmlInstrumentation");
         }
     }
-    
+
     /**
      * @private
      * Checks if two CodeMirror-style {line, ch} positions are equal.
@@ -89,11 +89,11 @@ define(function (require, exports, module) {
     function _posEq(pos1, pos2) {
         return pos1 && pos2 && pos1.line === pos2.line && pos1.ch === pos2.ch;
     }
-    
+
     /**
      * @private
      * Filters the given marks to find the ones that correspond to instrumented tags,
-     * sorts them by their starting position, and looks up and/or stores their ranges 
+     * sorts them by their starting position, and looks up and/or stores their ranges
      * in the given markCache.
      * @param {Array} marks An array of mark objects returned by CodeMirror.
      * @param {Object} markCache An object that maps tag IDs to {mark, range} objects.
@@ -118,10 +118,10 @@ define(function (require, exports, module) {
                     mark1.range.from.ch - mark2.range.from.ch :
                     mark1.range.from.line - mark2.range.from.line);
         });
-        
+
         return marks;
     }
-    
+
     /**
      * @private
      * Finds the mark for the DOM node at the given position in the editor.
@@ -130,20 +130,20 @@ define(function (require, exports, module) {
      * @param {boolean} preferParent If true, and the pos is at one or the other edge of the
      *     innermost marked range, return the immediately enclosing mark instead.
      * @param {Object=} markCache An optional cache to look up positions of existing
-     *     markers. (This avoids calling the find() operation on marks multiple times, 
+     *     markers. (This avoids calling the find() operation on marks multiple times,
      *     which is expensive.)
      * @return {Object} The CodeMirror mark object that represents the DOM node at the
      *     given position.
      */
     function _getMarkerAtDocumentPos(editor, pos, preferParent, markCache) {
         var marks, match;
-        
+
         markCache = markCache || {};
         marks = _getSortedTagMarks(editor._codeMirror.findMarksAt(pos), markCache);
         if (!marks.length) {
             return null;
         }
-        
+
         // The mark with the latest start is the innermost one.
         match = marks[marks.length - 1];
         if (preferParent) {
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         return match.mark;
     }
 
@@ -190,10 +190,10 @@ define(function (require, exports, module) {
      * NOTE: This function is "private" for now (has a leading underscore), since
      * the API is likely to change in the future.
      *
-     * @param {Editor} editor The editor to scan. 
+     * @param {Editor} editor The editor to scan.
      * @param {{line: number, ch: number}} pos The position to find the DOM marker for.
      * @param {Object=} markCache An optional cache to look up positions of existing
-     *     markers. (This avoids calling the find() operation on marks multiple times, 
+     *     markers. (This avoids calling the find() operation on marks multiple times,
      *     which is expensive.)
      * @return {number} tagID at the specified position, or -1 if there is no tag
      */
@@ -202,7 +202,7 @@ define(function (require, exports, module) {
 
         return (match) ? match.tagID : -1;
     }
-    
+
     /**
      * Recursively walks the SimpleDOM starting at node and marking
      * all tags in the CodeMirror instance. The more useful interface
@@ -221,7 +221,7 @@ define(function (require, exports, module) {
         var mark = cm.markText(node.startPos, node.endPos);
         mark.tagID = node.tagID;
     }
-    
+
     /**
      * Clears the marks from the document and creates new ones.
      *
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
      */
     function _markTextFromDOM(editor, dom) {
         var cm = editor._codeMirror;
-        
+
         // Remove existing marks
         var marks = cm.getAllMarks();
         cm.operation(function () {
@@ -240,11 +240,11 @@ define(function (require, exports, module) {
                 }
             });
         });
-                
+
         // Mark
         _markTags(cm, dom);
     }
-    
+
     /**
      * Subclass of HTMLSimpleDOM.Builder that builds an updated DOM after changes have been made,
      * and maps nodes from the new DOM to the old DOM by tag ID. For non-structural edits, avoids reparsing
@@ -262,13 +262,13 @@ define(function (require, exports, module) {
         var text, startOffset = 0, startOffsetPos;
 
         this.isIncremental = false;
-        
+
         function isDangerousEdit(text) {
             // We don't consider & dangerous since entities only affect text content, not
             // overall DOM structure.
             return (/[<>\/=\"\']/).test(text);
         }
-        
+
         // If there's more than one change, be conservative and assume we have to do a full reparse.
         if (changeList && changeList.length === 1) {
             // If the inserted or removed text doesn't have any characters that could change the
@@ -293,20 +293,20 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         if (!this.changedTagID) {
             // We weren't able to incrementally update, so just rebuild and diff everything.
             text = editor.document.getText();
         }
-        
+
         HTMLSimpleDOM.Builder.call(this, text, startOffset, startOffsetPos);
         this.editor = editor;
         this.cm = editor._codeMirror;
         this.previousDOM = previousDOM;
     }
-    
+
     DOMUpdater.prototype = Object.create(HTMLSimpleDOM.Builder.prototype);
-    
+
     /**
      * @private
      * Returns true if the given node has an ancestor whose tagID is the given ID.
@@ -321,7 +321,7 @@ define(function (require, exports, module) {
         }
         return !!ancestor;
     }
-    
+
     /**
      * Overrides the `getID` method to return the tag ID from the document. If a viable tag
      * ID cannot be found in the document marks, then a new ID is returned. This will also
@@ -335,7 +335,7 @@ define(function (require, exports, module) {
         // Get the mark at the start of the tagname (not before the beginning of the tag, because that's
         // actually inside the parent).
         var currentTagID = _getTagIDAtDocumentPos(this.editor, HTMLSimpleDOM._offsetPos(newTag.startPos, 1), markCache);
-        
+
         // If the new tag is in an unmarked range, or the marked range actually corresponds to an
         // ancestor tag, then this must be a newly inserted tag, so give it a new tag ID.
         if (currentTagID === -1 || _hasAncestorWithID(newTag, currentTagID)) {
@@ -350,7 +350,7 @@ define(function (require, exports, module) {
         }
         return currentTagID;
     };
-    
+
     /**
      * Updates the CodeMirror marks in the editor to reflect the new bounds of nodes in
      * the given nodeMap.
@@ -363,7 +363,7 @@ define(function (require, exports, module) {
         var updateIDs = Object.keys(nodeMap),
             cm = this.cm,
             marks = cm.getAllMarks();
-        
+
         cm.operation(function () {
             marks.forEach(function (mark) {
                 if (mark.hasOwnProperty("tagID") && nodeMap[mark.tagID]) {
@@ -379,7 +379,7 @@ define(function (require, exports, module) {
                     updateIDs.splice(updateIDs.indexOf(String(node.tagID)), 1);
                 }
             });
-            
+
             // Any remaining updateIDs are new.
             updateIDs.forEach(function (id) {
                 var node = nodeMap[id], mark;
@@ -390,7 +390,7 @@ define(function (require, exports, module) {
             });
         });
     };
-    
+
     /**
      * @private
      * Creates a map from tagIDs to nodes in the given HTMLSimpleDOM subtree and
@@ -399,7 +399,7 @@ define(function (require, exports, module) {
      */
     DOMUpdater.prototype._buildNodeMap = function (root) {
         var nodeMap = {};
-        
+
         function walk(node) {
             if (node.tagID) {
                 nodeMap[node.tagID] = node;
@@ -408,11 +408,11 @@ define(function (require, exports, module) {
                 node.children.forEach(walk);
             }
         }
-        
+
         walk(root);
         root.nodeMap = nodeMap;
     };
-    
+
     /**
      * @private
      * Removes all nodes deleted between the oldSubtree and the newSubtree from the given nodeMap,
@@ -430,7 +430,7 @@ define(function (require, exports, module) {
                 delete nodeMap[key];
             }
         });
-        
+
         if (deletedIDs.length) {
             // FUTURE: would be better to cache the mark for each node. Also, could
             // conceivably combine this with _updateMarkedRanges().
@@ -442,13 +442,13 @@ define(function (require, exports, module) {
             });
         }
     };
-    
+
     /**
      * Reparses the document (or a portion of it if we can do it incrementally).
      * Note that in an incremental update, the old DOM is actually mutated (the new
      * subtree is swapped in for the old subtree).
      * @return {?{newDOM: Object, oldSubtree: Object, newSubtree: Object}} newDOM is
-     *      the full new DOM. For a full update, oldSubtree is the full old DOM 
+     *      the full new DOM. For a full update, oldSubtree is the full old DOM
      *      and newSubtree is the same as newDOM; for an incremental update,
      *      oldSubtree is the portion of the old tree that was reparsed,
      *      newSubtree is the updated version, and newDOM is actually the same
@@ -464,7 +464,7 @@ define(function (require, exports, module) {
                 oldSubtree: this.previousDOM,
                 newSubtree: newSubtree
             };
-        
+
         if (!newSubtree) {
             return null;
         }
@@ -473,7 +473,7 @@ define(function (require, exports, module) {
             // Find the old subtree that's going to get swapped out.
             var oldSubtree = this.previousDOM.nodeMap[this.changedTagID],
                 parent = oldSubtree.parent;
-            
+
             // If we didn't have a parent, then the whole tree changed anyway, so
             // we'll just return the default result.
             if (parent) {
@@ -486,30 +486,30 @@ define(function (require, exports, module) {
                     oldSubtree.parent = null;
                     newSubtree.parent = parent;
                     parent.children[childIndex] = newSubtree;
-                    
+
                     // Overwrite any node mappings in the parent DOM with the
                     // mappings for the new subtree. We keep the nodeMap around
                     // on the new subtree so that the differ can use it later.
                     $.extend(this.previousDOM.nodeMap, newSubtree.nodeMap);
-                    
+
                     // Update marked ranges for all items in the new subtree.
                     this._updateMarkedRanges(newSubtree.nodeMap, markCache);
-                    
+
                     // Build a local nodeMap for the old subtree so the differ can
                     // use it.
                     this._buildNodeMap(oldSubtree);
-                    
+
                     // Clean up the info for any deleted nodes that are no longer in
                     // the new tree.
                     this._handleDeletions(this.previousDOM.nodeMap, oldSubtree.nodeMap, newSubtree.nodeMap);
-                    
+
                     // Update the signatures for all parents of the new subtree.
                     var curParent = parent;
                     while (curParent) {
                         curParent.update();
                         curParent = curParent.parent;
                     }
-                    
+
                     result.newDOM = this.previousDOM;
                     result.oldSubtree = oldSubtree;
                 }
@@ -517,10 +517,10 @@ define(function (require, exports, module) {
         } else {
             _markTextFromDOM(this.editor, result.newDOM);
         }
-        
+
         return result;
     };
-    
+
     /**
      * @private
      * Builds a new DOM for the current state of the editor, diffs it against the
@@ -547,21 +547,21 @@ define(function (require, exports, module) {
         if (!result) {
             return { errors: updater.errors };
         }
-        
+
         var edits = HTMLDOMDiff.domdiff(result.oldSubtree, result.newSubtree);
-        
+
         // We're done with the nodeMap that was added to the subtree by the updater.
         if (result.newSubtree !== result.newDOM) {
             delete result.newSubtree.nodeMap;
         }
-        
+
         return {
             dom: result.newDOM,
             edits: edits,
             _wasIncremental: updater.isIncremental // for unit tests only
         };
     }
-    
+
     /**
      * Calculates the DOM edits that are needed to update the browser from the state the
      * editor was in the last time that scanDocument(), getInstrumentedHTML(), or
@@ -570,11 +570,11 @@ define(function (require, exports, module) {
      *
      * For simple text edits, this update is done quickly and incrementally. For structural
      * edits (edits that change the DOM structure or add/remove attributes), the update
-     * requires a full reparse. 
+     * requires a full reparse.
      *
-     * If the document currently contains invalid HTML, no edits will be generated until 
-     * getUnappliedEditList() is called when the document is valid, at which point the edits 
-     * will reflect all the changes needed to catch the browser up with all the edits 
+     * If the document currently contains invalid HTML, no edits will be generated until
+     * getUnappliedEditList() is called when the document is valid, at which point the edits
+     * will reflect all the changes needed to catch the browser up with all the edits
      * made while the document was invalid.
      *
      * @param {Editor} editor The editor containing the instrumented HTML
@@ -586,15 +586,15 @@ define(function (require, exports, module) {
      */
     function getUnappliedEditList(editor, changeList) {
         var cachedValue = _cachedValues[editor.document.file.fullPath];
-        
+
         // We might not have a previous DOM if the document was empty before this edit.
         if (!cachedValue || !cachedValue.dom || _cachedValues[editor.document.file.fullPath].invalid) {
             // We were in an invalid state, so do a full rebuild.
             changeList = null;
         }
-        
+
         var result = _updateDOM(cachedValue && cachedValue.dom, editor, changeList);
-        
+
         if (!result.errors) {
             _cachedValues[editor.document.file.fullPath] = {
                 timestamp: editor.document.diskTimestamp,
@@ -609,7 +609,7 @@ define(function (require, exports, module) {
             return { errors: result.errors };
         }
     }
-    
+
     /**
      * @private
      * Add SimpleDOMBuilder metadata to browser DOM tree JSON representation
@@ -618,29 +618,29 @@ define(function (require, exports, module) {
     function _processBrowserSimpleDOM(browserRoot, editorRootTagID) {
         var nodeMap         = {},
             root;
-        
+
         function _processElement(elem) {
             elem.tagID = elem.attributes["data-brackets-id"];
-            
+
             // remove data-brackets-id attribute for diff
             delete elem.attributes["data-brackets-id"];
-            
+
             elem.children.forEach(function (child) {
                 // set parent
                 child.parent = elem;
-                
+
                 if (child.isElement()) {
                     _processElement(child);
                 } else if (child.isText()) {
                     child.update();
                     child.tagID = HTMLSimpleDOM.getTextNodeID(child);
-                    
+
                     nodeMap[child.tagID] = child;
                 }
             });
-            
+
             elem.update();
-            
+
             nodeMap[elem.tagID] = elem;
 
             // Choose the root element based on the root tag in the editor.
@@ -649,7 +649,7 @@ define(function (require, exports, module) {
                 root = elem;
             }
         }
-        
+
         _processElement(browserRoot);
 
         root = root || browserRoot;
@@ -657,7 +657,7 @@ define(function (require, exports, module) {
 
         return root;
     }
-    
+
     /**
      * @private
      * Diff the browser DOM with the in-editor DOM
@@ -668,18 +668,18 @@ define(function (require, exports, module) {
         var cachedValue = _cachedValues[editor.document.file.fullPath],
             editorRoot  = cachedValue.dom,
             browserRoot;
-        
+
         browserRoot = _processBrowserSimpleDOM(browserSimpleDOM, editorRoot.tagID);
-        
+
         return {
             diff    : HTMLDOMDiff.domdiff(editorRoot, browserRoot),
             browser : browserRoot,
             editor  : editorRoot
         };
     }
-    
+
     DocumentManager.on("beforeDocumentDelete", _removeDocFromCache);
-    
+
     /**
      * Parses the document, returning an HTMLSimpleDOM structure and caching it as the
      * initial state of the document. Will return a cached copy of the DOM if the
@@ -689,7 +689,7 @@ define(function (require, exports, module) {
      * ahead of time so the DOM is cached and doesn't need to be rescanned when the
      * instrumented HTML is requested by the browser.
      *
-     * @param {Document} doc The doc to scan. 
+     * @param {Document} doc The doc to scan.
      * @return {Object} Root DOM node of the document.
      */
     function scanDocument(doc) {
@@ -699,19 +699,19 @@ define(function (require, exports, module) {
                     _cachedValues[doc.file.fullPath].dirty = true;
                 }
             });
-            
+
             // Assign to cache, but don't set a value yet
             _cachedValues[doc.file.fullPath] = null;
         }
-        
+
         var cachedValue = _cachedValues[doc.file.fullPath];
         if (!doc.isDirty && cachedValue && !cachedValue.dirty && cachedValue.timestamp === doc.diskTimestamp) {
             return cachedValue.dom;
         }
-        
+
         var text = doc.getText(),
             dom = HTMLSimpleDOM.build(text);
-        
+
         if (dom) {
             // Cache results
             _cachedValues[doc.file.fullPath] = {
@@ -720,15 +720,15 @@ define(function (require, exports, module) {
                 dirty: false
             };
         }
-        
+
         return dom;
     }
-    
+
     /**
-     * Generate instrumented HTML for the specified editor's document, and mark the associated tag 
-     * ranges in the editor. Each tag has a "data-brackets-id" attribute with a unique ID for its 
-     * value. For example, "<div>" becomes something like "<div data-brackets-id='45'>". The attribute 
-     * value is just a number that is guaranteed to be unique. 
+     * Generate instrumented HTML for the specified editor's document, and mark the associated tag
+     * ranges in the editor. Each tag has a "data-brackets-id" attribute with a unique ID for its
+     * value. For example, "<div>" becomes something like "<div data-brackets-id='45'>". The attribute
+     * value is just a number that is guaranteed to be unique.
      *
      * Also stores marks in the given editor that correspond to the tag ranges. These marks are used
      * to track the DOM structure for in-browser highlighting and live HTML updating.
@@ -747,39 +747,39 @@ define(function (require, exports, module) {
             orig = doc.getText(),
             gen = "",
             lastIndex = 0;
-        
+
         if (!dom) {
             return null;
         }
-        
+
         // Ensure that the marks in the editor are up to date with respect to the given DOM.
         _markTextFromDOM(editor, dom);
-        
+
         // Walk through the dom nodes and insert the 'data-brackets-id' attribute at the
-        // end of the open tag        
+        // end of the open tag
         function walk(node) {
             if (node.tag) {
                 var attrText = " data-brackets-id='" + node.tagID + "'";
-                
+
                 // Insert the attribute as the first attribute in the tag.
                 var insertIndex = node.start + node.tag.length + 1;
                 gen += orig.substr(lastIndex, insertIndex - lastIndex) + attrText;
                 lastIndex = insertIndex;
             }
-            
+
             if (node.isElement()) {
                 node.children.forEach(walk);
             }
         }
-        
+
         walk(dom);
         gen += orig.substr(lastIndex);
-        
+
         return gen;
     }
-    
+
     /**
-     * Mark the text for the specified editor. Either scanDocument() or 
+     * Mark the text for the specified editor. Either scanDocument() or
      * generateInstrumentedHTML() must be called before this function
      * is called.
      *
@@ -792,15 +792,15 @@ define(function (require, exports, module) {
     function _markText(editor) {
         var cache = _cachedValues[editor.document.file.fullPath],
             dom = cache && cache.dom;
-        
+
         if (!dom) {
             console.error("Couldn't find the dom for " + editor.document.file.fullPath);
             return;
         }
-        
+
         _markTextFromDOM(editor, dom);
     }
-    
+
     /**
      * @private
      * Clear the DOM cache. For unit testing only.
@@ -818,7 +818,7 @@ define(function (require, exports, module) {
     exports._allowIncremental           = allowIncremental;
     exports._getBrowserDiff             = _getBrowserDiff;
     exports._resetCache                 = _resetCache;
-    
+
     // public API
     exports.scanDocument                = scanDocument;
     exports.generateInstrumentedHTML    = generateInstrumentedHTML;

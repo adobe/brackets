@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var React             = require("thirdparty/react"),
+        ReactDOM          = require("thirdparty/react-dom"),
         Classnames        = require("thirdparty/classnames"),
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),
@@ -141,14 +142,14 @@ define(function (require, exports, module) {
          * this component, so we keep the model up to date by sending every update via an action.
          */
         handleInput: function (e) {
-            this.props.actions.setRenameValue(this.refs.name.getDOMNode().value.trim());
+            this.props.actions.setRenameValue(this.refs.name.value.trim());
 
             if (e.keyCode !== KeyEvent.DOM_VK_LEFT &&
                     e.keyCode !== KeyEvent.DOM_VK_RIGHT) {
                 // update the width of the input field
-                var domNode = this.refs.name.getDOMNode(),
-                    newWidth = _measureText(domNode.value);
-                $(domNode).width(newWidth);
+                var node = this.refs.name,
+                    newWidth = _measureText(node.value);
+                $(node).width(newWidth);
             }
         },
 
@@ -181,7 +182,7 @@ define(function (require, exports, module) {
             var fullname = this.props.name,
                 extension = LanguageManager.getCompoundFileExtension(fullname);
 
-            var node = this.refs.name.getDOMNode();
+            var node = this.refs.name;
             node.setSelectionRange(0, _getName(fullname, extension).length);
             ViewUtils.scrollElementIntoView($("#project-files-container"), $(node), true);
         },
@@ -362,7 +363,7 @@ define(function (require, exports, module) {
                 // start with project-files-container instead of just the interior of
                 // project-files-container and then the file tree will be one self-contained
                 // functional unit.
-                ViewUtils.scrollElementIntoView($("#project-files-container"), $(this.getDOMNode()), true);
+                ViewUtils.scrollElementIntoView($("#project-files-container"), $(ReactDOM.findDOMNode(this)), true);
             } else if (!isSelected && wasSelected && this.state.clickTimer !== null) {
                 this.clearTimer();
             }
@@ -398,7 +399,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            if (this.props.entry.get("selected")) {
+            if (this.props.entry.get("selected") && !e.ctrlKey) {
                 if (this.state.clickTimer === null && !this.props.entry.get("rename")) {
                     var timer = window.setTimeout(this.startRename, CLICK_RENAME_MINIMUM);
                     this.setState({
@@ -554,7 +555,7 @@ define(function (require, exports, module) {
         componentDidMount: function () {
             var fullname = this.props.name;
 
-            var node = this.refs.name.getDOMNode();
+            var node = this.refs.name;
             node.setSelectionRange(0, fullname.length);
             ViewUtils.scrollElementIntoView($("#project-files-container"), $(node), true);
         },
@@ -810,7 +811,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            var node = this.getDOMNode(),
+            var node = ReactDOM.findDOMNode(this),
                 selectedNode = $(node.parentNode).find(this.props.selectedClassName),
                 selectionViewInfo = this.props.selectionViewInfo;
 
@@ -843,7 +844,7 @@ define(function (require, exports, module) {
             });
         }
     }));
-    
+
     /**
      * On Windows and Linux, the selection bar in the tree does not extend over the scroll bar.
      * The selectionExtension sits on top of the scroll bar to make the selection bar appear to span the
@@ -865,8 +866,8 @@ define(function (require, exports, module) {
                 return;
             }
 
-            var node = this.getDOMNode(),
-                selectedNode = $(node.parentNode).find(this.props.selectedClassName),
+            var node = ReactDOM.findDOMNode(this),
+                selectedNode = $(node.parentNode).find(this.props.selectedClassName).closest("li"),
                 selectionViewInfo = this.props.selectionViewInfo;
 
             if (selectedNode.length === 0) {
@@ -985,7 +986,7 @@ define(function (require, exports, module) {
                     forceRender: this.props.forceRender,
                     platform: this.props.platform
                 });
-            
+
             return DOM.div(
                 null,
                 selectionBackground,
@@ -1012,7 +1013,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        React.render(fileTreeView({
+        ReactDOM.render(fileTreeView({
             treeData: viewModel.treeData,
             selectionViewInfo: viewModel.selectionViewInfo,
             sortDirectoriesFirst: viewModel.sortDirectoriesFirst,

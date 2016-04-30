@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
@@ -26,16 +26,16 @@
 
 (function (global) {
     "use strict";
-    
+
     var ProtocolManager = global._Brackets_LiveDev_ProtocolManager;
-    
+
     var _document = null;
     var _transport;
 
-    
+
     /**
      * Retrieves related documents (external CSS and JS files)
-     * 
+     *
      * @return {{scripts: object, stylesheets: object}} Related scripts and stylesheets
      */
     function related() {
@@ -52,7 +52,7 @@
                 rel.scripts[_document.scripts[i].src] = true;
             }
         }
-          
+
         var s, j;
         //traverse @import rules
         var traverseRules = function _traverseRules(sheet, base) {
@@ -90,12 +90,12 @@
         }
         return rel;
     }
-    
+
     /**
      * Common functions.
      */
     var Utils = {
-        
+
         isExternalStylesheet: function (node) {
             return (node.nodeName.toUpperCase() === "LINK" && node.rel === "stylesheet" && node.href);
         },
@@ -103,40 +103,40 @@
             return (node.nodeName.toUpperCase() === "SCRIPT" && node.src);
         }
     };
-    
+
     /**
      * CSS related commands and notifications
      */
     var CSS = {
-        
+
             /**
             * Maintains a map of stylesheets loaded thorugh @import rules and their parents.
             * Populated by extractImports, consumed by notifyImportsAdded / notifyImportsRemoved.
             * @type {
             */
             stylesheets : {},
-        
+
             /**
-             * Check the stylesheet that was just added be really loaded 
+             * Check the stylesheet that was just added be really loaded
              * to be able to extract potential import-ed stylesheets.
              * It invokes notifyStylesheetAdded once the sheet is loaded.
              * @param  {string} href Absolute URL of the stylesheet.
              */
             checkForStylesheetLoaded : function (href) {
                 var self = this;
-  
+
 
                 // Inspect CSSRules for @imports:
                 // styleSheet obejct is required to scan CSSImportRules but
                 // browsers differ on the implementation of MutationObserver interface.
-                // Webkit triggers notifications before stylesheets are loaded, 
+                // Webkit triggers notifications before stylesheets are loaded,
                 // Firefox does it after loading.
-                // There are also differences on when 'load' event is triggered for 
+                // There are also differences on when 'load' event is triggered for
                 // the 'link' nodes. Webkit triggers it before stylesheet is loaded.
                 // Some references to check:
                 //      http://www.phpied.com/when-is-a-stylesheet-really-loaded/
                 //      http://stackoverflow.com/questions/17747616/webkit-dynamically-created-stylesheet-when-does-it-really-load
-                //        http://stackoverflow.com/questions/11425209/are-dom-mutation-observers-slower-than-dom-mutation-events      
+                //        http://stackoverflow.com/questions/11425209/are-dom-mutation-observers-slower-than-dom-mutation-events
                 //
                 // TODO: This is just a temporary 'cross-browser' solution, it needs optimization.
                 var loadInterval = setInterval(function () {
@@ -152,35 +152,35 @@
                     }
                 }, 50);
             },
-        
+
             onStylesheetRemoved : function (url) {
                 // get style node created when setting new text for stylesheet.
                 var s = document.getElementById(url);
-                // remove 
+                // remove
                 if (s && s.parentNode && s.parentNode.removeChild) {
                     s.parentNode.removeChild(s);
                 }
             },
-        
+
             /**
-             * Send a notification for the stylesheet added and  
+             * Send a notification for the stylesheet added and
              * its import-ed styleshets based on document.stylesheets diff
-             * from previous status. It also updates stylesheets status. 
+             * from previous status. It also updates stylesheets status.
              */
             notifyStylesheetAdded : function () {
                 var added = {},
                     current,
                     newStatus;
-                
+
                 current = this.stylesheets;
                 newStatus = related().stylesheets;
-                
+
                 Object.keys(newStatus).forEach(function (v, i) {
                     if (!current[v]) {
                         added[v] = newStatus[v];
                     }
                 });
-                              
+
                 Object.keys(added).forEach(function (v, i) {
                     _transport.send(JSON.stringify({
                         method: "StylesheetAdded",
@@ -188,25 +188,25 @@
                         roots: [added[v]]
                     }));
                 });
-                
+
                 this.stylesheets = newStatus;
             },
-        
+
             /**
-             * Send a notification for the removed stylesheet and  
+             * Send a notification for the removed stylesheet and
              * its import-ed styleshets based on document.stylesheets diff
              * from previous status. It also updates stylesheets status.
              */
             notifyStylesheetRemoved : function () {
-                
+
                 var self = this;
                 var removed = {},
                     newStatus,
                     current;
-                
+
                 current = self.stylesheets;
                 newStatus = related().stylesheets;
-                
+
                 Object.keys(current).forEach(function (v, i) {
                     if (!newStatus[v]) {
                         removed[v] = current[v];
@@ -214,7 +214,7 @@
                         self.onStylesheetRemoved(current[v]);
                     }
                 });
-                
+
                 Object.keys(removed).forEach(function (v, i) {
                     _transport.send(JSON.stringify({
                         method: "StylesheetRemoved",
@@ -222,12 +222,12 @@
                         roots: [removed[v]]
                     }));
                 });
-                
+
                 self.stylesheets = newStatus;
             }
         };
 
-    
+
     /* process related docs added */
     function _onNodesAdded(nodes) {
         var i;
@@ -250,7 +250,7 @@
         var i;
         //iterate on removed nodes
         for (i = 0; i < nodes.length; i++) {
-            
+
             // check for external JS files
             if (Utils.isExternalScript(nodes[i])) {
                 _transport.send(JSON.stringify({
@@ -284,7 +284,7 @@
                 subtree: true
             });
         } else {
-            // use MutationEvents as fallback 
+            // use MutationEvents as fallback
             document.addEventListener('DOMNodeInserted', function niLstnr(e) {
                 _onNodesAdded([e.target]);
             });
@@ -293,11 +293,11 @@
             });
         }
     }
-    
-    
+
+
     /**
      * Start listening for events and send initial related documents message.
-     * 
+     *
      * @param {HTMLDocument} document
      * @param {object} transport Live development transport connection
      */
@@ -306,10 +306,10 @@
         _document = document;
         // start listening to node changes
         _enableListeners();
-        
+
         var rel = related();
-        
-        // send the current status of related docs. 
+
+        // send the current status of related docs.
         _transport.send(JSON.stringify({
             method: "DocumentRelated",
             related: rel
@@ -317,13 +317,13 @@
         // initialize stylesheets with current status for further notifications.
         CSS.stylesheets = rel.stylesheets;
     }
-    
+
     /**
      * Stop listening.
      * TODO currently a no-op.
      */
     function stop() {
-    
+
     }
 
     var DocumentObserver = {
@@ -331,7 +331,7 @@
         stop: stop,
         related: related
     };
-    
+
     ProtocolManager.setDocumentObserver(DocumentObserver);
-    
+
 }(this));

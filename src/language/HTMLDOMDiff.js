@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -28,7 +28,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     /**
      * @private
      *
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
         var oldAttributes = $.extend({}, oldNode.attributes),
             newAttributes = newNode.attributes,
             edits = [];
-        
+
         Object.keys(newAttributes).forEach(function (attributeName) {
             if (oldAttributes[attributeName] !== newAttributes[attributeName]) {
                 var type = oldAttributes.hasOwnProperty(attributeName) ? "attrChange" : "attrAdd";
@@ -56,7 +56,7 @@ define(function (require, exports, module) {
             }
             delete oldAttributes[attributeName];
         });
-        
+
         Object.keys(oldAttributes).forEach(function (attributeName) {
             edits.push({
                 type: "attrDelete",
@@ -64,10 +64,10 @@ define(function (require, exports, module) {
                 attribute: attributeName
             });
         });
-        
+
         return edits;
     }
-    
+
     /**
      * @private
      *
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
     function getParentID(node) {
         return node.parent && node.parent.tagID;
     }
-    
+
     /**
      * @private
      *
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
      */
     var generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMap) {
         /*jslint continue: true */
-        
+
         var newIndex = 0,
             oldIndex = 0,
             newChildren = newParent.children,
@@ -107,7 +107,7 @@ define(function (require, exports, module) {
             edits = [],
             moves = [],
             newElements = [];
-        
+
         /**
          * We initially put new edit objects into the `newEdits` array so that we
          * can fix them up with proper positioning information. This function is
@@ -140,7 +140,7 @@ define(function (require, exports, module) {
             });
             edits.push.apply(edits, newEdits);
             newEdits = [];
-            
+
             // If the item we made this set of edits relative to
             // is being deleted, we can't use it as the afterID for future
             // edits. It's okay to just keep the previous afterID, since
@@ -150,7 +150,7 @@ define(function (require, exports, module) {
                 textAfterID = beforeID;
             }
         };
-        
+
         /**
          * If the current element was not in the old DOM, then we will create
          * an elementInsert edit for it.
@@ -170,17 +170,17 @@ define(function (require, exports, module) {
                     parentID: newChild.parent.tagID,
                     attributes: newChild.attributes
                 };
-                
+
                 newEdits.push(newEdit);
-                
+
                 // This newly inserted node needs to have edits generated for its
                 // children, so we add it to the queue.
                 newElements.push(newChild);
-                
+
                 // A textInsert edit that follows this elementInsert should use
                 // this element's ID.
                 textAfterID = newChild.tagID;
-                
+
                 // new element means we need to move on to compare the next
                 // of the current tree with the one from the old tree that we
                 // just compared
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
             }
             return false;
         };
-        
+
         /**
          * If the old element that we're looking at does not appear in the new
          * DOM, that means it was deleted and we'll create an elementDelete edit.
@@ -205,13 +205,13 @@ define(function (require, exports, module) {
                 // We can finalize existing edits relative to this node *before* it's
                 // deleted.
                 finalizeNewEdits(oldChild.tagID, true);
-                
+
                 newEdit = {
                     type: "elementDelete",
                     tagID: oldChild.tagID
                 };
                 newEdits.push(newEdit);
-                
+
                 // deleted element means we need to move on to compare the next
                 // of the old tree with the one from the current tree that we
                 // just compared
@@ -220,7 +220,7 @@ define(function (require, exports, module) {
             }
             return false;
         };
-        
+
         /**
          * Adds a textInsert edit for a newly created text node.
          */
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
                 content: newChild.content,
                 parentID: newChild.parent.tagID
             };
-            
+
             // text changes will generally have afterID and beforeID, but we make
             // special note if it's the first child.
             if (textAfterID) {
@@ -239,11 +239,11 @@ define(function (require, exports, module) {
                 newEdit.firstChild = true;
             }
             newEdits.push(newEdit);
-            
+
             // The text node is in the new tree, so we move to the next new tree item
             newIndex++;
         };
-        
+
         /**
          * Finds the previous child of the new tree.
          *
@@ -255,7 +255,7 @@ define(function (require, exports, module) {
             }
             return null;
         };
-        
+
         /**
          * Adds a textDelete edit for text node that is not in the new tree.
          * Note that we actually create a textReplace rather than a textDelete
@@ -278,7 +278,7 @@ define(function (require, exports, module) {
                     type: "textDelete"
                 };
             }
-            
+
             // When elements are deleted or moved from the old set of children, you
             // can end up with multiple text nodes in a row. A single textReplace edit
             // will take care of those (and will contain all of the right content since
@@ -291,9 +291,9 @@ define(function (require, exports, module) {
                 oldIndex++;
                 return;
             }
-            
+
             newEdit.parentID = oldChild.parent.tagID;
-            
+
             // If there was only one child previously, we just pass along
             // textDelete/textReplace with the parentID and the browser will
             // clear all of the children
@@ -305,26 +305,26 @@ define(function (require, exports, module) {
                 }
                 newEdits.push(newEdit);
             }
-            
+
             // This text appeared in the old tree but not the new one, so we
             // increment the old children counter.
             oldIndex++;
         };
-        
+
         /**
-         * Adds an elementMove edit if the parent has changed between the old and new trees. 
-         * These are fairly infrequent and generally occur if you make a change across 
+         * Adds an elementMove edit if the parent has changed between the old and new trees.
+         * These are fairly infrequent and generally occur if you make a change across
          * tag boundaries.
          *
          * @return {boolean} true if an elementMove was generated
          */
         var addElementMove = function () {
-            
+
             // This check looks a little strange, but it suits what we're trying
             // to do: as we're walking through the children, a child node that has moved
             // from one parent to another will be found but would look like some kind
             // of insert. The check that we're doing here is looking up the current
-            // child's ID in the *old* map and seeing if this child used to have a 
+            // child's ID in the *old* map and seeing if this child used to have a
             // different parent.
             var possiblyMovedElement = oldNodeMap[newChild.tagID];
             if (possiblyMovedElement &&
@@ -336,7 +336,7 @@ define(function (require, exports, module) {
                 };
                 moves.push(newEdit.tagID);
                 newEdits.push(newEdit);
-                
+
                 // this element in the new tree was a move to this spot, so we can move
                 // on to the next child in the new tree.
                 newIndex++;
@@ -344,7 +344,7 @@ define(function (require, exports, module) {
             }
             return false;
         };
-        
+
         /**
          * Looks to see if the element in the old tree has moved by checking its
          * current and former parents.
@@ -353,51 +353,51 @@ define(function (require, exports, module) {
          */
         var hasMoved = function (oldChild) {
             var oldChildInNewTree = newNodeMap[oldChild.tagID];
-            
+
             return oldChild.children && oldChildInNewTree && getParentID(oldChild) !== getParentID(oldChildInNewTree);
         };
-        
+
         // Loop through the current and old children, comparing them one by one.
         while (newIndex < newChildren.length && oldIndex < oldChildren.length) {
             newChild = newChildren[newIndex];
-            
-            // Check to see if the currentChild has been reparented from somewhere 
+
+            // Check to see if the currentChild has been reparented from somewhere
             // else in the old tree
             if (newChild.children && addElementMove()) {
                 continue;
             }
-            
+
             oldChild = oldChildren[oldIndex];
-            
+
             // Check to see if the oldChild has been moved to another parent.
             // If it has, we deal with it on the other side (see above)
             if (hasMoved(oldChild)) {
                 oldIndex++;
                 continue;
             }
-            
+
             if (newChild.isElement() || oldChild.isElement()) {
-                
+
                 if (newChild.isElement() && oldChild.isText()) {
                     addTextDelete();
-                    
+
                     // If this element is new, add it and move to the next child
                     // in the current tree. Otherwise, we'll compare this same
                     // current element with the next old element on the next pass
                     // through the loop.
                     addElementInsert();
-                
+
                 } else if (oldChild.isElement() && newChild.isText()) {
                     // If the old child has *not* been deleted, we assume that we've
                     // inserted some text and will still encounter the old node
                     if (!addElementDelete()) {
                         addTextInsert();
                     }
-                
+
                 // both children are elements
                 } else {
                     if (newChild.tagID !== oldChild.tagID) {
-                        
+
                         // First, check to see if we're deleting an element.
                         // If we are, get rid of that element and restart our comparison
                         // logic with the same element from the new tree and the next one
@@ -412,7 +412,7 @@ define(function (require, exports, module) {
                                 oldIndex++;
                             }
                         }
-                    
+
                     // There has been no change in the tag we're looking at.
                     } else {
                         // Since this element hasn't moved, it is a suitable "beforeID"
@@ -422,7 +422,7 @@ define(function (require, exports, module) {
                         oldIndex++;
                     }
                 }
-            
+
             // We know we're comparing two texts. Just match up their signatures.
             } else {
                 if (newChild.textSignature !== oldChild.textSignature) {
@@ -436,51 +436,51 @@ define(function (require, exports, module) {
                     }
                     newEdits.push(newEdit);
                 }
-                
+
                 // Either we've done a text replace or both sides matched. In either
                 // case we're ready to move forward among both the old and new children.
                 newIndex++;
                 oldIndex++;
             }
         }
-        
+
         // At this point, we've used up all of the children in at least one of the
         // two sets of children.
-        
+
         /**
          * Take care of any remaining children in the old tree.
          */
         while (oldIndex < oldChildren.length) {
             oldChild = oldChildren[oldIndex];
-            
+
             // Check for an element that has moved
             if (hasMoved(oldChild)) {
                 // This element has moved, so we skip it on this side (the move
                 // is handled on the new tree side).
                 oldIndex++;
-            
+
             // is this an element? if so, delete it
             } else if (oldChild.isElement()) {
                 if (!addElementDelete()) {
                     console.error("HTML Instrumentation: failed to add elementDelete for remaining element in the original DOM. This should not happen.", oldChild);
                     oldIndex++;
                 }
-            
+
             // must be text. delete that.
             } else {
                 addTextDelete();
             }
         }
-        
+
         /**
          * Take care of the remaining children in the new tree.
          */
         while (newIndex < newChildren.length) {
             newChild = newChildren[newIndex];
-            
+
             // Is this an element?
             if (newChild.isElement()) {
-                
+
                 // Look to see if the element has moved here.
                 if (!addElementMove()) {
                     // Not a move, so we insert this element.
@@ -489,13 +489,13 @@ define(function (require, exports, module) {
                         newIndex++;
                     }
                 }
-            
+
             // not a new element, so it must be new text.
             } else {
                 addTextInsert();
             }
         }
-        
+
         /**
          * Finalize remaining edits. For inserts and moves, we can set the `lastChild`
          * flag and the browser can simply use `appendChild` to add these items.
@@ -508,7 +508,7 @@ define(function (require, exports, module) {
             }
         });
         edits.push.apply(edits, newEdits);
-        
+
         return {
             edits: edits,
             moves: moves,
@@ -543,7 +543,7 @@ define(function (require, exports, module) {
             oldElement,
             oldNodeMap = oldNode ? oldNode.nodeMap : {},
             newNodeMap = newNode.nodeMap;
-        
+
         /**
          * Adds elements to the queue for generateChildEdits.
          * Only elements (and not text nodes) are added. New nodes (ones that aren't in the
@@ -555,7 +555,7 @@ define(function (require, exports, module) {
                 queue.push(node);
             }
         };
-        
+
         /**
          * Aggregates the child edits in the proper data structures.
          *
@@ -566,40 +566,40 @@ define(function (require, exports, module) {
             moves.push.apply(moves, delta.moves);
             queue.push.apply(queue, delta.newElements);
         };
-        
+
         // Start at the root of the current tree.
         queue.push(newNode);
-        
+
         do {
             newElement = queue.pop();
             oldElement = oldNodeMap[newElement.tagID];
-            
+
             // Do we need to compare elements?
             if (oldElement) {
-                
+
                 // Are attributes different?
                 if (newElement.attributeSignature !== oldElement.attributeSignature) {
                     // generate attribute edits
                     edits.push.apply(edits, generateAttributeEdits(oldElement, newElement));
                 }
-                
+
                 // Has there been a change to this node's immediate children?
                 if (newElement.childSignature !== oldElement.childSignature) {
                     addEdits(generateChildEdits(oldElement, oldNodeMap, newElement, newNodeMap));
                 }
-                
+
                 // If there's a change farther down in the tree, add the children to the queue.
                 // If not, we can skip that whole subtree.
                 if (newElement.subtreeSignature !== oldElement.subtreeSignature) {
                     newElement.children.forEach(queuePush);
                 }
-            
+
             // This is a new element, so go straight to generating child edits (which will
             // create the appropriate Insert edits).
             } else {
                 // If this is the root (html) tag, we need to manufacture an insert for it here,
                 // because it isn't the child of any other node. The browser-side code doesn't
-                // care about parentage/positioning in this case, and will handle just setting the 
+                // care about parentage/positioning in this case, and will handle just setting the
                 // ID on the existing implied HTML tag in the browser without actually creating it.
                 if (!newElement.parent) {
                     edits.push({
@@ -610,11 +610,11 @@ define(function (require, exports, module) {
                         attributes: newElement.attributes
                     });
                 }
-                
+
                 addEdits(generateChildEdits(null, oldNodeMap, newElement, newNodeMap));
             }
         } while (queue.length);
-        
+
         // Special handling for moves: add edits to the beginning of the list so that
         // moved nodes are set aside to ensure that they remain available at the time of their
         // move.
@@ -624,10 +624,10 @@ define(function (require, exports, module) {
                 tagIDs: moves
             });
         }
-        
+
         return edits;
     }
-    
+
     // Public API
     exports.domdiff = domdiff;
 });

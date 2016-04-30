@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -30,10 +30,10 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var DocumentManager = require("document/DocumentManager"),
         ProjectManager  = require("project/ProjectManager");
-    
+
     /**
      * Tracks "change" events on opened Documents. Used to monitor changes
      * to documents in-memory and update caches. Assumes all documents have
@@ -44,7 +44,7 @@ define(function (require, exports, module) {
      */
     function ChangedDocumentTracker() {
         var self = this;
-        
+
         this._changedPaths = {};
         this._windowFocus = true;
         this._addListener = this._addListener.bind(this);
@@ -67,7 +67,7 @@ define(function (require, exports, module) {
 
         $(window).focus(this._onWindowFocus);
     }
-    
+
     /**
      * @private
      * Assumes all files are changed when the window loses and regains focus.
@@ -90,7 +90,7 @@ define(function (require, exports, module) {
     ChangedDocumentTracker.prototype._onWindowFocus = function (event, doc) {
         this._windowFocus = true;
     };
-    
+
     /**
      * @private
      * Tracks changed documents.
@@ -100,15 +100,15 @@ define(function (require, exports, module) {
         // then leave it changed.
         this._changedPaths[doc.file.fullPath] = true;
     };
-    
+
     /**
-     * Empty the set of dirty paths. Begin tracking new dirty documents. 
+     * Empty the set of dirty paths. Begin tracking new dirty documents.
      */
     ChangedDocumentTracker.prototype.reset = function () {
         this._changedPaths = {};
         this._windowFocus = false;
     };
-    
+
     /**
      * Check if a file path is dirty.
      * @param {!string} file path
@@ -117,7 +117,7 @@ define(function (require, exports, module) {
     ChangedDocumentTracker.prototype.isPathChanged = function (path) {
         return this._windowFocus || this._changedPaths[path];
     };
-    
+
     /**
      * Get the set of changed paths since the last reset.
      * @return {Array.<string>} Changed file paths

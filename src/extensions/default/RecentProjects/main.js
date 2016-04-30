@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,7 +47,7 @@ define(function (require, exports, module) {
 
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
 
-    
+
     /** @const {string} Recent Projects commands ID */
     var TOGGLE_DROPDOWN = "recentProjects.toggle";
 
@@ -403,7 +403,7 @@ define(function (require, exports, module) {
         // We should fix this when the popup handling is centralized in PopupManager, as well
         // as making Esc close the dropdown. See issue #1381.
         $("#project-files-container").on("scroll", closeDropdown);
-        
+
         // Note: PopUpManager will automatically hide the sidebar in other cases, such as when a
         // command is run, Esc is pressed, or the menu is focused.
 
@@ -424,9 +424,9 @@ define(function (require, exports, module) {
             if (!SidebarView.isVisible()) {
                 SidebarView.show();
             }
-            
+
             $("#project-dropdown-toggle").trigger("click");
-            
+
             $dropdown.focus();
             $links = $dropdown.find("a");
             // By default, select the most recent project (which is at the top of the list underneath Open Folder),

@@ -7,7 +7,7 @@
     "groovy": {
         "name": "Groovy",
         "mode": "groovy",
-        "fileExtensions": ["groovy"],
+        "fileExtensions": ["groovy", "gradle"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -195,7 +195,7 @@
     "python": {
         "name": "Python",
         "mode": "python",
-        "fileExtensions": ["py", "pyw", "wsgi"],
+        "fileExtensions": ["py", "pyw", "wsgi", "gyp", "gypi"],
         "lineComment": ["#"]
     },
 
@@ -293,5 +293,12 @@
         "fileExtensions": ["hs"],
         "blockComment": ["{-", "-}"],
         "lineComment": ["--"]
+    },
+    
+    "turtle": {
+        "name": "RDF Turtle",
+        "mode": "turtle",
+        "fileExtensions": ["ttl"],
+        "lineComment": ["#"]
     }
 }

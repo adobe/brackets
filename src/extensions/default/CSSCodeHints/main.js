@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
@@ -45,12 +45,12 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference("codehint.CssPropHints", "boolean", true, {
         description: Strings.DESCRIPTION_CSS_PROP_HINTS
     });
-    
+
     // Context of the last request for hints: either CSSUtils.PROP_NAME,
     // CSSUtils.PROP_VALUE or null.
     var lastContext,
         stringMatcherOptions = { preferPrefixMatches: true };
-    
+
     /**
      * @constructor
      */
@@ -72,21 +72,21 @@ define(function (require, exports, module) {
             // Collect text in all style blocks
             var text = "",
                 styleBlocks = HTMLUtils.findBlocks(this.editor, "css");
-            
+
             styleBlocks.forEach(function (styleBlock) {
                 text += styleBlock.text;
             });
-            
+
             return text;
         } else {
             // css file, just return the text
             return this.editor.document.getText();
         }
     };
-    
+
     /**
-     * Extract all the named flows from any "flow-from" or "flow-into" properties 
-     * in the current document. If we have the cached list of named flows and the 
+     * Extract all the named flows from any "flow-from" or "flow-into" properties
+     * in the current document. If we have the cached list of named flows and the
      * cursor is still on the same line as the cached cursor, then the cached list
      * is returned. Otherwise, we recollect all named flows and update the cache.
      *
@@ -100,18 +100,18 @@ define(function (require, exports, module) {
                 this.namedFlowsCache = null;
             }
         }
-        
+
         if (!this.namedFlowsCache) {
             this.namedFlowsCache = {};
             this.namedFlowsCache.flows = CSSUtils.extractAllNamedFlows(this.getCssStyleText());
             this.namedFlowsCache.cursor = { line: this.cursor.line, ch: this.cursor.ch };
         }
-        
+
         return this.namedFlowsCache.flows;
     };
-    
+
     /**
-     * Check whether the exclusion is still the same as text after the cursor. 
+     * Check whether the exclusion is still the same as text after the cursor.
      * If not, reset it to null.
      *
      * @param {boolean} propNameOnly
@@ -131,20 +131,20 @@ define(function (require, exports, module) {
             }
         }
     };
-    
+
     /**
      * Determines whether CSS propertyname or -name hints are available in the current editor
      * context.
-     * 
-     * @param {Editor} editor 
+     *
+     * @param {Editor} editor
      * A non-null editor object for the active window.
      *
-     * @param {String} implicitChar 
+     * @param {String} implicitChar
      * Either null, if the hinting request was explicit, or a single character
      * that represents the last insertion and that indicates an implicit
      * hinting request.
      *
-     * @return {Boolean} 
+     * @return {Boolean}
      * Determines whether the current provider is able to provide hints for
      * the given editor context and, in case implicitChar is non- null,
      * whether it is appropriate to do so.
@@ -155,11 +155,11 @@ define(function (require, exports, module) {
 
         lastContext = null;
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
-        
+
         if (this.info.context !== CSSUtils.PROP_NAME && this.info.context !== CSSUtils.PROP_VALUE) {
             return false;
         }
-        
+
         if (implicitChar) {
             this.updateExclusion(false);
             if (this.info.context === CSSUtils.PROP_NAME) {
@@ -168,7 +168,7 @@ define(function (require, exports, module) {
                     this.exclusion = this.info.name.substr(this.info.offset);
                 }
             }
-            
+
             return (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) ||
                    (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1);
         } else if (this.info.context === CSSUtils.PROP_NAME) {
@@ -178,14 +178,14 @@ define(function (require, exports, module) {
                 this.updateExclusion(true);
             }
         }
-        
+
         return true;
     };
 
     /**
      * Returns a sorted and formatted list of hints with the query substring
      * highlighted.
-     * 
+     *
      * @param {Array.<Object>} hints - the list of hints to format
      * @param {string} query - querystring used for highlighting matched
      *      portions of each hint
@@ -222,12 +222,12 @@ define(function (require, exports, module) {
             return $hintObj;
         });
     }
-    
+
     /**
      * Returns a list of availble CSS propertyname or -value hints if possible for the current
-     * editor context. 
-     * 
-     * @param {Editor} implicitChar 
+     * editor context.
+     *
+     * @param {Editor} implicitChar
      * Either null, if the hinting request was explicit, or a single character
      * that represents the last insertion and that indicates an implicit
      * hinting request.
@@ -250,7 +250,7 @@ define(function (require, exports, module) {
     CssPropHints.prototype.getHints = function (implicitChar) {
         this.cursor = this.editor.getCursorPos();
         this.info = CSSUtils.getInfoAtPos(this.editor, this.cursor);
-        
+
         var needle = this.info.name,
             valueNeedle = "",
             context = this.info.context,
@@ -259,21 +259,21 @@ define(function (require, exports, module) {
             namedFlows,
             result,
             selectInitial = false;
-            
+
         // Clear the exclusion if the user moves the cursor with left/right arrow key.
         this.updateExclusion(true);
-        
+
         if (context === CSSUtils.PROP_VALUE) {
-            
+
             // Always select initial value
             selectInitial = true;
-            
-            // We need to end the session and begin a new session if the ( char is typed to 
+
+            // We need to end the session and begin a new session if the ( char is typed to
             // get arguments into the list when typing too fast
             if (implicitChar === "(") {
                 return true;
             }
-            
+
             // When switching from a NAME to a VALUE context, restart the session
             // to give other more specialized providers a chance to intervene.
             if (lastContext === CSSUtils.PROP_NAME) {
@@ -281,28 +281,28 @@ define(function (require, exports, module) {
             } else {
                 lastContext = CSSUtils.PROP_VALUE;
             }
-            
+
             if (!properties[needle]) {
                 return null;
             }
-            
+
             // Cursor is in an existing property value or partially typed value
             if (!this.info.isNewItem && this.info.index !== -1) {
                 valueNeedle = this.info.values[this.info.index].trim();
                 valueNeedle = valueNeedle.substr(0, this.info.offset);
             }
-            
+
             valueArray = properties[needle].values;
             type = properties[needle].type;
             if (type === "named-flow") {
                 namedFlows = this.getNamedFlows();
-                
+
                 if (valueNeedle.length === this.info.offset && namedFlows.indexOf(valueNeedle) !== -1) {
                     // Exclude the partially typed named flow at cursor since it
                     // is not an existing one used in other css rule.
                     namedFlows.splice(namedFlows.indexOf(valueNeedle), 1);
                 }
-                
+
                 valueArray = valueArray.concat(namedFlows);
             } else if (type === "color") {
                 valueArray = valueArray.concat(ColorUtils.COLOR_NAMES.map(function (color) {
@@ -310,7 +310,7 @@ define(function (require, exports, module) {
                 }));
                 valueArray.push("transparent", "currentColor");
             }
-            
+
             result = $.map(valueArray, function (pvalue) {
                 var result = StringMatch.stringMatch(pvalue.text || pvalue, valueNeedle, stringMatcherOptions);
                 if (result) {
@@ -328,22 +328,22 @@ define(function (require, exports, module) {
                 selectInitial: selectInitial
             };
         } else if (context === CSSUtils.PROP_NAME) {
-            
+
             // Select initial property if anything has been typed
             if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 || needle !== "") {
                 selectInitial = true;
             }
-            
+
             lastContext = CSSUtils.PROP_NAME;
             needle = needle.substr(0, this.info.offset);
-   
+
             result = $.map(properties, function (pvalues, pname) {
                 var result = StringMatch.stringMatch(pname, needle, stringMatcherOptions);
                 if (result) {
                     return result;
                 }
             });
-            
+
             return {
                 hints: formatHints(result, needle),
                 match: null, // the CodeHintManager should not format the results
@@ -353,14 +353,14 @@ define(function (require, exports, module) {
         }
         return null;
     };
-    
+
     /**
-     * Inserts a given CSS protertyname or -value hint into the current editor context. 
-     * 
-     * @param {String} hint 
+     * Inserts a given CSS protertyname or -value hint into the current editor context.
+     *
+     * @param {String} hint
      * The hint to be inserted into the editor context.
-     * 
-     * @return {Boolean} 
+     *
+     * @return {Boolean}
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
@@ -373,15 +373,15 @@ define(function (require, exports, module) {
             adjustCursor = false,
             newCursor,
             ctx;
-        
+
         if (hint.jquery) {
             hint = hint.text();
         }
-        
+
         if (this.info.context !== CSSUtils.PROP_NAME && this.info.context !== CSSUtils.PROP_VALUE) {
             return false;
         }
-        
+
         start.line = end.line = cursor.line;
         start.ch = cursor.ch - offset;
 
@@ -394,7 +394,7 @@ define(function (require, exports, module) {
                 hint += ": ";
                 end.ch = start.ch;
                 end.ch += offset;
-                    
+
                 if (this.exclusion) {
                     // Append a space to the end of hint to insert and then adjust
                     // the cursor before that space.
@@ -406,13 +406,13 @@ define(function (require, exports, module) {
                 }
             } else {
                 // It's a replacement of an existing one or just typed in property.
-                // So we need to check whether there is an existing colon following 
-                // the current property name. If a colon already exists, then we also 
+                // So we need to check whether there is an existing colon following
+                // the current property name. If a colon already exists, then we also
                 // adjust the cursor position and show code hints for property values.
                 end.ch = start.ch + this.info.name.length;
                 ctx = TokenUtils.getInitialContext(this.editor._codeMirror, cursor);
                 if (ctx.token.string.length > 0 && !/\S/.test(ctx.token.string)) {
-                    // We're at the very beginning of a property name. So skip it 
+                    // We're at the very beginning of a property name. So skip it
                     // before we locate the colon following it.
                     TokenUtils.moveNextToken(ctx);
                 }
@@ -447,26 +447,26 @@ define(function (require, exports, module) {
                 keepHints = true;
             }
         }
-        
+
         // HACK (tracking adobe/brackets#1688): We talk to the private CodeMirror instance
         // directly to replace the range instead of using the Document, as we should. The
         // reason is due to a flaw in our current document synchronization architecture when
         // inline editors are open.
         this.editor._codeMirror.replaceRange(hint, start, end);
-        
+
         if (adjustCursor) {
             this.editor.setCursorPos(newCursor);
         }
-        
+
         return keepHints;
     };
-    
+
     AppInit.appReady(function () {
         var cssPropHints = new CssPropHints();
         CodeHintManager.registerHintProvider(cssPropHints, ["css", "scss", "less"], 0);
-        
+
         ExtensionUtils.loadStyleSheet(module, "styles/brackets-css-hints.css");
-        
+
         // For unit testing
         exports.cssPropHintProvider = cssPropHints;
     });
