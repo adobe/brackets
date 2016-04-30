@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -48,7 +48,7 @@ define({
     "FILENAMES_LEDE"                    : "nombres de archivos",
     "FILENAME"                          : "nombre de archivo",
     "DIRECTORY_NAME"                    : "nombre de directorio",
-    
+
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error abriendo el proyecto",
     "OPEN_DIALOG_ERROR"                 : "Ha ocurrido un error al mostrar el aviso de apertura de archivo. (error {0})",
@@ -73,7 +73,7 @@ define({
     "ERROR_CREATING_FILE_TITLE"         : "Error creando {0}",
     "ERROR_CREATING_FILE"               : "Ha ocurrido un error al intentar crear el {0} <span class='dialog-filename'>{1}</span>. {2}",
     "ERROR_MIXED_DRAGDROP"              : "No es posible abrir una carpeta y otros archivos al mismo tiempo.",
-    
+
     // User key map error strings
     "ERROR_KEYMAP_TITLE"                : "Ocurrió un error leyendo los atajos de teclado",
     "ERROR_KEYMAP_CORRUPT"              : "El archivo de atajos de teclado no tiene un formato JSON válido. El archivo se abrirá para que puedas corregir el formato.",
@@ -84,11 +84,12 @@ define({
     "ERROR_DUPLICATE_SHORTCUTS"         : "Hay múltiples apariciones de los siguientes atajos de teclado: {0}",
     "ERROR_INVALID_SHORTCUTS"           : "Los siguientes atajos de teclado son inválidos: {0}",
     "ERROR_NONEXISTENT_COMMANDS"        : "Estas asignando atajos de teclado a commandos inexistentes: {0}",
-    
+
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Error leyendo las preferencias",
     "ERROR_PREFS_CORRUPT"               : "El archivo de preferencias no tiene un formato JSON válido. El archivo se abrirá para que puedas corregir el formato. Luego deberás reiniciar {APP_NAME} para que los cambios surtan efecto.",
-    
+    "ERROR_PROJ_PREFS_CORRUPT"          : "El archivo de preferencias para el proyecto no tiene un formato JSON válido. El archivo se abrirá para que puedas corregir el formato. Luego deberás recargar el proyecto para que los cambios surtan efecto.",
+
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Vaya... parece que {APP_NAME} todavía no funciona en navegadores.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} está desarrollado en HTML, pero por ahora funciona como una aplicación de escritorio para que puedas editar archivos localmente. Por favor, utiliza la aplicación del repositorio <b>github.com/adobe/brackets-shell</b> para ejecutar {APP_NAME}.",
@@ -101,30 +102,30 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error iniciando el navegador",
     "ERROR_CANT_FIND_CHROME"            : "No se pudo encontrar el navegador Google Chrome. Por favor, asegúrate que esté instalado correctamente.",
     "ERROR_LAUNCHING_BROWSER"           : "Ha ocurrido un error al iniciar el navegador. (error {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Error en la Vista previa dinámica",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectando con el navegador",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Vista previa dinámica, Chrome debe ser iniciado habilitando la depuración remota.<br /><br />¿Quieres reiniciar Chrome y habilitar la depuración remota?<br /><br />",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Vista previa dinámica, Chrome debe ser iniciado habilitando la depuración remota.<br><br>¿Quieres reiniciar Chrome y habilitar la depuración remota?<br><br>",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "No se pudo cargar la página para la Vista previa dinámica.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abra un archivo HTML o asegúrate de que haya un index.html en tu proyecto para poder iniciar el modo de Vista previa dinámica.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Necesitas especificar una URL base en este proyecto para poder iniciar la Vista previa dinámica con archivos de servidor.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Error iniciando el servidor HTTP para la Vista previa dinámica. Vuelve a intentarlo, por favor.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a la Vista previa dinámica!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista previa dinámica conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, el modo de Vista previa dinámica sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br /><br />(No volverás a ver este mensaje.)",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Vista previa dinámica conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br><br>En esta versión preliminar de {APP_NAME}, el modo de Vista previa dinámica sólo funciona para cambios de <strong>archivos CSS o HTML</strong> y únicamente con <strong>Google Chrome</strong>. Los cambios en los archivos Javascript son recargados automáticamente cuando se guardan.<br><br>(No volverás a ver este mensaje.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Para más información, consulta <a href='{0}' title='{0}'>Resolución de Problemas de conexión en Vista previa dinámica</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Vista previa dinámica",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Vista previa dinámica: Conectando\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Vista previa dinámica: Inicializando\u2026",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Terminar la Vista previa dinámica",
     "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Vista previa dinámica (guarda el archivo para actualizar)",
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Vista previa dinámica (no se está actualizando debido a un error de sintaxis)",
-    
+
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Vista previa dinámica se ha detenido porque se han abierto las herramientas de desarrollo",
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Vista previa dinámica se ha detenido porque se ha cerrado la página en el navegador",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Vista previa dinámica se ha detenido porque se ha accedido a una página que no es parte del proyecto actual",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Vista previa dinámica se ha detenido por motivos desconocidos ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Guardar cambios",
     "SAVE_CLOSE_MESSAGE"                : "¿Quieres guardar los cambios existentes en el documento <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "¿Quieres guardar tus cambios en los siguientes documentos?",
@@ -132,10 +133,10 @@ define({
     "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmar eliminación",
     "CONFIRM_FOLDER_DELETE"             : "¿Estás seguro que deseas eliminar el directorio <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Archivo eliminado",
-    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> ha sido modificado en el disco.<br /><br />¿Deseas guardar el archivo y sobrescribir esos cambios?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> ha sido modificado, pero también tiene cambios en {APP_NAME}.<br /><br />¿Qué versión quieres conservar?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ha sido eliminado, pero tiene cambios sin guardar en {APP_NAME}.<br /><br />¿Quieres conservar tus cambios?",
-    
+    "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> ha sido modificado en el disco fuera de {APP_NAME}.<br><br>¿Deseas guardar el archivo y sobrescribir esos cambios?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> ha sido modificado en el disco fuera de {APP_NAME}, pero también tiene cambios en {APP_NAME}.<br><br>¿Qué versión quieres conservar?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ha sido eliminado en el disco fuera de {APP_NAME}, pero tiene cambios sin guardar en {APP_NAME}.<br><br>¿Quieres conservar tus cambios?",
+
     // Generic dialog/button labels
     "DONE"                              : "Aceptar",
     "OK"                                : "Aceptar",
@@ -147,9 +148,9 @@ define({
     "SAVE_AND_OVERWRITE"                : "Sobrescribir",
     "BUTTON_YES"                        : "Sí",
     "BUTTON_NO"                         : "No",
-    
+
     // Find, Replace, Find in Files
-    "FIND_RESULT_COUNT"                 : "{0} de {1}",
+    "FIND_MATCH_INDEX"                  : "{0} de {1}",
     "FIND_NO_RESULTS"                   : "No hay resultados",
     "FIND_QUERY_PLACEHOLDER"            : "Buscar\u2026",
     "REPLACE_PLACEHOLDER"               : "Reemplazar con\u2026",
@@ -163,9 +164,9 @@ define({
     "BUTTON_CASESENSITIVE_HINT"         : "Sensible a mayúsculas",
     "BUTTON_REGEXP_HINT"                : "Expresión regular",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Reemplazar sin deshacer",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "Dado que hay más de {0} archivos que necesitan ser modificados, {APP_NAME} modificará los archivos no abiertos en el disco.<br />Por lo tanto, no será posible deshacer los reemplazos en esos archivos.",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Dado que hay más de {0} archivos que necesitan ser modificados, {APP_NAME} modificará los archivos no abiertos en el disco.<br>Por lo tanto, no será posible deshacer los reemplazos en esos archivos.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Reemplazar sin deshacer",
-    
+
     "OPEN_FILE"                         : "Abrir archivo",
     "SAVE_FILE_AS"                      : "Guardar archivo",
     "CHOOSE_FOLDER"                     : "Elige una carpeta",
@@ -173,13 +174,13 @@ define({
     "RELEASE_NOTES"                     : "Notas sobre la versión",
     "NO_UPDATE_TITLE"                   : "¡Estás actualizado!",
     "NO_UPDATE_MESSAGE"                 : "Estás utilizando la última versión de {APP_NAME}.",
-    
-    // Find and Replace 
+
+    // Find and Replace
     "FIND_REPLACE_TITLE_LABEL"          : "Reemplazar",
     "FIND_REPLACE_TITLE_WITH"           : "con",
     "FIND_TITLE_LABEL"                  : "Se encontró",
     "FIND_TITLE_SUMMARY"                : "&mdash; {0} {1} {2} en {3}",
-    
+
     // Find in Files
     "FIND_NUM_FILES"                    : "{0} {1}",
     "FIND_IN_FILES_SCOPED"              : "en <span class='dialog-filename'>{0}</span>",
@@ -192,13 +193,14 @@ define({
     "FIND_IN_FILES_MORE_THAN"           : "Más de ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>",
+    "FIND_IN_FILES_INDEXING"            : "Indexando archivos para la Búsqueda instantánea\u2026",
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd clic para expandir/colapsar todo",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Errores al reemplazar",
     "REPLACE_IN_FILES_ERRORS"           : "Los siguientes archivos no fueron modificados porque cambiaron después de realizar la búsqueda o no pueden ser escritos.",
-    
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error obteniendo información sobre actualizaciones",
-    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a internet y vuelve a intentarlo.",
-    
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Ocurrió un problema al obtener la información sobre las últimas actualizaciones desde el servidor. Por favor, asegúrate de estar conectado a Internet y vuelve a intentarlo.",
+
     // File exclusion filters
     "NEW_FILE_FILTER"                   : "Nuevo conjunto de filtros\u2026",
     "CLEAR_FILE_FILTER"                 : "No excluir archivos",
@@ -212,7 +214,7 @@ define({
     "FILTER_COUNTING_FILES"             : "Contando archivos\u2026",
     "FILTER_FILE_COUNT"                 : "Permite {0} de {1} archivos {2}",
     "FILTER_FILE_COUNT_ALL"             : "Permite todos los {0} archivos {1}",
-    
+
     // Quick Edit
     "ERROR_QUICK_EDIT_PROVIDER_NOT_FOUND"   : "La Edición Rápida no está disponible para la posición actual del cursor",
     "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "Edición Rápida para CSS: ubique el cursor sobre el nombre de una clase",
@@ -221,17 +223,17 @@ define({
     "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "Edición Rápida para CSS: ubique el cursor sobre una etiqueta, clase o id",
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "Edición Rápida para Funciones de Temporización de CSS: sintaxis inválida",
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "Edición Rápida para JS: ubique el cursor sobre el nombre de una función",
-    
+
     // Quick Docs
     "ERROR_QUICK_DOCS_PROVIDER_NOT_FOUND"   : "La Documentación Rápida no está disponible para la posición actual del cursor",
-    
+
     /**
      * ProjectManager
      */
     "PROJECT_LOADING"   : "Cargando\u2026",
     "UNTITLED"          : "Sin título",
     "WORKING_FILES"     : "Área de trabajo",
-    
+
     /**
      * MainViewManager
      */
@@ -239,23 +241,23 @@ define({
     "BOTTOM"            : "Abajo",
     "LEFT"              : "Izquierda",
     "RIGHT"             : "Derecha",
-    
+
     "CMD_SPLITVIEW_NONE"        : "No dividido",
     "CMD_SPLITVIEW_VERTICAL"    : "División vertical",
     "CMD_SPLITVIEW_HORIZONTAL"  : "División horizontal",
     "SPLITVIEW_MENU_TOOLTIP"    : "Dividir el editor vertical u horizontalmente",
     "GEAR_MENU_TOOLTIP"         : "Configurar el área de trabajo",
-    
+
     "SPLITVIEW_INFO_TITLE"              : "Ya está abierto",
-    "SPLITVIEW_MULTIPANE_WARNING"       : "El archivo ya está abierto en otro panel. Próximamente {APP_NAME} soportará abrir el mismo archivo en más de un panel. Hasta entonces, el archivo se mostrará en el panel en el cual ya está abierto.<br /><br />(Sólo verá este mensaje una vez.)",
-    
+    "SPLITVIEW_MULTIPANE_WARNING"       : "El archivo ya está abierto en otro panel. Próximamente {APP_NAME} soportará abrir el mismo archivo en más de un panel. Hasta entonces, el archivo se mostrará en el panel en el cual ya está abierto.<br><br>(Sólo verá este mensaje una vez.)",
+
     /**
      * Keyboard modifier names
      */
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "May",
     "KEYBOARD_SPACE"  : "Espacio",
-    
+
     /**
      * StatusBar strings
      */
@@ -281,7 +283,7 @@ define({
     "STATUSBAR_CODE_INSPECTION_TOOLTIP"     : "{0}. Haz clic para mostrar/ocultar el panel de reportes.",
     "STATUSBAR_DEFAULT_LANG"                : "(por defecto)",
     "STATUSBAR_SET_DEFAULT_LANG"            : "Marcar como predeterminado para los archivos .{0}",
-    
+
     // CodeInspection: errors/warnings
     "ERRORS_PANEL_TITLE_MULTIPLE"           : "Problemas de {0}",
     "SINGLE_ERROR"                          : "1 problema de {0}",
@@ -293,7 +295,7 @@ define({
     "NOTHING_TO_LINT"                       : "No hay nada para inspeccionar",
     "LINTER_TIMED_OUT"                      : "{0} ha agotado el tiempo después de esperar {1} ms",
     "LINTER_FAILED"                         : "{0} terminó con error: {1}",
-    
+
     /**
      * Command Name Constants
      */
@@ -317,6 +319,7 @@ define({
     "CMD_FILE_SAVE_ALL"                   : "Guardar todo",
     "CMD_FILE_SAVE_AS"                    : "Guardar como\u2026",
     "CMD_LIVE_FILE_PREVIEW"               : "Vista previa dinámica",
+    "CMD_TOGGLE_LIVE_PREVIEW_MB_MODE"     : "Habilitar la Vista previa dinámica experimental",
     "CMD_RELOAD_LIVE_PREVIEW"             : "Recargar la Vista previa dinámica",
     "CMD_PROJECT_SETTINGS"                : "Configuración del proyecto\u2026",
     "CMD_FILE_RENAME"                     : "Renombrar",
@@ -327,7 +330,7 @@ define({
     "CMD_QUIT"                            : "Salir",
     // Used in native File menu on Windows
     "CMD_EXIT"                            : "Salir",
-    
+
     // Edit menu commands
     "EDIT_MENU"                           : "Edición",
     "CMD_UNDO"                            : "Deshacer",
@@ -352,7 +355,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "Crear línea abajo",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Completar paréntesis automáticamente",
     "CMD_SHOW_CODE_HINTS"                 : "Mostrar sugerencias de código",
-    
+
     // Search menu commands
     "FIND_MENU"                           : "Buscar",
     "CMD_FIND"                            : "Buscar",
@@ -362,13 +365,11 @@ define({
     "CMD_ADD_NEXT_MATCH"                  : "Agregar la siguiente coincidencia a la selección",
     "CMD_SKIP_CURRENT_MATCH"              : "Omitir y agregar la siguiente coincidencia",
     "CMD_FIND_IN_FILES"                   : "Buscar en archivos",
-    "CMD_FIND_IN_SELECTED"                : "Buscar en el archivo/directorio seleccionado",
     "CMD_FIND_IN_SUBTREE"                 : "Buscar en\u2026",
     "CMD_REPLACE"                         : "Reemplazar",
     "CMD_REPLACE_IN_FILES"                : "Reemplazar en archivos",
-    "CMD_REPLACE_IN_SELECTED"             : "Reemplazar en el archivo/directorio seleccionado",
     "CMD_REPLACE_IN_SUBTREE"              : "Reemplazar en\u2026",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "Ver",
     "CMD_HIDE_SIDEBAR"                    : "Ocultar menú lateral",
@@ -389,7 +390,7 @@ define({
     "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Ordenación automática",
     "CMD_THEMES"                          : "Temas\u2026",
 
-    // Navigate menu Commands
+    // Navigate menu commands
     "NAVIGATE_MENU"                       : "Navegación",
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
     "CMD_GOTO_LINE"                       : "Ir a la línea",
@@ -402,11 +403,13 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"         : "Nueva regla",
     "CMD_NEXT_DOC"                        : "Documento siguiente",
     "CMD_PREV_DOC"                        : "Documento anterior",
+    "CMD_NEXT_DOC_LIST_ORDER"             : "Documento siguiente en la lista",
+    "CMD_PREV_DOC_LIST_ORDER"             : "Documento anterior en la lista",
     "CMD_SHOW_IN_TREE"                    : "Mostrar en el árbol de directorios",
     "CMD_SHOW_IN_EXPLORER"                : "Mostrar en el Explorador",
     "CMD_SHOW_IN_FINDER"                  : "Mostrar en Finder",
     "CMD_SHOW_IN_OS"                      : "Mostrar en el Sistema Operativo",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Ayuda",
     "CMD_CHECK_FOR_UPDATE"                : "Buscar actualizaciones",
@@ -416,12 +419,13 @@ define({
     "CMD_RELEASE_NOTES"                   : "Notas de la versión",
     "CMD_GET_INVOLVED"                    : "Involúcrese",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Abrir carpeta de extensiones",
+    "CMD_HEALTH_DATA_STATISTICS"          : "Reporte de estadísticas",
     "CMD_HOMEPAGE"                        : "Página principal de {APP_TITLE}",
     "CMD_TWITTER"                         : "{TWITTER_NAME} en Twitter",
     "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
     "CMD_OPEN_PREFERENCES"                : "Abrir archivo de preferencias",
     "CMD_OPEN_KEYMAP"                     : "Abrir archivo de atajos de teclado",
-    
+
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "versión experimental",
     "RELEASE_BUILD"                        : "versión",
@@ -445,14 +449,14 @@ define({
     "GET_IT_NOW"                           : "¡Consíguelo ahora!",
     "PROJECT_SETTINGS_TITLE"               : "Configuración del proyecto para: {0}",
     "PROJECT_SETTING_BASE_URL"             : "URL base para Vista previa dinámica",
-    "PROJECT_SETTING_BASE_URL_HINT"        : "(deja en blanco para urls de tipo \"file\")",
+    "PROJECT_SETTING_BASE_URL_HINT"        : "Para usar un servidor local, ingresa una URL como http://localhost:8000/",
     "BASEURL_ERROR_INVALID_PROTOCOL"       : "El protocolo {0} no está soportado por la Vista previa dinámica. Por favor, utiliza http: o https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "La URL base no puede contener parámetros de búsqueda como \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "La URL base no puede contener hashes como \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Los caracteres especiales como '{0}' deben codificarse en formato %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Error desconocido analizando la URL base",
     "EMPTY_VIEW_HEADER"                    : "<em>Abra un archivo mientras este panel está enfocado</em>",
-    
+
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema actual",
     "USE_THEME_SCROLLBARS"                 : "Usar las barras de desplazamiento del tema",
@@ -462,11 +466,13 @@ define({
 
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nueva regla",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Instalar",
     "UPDATE"                               : "Actualizar",
     "REMOVE"                               : "Eliminar",
+    "DISABLE"                              : "Deshabilitar",
+    "ENABLE"                               : "Habilitar",
     "OVERWRITE"                            : "Sobrescribir",
     "CANT_REMOVE_DEV"                      : "Las extensiones en la carpeta \"dev\" se deben eliminar manualmente.",
     "CANT_UPDATE"                          : "La actualización no es compatible con esta versión de {APP_NAME}.",
@@ -520,7 +526,7 @@ define({
     "EXTENSION_LATEST_INCOMPATIBLE_NEWER"  : "La versión {0} de esta extensión necesita una versión superior de {APP_NAME}. Puedes instalar la versión anterior {1}.",
     "EXTENSION_LATEST_INCOMPATIBLE_OLDER"  : "La versión {0} de esta extensión sólo funciona con versiones anteriores de {APP_NAME}. Puedes instalar la versión anterior {1}.",
     "EXTENSION_NO_DESCRIPTION"             : "Sin descripción",
-    "EXTENSION_MORE_INFO"                  : "Más información...",
+    "EXTENSION_MORE_INFO"                  : "Más información\u2026",
     "EXTENSION_ERROR"                      : "Error en la extensión",
     "EXTENSION_KEYWORDS"                   : "Palabras clave",
     "EXTENSION_INSTALLED"                  : "Instalada",
@@ -535,15 +541,20 @@ define({
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "No se pudo eliminar una o más extensiones: {0}. {APP_NAME} se recargará igualmente.",
     "EXTENSION_MANAGER_UPDATE"             : "Actualizar extensión",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "No se pudo actualizar una o más extensiones: {0}. {APP_NAME} se recargará igualmente.",
+    "EXTENSION_MANAGER_DISABLE"            : "Deshabilitar extensiones",
+    "EXTENSION_MANAGER_DISABLE_ERROR"      : "No se pudo deshabilitar una o más extensiones: {0}. {APP_NAME} se recargará igualmente.",
     "MARKED_FOR_REMOVAL"                   : "Marcada para eliminar",
     "UNDO_REMOVE"                          : "Deshacer",
     "MARKED_FOR_UPDATE"                    : "Marcada para actualizar",
     "UNDO_UPDATE"                          : "Deshacer",
+    "MARKED_FOR_DISABLING"                 : "Marcada para deshabilitar",
+    "UNDO_DISABLE"                         : "Deshacer",
     "CHANGE_AND_RELOAD_TITLE"              : "Cambiar extensiones",
     "CHANGE_AND_RELOAD_MESSAGE"            : "Para actualizar o eliminar las extensiones marcadas, necesitas recargar {APP_NAME}. Se solicitará confirmación para guardar los cambios pendientes.",
     "REMOVE_AND_RELOAD"                    : "Eliminar extensiones y recargar",
     "CHANGE_AND_RELOAD"                    : "Cambiar extensiones y recargar",
     "UPDATE_AND_RELOAD"                    : "Actualizar extensiones y recargar",
+    "DISABLE_AND_RELOAD"                   : "Deshabilitar extensiones y recargar",
     "PROCESSING_EXTENSIONS"                : "Procesando los cambios en las extensiones\u2026",
     "EXTENSION_NOT_INSTALLED"              : "No se pudo eliminar la extensión {0} porque no se encuentra instalada.",
     "NO_EXTENSIONS"                        : "Todavía no hay ninguna extensión instalada.<br>Haz clic en la pestaña Disponibles para empezar.",
@@ -553,19 +564,18 @@ define({
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponibles",
     "EXTENSIONS_THEMES_TITLE"              : "Temas",
     "EXTENSIONS_UPDATES_TITLE"             : "Actualizaciones",
-    
+
     "INLINE_EDITOR_NO_MATCHES"             : "No hay coincidencias disponibles.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "Todas las coincidencias están colapsadas. Expanda los archivos listados a la derecha para ver coincidencias.",
     "CSS_QUICK_EDIT_NO_MATCHES"            : "No hay reglas de CSS existentes que coincidan con tu selección.<br> Haz clic en \"Nueva regla\" para crear una.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "No hay hojas de estilos en tu proyecto.<br>Crea una para añadir reglas de CSS.",
-    
+
     // Custom Viewers
     "IMAGE_VIEWER_LARGEST_ICON"            : "más grande",
-    
+
     /**
      * Unit names
      */
-
     "UNIT_PIXELS"                          : "píxeles",
 
     // extensions/default/DebugCommands
@@ -575,6 +585,7 @@ define({
     "CMD_REFRESH_WINDOW"                        : "Recargar con extensiones",
     "CMD_RELOAD_WITHOUT_USER_EXTS"              : "Recargar sin extensiones",
     "CMD_NEW_BRACKETS_WINDOW"                   : "Nueva ventana de {APP_NAME}",
+    "CMD_LAUNCH_SCRIPT_MAC"                     : "Instalar acceso directo por línea de comandos",
     "CMD_SWITCH_LANGUAGE"                       : "Cambiar idioma",
     "CMD_RUN_UNIT_TESTS"                        : "Ejecutar tests",
     "CMD_SHOW_PERF_DATA"                        : "Mostrar información de rendimiento",
@@ -582,21 +593,38 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Mostrar estado de Node en Consola",
     "CMD_RESTART_NODE"                          : "Reiniciar Node",
     "CMD_SHOW_ERRORS_IN_STATUS_BAR"             : "Mostrar errores en la barra de estado",
-    "CMD_OPEN_BRACKETS_SOURCE"                  : "Abrir el código fuente de Brackets",
-    
+    "CMD_OPEN_BRACKETS_SOURCE"                  : "Abrir el código fuente de {APP_NAME}",
+
+    "CREATING_LAUNCH_SCRIPT_TITLE"              : "Acceso directo a {APP_NAME} por línea de comandos",
+    "ERROR_CREATING_LAUNCH_SCRIPT"              : "Ocurrió un error al instalar el acceso directo por línea de comandos. Por favor probá <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>estas sugerencias de solución de problemas</a>.<br><br>Razón: {0}",
+    "ERROR_CLTOOLS_RMFAILED"                    : "No se pudó eliminar el enlace simbólico existente <code>/usr/local/bin/brackets</code>.",
+    "ERROR_CLTOOLS_MKDIRFAILED"                 : "No se pudó crear el directorio <code>/usr/local/bin</code>.",
+    "ERROR_CLTOOLS_LNFAILED"                    : "No se pudó crear elenlace simbólico <code>/usr/local/bin/brackets</code>.",
+    "ERROR_CLTOOLS_SERVFAILED"                  : "Error interno.",
+    "ERROR_CLTOOLS_NOTSUPPORTED"                : "El acceso directo por línea de comandos no es compatible con este sistema operativo.",
+    "LAUNCH_SCRIPT_CREATE_SUCCESS"              : "¡Éxito! Ahora puedes abrir fácilmente {APP_NAME} desde la línea de comandos: <code>brackets myFile.txt</code> para abrir un archivo o <code>brackets myFolder</code> para cambiar de proyecto.<br><br><a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments'>Aprende más</a> acerca de como usar {APP_NAME} desde la línea de comandos.",
+
     "LANGUAGE_TITLE"                            : "Cambiar idioma",
     "LANGUAGE_MESSAGE"                          : "Idioma:",
     "LANGUAGE_SUBMIT"                           : "Reiniciar {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Cancelar",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Idioma predeterminado",
-    
+
+    // extensions/default/HealthData
+    "HEALTH_DATA_NOTIFICATION"                  : "Preferencias del reporte de estadísticas",
+    "HEALTH_FIRST_POPUP_TITLE"                  : "Reporte de estadísticas de {APP_NAME}",
+    "HEALTH_DATA_DO_TRACK"                      : "Compartir información anónima sobre cómo utilizo {APP_NAME}",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Para poder mejorar {APP_NAME}, enviamos periódicamente limitadas estadísticas <strong>anónimas</strong> a Adobe acerca de cómo se utiliza {APP_NAME}. Esta información ayuda a priorizar características a desarrollar, encontrar errores y problemas de usabilidad.<br><br>Puedes ver tus datos o elegir no compartir datos seleccionando <strong>Ayuda > Reporte de estadísticas</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Aprende más sobre el reporte de estadísticas de {APP_NAME}</a>",
+    "HEALTH_DATA_PREVIEW"                       : "Reporte de estadísticas de {APP_NAME}",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Para poder mejorar {APP_NAME}, enviamos periódicamente limitadas estadísticas <strong>anónimas</strong> a Adobe acerca de cómo se utiliza {APP_NAME}. Esta información ayuda a priorizar características a desarrollar, encontrar errores y problemas de usabilidad. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Aprende más sobre el Reporte de estadísticas de {APP_NAME}</a> y cómo beneficia a la comunidad de {APP_NAME} mientras protege tu privacidad.</p><p>A continuación hay una vista previa de la información que será enviada en el siguiente Reporte de estadísticas <em>si</em> está habilitado.</p>",
+
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tiempo",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progresión",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Mueven el punto seleccionado<br><kbd class='text'>Shift</kbd> Mueve de a diez unidades<br><kbd class='text'>Tab</kbd> Cambia el punto seleccionado",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Incrementa o disminuya los pasos<br><kbd>←</kbd><kbd>→</kbd> 'Start' o 'End'",
     "INLINE_TIMING_EDITOR_INVALID"              : "El valor viejo <code>{0}</code> no es válido, por lo tanto, fue modificado a <code>{1}</code>. El documento será actualizado luego de la primer edición.",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Color actual",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Color original",
@@ -605,25 +633,135 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "Formato HSLa",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Utilizado {1} vez)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Utilizado {1} veces)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Saltar a la definición",
     "CMD_SHOW_PARAMETER_HINT"                   : "Mostrar sugerencias de parámetros",
     "NO_ARGUMENTS"                              : "<no hay parámetros>",
     "DETECTED_EXCLUSION_TITLE"                  : "Problema de inferencia con un archivo JavaScript",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets se encontró con problemas procesando: <span class='dialog-filename'>{0}</span>.<br><br>Este archivo no volverá a ser procesado para las sugerencias de código, saltar a la definición o para la edición rápida. Para reactivar este archivo, abra el archivo <code>.brackets.json</code> en su proyecto y edite <code>jscodehints.detectedExclusions</code><br><br>Esto es probablemente un error en Brackets. Si puede proporcionar una copia de este archivo, por favor <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>envíe un informe</a> con un vínculo a dicho archivo.",
-    
+    "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} se encontró con problemas procesando: <span class='dialog-filename'>{0}</span>.<br><br>Este archivo no volverá a ser procesado para las sugerencias de código, saltar a la definición o para la edición rápida. Para reactivar este archivo, abra el archivo <code>.brackets.json</code> en su proyecto y edite <code>jscodehints.detectedExclusions</code><br><br>Esto es probablemente un error en {APP_NAME}. Si puede proporcionar una copia de este archivo, por favor <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>envíe un informe</a> con un vínculo a dicho archivo.",
+
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",
-    
+
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Vista rápida con cursor",
-    
+
     // extensions/default/RecentProjects
     "CMD_TOGGLE_RECENT_PROJECTS"                : "Proyectos recientes",
-    
+
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "Más"
+    "DOCS_MORE_LINK"                            : "Más",
+
+    // extensions/default/CodeFolding
+    "COLLAPSE_ALL"                  : "Colapsar todo",
+    "EXPAND_ALL"                    : "Expandir todo",
+    "COLLAPSE_CURRENT"              : "Colapsar actual",
+    "EXPAND_CURRENT"                : "Expandir actual",
+
+    // Descriptions of core preferences
+    "DESCRIPTION_CLOSE_BRACKETS"                     : "true para cerrar automáticamente las llaves, los corchetes y los paréntesis",
+    "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "false para eliminar \"Cerrar otros por encima\" del menú contextual del Área de trabajo",
+    "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "false para eliminar \"Cerrar otros por debajo\" del menú contextual del Área de trabajo",
+    "DESCRIPTION_CLOSE_OTHERS"                       : "false para eliminar \"Cerrar otros\" del menú contextual del Área de trabajo",
+    "DESCRIPTION_CLOSE_TAGS"                         : "Configura las opciones de cierre de etiquetas automático",
+    "DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS"         : "Un vector de etiquetas que no deben cerrarse automáticamente",
+    "DESCRIPTION_CLOSE_TAGS_WHEN_OPENING"            : "Cerrar cuando \">\" de la etiqueta de apertura es tipeado",
+    "DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING"            : "Cerrar cuando \"/\" de la etiqueta de clausura es tipeado",
+    "DESCRIPTION_CLOSE_TAGS_INDENT_TAGS"             : "Un vector de etiquetas que cuando se cierran generan una linea en blanco entre las etiquetas",
+    "DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD" : "true para siempre generar marcadores plegables cuando cambia el nivel de indentación",
+    "DESCRIPTION_CODE_FOLDING_ENABLED"               : "true para habilitar el colapsado del código",
+    "DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER"  : "true para hacer marcadores de sección plegables visible sólo cuando se mueve el cursor sobre el espacio a la izquierda del código",
+    "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limita a cuántos niveles de profundidad Colapsar todo aplica",
+    "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Mínima cantidad de líneas antes de que aparezca un icono de sección plegable",
+    "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true para recordar la secciones colapsadas luego de cerrar y abrir un archivo o proyecto",
+    "DESCRIPTION_ATTR_HINTS"                         : "Activar/desactivar las sugerencias de código para los atributos en HTML",
+    "DESCRIPTION_CSS_PROP_HINTS"                     : "Activar/desactivar las sugerencias de código para las propiedades en CSS/LESS/SCSS",
+    "DESCRIPTION_JS_HINTS"                           : "Activar/desactivar las sugerencias de código en JavaScript",
+    "DESCRIPTION_PREF_HINTS"                         : "Activar/desactivar las sugerencias de código para las Preferences",
+    "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "Activar/desactivar las sugerencias de código para las entidades en HTML",
+    "DESCRIPTION_SVG_HINTS"                          : "Activar/desactivar las sugerencias de código en SVG",
+    "DESCRIPTION_HTML_TAG_HINTS"                     : "Activar/desactivar las sugerencias de código para las etiquetas en HTML",
+    "DESCRIPTION_URL_CODE_HINTS"                     : "Activar/desactivar las sugerencias de código para las URLs en HTML & CSS/LESS/SCSS",
+    "DESCRIPTION_DRAG_DROP_TEXT"                     : "Activar/desactivar la funcionalidad de arrastrar y soltar",
+    "DESCRIPTION_HEALTH_DATA_TRACKING"               : "Habilitar el seguimiento de los Reportes de estadísticas",
+    "DESCRIPTION_HIGHLIGHT_MATCHES"                  : "Habilita el resaltado automático de cadenas que coinciden en el documento",
+    "DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN"       : "Resaltar todas las cadenas que coincidan con la cadena donde el cursor se encuentra (ninguna selección es necesaria)",
+    "DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY"       : "Resaltar sólo cuando la selección es una cadena completa",
+    "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "true para insertar la sugerencia de código al presionar tab",
+    "DESCRIPTION_NO_HINTS_ON_DOT"                    : "true para no mostrar sugerencias de código automáticamente en JS cuando \".\" es tipeado",
+    "DESCRIPTION_JSLINT_OPTIONS"                     : "Un objeto con las opciones por defecto de JSLint",
+    "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "true para permitir expresiones de asignación",
+    "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "true para permitir los operadores bit a bit",
+    "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "true si las variables/funciones globales del navegador deben estar predefinidas",
+    "DESCRIPTION_JSLINT_OPTIONS_CLOSURE"             : "true para permitir modismos de Google Closure",
+    "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "true para permitir la declaración \"continue\"",
+    "DESCRIPTION_JSLINT_OPTIONS_COUCH"               : "true si las variables/funciones globales de CouchDB deben estar predefinidas",
+    "DESCRIPTION_JSLINT_OPTIONS_DEBUG"               : "true para permitir declaraciones del depurador",
+    "DESCRIPTION_JSLINT_OPTIONS_DEVEL"               : "true si las variables/funciones globales del navegador para el desarrollo deben estar predefinidas",
+    "DESCRIPTION_JSLINT_OPTIONS_EQEQ"                : "true para permitir == y !=",
+    "DESCRIPTION_JSLINT_OPTIONS_ES6"                 : "true si las variables/funciones globales de ES6 deben estar predefinidas",
+    "DESCRIPTION_JSLINT_OPTIONS_EVIL"                : "true para permitir eval",
+    "DESCRIPTION_JSLINT_OPTIONS_FORIN"               : "true para permitir \"for ... in\" sin filtrar",
+    "DESCRIPTION_JSLINT_OPTIONS_INDENT"              : "Establece un ancho para el tab",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXERR"              : "La cantidad máxima de advertencias reportadas",
+    "DESCRIPTION_JSLINT_OPTIONS_MAXLEN"              : "La cantidad máxima de caracters por línea",
+    "DESCRIPTION_JSLINT_OPTIONS_NEWCAP"              : "true para permitir constructores sin mayúsculas",
+    "DESCRIPTION_JSLINT_OPTIONS_NODE"                : "true si las variables/funciones globales de Node.js deben estar predefinidas",
+    "DESCRIPTION_JSLINT_OPTIONS_NOMEN"               : "true para permitir el guión bajo delante de los identificadores",
+    "DESCRIPTION_JSLINT_OPTIONS_PASSFAIL"            : "true para parar en el primer error",
+    "DESCRIPTION_JSLINT_OPTIONS_PLUSPLUS"            : "true para permitir ++ y --",
+    "DESCRIPTION_JSLINT_OPTIONS_REGEXP"              : "true para permitir . y [^...]. en RegExp",
+    "DESCRIPTION_JSLINT_OPTIONS_RHINO"               : "true si las variables/funciones globales de Rhino deben estar predefinidas",
+    "DESCRIPTION_JSLINT_OPTIONS_SLOPPY"              : "true para permitir que falte el pragma `use strict`",
+    "DESCRIPTION_JSLINT_OPTIONS_STUPID"              : "true si los métodos bloqueantes ('...Sync') se pueden usar",
+    "DESCRIPTION_JSLINT_OPTIONS_SUB"                 : "true para permitir subíndices ineficiente",
+    "DESCRIPTION_JSLINT_OPTIONS_TODO"                : "true para permitir comentarios TODO",
+    "DESCRIPTION_JSLINT_OPTIONS_UNPARAM"             : "true para permitir parámetros no usados",
+    "DESCRIPTION_JSLINT_OPTIONS_VARS"                : "true para permitir más de 1 var en una función",
+    "DESCRIPTION_JSLINT_OPTIONS_WHITE"               : "true para ignorar las reglas espaciado",
+    "DESCRIPTION_LANGUAGE"                           : "Preferencias específicas de un lenguaje",
+    "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Asignaciones adicionales de extensión de archivo a nombre del lenguaje",
+    "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Asignaciones adicionales de nombre de archivo a nombre del lenguaje",
+    "DESCRIPTION_LINTING_ENABLED"                    : "true para habilitar la inspección del código",
+    "DESCRIPTION_ASYNC_TIMEOUT"                      : "El tiempo en milisegundos para esperar a los inspectores de código asincrónicos",
+    "DESCRIPTION_LINTING_PREFER"                     : "Vector de inspectores de código para ejecutar primero",
+    "DESCRIPTION_LIVE_DEV_MULTIBROWSER"              : "true para habilitar la Vista previa dinámica experimental",
+    "DESCRIPTION_USE_PREFERED_ONLY"                  : "true para ejecutar solo los proveedores especificados en linting.prefer",
+    "DESCRIPTION_MAX_CODE_HINTS"                     : "Máxima cantidad de sugerencias de código mostradas",
+    "DESCRIPTION_PATH"                               : "Preferencias especificas para una ruta de archivo",
+    "DESCRIPTION_PROXY"                              : "La URL del servidor proxy utilizada para la instalación de extensiones",
+    "DESCRIPTION_SCROLL_PAST_END"                    : "true permitir el desplazamiento más allá del final del documento",
+    "DESCRIPTION_SHOW_CODE_HINTS"                    : "false para deshabilitar todas las sugerencias de código",
+    "DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING"         : "Mantiene el cursor intermitente visible cuando se tiene una selección de texto",
+    "DESCRIPTION_SHOW_LINE_NUMBERS"                  : "true para mostrar los números de líne a la izquierda del código",
+    "DESCRIPTION_SMART_INDENT"                       : "Indentar automáticamente cuando se crea un nuevo bloque",
+    "DESCRIPTION_SOFT_TABS"                          : "false para deshabilitar el comportamiento de \"soft tabs\"",
+    "DESCRIPTION_SORT_DIRECTORIES_FIRST"             : "true para ordenar los directorios primero en el árbol del proyecto",
+    "DESCRIPTION_SPACE_UNITS"                        : "Cantidad de espacios para utilizar en la indentación basada en espacios",
+    "DESCRIPTION_STATIC_SERVER_PORT"                 : "Número de puerto que el servidor utilizará para la Vista previa dinámica",
+    "DESCRIPTION_STYLE_ACTIVE_LINE"                  : "true para resaltar la línea en la que se encuentra el cursor",
+    "DESCRIPTION_TAB_SIZE"                           : "Cantidad de espacios utilizados para el tab",
+    "DESCRIPTION_USE_TAB_CHAR"                       : "true para usar tabs en vez de espacios",
+    "DESCRIPTION_UPPERCASE_COLORS"                   : "true para generar color en mayúsculas en el editor de colores",
+    "DESCRIPTION_WORD_WRAP"                          : "Ajustar líneas que sobrepasen el ancho de la ventana",
+    "DESCRIPTION_DETECTED_EXCLUSIONS"                : "Una lista de los archivos que se ha detectado que causan que Tern no funcione correctamente",
+    "DESCRIPTION_INFERENCE_TIMEOUT"                  : "La cantidad de veces después de la cual Tern dejara de intentar entender los archivos",
+    "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "true para mostrar errores en la barra de estado",
+    "DESCRIPTION_QUICK_VIEW_ENABLED"                 : "true para habilitar la Vista rápida",
+    "DESCRIPTION_EXTENSION_LESS_IMAGE_PREVIEW"       : "true para mostrar vistas previas de imágenes para URLs sin extensión",
+    "DESCRIPTION_THEME"                              : "Seleccionar un tema para {APP_NAME}",
+    "DESCRIPTION_USE_THEME_SCROLLBARS"               : "true para habilitar la barra de desplazamiento customizada",
+    "DESCRIPTION_LINTING_COLLAPSED"                  : "true para colapsar el panel de inspección de código",
+    "DESCRIPTION_FONT_FAMILY"                        : "Cambiar la fuente",
+    "DESCRIPTION_FONT_SIZE"                          : "Cambiar el tamaño de la fuente; ej., 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "True to para habilitar búsquedas basadas en node",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "True to para habilitar la búsqueda instantánea",
+    "DESCRIPTION_FONT_SMOOTHING"                     : "Sólo para Mac: \"subpixel-antialiased\" para habilitar sub-pixel antialiasing o \"antialiased\" para antialiasing en escala de grises",
+    "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false para deshabilitar la apertura del archivo de preferencias en la vista dividida",
+    "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false para abrir el archivo de preferencias en el panel de la izquierda/arriba",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Éste es un archivo únicamente de lectura con las preferencias soportadas\n * por {APP_NAME}.\n * Podes usar este archivo como referencia para modificar tu archivo de\n * preferencias \"brackets.json\" abierto en el otro panel.\n * Para más información sobre como usar las preferencias dentro de\n * {APP_NAME}, podes consultar la página web https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Por defecto"
 });
 
-/* Last translated for c292e896761bc7d451a9e3b95bedd20d6b355d77 */
+/* Last translated for 1e5ba8f612dcf983d3cbffbbf1bfe455a90788c8 */

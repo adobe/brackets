@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -28,9 +28,9 @@
 /**
  * Defines hooks to assist with module initialization.
  *
- * This module defines 2 methods for client modules to attach callbacks:
+ * This module defines 3 methods for client modules to attach callbacks:
  *    - htmlReady - When the main application template is rendered
- *    - extensionsRead - When the extension manager has loaded all extensions
+ *    - extensionsLoaded - When the extension manager has loaded all extensions
  *    - appReady - When Brackets completes loading all modules and extensions
  *
  * These are *not* jQuery events. Each method is similar to $(document).ready
@@ -39,7 +39,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     /*
      * Fires when the base htmlContent/main-view.html is loaded
      * @type {string}
@@ -53,7 +53,7 @@ define(function (require, exports, module) {
      * @const
      */
     var APP_READY   = "appReady";
-    
+
     /*
      * Fires after extensions have been loaded
      * @type {string}
@@ -67,7 +67,7 @@ define(function (require, exports, module) {
      * @private
      */
     var _status      = { HTML_READY : false, APP_READY : false, EXTENSIONS_LOADED: false };
-    
+
     /*
      * Map of callbacks to states
      * @type {Object.<string, Array.<function()>>}
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
     _callbacks[APP_READY]         = [];
     _callbacks[EXTENSIONS_LOADED] = [];
 
-    
+
     /*
      * calls the specified handler inside a try/catch handler
      * @param {function()} handler - the callback to call
@@ -149,7 +149,7 @@ define(function (require, exports, module) {
     function htmlReady(handler) {
         _addListener(HTML_READY, handler);
     }
-    
+
     /**
      * Adds a callback for the extensionsLoaded hook. Handlers are called after the
      * extensions have been loaded
@@ -163,7 +163,7 @@ define(function (require, exports, module) {
     exports.appReady = appReady;
     exports.htmlReady = htmlReady;
     exports.extensionsLoaded = extensionsLoaded;
-    
+
     exports.HTML_READY = HTML_READY;
     exports.APP_READY = APP_READY;
     exports.EXTENSIONS_LOADED = EXTENSIONS_LOADED;

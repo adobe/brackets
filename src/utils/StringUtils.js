@@ -1,27 +1,31 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/* The hash code routne is taken from http://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
+   @CC wiki attribution: esmiralha
+*/
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50, bitwise: true */
 /*global define, brackets */
 
 /**
@@ -30,7 +34,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _ = require("thirdparty/lodash");
 
     /**
@@ -91,7 +95,7 @@ define(function (require, exports, module) {
                 line;
             for (line = 0; line < lines.length; line++) {
                 if (total < offset) {
-                    // add 1 per line since /n were removed by splitting, but they needed to 
+                    // add 1 per line since /n were removed by splitting, but they needed to
                     // contribute to the total offset count
                     total += lines[line].length + 1;
                 } else if (total === offset) {
@@ -111,7 +115,17 @@ define(function (require, exports, module) {
             return textOrLines.substr(0, offset).split("\n").length - 1;
         }
     }
-    
+
+    /**
+     * Returns true if the given string starts with the given prefix.
+     * @param   {String} str
+     * @param   {String} prefix
+     * @return {Boolean}
+     */
+    function startsWith(str, prefix) {
+        return str.slice(0, prefix.length) === prefix;
+    }
+
     /**
      * Returns true if the given string ends with the given suffix.
      *
@@ -143,7 +157,7 @@ define(function (require, exports, module) {
             return (a2 > b2) ? 1 : -1;
         }
     }
-    
+
     /**
      * Return an escaped path or URL string that can be broken near path separators.
      * @param {string} url the path or URL to format
@@ -159,7 +173,7 @@ define(function (require, exports, module) {
             "/" + "&#8203;"
         );
     }
-    
+
     /**
      * Converts number of bytes into human readable format.
      * If param bytes is negative it returns the number without any changes.
@@ -174,7 +188,7 @@ define(function (require, exports, module) {
             gigabyte = megabyte * 1024,
             terabyte = gigabyte * 1024,
             returnVal = bytes;
-        
+
         if ((bytes >= 0) && (bytes < kilobyte)) {
             returnVal = bytes + " B";
         } else if (bytes < megabyte) {
@@ -186,10 +200,10 @@ define(function (require, exports, module) {
         } else if (bytes >= terabyte) {
             return (bytes / terabyte).toFixed(precision) + " TB";
         }
-        
+
         return returnVal;
     }
-    
+
     /**
      * Truncate text to specified length.
      * @param {string} str Text to be truncated.
@@ -211,6 +225,26 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Computes a 32bit hash from the given string
+     * Taken from http://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
+     * @CC wiki attribution: esmiralha
+     * @param   {string}   str The string for which hash is to be computed
+     * @return {number} The 32-bit hash
+     */
+    function hashCode(str) {
+        var hash = 0, i, chr, len;
+        if (str.length === 0) {
+            return hash;
+        }
+        for (i = 0, len = str.length; i < len; i++) {
+            chr   = str.charCodeAt(i);
+            hash  = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    }
+
     // Define public API
     exports.format              = format;
     exports.regexEscape         = regexEscape;
@@ -219,7 +253,9 @@ define(function (require, exports, module) {
     exports.offsetToLineNum     = offsetToLineNum;
     exports.urlSort             = urlSort;
     exports.breakableUrl        = breakableUrl;
+    exports.startsWith          = startsWith;
     exports.endsWith            = endsWith;
     exports.prettyPrintBytes    = prettyPrintBytes;
     exports.truncate            = truncate;
+    exports.hashCode            = hashCode;
 });

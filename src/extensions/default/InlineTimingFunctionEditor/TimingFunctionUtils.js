@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
@@ -29,11 +29,11 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var Strings         = brackets.getModule("strings"),
         StringUtils     = brackets.getModule("utils/StringUtils"),
         AnimationUtils  = brackets.getModule("utils/AnimationUtils");
-    
+
     /**
      * Regular expressions for matching timing functions
      * @const @type {RegExp}
@@ -42,7 +42,7 @@ define(function (require, exports, module) {
         BEZIER_CURVE_GENERAL_REGEX      = /cubic-bezier\((.*)\)/,
         EASE_STRICT_REGEX               = /[: ,]ease(?:-in)?(?:-out)?[ ,;]/,
         EASE_LAX_REGEX                  = /ease(?:-in)?(?:-out)?/,
-        LINEAR_STRICT_REGEX             = /transition.*?[: ,]linear[ ,;]/,
+        LINEAR_STRICT_REGEX             = /(transition|animation).*?[: ,]linear[ ,;]/,
         LINEAR_LAX_REGEX                = /linear/,
         STEPS_VALID_REGEX               = /steps\(\s*(\d+)\s*(?:,\s*(\w+)\s*)?\)/,
         STEPS_GENERAL_REGEX             = /steps\((.*)\)/,
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
         if (match) {
             match = match[1].split(",");
         }
-        
+
         if (match) {
             for (i = 0; i <= 3; i++) {
                 if (match[i]) {
@@ -243,10 +243,10 @@ define(function (require, exports, module) {
 
         return true;
     }
-    
+
     /**
      * Show, hide or update the hint text
-     * 
+     *
      * @param {object} hint Editor.hint object of the current InlineTimingFunctionEditor
      * @param {boolean} show Whether the hint should be shown or hidden
      * @param {string=} documentCode The invalid code from the document (can be omitted when hiding)
@@ -256,7 +256,7 @@ define(function (require, exports, module) {
         if (!hint || !hint.elem) {
             return;
         }
-        
+
         if (show) {
             hint.shown = true;
             hint.animationInProgress = false;
@@ -295,7 +295,7 @@ define(function (require, exports, module) {
             match.isStep = true;
             break;
         }
-        
+
         return match;
     }
 
@@ -357,7 +357,7 @@ define(function (require, exports, module) {
             }
         } else {
             // The linear keyword can occur in other values, so for strict parsing we
-            // only detect when it's on same line as "transition"
+            // only detect when it's on same line as "transition" or "animation"
             match = str.match(LINEAR_STRICT_REGEX);
             if (match) {
                 // return exact match to keyword that we need for later replacement

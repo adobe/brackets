@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -252,14 +252,20 @@ define(function (require, exports, module) {
         codeHintsEnabled = true;
 
 
-    PreferencesManager.definePreference("showCodeHints", "boolean", true);
-    PreferencesManager.definePreference("insertHintOnTab", "boolean", false);
-    PreferencesManager.definePreference("maxCodeHints", "integer", 50);
+    PreferencesManager.definePreference("showCodeHints", "boolean", true, {
+        description: Strings.DESCRIPTION_SHOW_CODE_HINTS
+    });
+    PreferencesManager.definePreference("insertHintOnTab", "boolean", false, {
+        description: Strings.DESCRIPTION_INSERT_HINT_ON_TAB
+    });
+    PreferencesManager.definePreference("maxCodeHints", "number", 50, {
+        description: Strings.DESCRIPTION_MAX_CODE_HINTS
+    });
 
     PreferencesManager.on("change", "showCodeHints", function () {
         codeHintsEnabled = PreferencesManager.get("showCodeHints");
     });
-    
+
     /**
      * Comparator to sort providers from high to low priority
      */
@@ -352,7 +358,7 @@ define(function (require, exports, module) {
      */
     function _getProvidersForLanguageId(languageId) {
         var providers = hintProviders[languageId] || hintProviders.all;
-        
+
         // Exclude providers that are explicitly disabled in the preferences.
         // All code hint providers that do not have their constructor
         // names listed in the preferences are enabled by default.
@@ -471,7 +477,7 @@ define(function (require, exports, module) {
         if (editor.getSelections().length > 1) {
             return;
         }
-        
+
         // Find a suitable provider, if any
         var language = editor.getLanguageForSelection(),
             enabledProviders = _getProvidersForLanguageId(language.getId());
@@ -580,7 +586,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     /**
      * Handle a selection change event in the editor. If the selection becomes a
      * multiple selection, end our current session.

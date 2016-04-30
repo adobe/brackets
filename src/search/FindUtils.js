@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
@@ -26,18 +26,51 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
-    var Async           = require("utils/Async"),
-        DocumentManager = require("document/DocumentManager"),
-        MainViewManager = require("view/MainViewManager"),
-        FileSystem      = require("filesystem/FileSystem"),
-        FileUtils       = require("file/FileUtils"),
-        FindBar         = require("search/FindBar").FindBar,
-        ProjectManager  = require("project/ProjectManager"),
-        Strings         = require("strings"),
-        StringUtils     = require("utils/StringUtils"),
-        _               = require("thirdparty/lodash");
-    
+
+    var Async               = require("utils/Async"),
+        DocumentManager     = require("document/DocumentManager"),
+        MainViewManager     = require("view/MainViewManager"),
+        FileSystem          = require("filesystem/FileSystem"),
+        FileUtils           = require("file/FileUtils"),
+        ProjectManager      = require("project/ProjectManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        EventDispatcher     = require("utils/EventDispatcher"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
+        _                   = require("thirdparty/lodash");
+
+    var nodeSearchDisabled = false,
+        instantSearchDisabled = false,
+        indexingInProgress = false,
+        nodeSearchCount = 0,
+        collapseResults = false;
+
+    EventDispatcher.makeEventDispatcher(exports);
+
+    // define preferences for find in files
+    PreferencesManager.definePreference("findInFiles.nodeSearch", "boolean", true, {
+        description: Strings.DESCRIPTION_FIND_IN_FILES_NODE
+    });
+    PreferencesManager.definePreference("findInFiles.instantSearch", "boolean", true, {
+        description: Strings.DESCRIPTION_FIND_IN_FILES_INSTANT
+    });
+
+    /**
+     * returns true if the used disabled node based search in his preferences
+     * @return {boolean}
+     */
+    function _prefNodeSearchDisabled() {
+        return !PreferencesManager.get("findInFiles.nodeSearch");
+    }
+
+    /**
+     * returns true if the used instant search in his preferences
+     * @return {boolean}
+     */
+    function _prefInstantSearchDisabled() {
+        return !PreferencesManager.get("findInFiles.instantSearch");
+    }
+
     /**
      * Given a replace string that contains $-expressions, replace them with data from the given
      * regexp match info.
@@ -71,52 +104,6 @@ define(function (require, exports, module) {
         replaceWith = replaceWith.replace(/\$\$/g, "$");
         return replaceWith;
     }
-    
-    /**
-     * Gets you the right query and replace text to prepopulate the Find Bar.
-     * @param {?FindBar} currentFindBar The currently open Find Bar, if any
-     * @param {?Editor} The active editor, if any
-     * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
-     */
-    function getInitialQuery(currentFindBar, editor) {
-        var query = "",
-            replaceText = "";
-
-        /*
-         * Returns the string used to prepopulate the find bar
-         * @param {!Editor} editor
-         * @return {string} first line of primary selection to populate the find bar
-         */
-        function getInitialQueryFromSelection(editor) {
-            var selectionText = editor.getSelectedText();
-            if (selectionText) {
-                return selectionText
-                    .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
-                    .split("\n")[0];
-            }
-            return "";
-        }
-
-        if (currentFindBar && !currentFindBar.isClosed()) {
-            // The modalBar was already up. When creating the new modalBar, copy the
-            // current query instead of using the passed-in selected text.
-            query = currentFindBar.getQueryInfo().query;
-            replaceText = currentFindBar.getReplaceText();
-        } else {
-            var openedFindBar = FindBar._bars && _.find(FindBar._bars, function (bar) {
-                    return !bar.isClosed();
-                });
-
-            if (openedFindBar) {
-                query = openedFindBar.getQueryInfo().query;
-                replaceText = openedFindBar.getReplaceText();
-            } else if (editor) {
-                query = getInitialQueryFromSelection(editor);
-            }
-        }
-
-        return {query: query, replaceText: replaceText};
-    }
 
     /**
      * Does a set of replacements in a single document in memory.
@@ -132,7 +119,7 @@ define(function (require, exports, module) {
         // replace in the first place (due to the fact that we immediately close the search
         // results panel whenever we detect a filesystem change that affects the results),
         // but we want to double-check in case we don't happen to get the change in time.
-        // This will *not* handle cases where the document has been edited in memory since 
+        // This will *not* handle cases where the document has been edited in memory since
         // the matchInfo was generated.
         if (doc.diskTimestamp.getTime() !== matchInfo.timestamp.getTime()) {
             return new $.Deferred().reject(exports.ERROR_FILE_CHANGED).promise();
@@ -146,10 +133,10 @@ define(function (require, exports, module) {
                 }
             });
         });
-        
+
         return new $.Deferred().resolve().promise();
     }
-    
+
     /**
      * Does a set of replacements in a single file on disk.
      * @param {string} fullPath The full path to the file.
@@ -189,7 +176,7 @@ define(function (require, exports, module) {
             return Async.promisify(file, "write", newContents);
         });
     }
-    
+
     /**
      * Does a set of replacements in a single file. If the file is already open in a Document in memory,
      * will do the replacement there, otherwise does it directly on disk.
@@ -197,7 +184,7 @@ define(function (require, exports, module) {
      * @param {Object} matchInfo The match info for this file, as returned by `_addSearchMatches()`.
      * @param {string} replaceText The text to replace each result with.
      * @param {Object=} options An options object:
-     *      forceFilesOpen: boolean - Whether to open the file in an editor and do replacements there rather than doing the 
+     *      forceFilesOpen: boolean - Whether to open the file in an editor and do replacements there rather than doing the
      *          replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
      *          done in memory.
      *      isRegexp: boolean - Whether the original query was a regexp. If true, $-substitution is performed on the replaceText.
@@ -218,7 +205,7 @@ define(function (require, exports, module) {
             return _doReplaceOnDisk(fullPath, matchInfo, replaceText, options.isRegexp);
         }
     }
-    
+
     /**
      * @private
      * Returns true if a search result has any checked matches.
@@ -226,7 +213,7 @@ define(function (require, exports, module) {
     function hasCheckedMatches(result) {
         return result.matches.some(function (match) { return match.isChecked; });
     }
-        
+
     /**
      * Given a set of search results, replaces them with the given replaceText, either on disk or in memory.
      * Checks timestamps to ensure replacements are not performed in files that have changed on disk since
@@ -234,7 +221,7 @@ define(function (require, exports, module) {
      * in in-memory documents since the search; it's up to the caller to guarantee this hasn't happened.
      * (When called from the standard Find in Files UI, SearchResultsView guarantees this. If called headlessly,
      * the caller needs to track changes.)
-     * 
+     *
      * Replacements in documents that are already open in memory at the start of the replacement are guaranteed to
      * happen synchronously; replacements in files on disk will return an error if the on-disk file changes between
      * the time performReplacements() is called and the time the replacement actually happens.
@@ -243,13 +230,13 @@ define(function (require, exports, module) {
      *      The list of results to replace, as returned from _doSearch..
      * @param {string} replaceText The text to replace each result with.
      * @param {?Object} options An options object:
-     *      forceFilesOpen: boolean - Whether to open all files in editors and do replacements there rather than doing the 
+     *      forceFilesOpen: boolean - Whether to open all files in editors and do replacements there rather than doing the
      *          replacements on disk. Note that even if this is false, files that are already open in editors will have replacements
      *          done in memory.
      *      isRegexp: boolean - Whether the original query was a regexp. If true, $-substitution is performed on the replaceText.
      * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an array of errors
      *      if there were one or more errors. Each individual item in the array will be a {item: string, error: string} object,
-     *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one 
+     *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one
      *      of the `FindUtils.ERROR_*` constants.
      */
     function performReplacements(results, replaceText, options) {
@@ -271,19 +258,19 @@ define(function (require, exports, module) {
                         firstPath = _.find(sortedPaths, function (path) {
                             return hasCheckedMatches(results[path]);
                         });
-                    
+
                     if (firstPath) {
                         var newDoc = DocumentManager.getOpenDocumentForPath(firstPath);
                         // newDoc might be null if the replacement failed.
                         if (newDoc) {
                             // @todo change the `_edit` call to this:
-                            //     
+                            //
                             ///    CommandManager.execute(Commands.FILE_OPEN, {fullPath: firstPath});
                             //
                             // The problem with doing that is that the promise returned by this
                             // function has already been resolved by `Async.doInParallel()` and
                             // `CommandManager.execute` is an asynchronous operation.
-                            // An asynchronous open can't be waited on (since the promise has been  
+                            // An asynchronous open can't be waited on (since the promise has been
                             //  resolved already) so use the synchronous version so that the next `done`
                             //  handler is blocked until the open completes
                             MainViewManager._edit(MainViewManager.ACTIVE_PANE, newDoc);
@@ -293,7 +280,7 @@ define(function (require, exports, module) {
             }
         });
     }
-    
+
     /**
      * Returns label text to indicate the search scope. Already HTML-escaped.
      * @param {?Entry} scope
@@ -352,11 +339,219 @@ define(function (require, exports, module) {
         return {valid: true, queryExpr: queryExpr};
     }
 
+     /**
+     * Prioritizes the open file and then the working set files to the starting of the list of files
+     * @param {Array.<*>} files An array of file paths or file objects to sort
+     * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.
+     * @return {Array.<*>}
+     */
+    function prioritizeOpenFile(files, firstFile) {
+        var workingSetFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES),
+            workingSetFileFound = {},
+            fileSetWithoutWorkingSet = [],
+            startingWorkingFileSet = [],
+            propertyName = "",
+            i = 0;
+        firstFile = firstFile || "";
+
+        // Create a working set path map which indicates if a file in working set is found in file list
+        for (i = 0; i < workingSetFiles.length; i++) {
+            workingSetFileFound[workingSetFiles[i].fullPath] = false;
+        }
+
+        // Remove all the working set files from the filtration list
+        fileSetWithoutWorkingSet = files.filter(function (key) {
+            if (workingSetFileFound[key] !== undefined) {
+                workingSetFileFound[key] = true;
+                return false;
+            }
+            return true;
+        });
+
+        //push in the first file
+        if (workingSetFileFound[firstFile] === true) {
+            startingWorkingFileSet.push(firstFile);
+            workingSetFileFound[firstFile] = false;
+        }
+        //push in the rest of working set files already present in file list
+        for (propertyName in workingSetFileFound) {
+            if (workingSetFileFound.hasOwnProperty(propertyName) && workingSetFileFound[propertyName]) {
+                startingWorkingFileSet.push(propertyName);
+            }
+        }
+        return startingWorkingFileSet.concat(fileSetWithoutWorkingSet);
+    }
+
+
+    /**
+     * Returns the path of the currently open file or null if there isn't one open
+     * @return {?string}
+     */
+    function getOpenFilePath() {
+        var currentDoc = DocumentManager.getCurrentDocument();
+        return currentDoc ? currentDoc.file.fullPath : null;
+    }
+
+    /**
+     * enable/disable instant search
+     * @param {boolean} disable true to disable node based search
+     */
+    function setInstantSearchDisabled(disable) {
+        instantSearchDisabled = disable;
+    }
+
+    /**
+     * if instant search is disabled, this will return true we can only do instant search through node
+     * @return {boolean}
+     */
+    function isInstantSearchDisabled() {
+        return _prefNodeSearchDisabled() || _prefInstantSearchDisabled() || nodeSearchDisabled || instantSearchDisabled;
+    }
+
+    /**
+     * enable/disable node based search
+     * @param {boolean} disable true to disable node based search
+     */
+    function setNodeSearchDisabled(disable) {
+        if (disable) {
+            // only set disable. Enabling node earch doesnt mean we have to enable instant search.
+            setInstantSearchDisabled(disable);
+        }
+        nodeSearchDisabled = disable;
+    }
+
+    /**
+     * if node search is disabled, this will return true
+     * @return {boolean}
+     */
+    function isNodeSearchDisabled() {
+        return _prefNodeSearchDisabled() || nodeSearchDisabled;
+    }
+
+    /**
+     * check if a search is progressing in node
+     * @return {Boolean} true if search is processing in node
+     */
+    function isNodeSearchInProgress() {
+        if (nodeSearchCount === 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+
+    /**
+     * Raises an event when the file filters applied to a search changes
+     */
+    function notifyFileFiltersChanged() {
+        exports.trigger(exports.SEARCH_FILE_FILTERS_CHANGED);
+    }
+
+    /**
+     * Raises an event when the search scope changes[say search in a sub drictory in the project]
+     */
+    function notifySearchScopeChanged() {
+        exports.trigger(exports.SEARCH_SCOPE_CHANGED);
+    }
+
+    /**
+     * Notifies that a node search has started so that we FindUtils can figure out
+     * if any outstanding node search requests are pendind
+     */
+    function notifyNodeSearchStarted() {
+        nodeSearchCount++;
+    }
+
+    /**
+     * Notifies that a node search has finished so that we FindUtils can figure out
+     * if any outstanding node search requests are pendind
+     */
+    function notifyNodeSearchFinished() {
+        nodeSearchCount--;
+    }
+
+    /**
+     * Notifies that a node has started indexing the files
+     */
+    function notifyIndexingStarted() {
+        indexingInProgress = true;
+        exports.trigger(exports.SEARCH_INDEXING_STARTED);
+    }
+
+    /**
+     * Notifies that a node has finished indexing the files
+     */
+    function notifyIndexingFinished() {
+        indexingInProgress = false;
+        exports.trigger(exports.SEARCH_INDEXING_FINISHED);
+    }
+
+    /**
+     * Return true if indexing is in pregress in node
+     * @return {boolean} true if files are being indexed in node
+     */
+    function isIndexingInProgress() {
+        return indexingInProgress;
+    }
+
+    /**
+     * Set if we need to collapse all results in the results pane
+     * @param {boolean} collapse true to collapse
+     */
+    function setCollapseResults(collapse) {
+        collapseResults = collapse;
+        exports.trigger(exports.SEARCH_COLLAPSE_RESULTS);
+    }
+
+    /**
+     * check if results should be collapsed
+     * @return {boolean} true if results should be collapsed
+     */
+    function isCollapsedResults() {
+        return collapseResults;
+    }
+
+    /**
+     * Returns the health data pertaining to Find in files
+     */
+    function getHealthReport() {
+        return {
+            prefNodeSearchDisabled : _prefNodeSearchDisabled(),
+            prefInstantSearchDisabled : _prefInstantSearchDisabled()
+        };
+    }
+
     exports.parseDollars                    = parseDollars;
-    exports.getInitialQuery                 = getInitialQuery;
     exports.hasCheckedMatches               = hasCheckedMatches;
     exports.performReplacements             = performReplacements;
     exports.labelForScope                   = labelForScope;
     exports.parseQueryInfo                  = parseQueryInfo;
+    exports.prioritizeOpenFile              = prioritizeOpenFile;
+    exports.getOpenFilePath                 = getOpenFilePath;
+    exports.setNodeSearchDisabled           = setNodeSearchDisabled;
+    exports.isNodeSearchDisabled            = isNodeSearchDisabled;
+    exports.setInstantSearchDisabled        = setInstantSearchDisabled;
+    exports.isInstantSearchDisabled         = isInstantSearchDisabled;
+    exports.isNodeSearchInProgress          = isNodeSearchInProgress;
+    exports.isIndexingInProgress            = isIndexingInProgress;
+    exports.setCollapseResults              = setCollapseResults;
+    exports.isCollapsedResults              = isCollapsedResults;
+    exports.getHealthReport                 = getHealthReport;
     exports.ERROR_FILE_CHANGED              = "fileChanged";
+
+    // event notification functions
+    exports.notifyFileFiltersChanged        = notifyFileFiltersChanged;
+    exports.notifySearchScopeChanged        = notifySearchScopeChanged;
+    exports.notifyNodeSearchStarted         = notifyNodeSearchStarted;
+    exports.notifyNodeSearchFinished        = notifyNodeSearchFinished;
+    exports.notifyIndexingStarted           = notifyIndexingStarted;
+    exports.notifyIndexingFinished          = notifyIndexingFinished;
+
+    // events raised by FindUtils
+    exports.SEARCH_FILE_FILTERS_CHANGED              = "fileFiltersChanged";
+    exports.SEARCH_SCOPE_CHANGED                     = "searchScopeChanged";
+    exports.SEARCH_INDEXING_STARTED                  = "searchIndexingStarted";
+    exports.SEARCH_INDEXING_FINISHED                 = "searchIndexingFinished";
+    exports.SEARCH_COLLAPSE_RESULTS                  = "searchCollapseResults";
 });

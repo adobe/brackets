@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -87,7 +87,7 @@ define(function (require, exports, module) {
             it("should return the unchanged directory of a posix directory path", function () {
                 expect(FileUtils.getDirectoryPath("/foo/bar/")).toBe("/foo/bar/");
             });
-            
+
             it("should return the unchanged directory of a root path", function () {
                 expect(FileUtils.getDirectoryPath("C:/")).toBe("C:/");
                 expect(FileUtils.getDirectoryPath("/")).toBe("/");
@@ -165,55 +165,15 @@ define(function (require, exports, module) {
                 expect(FileUtils.getFileExtension("foo.bar.baz..jaz.txt")).toBe("txt");
             });
         });
-        
+
         describe("getFilenameWithoutExtension", function () {
 
             it("should remove last extension segment only", function () {
                 expect(FileUtils.getFilenameWithoutExtension("foo.txt")).toBe("foo");
                 expect(FileUtils.getFilenameWithoutExtension("foo.min.txt")).toBe("foo.min");
                 expect(FileUtils.getFilenameWithoutExtension("foo")).toBe("foo");
-                
+
                 expect(FileUtils.getFilenameWithoutExtension(".foo")).toBe("");
-            });
-        });
-
-        describe("getSmartFileExtension", function () {
-
-            it("should get the extension of a normalized win file path", function () {
-                expect(FileUtils.getSmartFileExtension("C:/foo/bar/baz.txt")).toBe("txt");
-            });
-
-            it("should get the extension of a posix file path", function () {
-                expect(FileUtils.getSmartFileExtension("/foo/bar/baz.txt")).toBe("txt");
-            });
-
-            it("should return empty extension for a normalized win directory path", function () {
-                expect(FileUtils.getSmartFileExtension("C:/foo/bar/")).toBe("");
-            });
-
-            it("should return empty extension for a posix directory path", function () {
-                expect(FileUtils.getSmartFileExtension("bar")).toBe("");
-            });
-
-            it("should return the extension of a filename containing .", function () {
-                expect(FileUtils.getSmartFileExtension("C:/foo/bar/.baz/jaz.txt")).toBe("txt");
-                expect(FileUtils.getSmartFileExtension("foo/bar/baz/.jaz.txt")).toBe("txt");
-                expect(FileUtils.getSmartFileExtension("foo.bar.baz..jaz.txt")).toBe("txt");
-            });
-
-            it("should return no extension for files with only . as a first character", function () {
-                expect(FileUtils.getSmartFileExtension("C:/foo/bar/.baz/.jaz")).toBe("");
-            });
-
-            it("should return the extension containing . for known types", function () {
-                expect(FileUtils.getSmartFileExtension("C:/foo/bar/.baz/jaz.scss.erb")).toBe("scss.erb");
-                expect(FileUtils.getSmartFileExtension("foo/bar/baz/.jaz.js.erb")).toBe("js.erb");
-            });
-
-            it("should return the extension combined from other known extensions", function () {
-                expect(FileUtils.getSmartFileExtension("foo.bar.php.js")).toBe("php.js");
-                expect(FileUtils.getSmartFileExtension("foo.bar.php.html.js")).toBe("php.html.js");
-                expect(FileUtils.getSmartFileExtension("foo.bar.php.scss.erb")).toBe("php.scss.erb");
             });
         });
 

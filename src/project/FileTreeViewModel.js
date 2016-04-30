@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
      *
      * Contains the treeData used to generate the file tree and methods used to update that
      * treeData.
-     * 
+     *
      * Instances dispatch the following events:
      * - "change" (FileTreeViewModel.EVENT_CHANGE constant): Fired any time there's a change that should be reflected in the view.
      */
@@ -89,18 +89,18 @@ define(function (require, exports, module) {
      *     * They can have flags like selected, context, rename, create with state information for the tree
      */
     FileTreeViewModel.prototype._treeData = Immutable.Map();
-    
+
     Object.defineProperty(FileTreeViewModel.prototype, "treeData", {
         get: function () {
             return this._treeData;
         }
     });
-    
+
     /**
      * @private
      * @type {Immutable.Map}
      * Selection view information determines how the selection bar appears.
-     * 
+     *
      * * width: visible width of the selection area
      * * scrollTop: current scroll position.
      * * scrollLeft: current horizontal scroll position
@@ -116,13 +116,13 @@ define(function (require, exports, module) {
         hasContext: false,
         hasSelection: false
     });
-    
+
     Object.defineProperty(FileTreeViewModel.prototype, "selectionViewInfo", {
         get: function () {
             return this._selectionViewInfo;
         }
     });
-    
+
     /**
      * @private
      *
@@ -148,7 +148,7 @@ define(function (require, exports, module) {
             this._treeData = treeData;
             changed = true;
         }
-        
+
         if (selectionViewInfo && selectionViewInfo !== this._selectionViewInfo) {
             this._selectionViewInfo = selectionViewInfo;
             changed = true;
@@ -452,7 +452,7 @@ define(function (require, exports, module) {
     FileTreeViewModel.prototype.moveMarker = function (markerName, oldPath, newPath) {
         var newTreeData = _moveMarker(this._treeData, markerName, oldPath, newPath),
             selectionViewInfo = this._selectionViewInfo;
-        
+
         if (markerName === "selected") {
             selectionViewInfo = selectionViewInfo.set("hasSelection", !!newPath);
         } else if (markerName === "context") {
@@ -551,10 +551,10 @@ define(function (require, exports, module) {
         }
         return result ? result.needsLoading : false;
     };
-    
+
     /**
      * Returns the object at the given file path.
-     * 
+     *
      * @param {string} path Path to the object
      * @return {Immutable.Map=} directory or file object from the tree. Null if it's not found.
      */
@@ -565,16 +565,16 @@ define(function (require, exports, module) {
         }
         return this._treeData.getIn(objectPath);
     };
-    
+
     /**
      * Closes a subtree path, given by an object path.
-     * 
+     *
      * @param {Immutable.Map} directory Current directory
      * @return {Immutable.Map} new directory
      */
     function _closeSubtree(directory) {
         directory = directory.delete("open");
-        
+
         var children = directory.get("children");
         if (children) {
             children.keySeq().forEach(function (name) {
@@ -585,26 +585,26 @@ define(function (require, exports, module) {
                 }
             });
         }
-        
+
         directory = directory.set("children", children);
         return directory;
     }
-    
+
     /**
      * Closes the directory at path and recursively closes all of its children.
-     * 
+     *
      * @param {string} path Path of subtree to close
      */
     FileTreeViewModel.prototype.closeSubtree = function (path) {
         var treeData = this._treeData,
             subtreePath = _filePathToObjectPath(treeData, path);
-        
+
         if (!subtreePath) {
             return;
         }
-        
+
         var directory = treeData.getIn(subtreePath);
-        
+
         directory = _closeSubtree(directory);
         treeData = _setIn(treeData, subtreePath, directory);
         this._commit(treeData);
@@ -738,7 +738,7 @@ define(function (require, exports, module) {
                 } else {
 
                     // The directory is there, but the directory hasn't been loaded.
-                    // Update the directory to be a `notFullyLoaded` directory
+                    // Update the directory to be a `notFullyLoaded` directory.
                     treeData = treeData.updateIn(objectPath, _createNotFullyLoadedDirectory);
                     objectPath.push("children");
                     treePointer = treeData.getIn(objectPath);
@@ -883,7 +883,7 @@ define(function (require, exports, module) {
         if (parentPath.length > 0) {
             var childrenPath = _.clone(parentPath);
             childrenPath.push("children");
-            
+
             treeData = treeData.updateIn(childrenPath, function (children) {
                 return children.set(name, newFile);
             });
@@ -998,7 +998,7 @@ define(function (require, exports, module) {
                 if (treeData.getIn(childrenPath) === null) {
                     return;
                 }
-                
+
                 treeData = _createPlaceholder(treeData, parentPath, basename, isFolder, {
                     notInCreateMode: true,
                     doNotOpen: true
@@ -1038,14 +1038,14 @@ define(function (require, exports, module) {
 
         this._commit(treeData);
     };
-    
+
     /**
      * Makes sure that the directory exists. This will create a directory object (unloaded)
      * if the directory does not already exist. A change message is also fired in that case.
-     * 
+     *
      * This is useful for file system events which can refer to a directory that we don't
      * know about already.
-     * 
+     *
      * @param {string} path Project-relative path to the directory
      */
     FileTreeViewModel.prototype.ensureDirectoryExists = function (path) {
@@ -1054,7 +1054,7 @@ define(function (require, exports, module) {
             parentPath        = FileUtils.getDirectoryPath(pathWithoutSlash),
             name              = pathWithoutSlash.substr(parentPath.length),
             targetPath        = [];
-        
+
         if (parentPath) {
             targetPath = _filePathToObjectPath(treeData, parentPath);
             if (!targetPath) {
@@ -1065,17 +1065,17 @@ define(function (require, exports, module) {
                 return;
             }
         }
-        
+
         targetPath.push(name);
-        
+
         if (treeData.getIn(targetPath)) {
             return;
         }
-        
+
         treeData = _setIn(treeData, targetPath, Immutable.Map({
             children: null
         }));
-        
+
         this._commit(treeData);
     };
 
@@ -1091,10 +1091,10 @@ define(function (require, exports, module) {
             this.trigger(EVENT_CHANGE);
         }
     };
-    
+
     /**
      * Sets the width of the selection bar.
-     * 
+     *
      * @param {int} width New width
      */
     FileTreeViewModel.prototype.setSelectionWidth = function (width) {
@@ -1102,12 +1102,12 @@ define(function (require, exports, module) {
         selectionViewInfo = selectionViewInfo.set("width", width);
         this._commit(null, selectionViewInfo);
     };
-    
+
     /**
      * Sets the scroll position of the file tree to help position the selection bar.
      * SPECIAL CASE NOTE: this does not trigger a change event because this data is
      * explicitly set in the rendering process (see ProjectManager._renderTree).
-     * 
+     *
      * @param {int} scrollWidth width of the tree content
      * @param {int} scrollTop Scroll position
      * @param {int=} scrollLeft Horizontal scroll position
@@ -1116,17 +1116,17 @@ define(function (require, exports, module) {
     FileTreeViewModel.prototype.setSelectionScrollerInfo = function (scrollWidth, scrollTop, scrollLeft, offsetTop) {
         this._selectionViewInfo = this._selectionViewInfo.set("scrollWidth", scrollWidth);
         this._selectionViewInfo = this._selectionViewInfo.set("scrollTop", scrollTop);
-        
+
         if (scrollLeft !== undefined) {
             this._selectionViewInfo = this._selectionViewInfo.set("scrollLeft", scrollLeft);
         }
-        
+
         if (offsetTop !== undefined) {
             this._selectionViewInfo = this._selectionViewInfo.set("offsetTop", offsetTop);
         }
         // Does not emit change event. See SPECIAL CASE NOTE in docstring above.
     };
-    
+
     // Private API
     exports.EVENT_CHANGE          = EVENT_CHANGE;
     exports._filePathToObjectPath = _filePathToObjectPath;

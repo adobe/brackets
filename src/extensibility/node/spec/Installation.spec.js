@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -60,13 +60,13 @@ var basicValidExtension       = path.join(testFilesDirectory, "basic-valid-exten
 
 
 describe("Package Installation", function () {
-    
+
     var standardOptions = {
         disabledDirectory: disabledDirectory,
         systemExtensionDirectory: systemExtensionDirectory,
         apiVersion: "0.22.0"
     };
-    
+
     beforeEach(function (done) {
         fs.mkdirs(installDirectory, function (err) {
             fs.mkdirs(disabledDirectory, function (err) {
@@ -74,13 +74,13 @@ describe("Package Installation", function () {
             });
         });
     });
-    
+
     afterEach(function (done) {
         fs.remove(installParent, function (err) {
             done();
         });
     });
-    
+
     function checkPaths(pathsToCheck, callback) {
         var existsCalls = [];
         pathsToCheck.forEach(function (path) {
@@ -88,7 +88,7 @@ describe("Package Installation", function () {
                 fs.exists(path, async.apply(callback, null));
             });
         });
-        
+
         async.parallel(existsCalls, function (err, results) {
             expect(err).toBeNull();
             results.forEach(function (result, num) {
@@ -97,7 +97,7 @@ describe("Package Installation", function () {
             callback();
         });
     }
-    
+
     it("should validate the package", function (done) {
         ExtensionsDomain._cmdInstall(missingMain, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
@@ -107,11 +107,11 @@ describe("Package Installation", function () {
             done();
         });
     });
-    
+
     it("should work fine if all is well", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
             var extensionDirectory = path.join(installDirectory, "basic-valid-extension");
-            
+
             expect(err).toBeNull();
             var errors = result.errors;
             expect(errors.length).toEqual(0);
@@ -119,20 +119,20 @@ describe("Package Installation", function () {
             expect(result.name).toEqual("basic-valid-extension");
             expect(result.installedTo).toEqual(extensionDirectory);
             expect(result.installationStatus).toEqual("INSTALLED");
-            
+
             var pathsToCheck = [
                 path.join(extensionDirectory, "package.json"),
                 path.join(extensionDirectory, "main.js")
             ];
-            
+
             checkPaths(pathsToCheck, done);
         });
     });
-    
+
     it("should signal if an update installation is required", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
             var extensionDirectory = path.join(installDirectory, "basic-valid-extension");
-            
+
             expect(err).toBeNull();
             expect(result.installedTo).toEqual(extensionDirectory);
             expect(result.installationStatus).toEqual("INSTALLED");
@@ -144,7 +144,7 @@ describe("Package Installation", function () {
             });
         });
     });
-    
+
     it("should successfully update an extension", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
@@ -163,7 +163,7 @@ describe("Package Installation", function () {
             });
         });
     });
-    
+
     it("should signal an update if a package.json appears", function (done) {
         ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
@@ -175,7 +175,7 @@ describe("Package Installation", function () {
             });
         });
     });
-    
+
     // This is mildly redundant. the validation check should catch this.
     // But, I wanted to be sure that the install function doesn't try to
     // do anything with the file before validation.
@@ -189,7 +189,7 @@ describe("Package Installation", function () {
                 done();
             });
     });
-    
+
     it("should not install by default if the same version is already installed", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
@@ -200,7 +200,7 @@ describe("Package Installation", function () {
             });
         });
     });
-    
+
     it("should not install by default if an older version is already installed", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
@@ -211,7 +211,7 @@ describe("Package Installation", function () {
             });
         });
     });
-    
+
     it("should not install by default if the same legacy extension is already installed", function (done) {
         ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
@@ -222,21 +222,21 @@ describe("Package Installation", function () {
             });
         });
     });
-    
+
     it("should yield an error if there's no disabled directory set", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, { apiVersion: "0.22.0" }, function (err, result) {
             expect(err.message).toEqual("MISSING_REQUIRED_OPTIONS");
             done();
         });
     });
-    
+
     it("should yield an error if there's no apiVersion set", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, { disabledDirectory: disabledDirectory }, function (err, result) {
             expect(err.message).toEqual("MISSING_REQUIRED_OPTIONS");
             done();
         });
     });
-    
+
     it("should derive the name from the zip if there's no package.json", function (done) {
         ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
@@ -248,7 +248,7 @@ describe("Package Installation", function () {
             checkPaths(pathsToCheck, done);
         });
     });
-    
+
     it("should install with the common prefix removed", function (done) {
         ExtensionsDomain._cmdInstall(oneLevelDown, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
@@ -261,7 +261,7 @@ describe("Package Installation", function () {
             checkPaths(pathsToCheck, done);
         });
     });
-    
+
     it("should disable extensions that are not compatible with the current Brackets API", function (done) {
         ExtensionsDomain._cmdInstall(incompatibleVersion, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
@@ -275,7 +275,7 @@ describe("Package Installation", function () {
             checkPaths(pathsToCheck, done);
         });
     });
-    
+
     it("should not have trouble with invalid zip files", function (done) {
         ExtensionsDomain._cmdInstall(invalidZip, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
@@ -283,7 +283,7 @@ describe("Package Installation", function () {
             done();
         });
     });
-    
+
     it("should remove an installed package", function (done) {
         ExtensionsDomain._cmdInstall(basicValidExtension, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
@@ -295,7 +295,7 @@ describe("Package Installation", function () {
             });
         });
     });
-    
+
     it("should handle a package renamed with package.json", function (done) {
         ExtensionsDomain._cmdInstall(missingPackageJSON, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();
@@ -315,7 +315,7 @@ describe("Package Installation", function () {
             });
         });
     });
-    
+
     it("should strip out symlinks in the zipfile", function (done) {
         ExtensionsDomain._cmdInstall(withSymlink, installDirectory, standardOptions, function (err, result) {
             expect(err).toBeNull();

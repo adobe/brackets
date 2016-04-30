@@ -1,4 +1,4 @@
-﻿{
+{
     "file.newDoc":  [
         "Ctrl-N"
     ],
@@ -71,7 +71,13 @@
         }
     ],
     "edit.splitSelIntoLines": [
-        "Ctrl-Alt-L"
+        {
+           "key": "Ctrl-Alt-L"
+        },
+        {
+           "key":"Ctrl-Shift-L",
+           "platform": "linux"
+        }
     ],
     "edit.addCursorToPrevLine": [
         {
@@ -211,7 +217,7 @@
             "platform": "mac"
         }
     ],
-    "view.hideSidebar":  [
+    "view.toggleSidebar":  [
         {   
             "key" : "Ctrl-Alt-H"
         },
@@ -311,6 +317,16 @@
         {
             "key": "Cmd-Shift-[",
             "platform": "mac"
+        }
+    ],
+    "navigate.nextDocListOrder":  [
+        {
+            "key": "Ctrl-PageDown"
+        }
+    ],
+    "navigate.prevDocListOrder":  [
+        {
+            "key": "Ctrl-PageUp"
         }
     ],
     "navigate.toggleQuickEdit":  [

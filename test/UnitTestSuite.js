@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,6 +60,7 @@ define(function (require, exports, module) {
     require("spec/HTMLTokenizer-test");
     require("spec/InlineEditorProviders-test");
     require("spec/InstallExtensionDialog-test");
+    require("spec/JSONUtils-test");
     require("spec/KeyBindingManager-test");
     require("spec/LanguageManager-test");
     require("spec/LiveDevelopment-test");
@@ -77,6 +78,7 @@ define(function (require, exports, module) {
     require("spec/ProjectManager-test");
     require("spec/ProjectModel-test");
     require("spec/QuickOpen-test");
+    require("spec/QuickSearchField-test");
     require("spec/RemoteFunctions-test");
     require("spec/StringMatch-test");
     require("spec/StringUtils-test");

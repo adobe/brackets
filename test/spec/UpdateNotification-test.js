@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -26,13 +26,13 @@
 /*global define, $, describe, it, expect, beforeEach, afterEach, waitsForDone, waitsForFail, spyOn, runs */
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependent modules
     var UpdateNotification, // Load from brackets.test
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
     describe("UpdateNotification", function () {
-        
+
         this.category = "integration";
 
         var updateInfoURL = "file://" + SpecRunnerUtils.getTestPath("/spec/UpdateNotification-test-files") + "/versionInfo.json",
@@ -234,7 +234,7 @@ define(function (require, exports, module) {
             }
 
             it("should fall back to de.json when de-ch.json is not available", function () {
-                var defaultUpdateUrl = testWindow.brackets.config.update_info_url + "de.json";
+                var defaultUpdateUrl = testWindow.brackets.config.update_info_url + "?locale=de";
 
                 setupAjaxSpy(defaultUpdateUrl);
 
@@ -243,7 +243,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var promise = UpdateNotification.checkForUpdate(true, updateInfo);
-                    waitsForDone(promise, "Check for updates");
+                    waitsForDone(promise, "Check for updates", 10000);
                 });
 
                 runs(function () {
@@ -253,7 +253,7 @@ define(function (require, exports, module) {
             });
 
             it("should fall back to en.json when it.json is not available", function () {
-                var defaultUpdateUrl = testWindow.brackets.config.update_info_url + "en.json";
+                var defaultUpdateUrl = testWindow.brackets.config.update_info_url + "?locale=en";
 
                 setupAjaxSpy(defaultUpdateUrl);
 
@@ -262,7 +262,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var promise = UpdateNotification.checkForUpdate(true, updateInfo);
-                    waitsForDone(promise, "Check for updates");
+                    waitsForDone(promise, "Check for updates", 10000);
                 });
 
                 runs(function () {

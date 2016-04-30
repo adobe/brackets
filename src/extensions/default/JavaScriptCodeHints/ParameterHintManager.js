@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,9 +26,9 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _ = brackets.getModule("thirdparty/lodash");
-    
+
     var Commands        = brackets.getModule("command/Commands"),
         CommandManager  = brackets.getModule("command/CommandManager"),
         KeyEvent        = brackets.getModule("utils/KeyEvent"),
@@ -306,17 +306,17 @@ define(function (require, exports, module) {
         var functionInfo = session.getFunctionInfo();
         if (functionInfo.inFunctionCall) {
             var token = session.getToken();
-            
+
             if (token && token.string === "(") {
                 return popUpHint();
             }
         } else {
             dismissHint();
         }
-        
+
         return null;
     }
-    
+
     /**
      *  Show the parameter the cursor is on in bold when the cursor moves.
      *  Dismiss the pop up when the cursor moves off the function.
@@ -389,13 +389,21 @@ define(function (require, exports, module) {
      *      changes
      */
     function installListeners(editor) {
-        editor.on("keydown", function (event, editor, domEvent) {
+        editor.on("keydown.ParameterHints", function (event, editor, domEvent) {
             if (domEvent.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 dismissHint();
             }
-        }).on("scroll", function () {
+        }).on("scroll.ParameterHints", function () {
             dismissHint();
         });
+    }
+
+    /**
+     * Clean up after installListeners()
+     * @param {!Editor} editor
+     */
+    function uninstallListeners(editor) {
+        editor.off(".ParameterHints");
     }
 
     /**
@@ -429,6 +437,7 @@ define(function (require, exports, module) {
     exports.addCommands             = addCommands;
     exports.dismissHint             = dismissHint;
     exports.installListeners        = installListeners;
+    exports.uninstallListeners      = uninstallListeners;
     exports.isHintDisplayed         = isHintDisplayed;
     exports.popUpHint               = popUpHint;
     exports.popUpHintAtOpenParen    = popUpHintAtOpenParen;

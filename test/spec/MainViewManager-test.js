@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
@@ -26,7 +26,7 @@
 
 define(function (require, exports, module) {
     'use strict';
-    
+
     var CommandManager,          // loaded from brackets.test
         Commands,                // loaded from brackets.test
         DocumentManager,         // loaded from brackets.test
@@ -48,7 +48,7 @@ define(function (require, exports, module) {
         var getFileObject = function (name) {
             return FileSystem.getFileForPath(testPath + "/" + name);
         };
-        
+
         beforeEach(function () {
             runs(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
         });
-        
+
         afterEach(function () {
             MainViewManager._closeAll(MainViewManager.ALL_PANES);
             testWindow              = null;
@@ -83,7 +83,7 @@ define(function (require, exports, module) {
             FileSystem              = null;
             SpecRunnerUtils.closeTestWindow();
         });
-    
+
         describe("basic attributes", function () {
             it("should have an active pane id", function () {
                 runs(function () {
@@ -111,7 +111,7 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("opening and closing files", function () {
             it("should open a file", function () {
                 runs(function () {
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
                             MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                             promise.resolve();
                         });
-                    
+
                     waitsForDone(promise, "MainViewManager.doEdit");
                 });
                 runs(function () {
@@ -214,7 +214,7 @@ define(function (require, exports, module) {
             });
         });
         describe("editor manager integration", function () {
-            
+
             beforeEach(function () {
             });
 
@@ -229,7 +229,7 @@ define(function (require, exports, module) {
                             MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                             promise.resolve();
                         });
-                    
+
                     waitsForDone(promise, "MainViewManager.doEdit");
                 });
                 runs(function () {
@@ -252,7 +252,7 @@ define(function (require, exports, module) {
                             MainViewManager._edit(MainViewManager.ACTIVE_PANE, doc);
                             promise.resolve();
                         });
-                    
+
                     waitsForDone(promise, "MainViewManager.doEdit");
                 });
                 runs(function () {
@@ -310,7 +310,7 @@ define(function (require, exports, module) {
             it("should create a new pane", function () {
                 var paneCreateListener = jasmine.createSpy(),
                     paneLayoutChangeListener = jasmine.createSpy();
-                    
+
                 runs(function () {
                     MainViewManager.on("paneCreate", paneCreateListener);
                     MainViewManager.on("paneLayoutChange", paneLayoutChangeListener);
@@ -323,10 +323,10 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getPaneIdList().length).toEqual(2);
                     expect(MainViewManager.getPaneIdList()[1]).toEqual("second-pane");
                     expect(MainViewManager.getAllOpenFiles().length).toEqual(0);
-                    
+
                     expect(paneCreateListener.callCount).toBe(1);
                     expect(paneLayoutChangeListener.callCount).toBe(1);
-                    
+
                     expect(paneCreateListener.calls[0].args[1]).toEqual("second-pane");
                     expect(paneLayoutChangeListener.calls[0].args[1]).toEqual("VERTICAL");
                 });
@@ -349,7 +349,7 @@ define(function (require, exports, module) {
             it("should destroy a pane", function () {
                 var paneDestroyListener = jasmine.createSpy(),
                     paneLayoutChangeListener = jasmine.createSpy();
-                    
+
                 runs(function () {
                     MainViewManager.on("paneDestroy", paneDestroyListener);
                     MainViewManager.on("paneLayoutChange", paneLayoutChangeListener);
@@ -372,7 +372,7 @@ define(function (require, exports, module) {
 
                     expect(paneDestroyListener.callCount).toBe(1);
                     expect(paneLayoutChangeListener.callCount).toBe(2);
-                    
+
                     expect(paneDestroyListener.calls[0].args[1]).toEqual("second-pane");
                     expect(paneLayoutChangeListener.calls[1].args[1]).toBeFalsy();
                 });
@@ -410,6 +410,43 @@ define(function (require, exports, module) {
                     MainViewManager.setActivePaneId("second-pane");
                     expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.css");
                     expect(EditorManager.getCurrentFullEditor().document.file.name).toEqual("test.css");
+                });
+            });
+            it("should flip the view to the other pane", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(MainViewManager._getPaneIdForPath(testPath + "/test.js")).toEqual("first-pane");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
+                });
+                runs(function () {
+                    MainViewManager._getPane("first-pane").$headerFlipViewBtn.trigger("click");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                });
+                runs(function () {
+                    MainViewManager._getPane("second-pane").$headerFlipViewBtn.trigger("click");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                    MainViewManager.setActivePaneId("second-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
                 });
             });
             it("should merge two panes to the right", function () {
@@ -465,12 +502,47 @@ define(function (require, exports, module) {
                     expect(MainViewManager._getPaneIdForPath(testPath + "/test.css")).toEqual(null);
                 });
             });
+            it("should close the view when clicked", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    expect(MainViewManager._getPaneIdForPath(testPath + "/test.js")).toEqual("first-pane");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE).name).toEqual("test.js");
+                });
+                runs(function () {
+                    MainViewManager._getPane("first-pane").$headerCloseBtn.trigger("click");
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+                    expect(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE)).toEqual(null);
+                });
+            });
+            it("should collapse the panes when close button is clicked on a pane with no files", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    MainViewManager._getPane("first-pane").$headerCloseBtn.trigger("click");
+                });
+                runs(function () {
+                    expect(MainViewManager.getLayoutScheme()).toEqual({rows: 1, columns: 1});
+                });
+            });
             it("should activate pane when editor gains focus", function () {
                 var editors = {},
                     handler = function (e, doc, editor, paneId) {
                         editors[doc.file.name] = editor;
                     };
-                
+
                 runs(function () {
                     EditorManager.on("_fullEditorCreatedForDocument", handler);
                     MainViewManager.setLayoutScheme(1, 2);
@@ -502,7 +574,7 @@ define(function (require, exports, module) {
                     handler = function (e, doc, editor, paneId) {
                         editors[doc.file.name] = editor;
                     };
-                
+
                 runs(function () {
                     EditorManager.on("_fullEditorCreatedForDocument", handler);
                     MainViewManager.setLayoutScheme(1, 2);
@@ -534,7 +606,7 @@ define(function (require, exports, module) {
             });
             it("should activate pane when pane is clicked", function () {
                 var activePaneChangeListener = jasmine.createSpy();
-                
+
                 runs(function () {
                     MainViewManager.on("activePaneChange", activePaneChangeListener);
                 });
@@ -566,7 +638,7 @@ define(function (require, exports, module) {
             });
             it("should toggle layout", function () {
                 var paneLayoutChangeListener = jasmine.createSpy();
-                
+
                 runs(function () {
                     MainViewManager.on("paneLayoutChange", paneLayoutChangeListener);
                 });
@@ -887,7 +959,7 @@ define(function (require, exports, module) {
                 });
             });
             //
-            
+
             it("should remove the view when removing files from a workingset", function () {
                 runs(function () {
                     promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/test.js",
@@ -966,6 +1038,99 @@ define(function (require, exports, module) {
                     expect(MainViewManager.findInWorkingSet("second-pane", getFileObject("test.js").fullPath)).toNotEqual(-1);
                     expect(MainViewManager.findInWorkingSet("first-pane", getFileObject("test.js").fullPath)).toEqual(-1);
                     expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, getFileObject("test.css").fullPath)).toEqual(-1);
+                });
+            });
+        });
+
+        describe("Traversing Files", function () {
+            beforeEach(function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.css",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.html",
+                                                                            paneId: "second-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    MainViewManager.addToWorkingSet("first-pane", getFileObject("test.js"));
+                    MainViewManager.addToWorkingSet("first-pane", getFileObject("test.css"));
+                    MainViewManager.addToWorkingSet("second-pane", getFileObject("test.html"));
+                });
+            });
+
+            it("should traverse in list order", function () {
+                runs(function () {
+                    // Make test.js the active file
+                    promise = new $.Deferred();
+                    DocumentManager.getDocumentForPath(testPath + "/test.js")
+                        .done(function (doc) {
+                            MainViewManager._edit("first-pane", doc);
+                            promise.resolve();
+                        });
+                    waitsForDone(promise, "MainViewManager._edit");
+                });
+                runs(function () {
+                    var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
+
+                    expect(traverseResult.file).toEqual(getFileObject("test.css"));
+                    expect(traverseResult.pane).toEqual("first-pane");
+                });
+            });
+
+            it("should traverse between panes in list order", function () {
+                runs(function () {
+                    var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
+
+                    expect(traverseResult.file).toEqual(getFileObject("test.js"));
+                    expect(traverseResult.pane).toEqual("first-pane");
+                });
+            });
+
+            it("should traverse to the first Working Set item if a file not in the Working Set is being viewed", function () {
+                runs(function () {
+                    // Close test.js to then reopen it without being in the Working Set
+                    CommandManager.execute(Commands.FILE_CLOSE, { file: getFileObject("test.js") });
+                    promise = CommandManager.execute(Commands.FILE_OPEN,  { fullPath: testPath + "/test.js",
+                                                                            paneId: "first-pane" });
+                    waitsForDone(promise, Commands.FILE_OPEN);
+                });
+                runs(function () {
+                    MainViewManager.setActivePaneId("first-pane");
+
+                    var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
+
+                    expect(traverseResult.file).toEqual(getFileObject("test.css"));
+                    expect(traverseResult.pane).toEqual("first-pane");
+                });
+            });
+
+            it("should traverse between panes in reverse list order", function () {
+                runs(function () {
+                    // Make test.js the active file
+                    promise = new $.Deferred();
+                    DocumentManager.getDocumentForPath(testPath + "/test.js")
+                        .done(function (doc) {
+                            MainViewManager._edit("first-pane", doc);
+                            promise.resolve();
+                        });
+                    waitsForDone(promise, "MainViewManager._edit");
+                });
+                runs(function () {
+                    var traverseResult = MainViewManager.traverseToNextViewInListOrder(-1);
+
+                    expect(traverseResult.file).toEqual(getFileObject("test.html"));
+                    expect(traverseResult.pane).toEqual("second-pane");
                 });
             });
         });

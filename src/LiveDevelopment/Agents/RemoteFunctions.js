@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -36,15 +36,15 @@ function RemoteFunctions(experimental) {
     "use strict";
 
     var lastKeepAliveTime = Date.now();
-    
+
     /**
      * @type {DOMEditHandler}
      */
     var _editHandler;
-    
+
     var HIGHLIGHT_CLASSNAME = "__brackets-ld-highlight",
         KEEP_ALIVE_TIMEOUT  = 3000;   // Keep alive timeout value, in milliseconds
-    
+
     // determine whether an event should be processed for Live Development
     function _validEvent(event) {
         if (navigator.platform.substr(0, 3) === "Mac") {
@@ -240,14 +240,14 @@ function RemoteFunctions(experimental) {
             var elementBounds = element.getBoundingClientRect(),
                 highlight = window.document.createElement("div"),
                 styles = window.getComputedStyle(element);
-            
+
             // Don't highlight elements with 0 width & height
             if (elementBounds.width === 0 && elementBounds.height === 0) {
                 return;
             }
-            
+
             highlight.className = HIGHLIGHT_CLASSNAME;
-            
+
             var offset = _screenOffset(element);
 
             var stylesToSet = {
@@ -270,27 +270,27 @@ function RemoteFunctions(experimental) {
                 "box-shadow": "0 0 1px #fff",
                 "box-sizing": "border-box"
             };
-            
+
             var animateStartValues = {
                 "background-color": "rgba(0, 162, 255, 0.5)",
                 "opacity": 0
             };
-            
+
             var animateEndValues = {
                 "background-color": "rgba(0, 162, 255, 0)",
                 "opacity": 1
             };
-            
+
             var transitionValues = {
                 "-webkit-transition-property": "opacity, background-color",
                 "-webkit-transition-duration": "300ms, 2.3s",
                 "transition-property": "opacity, background-color",
                 "transition-duration": "300ms, 2.3s"
             };
-            
+
             function _setStyleValues(styleValues, obj) {
                 var prop;
-                
+
                 for (prop in styleValues) {
                     obj.setProperty(prop, styleValues[prop]);
                 }
@@ -301,19 +301,19 @@ function RemoteFunctions(experimental) {
                 doAnimation ? animateStartValues : animateEndValues,
                 highlight.style
             );
-            
-            
+
+
             if (doAnimation) {
                 _setStyleValues(transitionValues, highlight.style);
-                
+
                 window.setTimeout(function () {
                     _setStyleValues(animateEndValues, highlight.style);
                 }, 20);
             }
-        
+
             window.document.body.appendChild(highlight);
         },
-        
+
         add: function (element, doAnimation) {
             if (this._elementExists(element) || element === document) {
                 return;
@@ -322,14 +322,14 @@ function RemoteFunctions(experimental) {
                 _trigger(element, "highlight", 1);
             }
             this.elements.push(element);
-            
+
             this._makeHighlightDiv(element, doAnimation);
         },
 
         clear: function () {
             var i, highlights = window.document.querySelectorAll("." + HIGHLIGHT_CLASSNAME),
                 body = window.document.body;
-        
+
             for (i = 0; i < highlights.length; i++) {
                 body.removeChild(highlights[i]);
             }
@@ -339,13 +339,13 @@ function RemoteFunctions(experimental) {
                     _trigger(this.elements[i], "highlight", 0);
                 }
             }
-            
+
             this.elements = [];
         },
-        
+
         redraw: function () {
             var i, highlighted;
-            
+
             // When redrawing a selector-based highlight, run a new selector
             // query to ensure we have the latest set of elements to highlight.
             if (this.selector) {
@@ -353,7 +353,7 @@ function RemoteFunctions(experimental) {
             } else {
                 highlighted = this.elements.slice(0);
             }
-            
+
             this.clear();
             for (i = 0; i < highlighted.length; i++) {
                 this.add(highlighted[i], false);
@@ -443,7 +443,7 @@ function RemoteFunctions(experimental) {
     function keepAlive() {
         lastKeepAliveTime = Date.now();
     }
-    
+
     // show goto
     function showGoto(targets) {
         if (!_currentMenu) {
@@ -485,18 +485,18 @@ function RemoteFunctions(experimental) {
         }
         _remoteHighlight.selector = rule;
     }
-    
+
     // redraw active highlights
     function redrawHighlights() {
         if (_remoteHighlight) {
             _remoteHighlight.redraw();
         }
     }
-    
+
     window.addEventListener("resize", redrawHighlights);
     // Add a capture-phase scroll listener to update highlights when
     // any element scrolls.
-    
+
     function _scrollHandler(e) {
         // Document scrolls can be updated immediately. Any other scrolls
         // need to be updated on a timer to ensure the layout is correct.
@@ -508,23 +508,23 @@ function RemoteFunctions(experimental) {
             }
         }
     }
-    
+
     window.addEventListener("scroll", _scrollHandler, true);
-    
+
     var aliveTest = window.setInterval(function () {
         if (Date.now() > lastKeepAliveTime + KEEP_ALIVE_TIMEOUT) {
             // Remove highlights
             hideHighlight();
-            
+
             // Remove listeners
             window.removeEventListener("resize", redrawHighlights);
             window.removeEventListener("scroll", _scrollHandler, true);
-            
+
             // Clear this interval
             window.clearInterval(aliveTest);
         }
     }, 1000);
-    
+
     /**
      * Constructor
      * @param {Document} htmlDocument
@@ -545,15 +545,15 @@ function RemoteFunctions(experimental) {
         if (!id) {
             return null;
         }
-        
+
         if (this.rememberedNodes && this.rememberedNodes[id]) {
             return this.rememberedNodes[id];
         }
-        
+
         var results = this.htmlDocument.querySelectorAll("[data-brackets-id='" + id + "']");
         return results && results[0];
     };
-    
+
     /**
      * @private
      * Insert a new child element
@@ -564,13 +564,13 @@ function RemoteFunctions(experimental) {
     DOMEditHandler.prototype._insertChildNode = function (targetElement, childElement, edit) {
         var before = this._queryBracketsID(edit.beforeID),
             after  = this._queryBracketsID(edit.afterID);
-        
+
         if (edit.firstChild) {
             before = targetElement.firstChild;
         } else if (edit.lastChild) {
             after = targetElement.lastChild;
         }
-        
+
         if (before) {
             targetElement.insertBefore(childElement, before);
         } else if (after && (after !== targetElement.lastChild)) {
@@ -579,7 +579,7 @@ function RemoteFunctions(experimental) {
             targetElement.appendChild(childElement);
         }
     };
-    
+
     /**
      * @private
      * Given a string containing encoded entity references, returns the string with the entities decoded.
@@ -595,7 +595,7 @@ function RemoteFunctions(experimental) {
         this.entityParseParent.textContent = "";
         return result;
     };
-    
+
     /**
      * @private
      * @param {Node} node
@@ -604,7 +604,7 @@ function RemoteFunctions(experimental) {
     function _isRawTextNode(node) {
         return (node.nodeType === Node.ELEMENT_NODE && /script|style|noscript|noframes|noembed|iframe|xmp/i.test(node.tagName));
     }
-    
+
     /**
      * @private
      * Replace a range of text and comment nodes with an optional new text node
@@ -631,7 +631,7 @@ function RemoteFunctions(experimental) {
             }
             return node;
         }
-        
+
         var start           = (edit.afterID)  ? this._queryBracketsID(edit.afterID)  : null,
             startMissing    = edit.afterID && !start,
             end             = (edit.beforeID) ? this._queryBracketsID(edit.beforeID) : null,
@@ -642,7 +642,7 @@ function RemoteFunctions(experimental) {
             textNode        = (edit.content !== undefined) ? this.htmlDocument.createTextNode(_isRawTextNode(targetElement) ? edit.content : this._parseEntities(edit.content)) : null,
             lastRemovedWasText,
             isText;
-        
+
         // remove all nodes inside the range
         while (current && (current !== end)) {
             isText = current.nodeType === Node.TEXT_NODE;
@@ -668,7 +668,7 @@ function RemoteFunctions(experimental) {
                 current = next;
             }
         }
-        
+
         if (textNode) {
             // OK to use nextSibling here (not nextIgnoringHighlights) because we do literally
             // want to insert immediately after the start tag.
@@ -681,7 +681,7 @@ function RemoteFunctions(experimental) {
             }
         }
     };
-    
+
     /**
      * @private
      * Apply an array of DOM edits to the document
@@ -692,12 +692,12 @@ function RemoteFunctions(experimental) {
             targetElement,
             childElement,
             self = this;
-        
+
         this.rememberedNodes = {};
-        
+
         edits.forEach(function (edit) {
             var editIsSpecialTag = edit.type === "elementInsert" && (edit.tag === "html" || edit.tag === "head" || edit.tag === "body");
-            
+
             if (edit.type === "rememberNodes") {
                 edit.tagIDs.forEach(function (tagID) {
                     var node = self._queryBracketsID(tagID);
@@ -710,15 +710,15 @@ function RemoteFunctions(experimental) {
                 });
                 return;
             }
-            
+
             targetID = edit.type.match(/textReplace|textDelete|textInsert|elementInsert|elementMove/) ? edit.parentID : edit.tagID;
             targetElement = self._queryBracketsID(targetID);
-            
+
             if (!targetElement && !editIsSpecialTag) {
                 console.error("data-brackets-id=" + targetID + " not found");
                 return;
             }
-            
+
             switch (edit.type) {
             case "attrChange":
             case "attrAdd":
@@ -748,12 +748,12 @@ function RemoteFunctions(experimental) {
                 if (!editIsSpecialTag) {
                     childElement = self.htmlDocument.createElement(edit.tag);
                 }
-                
+
                 Object.keys(edit.attributes).forEach(function (attr) {
                     childElement.setAttribute(attr, self._parseEntities(edit.attributes[attr]));
                 });
                 childElement.setAttribute("data-brackets-id", edit.tagID);
-                
+
                 if (!editIsSpecialTag) {
                     self._insertChildNode(targetElement, childElement, edit);
                 }
@@ -772,17 +772,17 @@ function RemoteFunctions(experimental) {
                 break;
             }
         });
-        
+
         this.rememberedNodes = {};
-        
+
         // update highlight after applying diffs
         redrawHighlights();
     };
-    
+
     function applyDOMEdits(edits) {
         _editHandler.apply(edits);
     }
-    
+
     /**
      *
      * @param {Element} elem
@@ -793,18 +793,18 @@ function RemoteFunctions(experimental) {
             len,
             node,
             value;
-        
+
         len = elem.attributes.length;
         for (i = 0; i < len; i++) {
             node = elem.attributes.item(i);
             value = (node.name === "data-brackets-id") ? parseInt(node.value, 10) : node.value;
             json.attributes[node.name] = value;
         }
-        
+
         len = elem.childNodes.length;
         for (i = 0; i < len; i++) {
             node = elem.childNodes.item(i);
-            
+
             // ignores comment nodes and visuals generated by live preview
             if (node.nodeType === Node.ELEMENT_NODE && node.className !== HIGHLIGHT_CLASSNAME) {
                 json.children.push(_domElementToJSON(node));
@@ -812,17 +812,17 @@ function RemoteFunctions(experimental) {
                 json.children.push({ content: node.nodeValue });
             }
         }
-        
+
         return json;
     }
-    
+
     function getSimpleDOM() {
         return JSON.stringify(_domElementToJSON(document.documentElement));
     }
 
     // init
     _editHandler = new DOMEditHandler(window.document);
-    
+
     if (experimental) {
         window.document.addEventListener("keydown", onKeyDown);
     }
