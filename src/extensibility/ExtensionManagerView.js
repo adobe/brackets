@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, Mustache */
+/*global define, $, brackets */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         registry_utils            = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         LocalizationUtils         = require("utils/LocalizationUtils"),
-        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
+        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html"),
+        Mustache                  = require("thirdparty/mustache/mustache");
 
     /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized

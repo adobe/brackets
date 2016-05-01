@@ -22,12 +22,13 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, Mustache */
+/*global $, define */
 
 define(function (require, exports, module) {
     "use strict";
 
     var _                   = require("thirdparty/lodash"),
+        Mustache            = require("thirdparty/mustache/mustache"),
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
         ViewCommandHandlers = require("view/ViewCommandHandlers"),
