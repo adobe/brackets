@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window, PathUtils */
+/*global define, brackets, $, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -40,7 +40,8 @@ define(function (require, exports, module) {
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         Strings             = brackets.getModule("strings"),
         ViewUtils           = brackets.getModule("utils/ViewUtils"),
-        TokenUtils          = brackets.getModule("utils/TokenUtils");
+        TokenUtils          = brackets.getModule("utils/TokenUtils"),
+        PathUtils           = brackets.getModule("thirdparty/path-utils/path-utils");
 
     var previewContainerHTML       = require("text!QuickViewTemplate.html");
 
