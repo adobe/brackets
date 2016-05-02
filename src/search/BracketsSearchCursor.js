@@ -284,6 +284,15 @@ define(function (require, exports, module) {
             return resultArray.currentGroupNumber();
         }
 
+        function getFullResultInfo(matchNumber, query, docText) {
+            var groupIndex = resultArray.getGroupIndex(matchNumber);
+            query.lastIndex = resultArray[groupIndex];
+            var matchInfo = query.exec(docText);
+            var currentMatch = getCurrentMatch();
+            currentMatch.match = matchInfo;
+            return currentMatch;
+        }
+
         function createSearchResults(docText, query) {
             console.time("exec");
             var matchArray;
@@ -308,7 +317,8 @@ define(function (require, exports, module) {
                 setCurrentMatchNumber:setCurrentMatchNumber,
                 getMatchIndexStart:getMatchIndexStart,
                 getMatchIndexEnd:getMatchIndexEnd,
-                getCurentMatchNumber:getCurrentMatchNumber,
+                getCurrentMatchNumber:getCurrentMatchNumber,
+                getFullResultInfo:getFullResultInfo,
                 forEachMatch:forEachMatch
         }
     }
@@ -339,6 +349,8 @@ define(function (require, exports, module) {
                 cursor.executeSearch();
             }
         }
+
+        // Return all public functions for the cursor
         return _.assign(Object.create(null), {
             initialize: function(query, pos, doc, ignoreCase) {
                 this.atOccurrence = false;
@@ -393,7 +405,7 @@ define(function (require, exports, module) {
             },
 
             getCurrentMatchNumber: function() {
-                return this.regexIndexer.getCurentMatchNumber();
+                return this.regexIndexer.getCurrentMatchNumber();
             },
 
             find: function(reverse) {
@@ -425,6 +437,11 @@ define(function (require, exports, module) {
 
             forEachResult: function(fnResult) {
                 this.regexIndexer.forEachMatch(fnResult);
+            },
+
+            getFullInfoForCurrentMatch: function() {
+                var docText = documentMap.get(this.doc).text;
+                return this.regexIndexer.getFullResultInfo(this.regexIndexer.getCurrentMatchNumber(), this.query, docText);
             },
 
             executeSearch: function () {

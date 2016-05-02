@@ -689,7 +689,8 @@ define(function (require, exports, module) {
             // Delegate to Replace in Files.
             FindInFilesUI.searchAndShowResults(state.queryInfo, editor.document.file, null, replaceText);
         } else {
-            cm.replaceSelection(state.queryInfo.isRegexp ? FindUtils.parseDollars(replaceText, state.lastMatch) : replaceText);
+            var matchInfo = state.searchCursor.getFullInfoForCurrentMatch();
+            cm.replaceSelection(state.queryInfo.isRegexp ? FindUtils.parseDollars(replaceText, matchInfo.match) : replaceText);
             updateResultSet(editor);  // we updated the text, so result count & tickmarks must be refreshed
 
             findNext(editor);
