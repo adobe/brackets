@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2016-present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,6 +60,12 @@ define(function (require, exports, module) {
         EditorManager.getCurrentFullEditor().setSelection(from, to, true);
     }
 
+    /**
+     * Scroll to the selected item in the current document (unless no query string entered yet,
+     * in which case the topmost list item is irrelevant)
+     * @param {?SearchResult} selectedItem
+     * @param {string} query
+     */
     function itemSelect(selectedItem, query) {
         itemFocus(selectedItem, query, true);
     }
