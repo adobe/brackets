@@ -20,14 +20,14 @@
         // same html page in preview mode (not tutorial mode)
         var fragmentId = /^\s*#/.test(url);
 
-        if(pathNav && window._Brackets_LiveDev_Transport) {
-            window._Brackets_LiveDev_Transport.send("bramble-navigate:" + url);
-        } else if(fragmentId) {
+        if(fragmentId) {
             element = document.querySelector(url) || document.getElementsByName(url.slice(1));
             if(element) {
                 element = element[0] || element;
                 element.scrollIntoView(true);
             }
+        } else if(pathNav && window._Brackets_LiveDev_Transport) {
+            window._Brackets_LiveDev_Transport.send("bramble-navigate:" + url);
         } else {
             window.open(url, "_blank");
         }
