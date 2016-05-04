@@ -533,7 +533,7 @@ define(function (require, exports, module) {
             var cursor = state.getSearchCursor(cm);
 
             if (cursor.getDocCharacterCount() <= FIND_MAX_FILE_SIZE) {
-                var resultCount = cursor.executeSearch();
+                var resultCount = cursor.scanDocumentAndStoreResultsInCursor();
 
                 // Highlight all matches if there aren't too many
                 if (resultCount <= FIND_HIGHLIGHT_MAX) {
@@ -541,7 +541,7 @@ define(function (require, exports, module) {
 
                     console.time("highlight");
                     var scrollTrackPositions = [];
-                    cursor.forEachResult(function (fromPos, toPos) {
+                    cursor.forEachMatch(function (fromPos, toPos) {
                         state.marked.push(cm.markText(fromPos, toPos,
                              { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
                         scrollTrackPositions.push(fromPos);
