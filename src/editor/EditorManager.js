@@ -541,11 +541,14 @@ define(function (require, exports, module) {
     function _showEditor(document, pane, editorOptions) {
         // Ensure a main editor exists for this document to show in the UI
         var createdNewEditor = false,
-            editor = document._masterEditor;
+            // Check if any full editor is present marked for the requested pane
+            // This check is required as _masterEditor is the active full editor for the document
+            // provided and there can be existing full editor created for other panes
+            editor = document._checkAssociatedEditorForPane(pane.id) || document._masterEditor;
 
-        //Check if a master editor is not set already or the current master editor doesn't belong
-        //to the pane container requested - to support creation of multiple full editors
-        if (!editor || editor._paneId !== pane.id) {
+        // Check if a master editor is not set already or the current master editor doesn't belong
+        // to the pane container requested - to support creation of multiple full editors
+        if (!editor || (editor._paneId && editor._paneId !== pane.id)) {
             // Performance (see #4757) Chrome wastes time messing with selection
             // that will just be changed at end, so clear it for now
             if (window.getSelection && window.getSelection().empty) {  // Chrome

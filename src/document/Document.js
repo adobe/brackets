@@ -200,15 +200,13 @@ define(function (require, exports, module) {
      * @param {!Editor} masterEditor
      */
     Document.prototype._makeEditable = function (masterEditor) {
-        if (this._masterEditor) {
-            //Already a master editor is associated , so preserve the old editor in list of full editors
-            if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
-                this._associatedFullEditors.push(this._masterEditor);
-            }
-        }
 
         this._text = null;
         this._masterEditor = masterEditor;
+
+        if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
+            this._associatedFullEditors.push(this._masterEditor);
+        }
 
         masterEditor.on("change", this._handleEditorChange.bind(this));
     };
@@ -250,6 +248,24 @@ define(function (require, exports, module) {
             }
             this._masterEditor = masterEditor;
         }
+    };
+
+
+    /**
+     * Checks and returns if a full editor exists for the provided pane attached to this document
+     * @param {String} paneId
+     * @return {Editor} Attached editor bound to the provided pane id
+     */
+    Document.prototype._checkAssociatedEditorForPane = function (paneId) {
+        var editorCount, editorForPane;
+        for (editorCount = 0; editorCount < this._associatedFullEditors; editorCount++) {
+            if (this._associatedFullEditors[editorCount]._paneId === paneId) {
+                editorForPane = this._associatedFullEditors[editorCount];
+                break;
+            }
+        }
+
+        return editorForPane;
     };
 
     /**
