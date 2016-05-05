@@ -161,7 +161,7 @@ define(function (require, exports, module) {
      */
     function createSearchResult(docLineIndex, indexStart, indexEnd, startLine) {
         if (typeof startLine === 'undefined') startLine = 0;
-        // use binary search when possible
+
         var fromPos = createPosFromIndex(docLineIndex, startLine, indexStart);
         var toPos   = createPosFromIndex(docLineIndex, fromPos.line,    indexEnd);
 
@@ -267,7 +267,7 @@ define(function (require, exports, module) {
     }
 
     function createRegexIndexer(docText, docLineIndex, query) {
-        // Start and End index stored in array as:
+        // Start and End index of each match stored in array as:
         // [0] = start index of first match
         // [1] = end index of first match
         // ...
@@ -312,7 +312,6 @@ define(function (require, exports, module) {
         function getCurrentMatch() {
             var currentMatchIndex = startEndIndexArray.currentGroupIndex();
             if (currentMatchIndex > -1)
-                // TODO pass in previous match index for faster search result
                 return createSearchResult(docLineIndex, startEndIndexArray[currentMatchIndex], startEndIndexArray[currentMatchIndex+1]);
         }
 
@@ -425,11 +424,8 @@ define(function (require, exports, module) {
              * @param {!{line: number, ch: number}} pos The search cursor location
              */
             setPos: function(pos) {
-                pos = pos ? this.doc.clipPos(pos) : Pos(0, 0);
-                this.currentMatch = {
-                    from: pos,
-                    to: pos
-                };
+                pos = pos || Pos(0, 0);
+                this.currentMatch = {from: pos, to: pos};
             },
             setDoc: function(doc) {
                 console.time('setDoc');
@@ -441,16 +437,19 @@ define(function (require, exports, module) {
                 console.timeEnd('setDoc');
             },
 
-            getDocCharacterCount: function(){
+            getDocCharacterCount: function() {
+                updateResultsIfNeeded(this);
                 var docLineIndex = getDocumentIndex(this.doc);
                 return docLineIndex[docLineIndex.length - 1];
             },
 
             getMatchCount: function() {
+                updateResultsIfNeeded(this);
                 return this.regexIndexer.getItemCount();
             },
 
             getCurrentMatchNumber: function() {
+                updateResultsIfNeeded(this);
                 return this.regexIndexer.getCurrentMatchNumber();
             },
 
@@ -478,6 +477,7 @@ define(function (require, exports, module) {
             },
 
             forEachMatch: function(fnResult) {
+                updateResultsIfNeeded(this);
                 this.regexIndexer.forEachMatch(fnResult);
             },
 
@@ -502,6 +502,7 @@ define(function (require, exports, module) {
 
     /**
      * Creates an updatable search cursor which can be used to navigate forward and backward through the results.
+     * {document: document, searchQuery: string or regex, position: Pos, ignoreCase: boolean}
      */
     function createSearchCursor(doc, parsedQuery, pos, ignoreCase) {
         console.log("creating new search cursor");

@@ -84,9 +84,10 @@ define(function (require, exports, module) {
         this.markedCurrent = null;
         this.searchCursor = null;
     }
-    SearchState.prototype.getSearchCursor = function getSearchCursor(cm, pos) {
+    SearchState.prototype.updateSearchCursor = function updateSearchCursor(cm, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
         if (this.searchCursor) {
+            // TODO. change to pass a set of properties on an object and then test for need to update index
             this.searchCursor.setDoc(cm.getDoc());
             this.searchCursor.setIgnoreCase(!this.queryInfo.isCaseSensitive);
             this.searchCursor.setQuery(this.parsedQuery);
@@ -191,12 +192,12 @@ define(function (require, exports, module) {
     function _getNextMatch(editor, searchBackwards, pos, wrap) {
         var cm = editor._codeMirror;
         var state = getSearchState(cm);
-        var cursor = state.getSearchCursor(cm, pos || editor.getCursorPos(false, searchBackwards ? "start" : "end"));
+        var cursor = state.updateSearchCursor(cm, pos || editor.getCursorPos(false, searchBackwards ? "start" : "end"));
 
         state.lastMatch = cursor.find(searchBackwards);
         if (!state.lastMatch && wrap !== false) {
             // If no result found before hitting edge of file, try wrapping around
-            cursor = state.getSearchCursor(cm, searchBackwards ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
+            cursor = state.updateSearchCursor(cm, searchBackwards ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
             state.lastMatch = cursor.find(searchBackwards);
         }
         if (!state.lastMatch) {
@@ -530,7 +531,7 @@ define(function (require, exports, module) {
 
             // Find *all* matches, searching from start of document
             // (Except on huge documents, where this is too expensive)
-            var cursor = state.getSearchCursor(cm);
+            var cursor = state.updateSearchCursor(cm);
 
             if (cursor.getDocCharacterCount() <= FIND_MAX_FILE_SIZE) {
                 var resultCount = cursor.scanDocumentAndStoreResultsInCursor();
