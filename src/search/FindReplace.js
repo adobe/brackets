@@ -87,15 +87,20 @@ define(function (require, exports, module) {
     SearchState.prototype.updateSearchCursor = function updateSearchCursor(cm, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
         if (this.searchCursor) {
-            // TODO. change to pass a set of properties on an object and then test for need to update index
-            this.searchCursor.setDoc(cm.getDoc());
-            this.searchCursor.setIgnoreCase(!this.queryInfo.isCaseSensitive);
-            this.searchCursor.setQuery(this.parsedQuery);
-            this.searchCursor.setPos(pos);
-
+            this.searchCursor.initialize({
+                searchQuery: this.parsedQuery,
+                ignoreCase: !this.queryInfo.isCaseSensitive,
+                position: pos
+            });
             return this.searchCursor;
         }
-        this.searchCursor = BracketsSearchCursor.createSearchCursor(cm.getDoc(), this.parsedQuery, pos, !this.queryInfo.isCaseSensitive);
+
+        this.searchCursor = BracketsSearchCursor.createSearchCursor({
+            document: cm.getDoc(),
+            searchQuery: this.parsedQuery,
+            ignoreCase: !this.queryInfo.isCaseSensitive,
+            position: pos
+        });
         return this.searchCursor;
     }
 
