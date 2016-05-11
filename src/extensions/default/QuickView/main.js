@@ -61,6 +61,9 @@ define(function (require, exports, module) {
 
     var styleLanguages = ["css", "text/x-less", "sass", "text/x-scss", "stylus"];
 
+    // List of protocols which we will support for image preview urls
+    var validProtocols = ["data:", "http:", "https:", "ftp:", "file:"];
+
     prefs = PreferencesManager.getExtensionPrefs("quickview");
     prefs.definePreference("enabled", "boolean", true, {
         description: Strings.DESCRIPTION_QUICK_VIEW_ENABLED
@@ -475,7 +478,8 @@ define(function (require, exports, module) {
 
         // Determine whether or not this URL/path is likely to be an image.
         var parsed = PathUtils.parseUrl(tokenString);
-        var hasProtocol = parsed.protocol !== "";
+        // If the URL has a protocol, check if it's one of the supported protocols
+        var hasProtocol = parsed.protocol !== "" && validProtocols.indexOf(parsed.protocol.trim().toLowerCase()) !== -1;
         var ext = parsed.filenameExtension.replace(/^\./, '');
         var language = LanguageManager.getLanguageForExtension(ext);
         var id = language && language.getId();
@@ -747,7 +751,7 @@ define(function (require, exports, module) {
     }
 
     function setExtensionlessImagePreview(_extensionlessImagePreview, doNotSave) {
-        if(extensionlessImagePreview !== _extensionlessImagePreview) {
+        if (extensionlessImagePreview !== _extensionlessImagePreview) {
             extensionlessImagePreview = _extensionlessImagePreview;
             if (!doNotSave) {
                 prefs.set("extensionlessImagePreview", enabled);
