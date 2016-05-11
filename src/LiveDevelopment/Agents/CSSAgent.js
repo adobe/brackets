@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, PathUtils */
+/*global define, $ */
 
 /**
  * CSSAgent keeps track of loaded style sheets and allows reloading them
@@ -35,12 +35,11 @@
 define(function CSSAgent(require, exports, module) {
     "use strict";
 
-    require("thirdparty/path-utils/path-utils.min");
-
     var _ = require("thirdparty/lodash");
 
     var Inspector       = require("LiveDevelopment/Inspector/Inspector"),
-        EventDispatcher = require("utils/EventDispatcher");
+        EventDispatcher = require("utils/EventDispatcher"),
+        PathUtils       = require("thirdparty/path-utils/path-utils");
 
     /**
      * Stylesheet details

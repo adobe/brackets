@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, window, Mustache*/
+/*global define, $, brackets, window*/
 
 define(function (require, exports, module) {
     "use strict";
@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         MainViewManager        = brackets.getModule("view/MainViewManager"),
         WorkingSetView         = brackets.getModule("project/WorkingSetView"),
         ExtensionManager       = brackets.getModule("extensibility/ExtensionManager"),
+        Mustache               = brackets.getModule("thirdparty/mustache/mustache"),
         ErrorNotification      = require("ErrorNotification"),
         NodeDebugUtils         = require("NodeDebugUtils"),
         PerfDialogTemplate     = require("text!htmlContent/perf-dialog.html"),

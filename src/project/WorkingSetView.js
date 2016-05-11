@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, brackets, Mustache  */
+/*global define, $, window, brackets */
 
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
@@ -45,7 +45,8 @@ define(function (require, exports, module) {
         KeyEvent              = require("utils/KeyEvent"),
         paneListTemplate      = require("text!htmlContent/working-set.html"),
         Strings               = require("strings"),
-        _                     = require("thirdparty/lodash");
+        _                     = require("thirdparty/lodash"),
+        Mustache              = require("thirdparty/mustache/mustache");
 
     /**
      * Open view dictionary
