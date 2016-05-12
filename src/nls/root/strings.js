@@ -65,6 +65,7 @@ define({
     "ERROR_SAVING_FILE"                 : "An error occurred when trying to save the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Error Renaming {0}",
     "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the {2} <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_NOT_IN_PROJECT"     : "The file or directory is not part of the currently opened project. Unfortunately, only project files can be renamed at this point.",
     "ERROR_DELETING_FILE_TITLE"         : "Error Deleting {0}",
     "ERROR_DELETING_FILE"               : "An error occurred when trying to delete the {2} <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid {0}",
@@ -778,5 +779,6 @@ define({
     "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Toggle when to show the close and flip-view buttons on the header.",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported\n * by {APP_NAME}.\n * Use this file as a reference to modify your preferences\n * file \"brackets.json\" opened in the other pane.\n * For more information on how to use preferences inside\n * {APP_NAME}, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default",
-    "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable code only mode and hide all other UI elements in {APP_NAME}"
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable code only mode and hide all other UI elements in {APP_NAME}",
+    "DESCRIPTION_INDENT_LINE_COMMENT"                : "true to enable indenting of line comments"
 });

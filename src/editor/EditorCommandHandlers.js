@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var Commands           = require("command/Commands"),
         Strings            = require("strings"),
+        Editor              = require("editor/Editor").Editor,
         CommandManager     = require("command/CommandManager"),
         EditorManager      = require("editor/EditorManager"),
         StringUtils        = require("utils/StringUtils"),
@@ -206,8 +207,30 @@ define(function (require, exports, module) {
 
         if (containsNotLineComment) {
             // Comment out - prepend the first prefix to each line
+            line = doc.getLine(startLine);
+            var originalCursorPosition = line.search(/\S|$/);
+            
+            var firstCharPosition,cursorPosition = originalCursorPosition;
+            
             for (i = startLine; i <= endLine; i++) {
-                editGroup.push({text: prefixes[0], start: {line: i, ch: 0}});
+                //check if preference for indent line comment is available otherwise go back to default indentation
+                if (Editor.getIndentLineComment()) {
+                    //ignore the first line and recalculate cursor position for first non white space char of every line
+                    if (i !== startLine) {
+                        line = doc.getLine(i);
+                        firstCharPosition = line.search(/\S|$/);
+                    }
+                    //if the non space first character position is before original start position , put comment at the new position otherwise older pos
+                    if (firstCharPosition < originalCursorPosition) {
+                        cursorPosition = firstCharPosition;
+                    } else {
+                        cursorPosition = originalCursorPosition;
+                    }
+                    
+                    editGroup.push({text: prefixes[0], start: {line: i, ch: cursorPosition}}); 
+                } else {
+                    editGroup.push({text: prefixes[0], start: {line: i, ch: 0}});
+                }
             }
 
             // Make sure tracked selections include the prefix that was added at start of range

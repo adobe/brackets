@@ -131,6 +131,9 @@
                         console.error("nodeSocketTransport: Socket closed, but couldn't locate client");
                     }
                 });
+            }).on("error", function (e) {
+                // TODO: emit error event
+                console.error("nodeSocketTransport: Error on live preview server creation: " + e);
             });
         }
     }

@@ -194,6 +194,7 @@ define({
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
     "FIND_IN_FILES_FILE_PATH"           : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We shoudl use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"     : "Ctrl/Cmd click per Espandere/Comprimi tutto",
+    "FIND_IN_FILES_INDEXING"            : "Indicizzazione per ricerca immediata\u2026",
     "REPLACE_IN_FILES_ERRORS_TITLE"     : "Sostituire errori",
     "REPLACE_IN_FILES_ERRORS"           : "I seguenti file non sono stati modificati perché hanno cambiato dopo la ricerca o non potevano essere scritti.",
 
@@ -256,6 +257,12 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Maiusc",
     "KEYBOARD_SPACE"  : "Spazio",
+    "KEYBOARD_PAGE_UP"      : "Pagina Su",
+    "KEYBOARD_PAGE_DOWN"    : "Pagina Giù",
+    "KEYBOARD_HOME"         : "Home",
+    "KEYBOARD_END"          : "Fine",
+    "KEYBOARD_INSERT"       : "Ins",
+    "KEYBOARD_DELETE"       : "Canc",
 
     /**
      * StatusBar strings
@@ -271,7 +278,7 @@ define({
     "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Clicca per cambiare il numero di spazi usati per l’indentazione",
     "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Clicca per cambiare la ampiezza della tabulazione",
     "STATUSBAR_SPACES"                      : "Spazi",
-    "STATUSBAR_TAB_SIZE"                    : "Ampiezza tabulazione",
+    "STATUSBAR_TAB_SIZE"                    : "Ampiezza tabulazione:",
     "STATUSBAR_LINE_COUNT_SINGULAR"         : "\u2014 {0} Linea",
     "STATUSBAR_LINE_COUNT_PLURAL"           : "\u2014 {0} Linee",
     "STATUSBAR_USER_EXTENSIONS_DISABLED"    : "Estensioni disabilitate",
@@ -305,6 +312,7 @@ define({
     "CMD_FILE_NEW"                        : "Nuovo File",
     "CMD_FILE_NEW_FOLDER"                 : "Nuova cartella",
     "CMD_FILE_OPEN"                       : "Apri\u2026",
+    "CMD_ADD_TO_WORKING_SET"              : "Aggiungi all'area di lavoro",
     "CMD_OPEN_DROPPED_FILES"              : "Apri un file abbandonato",
     "CMD_OPEN_FOLDER"                     : "Apri cartella\u2026",
     "CMD_FILE_CLOSE"                      : "Chiudi",
@@ -372,6 +380,9 @@ define({
     "VIEW_MENU"                         : "Vista",
     "CMD_HIDE_SIDEBAR"                  : "Nascondi barra laterale",
     "CMD_SHOW_SIDEBAR"                  : "Mostra barra laterale",
+    "CMD_TOGGLE_SIDEBAR"                : "Apri/Chiudi la barra laterale",
+    "CMD_TOGGLE_PANELS"                 : "Apri/Chiudi i pannelli",
+    "CMD_TOGGLE_PURE_CODE"              : "Nessuna distrazione",
     "CMD_INCREASE_FONT_SIZE"            : "Aumenta la dimensione del testo",
     "CMD_DECREASE_FONT_SIZE"            : "Diminuisci la dimensione del testo",
     "CMD_RESTORE_FONT_SIZE"             : "Ripristina la dimensione del testo",
@@ -401,6 +412,8 @@ define({
     "CMD_CSS_QUICK_EDIT_NEW_RULE"       : "Nuova regola",
     "CMD_NEXT_DOC"                      : "Documento successivo",
     "CMD_PREV_DOC"                      : "Documento precedente",
+    "CMD_NEXT_DOC_LIST_ORDER"           : "Documento successivo nella lista",
+    "CMD_PREV_DOC_LIST_ORDER"           : "Documento precedente nella lista",
     "CMD_SHOW_IN_TREE"                  : "Mostra nell’albero dei file",
     "CMD_SHOW_IN_EXPLORER"              : "Mostra in Explorer",
     "CMD_SHOW_IN_FINDER"                : "Mostra in Finder",
@@ -451,8 +464,11 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"     : "L’URL di base non può contenere hash come \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"        : "I caratteri speciali come '{0}' devono essere %-encodate.",
     "BASEURL_ERROR_UNKNOWN_ERROR"       : "Trovato un carattere sconosciuto durante l'analisi del URL di base",
+    
+    // Strings for Pane.js
     "EMPTY_VIEW_HEADER"                 : "<em>Aprire un file mentre questo riquadro è attivo</em>",
-
+    "FLIPVIEW_BTN_TOOLTIP"              : "Spostare questa vista nel riquadro {0}",
+   
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema attuale",
     "USE_THEME_SCROLLBARS"                 : "Utilizzare le barre di scorrimento a tema",
@@ -468,6 +484,8 @@ define({
     "UPDATE"                               : "Aggiorna",
     "REMOVE"                               : "Rimuovi",
     "OVERWRITE"                            : "Sovrascrivi",
+    "DISABLE"                              : "Disabilita",
+    "ENABLE"                               : "Abilita",
     "CANT_REMOVE_DEV"                      : "Le estensioni nella cartella \"dev\" devono essere eliminate manualmente.",
     "CANT_UPDATE"                          : "L’aggiornamento non è compatibile con questa versione di {APP_NAME}.",
     "CANT_UPDATE_DEV"                      : "Le estensioni nella cartella \"dev\" non possono essere aggiornate automaticamente.",
@@ -535,15 +553,20 @@ define({
     "EXTENSION_MANAGER_REMOVE_ERROR"       : "Impossibile rimuovere una o più estensioni: {0}. {APP_NAME} si riavvierà comunque.",
     "EXTENSION_MANAGER_UPDATE"             : "Aggiorna Estensioni",
     "EXTENSION_MANAGER_UPDATE_ERROR"       : "Impossibile aggiornare una o più estensioni: {0}. {APP_NAME} si riavvierà comunque.",
+    "EXTENSION_MANAGER_DISABLE"            : "Disabilita estensione",
+    "EXTENSION_MANAGER_DISABLE_ERROR"      : "Impossibile disattivare una o più estensioni: {0}. {APP_NAME} si riavvierà comunque.",
     "MARKED_FOR_REMOVAL"                   : "Marcato per la rimozione",
     "UNDO_REMOVE"                          : "Annulla",
     "MARKED_FOR_UPDATE"                    : "Marcato per l’aggiornamento",
     "UNDO_UPDATE"                          : "Annulla",
+    "MARKED_FOR_DISABLING"                 : "Marcato per la disabilitazione",
+    "UNDO_DISABLE"                         : "Annulla",
     "CHANGE_AND_RELOAD_TITLE"              : "Cambia Estensioni",
     "CHANGE_AND_RELOAD_MESSAGE"            : "Per aggiornare o rimuovere le estensioni marcate, {APP_NAME} dovrà riavviarsi. Ti verrà chiesto di salvare le modifiche apportate.",
     "REMOVE_AND_RELOAD"                    : "Rimuovi le estensioni e riavvia",
     "CHANGE_AND_RELOAD"                    : "Modifica le estensioni e riavvia",
     "UPDATE_AND_RELOAD"                    : "Aggiorna Rimuovi le estensioni e riavvia",
+    "DISABLE_AND_RELOAD"                   : "Disabilita le estensioni e riavvia",
     "PROCESSING_EXTENSIONS"                : "Processo le modifiche alle estensioni\u2026",
     "EXTENSION_NOT_INSTALLED"              : "Impossibile rimuovere l’estensione {0}. Non era installata.",
     "NO_EXTENSIONS"                        : "Nessuna estensione ancora installata.<br />Clicca nel tab delle Disponibili per iniziare.",
@@ -664,9 +687,11 @@ define({
     "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limita il numero di livelli da comprimere quando si usa il comando Comprimi tutto",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Il minimo numero di righe necessario affinché appaia l'icona per comprimere il codice",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true per ricordare quali parti di codice sono compresse quando chiudi o riapri un file od un progetto",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true per attivare il raggruppamento del codice sul testo selezionato nell'editor",
     "DESCRIPTION_ATTR_HINTS"                         : "Abilita/Disabilita i suggerimenti per gli attributi HTML",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Abilita/Disabilita i suggerimenti delle proprietà CSS/LESS/SCSS",
     "DESCRIPTION_JS_HINTS"                           : "Abilita/Disabilita i suggerimenti del codice JavaScript",
+    "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "Abilita/Disabilita i dettagli sul tipo delle variabili nei suggerimenti del codice JavaScript",
     "DESCRIPTION_PREF_HINTS"                         : "Abilita/Disabilita i suggerimenti del codice delle Preferenze",
     "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "Abilita/Disabilita i suggerimenti delle entità HTML",
     "DESCRIPTION_SVG_HINTS"                          : "Abilita/Disabilita i suggerimenti del codice SVG",
@@ -743,8 +768,18 @@ define({
     "DESCRIPTION_USE_THEME_SCROLLBARS"               : "true per consentire le barre di scorrimento su misura",
     "DESCRIPTION_LINTING_COLLAPSED"                  : "true per non mostrare il pannello del controllo del codice",
     "DESCRIPTION_FONT_FAMILY"                        : "Modifica il font usato in {APP_NAME}",
-    "DESCRIPTION_FONT_SIZE"                          : "Modifica le dimensioni dei caratteri; ad esempio 13px"
+    "DESCRIPTION_FONT_SIZE"                          : "Modifica le dimensioni dei caratteri; ad esempio 13px",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "true per attivare la ricerca basata su Node",
+    "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "true per attivare la ricerca immediata",
+    "DESCRIPTION_FONT_SMOOTHING"                     : "Solo per Mac: \"subpixel-antialias\" per consentire sub-pixel antialiasing o \"antialias\" per la scala dei grigi antialiasing",
+    "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false per disabilitare l'apertura delle preferenze in Split View",
+    "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false per aprire le preferenze nel pannello di sinistra / superiore",
+    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true per chiudere la finestra quando l'ultimo file che contiene viene chiuso tramite il pulsante di chiusura",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Alterna i pulsanti chiudi e flip-view nell'header",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Questo è un file non modificabile che contiene le preferenze supportate da\n * {APP_NAME}.\n * Basati su questo file per modificare le preferenze del file\n * \"brackets.json\" aperto nell'altra scheda.\n * Per ulteriori informazioni sull'utilizzo delle preferenze vedere\n * https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default",
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "true per abilitare il codice in modalità senza distrazioni e nascondere tutti gli altri elementi dell'interfaccia utente di {APP_NAME}"
 });
 
-/* Last translation of: eda6874dfbb9b7f8ad4c5a5d145f19699d4aef30*/
+/* Last translation of: fcd2e98ef35c110e00aebfbb6d3c3816e5156552*/
 

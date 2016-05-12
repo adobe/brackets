@@ -1,12 +1,12 @@
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="144" viewBox="-8.5 7.5 24 144">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="144" viewBox="-8.5 7.5 24 144">
     <defs>
-        <polygon id="bolt" points="6.5,18.5 0.5,14.5 -7.5,24.5 0.5,19.5 6.5,23.5 14.5,13.5"/>
+        <polygon id="bolt" points="6.5 18.5 .5 14.5-7.5 24.5 .5 19.5 6.5 23.5 14.5 13.5"/>
     </defs>
-    <use xlink:href="#bolt" y="1" fill="#BBB"/>
-    <use xlink:href="#bolt" y="25" fill="#FBB03B"/>
-    <use xlink:href="#bolt" y="49" fill="#BBB"/>
-	<polygon fill="#FBB03B" points="0.5,63.5 -7.5,73.5 0.5,68.5 0.5,68.5 6.5,67.5"/>
-    <use xlink:href="#bolt" y="73" fill="#FBB03B"/>
-	<circle fill="#BBB" cx="12.5" cy="94.5" r="2"/>
-    <use xlink:href="#bolt" y="97" fill="#FF5D99"/>
+    <use xlink:href="#bolt" y="1" fill="#bbb"/>
+    <use xlink:href="#bolt" y="25" fill="#fbb03b"/>
+    <use xlink:href="#bolt" y="49" fill="#bbb"/>
+    <polygon fill="#fbb03b" points=".5 63.5-7.5 73.5 .5 68.5 .5 68.5 6.5 67.5"/>
+    <use xlink:href="#bolt" y="73" fill="#fbb03b"/>
+    <circle fill="#bbb" cx="12.5" cy="94.5" r="2"/>
+    <use xlink:href="#bolt" y="97" fill="#ff5d99"/>
 </svg>

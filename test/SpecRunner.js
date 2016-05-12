@@ -33,8 +33,14 @@ require.config({
         "spec"                          : "../test/spec",
         "text"                          : "thirdparty/text/text",
         "i18n"                          : "thirdparty/i18n/i18n",
+        "react"                         : "thirdparty/react",
         "fileSystemImpl"                : "filesystem/impls/appshell/AppshellFileSystem",
         "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl"
+    },
+    map: {
+        "*": {
+            "thirdparty/react":	"react"
+        }
     }
 });
 
