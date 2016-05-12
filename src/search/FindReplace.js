@@ -87,7 +87,7 @@ define(function (require, exports, module) {
     SearchState.prototype.updateSearchCursor = function updateSearchCursor(cm, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
         if (this.searchCursor) {
-            this.searchCursor.initialize({
+            this.searchCursor.setSearchDocumentAndQuery({
                 searchQuery: this.parsedQuery,
                 ignoreCase: !this.queryInfo.isCaseSensitive,
                 position: pos

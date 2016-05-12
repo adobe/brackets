@@ -31,13 +31,17 @@ define(function (require, exports, module) {
     var _           = require("thirdparty/lodash");
 
     // store document text and index
-    // key: doc
+    // key: CodeMirror.Doc
     // value: {text, index, generation}
+    // text = The text of the document
+    // index = The document line index for lookups
+    // generation = the document history generation number
     var _documentMap = new WeakMap();
 
     /**
      * determine if the current document has changed since we last stored the docInfo
-     * @param {CodeMirror.Doc}
+     * @param {CodeMirror.Doc} doc
+     * @return boolean
      */
     function _needToIndexDocument(doc) {
         var docInfo = _documentMap.get(doc);
@@ -54,6 +58,9 @@ define(function (require, exports, module) {
     /**
      * Create an array which stores the sum of all characters in the document
      * up to the point of each line.
+     * This is needed to efficiently convert character index offsets to position objects of line and character offset.
+     * @param {String} text The string to index
+     * @param {String} lineSeparator The ending character that splits lines
      */
     function _createLineCharacterCountIndex(text, lineSeparator) {
         var lineNumber;
@@ -72,16 +79,25 @@ define(function (require, exports, module) {
         return lineCharacterCountIndex;
     }
 
+    /**
+     * Create the document index and store in our map
+     */
     function _indexDocument(doc) {
         var docText = doc.getValue();
         var docLineIndex = _createLineCharacterCountIndex(docText, doc.lineSeparator());
         _documentMap.set(doc, {text: docText, index: docLineIndex, generation: doc.history.generation});
     }
 
+    /**
+     * Get the document index
+     */
     function _getDocumentIndex(doc) {
         return _documentMap.get(doc).index;
     }
 
+    /**
+     * Get the document text
+     */
     function _getDocumentText(doc) {
         return _documentMap.get(doc).text;
     }
@@ -102,7 +118,7 @@ define(function (require, exports, module) {
     /**
      * From the character offset from the beginning of the document
      * create an object which has the position information in the form of:
-     * {line: line number, ch: character offset of the line number}
+     * @return {{line: number, ch: number}} line and character offsets
      */
     function _createPosFromIndex(lineCharacterCountIndexArray, startSearchingWithLine, indexWithinDoc) {
         var lineNumber;
@@ -168,7 +184,7 @@ define(function (require, exports, module) {
         }
 
         var fromPos = _createPosFromIndex(docLineIndex, startLine, indexStart);
-        var toPos   = _createPosFromIndex(docLineIndex, fromPos.line,    indexEnd);
+        var toPos   = _createPosFromIndex(docLineIndex, fromPos.line, indexEnd);
 
         return {from: fromPos, to: toPos};
     }
@@ -192,6 +208,10 @@ define(function (require, exports, module) {
      * match result which is in the search direction.
      * If there is no match found before the end or beginning of the document
      * then this function returns false.
+     * @param {!Object} regexIndexer instance of the regex indexer. see _createRegexIndexer
+     * @param {!{to: {line: number, ch: number} pos Starting position to search from
+     * @param {boolean} reverse direction to search.
+     * @param {function(number, number)} fnCompare function to compare positions for binary search
      */
     function _findResultIndexNearPos(regexIndexer, pos, reverse, fnCompare) {
         var compare;
@@ -238,6 +258,8 @@ define(function (require, exports, module) {
      * by groups of items.
      * This is useful for both performance and memory consumption to store the indexes
      * of the match result beginning and ending locations.
+     * @param {Array} array The array to enhance
+     * @param {number} groupSize The number of indices that belong to a group
      */
     function _makeGroupArray(array, groupSize) {
         var _currentGroupIndex = -groupSize;
@@ -273,6 +295,13 @@ define(function (require, exports, module) {
         return array;
     }
 
+    /**
+     * Creates the regex indexer which finds all matches within supplied text using the search query.
+     * Uses a lookup index to efficiently map regular expression result indexes to position used by Brackets
+     * @param {String} docText the text to search for matches
+     * @param {Array} docLineIndex array used to map indexes to positions
+     * @param {RegExp} query a regular expression used to find matches
+     */
     function _createRegexIndexer(docText, docLineIndex, query) {
         // Start and End index of each match stored in array as:
         // [0] = start index of first match
@@ -417,58 +446,71 @@ define(function (require, exports, module) {
                 cursor.scanDocumentAndStoreResultsInCursor();
             }
         }
+        function _setQuery(cursor, query) {
+            var newRegexQuery = _convertToRegularExpression(query, cursor.ignoreCase);
+            if ((cursor.query) && (cursor.query.source !== newRegexQuery.source)) {
+                // query has changed
+                cursor.resultsCurrent = false;
+            }
+            cursor.query = newRegexQuery;
+        }
+        /**
+         * Set the location of where the search cursor should be located
+         * @param {!Object} cursor The search cursor
+         * @param {!{line: number, ch: number}} pos The search cursor location
+         */
+        function _setPos(cursor, pos) {
+            pos = pos || {line: 0, ch: 0};
+            cursor.currentMatch = {from: pos, to: pos};
+        }
 
         // Return all public functions for the cursor
         return _.assign(Object.create(null), {
-            // {document: document, searchQuery: string or regex, position: Pos, ignoreCase: boolean}
-            initialize: function (properties) {
-                this.atOccurrence = false;
-                if (properties.ignoreCase) {this.setIgnoreCase(properties.ignoreCase); }
-                if (properties.document) {this.setDoc(properties.document); }
-                if (properties.searchQuery) {this.setQuery(properties.searchQuery); }
-                if (properties.position) {this.setPos(properties.position); }
-            },
-            setIgnoreCase: function (ignoreCase) {
-                this.ignoreCase = ignoreCase;
-            },
-            setQuery: function (query) {
-                var newRegexQuery = _convertToRegularExpression(query, this.ignoreCase);
-                if ((this.query) && (this.query.source !== newRegexQuery.source)) {
-                    // query has changed
-                    this.resultsCurrent = false;
-                }
-                this.query = newRegexQuery;
-            },
             /**
-             * Set the location of where the search cursor should be located
-             * @param {!{line: number, ch: number}} pos The search cursor location
+             * Set or update the document and query properties
+             * @param {!{document: CodeMirror.Doc, searchQuery: string|RegExp, position: {line: number, ch: number}, ignoreCase: boolean}} properties
              */
-            setPos: function (pos) {
-                pos = pos || {line: 0, ch: 0};
-                this.currentMatch = {from: pos, to: pos};
-            },
-            setDoc: function (doc) {
-                console.time('setDoc');
-                this.doc = doc;
-                console.timeEnd('setDoc');
+            setSearchDocumentAndQuery: function (properties) {
+                this.atOccurrence = false;
+                if (properties.ignoreCase) {this.ignoreCase = properties.ignoreCase; }
+                if (properties.document) {this.doc = properties.document; }
+                if (properties.searchQuery) {_setQuery(this, properties.searchQuery); }
+                if (properties.position) {_setPos(this, properties.position); }
             },
 
+            /**
+             * Get the total number of characters in the document
+             * @return {number}
+             */
             getDocCharacterCount: function () {
                 _updateResultsIfNeeded(this);
                 var docLineIndex = _getDocumentIndex(this.doc);
                 return docLineIndex[docLineIndex.length - 1];
             },
 
+            /**
+             * Get the total number of matches
+             * @return {number}
+             */
             getMatchCount: function () {
                 _updateResultsIfNeeded(this);
                 return this.regexIndexer.getItemCount();
             },
 
+            /**
+             * Get the current match number counting from the first match.
+             * @return {number}
+             */
             getCurrentMatchNumber: function () {
                 _updateResultsIfNeeded(this);
                 return this.regexIndexer.getCurrentMatchNumber();
             },
 
+            /**
+             * Find the next match in the indicated search direction
+             * @param {boolean} reverse true searches backwards. false searches forwards
+             * @return {{to: {line: number, ch: number}, from: {line: number, ch: number}}}
+             */
             find: function (reverse) {
                 _updateResultsIfNeeded(this);
                 var foundPosition;
@@ -492,6 +534,10 @@ define(function (require, exports, module) {
                 return foundPosition;
             },
 
+            /**
+             * Iterate over each result from searching the document calling the function with the start and end positions of each match
+             * @param {function({line: number, ch: number}, {line: number, ch: number})} fnResult
+             */
             forEachMatch: function (fnResult) {
                 _updateResultsIfNeeded(this);
                 this.regexIndexer.forEachMatch(fnResult);
@@ -499,13 +545,19 @@ define(function (require, exports, module) {
 
             /**
              * Get the start and end positions plus the regular expression match array data
-             * @return {Object} {to: {line: number, ch: number}, from: {line: number, ch: number}, match: RegExp Result Array}
+             * @return {{to: {line: number, ch: number}, from: {line: number, ch: number}, match: Array}} returns start and end of match with the array of results
              */
             getFullInfoForCurrentMatch: function () {
                 var docText = _getDocumentText(this.doc);
                 return this.regexIndexer.getFullResultInfo(this.regexIndexer.getCurrentMatchNumber(), this.query, docText);
             },
 
+            /**
+             * Find the indexes of all matches based on the current search query
+             * The matches can then be navigated and retrieved using the functions of the search cursor.
+             *
+             * @return {number} the count of matches found.
+             */
             scanDocumentAndStoreResultsInCursor: function () {
                 if (_needToIndexDocument(this.doc)) {
                     _indexDocument(this.doc);
@@ -522,13 +574,13 @@ define(function (require, exports, module) {
     /**
      * Creates an updatable search cursor which can be used to navigate forward and backward through the results.
      *
-     * @param {document: CodeMirror.Doc, searchQuery: string|RegExp, position: {line: number, ch: number}, ignoreCase: boolean}
+     * @param {!{document: CodeMirror.Doc, searchQuery: string|RegExp, position: {line: number, ch: number}, ignoreCase: boolean}} properties
      * @return {Object} The search cursor object
      */
     function createSearchCursor(properties) {
         console.log("creating new search cursor");
         var searchCursor = _createCursor();
-        searchCursor.initialize(properties);
+        searchCursor.setSearchDocumentAndQuery(properties);
         return searchCursor;
     }
 
@@ -538,7 +590,7 @@ define(function (require, exports, module) {
      * This is provided for consumers who wish to leverage the speed provided by the document index, but do
      * not need to use the features of a cursor.
      *
-     * @param {document: CodeMirror.Doc, searchQuery: string|RegExp, ignoreCase: boolean, fnEachMatch: function}
+     * @param {!{document: CodeMirror.Doc, searchQuery: string|RegExp, ignoreCase: boolean, fnEachMatch: function}} properties
      */
     function scanDocumentForMatches(properties) {
         if (_needToIndexDocument(properties.document)) {
