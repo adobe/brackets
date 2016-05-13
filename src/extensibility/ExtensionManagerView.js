@@ -40,6 +40,11 @@ define(function (require, exports, module) {
         Mustache                  = require("thirdparty/mustache/mustache");
 
     /**
+     * Create a detached link element, so that we can use it later to extract url details like 'protocol'
+     */
+    var _tmpLink = document.createElement('a');
+
+    /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized
      * with initialize(). When the view is closed, dispose() must be called.
      * @constructor
@@ -344,11 +349,10 @@ define(function (require, exports, module) {
 
             // We can't rely on path-utils because of known problems with protocol identification
             // Falling back to Browsers protocol identification mechanism
-            var tmpLink = document.createElement('a');
-            tmpLink.href = context.metadata.homepage;
+            _tmpLink.href = context.metadata.homepage;
 
             // Check if the homepage refers to a local resource
-            if (tmpLink.protocol === "file:") {
+            if (_tmpLink.protocol === "file:") {
                 var language = LanguageManager.getLanguageForExtension(parsed.filenameExtension.replace(/^\./, ''));
                 // If identified language for the local resource is binary, don't list it
                 if (language && language.isBinary()) {
