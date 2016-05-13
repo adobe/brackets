@@ -440,12 +440,20 @@ define(function (require, exports, module) {
         // on Windows, cancel every other scroll event (#10214)
         // TODO: remove this hack when we upgrade CEF to a build with this bug fixed:
         // https://bitbucket.org/chromiumembedded/cef/issue/1481
-        var winCancelWheelEvent = true;
+        var winCancelWheelEvent = true,
+            lastWheelDelta = 0;
         function windowsScrollFix(e) {
             winCancelWheelEvent = !winCancelWheelEvent;
+            if (winCancelWheelEvent && Math.abs(e.wheelDelta) <= Math.abs(lastWheelDelta) && Math.sign(e.wheelDelta) === Math.sign(lastWheelDelta)) {
+                // CEF's spurious second scroll event would scroll a whole lot more at
+                // times, so make sure we always stop the spurious one (#11083)
+                winCancelWheelEvent = false;
+            }
             if (winCancelWheelEvent) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
+            } else {
+                lastWheelDelta = e.wheelDelta;
             }
         }
 
