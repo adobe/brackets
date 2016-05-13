@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         LocalizationUtils         = require("utils/LocalizationUtils"),
         LanguageManager           = require("language/LanguageManager"),
-        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
+        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html"),
+        Mustache                  = require("thirdparty/mustache/mustache");
 
     /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized
@@ -340,8 +341,14 @@ define(function (require, exports, module) {
         // Do some extra validation on homepage url to make sure we don't end up executing local binary
         if (context.metadata.homepage) {
             var parsed = PathUtils.parseUrl(context.metadata.homepage);
+
+            // We can't rely on path-utils because of known problems with protocol identification
+            // Falling back to Browsers protocol identification mechanism
+            var tmpLink = document.createElement('a');
+            tmpLink.href = context.metadata.homepage;
+
             // Check if the homepage refers to a local resource
-            if (parsed.protocol.trim().toLowerCase() === "file:") {
+            if (tmpLink.protocol === "file:") {
                 var language = LanguageManager.getLanguageForExtension(parsed.filenameExtension.replace(/^\./, ''));
                 // If identified language for the local resource is binary, don't list it
                 if (language && language.isBinary()) {

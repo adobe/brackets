@@ -22,13 +22,14 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, window, Mustache */
+/*global define, brackets, $, window */
 
 define(function (require, exports, module) {
     "use strict";
 
     var KeyEvent    = brackets.getModule("utils/KeyEvent"),
-        Strings     = brackets.getModule("strings");
+        Strings     = brackets.getModule("strings"),
+        Mustache    = brackets.getModule("thirdparty/mustache/mustache");
 
     var TimingFunctionUtils = require("TimingFunctionUtils");
 

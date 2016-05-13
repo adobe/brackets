@@ -41,7 +41,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, Mustache */
+/*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
@@ -50,6 +50,7 @@ define(function (require, exports, module) {
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
         Strings             = brackets.getModule("strings"),
+        Mustache            = brackets.getModule("thirdparty/mustache/mustache"),
 
         InlineTimingFunctionEditor = require("InlineTimingFunctionEditor").InlineTimingFunctionEditor,
         TimingFunctionUtils        = require("TimingFunctionUtils"),

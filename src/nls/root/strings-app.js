@@ -29,6 +29,7 @@ define({
     "APP_NAME"                             : "Brackets",
 
     // Self locales (used by Debug > Switch Language)
+    "LOCALE_BG"                                 : "български",
     "LOCALE_CS"                                 : "čeština",
     "LOCALE_DA"                                 : "Dansk",
     "LOCALE_DE"                                 : "Deutsch",

@@ -31,7 +31,7 @@ window.setTimeout(function () {
     "use strict";
 
     var key, missingDeps = "";
-    var deps = { "Mustache": window.Mustache, "jQuery": window.$, "RequireJS": window.require };
+    var deps = { "jQuery": window.$, "RequireJS": window.require };
 
     for (key in deps) {
         if (deps.hasOwnProperty(key) && !deps[key]) {
