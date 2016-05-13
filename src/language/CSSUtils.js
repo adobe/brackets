@@ -156,7 +156,7 @@ define(function (require, exports, module) {
         if (!state || !state.context) {
             return false;
         }
-        return (state.context.type === "at");
+        return (state.context.type === "atBlock_parens");
     }
 
     /**
