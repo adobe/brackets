@@ -8,6 +8,7 @@
     top:25%;
     width: 550px;
     z-index: 1050;
+    border-radius: 4px;
 }
 
 #mrof-container > #mrof-list {
@@ -24,17 +25,33 @@
     box-sizing: border-box; 
 }
 
+#mrof-container.split-mode > #mrof-list {
+    top:60px;
+    height: calc(100% - 90px);
+}
+
 #mrof-container > #mrof-list > li {
-    position:relative;
+    position: relative;
     display: block;
     height: 22px;
-    margin-left: 10px;
-    margin-top: 4px;
+    margin-left: 5px;
     float: left;
-    width: calc(50% - 30px);
+    width: calc(100% - 20px);
     min-width: 230px;
-    padding:1px 5px;
+    padding: 1px 5px;
     white-space: nowrap;
+}
+
+#mrof-container > #mrof-list > li.first-pane {
+    position:absolute;
+    left:0px;
+    width: calc(50% - 30px);
+}
+
+#mrof-container > #mrof-list > li.second-pane {
+    position:absolute;
+    right:5px;
+    width: calc(50% - 30px);
 }
 
 #mrof-container > #mrof-list > li.highlight {
@@ -56,6 +73,11 @@
     text-overflow: ellipsis;
     overflow-wrap: normal;
     overflow: hidden;
+}
+
+#mrof-container > #mrof-list > li > a.mroitem > .pane-label {
+    color: #adb9bd !important;
+    float: right;
 }
 
 #mrof-container > #mrof-list > li > a.mroitem > .extension {
@@ -162,4 +184,26 @@
     overflow-wrap: normal;
     overflow: hidden;
     white-space: nowrap;
+    font-size: 11px;
+}
+
+.pane-label {
+    position:absolute;
+    display:none;
+    width:50%;
+    text-align: center;
+    top: 30px;
+    padding:4px;
+}
+
+.split-mode .pane-label {
+    display: block;
+}
+
+.pane-label.first {
+    left:0px;
+}
+
+.pane-label.second {
+    right:0px;
 }

@@ -8,12 +8,6 @@
     "show.recent.files": [
         "Alt-O"
     ],
-    "next.recent.files": [
-        "Alt-N"
-    ],
-    "prev.recent.files": [
-        "Alt-P"
-    ],
     "file.close":  [
         "Ctrl-W"
     ],
@@ -302,7 +296,7 @@
             "platform": "mac"
         }
     ],
-    "navigate.nextDoc":  [
+    "next.recent.files":  [
         {
             "key": "Ctrl-Tab"
         },
@@ -315,7 +309,7 @@
             "platform": "mac"
         }
     ],
-    "navigate.prevDoc":  [
+    "prev.recent.files":  [
         {
             "key": "Ctrl-Shift-Tab"
         },

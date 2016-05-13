@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2016 - present Adobe Systems Incorporated. All rights reserved.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
@@ -29,24 +29,26 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _                   = brackets.getModule("thirdparty/lodash"),
-        AppInit             = brackets.getModule("utils/AppInit"),
-        Async               = brackets.getModule("utils/Async"),
-        MainViewManager     = brackets.getModule("view/MainViewManager"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
-        CommandManager      = brackets.getModule("command/CommandManager"),
-        Commands            = brackets.getModule("command/Commands"),
-        Dialogs             = brackets.getModule("widgets/Dialogs"),
-        Menus               = brackets.getModule("command/Menus"),
-        FileSystem          = brackets.getModule("filesystem/FileSystem"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
-        ViewUtils           = brackets.getModule("utils/ViewUtils"),
-        WorkingSetView      = brackets.getModule("project/WorkingSetView"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        KeyBindingManager   = brackets.getModule("command/KeyBindingManager"),
-        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils");
+    var _                       = brackets.getModule("thirdparty/lodash"),
+        AppInit                 = brackets.getModule("utils/AppInit"),
+        Async                   = brackets.getModule("utils/Async"),
+        MainViewManager         = brackets.getModule("view/MainViewManager"),
+        DocumentManager         = brackets.getModule("document/DocumentManager"),
+        DocumentCommandHandlers = brackets.getModule("document/DocumentCommandHandlers"),
+        EditorManager           = brackets.getModule("editor/EditorManager"),
+        ProjectManager          = brackets.getModule("project/ProjectManager"),
+        CommandManager          = brackets.getModule("command/CommandManager"),
+        Commands                = brackets.getModule("command/Commands"),
+        Dialogs                 = brackets.getModule("widgets/Dialogs"),
+        Menus                   = brackets.getModule("command/Menus"),
+        FileSystem              = brackets.getModule("filesystem/FileSystem"),
+        FileUtils               = brackets.getModule("file/FileUtils"),
+        ViewUtils               = brackets.getModule("utils/ViewUtils"),
+        KeyEvent                = brackets.getModule("utils/KeyEvent"),
+        WorkingSetView          = brackets.getModule("project/WorkingSetView"),
+        PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
+        KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
+        ExtensionUtils          = brackets.getModule("utils/ExtensionUtils");
     
     // Command constants for recent files
     var SHOW_RECENT_FILES       = "show.recent.files",
@@ -56,9 +58,7 @@ define(function (require, exports, module) {
     var htmlTemplate = require("text!html/recentfiles-template.html"),
         dirtyDotTemplate = "<div class='file-status-icon dirty' style='position: absolute;margin-left: -2px;'></div>";
     
-    // Delay in ms for hide timer when open recent files dialog shown from keyborad only commands
-    var HIDE_TIMEOUT_DELAY = 1500,
-        OPEN_FILE_DELAY    = 600;
+    var MAX_ENTRY_COUNT    = 50;
     
     /*
     * Contains list of most recently opened files and their last known cursor position
@@ -84,15 +84,33 @@ define(function (require, exports, module) {
      * @return {$.Promise} - from the commandmanager 
      */
     function _openEditorForContext(contextData) {
-        // Open the file in the current active pane to prevent unwanted scenarios, fallback to the persisted paneId
-        // only when unable to determine active paneId (like empty working set at the launch)
-        var activePaneId = MainViewManager.getActivePaneId();
-        return CommandManager.execute(Commands.FILE_OPEN, {fullPath: contextData.path,
-                                                    paneId: activePaneId || contextData.paneId }).done(function () {
-            activeEditor = EditorManager.getActiveEditor();
-            activeEditor.setCursorPos(contextData.cursor);
-            activeEditor.centerOnCursor();
-        });
+        // Open the file in the current active pane to prevent unwanted scenarios if we are not in split view, fallback
+        // to the persisted paneId when specified and we are in split view or unable to determine the paneid
+        var activePaneId = MainViewManager.getActivePaneId(),
+            targetPaneId = contextData.paneId; // Assume we are going to use the last associated paneID
+
+        // Detect if we are not in split mode
+        if (MainViewManager.getPaneCount() === 1) {
+            // Override the targetPaneId with activePaneId as we are not yet in split mode
+            targetPaneId = activePaneId;
+        }
+
+        // If hide of MROF list is a context parameter, hide the MROF list on successful file open
+        if (contextData.hideOnOpenFile) {
+            _hideMROFList();
+        }
+
+        return CommandManager
+            .execute(Commands.FILE_OPEN,
+                    {   fullPath: contextData.path,
+                        paneId: targetPaneId
+                    }
+                )
+            .done(function () {
+                activeEditor = EditorManager.getActiveEditor();
+                activeEditor.setCursorPos(contextData.cursor);
+                activeEditor.centerOnCursor();
+            });
     }
     
     /**
@@ -161,8 +179,22 @@ define(function (require, exports, module) {
     function _createFileEntries($mrofList) {
         var data, fileEntry, $link, $newItem;
         // Iterate over the MROF list and create the pop over UI items
+
+        // If we are in split view we might want to show the panes corresponding to the entries
+        var isPaneLabelReqd = MainViewManager.getPaneCount() > 1;
+
+        if (isPaneLabelReqd) {
+            $mrofContainer.addClass("split-mode");
+            $(".first.pane-label", $mrofContainer).text(MainViewManager.getPaneTitle("first-pane"));
+            $(".second.pane-label", $mrofContainer).text(MainViewManager.getPaneTitle("second-pane"));
+        }
+
         $.each(_mrofList, function (index, value) {
             
+            if (!isPaneLabelReqd && value.paneId !== MainViewManager.getActivePaneId()) {
+                return true;
+            }
+
             data = {fullPath: value.file,
                     name: FileUtils.getBaseName(value.file),
                     isFile: true};
@@ -183,6 +215,11 @@ define(function (require, exports, module) {
             $newItem.data("file", fileEntry);
             $newItem.attr("title", value.file);
             
+            if (isPaneLabelReqd && value.paneId) {
+                $newItem.addClass(value.paneId);
+                $newItem.css('top', ($('.' + value.paneId, $mrofList).length * 22) + 'px');
+            }
+
             // Use the class providers(git e.t.c)
             WorkingSetView.useClassProviders(data, $newItem);
             
@@ -192,6 +229,11 @@ define(function (require, exports, module) {
             }
             
             $mrofList.append($newItem);
+
+            if (index === MAX_ENTRY_COUNT - 1) {
+                // We have reached the max number of entries we can display, break out
+                return false;
+            }
         });
     }
     
@@ -217,7 +259,8 @@ define(function (require, exports, module) {
         _hideMROFList();
         
         var $link, $newItem;
-        $mrofContainer = $(htmlTemplate).appendTo("body");
+        //Dialogs.showModalDialogUsingTemplate($(htmlTemplate));
+        $mrofContainer = $(htmlTemplate).appendTo('body');//$("#mrof-container");
         var $mrofList = $mrofContainer.find("#mrof-list");
         
         /**
@@ -229,6 +272,7 @@ define(function (require, exports, module) {
             $("#mrof-container > #mrof-list > li.highlight").removeClass("highlight");
             $(event.target).parent().addClass("highlight");
             $mrofContainer.find("#recent-file-path").text($scope.data("path"));
+            $mrofContainer.find("#recent-file-path").attr('title', ($scope.data("path")));
             $currentContext = $scope;
         }
         
@@ -241,7 +285,8 @@ define(function (require, exports, module) {
             _openEditorForContext({
                 path: $scope.data("path"),
                 paneId: $scope.data("paneId"),
-                cursor: $scope.data("cursor")
+                cursor: $scope.data("cursor"),
+                hideOnOpenFile: true
             });
         }
         
@@ -253,6 +298,7 @@ define(function (require, exports, module) {
             _mrofList = [];
             $mrofList.empty();
             $currentContext = null;
+            PreferencesManager.setViewState("openFiles", _mrofList, _getPrefsContext(), true);
         }
         
         $("#mrof-list-close").one("click", _hideMROFList);
@@ -286,8 +332,8 @@ define(function (require, exports, module) {
         }
     }
     
-    function _hideMROFListOnAltlUp(event) {
-        if ($mrofContainer && event.keyCode === 18) {
+    function _hideMROFListOnNavigationEnd(event) {
+        if ($mrofContainer && event.keyCode === KeyEvent.DOM_VK_CONTROL) {
             _openFile();
             _hideMROFList();
         }
@@ -299,28 +345,26 @@ define(function (require, exports, module) {
      */
     function _moveNext() {
         var $context, $next;
-        if ($mrofContainer) {
-            $context = $currentContext || $("#mrof-container > #mrof-list > li.highlight");
-            if ($context.length > 0) {
-                $next = $context.next();
-                if ($next.length === 0) {
-                    $next = $("#mrof-container > #mrof-list > li").first();
-                }
-                if ($next.length > 0) {
-                    $currentContext = $next;
-                    //_resetOpenFileTimer();
-                    $next.find("a.mroitem").trigger("focus");
-                }
-            } else {
-                //WTF! (Worse than failure). We should not get here.
-                $("#mrof-container > #mrof-list > li > a.mroitem:visited").last().trigger("focus");
-            }
-            //_resetHideTimer();
-        } else {
+
+        if (!$mrofContainer) {
             _createMROFDisplayList();
             $mrofContainer.addClass("confirmation-mode");
-            //_startHideTimer();
-            $(window).on("keyup", _hideMROFListOnAltlUp);
+            $(window).on("keyup", _hideMROFListOnNavigationEnd);
+        }
+
+        $context = $currentContext || $("#mrof-container > #mrof-list > li.highlight");
+        if ($context.length > 0) {
+            $next = $context.next();
+            if ($next.length === 0) {
+                $next = $("#mrof-container > #mrof-list > li").first();
+            }
+            if ($next.length > 0) {
+                $currentContext = $next;
+                $next.find("a.mroitem").trigger("focus");
+            }
+        } else {
+            //WTF! (Worse than failure). We should not get here.
+            $("#mrof-container > #mrof-list > li > a.mroitem:visited").last().trigger("focus");
         }
     }
 
@@ -330,28 +374,26 @@ define(function (require, exports, module) {
      */
     function _movePrev() {
         var $context, $prev;
-        if ($mrofContainer) {
-            $context = $currentContext || $("#mrof-container > #mrof-list > li.highlight");
-            if ($context.length > 0) {
-                $prev = $context.prev();
-                if ($prev.length === 0) {
-                    $prev = $("#mrof-container > #mrof-list > li").last();
-                }
-                if ($prev.length > 0) {
-                    $currentContext = $prev;
-                    //_resetOpenFileTimer();
-                    $prev.find("a.mroitem").trigger("focus");
-                }
-            } else {
-                //WTF! (Worse than failure). We should not get here.
-                $("#mrof-container > #mrof-list > li > a.mroitem:visited").last().trigger("focus");
-            }
-            //_resetHideTimer();
-        } else {
+
+        if (!$mrofContainer) {
             _createMROFDisplayList();
             $mrofContainer.addClass("confirmation-mode");
-            //_startHideTimer();
-            $(window).on("keyup", _hideMROFListOnAltlUp);
+            $(window).on("keyup", _hideMROFListOnNavigationEnd);
+        }
+
+        $context = $currentContext || $("#mrof-container > #mrof-list > li.highlight");
+        if ($context.length > 0) {
+            $prev = $context.prev();
+            if ($prev.length === 0) {
+                $prev = $("#mrof-container > #mrof-list > li").last();
+            }
+            if ($prev.length > 0) {
+                $currentContext = $prev;
+                $prev.find("a.mroitem").trigger("focus");
+            }
+        } else {
+            //WTF! (Worse than failure). We should not get here.
+            $("#mrof-container > #mrof-list > li > a.mroitem:visited").last().trigger("focus");
         }
     }
     
@@ -363,10 +405,11 @@ define(function (require, exports, module) {
     function _addToMROFList(editor) {
         
         var filePath = editor.document.file.fullPath;
+        var paneId = editor._paneId;
         
         // Check existing list for this doc path and pane entry
         var index = _.findIndex(_mrofList, function (record) {
-            return (record.file === filePath);
+            return (record.file === filePath && record.paneId === paneId);
         });
 
         var entry = _makeMROFListEntry(filePath, editor._paneId, editor.getCursorPos(true, "first"));
@@ -379,6 +422,33 @@ define(function (require, exports, module) {
         _mrofList.unshift(entry);
     }
     
+    /**
+     * This function is used to create mrof when a project is opened for the firt time with the recent files feature
+     * This routine acts as a logic to migrate existing viewlist to mrof structure
+     * @private
+     */
+    function _createMROFList() {
+
+        var docList = DocumentManager.getAllOpenDocuments(),
+            mrofList = [];
+
+        var doc, editor, mrofEntry;
+        // Iterate over the open documents
+        for (doc in docList) {
+            if (docList.hasOwnProperty(doc)) {
+                editor = doc._masterEditor;
+                // We will add an mrof entry only if there is a full editor created and attached to a pane
+                if (editor && editor._paneId) {
+                    mrofEntry = _makeMROFListEntry(doc.file.fullPath, editor._paneId, editor.getCursorPos(true, "first"));
+                    // Append it in the begining of the list
+                    mrofList.unshift(mrofEntry);
+                }
+            }
+        }
+
+        return mrofList;
+    }
+
     EditorManager.on("activeEditorChange", function (event, current, previous) {
         if (previous) {
             _addToMROFList(previous);
@@ -396,7 +466,7 @@ define(function (require, exports, module) {
     });
     
     ProjectManager.on("projectOpen", function () {
-        _mrofList = PreferencesManager.getViewState("openFiles", _getPrefsContext()) || [];
+        _mrofList = PreferencesManager.getViewState("openFiles", _getPrefsContext()) || _createMROFList();
         _syncWithFileSystem();
     });
     
@@ -431,6 +501,7 @@ define(function (require, exports, module) {
      * @private
      */
     _hideMROFList = function () {
+
         if ($mrofContainer) {
             $mrofContainer.remove();
             $mrofContainer = null;
@@ -439,12 +510,19 @@ define(function (require, exports, module) {
             if (activeEditor) {
                 activeEditor.focus();
             }
-            //hideTimeoutVar = null;
         }
+
         $(window).off("keyup", _handleArrowKeys);
-        $(window).off("keyup", _hideMROFListOnAltlUp);
+        $(window).off("keyup", _hideMROFListOnNavigationEnd);
+    };
+
+    var MRUListNavigationProvider = {
+        handleNext: _moveNext,
+        handlePrev: _movePrev
     };
     
+    //DocumentCommandHandlers.registerMRUListNavigator(MRUListNavigationProvider);
+
     AppInit.appReady(function () {
         
         ExtensionUtils.loadStyleSheet(module, "styles/recent-files.css");
