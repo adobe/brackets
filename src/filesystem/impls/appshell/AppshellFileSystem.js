@@ -517,9 +517,10 @@ define(function (require, exports, module) {
      * when the recursiveWatch property of this module is true.
      *
      * @param {string} path
+     * @param {array} ignored
      * @param {function(?string)=} callback
      */
-    function watchPath(path, callback) {
+    function watchPath(path, ignored, callback) {
         if (_isRunningOnWindowsXP) {
             callback(FileSystemError.NOT_SUPPORTED);
             return;
@@ -533,7 +534,7 @@ define(function (require, exports, module) {
                 }
                 return;
             }
-            _nodeDomain.exec("watchPath", path)
+            _nodeDomain.exec("watchPath", path, ignored)
                 .then(callback, callback);
         });
     }

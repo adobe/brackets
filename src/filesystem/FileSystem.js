@@ -96,6 +96,18 @@ define(function (require, exports, module) {
         WatchedRoot     = require("filesystem/WatchedRoot"),
         EventDispatcher = require("utils/EventDispatcher");
 
+//    var PreferencesManager = require("preferences/PreferencesManager"),
+//        Strings            = require("strings");
+//
+//    var ignored = [
+//        "**/node_modules/**",
+//        "**/.git/**",
+//        "**/.svn/**"
+//    ];
+//    this._preferencesManager.definePreference("fileWatchers.ignored", "array", ignored, {
+//        description: Strings.DESCRIPTION_FILE_WATCHERS_IGNORED
+//    });
+
     /**
      * The FileSystem is not usable until init() signals its callback.
      * @constructor
@@ -261,7 +273,8 @@ define(function (require, exports, module) {
     FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
         var impl = this._impl,
             recursiveWatch = impl.recursiveWatch,
-            commandName = shouldWatch ? "watchPath" : "unwatchPath";
+            commandName = shouldWatch ? "watchPath" : "unwatchPath",
+            ignored = undefined;// PreferencesManager.get("fileWatchers.ignored");
 
         if (recursiveWatch) {
             // The impl can watch the entire subtree with one call on the root (we also fall into this case for
@@ -273,7 +286,7 @@ define(function (require, exports, module) {
             } else {
                 // The impl will handle finding all subdirectories to watch.
                 this._enqueueWatchRequest(function (requestCb) {
-                    impl[commandName].call(impl, entry.fullPath, requestCb);
+                    impl[commandName].call(impl, entry.fullPath, ignored, requestCb);
                 }.bind(this), callback);
             }
         } else if (shouldWatch) {
@@ -314,7 +327,7 @@ define(function (require, exports, module) {
                     };
 
                     entriesToWatch.forEach(function (entry) {
-                        impl.watchPath(entry.fullPath, watchCallback);
+                        impl.watchPath(entry.fullPath, ignored, watchCallback);
                     });
                 });
             }, callback);

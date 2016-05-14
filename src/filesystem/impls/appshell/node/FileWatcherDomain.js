@@ -67,14 +67,18 @@ function unwatchPath(path) {
 /**
  * Watch a file or directory.
  * @param {string} path File or directory to watch.
+ * @param {array} ignored List of File or directory to NOT watch.
  */
-function watchPath(path) {
+function watchPath(path, ignored) {
     if (_watcherMap.hasOwnProperty(path)) {
         return;
     }
 
     try {
         console.log("Start watcher at: " + path);
+        
+        ignored = ignored || ["**/node_modules/**", "**/.git/**", "**/.svn/**"];
+        console.log("ignored: " + ignored);
 
         var watcher = chokidar.watch(path, {
             persistent: true,
@@ -82,7 +86,7 @@ function watchPath(path) {
             ignorePermissionErrors: true,
             followSymlinks: true,
             // TODO: configurable? And maybe unwatch file/folder filtered in the current search
-            ignored: ["**/node_modules/**", "**/.git/**", "**/.svn/**"]
+            ignored: ignored
         });
 
         watcher.on("all", function (event, filename, stats) {
@@ -157,6 +161,10 @@ function init(domainManager) {
             name: "path",
             type: "string",
             description: "absolute filesystem path of the file or directory to watch"
+        }, {
+            name: "ignored",
+            type: "array",
+            description: "list of path to ignore"
         }]
     );
     domainManager.registerCommand(
