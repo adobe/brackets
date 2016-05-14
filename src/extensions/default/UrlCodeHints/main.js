@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
+        PathUtils           = brackets.getModule("thirdparty/path-utils/path-utils"),
         Strings             = brackets.getModule("strings"),
         Data                = require("text!data.json"),
 
@@ -80,7 +81,7 @@ define(function (require, exports, module) {
         docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
 
         // get relative path from query string
-        queryUrl = window.PathUtils.parseUrl(query.queryStr);
+        queryUrl = PathUtils.parseUrl(query.queryStr);
         if (queryUrl) {
             queryDir = queryUrl.directory;
         }

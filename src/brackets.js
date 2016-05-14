@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: true, $, window, navigator, Mustache, jQuery */
+/*global define, brackets: true, $, window, navigator, jQuery */
 
 // TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
 
@@ -39,7 +39,6 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent non-module scripts
-    require("thirdparty/path-utils/path-utils.min");
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
     require("widgets/bootstrap-twipsy-mod");
@@ -112,6 +111,30 @@ define(function (require, exports, module) {
         get: function () {
             DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/CodeMirror/lib/codemirror") instead of global CodeMirror.', true);
             return CodeMirror;
+        }
+    });
+
+    // DEPRECATED: In future we want to remove the global Mustache, but for now we
+    // expose our required Mustache globally so as to avoid breaking extensions in the
+    // interim.
+    var Mustache = require("thirdparty/mustache/mustache");
+
+    Object.defineProperty(window, "Mustache", {
+        get: function () {
+            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/mustache/mustache") instead of global Mustache.', true);
+            return Mustache;
+        }
+    });
+
+    // DEPRECATED: In future we want to remove the global PathUtils, but for now we
+    // expose our required PathUtils globally so as to avoid breaking extensions in the
+    // interim.
+    var PathUtils = require("thirdparty/path-utils/path-utils");
+
+    Object.defineProperty(window, "PathUtils", {
+        get: function () {
+            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/path-utils/path-utils") instead of global PathUtils.', true);
+            return PathUtils;
         }
     });
 
@@ -413,32 +436,6 @@ define(function (require, exports, module) {
                 node = node.parentElement;
             }
         }, true);
-
-        // on Windows, cancel every other scroll event (#10214)
-        // TODO: remove this hack when we upgrade CEF to a build with this bug fixed:
-        // https://bitbucket.org/chromiumembedded/cef/issue/1481
-        var winCancelWheelEvent = true;
-        function windowsScrollFix(e) {
-            winCancelWheelEvent = !winCancelWheelEvent;
-            if (winCancelWheelEvent) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-            }
-        }
-
-        function enableOrDisableWinScrollFix() {
-            window.document.body.removeEventListener("wheel", windowsScrollFix, true);
-            if (PreferencesManager.get("_windowsScrollFix")) {
-                window.document.body.addEventListener("wheel", windowsScrollFix, true);
-            }
-        }
-
-        if (brackets.platform === "win" && !brackets.inBrowser) {
-            PreferencesManager.definePreference("_windowsScrollFix", "boolean", true, {
-                excludeFromHints: true
-            }).on("change", enableOrDisableWinScrollFix);
-            enableOrDisableWinScrollFix();
-        }
 
         // Prevent extensions from using window.open() to insecurely load untrusted web content
         var real_windowOpen = window.open;

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, less, PathUtils */
+/*global define, $, brackets, less */
 
 /**
  * ExtensionUtils defines utility methods for implementing extensions.
@@ -33,7 +33,8 @@ define(function (require, exports, module) {
 
     var Async      = require("utils/Async"),
         FileSystem = require("filesystem/FileSystem"),
-        FileUtils  = require("file/FileUtils");
+        FileUtils  = require("file/FileUtils"),
+        PathUtils  = require("thirdparty/path-utils/path-utils");
 
     /**
      * Appends a <style> tag to the document's head.

@@ -51,6 +51,7 @@ process. Please contribute changes by filing an issue in our GitHub repository h
 
 The following languages have been contributed by the Brackets community:
 
+* Bulgarian (bg)
 * Czech (cs)
 * Danish (da)
 * German (de)

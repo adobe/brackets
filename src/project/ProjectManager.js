@@ -1320,14 +1320,18 @@ define(function (require, exports, module) {
                 // because some errors can come up synchronously and then the dialog
                 // is not displayed.
                 window.setTimeout(function () {
-                    if (errorInfo.type === ProjectModel.ERROR_INVALID_FILENAME) {
+                    switch (errorInfo.type) {
+                    case ProjectModel.ERROR_INVALID_FILENAME:
                         _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
-                    } else {
-                        var errString = errorInfo.type === FileSystemError.ALREADY_EXISTS ?
-                                Strings.FILE_EXISTS_ERR :
-                                FileUtils.getFileErrorString(errorInfo.type);
-
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, errString, errorInfo.fullPath);
+                        break;
+                    case FileSystemError.ALREADY_EXISTS:
+                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
+                        break;
+                    case ProjectModel.ERROR_NOT_IN_PROJECT:
+                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.ERROR_RENAMING_NOT_IN_PROJECT, errorInfo.fullPath);
+                        break;
+                    default:
+                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
                     }
                 }, 10);
                 d.reject(errorInfo);

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4 */
-/*global define, $, Mustache, brackets */
+/*global define, $, brackets */
 
 /**
  * Manages linters and other code inspections on a per-language basis. Provides a UI and status indicator for
@@ -58,7 +58,8 @@ define(function (require, exports, module) {
         StatusBar               = require("widgets/StatusBar"),
         Async                   = require("utils/Async"),
         PanelTemplate           = require("text!htmlContent/problems-panel.html"),
-        ResultsTemplate         = require("text!htmlContent/problems-panel-table.html");
+        ResultsTemplate         = require("text!htmlContent/problems-panel-table.html"),
+        Mustache                = require("thirdparty/mustache/mustache");
 
     var INDICATOR_ID = "status-inspection";
 
