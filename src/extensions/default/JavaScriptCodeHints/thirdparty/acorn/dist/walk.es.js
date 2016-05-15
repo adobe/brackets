@@ -1,9 +1,3 @@
-(function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.acorn = global.acorn || {}, global.acorn.walk = global.acorn.walk || {})));
-}(this, (function (exports) { 'use strict';
-
 // AST walker module for Mozilla Parser API compatible trees
 
 // A simple walk is one where you simply specify callbacks to be
@@ -345,16 +339,4 @@ base.MethodDefinition = base.Property = function (node, st, c) {
   c(node.value, st, "Expression")
 }
 
-exports.simple = simple;
-exports.ancestor = ancestor;
-exports.recursive = recursive;
-exports.findNodeAt = findNodeAt;
-exports.findNodeAround = findNodeAround;
-exports.findNodeAfter = findNodeAfter;
-exports.findNodeBefore = findNodeBefore;
-exports.make = make;
-exports.base = base;
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-})));
+export { simple, ancestor, recursive, findNodeAt, findNodeAround, findNodeAfter, findNodeBefore, make, base };

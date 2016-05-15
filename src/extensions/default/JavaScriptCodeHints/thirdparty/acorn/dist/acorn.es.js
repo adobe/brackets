@@ -1,9 +1,3 @@
-(function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-  typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.acorn = global.acorn || {})));
-}(this, (function (exports) { 'use strict';
-
 // Reserved word lists for various dialects of the language
 
 var reservedWords = {
@@ -128,8 +122,8 @@ var TokenType = function TokenType(label, conf) {
 function binop(name, prec) {
   return new TokenType(name, {beforeExpr: true, binop: prec})
 }
-var beforeExpr = {beforeExpr: true};
-var startsExpr = {startsExpr: true};
+var var beforeExpr = {beforeExpr: true};;
+var var startsExpr = {startsExpr: true};;
 // Map keyword names to token types.
 
 var keywordTypes = {}
@@ -654,8 +648,8 @@ pp$1.parseTopLevel = function(node) {
   return this.finishNode(node, "Program")
 }
 
-var loopLabel = {kind: "loop"};
-var switchLabel = {kind: "switch"};
+var var loopLabel = {kind: "loop"};;
+var var switchLabel = {kind: "switch"};;
 pp$1.isLet = function() {
   if (this.type !== tt.name || this.options.ecmaVersion < 6 || this.value != "let") return false
   skipWhiteSpace.lastIndex = this.pos
@@ -3205,28 +3199,4 @@ function tokenizer(input, options) {
   return new Parser(options, input)
 }
 
-exports.version = version;
-exports.parse = parse;
-exports.parseExpressionAt = parseExpressionAt;
-exports.tokenizer = tokenizer;
-exports.Parser = Parser;
-exports.plugins = plugins;
-exports.defaultOptions = defaultOptions;
-exports.Position = Position;
-exports.SourceLocation = SourceLocation;
-exports.getLineInfo = getLineInfo;
-exports.Node = Node;
-exports.TokenType = TokenType;
-exports.tokTypes = tt;
-exports.TokContext = TokContext;
-exports.tokContexts = types;
-exports.isIdentifierChar = isIdentifierChar;
-exports.isIdentifierStart = isIdentifierStart;
-exports.Token = Token;
-exports.isNewLine = isNewLine;
-exports.lineBreak = lineBreak;
-exports.lineBreakG = lineBreakG;
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-})));
+export { version, parse, parseExpressionAt, tokenizer, Parser, plugins, defaultOptions, Position, SourceLocation, getLineInfo, Node, TokenType, tt as tokTypes, TokContext, types as tokContexts, isIdentifierChar, isIdentifierStart, Token, isNewLine, lineBreak, lineBreakG };
