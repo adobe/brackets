@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -27,15 +27,15 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependent modules
     var DocumentManager,      // loaded from brackets.test
         DragAndDrop,          // loaded from brackets.test
         EditorManager,        // loaded from brackets.test
         MainViewManager,      // loaded from brackets.test
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
-                    
-    
+
+
     describe("DragAndDrop", function () {
         this.category = "integration";
 
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
             testWindow,
             _$,
             promise;
-        
+
         beforeFirst(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
@@ -56,7 +56,7 @@ define(function (require, exports, module) {
                 MainViewManager = testWindow.brackets.test.MainViewManager;
             });
         });
-        
+
         afterLast(function () {
             testWindow      = null;
             DocumentManager = null;
@@ -65,8 +65,8 @@ define(function (require, exports, module) {
             MainViewManager = null;
             SpecRunnerUtils.closeTestWindow();
         });
-        
-        
+
+
         beforeEach(function () {
             // Working set behavior is sensitive to whether file lives in the project or outside it, so make
             // the project root a known quantity.
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
 
         afterEach(function () {
             promise = null;
-            
+
             runs(function () {
                 // Call closeAll() directly. Some tests set a spy on the save as
                 // dialog preventing SpecRunnerUtils.closeAllFiles() from
@@ -83,7 +83,7 @@ define(function (require, exports, module) {
                 testWindow.brackets.test.MainViewManager._closeAll(testWindow.brackets.test.MainViewManager.ALL_PANES);
             });
         });
-        
+
         describe("Testing openDroppedFiles function", function () {
             it("should activate a pane on drag over", function () {
                 MainViewManager.setLayoutScheme(1, 2);
@@ -91,7 +91,7 @@ define(function (require, exports, module) {
                 $paneEl.triggerHandler("dragover");
                 expect(MainViewManager.getActivePaneId()).toBe("second-pane");
             });
-            
+
             it("should NOT open any image file when a text file is in the dropped file list", function () {
                 var jsFilePath = testPath + "/test.js";
                 runs(function () {
@@ -99,7 +99,7 @@ define(function (require, exports, module) {
                     promise = DragAndDrop.openDroppedFiles(files);
                     waitsForDone(promise, "opening dropped files");
                 });
-            
+
                 runs(function () {
                     var editor = EditorManager.getActiveEditor();
                     expect(editor.document.file.fullPath).toBe(jsFilePath);
@@ -113,7 +113,7 @@ define(function (require, exports, module) {
                     promise = DragAndDrop.openDroppedFiles([path]);
                     waitsForDone(promise, "opening a dropped image file");
                 });
-            
+
                 runs(function () {
                     var editor = EditorManager.getActiveEditor();
                     expect(editor).toBe(null);
@@ -128,7 +128,7 @@ define(function (require, exports, module) {
                     promise = DragAndDrop.openDroppedFiles(files);
                     waitsForDone(promise, "opening last image file from the dropped files");
                 });
-            
+
                 runs(function () {
                     var editor = EditorManager.getActiveEditor();
                     expect(editor).toBe(null);
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
                     promise = DragAndDrop.openDroppedFiles(files);
                     waitsForDone(promise, "opening last image file from the dropped files");
                 });
-            
+
                 runs(function () {
                     expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, imagesPath + "/thermo.jpg")).toNotEqual(-1);
                     expect(MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, imagesPath + "/eye.jpg")).toNotEqual(-1);

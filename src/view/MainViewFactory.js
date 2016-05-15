@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -42,16 +42,16 @@
  *  a view of it.  Implementation should add the view to the pane
  *
  *      function createIconView(file, pane) {
- *          // IconView will construct its DOM and append 
+ *          // IconView will construct its DOM and append
  *          //  it to pane.$el
  *          var view = new IconView(file, pane.$el);
  *          // Then tell the pane to add it to
  *          //  its view map and show it
- *          pane.addView(view, true); 
+ *          pane.addView(view, true);
  *          return new $.Deferred().resolve().promise();
  *      }
  *
- *  Factories should only create 1 view of a file per pane.  Brackets currently only supports 1 view of 
+ *  Factories should only create 1 view of a file per pane.  Brackets currently only supports 1 view of
  *  a file open at a given time but that may change to allow the same file open in more than 1 pane. Therefore
  *  Factories can do a simple check to see if a view already exists and show it before creating a new one:
  *
@@ -61,25 +61,25 @@
  *      } else {
  *          return createIconView(file, pane);
  *      }
- *  
+ *
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _ = require("thirdparty/lodash");
 
-    
+
     /**
      * @typedef {canOpenFile:function(path:string):boolean, openFile:function(path:string, pane:Pane)} Factory
      */
-    
+
     /**
      * The view registration Database
      * @private
      * @type {Array.<Factory>}
      */
     var _factories = [];
-    
+
     /**
      * Registers a view factory
      * @param {!Factory} factory - the view factory to register
@@ -87,7 +87,7 @@ define(function (require, exports, module) {
     function registerViewFactory(factory) {
         _factories.push(factory);
     }
-    
+
     /**
      * Finds a factory that can open the specified file
      * @param {!string} fullPath - the file to open
@@ -102,8 +102,8 @@ define(function (require, exports, module) {
             return factory.canOpenFile(fullPath);
         });
     }
-    
-    /* 
+
+    /*
      * Public API
      */
     exports.registerViewFactory         = registerViewFactory;

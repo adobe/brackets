@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
@@ -33,7 +33,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         MainViewManager     = require("view/MainViewManager"),
@@ -47,14 +47,14 @@ define(function (require, exports, module) {
         ModalBar            = require("widgets/ModalBar").ModalBar,
         QuickSearchField    = require("search/QuickSearchField").QuickSearchField,
         StringMatch         = require("utils/StringMatch");
-    
-    
+
+
     /**
      * The regular expression to check the cursor position
      * @const {RegExp}
      */
     var CURSOR_POS_EXP = new RegExp(":([^,]+)?(,(.+)?)?");
-    
+
     /**
      * List of plugins
      * @type {Array.<QuickOpenPlugin>}
@@ -69,7 +69,7 @@ define(function (require, exports, module) {
 
     /** @type {Array.<File>} */
     var fileList;
-    
+
     /** @type {$.Promise} */
     var fileListPromise;
 
@@ -94,11 +94,11 @@ define(function (require, exports, module) {
         this.matcherOptions = matcherOptions;
         this.label = label;
     }
-    
+
     /**
      * Creates and registers a new QuickOpenPlugin
      *
-     * @param { name: string, 
+     * @param { name: string,
      *          languageIds: !Array.<string>,
      *          done: ?function(),
      *          search: function(string, !StringMatch.StringMatcher):(!Array.<SearchResult|string>|$.Promise),
@@ -124,7 +124,7 @@ define(function (require, exports, module) {
      *      if the item was highlighted explicitly (arrow keys), not implicitly (at top of list after last search()). Optional.
      * itemSelect - performs an action when a result is chosen.
      *      Passed the highlighted search result item (as returned by search()), and the current query string. Required.
-     * resultsFormatter - takes a query string and an item string and returns 
+     * resultsFormatter - takes a query string and an item string and returns
      *      a <LI> item to insert into the displayed search results. Optional.
      * matcherOptions - options to pass along to the StringMatcher (see StringMatch.StringMatcher
      *          for available options). Optional.
@@ -154,39 +154,39 @@ define(function (require, exports, module) {
      */
     function QuickNavigateDialog() {
         this.$searchField = undefined; // defined when showDialog() is called
-        
+
         // ModalBar event handlers & callbacks
         this._handleCloseBar           = this._handleCloseBar.bind(this);
-        
+
         // QuickSearchField callbacks
         this._handleItemSelect         = this._handleItemSelect.bind(this);
         this._handleItemHighlight      = this._handleItemHighlight.bind(this);
         this._filterCallback           = this._filterCallback.bind(this);
         this._resultsFormatterCallback = this._resultsFormatterCallback.bind(this);
-        
+
         // StringMatchers that cache in-progress query data.
         this._filenameMatcher           = new StringMatch.StringMatcher({
             segmentedSearch: true
         });
         this._matchers                  = {};
     }
-    
+
     /**
      * True if the search bar is currently open. Note that this is set to false immediately
      * when the bar starts closing; it doesn't wait for the ModalBar animation to finish.
      * @type {boolean}
      */
     QuickNavigateDialog.prototype.isOpen = false;
-    
+
     /**
      * @private
-     * Handles caching of filename search information for the lifetime of a 
+     * Handles caching of filename search information for the lifetime of a
      * QuickNavigateDialog (a single search until the dialog is dismissed)
      *
      * @type {StringMatch.StringMatcher}
      */
     QuickNavigateDialog.prototype._filenameMatcher = null;
-    
+
     /**
      * @private
      * StringMatcher caches for each QuickOpen plugin that keep track of search
@@ -196,7 +196,7 @@ define(function (require, exports, module) {
      * @type {Object.<string, StringMatch.StringMatcher>}
      */
     QuickNavigateDialog.prototype._matchers = null;
-    
+
     /**
      * @private
      * If the dialog is closing, this will contain a deferred that is resolved
@@ -204,7 +204,7 @@ define(function (require, exports, module) {
      * @type {$.Deferred}
      */
     QuickNavigateDialog.prototype._closeDeferred = null;
-    
+
 
     /**
      * @private
@@ -221,7 +221,7 @@ define(function (require, exports, module) {
      * @type {?Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>}
      */
     QuickNavigateDialog.prototype._origSelections = null;
-    
+
     /**
      * @private
      * Remembers the scroll position in origDocPath when showDialog() was called (see origSelection above).
@@ -241,27 +241,27 @@ define(function (require, exports, module) {
         }
         return path.slice(path.lastIndexOf("/") + 1, end);
     }
-    
+
     /**
      * Attempts to extract a line number from the query where the line number
      * is followed by a colon. Callers should explicitly test result with isNaN()
-     * 
+     *
      * @param {string} query string to extract line number from
      * @return {{query: string, local: boolean, line: number, ch: number}} An object with
-     *      the extracted line and column numbers, and two additional fields: query with the original position 
+     *      the extracted line and column numbers, and two additional fields: query with the original position
      *      string and local indicating if the cursor position should be applied to the current file.
      *      Or null if the query is invalid
      */
     function extractCursorPos(query) {
         var regInfo = query.match(CURSOR_POS_EXP);
-        
+
         if (query.length <= 1 || !regInfo ||
                 (regInfo[1] && isNaN(regInfo[1])) ||
                 (regInfo[3] && isNaN(regInfo[3]))) {
-            
+
             return null;
         }
-    
+
         return {
             query:  regInfo[0],
             local:  query[0] === ":",
@@ -269,9 +269,9 @@ define(function (require, exports, module) {
             ch:     regInfo[3] - 1 || 0
         };
     }
-    
+
     /**
-     * Navigates to the appropriate file and file location given the selected item 
+     * Navigates to the appropriate file and file location given the selected item
      * and closes the dialog.
      *
      * Note, if selectedItem is null quick search should inspect $searchField for text
@@ -282,7 +282,7 @@ define(function (require, exports, module) {
 
         var doClose = true,
             self = this;
-        
+
         // Delegate to current plugin
         if (currentPlugin) {
             currentPlugin.itemSelect(selectedItem, query);
@@ -341,17 +341,17 @@ define(function (require, exports, module) {
         if (!this.isOpen) {
             return this.closePromise;
         }
-        
+
         this.modalBar.close();  // triggers _handleCloseBar(), setting closePromise
 
         return this.closePromise;
     };
-    
+
     QuickNavigateDialog.prototype._handleCloseBar = function (event, reason, modalBarClosePromise) {
         console.assert(!this.closePromise);
         this.closePromise = modalBarClosePromise;
         this.isOpen = false;
-        
+
         var i;
         for (i = 0; i < plugins.length; i++) {
             var plugin = plugins[i];
@@ -359,10 +359,10 @@ define(function (require, exports, module) {
                 plugin.done();
             }
         }
-        
+
         // Close popup & ensure we ignore any still-pending result promises
         this.searchField.destroy();
-        
+
         // Restore original selection / scroll pos if closed via Escape
         if (reason === ModalBar.CLOSE_ESCAPE) {
             // We can reset the scroll position synchronously on ModalBar's "close" event (before close animation
@@ -377,8 +377,8 @@ define(function (require, exports, module) {
             }
         }
     };
-    
-    
+
+
     function _doSearchFileList(query, matcher) {
         // Strip off line/col number suffix so it doesn't interfere with filename search
         var cursorPos = extractCursorPos(query);
@@ -392,9 +392,9 @@ define(function (require, exports, module) {
             // Is it a match at all?
             // match query against the full path (with gaps between query characters allowed)
             var searchResult;
-            
+
             searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
-            
+
             if (searchResult) {
                 searchResult.label = fileInfo.name;
                 searchResult.fullPath = fileInfo.fullPath;
@@ -402,7 +402,7 @@ define(function (require, exports, module) {
             }
             return searchResult;
         });
-        
+
         // Sort by "match goodness" tier first, then within each tier sort alphabetically - first by filename
         // sans extension, (so that "abc.js" comes before "abc-d.js"), then by filename, and finally (for
         // identically-named files) by full path
@@ -410,7 +410,7 @@ define(function (require, exports, module) {
 
         return filteredList;
     }
-    
+
     function searchFileList(query, matcher) {
         // The file index may still be loading asynchronously - if so, can't return a result yet
         if (!fileList) {
@@ -420,7 +420,7 @@ define(function (require, exports, module) {
                 asyncResult.resolve(_doSearchFileList(query, matcher));
             });
             return asyncResult.promise();
-            
+
         } else {
             return _doSearchFileList(query, matcher);
         }
@@ -435,7 +435,7 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype._filterCallback = function (query) {
         // Re-evaluate which plugin is active each time query string changes
         currentPlugin = null;
-        
+
         // "Go to line" mode is special-cased
         var cursorPos = extractCursorPos(query);
         if (cursorPos && cursorPos.local) {
@@ -456,7 +456,7 @@ define(function (require, exports, module) {
         if (query === ":") {  // treat blank ":" query as valid, but no-op
             return { error: null };
         }
-        
+
         // Try to invoke a search plugin
         var curDoc = DocumentManager.getCurrentDocument(), languageId;
         if (curDoc) {
@@ -469,7 +469,7 @@ define(function (require, exports, module) {
             var languageIdMatch = plugin.languageIds.length === 0 || plugin.languageIds.indexOf(languageId) !== -1;
             if (languageIdMatch && plugin.match(query)) {
                 currentPlugin = plugin;
-                
+
                 // Look up the StringMatcher for this plugin.
                 var matcher = this._matchers[currentPlugin.name];
                 if (!matcher) {
@@ -480,10 +480,10 @@ define(function (require, exports, module) {
                 return plugin.search(query, matcher);
             }
         }
-        
+
         // Reflect current search mode in UI
         this._updateDialogLabel(null, query);
-        
+
         // No matching plugin: use default file search mode
         return searchFileList(query, this._filenameMatcher);
     };
@@ -500,7 +500,7 @@ define(function (require, exports, module) {
     function highlightMatch(item, matchClass, rangeFilter) {
         var label = item.label || item;
         matchClass = matchClass || "quicksearch-namematch";
-        
+
         var stringRanges = item.stringRanges;
         if (!stringRanges) {
             // If result didn't come from stringMatch(), highlight nothing
@@ -510,7 +510,7 @@ define(function (require, exports, module) {
                 includesLastSegment: true
             }];
         }
-        
+
         var displayName = "";
         if (item.scoreDebug) {
             var sd = item.scoreDebug;
@@ -519,30 +519,30 @@ define(function (require, exports, module) {
                 ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + ', nsos: ' +
                 sd.notStartingOnSpecial + ', upper: ' + sd.upper + '">(' + item.matchGoodness + ') </span>';
         }
-        
+
         // Put the path pieces together, highlighting the matched parts
         stringRanges.forEach(function (range) {
             if (range.matched) {
                 displayName += "<span class='" + matchClass + "'>";
             }
-            
+
             var rangeText = rangeFilter ? rangeFilter(range.includesLastSegment, range.text) : range.text;
             displayName += StringUtils.breakableUrl(rangeText);
-            
+
             if (range.matched) {
                 displayName += "</span>";
             }
         });
         return displayName;
     }
-    
+
     function defaultResultsFormatter(item, query) {
         query = query.slice(query.indexOf("@") + 1, query.length);
 
         var displayName = highlightMatch(item);
         return "<li>" + displayName + "</li>";
     }
-    
+
     function _filenameResultsFormatter(item, query) {
         // For main label, we just want filename: drop most of the string
         function fileNameFilter(includesLastSegment, rangeText) {
@@ -555,7 +555,7 @@ define(function (require, exports, module) {
         }
         var displayName = highlightMatch(item, null, fileNameFilter);
         var displayPath = highlightMatch(item, "quicksearch-pathmatch");
-        
+
         return "<li>" + displayName + "<br /><span class='quick-open-path'>" + displayPath + "</span></li>";
     }
 
@@ -588,13 +588,13 @@ define(function (require, exports, module) {
         prefix = prefix || "";
         initialString = initialString || "";
         initialString = prefix + initialString;
-        
+
         this.searchField.setText(initialString);
-        
+
         // Select just the text after the prefix
         this.$searchField[0].setSelectionRange(prefix.length, initialString.length);
     };
-    
+
     /**
      * Sets the dialog label based on the current plugin (if any) and the current query.
      * @param {Object} plugin The current Quick Open plugin, or none if there is none.
@@ -606,7 +606,7 @@ define(function (require, exports, module) {
             dialogLabel = plugin.label;
         } else {
             var prefix = (query.length > 0 ? query.charAt(0) : "");
-            
+
             // Update the dialog label based on the current prefix.
             switch (prefix) {
             case ":":
@@ -622,7 +622,7 @@ define(function (require, exports, module) {
         }
         $(".find-dialog-label", this.dialog).text(dialogLabel);
     };
-    
+
     /**
      * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
      */
@@ -647,11 +647,11 @@ define(function (require, exports, module) {
         // Show the search bar
         var searchBarHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='" + Strings.CMD_QUICK_OPEN + "\u2026' style='width: 30em'><span class='find-dialog-label'></span></div>";
         this.modalBar = new ModalBar(searchBarHTML, true);
-        
+
         this.modalBar.on("close", this._handleCloseBar);
-        
+
         this.$searchField = $("input#quickOpenSearch");
-        
+
         this.searchField = new QuickSearchField(this.$searchField, {
             maxResults: 20,
             verticalAdjust: this.modalBar.getRoot().outerHeight(),
@@ -666,7 +666,7 @@ define(function (require, exports, module) {
             return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() ||
                 MainViewFactory.findSuitableFactoryForPath(file.fullPath);
         }
-        
+
         // Start prefetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
         // caches are out of date, this list might take some time to asynchronously build, forcing searchFileList() to wait. In the
         // meantime we show our old, stale fileList (unless the user has switched projects and we cleared it).
@@ -676,7 +676,7 @@ define(function (require, exports, module) {
                 fileListPromise = null;
                 this._filenameMatcher.reset();
             }.bind(this));
-        
+
         // Prepopulated query
         this.$searchField.focus();
         this.setSearchFieldValue(prefix, initialString);
@@ -732,7 +732,7 @@ define(function (require, exports, module) {
             beginSearch("@", getCurrentEditorSelectedText());
         }
     }
-    
+
     // Listen for a change of project to invalidate our file list
     ProjectManager.on("projectOpen", function () {
         fileList = null;
@@ -745,7 +745,7 @@ define(function (require, exports, module) {
     exports.beginSearch             = beginSearch;
     exports.addQuickOpenPlugin      = addQuickOpenPlugin;
     exports.highlightMatch          = highlightMatch;
-    
+
     // Convenience exports for functions that most QuickOpen plugins would need.
     exports.stringMatch             = StringMatch.stringMatch;
     exports.SearchResult            = StringMatch.SearchResult;

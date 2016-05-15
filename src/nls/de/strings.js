@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -252,11 +252,17 @@ define({
     "SPLITVIEW_MULTIPANE_WARNING"       : "Diese Datei ist bereits in einer anderen Ansicht geöffnet. Das Öffnen einer Datei in mehreren Ansichten wird {APP_NAME} bald unterstützen. Bis dahin wird die Datei in der Ansicht angezeigt, in der sie bereits geöffnet ist.<br /><br />(Sie sehen diese Nachricht nur einmal.)",
 
     /**
-     * Keyboard modifier names
+     * Keyboard modifiers and special key names
      */
-    "KEYBOARD_CTRL"   : "Strg",
-    "KEYBOARD_SHIFT"  : "Umschalt",
-    "KEYBOARD_SPACE"  : "Leer",
+    "KEYBOARD_CTRL"         : "Strg",
+    "KEYBOARD_SHIFT"        : "Umschalt",
+    "KEYBOARD_SPACE"        : "Leer",
+    "KEYBOARD_PAGE_UP"      : "Bild\u2191",
+    "KEYBOARD_PAGE_DOWN"    : "Bild\u2193",
+    "KEYBOARD_HOME"         : "Pos 1",
+    "KEYBOARD_END"          : "Ende",
+    "KEYBOARD_INSERT"       : "Einfg",
+    "KEYBOARD_DELETE"       : "Entf",
 
     /**
      * StatusBar strings
@@ -374,6 +380,9 @@ define({
     "VIEW_MENU"                           : "Ansicht",
     "CMD_HIDE_SIDEBAR"                    : "Seitenleiste verbergen",
     "CMD_SHOW_SIDEBAR"                    : "Seitenleiste zeigen",
+    "CMD_TOGGLE_SIDEBAR"                  : "Seitenleiste anzeigen/verbergen",
+    "CMD_TOGGLE_PANEL"                    : "Panels anzeigen/verbergen",
+    "CMD_TOGGLE_PURE_CODE"                : "Ablenkungsfreier Modus",
     "CMD_INCREASE_FONT_SIZE"              : "Schrift vergrößern",
     "CMD_DECREASE_FONT_SIZE"              : "Schrift verkleinern",
     "CMD_RESTORE_FONT_SIZE"               : "Schriftgröße zurücksetzen",
@@ -455,7 +464,10 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Die Basis-URL kann keine Hashes wie \"{0}\" enthalten.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Sonderzeichen wie \"{0}\" müssen %-kodiert werden.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Unbekannter Fehler beim Verarbeiten der Basis-URL",
+
+    // Strings for Pane.js
     "EMPTY_VIEW_HEADER"                    : "<em>Öffnen Sie eine Datei, während diese Ansicht fokussiert ist</em>",
+    "FLIPVIEW_BTN_TOOLTIP"                 : "Diese Ansicht nach {0} verschieben",
 
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Aktuelles Design",
@@ -675,9 +687,11 @@ define({
     "DESCRIPTION_CODE_FOLDING_MAX_FOLD_LEVEL"        : "Limitiert die maximale Anzahl von \"Alle Einklappen\"-Markierungen",
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Mindestzahl an Zeilen, bevor eine einklappbare Folding-Markierung erscheint",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "Aktiviert das Speichern der eingeklappten Abschnitte",
+    "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "Aktiviert das Einklappen von ausgewähltem Text",
     "DESCRIPTION_ATTR_HINTS"                         : "Aktiviert Code Hints für HTML-Attribute",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Aktiviert Code Hints für CSS/LESS/SCSS",
     "DESCRIPTION_JS_HINTS"                           : "Aktiviert Code Hints für JavaScript",
+    "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "Zeigt Details zum Datentyp in den Code Hints für JavaScript",
     "DESCRIPTION_PREF_HINTS"                         : "Aktiviert Code Hints für Einstellungen",
     "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "Aktiviert Code Hints für HTML Entities",
     "DESCRIPTION_SVG_HINTS"                          : "Aktiviert Code Hints für SVG",
@@ -760,8 +774,12 @@ define({
     "DESCRIPTION_FONT_SMOOTHING"                     : "Nur Mac: \"subpixel-antialiased\", um Subpixel-Antialiasing zu aktivieren, oder \"antialiased\" für Graustufen-Antialiasing",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "Aktiviert das Öffnen der Einstellungsdatei in einer geteilten Ansicht",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "Öffnet die Einstellungsdatei in der rechten bzw. unteren Ansicht",
+    "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "Eine Ansicht einer geteilten Ansicht wird automatisch geschlossen, wenn ihre letzte Datei mit dem Schließen-Button oben rechts geschlossen wird",
+    "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Zeigt bei der geteilten Ansicht die Schließen- und Umschalten-Buttons in der Kopfzeile",
+
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Dies ist ein schreibgeschütztes Dokument, das alle von\n * {APP_NAME} unterstützten Einstellungen auflistet.\n * Nutzen Sie dieses Dokument als Referenz, um die\n * Einstellungsdatei \"brackets.json\", die in der anderen\n * Ansicht geöffnet ist, anzupassen.\n * Besuchen Sie auch https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences,\n * um mehr über den Umgang mit Einstellungen in {APP_NAME}\n * zu erfahren.\n */",
-    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard"
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard",
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "Aktiviert den Ablenkungsfreien Modus, bei dem alle UI-Elemente außer dem Code ausgeblendet werden"
 });
 
-/* Last translated for 1e5ba8f612dcf983d3cbffbbf1bfe455a90788c8 */
+/* Last translated for fcd2e98ef35c110e00aebfbb6d3c3816e5156552 */

@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -27,7 +27,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependent modules
     var CSSUtils                = require("language/CSSUtils"),
         DropdownButton          = require("widgets/DropdownButton").DropdownButton,
@@ -44,14 +44,14 @@ define(function (require, exports, module) {
         Strings                 = require("strings"),
         ViewUtils               = require("utils/ViewUtils"),
         _                       = require("thirdparty/lodash");
-    
+
     var _newRuleCmd,
         _newRuleHandlers = [];
 
     function _getCSSFilesInProject() {
         return ProjectManager.getAllFiles(ProjectManager.getLanguageFilter(["css", "less", "scss"]));
     }
-    
+
     /**
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
      * surrounding that position, or "" if none is found.
@@ -64,7 +64,7 @@ define(function (require, exports, module) {
         var tagInfo = HTMLUtils.getTagInfo(editor, pos),
             selectorName = "",
             reason;
-        
+
         if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME || tagInfo.position.tokenType === HTMLUtils.CLOSING_TAG) {
             // Type selector
             selectorName = tagInfo.tagName;
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
             if (tagInfo.attr.name === "class") {
                 // Class selector. We only look for the class name
                 // that includes the insertion point. For example, if
-                // the attribute is: 
+                // the attribute is:
                 //   class="error-dialog modal hide"
                 // and the insertion point is inside "modal", we want ".modal"
                 var attributeValue = tagInfo.attr.value;
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
                 reason = Strings.ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR;
             }
         }
-        
+
         return {
             selectorName: selectorName,
             reason:       reason
@@ -128,7 +128,7 @@ define(function (require, exports, module) {
             inlineEditor.editor.setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
         });
     }
-    
+
     /**
      * @private
      * Handle the "new rule" menu item by dispatching it to the handler for the focused inline editor.
@@ -144,7 +144,7 @@ define(function (require, exports, module) {
             }
         }
     }
-    
+
     /** Item renderer for stylesheet-picker dropdown */
     function _stylesheetListRenderer(item) {
         var html = "<span class='stylesheet-name'>" + _.escape(item.name);
@@ -154,7 +154,7 @@ define(function (require, exports, module) {
         html += "</span>";
         return html;
     }
-    
+
     /**
      * This function is registered with EditManager as an inline editor provider. It creates a CSSInlineEditor
      * when cursor is on an HTML tag name, class attribute, or id attribute, find associated
@@ -172,20 +172,20 @@ define(function (require, exports, module) {
         if (hostEditor.getLanguageForSelection().getId() !== "html") {
             return null;
         }
-        
+
         // Only provide CSS editor if the selection is within a single line
         var sel = hostEditor.getSelection();
         if (sel.start.line !== sel.end.line) {
             return null;
         }
-        
+
         // Always use the selection start for determining selector name. The pos
         // parameter is usually the selection end.
         var selectorResult = _getSelectorName(hostEditor, sel.start);
         if (selectorResult.selectorName === "") {
             return selectorResult.reason || null;
         }
-        
+
         var selectorName = selectorResult.selectorName;
 
         var result = new $.Deferred(),
@@ -200,7 +200,7 @@ define(function (require, exports, module) {
         function _onDropdownSelect(event, fileInfo) {
             _addRule(selectorName, cssInlineEditor, fileInfo.fullPath);
         }
-        
+
         /**
          * @private
          * Checks to see if there are any stylesheets in the project, and returns the appropriate
@@ -214,7 +214,7 @@ define(function (require, exports, module) {
             });
             return result;
         }
-        
+
         /**
          * @private
          * Update the enablement of associated menu commands.
@@ -222,7 +222,7 @@ define(function (require, exports, module) {
         function _updateCommands() {
             _newRuleCmd.setEnabled(cssInlineEditor.hasFocus() && !newRuleButton.$button.hasClass("disabled"));
         }
-        
+
         /**
          * @private
          * Create a new rule on click.
@@ -239,7 +239,7 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
+
         /**
          * @private
          * Sort files with LESS/SCSS above CSS, and then within each grouping sort by path & filename
@@ -258,7 +258,7 @@ define(function (require, exports, module) {
                 return FileUtils.comparePaths(a.fullPath, b.fullPath);
             }
         }
-        
+
         /**
          * @private
          * Prepare file list for display
@@ -266,7 +266,7 @@ define(function (require, exports, module) {
         function _prepFileList(files) {
             // First, sort list (the same ordering we use for the results list)
             files.sort(_fileComparator);
-            
+
             // Find any files that share the same name (with different path)
             var fileNames = {};
             files.forEach(function (file) {
@@ -275,7 +275,7 @@ define(function (require, exports, module) {
                 }
                 fileNames[file.name].push(file);
             });
-            
+
             // For any duplicate filenames, set subDirStr to a path snippet the helps
             // the user distinguish each file in the list.
             _.forEach(fileNames, function (files) {
@@ -289,11 +289,11 @@ define(function (require, exports, module) {
 
             return files;
         }
-        
+
         function _onHostEditorScroll() {
             newRuleButton.closeDropdown();
         }
-        
+
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
                 var inlineEditorDeferred = new $.Deferred();
@@ -318,15 +318,15 @@ define(function (require, exports, module) {
                 newRuleButton.$button.addClass("btn-mini stylesheet-button");
                 $header.append(newRuleButton.$button);
                 _newRuleHandlers.push({inlineEditor: cssInlineEditor, handler: _handleNewRuleClick});
-                
+
                 hostEditor.on("scroll", _onHostEditorScroll);
-                
+
                 result.resolve(cssInlineEditor);
-                
+
 
                 // Now that dialog has been built, collect list of stylesheets
                 var stylesheetsPromise = _getCSSFilesInProject();
-                
+
                 // After both the stylesheets are loaded and the inline editor has been added to the DOM,
                 // update the UI accordingly. (Those can happen in either order, so we need to wait for both.)
                 // Note that the stylesheetsPromise needs to be passed first in order for the fileInfos to be
@@ -335,7 +335,7 @@ define(function (require, exports, module) {
                 $.when(stylesheetsPromise, inlineEditorDeferred.promise())
                     .done(function (fileInfos) {
                         cssFileInfos = _prepFileList(fileInfos);
-                        
+
                         // "New Rule" button is disabled by default and gets enabled
                         // here if there are any stylesheets in project
                         if (cssFileInfos.length > 0) {
@@ -344,7 +344,7 @@ define(function (require, exports, module) {
                                 // Force focus to the button so the user can create a new rule from the keyboard.
                                 newRuleButton.$button.focus();
                             }
-                            
+
                             if (cssFileInfos.length === 1) {
                                 // Make it look & feel like a plain button in this case
                                 newRuleButton.$button.removeClass("btn-dropdown");
@@ -355,7 +355,7 @@ define(function (require, exports, module) {
                                 newRuleButton.on("select", _onDropdownSelect);
                             }
                         }
-                        
+
                         _updateCommands();
                     });
             })
@@ -363,12 +363,12 @@ define(function (require, exports, module) {
                 console.warn("Error in findMatchingRules()", error);
                 result.reject();
             });
-        
+
         return result.promise();
     }
 
     EditorManager.registerInlineEditProvider(htmlToCSSProvider);
-    
+
     _newRuleCmd = CommandManager.register(Strings.CMD_CSS_QUICK_EDIT_NEW_RULE, Commands.CSS_QUICK_EDIT_NEW_RULE, _handleNewRule);
     _newRuleCmd.setEnabled(false);
 });

@@ -217,7 +217,7 @@
             "platform": "mac"
         }
     ],
-    "view.hideSidebar":  [
+    "view.toggleSidebar":  [
         {   
             "key" : "Ctrl-Alt-H"
         },

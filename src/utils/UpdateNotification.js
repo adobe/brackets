@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, Mustache */
+/*global define, $, brackets, window */
 
 /**
  *  Utilities functions for displaying update notifications
@@ -30,7 +30,7 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var Dialogs              = require("widgets/Dialogs"),
         DefaultDialogs       = require("widgets/DefaultDialogs"),
         ExtensionManager     = require("extensibility/ExtensionManager"),
@@ -38,8 +38,9 @@ define(function (require, exports, module) {
         NativeApp            = require("utils/NativeApp"),
         Strings              = require("strings"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
-        UpdateListTemplate   = require("text!htmlContent/update-list.html");
-    
+        UpdateListTemplate   = require("text!htmlContent/update-list.html"),
+        Mustache             = require("thirdparty/mustache/mustache");
+
     // make sure the global brackets variable is loaded
     require("utils/Global");
 
@@ -51,13 +52,13 @@ define(function (require, exports, module) {
 
     // Extract current build number from package.json version field 0.0.0-0
     var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
-    
+
     // Init default last build number
     PreferencesManager.stateManager.definePreference("lastNotifiedBuildNumber", "number", 0);
-    
+
     // Init default last info URL fetch time
     PreferencesManager.stateManager.definePreference("lastInfoURLFetchTime", "number", 0);
-    
+
     // Time of last registry check for update
     PreferencesManager.stateManager.definePreference("lastExtensionRegistryCheckTime", "number", 0);
     // Data about available updates in the registry
@@ -68,10 +69,10 @@ define(function (require, exports, module) {
         "lastInfoURLFetchTime": "user",
         "updateInfo": "user"
     }, true);
-    
+
     // URL to load version info from. By default this is loaded no more than once a day. If
     // you force an update check it is always loaded.
-    
+
     // Information on all posted builds of Brackets. This is an Array, where each element is
     // an Object with the following fields:
     //
@@ -85,7 +86,7 @@ define(function (require, exports, module) {
     //      {String} description Description of the feature
     //
     // This array must be reverse sorted by buildNumber (newest build info first)
-    
+
     /**
      * @private
      * Flag that indicates if we've added a click handler to the update notification icon.
@@ -128,23 +129,23 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         var fetchData = false;
         var data;
-        
+
         // If force is true, always fetch
         if (force) {
             fetchData = true;
         }
-        
+
         // If we don't have data saved in prefs, fetch
         data = PreferencesManager.getViewState("updateInfo");
         if (!data) {
             fetchData = true;
         }
-        
+
         // If more than 24 hours have passed since our last fetch, fetch again
         if ((new Date()).getTime() > lastInfoURLFetchTime + ONE_DAY) {
             fetchData = true;
         }
-        
+
         if (fetchData) {
             var lookupPromise = new $.Deferred(),
                 localVersionInfoUrl;
@@ -225,7 +226,7 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
-    
+
     /**
      * Return a new array of version information that is newer than "buildNumber".
      * Returns null if there is no new version information.
@@ -235,22 +236,22 @@ define(function (require, exports, module) {
         // should get through the search quickly.
         var lastIndex = 0;
         var len = versionInfo.length;
-        
+
         while (lastIndex < len) {
             if (versionInfo[lastIndex].buildNumber <= buildNumber) {
                 break;
             }
             lastIndex++;
         }
-        
+
         if (lastIndex > 0) {
             return versionInfo.slice(0, lastIndex);
         }
-        
+
         // No new version info
         return null;
     }
-    
+
     /**
      * Show a dialog that shows the update
      */
@@ -262,15 +263,15 @@ define(function (require, exports, module) {
                     NativeApp.openURLInDefaultBrowser(updates[0].downloadURL);
                 }
             });
-        
+
         // Populate the update data
         var $dlg        = $(".update-dialog.instance"),
             $updateList = $dlg.find(".update-info");
-        
+
         updates.Strings = Strings;
         $updateList.html(Mustache.render(UpdateListTemplate, updates));
     }
-    
+
     /**
      * Calculate state of notification everytime registries are downloaded - no matter who triggered the download
      */
@@ -337,10 +338,10 @@ define(function (require, exports, module) {
         var usingOverrides = false; // true if any of the values are overridden.
         var result = new $.Deferred();
         var versionInfoUrl;
-        
+
         if (_testValues) {
             oldValues = {};
-            
+
             if (_testValues.hasOwnProperty("_buildNumber")) {
                 oldValues._buildNumber = _buildNumber;
                 _buildNumber = _testValues._buildNumber;
@@ -358,12 +359,12 @@ define(function (require, exports, module) {
                 usingOverrides = true;
             }
         }
-        
+
         _getUpdateInformation(force || usingOverrides, usingOverrides, versionInfoUrl)
             .done(function (versionInfo) {
                 // Get all available updates
                 var allUpdates = _stripOldVersionInfo(versionInfo, _buildNumber);
-                
+
                 // When running directly from GitHub source (as opposed to
                 // an installed build), _buildNumber is 0. In this case, if the
                 // test is not forced, don't show the update notification icon or
@@ -372,11 +373,11 @@ define(function (require, exports, module) {
                     result.resolve();
                     return;
                 }
-                
+
                 if (allUpdates) {
                     // Always show the "update available" icon if any updates are available
                     var $updateNotification = $("#update-notification");
-                    
+
                     $updateNotification.css("display", "block");
                     if (!_addedClickHandler) {
                         _addedClickHandler = true;
@@ -384,12 +385,12 @@ define(function (require, exports, module) {
                             checkForUpdate(true);
                         });
                     }
-                
+
                     // Only show the update dialog if force = true, or if the user hasn't been
                     // alerted of this update
                     if (force || allUpdates[0].buildNumber >  lastNotifiedBuildNumber) {
                         _showUpdateNotificationDialog(allUpdates);
-                        
+
                         // Update prefs with the last notified build number
                         lastNotifiedBuildNumber = allUpdates[0].buildNumber;
                         // Don't save prefs is we have overridden values
@@ -405,7 +406,7 @@ define(function (require, exports, module) {
                         Strings.NO_UPDATE_MESSAGE
                     );
                 }
-        
+
                 if (oldValues) {
                     if (oldValues.hasOwnProperty("_buildNumber")) {
                         _buildNumber = oldValues._buildNumber;
@@ -427,10 +428,10 @@ define(function (require, exports, module) {
                 }
                 result.reject();
             });
-        
+
         return result.promise();
     }
-    
+
     /**
      * Launches both check for Brackets update and check for installed extensions update
      */

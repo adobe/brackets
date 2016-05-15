@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+// Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
 //  
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"), 
@@ -24,6 +24,10 @@
 
 .CodeMirror pre {
     padding: 0 @code-padding 0 0;
+
+    > * {
+        text-indent: 0px;
+    }
 }
 
 .show-line-padding .CodeMirror pre {
@@ -87,7 +91,6 @@ span.cm-comment {color: @accent-comment;}
 span.cm-string {color: @accent-string;}
 span.cm-string-2 {color: @accent-string-2;}
 span.cm-meta {color: @accent-meta;}
-span.cm-error {color: @accent-error;}
 span.cm-qualifier {color: @accent-qualifier;}
 span.cm-builtin {color: @accent-builtin;}
 span.cm-bracket {color: @accent-bracket;}
@@ -101,6 +104,7 @@ span.cm-rangeinfo {color: @accent-rangeinfo;}
 span.cm-minus {color: @accent-minus;}
 span.cm-plus {color: @accent-plus;}
 span.cm-property {color: @accent-property;} //cm-property has go after cm-string for a better JSON look.
+span.cm-error {color: @accent-error;}
 
 span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @matching-bracket;}
 span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}

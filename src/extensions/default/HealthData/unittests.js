@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2015 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,18 +47,18 @@ define(function (require, exports, module) {
             testWindow = null;
         });
 
-        
+
         describe("Data Send to Server", function () {
             var ONE_DAY = 24 * 60 * 60 * 1000,
                 FIRST_LAUNCH_SEND_DELAY = 30 * 60 * 1000,
                 prefs,
                 HealthDataManager;
-            
+
             beforeEach(function () {
                 PreferencesManager = testWindow.brackets.test.PreferencesManager;
                 prefs = PreferencesManager.getExtensionPrefs("healthData");
                 HealthDataManager = testWindow.brackets.test.HealthDataManager;
-                
+
                 this.addMatchers({
                     // Oddly, Jasmine has expect().toBeGreaterThan() built in, but not greater-or-equal
                     toBeGreaterOrEqualTo: function (expected) {
@@ -69,13 +69,13 @@ define(function (require, exports, module) {
                     }
                 });
             });
-            
+
             afterEach(function () {
                 HealthDataManager = null;
                 prefs = null;
                 PreferencesManager = null;
             });
-            
+
             it("should send data to server when opted in", function () {
                 var baseTime = Date.now();
                 PreferencesManager.setViewState("nextHealthDataSendTime", baseTime);
@@ -102,18 +102,18 @@ define(function (require, exports, module) {
             });
 
         });
-        
+
         describe("Notification popup", function () {
             var HealthDataPopup;
-            
+
             beforeEach(function () {
                 HealthDataPopup = testWindow.brackets.test.HealthDataPopup;
             });
-            
+
             afterEach(function () {
                 HealthDataPopup = null;
             });
-            
+
             it("should show notification popup", function () {
                 // TODO: write a test that verifies this actually shows *on a clean launch*, not just when API called...
                 HealthDataPopup.showFirstLaunchTooltip();
@@ -123,15 +123,15 @@ define(function (require, exports, module) {
 
         describe("Health Data Statistics is displayed", function () {
             var HealthDataPreview;
-            
+
             beforeEach(function () {
                 HealthDataPreview = testWindow.brackets.test.HealthDataPreview;
             });
-            
+
             afterEach(function () {
                 HealthDataPreview = null;
             });
-            
+
             it("should show file preview dialog", function () {
 
                 runs(function () {

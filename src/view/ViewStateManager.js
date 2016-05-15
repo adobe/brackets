@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,44 +36,44 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     var _ = require("thirdparty/lodash");
-        
+
     /**
      * The view state cache.
      * @type {Object.<string,*>}
      * @private
      */
     var _viewStateCache = {};
-    
+
     /**
      * resets the view state cache
      */
     function reset() {
         _viewStateCache = {};
     }
-    
+
     /**
      * Sets the view state for the specfied file
      * @param {!File} file - the file to record the view state for
-     * @param {?*} viewState - any data that the view needs to restore the view state.  
+     * @param {?*} viewState - any data that the view needs to restore the view state.
      */
     function _setViewState(file, viewState) {
         _viewStateCache[file.fullPath] = viewState;
     }
-    
-    
+
+
     /**
      * Updates the view state for the specified view
      * @param {!{!getFile:function():File, getViewState:function():*}} view - the to save state
-     * @param {?*} viewState - any data that the view needs to restore the view state.  
+     * @param {?*} viewState - any data that the view needs to restore the view state.
      */
     function updateViewState(view) {
         if (view.getViewState) {
             _setViewState(view.getFile(), view.getViewState());
         }
     }
-    
+
     /**
      * gets the view state for the specified file
      * @param {!File} file - the file to record the view state for
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
     function getViewState(file) {
         return _viewStateCache[file.fullPath];
     }
-    
+
     /**
      * adds an array of view states
      * @param {!object.<string, *>} viewStates - View State object to append to the current set of view states

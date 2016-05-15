@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -55,52 +55,52 @@ define(function (require, exports, module) {
      */
     function LiveHTMLDocument(protocol, urlResolver, doc, editor) {
         LiveDocument.apply(this, arguments);
-        
+
         this._instrumentationEnabled = false;
         this._relatedDocuments = {
             stylesheets: {},
             scripts: {}
         };
-        
+
         this._onChange = this._onChange.bind(this);
         this.doc.on("change", this._onChange);
-        
+
         this._onRelated = this._onRelated.bind(this);
         this.protocol.on("DocumentRelated", this._onRelated);
-        
+
         this._onStylesheetAdded = this._onStylesheetAdded.bind(this);
         this.protocol.on("StylesheetAdded", this._onStylesheetAdded);
-        
+
         this._onStylesheetRemoved = this._onStylesheetRemoved.bind(this);
         this.protocol.on("StylesheetRemoved", this._onStylesheetRemoved);
-        
+
         this._onScriptAdded = this._onScriptAdded.bind(this);
         this.protocol.on("ScriptAdded", this._onScriptAdded);
-        
+
         this._onScriptRemoved = this._onScriptRemoved.bind(this);
         this.protocol.on("ScriptRemoved", this._onScriptRemoved);
-        
+
     }
-    
+
     LiveHTMLDocument.prototype = Object.create(LiveDocument.prototype);
     LiveHTMLDocument.prototype.constructor = LiveHTMLDocument;
     LiveHTMLDocument.prototype.parentClass = LiveDocument.prototype;
-    
+
     EventDispatcher.makeEventDispatcher(LiveHTMLDocument.prototype);
-    
+
     /**
      * @override
      * Returns true if document edits appear live in the connected browser.
-     * @return {boolean} 
+     * @return {boolean}
      */
     LiveHTMLDocument.prototype.isLiveEditingEnabled = function () {
         return this._instrumentationEnabled;
     };
-    
+
     /**
      * @override
      * Called to turn instrumentation on or off for this file. Triggered by being
-     * requested from the browser. 
+     * requested from the browser.
      * TODO: this doesn't seem necessary...if we're a live document, we should
      * always have instrumentation on anyway.
      * @param {boolean} enabled
@@ -116,12 +116,12 @@ define(function (require, exports, module) {
             HTMLInstrumentation.scanDocument(this.doc);
             HTMLInstrumentation._markText(this.editor);
         }
-        
+
         this._instrumentationEnabled = enabled;
     };
-    
+
     /**
-     * Returns the instrumented version of the file. 
+     * Returns the instrumented version of the file.
      * @return {{body: string}} instrumented doc
      */
     LiveHTMLDocument.prototype.getResponseData = function (enabled) {
@@ -129,7 +129,7 @@ define(function (require, exports, module) {
         if (this._instrumentationEnabled) {
             body = HTMLInstrumentation.generateInstrumentedHTML(this.editor, this.protocol.getRemoteScript());
         }
-        
+
         return {
             body: body || this.doc.getText()
         };
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
         this.doc.off("change", this._onChange);
         this.parentClass.close.call(this);
     };
-    
+
     /**
      * @override
      * Update the highlights in the browser based on the cursor position.
@@ -207,10 +207,10 @@ define(function (require, exports, module) {
         var self                = this,
             result              = HTMLInstrumentation.getUnappliedEditList(this.editor, change),
             applyEditsPromise;
-        
+
         if (result.edits) {
             applyEditsPromise = this.protocol.evaluate("_LD.applyDOMEdits(" + JSON.stringify(result.edits) + ")");
-    
+
             applyEditsPromise.always(function () {
                 if (!isNestedTimer) {
                     PerfUtils.addMeasurement(perfTimerName);
@@ -220,7 +220,7 @@ define(function (require, exports, module) {
 
         this.errors = result.errors || [];
         this._updateErrorDisplay();
-        
+
         // Debug-only: compare in-memory vs. in-browser DOM
         // edit this file or set a conditional breakpoint at the top of this function:
         //     "this._debug = true, false"
@@ -232,8 +232,8 @@ define(function (require, exports, module) {
             });
         }
     };
-    
-    
+
+
     /**
      * @private
      * Handles message DocumentRelated from the browser.
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
         this._relatedDocuments = msg.related;
         return;
     };
-    
+
     /**
      * @private
      * Handles message Stylesheet.Added from the browser.
@@ -255,7 +255,7 @@ define(function (require, exports, module) {
         this._relatedDocuments.stylesheets[msg.href] = true;
         return;
     };
-    
+
     /**
      * @private
      * Handles message Stylesheet.Removed from the browser.
@@ -266,7 +266,7 @@ define(function (require, exports, module) {
         delete (this._relatedDocuments.stylesheets[msg.href]);
         return;
     };
-    
+
     /**
      * @private
      * Handles message Script.Added from the browser.
@@ -288,7 +288,7 @@ define(function (require, exports, module) {
         delete (this._relatedDocuments.scripts[msg.src]);
         return;
     };
-    
+
      /**
      * For the given path, check if the document is related to the live HTML document.
      * Related means that is an external Javascript or CSS file that is included as part of the DOM.

@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
@@ -31,54 +31,54 @@
  * response is returned through a promise as an object. Scripts that implement remote logic are
  * provided during the instrumentation stage by "getRemoteFunctions()".
  *
- * Events raised by the remote browser are dispatched as jQuery events which type is equal to the 'method' 
- * property. The received message object is dispatched as the first parameter and enriched with a 
+ * Events raised by the remote browser are dispatched as jQuery events which type is equal to the 'method'
+ * property. The received message object is dispatched as the first parameter and enriched with a
  * 'clientId' property being the client ID of the remote browser.
  *
- * It keeps active connections which are  updated when receiving "connect" and "close" from the 
- * underlying transport. Events "Connection.connect"/"Connection.close" are triggered as 
+ * It keeps active connections which are  updated when receiving "connect" and "close" from the
+ * underlying transport. Events "Connection.connect"/"Connection.close" are triggered as
  * propagation of transport's "connect"/"close".
- * 
+ *
  */
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var EventDispatcher = require("utils/EventDispatcher");
-    
+
     // Text of the script we'll inject into the browser that handles protocol requests.
     var LiveDevProtocolRemote = require("text!LiveDevelopment/MultiBrowserImpl/protocol/remote/LiveDevProtocolRemote.js"),
         DocumentObserver = require("text!LiveDevelopment/MultiBrowserImpl/protocol/remote/DocumentObserver.js"),
         RemoteFunctions = require("text!LiveDevelopment/Agents/RemoteFunctions.js");
-    
+
     /**
      * @private
      * Active connections.
      * @type {Object}
      */
     var _connections = {};
-    
+
     /**
      * @private
      * The low-level transport we're communicating over, set by `setTransport()`.
      * @type {{start: function(), send: function(number|Array.<number>, string), close: function(number), getRemoteScript: function(): ?string}}
      */
     var _transport = null;
-    
+
     /**
      * @private
      * A unique message serial number, used to match up responses with request messages.
      * @type {number}
      */
     var _nextMsgId = 1;
-    
+
     /**
      * @private
      * A map of response IDs to deferreds, for messages that are awaiting responses.
      * @type {Object}
      */
     var _responseDeferreds = {};
-    
+
     /**
      * Returns an array of the client IDs that are being managed by this live document.
      * @return {Array.<number>}
@@ -86,7 +86,7 @@ define(function (require, exports, module) {
     function getConnectionIds() {
         return Object.keys(_connections);
     }
-    
+
     /**
      * @private
      * Handles a message received from the remote protocol handler via the transport.
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
             exports.trigger(event, msg);
         }
     }
-    
+
     /**
      * @private
      * Dispatches a message to the remote protocol handler via the transport.
@@ -131,7 +131,7 @@ define(function (require, exports, module) {
     function _send(msg, clients) {
         var id = _nextMsgId++,
             result = new $.Deferred();
-        
+
         // broadcast if there are no specific clients
         clients = clients || getConnectionIds();
         msg.id = id;
@@ -139,7 +139,7 @@ define(function (require, exports, module) {
         _transport.send(clients, JSON.stringify(msg));
         return result.promise();
     }
-    
+
      /**
      * @private
      * Handles when a connection is made to the live development protocol handler.
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
             url: url
         });
     }
-    
+
     /**
      * @private
      * Handles when a connection is closed.
@@ -170,8 +170,8 @@ define(function (require, exports, module) {
             clientId: clientId
         });
     }
-    
-    
+
+
     /**
      * Sets the transport that should be used by the protocol. See `LiveDevelopment.setTransport()`
      * for more detail on the transport.
@@ -182,7 +182,7 @@ define(function (require, exports, module) {
             _transport.off(".livedev");
         }
         _transport = transport;
-       
+
         _transport
             .on("connect.livedev", function (event, msg) {
                 _connect(msg[0], msg[1]);
@@ -195,11 +195,11 @@ define(function (require, exports, module) {
             });
         _transport.start();
     }
-    
-    
+
+
     /**
      * Returns a script that should be injected into the HTML that's launched in the
-     * browser in order to implement remote commands that handle protocol requests. 
+     * browser in order to implement remote commands that handle protocol requests.
      * Includes the <script> tags.
      * @return {string}
      */
@@ -211,7 +211,7 @@ define(function (require, exports, module) {
         script += "window._LD=(" + RemoteFunctions + "())";
         return "<script>\n" + script + "</script>\n";
     }
-    
+
     /**
      * Returns a script that should be injected into the HTML that's launched in the
      * browser in order to handle protocol requests. Includes the <script> tags.
@@ -225,7 +225,7 @@ define(function (require, exports, module) {
             "<script>\n" + LiveDevProtocolRemote + "</script>\n" +
             remoteFunctionsScript;
     }
-    
+
     /**
      * Protocol method. Evaluates the given script in the browser (in global context), and returns a promise
      * that will be fulfilled with the result of the script, if any.
@@ -246,7 +246,7 @@ define(function (require, exports, module) {
             clients
         );
     }
-    
+
     /**
      * Protocol method. Reloads a CSS styleseet in the browser (by replacing its text) given its url.
      * @param {string} url Absolute URL of the stylesheet
@@ -267,7 +267,7 @@ define(function (require, exports, module) {
             }
         );
     }
-    
+
      /**
      * Protocol method. Rretrieves the content of a given stylesheet (for unit testing)
      * @param {number|Array.<number>} clients A client ID or array of client IDs that should navigate to the given URL.
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
             clients
         );
     }
-    
+
     /**
      * Protocol method. Reloads the page that is currently loaded into the browser, optionally ignoring cache.
      * @param {number|Array.<number>} clients A client ID or array of client IDs that should reload the page.
@@ -305,9 +305,9 @@ define(function (require, exports, module) {
             clients
         );
     }
-    
+
     /**
-     * Protocol method. Navigates current page to the given URL. 
+     * Protocol method. Navigates current page to the given URL.
      * @param {number|Array.<number>} clients A client ID or array of client IDs that should navigate to the given URL.
      * @param {string} url URL to navigate the page to.
      * @return {$.Promise} A promise that's resolved with the return value from the first client that responds
@@ -324,7 +324,7 @@ define(function (require, exports, module) {
             clients
         );
     }
-    
+
     /**
      * Closes the connection to the given client. Proxies to the transport.
      * @param {number} clientId
@@ -332,16 +332,16 @@ define(function (require, exports, module) {
     function close(clientId) {
         _transport.close(clientId);
     }
-    
+
     function closeAllConnections() {
         getConnectionIds().forEach(function (clientId) {
             close(clientId);
         });
         _connections = {};
     }
-    
+
     EventDispatcher.makeEventDispatcher(exports);
-    
+
     // public API
     exports.setTransport = setTransport;
     exports.getRemoteScript = getRemoteScript;

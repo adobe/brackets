@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -29,27 +29,27 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load JSLint, a non-module lib
     require("thirdparty/jslint/jslint");
-    
+
     // Load dependent modules
     var CodeInspection     = brackets.getModule("language/CodeInspection"),
         Editor             = brackets.getModule("editor/Editor").Editor,
         PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
         Strings            = brackets.getModule("strings"),
         _                  = brackets.getModule("thirdparty/lodash");
-    
+
     var prefs = PreferencesManager.getExtensionPrefs("jslint");
-    
+
     /**
      * @private
-     * 
+     *
      * Used to keep track of the last options JSLint was run with to avoid running
      * again when there were no changes.
      */
     var _lastRunOptions;
-    
+
     prefs.definePreference("options", "object", undefined, {
         description: Strings.DESCRIPTION_JSLINT_OPTIONS,
         keys: {
@@ -203,10 +203,10 @@ define(function (require, exports, module) {
                 CodeInspection.requestRun(Strings.JSLINT_NAME);
             }
         });
-    
+
     // Predefined environments understood by JSLint.
     var ENVIRONMENTS = ["browser", "node", "couch", "rhino"];
-    
+
     // gets indentation size depending whether the tabs or spaces are used
     function _getIndentSize(fullPath) {
         return Editor.getUseTabChar(fullPath) ? Editor.getTabSize(fullPath) : Editor.getSpaceUnits(fullPath);
@@ -219,37 +219,37 @@ define(function (require, exports, module) {
     function lintOneFile(text, fullPath) {
         // If a line contains only whitespace (here spaces or tabs), remove the whitespace
         text = text.replace(/^[ \t]+$/gm, "");
-        
+
         var options = prefs.get("options");
 
         _lastRunOptions = _.clone(options);
-        
+
         if (!options) {
             options = {};
         } else {
             options = _.clone(options);
         }
-        
+
         if (!options.indent) {
             // default to using the same indentation value that the editor is using
             options.indent = _getIndentSize(fullPath);
         }
-        
+
         // If the user has not defined the environment, we use browser by default.
         var hasEnvironment = _.some(ENVIRONMENTS, function (env) {
             return options[env] !== undefined;
         });
-        
+
         if (!hasEnvironment) {
             options.browser = true;
         }
 
         var jslintResult = JSLINT(text, options);
-        
+
         if (!jslintResult) {
             // Remove any trailing null placeholder (early-abort indicator)
             var errors = JSLINT.errors.filter(function (err) { return err !== null; });
-            
+
             errors = errors.map(function (jslintError) {
                 return {
                     // JSLint returns 1-based line/col numbers
@@ -258,7 +258,7 @@ define(function (require, exports, module) {
                     type: CodeInspection.Type.WARNING
                 };
             });
-            
+
             var result = { errors: errors };
 
             // If array terminated in a null it means there was a stop notice
@@ -266,12 +266,12 @@ define(function (require, exports, module) {
                 result.aborted = true;
                 errors[errors.length - 1].type = CodeInspection.Type.META;
             }
-            
+
             return result;
         }
         return null;
     }
-    
+
     // Register for JS files
     CodeInspection.register("javascript", {
         name: Strings.JSLINT_NAME,

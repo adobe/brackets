@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         StringMatch         = brackets.getModule("utils/StringMatch");
 
 
-   /** 
+   /**
     * FileLocation class
     * @constructor
     * @param {string} fullPath
@@ -62,7 +62,7 @@ define(function (require, exports, module) {
         if (!doc) {
             return;
         }
-        
+
         var idList = [];
         var docText = doc.getText();
         var lines = docText.split("\n");
@@ -74,7 +74,7 @@ define(function (require, exports, module) {
             var info;
             while ((info = regex.exec(line)) !== null) {
                 id = info[1];
-                // TODO: this doesn't handle id's that share the 
+                // TODO: this doesn't handle id's that share the
                 // same portion of a name on the same line or when
                 // the id and value are on different lines
                 chFrom = line.indexOf(id);
@@ -97,7 +97,7 @@ define(function (require, exports, module) {
             matcher.idList = idList;
         }
         query = query.slice(query.indexOf("@") + 1, query.length);
-        
+
         // Filter and rank how good each match is
         var filteredList = $.map(idList, function (fileLocation) {
             var searchResult = matcher.match(fileLocation.id, query);
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
             }
             return searchResult;
         });
-        
+
         // Sort based on ranking & basic alphabetical order
         StringMatch.basicMatchSort(filteredList);
 
@@ -134,7 +134,7 @@ define(function (require, exports, module) {
             return;
         }
         var fileLocation = selectedItem.fileLocation;
-        
+
         var from = {line: fileLocation.line, ch: fileLocation.chFrom};
         var to = {line: fileLocation.line, ch: fileLocation.chTo};
         EditorManager.getCurrentFullEditor().setSelection(from, to, true);

@@ -1,29 +1,29 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, PathUtils, Mustache */
+/*global define */
 
 /**
  * PreferencesDialogs
@@ -31,14 +31,14 @@
  */
 define(function (require, exports, module) {
     "use strict";
-    
-    require("thirdparty/path-utils/path-utils.min");
 
     var Dialogs                = require("widgets/Dialogs"),
         ProjectManager         = require("project/ProjectManager"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),
-        SettingsDialogTemplate = require("text!htmlContent/project-settings-dialog.html");
+        SettingsDialogTemplate = require("text!htmlContent/project-settings-dialog.html"),
+        Mustache               = require("thirdparty/mustache/mustache"),
+        PathUtils              = require("thirdparty/path-utils/path-utils");
 
     /**
      * Validate that text string is a valid base url which should map to a server folder
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
     function showProjectPreferencesDialog(baseUrl, errorMessage) {
         var $baseUrlControl,
             dialog;
-        
+
         // Title
         var projectName = "",
             projectRoot = ProjectManager.getProjectRoot(),
@@ -90,16 +90,16 @@ define(function (require, exports, module) {
             projectName = projectRoot.name;
         }
         title = StringUtils.format(Strings.PROJECT_SETTINGS_TITLE, projectName);
-        
+
         var templateVars = {
             title        : title,
             baseUrl      : baseUrl,
             errorMessage : errorMessage,
             Strings      : Strings
         };
-        
+
         dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, templateVars));
-        
+
         dialog.done(function (id) {
             if (id === Dialogs.DIALOG_BTN_OK) {
                 var baseUrlValue = $baseUrlControl.val();

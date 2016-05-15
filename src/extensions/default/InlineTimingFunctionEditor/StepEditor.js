@@ -1,40 +1,41 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, window, Mustache */
+/*global define, brackets, $, window */
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var KeyEvent    = brackets.getModule("utils/KeyEvent"),
-        Strings     = brackets.getModule("strings");
+        Strings     = brackets.getModule("strings"),
+        Mustache    = brackets.getModule("thirdparty/mustache/mustache");
 
     var TimingFunctionUtils = require("TimingFunctionUtils");
-    
+
     /** Mustache template that forms the bare DOM structure of the UI */
     var StepEditorTemplate   = require("text!StepEditorTemplate.html");
-    
+
     /** @const @type {number} */
     var STEP_LINE   = 1,
         DASH_LINE   = 2;
@@ -53,7 +54,7 @@ define(function (require, exports, module) {
         this.count  = params.count;
         this.timing = params.timing;
     }
-    
+
     /**
      * StepCanvas object constructor
      *
@@ -238,7 +239,7 @@ define(function (require, exports, module) {
     };
 
     // Event handlers
-    
+
     /**
      * Handle key down in <canvas> element
      *
@@ -298,7 +299,7 @@ define(function (require, exports, module) {
         // Create the DOM structure, filling in localized strings via Mustache
         this.$element = $(Mustache.render(StepEditorTemplate, Strings));
         $parent.append(this.$element);
-        
+
         this._callback = callback;
 
         // current step function params
@@ -322,7 +323,7 @@ define(function (require, exports, module) {
         // Note that this is rendered inside canvas CSS "content"
         // (i.e. this does not map to CSS padding)
         this.stepCanvas = new StepCanvas(this.canvas, null, [0.1]);
-      
+
         // redraw canvas
         this._updateCanvas();
 
@@ -419,7 +420,7 @@ define(function (require, exports, module) {
             this.stepCanvas.plot();
         }
     };
-    
+
     /**
      * Handle external update
      *
@@ -437,6 +438,6 @@ define(function (require, exports, module) {
         }
     };
 
-    
+
     exports.StepEditor = StepEditor;
 });

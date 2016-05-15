@@ -1,32 +1,32 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, Mustache */
+/*global define, $, window */
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     // Load dependent modules
     var KeyBindingManager = require("command/KeyBindingManager"),
         Menus             = require("command/Menus"),
@@ -34,8 +34,9 @@ define(function (require, exports, module) {
         StringUtils       = require("utils/StringUtils"),
         ValidationUtils   = require("utils/ValidationUtils"),
         ViewUtils         = require("utils/ViewUtils"),
-        PopUpManager      = require("widgets/PopUpManager");
-    
+        PopUpManager      = require("widgets/PopUpManager"),
+        Mustache          = require("thirdparty/mustache/mustache");
+
     var CodeHintListHTML  = require("text!htmlContent/code-hint-list.html");
 
     /**
@@ -82,7 +83,7 @@ define(function (require, exports, module) {
          * @type {Editor}
          */
         this.editor = editor;
-        
+
         /**
          * Whether the currently selected hint should be inserted on a tab key event
          *
@@ -121,7 +122,7 @@ define(function (require, exports, module) {
                 .append($("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>")
                         .hide())
                 .append("<ul class='dropdown-menu'></ul>");
-        
+
         this._keydownHook = this._keydownHook.bind(this);
     }
 
@@ -134,10 +135,10 @@ define(function (require, exports, module) {
      */
     CodeHintList.prototype._setSelectedIndex = function (index) {
         var items = this.$hintMenu.find("li");
-        
+
         // Range check
         index = Math.max(-1, Math.min(index, items.length - 1));
-        
+
         // Clear old highlight
         if (this.selectedIndex !== -1) {
             $(items[this.selectedIndex]).find("a").removeClass("highlight");
@@ -198,7 +199,7 @@ define(function (require, exports, module) {
                     new RegExp(StringUtils.regexEscape(match), "i"),
                     "<strong>$&</strong>"
                 );
-                
+
                 view.hints.push({ formattedHint: "<span>" + displayName + "</span>" });
             };
         } else {
@@ -207,7 +208,7 @@ define(function (require, exports, module) {
             };
         }
 
-        // clear the list 
+        // clear the list
         this.$hintMenu.find("li").remove();
 
         // if there are no hints then close the list; otherwise add them and
@@ -221,30 +222,30 @@ define(function (require, exports, module) {
                 if (index >= self.maxResults) {
                     return true;
                 }
-                
+
                 _addHint(item);
             });
-            
+
             // render code hint list
             var $ul = this.$hintMenu.find("ul.dropdown-menu"),
                 $parent = $ul.parent();
-            
+
             // remove list temporarily to save rendering time
             $ul.remove().append(Mustache.render(CodeHintListHTML, view));
-            
+
             $ul.children("li").each(function (index, element) {
                 var hint        = self.hints[index],
                     $element    = $(element);
-                
+
                 // store hint on each list item
                 $element.data("hint", hint);
-                
+
                 // insert jQuery hint objects after the template is rendered
                 if (hint.jquery) {
                     $element.find(".codehint-item").append(hint);
                 }
             });
-            
+
             // delegate list item events to the top-level ul list element
             $ul.on("click", "li", function (e) {
                 // Don't let the click propagate upward (otherwise it will
@@ -254,15 +255,15 @@ define(function (require, exports, module) {
                     self.handleSelect($(this).data("hint"));
                 }
             });
-            
+
             // Lists with wide results require different formatting
             if (this.hints.handleWideResults) {
                 $ul.find("li a").addClass("wide-result");
             }
-            
+
             // attach to DOM
             $parent.append($ul);
-            
+
             this._setSelectedIndex(selectInitial ? 0 : -1);
         }
     };
@@ -291,7 +292,7 @@ define(function (require, exports, module) {
         }
 
         posTop -= 30;   // shift top for hidden parent element
-        
+
         var menuWidth = $menuWindow.width();
         var availableWidth = menuWidth;
         var rightOverhang = posLeft + menuWidth - $window.width();
@@ -304,7 +305,7 @@ define(function (require, exports, module) {
 
         return {left: posLeft, top: posTop, width: availableWidth};
     };
-    
+
     /**
      * Check whether keyCode is one of the keys that we handle or not.
      *
@@ -364,7 +365,7 @@ define(function (require, exports, module) {
                 $items = self.$hintMenu.find("li"),
                 $view = self.$hintMenu.find("ul.dropdown-menu"),
                 itemHeight;
-    
+
             if ($items.length !== 0) {
                 itemHeight = $($items[0]).height();
                 if (itemHeight) {
@@ -393,7 +394,7 @@ define(function (require, exports, module) {
                      event.keyCode === KeyEvent.DOM_VK_PAGE_UP ||
                      event.keyCode === KeyEvent.DOM_VK_PAGE_DOWN)) {
                 this.handleClose();
-                
+
                 // Let the event bubble.
                 return false;
             } else if (keyCode === KeyEvent.DOM_VK_UP) {
@@ -427,19 +428,19 @@ define(function (require, exports, module) {
                     // So, assume that pending text dismisses hints and let event bubble.
                     return false;
                 }
-                
+
                 // Trigger a click handler to commmit the selected item
                 $(this.$hintMenu.find("li")[this.selectedIndex]).trigger("click");
             } else {
                 // Let the event bubble.
                 return false;
             }
-            
+
             event.stopImmediatePropagation();
             event.preventDefault();
             return true;
         }
-        
+
         // If we didn't handle it, let other global keydown hooks handle it.
         return false;
     };
@@ -456,7 +457,7 @@ define(function (require, exports, module) {
         if (this.opened && !this.$hintMenu.hasClass("open")) {
             this.opened = false;
         }
-        
+
         return this.opened;
     };
 
@@ -473,15 +474,15 @@ define(function (require, exports, module) {
         if (this.hints.length) {
             // Need to add the menu to the DOM before trying to calculate its ideal location.
             $("#codehint-menu-bar > ul").append(this.$hintMenu);
-            
+
             var hintPos = this._calcHintListLocation();
-            
+
             this.$hintMenu.addClass("open")
                 .css({"left": hintPos.left, "top": hintPos.top, "width": hintPos.width + "px"});
             this.opened = true;
-            
+
             PopUpManager.addPopUp(this.$hintMenu, this.handleClose, true);
-            
+
             KeyBindingManager.addGlobalKeydownHook(this._keydownHook);
         }
     };
@@ -509,13 +510,13 @@ define(function (require, exports, module) {
      */
     CodeHintList.prototype.close = function () {
         this.opened = false;
-        
+
         if (this.$hintMenu) {
             this.$hintMenu.removeClass("open");
             PopUpManager.removePopUp(this.$hintMenu);
             this.$hintMenu.remove();
         }
-        
+
         KeyBindingManager.removeGlobalKeydownHook(this._keydownHook);
     };
 
@@ -536,9 +537,9 @@ define(function (require, exports, module) {
     CodeHintList.prototype.onClose = function (callback) {
         // TODO: Due to #1381, this won't get called if the user clicks out of
         // the code hint menu. That's (sort of) okay right now since it doesn't
-        // really matter if a single old invisible code hint list is lying 
-        // around (it will ignore keydown events, and it'll get closed the next 
-        // time the user pops up a code hint). Once #1381 is fixed this issue 
+        // really matter if a single old invisible code hint list is lying
+        // around (it will ignore keydown events, and it'll get closed the next
+        // time the user pops up a code hint). Once #1381 is fixed this issue
         // should go away.
         this.handleClose = callback;
     };

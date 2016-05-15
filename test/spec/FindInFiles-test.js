@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
@@ -38,9 +38,9 @@ define(function (require, exports, module) {
         StringUtils     = require("utils/StringUtils"),
         Strings         = require("strings"),
         _               = require("thirdparty/lodash");
-    
+
     var PreferencesManager;
-    
+
     var promisify = Async.promisify; // for convenience
 
     describe("FindInFiles", function () {
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
             ProjectManager,
             testWindow,
             $;
-        
+
         beforeFirst(function () {
             SpecRunnerUtils.createTempDirectory();
 
@@ -88,7 +88,7 @@ define(function (require, exports, module) {
                 PreferencesManager.set("findInFiles.instantSearch", false);
             });
         });
-        
+
         afterLast(function () {
             CommandManager      = null;
             DocumentManager     = null;
@@ -105,17 +105,17 @@ define(function (require, exports, module) {
             SpecRunnerUtils.closeTestWindow();
             SpecRunnerUtils.removeTempDirectory();
         });
-        
+
         function openProject(sourcePath) {
             testPath = sourcePath;
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
         }
-        
-        
+
+
         // Note: these utilities can be called without wrapping in a runs() block, because all their top-level
         // statements are calls to runs() or waitsFor() (or other functions that make the same guarantee). But after
         // calling one of these, calls to other Jasmine APIs (e.g. such as expects()) *must* be wrapped in runs().
-        
+
         function waitForSearchBarClose() {
             // Make sure search bar from previous test has animated out fully
             waitsFor(function () {
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
                 });
             });
         }
-        
+
         function closeSearchBar() {
             runs(function () {
                 FindInFilesUI._closeFindBar();
@@ -177,8 +177,8 @@ define(function (require, exports, module) {
                 expect(numMatches(searchResults)).toBe(options.numMatches);
             });
         }
-        
-        
+
+
         // The functions below are *not* safe to call without wrapping in runs(), if there were any async steps previously
         // (including calls to any of the utilities above)
 
@@ -267,12 +267,12 @@ define(function (require, exports, module) {
         beforeEach(function () {
             searchResults = null;
         });
-            
+
         describe("Find", function () {
             beforeEach(function () {
                 openProject(defaultSourcePath);
             });
-            
+
             afterEach(closeSearchBar);
 
             it("should find all occurences in project", function () {
@@ -343,7 +343,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     // Dismiss filter dialog (OK button is disabled, have to click on Cancel)
                     $dlg.find(".dialog-button[data-button-id='cancel']").click();
-                    
+
                     // Close search bar
                     var $searchField = $(".modal-bar #find-group input");
                     SpecRunnerUtils.simulateKeyEvent(KeyEvent.DOM_VK_ESCAPE, "keydown", $searchField[0]);
@@ -359,7 +359,7 @@ define(function (require, exports, module) {
                 // Add a nonexistent file to the ProjectManager.getAllFiles() result, which will force a file IO error
                 // when we try to read the file later. Similar errors may arise in real-world for non-UTF files, etc.
                 SpecRunnerUtils.injectIntoGetAllFiles(testWindow, testPath + "/doesNotExist.txt");
-                
+
                 openSearchBar();
                 executeSearch("foo");
 
@@ -613,24 +613,24 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(Object.keys(FindInFiles.searchModel.results).length).not.toBe(0);
                 });
-                
+
                 closeSearchBar();
                 openSearchBar(fileEntry);
-                
+
                 runs(function () {
                     // Search model shouldn't be cleared from merely reopening search bar
                     expect(Object.keys(FindInFiles.searchModel.results).length).not.toBe(0);
                 });
-                
+
                 closeSearchBar();
-                
+
                 runs(function () {
                     // Search model shouldn't be cleared after search bar closed without running a search
                     expect(Object.keys(FindInFiles.searchModel.results).length).not.toBe(0);
                 });
             });
         });
-        
+
         describe("Find results paging", function () {
             var expectedPages = [
                 {
@@ -692,7 +692,7 @@ define(function (require, exports, module) {
                     nextPageEnabled: false
                 }
             ];
-            
+
             function expectPageDisplay(options) {
                 // Check the title
                 expect($("#find-in-files-results .title").text().match("\\b" + options.totalResults + "\\b")).toBeTruthy();
@@ -700,13 +700,13 @@ define(function (require, exports, module) {
                 var paginationInfo = $("#find-in-files-results .pagination-col").text();
                 expect(paginationInfo.match("\\b" + options.overallFirstIndex + "\\b")).toBeTruthy();
                 expect(paginationInfo.match("\\b" + options.overallLastIndex + "\\b")).toBeTruthy();
-                
+
                 // Check for presence of file and first/last item rows within each file
                 options.matchRanges.forEach(function (range) {
                     var $fileRow = $("#find-in-files-results tr.file-section[data-file-index='" + range.file + "']");
                     expect($fileRow.length).toBe(1);
                     expect($fileRow.find(".dialog-filename").text()).toEqual(range.filename);
-                    
+
                     var $firstMatchRow = $("#find-in-files-results tr[data-file-index='" + range.file + "'][data-item-index='" + range.first + "']");
                     expect($firstMatchRow.length).toBe(1);
                     expect($firstMatchRow.find(".line-number").text().match("\\b" + range.firstLine + "\\b")).toBeTruthy();
@@ -717,18 +717,18 @@ define(function (require, exports, module) {
                     expect($lastMatchRow.find(".line-number").text().match("\\b" + range.lastLine + "\\b")).toBeTruthy();
                     expect($lastMatchRow.find(".line-text").text().match(range.pattern)).toBeTruthy();
                 });
-                
+
                 // Check enablement of buttons
                 expect($("#find-in-files-results .first-page").hasClass("disabled")).toBe(!options.firstPageEnabled);
                 expect($("#find-in-files-results .last-page").hasClass("disabled")).toBe(!options.lastPageEnabled);
                 expect($("#find-in-files-results .prev-page").hasClass("disabled")).toBe(!options.prevPageEnabled);
                 expect($("#find-in-files-results .next-page").hasClass("disabled")).toBe(!options.nextPageEnabled);
             }
-            
+
             it("should page forward, then jump back to first page, displaying correct contents at each step", function () {
                 openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
                 openSearchBar();
-                
+
                 // This search will find 500 hits in 2 files. Since there are 100 hits per page, there should
                 // be five pages, and the third page should have 50 results from the first file and 50 results
                 // from the second file.
@@ -742,15 +742,15 @@ define(function (require, exports, module) {
                         }
                         expectPageDisplay(expectedPages[i]);
                     }
-                    
+
                     $("#find-in-files-results .first-page").click();
                     expectPageDisplay(expectedPages[0]);
                 });
             });
-            
+
             it("should jump to last page, then page backward, displaying correct contents at each step", function () {
                 openProject(SpecRunnerUtils.getTestPath("/spec/FindReplace-test-files-manyhits"));
-                
+
                 executeSearch("find this");
 
                 runs(function () {
@@ -765,14 +765,14 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("SearchModel update on change events", function () {
             var oldResults, gotChange, wasQuickChange;
-            
+
             function fullTestPath(path) {
                 return testPath + "/" + path;
             }
-            
+
             function expectUnchangedExcept(paths) {
                 Object.keys(FindInFiles.searchModel.results).forEach(function (path) {
                     if (paths.indexOf(path) === -1) {
@@ -780,7 +780,7 @@ define(function (require, exports, module) {
                     }
                 });
             }
-            
+
             beforeEach(function () {
                 gotChange = false;
                 oldResults = null;
@@ -799,12 +799,12 @@ define(function (require, exports, module) {
                     oldResults = _.cloneDeep(FindInFiles.searchModel.results);
                 });
             });
-            
+
             afterEach(function () {
                 FindInFiles.searchModel.off(".FindInFilesTest");
                 waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
             });
-            
+
             describe("when filename changes", function () {
                 it("should handle a filename change", function () {
                     runs(function () {
@@ -834,7 +834,7 @@ define(function (require, exports, module) {
                     });
                 });
             });
-            
+
             describe("when in-memory document changes", function () {
                 it("should update the results when a matching line is added, updating line numbers and adding the match", function () {
                     runs(function () {
@@ -978,7 +978,7 @@ define(function (require, exports, module) {
                     });
                 });
             });
-            
+
             // Unfortunately, we can't easily mock file changes, so we just do them in a copy of the project.
             // This set of tests isn't as thorough as it could be, because it's difficult to perform file
             // ops that will exercise all possible scenarios of change events (e.g. change events with
@@ -1006,7 +1006,7 @@ define(function (require, exports, module) {
                         expect(FindInFiles.searchModel.countFilesMatches()).toEqual({files: 4, matches: 15});
                     });
                 });
-                
+
                 it("should remove matches for a deleted file", function () {
                     runs(function () {
                         expect(FindInFiles.searchModel.results[fullTestPath("foo.html")]).toBeTruthy();
@@ -1015,12 +1015,12 @@ define(function (require, exports, module) {
                     waitsFor(function () { return gotChange; }, "model change event");
                     runs(function () {
                         expect(FindInFiles.searchModel.results[fullTestPath("foo.html")]).toBeFalsy();
-                        
+
                         // There should be one fewer file and the matches should be removed.
                         expect(FindInFiles.searchModel.countFilesMatches()).toEqual({files: 2, matches: 7});
                     });
                 });
-                
+
                 it("should remove matches for a deleted folder", function () {
                     runs(function () {
                         expect(FindInFiles.searchModel.results[fullTestPath("css/foo.css")]).toBeTruthy();
@@ -1036,13 +1036,13 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("Replace", function () {
             function expectProjectToMatchKnownGood(kgFolder, lineEndings, filesToSkip) {
                 runs(function () {
                     var testRootPath = ProjectManager.getProjectRoot().fullPath,
                         kgRootPath = SpecRunnerUtils.getTestPath("/spec/FindReplace-known-goods/" + kgFolder + "/");
-                    
+
                     function compareKnownGoodToTestFile(kgContents, kgFilePath) {
                         var testFilePath = testRootPath + kgFilePath.slice(kgRootPath.length);
                         if (!filesToSkip || filesToSkip.indexOf(testFilePath) === -1) {
@@ -1054,11 +1054,11 @@ define(function (require, exports, module) {
                             });
                         }
                     }
-                    
+
                     waitsForDone(visitAndProcessFiles(kgRootPath, compareKnownGoodToTestFile), "project comparison done");
                 });
             }
-            
+
             // Does a standard test for files on disk: search, replace, and check that files on disk match.
             // Options:
             //      knownGoodFolder: name of folder containing known goods to match to project files on disk
@@ -1068,7 +1068,7 @@ define(function (require, exports, module) {
             //          index unspecified, will uncheck all matches in file
             function doBasicTest(options) {
                 doSearch(options);
-                
+
                 runs(function () {
                     if (options.uncheckMatches) {
                         options.uncheckMatches.forEach(function (matchToUncheck) {
@@ -1086,7 +1086,7 @@ define(function (require, exports, module) {
                 });
                 expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
             }
-            
+
             // Like doBasicTest, but expects some files to have specific errors.
             // Options: same as doBasicTest, plus:
             //      test: optional function (which must contain one or more runs blocks) to run between
@@ -1094,14 +1094,14 @@ define(function (require, exports, module) {
             //      errors: array of errors expected to occur (in the same format as performReplacement() returns)
             function doTestWithErrors(options) {
                 var done = false;
-                
+
                 doSearch(options);
-                
+
                 if (options.test) {
                     // The test function *must* contain one or more runs blocks.
                     options.test();
                 }
-                
+
                 runs(function () {
                     doReplace(options)
                         .then(function () {
@@ -1115,12 +1115,12 @@ define(function (require, exports, module) {
                 waitsFor(function () { return done; }, 1000, "finish replacement");
                 expectProjectToMatchKnownGood(options.knownGoodFolder, options.lineEndings);
             }
-            
+
             function expectInMemoryFiles(options) {
                 runs(function () {
                     waitsForDone(Async.doInParallel(options.inMemoryFiles, function (filePath) {
                         var fullPath;
-                        
+
                         // If this is a full file path (as would be the case for an external file), handle it specially.
                         if (typeof filePath === "object" && filePath.fullPath) {
                             fullPath = filePath.fullPath;
@@ -1128,7 +1128,7 @@ define(function (require, exports, module) {
                         } else {
                             fullPath = testPath + filePath;
                         }
-                        
+
                         // Check that the document open in memory was changed and matches the expected replaced version of that file.
                         var doc = DocumentManager.getOpenDocumentForPath(fullPath);
                         expect(doc).toBeTruthy();
@@ -1142,7 +1142,7 @@ define(function (require, exports, module) {
                     }), "check in memory file contents");
                 });
             }
-            
+
             // Like doBasicTest, but expects one or more files to be open in memory and the replacements to happen there.
             // Options: same as doBasicTest, plus:
             //      inMemoryFiles: array of project-relative paths (each starting with "/") to files that should be open in memory
@@ -1153,7 +1153,7 @@ define(function (require, exports, module) {
                 doBasicTest(options);
                 expectInMemoryFiles(options);
             }
-            
+
             afterEach(function () {
                 runs(function () {
                     waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
@@ -1190,10 +1190,10 @@ define(function (require, exports, module) {
                         knownGoodFolder: "regexp-case-insensitive"
                     });
                 });
-                
+
                 it("should replace all instances of a regexp that spans multiple lines in a project on disk", function () {
                     openTestProjectCopy(defaultSourcePath);
-                    
+
                     // This query should find each rule in the CSS file (but not in the JS file since there's more than one line
                     // between each pair of braces).
                     doBasicTest({
@@ -1206,7 +1206,7 @@ define(function (require, exports, module) {
 
                 it("should replace all instances of a regexp that spans multiple lines in a project in memory", function () {
                     openTestProjectCopy(defaultSourcePath);
-                    
+
                     // This query should find each rule in the CSS file (but not in the JS file since there's more than one line
                     // between each pair of braces).
                     doInMemoryTest({
@@ -1219,10 +1219,10 @@ define(function (require, exports, module) {
                         inMemoryKGFolder: "regexp-replace-multiline"
                     });
                 });
-                
+
                 it("should replace all instances of a regexp that spans multiple lines in a project on disk when the last line is a partial match", function () {
                     openTestProjectCopy(defaultSourcePath);
-                    
+
                     // This query should match from the open brace through to (and including) the first colon of each rule in the
                     // CSS file.
                     doBasicTest({
@@ -1235,7 +1235,7 @@ define(function (require, exports, module) {
 
                 it("should replace all instances of a regexp that spans multiple lines in a project in memory when the last line is a partial match", function () {
                     openTestProjectCopy(defaultSourcePath);
-                    
+
                     // This query should match from the open brace through to (and including) the first colon of each rule in the
                     // CSS file.
                     doInMemoryTest({
@@ -1248,7 +1248,7 @@ define(function (require, exports, module) {
                         inMemoryKGFolder: "regexp-replace-multiline-partial"
                     });
                 });
-                
+
                 it("should replace all instances of a regexp in a project on disk case-sensitively with a simple replace string", function () {
                     openTestProjectCopy(defaultSourcePath);
                     doBasicTest({
@@ -1294,7 +1294,7 @@ define(function (require, exports, module) {
                         knownGoodFolder: "regexp-zero-length"
                     });
                 });
-                
+
                 it("should replace instances of regexp with 0-length matches in memory", function () {
                     openTestProjectCopy(defaultSourcePath);
                     doInMemoryTest({
@@ -1414,7 +1414,7 @@ define(function (require, exports, module) {
 
                             runs(function () {
                                 // Clone the results so we don't use the version that's auto-updated by FindInFiles when we modify the file
-                                // on disk. This case might not usually come up in the real UI if we always guarantee that the results list will 
+                                // on disk. This case might not usually come up in the real UI if we always guarantee that the results list will
                                 // be auto-updated, but we want to make sure there's no edge case where we missed an update and still clobber the
                                 // file on disk anyway.
                                 searchResults = _.cloneDeep(searchResults);
@@ -1466,7 +1466,7 @@ define(function (require, exports, module) {
                         test: function () {
                             runs(function () {
                                 // Clone the results so we don't use the version that's auto-updated by FindInFiles when we modify the file
-                                // on disk. This case might not usually come up in the real UI if we always guarantee that the results list will 
+                                // on disk. This case might not usually come up in the real UI if we always guarantee that the results list will
                                 // be auto-updated, but we want to make sure there's no edge case where we missed an update and still clobber the
                                 // file on disk anyway.
                                 searchResults = _.cloneDeep(searchResults);
@@ -1612,7 +1612,7 @@ define(function (require, exports, module) {
                         inMemoryKGFolder:  "simple-case-insensitive-unchecked"
                     });
                 });
-            
+
                 it("should not perform unchecked matches on disk", function () {
                     openTestProjectCopy(defaultSourcePath);
 
@@ -1624,7 +1624,7 @@ define(function (require, exports, module) {
                         knownGoodFolder:   "simple-case-insensitive-unchecked"
                     });
                 });
-                
+
                 it("should select the first modified file in the working set if replacements are done in memory and current editor wasn't affected", function () {
                     openTestProjectCopy(defaultSourcePath);
 
@@ -1653,7 +1653,7 @@ define(function (require, exports, module) {
                     openTestProjectCopy(defaultSourcePath);
 
                     var testFiles = ["/css/foo.css", "/foo.html", "/foo.js"];
-                    
+
                     doInMemoryTest({
                         queryInfo:         {query: "foo"},
                         numMatches:        14,
@@ -1664,16 +1664,16 @@ define(function (require, exports, module) {
                         inMemoryKGFolder:  "simple-case-insensitive"
                     });
 
-                    
+
                     runs(function () {
-                        // since nothing was opened prior to doing the 
-                        //  replacements then the first file modified will be opened. 
+                        // since nothing was opened prior to doing the
+                        //  replacements then the first file modified will be opened.
                         // This may not be the first item in the array above
                         //  since the files are sorted differently in performReplacements
-                        //  and the replace is performed asynchronously.  
+                        //  and the replace is performed asynchronously.
                         // So, just ensure that *something* was opened
                         expect(DocumentManager.getCurrentDocument().file.fullPath).toBeTruthy();
-                        
+
                         testFiles.forEach(function (relPath) {
                             expect(MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, testPath + relPath)).not.toBe(-1);
                         });
@@ -1703,7 +1703,7 @@ define(function (require, exports, module) {
                     });
                 });
             });
-            
+
             describe("UI", function () {
                 function executeReplace(findText, replaceText, fromKeyboard) {
                     runs(function () {
@@ -1718,7 +1718,7 @@ define(function (require, exports, module) {
                         }
                     });
                 }
-                
+
                 function showSearchResults(findText, replaceText, fromKeyboard) {
                     openTestProjectCopy(defaultSourcePath);
                     openSearchBar(null, true);
@@ -1727,11 +1727,11 @@ define(function (require, exports, module) {
                         return FindInFiles._searchDone;
                     }, "search finished");
                 }
-                
+
                 afterEach(function () {
                     closeSearchBar();
                 });
-                
+
                 describe("Replace in Files Bar", function () {
                     it("should only show a Replace All button", function () {
                         openTestProjectCopy(defaultSourcePath);
@@ -1790,11 +1790,11 @@ define(function (require, exports, module) {
                         });
                     });
                 });
-                
+
                 describe("Full workflow", function () {
                     it("should prepopulate the find bar with selected text", function () {
                         var doc, editor;
-                        
+
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
                             waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: testPath + "/foo.html" }), "open file");
@@ -1814,10 +1814,10 @@ define(function (require, exports, module) {
                         });
                         waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
                     });
-                    
+
                     it("should prepopulate the find bar with only first line of selected text", function () {
                         var doc, editor;
-                        
+
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
                             waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: testPath + "/foo.html" }), "open file");
@@ -2146,7 +2146,7 @@ define(function (require, exports, module) {
                         }, "dialog appearing");
                         runs(function () {
                             expect($dlg.length).toBe(1);
-                            
+
                             // Both files should be mentioned in the dialog.
                             var text = $dlg.find(".dialog-message").text();
                             // Have to check this in a funny way because breakableUrl() adds a special character after the slash.
@@ -2157,7 +2157,7 @@ define(function (require, exports, module) {
                         });
                     });
                 });
-                
+
                 // TODO: these could be split out into unit tests, but would need to be able to instantiate
                 // a SearchResultsView in the test runner window.
                 describe("Checkbox interactions", function () {
@@ -2210,7 +2210,7 @@ define(function (require, exports, module) {
                             })).toBeTruthy();
                         });
                     });
-                    
+
                     // TODO: checkboxes with paging
                 });
                 // Untitled documents are covered in the "Search -> Replace All in untitled document" cases above.
@@ -2239,18 +2239,18 @@ define(function (require, exports, module) {
                         }, "search finished");
                         runs(function () {
                             expect($("#find-in-files-results").is(":visible")).toBe(true);
-                            
+
                             var doc = DocumentManager.getOpenDocumentForPath(testPath + "/foo.html");
                             expect(doc).toBeTruthy();
                             doc.replaceRange("", {line: 0, ch: 0}, {line: 1, ch: 0});
-                            
+
                             expect($("#find-in-files-results").is(":visible")).toBe(false);
                         });
                     });
-                    
+
                     it("should close the panel if a document was open and modified before the search, but then the file was closed and changes dropped", function () {
                         var doc;
-                        
+
                         openTestProjectCopy(defaultSourcePath);
                         runs(function () {
                             waitsForDone(CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: testPath + "/foo.html" }), "open file");
@@ -2267,7 +2267,7 @@ define(function (require, exports, module) {
                         }, "search finished");
                         runs(function () {
                             expect($("#find-in-files-results").is(":visible")).toBe(true);
-                            
+
                             // We have to go through the dialog workflow for closing the file without saving changes,
                             // because the "revert" behavior only happens in that workflow (it doesn't happen if you
                             // do forceClose, since that's only intended as a shortcut for the end of a unit test).

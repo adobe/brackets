@@ -1,33 +1,33 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, Mustache */
+/*global define, $, brackets, window */
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var AppInit                 = require("utils/AppInit"),
         BuildInfoUtils          = require("utils/BuildInfoUtils"),
         CommandManager          = require("command/CommandManager"),
@@ -39,7 +39,8 @@ define(function (require, exports, module) {
         StringUtils             = require("utils/StringUtils"),
         UpdateNotification      = require("utils/UpdateNotification"),
         AboutDialogTemplate     = require("text!htmlContent/about-dialog.html"),
-        ContributorsTemplate    = require("text!htmlContent/contributors-list.html");
+        ContributorsTemplate    = require("text!htmlContent/contributors-list.html"),
+        Mustache                = require("thirdparty/mustache/mustache");
     // make sure the global brackets variable is loaded
     require("utils/Global");
 
@@ -50,12 +51,12 @@ define(function (require, exports, module) {
     var CONTRIBUTORS_PER_PAGE   = 100;
 
     var buildInfo;
-    
-	
+
+
     function _handleCheckForUpdates() {
         UpdateNotification.checkForUpdate(true);
     }
-    
+
     function _handleLinkMenuItem(url) {
         return function () {
             if (!url) {
@@ -64,7 +65,7 @@ define(function (require, exports, module) {
             NativeApp.openURLInDefaultBrowser(url);
         };
     }
-    
+
     function _handleShowExtensionsFolder() {
         brackets.app.showExtensionsFolder(
             FileUtils.convertToNativePath(decodeURI(window.location.href)),
@@ -80,9 +81,9 @@ define(function (require, exports, module) {
             BUILD_INFO          : buildInfo || "",
             Strings             : Strings
         };
-        
+
         Dialogs.showModalDialogUsingTemplate(Mustache.render(AboutDialogTemplate, templateVars));
-        
+
         // Get containers
         var $dlg            = $(".about-dialog.instance"),
             $contributors   = $dlg.find(".about-contributors"),
@@ -93,9 +94,9 @@ define(function (require, exports, module) {
         if (contributorsUrl.indexOf("{1}") !== -1) { // pagination enabled
             page = 1;
         }
-        
+
         $spinner.addClass("spin");
-        
+
         function loadContributors(rawUrl, page, contributors, deferred) {
             deferred = deferred || new $.Deferred();
             contributors = contributors || [];

@@ -157,6 +157,19 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Helper function to return the fold text marker on a line in an editor
+     * @param   {CodeMirror} cm   The CodeMirror instance for the active editor
+     * @param   {Number}     line The line number representing the position of the fold marker
+     * @returns {TextMarker} A CodeMirror TextMarker object
+     */
+    function getFoldOnLine(cm, line) {
+        var pos = CodeMirror.Pos(line);
+        var folds = cm.findMarksAt(pos) || [];
+        folds = folds.filter(isFold);
+        return folds.length ? folds[0] : undefined;
+    }
+
+    /**
      * Synchronises the code folding states in the CM doc to cm._lineFolds cache.
      * When an undo operation is done, if folded code fragments are restored, then
      * we need to update cm._lineFolds with the fragments
@@ -166,19 +179,15 @@ define(function (require, exports, module) {
      */
     function syncDocToFoldsCache(cm, from, lineAdded) {
         var minFoldSize = prefs.getSetting("minFoldSize") || 2;
-        var opts = cm.state.foldGutter.options || {};
-        var rf = opts.rangeFinder || CodeMirror.fold.auto;
-        var i, pos, folds, fold, range;
+        var i, fold, range;
         if (lineAdded <= 0) {
             return;
         }
 
         for (i = from; i <= from + lineAdded; i = i + 1) {
-            pos = CodeMirror.Pos(i);
-            folds = cm.doc.findMarksAt(pos).filter(isFold);
-            fold = folds.length ? fold = folds[0] : undefined;
+            fold = getFoldOnLine(cm, i);
             if (fold) {
-                range = rf(cm, CodeMirror.Pos(i));
+                range = fold.find();
                 if (range && range.to.line - range.from.line >= minFoldSize) {
                     cm._lineFolds[i] = range;
                     i = range.to.line;
@@ -187,7 +196,16 @@ define(function (require, exports, module) {
                 }
             }
         }
+    }
 
+    /**
+     * Helper function to move a fold range object by the specified number of lines
+     * @param {Object} range    An object specifying the fold range to move. It contains {from, to} which are CodeMirror.Pos objects.
+     * @param {Number} numLines A positive or negative number representing the numbe of lines to move the range by
+     */
+    function moveRange(range, numLines) {
+        return {from: CodeMirror.Pos(range.from.line + numLines, range.from.ch),
+                to: CodeMirror.Pos(range.to.line + numLines, range.to.ch)};
     }
 
     /**
@@ -195,10 +213,10 @@ define(function (require, exports, module) {
       * The following cases are accounted for:
       * 1.  When the change does not add a new line to the document we check if the line being modified
       *     is folded. If that is the case, changes to this line might affect the range stored in the cache
-      *     so we update the range.
+      *     so we update the range using the range finder function.
       * 2.  If lines have been added, we need to update the records for all lines in the folds cache
       *     which are greater than the line position at which we are adding the new line(s). When existing
-      *     folds exist above the addition we keep the original position in the cache.
+      *     folds are above the addition we keep the original position in the cache.
       * 3.  If lines are being removed, we need to update the records for all lines in the folds cache which are
       *     greater than the line position at which we are removing the new lines, while making sure to
       *     not include any folded lines in the cache that are part of the removed chunk.
@@ -208,7 +226,7 @@ define(function (require, exports, module) {
       *                                This value is negative for deletions and positive for additions.
       */
     function updateFoldsCache(cm, from, linesDiff) {
-        var range;
+        var oldRange, newRange;
         var minFoldSize = prefs.getSetting("minFoldSize") || 2;
         var foldedLines = Object.keys(cm._lineFolds).map(function (d) {
             return +d;
@@ -218,9 +236,9 @@ define(function (require, exports, module) {
 
         if (linesDiff === 0) {
             if (foldedLines.indexOf(from) >= 0) {
-                range = rf(cm, CodeMirror.Pos(from));
-                if (range && range.to.line - range.from.line >= minFoldSize) {
-                    cm._lineFolds[from] = range;
+                newRange = rf(cm, CodeMirror.Pos(from));
+                if (newRange && newRange.to.line - newRange.from.line >= minFoldSize) {
+                    cm._lineFolds[from] = newRange;
                 } else {
                     delete cm._lineFolds[from];
                 }
@@ -228,21 +246,21 @@ define(function (require, exports, module) {
         } else if (foldedLines.length) {
             var newFolds = {};
             foldedLines.forEach(function (line) {
-                range = cm._lineFolds[line];
+                oldRange = cm._lineFolds[line];
+                //update range with lines-diff
+                newRange = moveRange(oldRange, linesDiff);
                 // for removed lines we want to check lines that lie outside the deleted range
                 if (linesDiff < 0) {
                     if (line < from) {
-                        newFolds[line] = range;
+                        newFolds[line] = oldRange;
                     } else if (line >= from + Math.abs(linesDiff)) {
-                        range = rf(cm, CodeMirror.Pos(line + linesDiff));
-                        newFolds[line + linesDiff] = range;
+                        newFolds[line + linesDiff] = newRange;
                     }
                 } else {
                     if (line < from) {
-                        newFolds[line] = range;
-                    } else {
-                        range = rf(cm, CodeMirror.Pos(line + linesDiff));
-                        newFolds[line + linesDiff] = range;
+                        newFolds[line] = oldRange;
+                    } else if (line >= from) {
+                        newFolds[line + linesDiff] = newRange;
                     }
                 }
             });
@@ -318,13 +336,30 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Triggered when the cursor moves in the editor and used to detect text selection changes
+     * in the editor.
+     * @param {!CodeMirror} cm the CodeMirror instance for the active editor
+     */
+    function onCursorActivity(cm) {
+        var state = cm.state.foldGutter;
+        var vp = cm.getViewport();
+        window.clearTimeout(state.changeUpdate);
+        state.changeUpdate = window.setTimeout(function () {
+            //need to render the entire visible viewport to remove fold marks rendered from previous selections if any
+            updateInViewport(cm, vp.from, vp.to);
+        }, 400);
+    }
+
+    /**
       * Triggered when a code segment is folded.
       * @param {!CodeMirror} cm the CodeMirror instance for the active editor
       * @param {!Object} from  the ch and line position that designates the start of the region
       * @param {!Object} to the ch and line position that designates the end of the region
+      * @param {?Number} gutterLineNumber the gutter line number that was clicked to signal the fold event
       */
-    function onFold(cm, from, to) {
-        var state = cm.state.foldGutter, line = from.line;
+    function onFold(cm, from, to, gutterLineNumber) {
+        var state = cm.state.foldGutter,
+            line = isNaN(gutterLineNumber) ? from.line : gutterLineNumber;
         if (line >= state.from && line < state.to) {
             updateFoldInfo(cm, line, line + 1);
         }
@@ -335,9 +370,11 @@ define(function (require, exports, module) {
       * @param {!CodeMirror} cm the CodeMirror instance for the active editor
       * @param {!{line:number, ch:number}} from  the ch and line position that designates the start of the region
       * @param {!{line:number, ch:number}} to the ch and line position that designates the end of the region
+      * @param {?Number} gutterLineNumber the gutter line number that was clicked to signal the fold event
       */
-    function onUnFold(cm, from, to) {
-        var state = cm.state.foldGutter, line = from.line;
+    function onUnFold(cm, from, to, gutterLineNumber) {
+        var state = cm.state.foldGutter,
+            line = isNaN(gutterLineNumber) ? from.line : gutterLineNumber;
         var vp = cm.getViewport();
         if (line >= state.from && line < state.to) {
             updateFoldInfo(cm, line, Math.min(vp.to, to.line));
@@ -356,6 +393,8 @@ define(function (require, exports, module) {
                 cm.off("gutterClick", old.onGutterClick);
                 cm.off("change", onChange);
                 cm.off("viewportChange", onViewportChange);
+                cm.off("cursorActivity", onCursorActivity);
+
                 cm.off("fold", onFold);
                 cm.off("unfold", onUnFold);
                 cm.off("swapDoc", updateInViewport);
@@ -366,6 +405,7 @@ define(function (require, exports, module) {
                 cm.on("gutterClick", val.onGutterClick);
                 cm.on("change", onChange);
                 cm.on("viewportChange", onViewportChange);
+                cm.on("cursorActivity", onCursorActivity);
                 cm.on("fold", onFold);
                 cm.on("unfold", onUnFold);
                 cm.on("swapDoc", updateInViewport);

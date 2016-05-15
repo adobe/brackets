@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -30,7 +30,7 @@
  *
  * __HIGHLIGHTING__
  *
- * CSSPreprocessorDocument supports highlighting all DOMNode corresponding to the rule at 
+ * CSSPreprocessorDocument supports highlighting all DOMNode corresponding to the rule at
  * the cursor position in the editor.
  *
  */
@@ -65,7 +65,7 @@ define(function CSSPreprocessorDocumentModule(require, exports, module) {
 
     // CSSPreprocessorDocument doesn't dispatch events, but the "live document" interface requires an on() API
     EventDispatcher.makeEventDispatcher(CSSPreprocessorDocument.prototype);
-    
+
     /** Close the document */
     CSSPreprocessorDocument.prototype.close = function close() {
         this.doc.off(".CSSPreprocessorDocument");
@@ -73,7 +73,7 @@ define(function CSSPreprocessorDocumentModule(require, exports, module) {
         this.doc.releaseRef();
         this.detachFromEditor();
     };
-    
+
     /** Return false so edits cause "out of sync" icon to appear */
     CSSPreprocessorDocument.prototype.isLiveEditingEnabled = function () {
         // Normally this isn't called since wasURLRequested() returns false for us, but if user's
@@ -83,13 +83,13 @@ define(function CSSPreprocessorDocumentModule(require, exports, module) {
 
     CSSPreprocessorDocument.prototype.attachToEditor = function (editor) {
         this.editor = editor;
-        
+
         if (this.editor) {
             this.editor.on("cursorActivity.CSSPreprocessorDocument", this.onCursorActivity);
             this.updateHighlight();
         }
     };
-    
+
     CSSPreprocessorDocument.prototype.detachFromEditor = function () {
         if (this.editor) {
             HighlightAgent.hide();
@@ -115,7 +115,7 @@ define(function CSSPreprocessorDocumentModule(require, exports, module) {
             }
         }
     };
-    
+
     /** Event Handlers *******************************************************/
 
     /** Triggered on cursor activity of the editor */
@@ -126,12 +126,12 @@ define(function CSSPreprocessorDocumentModule(require, exports, module) {
     /** Triggered when the active editor changes */
     CSSPreprocessorDocument.prototype.onActiveEditorChange = function (event, newActive, oldActive) {
         this.detachFromEditor();
-        
+
         if (newActive && newActive.document === this.doc) {
             this.attachToEditor(newActive);
         }
     };
-    
+
     // Export the class
     module.exports = CSSPreprocessorDocument;
 });

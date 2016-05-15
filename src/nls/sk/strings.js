@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 /*global define */
 
 define({
-    
+
     /**
      * Chyby
      */
@@ -60,7 +60,6 @@ define({
     "ERROR_DELETING_FILE"               : "Nastala chyba pri zmazaní súboru <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Neplatný {0} názov",
     "INVALID_FILENAME_MESSAGE"          : "Názvy súboru nesmú obsahovať nasledujúce znaky: {0} alebo používať rezervované systémové slová.",
-    "FILE_ALREADY_EXISTS"               : "Súbor {0} <span class='dialog-filename'>{1}</span> už existuje.",
     "ERROR_CREATING_FILE_TITLE"         : "Chyba pri vytváraní súboru {0}",
     "ERROR_CREATING_FILE"               : "Nastala chyba pri vytváraní súboru {0} <span class='dialog-filename'>{1}</span>. {2}",
 
@@ -76,7 +75,7 @@ define({
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Chyba pri spúšťaní prehliadača",
     "ERROR_CANT_FIND_CHROME"            : "Prehliadač Google Chrome nebol nájdený. Prosím uistite sa, že je nainštalovaný.",
     "ERROR_LAUNCHING_BROWSER"           : "Nastala chyba pri spúšťaní prehliadača. (chyba {0})",
-    
+
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Chyba pri živom náhľade",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Pripojovanie k prehliadaču",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "V prípade využitia živého náhľadu je treba reštarovať Chrome zo zapnutým vzdialeným ladením.<br /><br />Chceli by ste reštartovať Chrome a zapnúť vzdialené ladenie?",
@@ -87,7 +86,7 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Vitajte v živom náhľade!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Živý náhľad pripája {APP_NAME} k vášmu prehliadaču. Spustí náhľad vášho HTML súboru v prehliadači, potom aktualizuje náhľad okamžite, vždy keď upravíte svoj kód.<br /><br />V tejto verzii {APP_NAME}, živý náhľad funguje iba s <strong>Google Chrome</strong> a aktualizuje keď upravíte <strong>CSS súbory</strong>. Zmeny pre HTML alebo JavaScript súbory sú automaticky načítané, keď súbor uložíte.<br /><br />(Túto správu uvidíte iba jeden krát.)",
     "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Pre viac informácií pozrite <a class=\"clickable-link\" data-href=\"{0}\">Riešenie chýb pri pripojení do živého náhľadu</a>.",
-    
+
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Živý náhľad",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Živý náhľad: Pripájanie\u2026",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Živý náhľad: Inicializácia\u2026",
@@ -98,7 +97,7 @@ define({
     "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Živý náhľad bol zrušený kvôli tomu, že stránka bola zatvorená v prehliadači",
     "LIVE_DEV_NAVIGATED_AWAY"                  : "Živý náhľad bol zrušený kvôli tomu, že prehliadač odkazoval na stránku, ktorá nie je súčasťou aktuálneho projektu",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Živý náhľad bol zrušený pre neznámy dôvod ({0})",
-    
+
     "SAVE_CLOSE_TITLE"                  : "Uložiť zmeny",
     "SAVE_CLOSE_MESSAGE"                : "Chcete uložiť zmeny, ktoré ste spravili v dokumente <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Chcete uložiť zmeny v následujúcich súboroch?",
@@ -108,15 +107,10 @@ define({
     "FILE_DELETED_TITLE"                : "Súbor odstránený",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> bol upravený na disku, ale tiež ma neuložené zmeny in {APP_NAME}.<br /><br />Ktorú verziu chcete ponechať?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> bol zmazaný z disku, ale zmeny sa neuložili v {APP_NAME}.<br /><br />Chcete uložiť zmeny?",
-    
+
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Použite /re/ syntax pre regexp vyhľadávanie",
-    "FIND_RESULT_COUNT"                 : "{0} výsledkov",
-    "WITH"                              : "S",
     "BUTTON_YES"                        : "Áno",
     "BUTTON_NO"                         : "Nie",
-    "BUTTON_ALL"                        : "Všetko",
-    "BUTTON_STOP"                       : "Stop",
     "BUTTON_REPLACE"                    : "Nahradiť",
 
     "OPEN_FILE"                         : "Otvoriť súbor",
@@ -127,9 +121,6 @@ define({
     "NO_UPDATE_TITLE"                   : "Všetko je aktuálne!",
     "NO_UPDATE_MESSAGE"                 : "Máte najnovšiu verziu {APP_NAME}.",
 
-    "FIND_REPLACE_TITLE"                : "Nahradiť \"{0}\" s \"{1}\" &mdash; {3} {2} zhodami",
-
-    "FIND_IN_FILES_TITLE"               : "\"{4}\" nájdený {5} &mdash; {0} {1} v {2} {3}",
     "FIND_IN_FILES_SCOPED"              : "v <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"            : "v projekte",
     "FIND_IN_FILES_FILE"                : "súbor",
@@ -138,10 +129,7 @@ define({
     "FIND_IN_FILES_MATCHES"             : "zhody",
     "FIND_IN_FILES_MORE_THAN"           : "Cez ",
     "FIND_IN_FILES_PAGING"              : "{0}&mdash;{1}",
-    "FIND_IN_FILES_LESS"                : " <a href='#' class='find-less'>Menej</a>",
-    "FIND_IN_FILES_MORE"                : " <a href='#' class='find-more'>Viac</a>",
     "FIND_IN_FILES_FILE_PATH"           : "Súbor: <span class='dialog-filename'>{0}</span>",
-    "FIND_IN_FILES_LINE"                : "riadok: {0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Problém pri získavaní informácií o aktualizácii",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Nastal problém pri získavaní aktuálnych informácií zo servera. Prosím uistite sa, že ste pripojený do internetu a skúste znovu.",
@@ -159,7 +147,7 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Medzerník",
-    
+
     /**
      * StatusBar strings
      */
@@ -203,7 +191,7 @@ define({
     "CMD_EXTENSION_MANAGER"               : "Správca rozšírení\u2026",
     "CMD_FILE_REFRESH"                    : "Obnoviť strom súborov",
     "CMD_QUIT"                            : "Koniec",
-    // Použité v natívnom menu Súborov na Windows 
+    // Použité v natívnom menu Súborov na Windows
     "CMD_EXIT"                            : "Koniec",
 
     // Edit menu commands
@@ -233,7 +221,7 @@ define({
     "CMD_OPEN_LINE_BELOW"                 : "O riadok nižšie",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Uzatvárať zátvorky",
     "CMD_SHOW_CODE_HINTS"                 : "Zobraziť tipy",
-    
+
     // View menu commands
     "VIEW_MENU"                           : "Zobraziť",
     "CMD_HIDE_SIDEBAR"                    : "Skryť bočný panel",
@@ -246,10 +234,10 @@ define({
     "CMD_TOGGLE_LINE_NUMBERS"             : "Čísla riadkov",
     "CMD_TOGGLE_ACTIVE_LINE"              : "Zvýrazniť aktívny riadok",
     "CMD_TOGGLE_WORD_WRAP"                : "Zalomenie riadkov",
-    "CMD_SORT_WORKINGSET_BY_ADDED"        : "Usporiadať podľa dátumu",
-    "CMD_SORT_WORKINGSET_BY_NAME"         : "Usporiadať podľa mena",
-    "CMD_SORT_WORKINGSET_BY_TYPE"         : "Usporiadať podľa typu",
-    "CMD_SORT_WORKINGSET_AUTO"            : "Automatické usporiadanie",
+    "CMD_WORKINGSET_SORT_BY_ADDED"        : "Usporiadať podľa dátumu",
+    "CMD_WORKINGSET_SORT_BY_NAME"         : "Usporiadať podľa mena",
+    "CMD_WORKINGSET_SORT_BY_TYPE"         : "Usporiadať podľa typu",
+    "CMD_WORKING_SORT_TOGGLE_AUTO"        : "Automatické usporiadanie",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigácia",
@@ -264,23 +252,15 @@ define({
     "CMD_PREV_DOC"                        : "Predchádzajúci dokument",
     "CMD_SHOW_IN_TREE"                    : "Zobraziť stromovú štruktúru",
     "CMD_SHOW_IN_OS"                      : "Zobraziť v OS",
-    
+
     // Help menu commands
     "HELP_MENU"                           : "Nápoveda",
     "CMD_CHECK_FOR_UPDATE"                : "Skontrolovať aktualizácie",
     "CMD_HOW_TO_USE_BRACKETS"             : "Ako používať {APP_NAME}",
-    "CMD_FORUM"                           : "{APP_NAME} fórum",
     "CMD_RELEASE_NOTES"                   : "Poznámky o verzii",
-    "CMD_REPORT_AN_ISSUE"                 : "Nahlásiť problém",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Zobraziť priečinok s doplnkami",
     "CMD_TWITTER"                         : "{TWITTER_NAME} na Twitteri",
     "CMD_ABOUT"                           : "O {APP_TITLE}",
-
-
-    // Špeciálne príkazy spúšťané pomocou natívneho shellu
-    "CMD_CLOSE_WINDOW"                    : "Zatvoriť okno",
-    "CMD_ABORT_QUIT"                      : "Zrusiť ukončenie",
-    "CMD_BEFORE_MENUPOPUP"                : "Before Menu Popup",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "experimentálna verzia",
@@ -314,7 +294,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL adresa nemôže obsahovať znaky ako \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Zvláštné znaky ako '{0}' musia byť %-enkódované.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Neznáma chyba pri spracovávaní URL",
-    
+
     // Extension Management strings
     "INSTALL"                              : "Inštalovať",
     "UPDATE"                               : "Aktualizovať",
@@ -379,11 +359,6 @@ define({
     "UNDO_REMOVE"                          : "Späť",
     "MARKED_FOR_UPDATE"                    : "Označené pre aktualizáciu",
     "UNDO_UPDATE"                          : "Späť",
-    "CHANGE_AND_QUIT_TITLE"                : "Zmeniť doplnky",
-    "CHANGE_AND_QUIT_MESSAGE"              : "Pre aktualizáciu alebo odstránenie označených doplnkov musíte ukončiť a reštartovať {APP_NAME}. Budete vyzvaný k uloženiu zmien.",
-    "REMOVE_AND_QUIT"                      : "Odstrániť doplnky a skončiť",
-    "CHANGE_AND_QUIT"                      : "Zmeniť doplnky a skončiť",
-    "UPDATE_AND_QUIT"                      : "Aktualizovať doplnky a skončiť",
     "EXTENSION_NOT_INSTALLED"              : "Nie je možné odstrániť doplnok {0}, pretože nebol nainštalovaný",
     "NO_EXTENSIONS"                        : "Nie sú nainštalované žiadne doplnky.<br>Click on the Available tab above to get started.",
     "NO_EXTENSION_MATCHES"                 : "Nenašiel sa žiadny doplnok.",
@@ -391,13 +366,13 @@ define({
     "EXTENSIONS_INSTALLED_TITLE"           : "Nainštalované",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Dostupné",
     "EXTENSIONS_UPDATES_TITLE"             : "Aktualizácie",
-    
+
     /**
      * Mená jednotiek
      */
 
     "UNIT_PIXELS"                          : "pixely",
-    
+
     // extensions/default/DebugCommands
     "DEBUG_MENU"                                : "Ladenie",
     "CMD_SHOW_DEV_TOOLS"                        : "Zobraziť vývojárske nástroje",
@@ -409,13 +384,13 @@ define({
     "CMD_ENABLE_NODE_DEBUGGER"                  : "Zapnúť Node Debugger",
     "CMD_LOG_NODE_STATE"                        : "Uložiť stav Node do konzole",
     "CMD_RESTART_NODE"                          : "Reštartovať Node",
-    
+
     "LANGUAGE_TITLE"                            : "Zmeniť jazyk",
     "LANGUAGE_MESSAGE"                          : "Jazyk:",
     "LANGUAGE_SUBMIT"                           : "Reštartovať {APP_NAME}",
     "LANGUAGE_CANCEL"                           : "Zrušiť",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Predvolený v systéme",
-    
+
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "Aktuálna farba",
     "COLOR_EDITOR_ORIGINAL_COLOR_SWATCH_TIP"    : "Pôvodná farba",
@@ -424,24 +399,15 @@ define({
     "COLOR_EDITOR_HSLA_BUTTON_TIP"              : "HSLa formát",
     "COLOR_EDITOR_USED_COLOR_TIP_SINGULAR"      : "{0} (Použité {1} krát)",
     "COLOR_EDITOR_USED_COLOR_TIP_PLURAL"        : "{0} (Použité {1} krát)",
-    
+
     // extensions/default/JavaScriptCodeHints
     "CMD_JUMPTO_DEFINITION"                     : "Prejsť na definíciu",
     "CMD_SHOW_PARAMETER_HINT"                   : "Ukázať pomôcku parametra",
     "NO_ARGUMENTS"                              : "<žiadne parametre>",
 
-    // extensions/default/JSLint
-    "CMD_JSLINT"                                : "Povoliť JSLint",
-    "CMD_JSLINT_FIRST_ERROR"                    : "Prejsť na prvú JSLint chybu",
-    "JSLINT_ERRORS"                             : "JSLint chyby",
-    "JSLINT_ERROR_INFORMATION"                  : "1 JSLint chyba",
-    "JSLINT_ERRORS_INFORMATION"                 : "{0} JSLint chýb",
-    "JSLINT_NO_ERRORS"                          : "Žiadne JSLint chyby - dobrá práca!",
-    "JSLINT_DISABLED"                           : "JSLint je vypnutý, alebo nefunguje s týmto súborom.",
-    
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Rýchly náhľad",
-    
+
     // extensions/default/WebPlatformDocs
     "DOCS_MORE_LINK"                            : "Viac"
 });

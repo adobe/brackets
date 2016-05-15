@@ -1,42 +1,42 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, node: true */
 
 (function () {
     "use strict";
-    
+
     var http     = require("http"),
         pathJoin = require("path").join,
         connect  = require("connect"),
         utils    = require("connect/lib/utils"),
         mime     = require("connect/node_modules/send/node_modules/mime"),
         parse    = utils.parseUrl;
-    
+
     var _domainManager;
 
     var FILTER_REQUEST_TIMEOUT = 5000;
-    
+
     /**
      * @private
      * @type {number}
@@ -64,21 +64,21 @@
      * @type {number}
      */
     var STATIC_CACHE_MAX_AGE = 5000; // 5 seconds
-    
+
     /**
      * @private
      * @type {Object.<string, http.Server>}
      * A map from root paths to server instances.
      */
     var _servers = {};
-    
+
     /**
      * @private
      * @type {Object.<string, {Object.<number, http.ServerResponse>}}
      * A map from a request identifier to its request/response mapping.
      */
     var _requests = {};
-    
+
     /**
      * @private
      * @type {Object.<string, {Object.<string>}}
@@ -87,7 +87,7 @@
     var _rewritePaths = {};
 
     var PATH_KEY_PREFIX = "LiveDev_";
-    
+
     /**
      * @private
      * Removes trailing forward slash for the project root absolute path
@@ -107,14 +107,14 @@
     function getPathKey(path) {
         return PATH_KEY_PREFIX + normalizeRootPath(path);
     }
-    
+
     /**
      * @private
      * Helper function to create a new server.
      * @param {string} path The absolute path that should be the document root
      * @param {function(?string, ?httpServer)} cb Callback function that receives
      *    an error (or null if there was no error) and the server (or null if there
-     *    was an error). 
+     *    was an error).
      */
     function _createServer(path, port, createCompleteCallback) {
         var server,
@@ -124,10 +124,10 @@
 
         // create a new map for this server's requests
         _requests[pathKey] = {};
-        
+
         function requestRoot(server, cb) {
             address = server.address();
-            
+
             // Request the root file from the project in order to ensure that the
             // server is actually initialized. If we don't do this, it seems like
             // connect takes time to warm up the server.
@@ -141,22 +141,22 @@
                 cb(err, null);
             });
         }
-        
+
         function rewrite(req, res, next) {
             var location = {pathname: parse(req).pathname},
                 hasListener = _rewritePaths[pathKey] && _rewritePaths[pathKey][location.pathname],
                 requestId = _filterRequestCounter++,
                 timeoutId;
-            
+
             // ignore most HTTP methods and files that we're not watching
             if (("GET" !== req.method && "HEAD" !== req.method) || !hasListener) {
                 next();
                 return;
             }
-            
+
             // pause the request and wait for listeners to possibly respond
             var pause = utils.pause(req);
-            
+
             function resume(doNext) {
                 // delete the callback after it's used or we hit the timeout.
                 // if this path is requested again, a new callback is generated.
@@ -169,7 +169,7 @@
 
                 pause.resume();
             }
-            
+
             // map request pathname to response callback
             _requests[pathKey][requestId] = function (resData) {
                 // clear timeout immediately when this callback is called
@@ -191,7 +191,7 @@
                     res.end(resData.body);
                 }
 
-                // resume the HTTP ServerResponse, pass to next middleware if 
+                // resume the HTTP ServerResponse, pass to next middleware if
                 // no response data was passed
                 resume(!resData.body);
             };
@@ -205,7 +205,7 @@
                 location:   location,
                 id:         requestId
             };
-            
+
             // dispatch request event
             _domainManager.emitEvent("staticServer", "requestFilter", [request]);
 
@@ -248,7 +248,7 @@
 
         server.listen(port, "127.0.0.1");
     }
-    
+
     /**
      * @private
      * Handler function for the staticServer.getServer command. If a server
@@ -279,7 +279,7 @@
             });
         }
     }
-    
+
     /**
      * @private
      * Handler function for the staticServer.closeServer command. If a server
@@ -302,7 +302,7 @@
         }
         return false;
     }
-    
+
     /**
      * @private
      * Defines a set of paths from a server's root path to watch and fire "request" events for.
@@ -317,12 +317,12 @@
 
         // reset list of filtered paths for each call to setRequestFilterPaths
         _rewritePaths[pathKey] = rewritePaths;
-        
+
         paths.forEach(function (path) {
             rewritePaths[path] = pathJoin(root, path);
         });
     }
-    
+
     /**
      * @private
      * Overrides the server response from static middleware with the provided
@@ -354,14 +354,14 @@
         timeout = (timeout === undefined) ? FILTER_REQUEST_TIMEOUT : timeout;
         _filterRequestTimeout = timeout;
     }
-    
+
     /**
      * Initializes the StaticServer domain with its commands.
      * @param {DomainManager} domainManager The DomainManager for the server
      */
     function init(domainManager) {
         _domainManager = domainManager;
-        
+
         if (!domainManager.hasDomain("staticServer")) {
             domainManager.registerDomain("staticServer", {major: 0, minor: 1});
         }
@@ -474,7 +474,7 @@
             }]
         );
     }
-    
+
     exports.init = init;
-    
+
 }());

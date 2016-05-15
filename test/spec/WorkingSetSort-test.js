@@ -1,24 +1,24 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
- *  
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"), 
- * to deal in the Software without restriction, including without limitation 
- * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * and/or sell copies of the Software, and to permit persons to whom the 
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 
@@ -27,7 +27,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var CommandManager,         // Load from brackets.test
         Commands,               // Load from brackets.test
         DocumentManager,        // Load from brackets.test
@@ -37,16 +37,16 @@ define(function (require, exports, module) {
 
 
     describe("WorkingSetSort", function () {
-        
+
         this.category = "integration";
-    
+
         var testPath = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files"),
             testWindow,
             workingSetListItemCount = 0;
-        
+
         function openAndMakeDirty(path) {
             var doc, didOpen = false, gotError = false;
-                
+
             // open file
             runs(function () {
                 FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER)
@@ -61,7 +61,7 @@ define(function (require, exports, module) {
                 doc.setText("dirty document");
             });
         }
-        
+
         function createTestWindow(spec, loadProject) {
             SpecRunnerUtils.createTestWindowAndRun(spec, function (w) {
                 testWindow = w;
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
                     SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 }
             });
-            
+
             runs(function () {
                 // Initialize: register listeners
                 MainViewManager.on("workingSetAdd", function (event, addedFile) {
@@ -86,7 +86,7 @@ define(function (require, exports, module) {
                 });
             });
         }
-        
+
         function closeTestWindow() {
             testWindow          = null;
             CommandManager      = null;
@@ -96,20 +96,20 @@ define(function (require, exports, module) {
             MainViewManager     = null;
             SpecRunnerUtils.closeTestWindow();
         }
-        
+
         beforeFirst(function () {
             createTestWindow(this, true);
-            
+
             workingSetListItemCount = 0;
-            
+
             openAndMakeDirty(testPath + "/file_four.html");
             openAndMakeDirty(testPath + "/file_zero.css");
             openAndMakeDirty(testPath + "/file_two.js");
-            
+
             // Wait for both files to be added to the working set
             waitsFor(function () { return workingSetListItemCount === 3; }, "workingSetListItemCount to equal 3", 1000);
         });
-        
+
         afterLast(function () {
             testWindow.closeAllFiles();
             closeTestWindow();
@@ -162,7 +162,7 @@ define(function (require, exports, module) {
             openAndMakeDirty(testPath + "/file_one.js");
 
             waitsFor(function () { return workingSetListItemCount === 4; }, "workingSetListItemCount to equal 4", 5000);
-            
+
             runs(function () {
                 // confirm files sorted correctly
                 var $listItems = testWindow.$(".open-files-container > ul").children();
@@ -183,7 +183,7 @@ define(function (require, exports, module) {
             openAndMakeDirty(testPath + "/file_three.js");
 
             waitsFor(function () { return workingSetListItemCount === 5; }, "workingSetListItemCount to equal 5", 5000);
-            
+
             runs(function () {
                 // confirm files sorted correctly
                 var $listItems = testWindow.$(".open-files-container > ul").children();
@@ -196,6 +196,6 @@ define(function (require, exports, module) {
                 expect($listItems.find(".file-status-icon").length).toBe(workingSetListItemCount);
             });
         });
-        
+
     });
 });
