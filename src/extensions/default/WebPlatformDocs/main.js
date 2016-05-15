@@ -92,11 +92,13 @@ define(function (require, exports, module) {
         var jsonFile, propInfo,
             propQueue = [], // priority queue of propNames to try
             langId = hostEditor.getLanguageForSelection().getId(),
-            supportedLangs = ["css", "scss", "less", "html"],
-            langIndex = langId ? supportedLangs.indexOf(langId) : -1; // fail if langId is falsy
+            cssLikeLangs = ["css", "less", "scss"],
+            htmlLikeLangs = ["html"],
+            isCssLike = cssLikeLangs.indexOf(langId) > -1,
+            isHtmlLike = htmlLikeLangs.indexOf(langId) > -1;
 
         // Only provide docs when cursor is in supported language
-        if (langIndex < 0) {
+        if (!isCssLike && !isHtmlLike) {
             return null;
         }
 
@@ -106,7 +108,7 @@ define(function (require, exports, module) {
             return null;
         }
 
-        if (langIndex <= 2) { // CSS-like language
+        if (isCssLike) {
             jsonFile = "css.json";
             propInfo = CSSUtils.getInfoAtPos(hostEditor, sel.start);
             if (propInfo.name) {
@@ -114,7 +116,7 @@ define(function (require, exports, module) {
                 // remove possible vendor prefixes
                 propQueue.push("css/properties/" + propInfo.name.replace(/^-(?:webkit|moz|ms|o)-/, ""));
             }
-        } else { // HTML
+        } else { // HTML-like language
             jsonFile = "html.json";
             propInfo = HTMLUtils.getTagInfo(hostEditor, sel.start);
             if (propInfo.position.tokenType === HTMLUtils.ATTR_NAME && propInfo.attr && propInfo.attr.name) {
