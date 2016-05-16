@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     var _                       = brackets.getModule("thirdparty/lodash"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         Async                   = brackets.getModule("utils/Async"),
+        Strings                 = brackets.getModule("strings"),
         MainViewManager         = brackets.getModule("view/MainViewManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
         DocumentCommandHandlers = brackets.getModule("document/DocumentCommandHandlers"),
@@ -48,12 +49,16 @@ define(function (require, exports, module) {
         WorkingSetView          = brackets.getModule("project/WorkingSetView"),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
-        ExtensionUtils          = brackets.getModule("utils/ExtensionUtils");
+        ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
+        Mustache                = brackets.getModule("thirdparty/mustache/mustache");
+
+    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     // Command constants for recent files
-    var SHOW_RECENT_FILES       = "show.recent.files",
-        NEXT_IN_RECENT_FILES    = "next.recent.files",
-        PREV_IN_RECENT_FILES    = "prev.recent.files";
+    var SHOW_RECENT_FILES       = "recent.files.show",
+        NEXT_IN_RECENT_FILES    = "recent.files.next",
+        PREV_IN_RECENT_FILES    = "recent.files.prev",
+        OPEN_FILES_VIEW_STATE   = "openFiles";
     
     var htmlTemplate = require("text!html/recentfiles-template.html"),
         dirtyDotTemplate = "<div class='file-status-icon dirty' style='position: absolute;margin-left: -2px;'></div>";
@@ -277,7 +282,6 @@ define(function (require, exports, module) {
                 mrofEntry = _makeMROFListEntry(file.fullPath, pane, null);
                 // Add it in the MRU list order
                 index = MainViewManager.findInGlobalMRUList(pane, file);
-                console.log(pane, file.fullPath, index);
                 mrofList[index] = mrofEntry;
             }
         }
@@ -296,7 +300,7 @@ define(function (require, exports, module) {
         if (!refresh) {
             // Call hide first to make sure we are not creating duplicate lists
             _hideMROFList();
-            $mrofContainer = $(htmlTemplate).appendTo('body');
+            $mrofContainer = $(Mustache.render(htmlTemplate, {Strings: Strings})).appendTo('body');
         }
         
         $mrofList = $mrofContainer.find("#mrof-list");
@@ -337,7 +341,7 @@ define(function (require, exports, module) {
             $mrofList.empty();
             _createMROFDisplayList(true);
             $currentContext = null;
-            PreferencesManager.setViewState("openFiles", _mrofList, _getPrefsContext(), true);
+            PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
         }
         
         $("#mrof-list-close").one("click", _hideMROFList);
@@ -378,6 +382,12 @@ define(function (require, exports, module) {
         }
     }
     
+    function _hideMROFListOnEscape(event) {
+        if ($mrofContainer && event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+            _hideMROFList();
+        }
+    }
+
     /**
      * Opens the next item in MROF list if pop over is visible else displays the pop over 
      * @private
@@ -498,12 +508,12 @@ define(function (require, exports, module) {
     
     // Handle project close or app close to set view state
     function _handleAppClose() {
-        PreferencesManager.setViewState("openFiles", _mrofList, _getPrefsContext(), true);
+        PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
         _mrofList = [];
     }
     
     ProjectManager.on("projectOpen", function () {
-        _mrofList = PreferencesManager.getViewState("openFiles", _getPrefsContext()) || [];
+        _mrofList = PreferencesManager.getViewState(OPEN_FILES_VIEW_STATE, _getPrefsContext()) || [];
         if (_mrofList.length === 0) {
             _mrofList = _createMROFList();
         }
@@ -528,12 +538,17 @@ define(function (require, exports, module) {
                 //WTF! (Worse than failure). We should not get here.
                 $("#mrof-container #mrof-list > li > a.mroitem:visited").last().trigger("focus");
             }
+            // If we don't prevent this then scrolling happens by the browser(user agent behaviour)
+            // as well as a result of moving focus in the ul
+            event.preventDefault();
+            event.stopImmediatePropagation();
         }
     }
     
     function _showRecentFileList() {
         _createMROFDisplayList();
-        $(window).on("keyup", _handleArrowKeys);
+        $(window).on("keydown", _handleArrowKeys);
+        $(window).on("keyup", _hideMROFListOnEscape);
     }
     
     /**
@@ -552,8 +567,9 @@ define(function (require, exports, module) {
             }
         }
 
-        $(window).off("keyup", _handleArrowKeys);
+        $(window).off("keydown", _handleArrowKeys);
         $(window).off("keyup", _hideMROFListOnNavigationEnd);
+        $(window).off("keyup", _hideMROFListOnEscape);
     };
 
     // To take care of hiding the popover during app navigation in os using key board shortcuts
@@ -589,7 +605,7 @@ define(function (require, exports, module) {
         // Clean the null/undefined entries
         _mrofList = _mrofList.filter(function (e) {return e; });
 
-        PreferencesManager.setViewState("openFiles", _mrofList, _getPrefsContext(), true);
+        PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
     }
 
     //DocumentCommandHandlers.registerMRUListNavigator(MRUListNavigationProvider);
@@ -599,13 +615,16 @@ define(function (require, exports, module) {
         ExtensionUtils.loadStyleSheet(module, "styles/recent-files.css");
         
         // Command to show recent files list
-        CommandManager.register("Open Recent", SHOW_RECENT_FILES, _showRecentFileList);
+        CommandManager.register(Strings.CMD_RECENT_FILES_OPEN, SHOW_RECENT_FILES, _showRecentFileList);
+        KeyBindingManager.addBinding(SHOW_RECENT_FILES, KeyboardPrefs[SHOW_RECENT_FILES]);
         
         // Keybooard only - Navigate to the next doc in MROF list
-        CommandManager.register("Next in Recent", NEXT_IN_RECENT_FILES, _moveNext);
+        CommandManager.register(Strings.CMD_NEXT_DOC, NEXT_IN_RECENT_FILES, _moveNext);
+        KeyBindingManager.addBinding(NEXT_IN_RECENT_FILES, KeyboardPrefs[NEXT_IN_RECENT_FILES]);
        
         // Keybooard only - Navigate to the prev doc in MROF list
-        CommandManager.register("Prev in Recent", PREV_IN_RECENT_FILES, _movePrev);
+        CommandManager.register(Strings.CMD_PREV_DOC, PREV_IN_RECENT_FILES, _movePrev);
+        KeyBindingManager.addBinding(PREV_IN_RECENT_FILES, KeyboardPrefs[PREV_IN_RECENT_FILES]);
         
         var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
         menu.addMenuItem(SHOW_RECENT_FILES, "", Menus.AFTER, Commands.FILE_OPEN_FOLDER);

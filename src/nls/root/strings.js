@@ -313,6 +313,7 @@ define({
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
+    "CMD_RECENT_FILES_OPEN"               : "Open Recent",
     "CMD_ADD_TO_WORKING_SET"              : "Open To Working Set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
@@ -671,6 +672,11 @@ define({
     "EXPAND_ALL"                    : "Expand All",
     "COLLAPSE_CURRENT"              : "Collapse Current",
     "EXPAND_CURRENT"                : "Expand Current",
+
+    // extensions/default/NavigationAndHistory
+    "RECENT_FILES_DLG_HEADER"                    : "Recent Files",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Clear",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Clear Files Not in WorkingSet",
 
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true to automatically close braces, brackets and parentheses",

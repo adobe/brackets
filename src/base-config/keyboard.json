@@ -5,9 +5,6 @@
     "file.open":  [
         "Ctrl-O"
     ],
-    "show.recent.files": [
-        "Alt-O"
-    ],
     "file.close":  [
         "Ctrl-W"
     ],
@@ -293,32 +290,6 @@
         },
         {
             "key": "Cmd-'",
-            "platform": "mac"
-        }
-    ],
-    "next.recent.files":  [
-        {
-            "key": "Ctrl-Tab"
-        },
-        {
-            "key": "Ctrl-Tab",
-            "platform": "mac"
-        },
-        {
-            "key": "Cmd-Shift-]",
-            "platform": "mac"
-        }
-    ],
-    "prev.recent.files":  [
-        {
-            "key": "Ctrl-Shift-Tab"
-        },
-        {
-            "key": "Ctrl-Shift-Tab",
-            "platform": "mac"
-        },
-        {
-            "key": "Cmd-Shift-[",
             "platform": "mac"
         }
     ],
