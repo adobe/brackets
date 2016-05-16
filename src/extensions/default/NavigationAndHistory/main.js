@@ -66,13 +66,10 @@ define(function (require, exports, module) {
     * @type {Array.<Object>}
     */
     var _mrofList = [],
-        $mrofContainer = null,
-        _activePaneId = null;
+        $mrofContainer = null;
     
     
     var $currentContext,
-        hideTimeoutVar,
-        openFileTimeoutVar,
         activeEditor;
     
     var _hideMROFList;
@@ -107,9 +104,11 @@ define(function (require, exports, module) {
                     }
                 )
             .done(function () {
-                activeEditor = EditorManager.getActiveEditor();
-                activeEditor.setCursorPos(contextData.cursor);
-                activeEditor.centerOnCursor();
+                if (contextData.cursor) {
+                    activeEditor = EditorManager.getActiveEditor();
+                    activeEditor.setCursorPos(contextData.cursor);
+                    activeEditor.centerOnCursor();
+                }
             });
     }
     
@@ -192,8 +191,22 @@ define(function (require, exports, module) {
         $.each(_mrofList, function (index, value) {
             
             if (!isPaneLabelReqd && value.paneId !== MainViewManager.getActivePaneId()) {
-                return true;
+                // Try to see if we have same doc split
+                // Check existing list for this doc path and active pane entry
+                var entryIndex = _.findIndex(_mrofList, function (record) {
+                    return (record.file === value.file && record.paneId === MainViewManager.getActivePaneId());
+                });
+
+                // If found don't process this entry, as the document is already present in active pane
+                if (entryIndex >= 0) {
+                    return true;
+                } else {
+                    // Process this for active pane id
+                    value.paneId = MainViewManager.getActivePaneId();
+                }
             }
+
+            var indxInWS = MainViewManager.findInWorkingSet(value.paneId, value.file);
 
             data = {fullPath: value.file,
                     name: FileUtils.getBaseName(value.file),
@@ -209,6 +222,10 @@ define(function (require, exports, module) {
             
             $newItem = $("<li></li>").append($link);
             
+            if (indxInWS !== -1) { // in working set show differently
+                $newItem.addClass("working-set");
+            }
+
             $newItem.data("path", value.file);
             $newItem.data("paneId", value.paneId);
             $newItem.data("cursor", value.cursor);
@@ -237,31 +254,52 @@ define(function (require, exports, module) {
         });
     }
     
-    function _clearTimers() {
-        if (openFileTimeoutVar) {
-            window.clearTimeout(openFileTimeoutVar);
+    /**
+     * This function is used to create mrof when a project is opened for the firt time with the recent files feature
+     * This routine acts as a logic to migrate existing viewlist to mrof structure
+     * @private
+     */
+    function _createMROFList() {
+
+        var paneList = MainViewManager.getPaneIdList(),
+            mrofList = [],
+            fileList,
+            index;
+
+        var pane, file, mrofEntry, paneCount, fileCount;
+        // Iterate over the pane ID list
+        for (paneCount = 0; paneCount < paneList.length; paneCount++) {
+            pane = paneList[paneCount];
+            fileList = MainViewManager.getWorkingSet(pane);
+            // Iterate over the file list for this pane
+            for (fileCount = 0; fileCount < fileList.length; fileCount++) {
+                file = fileList[fileCount];
+                mrofEntry = _makeMROFListEntry(file.fullPath, pane, null);
+                // Add it in the MRU list order
+                index = MainViewManager.findInGlobalMRUList(pane, file);
+                console.log(pane, file.fullPath, index);
+                mrofList[index] = mrofEntry;
+            }
         }
-        if (hideTimeoutVar) {
-            window.clearTimeout(hideTimeoutVar);
-        }
+
+        return mrofList;
     }
     
     /**
      * Shows the current MROF list
      * @private
      */
-    function _createMROFDisplayList() {
+    function _createMROFDisplayList(refresh) {
+
+        var $mrofList, $link, $newItem;
         
-        // Cancel Any timer that might be active
-        _clearTimers();
+        if (!refresh) {
+            // Call hide first to make sure we are not creating duplicate lists
+            _hideMROFList();
+            $mrofContainer = $(htmlTemplate).appendTo('body');
+        }
         
-        // Call hide first to make sure we are not creating duplicate lists 
-        _hideMROFList();
-        
-        var $link, $newItem;
-        //Dialogs.showModalDialogUsingTemplate($(htmlTemplate));
-        $mrofContainer = $(htmlTemplate).appendTo('body');//$("#mrof-container");
-        var $mrofList = $mrofContainer.find("#mrof-list");
+        $mrofList = $mrofContainer.find("#mrof-list");
         
         /**
          * Focus handler for the link in list item 
@@ -269,7 +307,7 @@ define(function (require, exports, module) {
          */
         function _onFocus(event) {
             var $scope = $(event.target).parent();
-            $("#mrof-container > #mrof-list > li.highlight").removeClass("highlight");
+            $("#mrof-container #mrof-list > li.highlight").removeClass("highlight");
             $(event.target).parent().addClass("highlight");
             $mrofContainer.find("#recent-file-path").text($scope.data("path"));
             $mrofContainer.find("#recent-file-path").attr('title', ($scope.data("path")));
@@ -291,12 +329,13 @@ define(function (require, exports, module) {
         }
         
         /**
-         * Clears the MROF list in memory and pop over
+         * Clears the MROF list in memory and pop over but retains the working set entries
          * @private
          */
-        function _clearMROFList() {
-            _mrofList = [];
+        function _purgeAllExceptWorkingSet() {
+            _mrofList = _createMROFList();
             $mrofList.empty();
+            _createMROFDisplayList(true);
             $currentContext = null;
             PreferencesManager.setViewState("openFiles", _mrofList, _getPrefsContext(), true);
         }
@@ -309,7 +348,7 @@ define(function (require, exports, module) {
         
         _createFileEntries($mrofList);
         
-        var $fileLinks = $("#mrof-container > #mrof-list > li > a.mroitem");
+        var $fileLinks = $("#mrof-container #mrof-list > li > a.mroitem");
         // Handlers for mouse events on the list items
         $fileLinks.on("focus", _onFocus);
         $fileLinks.on("click", _onClick);
@@ -319,7 +358,7 @@ define(function (require, exports, module) {
         $fileLinks.first().trigger("focus");
         
         // Attach clear list handler to the 'Clear All' button
-        $("#mrof-container > .footer > div#clear-mrof-list").on("click", _clearMROFList);
+        $("#mrof-container .footer > div#clear-mrof-list").on("click", _purgeAllExceptWorkingSet);
     }
     
     function _openFile() {
@@ -352,11 +391,11 @@ define(function (require, exports, module) {
             $(window).on("keyup", _hideMROFListOnNavigationEnd);
         }
 
-        $context = $currentContext || $("#mrof-container > #mrof-list > li.highlight");
+        $context = $currentContext || $("#mrof-container #mrof-list > li.highlight");
         if ($context.length > 0) {
             $next = $context.next();
             if ($next.length === 0) {
-                $next = $("#mrof-container > #mrof-list > li").first();
+                $next = $("#mrof-container #mrof-list > li").first();
             }
             if ($next.length > 0) {
                 $currentContext = $next;
@@ -364,7 +403,7 @@ define(function (require, exports, module) {
             }
         } else {
             //WTF! (Worse than failure). We should not get here.
-            $("#mrof-container > #mrof-list > li > a.mroitem:visited").last().trigger("focus");
+            $("#mrof-container #mrof-list > li > a.mroitem:visited").last().trigger("focus");
         }
     }
 
@@ -381,11 +420,11 @@ define(function (require, exports, module) {
             $(window).on("keyup", _hideMROFListOnNavigationEnd);
         }
 
-        $context = $currentContext || $("#mrof-container > #mrof-list > li.highlight");
+        $context = $currentContext || $("#mrof-container #mrof-list > li.highlight");
         if ($context.length > 0) {
             $prev = $context.prev();
             if ($prev.length === 0) {
-                $prev = $("#mrof-container > #mrof-list > li").last();
+                $prev = $("#mrof-container #mrof-list > li").last();
             }
             if ($prev.length > 0) {
                 $currentContext = $prev;
@@ -393,7 +432,7 @@ define(function (require, exports, module) {
             }
         } else {
             //WTF! (Worse than failure). We should not get here.
-            $("#mrof-container > #mrof-list > li > a.mroitem:visited").last().trigger("focus");
+            $("#mrof-container #mrof-list > li > a.mroitem:visited").last().trigger("focus");
         }
     }
     
@@ -402,17 +441,14 @@ define(function (require, exports, module) {
      * @private
      * @param {Editor} editor - editor to extract file information
      */
-    function _addToMROFList(editor) {
-        
-        var filePath = editor.document.file.fullPath;
-        var paneId = editor._paneId;
+    function _addToMROFList(filePath, paneId, cursorPos) {
         
         // Check existing list for this doc path and pane entry
         var index = _.findIndex(_mrofList, function (record) {
             return (record.file === filePath && record.paneId === paneId);
         });
 
-        var entry = _makeMROFListEntry(filePath, editor._paneId, editor.getCursorPos(true, "first"));
+        var entry = _makeMROFListEntry(filePath, paneId, cursorPos);
 
         if (index !== -1) {
             _mrofList.splice(index, 1);
@@ -422,63 +458,67 @@ define(function (require, exports, module) {
         _mrofList.unshift(entry);
     }
     
-    /**
-     * This function is used to create mrof when a project is opened for the firt time with the recent files feature
-     * This routine acts as a logic to migrate existing viewlist to mrof structure
-     * @private
-     */
-    function _createMROFList() {
 
-        var docList = DocumentManager.getAllOpenDocuments(),
-            mrofList = [];
-
-        var doc, editor, mrofEntry;
-        // Iterate over the open documents
-        for (doc in docList) {
-            if (docList.hasOwnProperty(doc)) {
-                editor = doc._masterEditor;
-                // We will add an mrof entry only if there is a full editor created and attached to a pane
-                if (editor && editor._paneId) {
-                    mrofEntry = _makeMROFListEntry(doc.file.fullPath, editor._paneId, editor.getCursorPos(true, "first"));
-                    // Append it in the begining of the list
-                    mrofList.unshift(mrofEntry);
-                }
+    // To update existing entry if a move has happened
+    function _handleWorkingSetMove(event, file, sourcePaneId, destinationPaneId) {
+        // Check existing list for this doc path and source pane entry
+        var index = _.findIndex(_mrofList, function (record) {
+            return (record.file === file.fullPath && record.paneId === sourcePaneId);
+        }), tIndex;
+        // If an entry is found update the pane info
+        if (index >= 0) {
+            // But an entry with the target pane Id should not exist
+            tIndex = _.findIndex(_mrofList, function (record) {
+                return (record.file === file.fullPath && record.paneId === destinationPaneId);
+            });
+            if (tIndex === -1) {
+                _mrofList[index].paneId = destinationPaneId;
+            } else {
+                // Remove this entry as it has been moved.
+                _mrofList.splice(index, 1);
             }
         }
-
-        return mrofList;
     }
 
-    EditorManager.on("activeEditorChange", function (event, current, previous) {
+    // Handle current file change
+    function handleCurrentFileChange(e, newFile, newPaneId, oldFile) {
+        if (newFile) {
+            _addToMROFList(newFile.fullPath, newPaneId);
+        }
+    }
+
+    // Handle Active Editor change to preserve cursor information
+    function _handleActiveEditorChange(event, current, previous) {
         if (previous) {
-            _addToMROFList(previous);
+            var filePath = previous.document.file.fullPath;
+            var paneId = previous._paneId;
+            _addToMROFList(filePath, paneId, previous.getCursorPos(true, "first"));
         }
-        
-        if (current) {
-            _addToMROFList(current);
-            _activePaneId = MainViewManager.getActivePaneId();
-        }
-    });
+    }
     
-    ProjectManager.on("beforeProjectClose beforeAppClose", function () {
+    // Handle project close or app close to set view state
+    function _handleAppClose() {
         PreferencesManager.setViewState("openFiles", _mrofList, _getPrefsContext(), true);
         _mrofList = [];
-    });
+    }
     
     ProjectManager.on("projectOpen", function () {
-        _mrofList = PreferencesManager.getViewState("openFiles", _getPrefsContext()) || _createMROFList();
+        _mrofList = PreferencesManager.getViewState("openFiles", _getPrefsContext()) || [];
+        if (_mrofList.length === 0) {
+            _mrofList = _createMROFList();
+        }
         _syncWithFileSystem();
     });
     
     function _handleArrowKeys(event) {
-        var LEFT = 37,
-            RIGHT = 39;
+        var UP = 38,
+            DOWN = 40;
         
         var $context, $nextContext;
-        if ($mrofContainer && (event.which === LEFT || event.which === RIGHT)) {
-            $context = $currentContext || $("#mrof-container > #mrof-list > li.highlight");
+        if ($mrofContainer && (event.which === UP || event.which === DOWN)) {
+            $context = $currentContext || $("#mrof-container #mrof-list > li.highlight");
             if ($context.length > 0) {
-                $nextContext = event.which === LEFT ? $context.prev() : $context.next();
+                $nextContext = event.which === UP ? $context.prev() : $context.next();
                 if ($nextContext.length > 0) {
                     $currentContext = $nextContext;
                     //_resetOpenFileTimer();
@@ -486,7 +526,7 @@ define(function (require, exports, module) {
                 }
             } else {
                 //WTF! (Worse than failure). We should not get here.
-                $("#mrof-container > #mrof-list > li > a.mroitem:visited").last().trigger("focus");
+                $("#mrof-container #mrof-list > li > a.mroitem:visited").last().trigger("focus");
             }
         }
     }
@@ -516,11 +556,42 @@ define(function (require, exports, module) {
         $(window).off("keyup", _hideMROFListOnNavigationEnd);
     };
 
+    // To take care of hiding the popover during app navigation in os using key board shortcuts
+    $(window).on("blur", function () {
+        _hideMROFList();
+    });
+
     var MRUListNavigationProvider = {
         handleNext: _moveNext,
         handlePrev: _movePrev
     };
     
+    // Merges the entries to a single pane if split view have been merged
+    // Then purges duplicate entries in mrof list
+    function _handlePaneMerge(e, paneId) {
+        var index;
+        var targetPaneId = MainViewManager.FIRST_PANE;
+
+        $.each(_mrofList, function (itrIndex, value) {
+            if (value && value.paneId === paneId) { // We have got an entry which needs merge
+                // Before modifying the actual pane info check if an entry exists with same target pane
+                index = _.findIndex(_mrofList, function (record) {
+                    return (record.file === value.file && record.paneId === targetPaneId);
+                });
+                if (index !== -1) { // A duplicate entry found, remove the current one instead of updating
+                    _mrofList[index] = null;
+                } else { // Update with merged pane info
+                    _mrofList[itrIndex].paneId = targetPaneId;
+                }
+            }
+        });
+
+        // Clean the null/undefined entries
+        _mrofList = _mrofList.filter(function (e) {return e; });
+
+        PreferencesManager.setViewState("openFiles", _mrofList, _getPrefsContext(), true);
+    }
+
     //DocumentCommandHandlers.registerMRUListNavigator(MRUListNavigationProvider);
 
     AppInit.appReady(function () {
@@ -538,5 +609,12 @@ define(function (require, exports, module) {
         
         var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
         menu.addMenuItem(SHOW_RECENT_FILES, "", Menus.AFTER, Commands.FILE_OPEN_FOLDER);
+
+        // Attach listners
+        MainViewManager.on("workingSetMove.pane-first-pane", _handleWorkingSetMove);
+        MainViewManager.on("currentFileChange", handleCurrentFileChange);
+        MainViewManager.on("paneDestroy", _handlePaneMerge);
+        EditorManager.on("activeEditorChange", _handleActiveEditorChange);
+        ProjectManager.on("beforeProjectClose beforeAppClose", _handleAppClose);
     });
 });

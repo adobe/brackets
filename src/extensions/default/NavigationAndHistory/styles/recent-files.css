@@ -1,17 +1,27 @@
 #mrof-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    top:0px;
+    left:0px;
+    z-index: 1051;
+}
+
+#mrof-list-wrapper {
     display:block;
     /*width:60%;*/
     height:50%;
-    background: #3c3f41;
+    background: #2c2c2c;
     position:absolute;
     left:calc(50% - 250px);
     top:25%;
     width: 550px;
     z-index: 1050;
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
-#mrof-container > #mrof-list {
+#mrof-container #mrof-list {
     display: block;
     width: 100%;
     height: calc(100% - 60px);
@@ -25,12 +35,12 @@
     box-sizing: border-box; 
 }
 
-#mrof-container.split-mode > #mrof-list {
+#mrof-container.split-mode #mrof-list {
     top:60px;
     height: calc(100% - 90px);
 }
 
-#mrof-container > #mrof-list > li {
+#mrof-container #mrof-list > li {
     position: relative;
     display: block;
     height: 22px;
@@ -40,25 +50,30 @@
     min-width: 230px;
     padding: 1px 5px;
     white-space: nowrap;
+    opacity:0.5;
 }
 
-#mrof-container > #mrof-list > li.first-pane {
+#mrof-container #mrof-list > li.working-set {
+    opacity: 1;
+}
+
+#mrof-container #mrof-list > li.first-pane {
     position:absolute;
     left:0px;
     width: calc(50% - 30px);
 }
 
-#mrof-container > #mrof-list > li.second-pane {
+#mrof-container #mrof-list > li.second-pane {
     position:absolute;
     right:5px;
     width: calc(50% - 30px);
 }
 
-#mrof-container > #mrof-list > li.highlight {
-    background: #2d2e30;
+#mrof-container #mrof-list > li.highlight {
+    background: #3c3f41;
 }
 
-#mrof-container > #mrof-list > li > a.mroitem {
+#mrof-container #mrof-list > li > a.mroitem {
     color: #ffffff;
     font-size: 13px;
     height: 22px;
@@ -75,34 +90,29 @@
     overflow: hidden;
 }
 
-#mrof-container > #mrof-list > li > a.mroitem > .pane-label {
-    color: #adb9bd !important;
-    float: right;
-}
-
-#mrof-container > #mrof-list > li > a.mroitem > .extension {
+#mrof-container #mrof-list > li > a.mroitem > .extension {
     color: #adb9bd;
 }
 
-#mrof-container > #mrof-list > li > a.mroitem:focus {
+#mrof-container #mrof-list > li > a.mroitem:focus {
     background: transparent;
     color:#8fddff;
     box-shadow: none !important;
     padding-left: 10px;
 }
 
-#mrof-container > #mrof-list > li.highlight > a.mroitem {
+#mrof-container #mrof-list > li.highlight > a.mroitem {
     background: transparent;
     color:#8fddff;
     box-shadow: none !important;
     padding-left: 10px;
 }
 
-#mrof-container > #mrof-list > li.highlight > a.mroitem > .extension {
+#mrof-container #mrof-list > li.highlight > a.mroitem > .extension {
     color:#8fddff;
 }
 
-#mrof-container > .header { 
+#mrof-container .header {
     color: #adb9bd;
     width: 100%;
     height: 30px;
@@ -113,15 +123,16 @@
     box-sizing: border-box;
     padding: 5px 15px;
     border-bottom: 1px solid #44464C;
+    border-radius: 6px 6px 0px 0px;
 }
 
-#mrof-container > .header > span {
+#mrof-container .header > span {
     color: #adb9bd;
     float:left;
     font-weight: 800;
 }
 
-#mrof-container > .footer {
+#mrof-container .footer {
     color: #adb9bd;
     width: 100%;
     height: 30px;
@@ -133,14 +144,15 @@
     border-top: 1px solid #44464C;
     box-sizing: border-box;
     overflow:hidden;
+    border-radius: 0px 0px 6px 6px;
 }
 
-#mrof-container > .header > .close {
+#mrof-container .header > .close {
     color: #adb9bd;
     margin: 0px;
 }
 
-#mrof-container.confirmation-mode > .header > .close {
+#mrof-container.confirmation-mode .header > .close {
     display: none;
 }
 
@@ -172,10 +184,6 @@
     box-sizing: border-box;
 }
 
-/*#mrof-container.confirmation-mode #clear-mrof-list {
-    display: none;
-}*/
-
 #mrof-container #recent-file-path {
     float: left;
     width: calc(100% - 90px);
@@ -198,6 +206,7 @@
 
 .split-mode .pane-label {
     display: block;
+    color: #adb9bd;
 }
 
 .pane-label.first {
@@ -206,4 +215,15 @@
 
 .pane-label.second {
     right:0px;
+}
+
+#mrof-container .header {
+    background: #222222;
+    border-bottom: 1px solid #343434;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+#mrof-container .footer {
+    background-color: #2c2c2c;
+    border-top: 1px solid #343434;
 }
