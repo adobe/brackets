@@ -180,6 +180,45 @@ define(function (require, exports, module) {
         _mrofList = _mrofList.filter(function (e) {return e; });
     }
     
+    function _getFileListForEntries(entries) {
+        return $.map(entries, function (value, index) {
+            return FileSystem.getFileForPath(value.file);
+        });
+    }
+
+    function _addDirectoriesForDuplicateBaseNames() {
+        var checked = {}, baseName;
+        // Find duplicates first
+        $.map(_mrofList, function (value, index) {
+            baseName = FileUtils.getBaseName(value.file);
+            if (!checked[baseName]) {
+                checked[baseName] = [];
+            }
+            checked[baseName].push(value);
+        });
+
+        // Go through the map and solve the arrays with length over 1. Ignore the rest.
+        _.forEach(checked, function (value) {
+            if (value.length > 1) {
+                var dirs = ViewUtils.getDirNamesForDuplicateFiles(_getFileListForEntries(value));
+                $.map(value, function (value, index) {
+                    // Go through recent files and add directories to appropriate entries
+                    $mrofContainer.find("#mrof-list > li").each(function () {
+                        var $li = $(this);
+                        if ($li.data("path") === value.file) {
+                            var dirSplit = dirs[index].split("/");
+                            if (dirSplit.length > 3) {
+                                dirs[index] = dirSplit[0] + "/\u2026/" + dirSplit[dirSplit.length - 1];
+                            }
+                            var $dir = $("<span class='directory'/>").html(" &mdash; " + dirs[index]);
+                            $li.children("a.mroitem").append($dir);
+                        }
+                    });
+                });
+            }
+        });
+    }
+
     function _createFileEntries($mrofList) {
         var data, fileEntry, $link, $newItem;
         // Iterate over the MROF list and create the pop over UI items
@@ -257,6 +296,7 @@ define(function (require, exports, module) {
                 return false;
             }
         });
+        _addDirectoriesForDuplicateBaseNames();
     }
     
     /**
@@ -289,6 +329,37 @@ define(function (require, exports, module) {
         return mrofList;
     }
     
+    function _handleArrowKeys(event) {
+        var UP = 38,
+            DOWN = 40;
+
+        var $context, $nextContext;
+        if ($mrofContainer && (event.which === UP || event.which === DOWN)) {
+            $context = $currentContext || $("#mrof-container #mrof-list > li.highlight");
+            if ($context.length > 0) {
+                $nextContext = event.which === UP ? $context.prev() : $context.next();
+                if ($nextContext.length > 0) {
+                    $currentContext = $nextContext;
+                    //_resetOpenFileTimer();
+                    $nextContext.find("a.mroitem").trigger("focus");
+                }
+            } else {
+                //WTF! (Worse than failure). We should not get here.
+                $("#mrof-container #mrof-list > li > a.mroitem:visited").last().trigger("focus");
+            }
+            // If we don't prevent this then scrolling happens by the browser(user agent behaviour)
+            // as well as a result of moving focus in the ul
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
+    }
+
+    function _hideMROFListOnEscape(event) {
+        if ($mrofContainer && event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+            _hideMROFList();
+        }
+    }
+
     /**
      * Shows the current MROF list
      * @private
@@ -363,6 +434,9 @@ define(function (require, exports, module) {
         
         // Attach clear list handler to the 'Clear All' button
         $("#mrof-container .footer > div#clear-mrof-list").on("click", _purgeAllExceptWorkingSet);
+
+        $(window).on("keydown", _handleArrowKeys);
+        $(window).on("keyup", _hideMROFListOnEscape);
     }
     
     function _openFile() {
@@ -378,12 +452,6 @@ define(function (require, exports, module) {
     function _hideMROFListOnNavigationEnd(event) {
         if ($mrofContainer && event.keyCode === KeyEvent.DOM_VK_CONTROL) {
             _openFile();
-            _hideMROFList();
-        }
-    }
-    
-    function _hideMROFListOnEscape(event) {
-        if ($mrofContainer && event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
             _hideMROFList();
         }
     }
@@ -519,36 +587,10 @@ define(function (require, exports, module) {
         }
         _syncWithFileSystem();
     });
-    
-    function _handleArrowKeys(event) {
-        var UP = 38,
-            DOWN = 40;
-        
-        var $context, $nextContext;
-        if ($mrofContainer && (event.which === UP || event.which === DOWN)) {
-            $context = $currentContext || $("#mrof-container #mrof-list > li.highlight");
-            if ($context.length > 0) {
-                $nextContext = event.which === UP ? $context.prev() : $context.next();
-                if ($nextContext.length > 0) {
-                    $currentContext = $nextContext;
-                    //_resetOpenFileTimer();
-                    $nextContext.find("a.mroitem").trigger("focus");
-                }
-            } else {
-                //WTF! (Worse than failure). We should not get here.
-                $("#mrof-container #mrof-list > li > a.mroitem:visited").last().trigger("focus");
-            }
-            // If we don't prevent this then scrolling happens by the browser(user agent behaviour)
-            // as well as a result of moving focus in the ul
-            event.preventDefault();
-            event.stopImmediatePropagation();
-        }
-    }
+
     
     function _showRecentFileList() {
         _createMROFDisplayList();
-        $(window).on("keydown", _handleArrowKeys);
-        $(window).on("keyup", _hideMROFListOnEscape);
     }
     
     /**
@@ -573,7 +615,7 @@ define(function (require, exports, module) {
     };
 
     // To take care of hiding the popover during app navigation in os using key board shortcuts
-    $(window).on("blur", function () {
+    $(window).on("blur focus", function () {
         _hideMROFList();
     });
 
@@ -608,7 +650,6 @@ define(function (require, exports, module) {
         PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
     }
 
-    //DocumentCommandHandlers.registerMRUListNavigator(MRUListNavigationProvider);
 
     AppInit.appReady(function () {
         
