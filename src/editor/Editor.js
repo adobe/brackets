@@ -428,6 +428,15 @@ define(function (require, exports, module) {
         this.on("change", function (event, editor, changeList) {
             self._handleEditorChange(changeList);
         });
+        this.on("focus", function (event, editor) {
+            if (self._hostEditor) {
+                // Mark the host editor as the master editor for the hosting document
+                self._hostEditor.document._toggleMasterEditor(self._hostEditor);
+            } else {
+                // Set this full editor as master editor for the document
+                self.document._toggleMasterEditor(self);
+            }
+        });
 
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
         this._codeMirror.setOption("mode", mode);
@@ -468,6 +477,10 @@ define(function (require, exports, module) {
 
     Editor.prototype.markPaneId = function (paneId) {
         this._paneId = paneId;
+
+        // Also add this to the pool of full editors
+        this.document._associateEditor(this);
+
         // In case this Editor is initialized not as the first full editor for the document
         // and the document is already dirty and present in another working set, make sure
         // to add this documents to the new panes working set.
@@ -993,14 +1006,6 @@ define(function (require, exports, module) {
 
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.on("focus", function () {
-            if (self._hostEditor) {
-                // Mark the host editor as the master editor for the hosting document
-                self._hostEditor.document._toggleMasterEditor(self._hostEditor);
-            } else {
-                // Set this full editor as master editor for the document
-                self.document._toggleMasterEditor(self);
-            }
-            
             self._focused = true;
             self.trigger("focus", self);
             

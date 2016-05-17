@@ -79,14 +79,11 @@ define(function (require, exports, module) {
         this.file = file;
         this._updateLanguage();
         this.refreshText(rawText, initialTimestamp, true);
+        // List of full editors which are initialized as master editors for this doc.
+        this._associatedFullEditors = [];
     }
 
     EventDispatcher.makeEventDispatcher(Document.prototype);
-
-    /**
-     * List of editors which were initialized as master editors for this doc.
-     */
-    Document.prototype._associatedFullEditors = [];
 
     /**
      * Number of clients who want this Document to stay alive. The Document is listed in
@@ -204,10 +201,6 @@ define(function (require, exports, module) {
         this._text = null;
         this._masterEditor = masterEditor;
 
-        if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
-            this._associatedFullEditors.push(this._masterEditor);
-        }
-
         masterEditor.on("change", this._handleEditorChange.bind(this));
     };
 
@@ -239,13 +232,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._toggleMasterEditor = function (masterEditor) {
         // Do a check before processing the request to ensure inline editors are not being set as master editor
-        if (this._associatedFullEditors.indexOf(masterEditor) >= 0) {
-            if (this._masterEditor) {
-                // Already a master editor is associated , so preserve the old editor in list of editors
-                if (this._associatedFullEditors.indexOf(this._masterEditor) < 0) {
-                    this._associatedFullEditors.push(this._masterEditor);
-                }
-            }
+        if (this.file === masterEditor.document.file && this._associatedFullEditors.indexOf(masterEditor) >= 0) {
             this._masterEditor = masterEditor;
         }
     };
@@ -276,6 +263,17 @@ define(function (require, exports, module) {
         // Do a check before processing the request to ensure inline editors are not being handled
         if (this._associatedFullEditors.indexOf(editor) >= 0) {
             this._associatedFullEditors.splice(this._associatedFullEditors.indexOf(editor), 1);
+        }
+    };
+
+    /**
+     * Aassociates a full editor to this document
+     * To be used internally by Editor only when pane marking happens
+     */
+    Document.prototype._associateEditor = function (editor) {
+        // Do a check before processing the request to ensure inline editors are not being handled
+        if (this._associatedFullEditors.indexOf(editor) === -1) {
+            this._associatedFullEditors.push(editor);
         }
     };
 
