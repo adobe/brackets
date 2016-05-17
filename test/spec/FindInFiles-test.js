@@ -2282,6 +2282,19 @@ define(function (require, exports, module) {
                         });
                     });
                 });
+                
+                describe("Disclosure Arrows", function () {
+               
+                    it("should expand/collapse items when clicked", function () {
+                        showSearchResults("foo", "bar");
+                        runs(function () {
+                            $(".disclosure-triangle").click();
+                            expect($("#items").is(":style")).toBeFalsy();
+                            $(".disclosure-triangle").click();
+                            expect($("#items").is(":style")).toBeTruthy();
+                        });
+                    });
+                });
             });
         });
     });
