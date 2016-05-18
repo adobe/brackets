@@ -561,6 +561,10 @@ define(function (require, exports, module) {
             // Editor doesn't exist: populate a new Editor with the text
             editor = _createFullEditorForDocument(document, pane, editorOptions);
             createdNewEditor = true;
+        } else if (editor.$el.parent()[0] !== pane.$content[0]) {
+            // editor does exist but is not a child of the pane so add it to the
+            //  pane (which will switch the view's container as well)
+            pane.addView(editor);
         }
 
         // show the view
