@@ -176,8 +176,7 @@ define(function (require, exports, module) {
      */
     function _syncWithFileSystem() {
         _mrofList = _mrofList.filter(function (e) {return e; });
-        Async.doSequentially(_mrofList, _checkExt, false);
-        _mrofList = _mrofList.filter(function (e) {return e; });
+        return Async.doSequentially(_mrofList, _checkExt, false);
     }
     
     function _getFileListForEntries(entries) {
@@ -419,21 +418,23 @@ define(function (require, exports, module) {
         
         var data, fileEntry;
         
-        _syncWithFileSystem();
-        
-        _createFileEntries($mrofList);
-        
-        var $fileLinks = $("#mrof-container #mrof-list > li > a.mroitem");
-        // Handlers for mouse events on the list items
-        $fileLinks.on("focus", _onFocus);
-        $fileLinks.on("click", _onClick);
-        $fileLinks.on("select", _onClick);
-        
-        // Put focus on the Most recent file link in the list
-        $fileLinks.first().trigger("focus");
-        
-        // Attach clear list handler to the 'Clear All' button
-        $("#mrof-container .footer > div#clear-mrof-list").on("click", _purgeAllExceptWorkingSet);
+        _syncWithFileSystem().always(function () {
+            _mrofList = _mrofList.filter(function (e) {return e; });
+            _createFileEntries($mrofList);
+            var $fileLinks = $("#mrof-container #mrof-list > li > a.mroitem");
+            // Handlers for mouse events on the list items
+            $fileLinks.on("focus", _onFocus);
+            $fileLinks.on("click", _onClick);
+            $fileLinks.on("select", _onClick);
+
+            // Put focus on the Most recent file link in the list
+            $fileLinks.first().trigger("focus");
+
+            // Attach clear list handler to the 'Clear All' button
+            $("#mrof-container .footer > div#clear-mrof-list").on("click", _purgeAllExceptWorkingSet);
+        });
+
+
 
         $(window).on("keydown", _handleArrowKeys);
         $(window).on("keyup", _hideMROFListOnEscape);
