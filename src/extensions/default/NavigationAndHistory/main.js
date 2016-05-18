@@ -364,9 +364,9 @@ define(function (require, exports, module) {
      * @private
      */
     function _createMROFDisplayList(refresh) {
-
-        var $mrofList, $link, $newItem;
+        var $def = $.Deferred();
         
+        var $mrofList, $link, $newItem;
         if (!refresh) {
             // Call hide first to make sure we are not creating duplicate lists
             _hideMROFList();
@@ -432,12 +432,13 @@ define(function (require, exports, module) {
 
             // Attach clear list handler to the 'Clear All' button
             $("#mrof-container .footer > div#clear-mrof-list").on("click", _purgeAllExceptWorkingSet);
+            $def.resolve();
         });
-
-
 
         $(window).on("keydown", _handleArrowKeys);
         $(window).on("keyup", _hideMROFListOnEscape);
+
+        return $def.promise();
     }
     
     function _openFile() {
@@ -457,18 +458,13 @@ define(function (require, exports, module) {
         }
     }
 
+
     /**
      * Opens the next item in MROF list if pop over is visible else displays the pop over 
      * @private
      */
     function _moveNext() {
         var $context, $next;
-
-        if (!$mrofContainer) {
-            _createMROFDisplayList();
-            $mrofContainer.addClass("confirmation-mode");
-            $(window).on("keyup", _hideMROFListOnNavigationEnd);
-        }
 
         $context = $currentContext || $("#mrof-container #mrof-list > li.highlight");
         if ($context.length > 0) {
@@ -486,18 +482,29 @@ define(function (require, exports, module) {
         }
     }
 
+    function _cmdMoveNext() {
+        var $displayPromise;
+        if (!$mrofContainer) {
+            $displayPromise = _createMROFDisplayList();
+            $mrofContainer.addClass("confirmation-mode");
+            $(window).on("keyup", _hideMROFListOnNavigationEnd);
+        }
+
+        if ($displayPromise) {
+            $displayPromise.always(function () {
+                _moveNext();
+            });
+        } else {
+            _moveNext();
+        }
+    }
+
     /**
      * Opens the previous item in MROF list if pop over is visible else displays the pop over 
      * @private
      */
     function _movePrev() {
         var $context, $prev;
-
-        if (!$mrofContainer) {
-            _createMROFDisplayList();
-            $mrofContainer.addClass("confirmation-mode");
-            $(window).on("keyup", _hideMROFListOnNavigationEnd);
-        }
 
         $context = $currentContext || $("#mrof-container #mrof-list > li.highlight");
         if ($context.length > 0) {
@@ -515,6 +522,23 @@ define(function (require, exports, module) {
         }
     }
     
+    function _cmdMovePrev() {
+        var $displayPromise;
+        if (!$mrofContainer) {
+            $displayPromise = _createMROFDisplayList();
+            $mrofContainer.addClass("confirmation-mode");
+            $(window).on("keyup", _hideMROFListOnNavigationEnd);
+        }
+
+        if ($displayPromise) {
+            $displayPromise.always(function () {
+                _movePrev();
+            });
+        } else {
+            _movePrev();
+        }
+    }
+
     /**
      * Adds an entry to MROF list
      * @private
@@ -583,7 +607,9 @@ define(function (require, exports, module) {
     
     ProjectManager.on("projectOpen", function () {
         _mrofList = PreferencesManager.getViewState(OPEN_FILES_VIEW_STATE, _getPrefsContext()) || [];
-        if (_mrofList.length === 0) {
+
+        // Have a check on the number of entries to fallback to working set if we detect corruption
+        if (_mrofList.length < MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)) {
             _mrofList = _createMROFList();
         }
         _syncWithFileSystem();
@@ -619,11 +645,6 @@ define(function (require, exports, module) {
     $(window).on("blur focus", function () {
         _hideMROFList();
     });
-
-    var MRUListNavigationProvider = {
-        handleNext: _moveNext,
-        handlePrev: _movePrev
-    };
     
     // Merges the entries to a single pane if split view have been merged
     // Then purges duplicate entries in mrof list
@@ -661,11 +682,11 @@ define(function (require, exports, module) {
         KeyBindingManager.addBinding(SHOW_RECENT_FILES, KeyboardPrefs[SHOW_RECENT_FILES]);
         
         // Keybooard only - Navigate to the next doc in MROF list
-        CommandManager.register(Strings.CMD_NEXT_DOC, NEXT_IN_RECENT_FILES, _moveNext);
+        CommandManager.register(Strings.CMD_NEXT_DOC, NEXT_IN_RECENT_FILES, _cmdMoveNext);
         KeyBindingManager.addBinding(NEXT_IN_RECENT_FILES, KeyboardPrefs[NEXT_IN_RECENT_FILES]);
        
         // Keybooard only - Navigate to the prev doc in MROF list
-        CommandManager.register(Strings.CMD_PREV_DOC, PREV_IN_RECENT_FILES, _movePrev);
+        CommandManager.register(Strings.CMD_PREV_DOC, PREV_IN_RECENT_FILES, _cmdMovePrev);
         KeyBindingManager.addBinding(PREV_IN_RECENT_FILES, KeyboardPrefs[PREV_IN_RECENT_FILES]);
         
         var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
