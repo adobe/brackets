@@ -55,7 +55,8 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     // Command constants for recent files
-    var SHOW_RECENT_FILES       = "recent.files.show",
+    var PREFS_RECENT_FILES      = "recent.files.navigation",
+        SHOW_RECENT_FILES       = "recent.files.show",
         NEXT_IN_RECENT_FILES    = "recent.files.next",
         PREV_IN_RECENT_FILES    = "recent.files.prev",
         OPEN_FILES_VIEW_STATE   = "openFiles";
@@ -65,6 +66,8 @@ define(function (require, exports, module) {
     
     var MAX_ENTRY_COUNT    = 50;
     
+    var isRecentFilesNavEnabled = true;
+
     /*
     * Contains list of most recently opened files and their last known cursor position
     * @private
@@ -79,6 +82,18 @@ define(function (require, exports, module) {
     
     var _hideMROFList;
     
+    PreferencesManager.definePreference(PREFS_RECENT_FILES, "boolean", true, {
+        description: Strings.DESCRIPTION_RECENT_FILES_NAV
+    });
+
+    /**
+     * Returns a 'context' object for getting/setting project-specific preferences
+     */
+    function _getPrefsContext() {
+        var projectRoot = ProjectManager.getProjectRoot();
+        return { location : { scope: "user", layer: "project", layerID: projectRoot && projectRoot.fullPath } };
+    }
+
     /**
      * Opens a full editor for the given context
      * @private
@@ -144,16 +159,7 @@ define(function (require, exports, module) {
         var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
         return (docIfOpen && docIfOpen.isDirty);
     }
-    
-    /** 
-     * Returns a 'context' object for getting/setting project-specific preferences 
-     */
-    function _getPrefsContext() {
-        var projectRoot = ProjectManager.getProjectRoot();
-        return { location : { scope: "user", layer: "project", layerID: projectRoot && projectRoot.fullPath } };
-    }
-    
-    
+
     function _checkExt(entry, index) {
         var deferred = new $.Deferred(),
             fileEntry = FileSystem.getFileForPath(entry.file);
@@ -210,6 +216,7 @@ define(function (require, exports, module) {
                                 dirs[index] = dirSplit[0] + "/\u2026/" + dirSplit[dirSplit.length - 1];
                             }
                             var $dir = $("<span class='directory'/>").html(" &mdash; " + dirs[index]);
+                            $li.children("a.mroitem").find("span.directory").remove();
                             $li.children("a.mroitem").append($dir);
                         }
                     });
@@ -605,7 +612,7 @@ define(function (require, exports, module) {
         _mrofList = [];
     }
     
-    ProjectManager.on("projectOpen", function () {
+    function _initRecentFilesList() {
         _mrofList = PreferencesManager.getViewState(OPEN_FILES_VIEW_STATE, _getPrefsContext()) || [];
 
         // Have a check on the number of entries to fallback to working set if we detect corruption
@@ -613,11 +620,15 @@ define(function (require, exports, module) {
             _mrofList = _createMROFList();
         }
         _syncWithFileSystem();
-    });
+    }
+
+    ProjectManager.on("projectOpen", _initRecentFilesList);
 
     
     function _showRecentFileList() {
-        _createMROFDisplayList();
+        if (isRecentFilesNavEnabled) {
+            _createMROFDisplayList();
+        }
     }
     
     /**
@@ -672,25 +683,76 @@ define(function (require, exports, module) {
         PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
     }
 
-
-    AppInit.appReady(function () {
-        
-        ExtensionUtils.loadStyleSheet(module, "styles/recent-files.css");
-        
+    function _initRecentFileMenusAndCommands() {
         // Command to show recent files list
-        CommandManager.register(Strings.CMD_RECENT_FILES_OPEN, SHOW_RECENT_FILES, _showRecentFileList);
-        KeyBindingManager.addBinding(SHOW_RECENT_FILES, KeyboardPrefs[SHOW_RECENT_FILES]);
+
+        if (!CommandManager.get(SHOW_RECENT_FILES)) {
+            CommandManager.register(Strings.CMD_RECENT_FILES_OPEN, SHOW_RECENT_FILES, _showRecentFileList);
+            KeyBindingManager.addBinding(SHOW_RECENT_FILES, KeyboardPrefs[SHOW_RECENT_FILES]);
+        }
         
         // Keybooard only - Navigate to the next doc in MROF list
-        CommandManager.register(Strings.CMD_NEXT_DOC, NEXT_IN_RECENT_FILES, _cmdMoveNext);
+        if (!CommandManager.get(NEXT_IN_RECENT_FILES)) {
+            CommandManager.register(Strings.CMD_NEXT_DOC, NEXT_IN_RECENT_FILES, _cmdMoveNext);
+        }
         KeyBindingManager.addBinding(NEXT_IN_RECENT_FILES, KeyboardPrefs[NEXT_IN_RECENT_FILES]);
        
         // Keybooard only - Navigate to the prev doc in MROF list
-        CommandManager.register(Strings.CMD_PREV_DOC, PREV_IN_RECENT_FILES, _cmdMovePrev);
+        if (!CommandManager.get(PREV_IN_RECENT_FILES)) {
+            CommandManager.register(Strings.CMD_PREV_DOC, PREV_IN_RECENT_FILES, _cmdMovePrev);
+        }
         KeyBindingManager.addBinding(PREV_IN_RECENT_FILES, KeyboardPrefs[PREV_IN_RECENT_FILES]);
         
         var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
         menu.addMenuItem(SHOW_RECENT_FILES, "", Menus.AFTER, Commands.FILE_OPEN_FOLDER);
+    }
+
+    function _initDefaultNavigationCommands() {
+        KeyBindingManager.addBinding(Commands.NAVIGATE_NEXT_DOC, KeyboardPrefs[NEXT_IN_RECENT_FILES]);
+        KeyBindingManager.addBinding(Commands.NAVIGATE_PREV_DOC, KeyboardPrefs[PREV_IN_RECENT_FILES]);
+    }
+
+    function _removeKeys(keys) {
+        _.forEach(keys, function (config) {
+            KeyBindingManager.removeBinding(config.key);
+        });
+    }
+
+    function _removeNavigationKeys() {
+        _removeKeys(KeyboardPrefs[NEXT_IN_RECENT_FILES]);
+        _removeKeys(KeyboardPrefs[PREV_IN_RECENT_FILES]);
+    }
+
+    function _deregisterSortcutsAndMenus() {
+        _removeNavigationKeys();
+        Menus.getMenu(Menus.AppMenuBar.FILE_MENU).removeMenuItem(SHOW_RECENT_FILES);
+    }
+
+    PreferencesManager.on("change", PREFS_RECENT_FILES, function () {
+        if (PreferencesManager.get(PREFS_RECENT_FILES)) {
+            _removeNavigationKeys();
+            _initRecentFileMenusAndCommands();
+            isRecentFilesNavEnabled = true;
+        } else {
+            // Reset the view state to empty
+            PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, [], _getPrefsContext(), true);
+            _deregisterSortcutsAndMenus();
+            _initDefaultNavigationCommands();
+            isRecentFilesNavEnabled = false;
+        }
+    });
+
+    AppInit.appReady(function () {
+
+        ExtensionUtils.loadStyleSheet(module, "styles/recent-files.css");
+
+        if (PreferencesManager.get(PREFS_RECENT_FILES)) {
+            _initRecentFileMenusAndCommands();
+            isRecentFilesNavEnabled = true;
+        } else {
+            _initDefaultNavigationCommands();
+            isRecentFilesNavEnabled = false;
+        }
 
         // Attach listners
         MainViewManager.on("workingSetMove.pane-first-pane", _handleWorkingSetMove);
