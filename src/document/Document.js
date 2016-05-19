@@ -245,7 +245,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._checkAssociatedEditorForPane = function (paneId) {
         var editorCount, editorForPane;
-        for (editorCount = 0; editorCount < this._associatedFullEditors.length; editorCount++) {
+        for (editorCount = 0; editorCount < this._associatedFullEditors.length; ++editorCount) {
             if (this._associatedFullEditors[editorCount]._paneId === paneId) {
                 editorForPane = this._associatedFullEditors[editorCount];
                 break;
