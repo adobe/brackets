@@ -55,7 +55,7 @@ define(function (require, exports, module) {
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
     // Command constants for recent files
-    var PREFS_RECENT_FILES      = "recent.files.navigation",
+    var PREFS_RECENT_FILES      = "recent-files.navigation",
         SHOW_RECENT_FILES       = "recent.files.show",
         NEXT_IN_RECENT_FILES    = "recent.files.next",
         PREV_IN_RECENT_FILES    = "recent.files.prev",
