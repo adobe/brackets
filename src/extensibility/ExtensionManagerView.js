@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, Mustache, PathUtils */
+/*global define, $, brackets */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         LocalizationUtils         = require("utils/LocalizationUtils"),
         LanguageManager           = require("language/LanguageManager"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html"),
-        Mustache                  = require("thirdparty/mustache/mustache");
+        Mustache                  = require("thirdparty/mustache/mustache"),
+        PathUtils                 = require("thirdparty/path-utils/path-utils");
 
     /**
      * Create a detached link element, so that we can use it later to extract url details like 'protocol'
