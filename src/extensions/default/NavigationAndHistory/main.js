@@ -374,10 +374,28 @@ define(function (require, exports, module) {
         var $def = $.Deferred();
         
         var $mrofList, $link, $newItem;
+
+        /**
+         * Clears the MROF list in memory and pop over but retains the working set entries
+         * @private
+         */
+        function _purgeAllExceptWorkingSet() {
+            _mrofList = _createMROFList();
+            $mrofList.empty();
+            _createMROFDisplayList(true);
+            $currentContext = null;
+            PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
+        }
+
         if (!refresh) {
             // Call hide first to make sure we are not creating duplicate lists
             _hideMROFList();
             $mrofContainer = $(Mustache.render(htmlTemplate, {Strings: Strings})).appendTo('body');
+            $("#mrof-list-close").one("click", _hideMROFList);
+            // Attach clear list handler to the 'Clear All' button
+            $("#mrof-container .footer > div#clear-mrof-list").on("click", _purgeAllExceptWorkingSet);
+            $(window).on("keydown", _handleArrowKeys);
+            $(window).on("keyup", _hideMROFListOnEscape);
         }
         
         $mrofList = $mrofContainer.find("#mrof-list");
@@ -408,21 +426,7 @@ define(function (require, exports, module) {
                 hideOnOpenFile: true
             });
         }
-        
-        /**
-         * Clears the MROF list in memory and pop over but retains the working set entries
-         * @private
-         */
-        function _purgeAllExceptWorkingSet() {
-            _mrofList = _createMROFList();
-            $mrofList.empty();
-            _createMROFDisplayList(true);
-            $currentContext = null;
-            PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
-        }
-        
-        $("#mrof-list-close").one("click", _hideMROFList);
-        
+
         var data, fileEntry;
         
         _syncWithFileSystem().always(function () {
@@ -437,13 +441,8 @@ define(function (require, exports, module) {
             // Put focus on the Most recent file link in the list
             $fileLinks.first().trigger("focus");
 
-            // Attach clear list handler to the 'Clear All' button
-            $("#mrof-container .footer > div#clear-mrof-list").on("click", _purgeAllExceptWorkingSet);
             $def.resolve();
         });
-
-        $(window).on("keydown", _handleArrowKeys);
-        $(window).on("keyup", _hideMROFListOnEscape);
 
         return $def.promise();
     }
@@ -546,6 +545,25 @@ define(function (require, exports, module) {
         }
     }
 
+    function _updateCursorPosition(filePath, paneId, cursorPos) {
+        if (!paneId) { // Don't handle this if not a full view/editor
+            return;
+        }
+
+        // Check existing list for this doc path and pane entry
+        var index = _.findIndex(_mrofList, function (record) {
+            return (record.file === filePath && record.paneId === paneId);
+        });
+
+        var entry;
+
+        if (index !== -1) {
+            _mrofList[index].cursor = cursorPos;
+        }
+
+        PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
+    }
+
     /**
      * Adds an entry to MROF list
      * @private
@@ -553,12 +571,25 @@ define(function (require, exports, module) {
      */
     function _addToMROFList(filePath, paneId, cursorPos) {
         
+        if (!paneId) { // Don't handle this if not a full view/editor
+            return;
+        }
+
+
         // Check existing list for this doc path and pane entry
         var index = _.findIndex(_mrofList, function (record) {
             return (record.file === filePath && record.paneId === paneId);
         });
 
-        var entry = _makeMROFListEntry(filePath, paneId, cursorPos);
+        var entry;
+        if (index !== -1) {
+            entry = _mrofList[index];
+            if (entry.cursor && !cursorPos) {
+                cursorPos = entry.cursor;
+            }
+        }
+
+        entry = _makeMROFListEntry(filePath, paneId, cursorPos);
 
         if (index !== -1) {
             _mrofList.splice(index, 1);
@@ -566,6 +597,8 @@ define(function (require, exports, module) {
 
         // add it to the front of the list
         _mrofList.unshift(entry);
+
+        PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
     }
     
 
@@ -589,22 +622,6 @@ define(function (require, exports, module) {
             }
         }
     }
-
-    // Handle current file change
-    function handleCurrentFileChange(e, newFile, newPaneId, oldFile) {
-        if (newFile) {
-            _addToMROFList(newFile.fullPath, newPaneId);
-        }
-    }
-
-    // Handle Active Editor change to preserve cursor information
-    function _handleActiveEditorChange(event, current, previous) {
-        if (previous) {
-            var filePath = previous.document.file.fullPath;
-            var paneId = previous._paneId;
-            _addToMROFList(filePath, paneId, previous.getCursorPos(true, "first"));
-        }
-    }
     
     // Handle project close or app close to set view state
     function _handleAppClose() {
@@ -614,15 +631,18 @@ define(function (require, exports, module) {
     
     function _initRecentFilesList() {
         _mrofList = PreferencesManager.getViewState(OPEN_FILES_VIEW_STATE, _getPrefsContext()) || [];
-
         // Have a check on the number of entries to fallback to working set if we detect corruption
         if (_mrofList.length < MainViewManager.getWorkingSetSize(MainViewManager.ALL_PANES)) {
             _mrofList = _createMROFList();
         }
-        _syncWithFileSystem();
     }
 
-    ProjectManager.on("projectOpen", _initRecentFilesList);
+    function _handleProjectOpen() {
+        _mrofList = [];
+        // We will do a late initialization once we get the first editor change or file open notification
+    }
+
+    ProjectManager.on("projectOpen", _handleProjectOpen);
 
     
     function _showRecentFileList() {
@@ -728,6 +748,34 @@ define(function (require, exports, module) {
         Menus.getMenu(Menus.AppMenuBar.FILE_MENU).removeMenuItem(SHOW_RECENT_FILES);
     }
 
+    // Handle current file change
+    function handleCurrentFileChange(e, newFile, newPaneId, oldFile) {
+        if (newFile) {
+            if (_mrofList.length === 0) {
+                _initRecentFilesList();
+            }
+
+            _addToMROFList(newFile.fullPath, newPaneId);
+        }
+    }
+
+    // Handle Active Editor change to update mrof information
+    function _handleActiveEditorChange(event, current, previous) {
+        if (current) { // Handle only full editors
+            if (_mrofList.length === 0) {
+                _initRecentFilesList();
+            }
+
+            var filePath = current.document.file.fullPath;
+            var paneId = current._paneId;
+            _addToMROFList(filePath, paneId, current.getCursorPos(true, "first"));
+        }
+
+        if (previous) { // Capture the last know cursor position
+            _updateCursorPosition(previous.document.file.fullPath, previous._paneId, previous.getCursorPos(true, "first"));
+        }
+    }
+
     function _attachListners() {
         MainViewManager.on("workingSetMove.pane-first-pane", _handleWorkingSetMove);
         MainViewManager.on("currentFileChange", handleCurrentFileChange);
@@ -748,9 +796,11 @@ define(function (require, exports, module) {
         if (PreferencesManager.get(PREFS_RECENT_FILES)) {
             _removeNavigationKeys();
             _initRecentFileMenusAndCommands();
+            _mrofList = [];
+            _initRecentFilesList();
+            PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
             _detachListners();
             _attachListners();
-            _initRecentFilesList();
             isRecentFilesNavEnabled = true;
         } else {
             // Reset the view state to empty
@@ -764,16 +814,6 @@ define(function (require, exports, module) {
     });
 
     AppInit.appReady(function () {
-
         ExtensionUtils.loadStyleSheet(module, "styles/recent-files.css");
-
-        if (PreferencesManager.get(PREFS_RECENT_FILES)) {
-            _initRecentFileMenusAndCommands();
-            _attachListners();
-            isRecentFilesNavEnabled = true;
-        } else {
-            _initDefaultNavigationCommands();
-            isRecentFilesNavEnabled = false;
-        }
     });
 });
