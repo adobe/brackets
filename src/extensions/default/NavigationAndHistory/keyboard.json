@@ -1,8 +1,8 @@
 {
-    "recent.files.show": [
+    "recent-files.show": [
         "Alt-O"
     ],
-    "recent.files.next":  [
+    "recent-files.next":  [
         {
             "key": "Ctrl-Tab"
         },
@@ -15,7 +15,7 @@
             "platform": "mac"
         }
     ],
-    "recent.files.prev":  [
+    "recent-files.prev":  [
         {
             "key": "Ctrl-Shift-Tab"
         },

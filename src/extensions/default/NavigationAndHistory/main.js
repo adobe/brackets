@@ -56,9 +56,9 @@ define(function (require, exports, module) {
     
     // Command constants for recent files
     var PREFS_RECENT_FILES      = "recent-files.navigation",
-        SHOW_RECENT_FILES       = "recent.files.show",
-        NEXT_IN_RECENT_FILES    = "recent.files.next",
-        PREV_IN_RECENT_FILES    = "recent.files.prev",
+        SHOW_RECENT_FILES       = "recent-files.show",
+        NEXT_IN_RECENT_FILES    = "recent-files.next",
+        PREV_IN_RECENT_FILES    = "recent-files.prev",
         OPEN_FILES_VIEW_STATE   = "openFiles";
     
     var htmlTemplate = require("text!html/recentfiles-template.html"),
