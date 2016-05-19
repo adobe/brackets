@@ -728,16 +728,37 @@ define(function (require, exports, module) {
         Menus.getMenu(Menus.AppMenuBar.FILE_MENU).removeMenuItem(SHOW_RECENT_FILES);
     }
 
+    function _attachListners() {
+        MainViewManager.on("workingSetMove.pane-first-pane", _handleWorkingSetMove);
+        MainViewManager.on("currentFileChange", handleCurrentFileChange);
+        MainViewManager.on("paneDestroy", _handlePaneMerge);
+        EditorManager.on("activeEditorChange", _handleActiveEditorChange);
+        ProjectManager.on("beforeProjectClose beforeAppClose", _handleAppClose);
+    }
+
+    function _detachListners() {
+        MainViewManager.off("workingSetMove.pane-first-pane", _handleWorkingSetMove);
+        MainViewManager.off("currentFileChange", handleCurrentFileChange);
+        MainViewManager.off("paneDestroy", _handlePaneMerge);
+        EditorManager.off("activeEditorChange", _handleActiveEditorChange);
+        ProjectManager.off("beforeProjectClose beforeAppClose", _handleAppClose);
+    }
+
     PreferencesManager.on("change", PREFS_RECENT_FILES, function () {
         if (PreferencesManager.get(PREFS_RECENT_FILES)) {
             _removeNavigationKeys();
             _initRecentFileMenusAndCommands();
+            _detachListners();
+            _attachListners();
+            _initRecentFilesList();
             isRecentFilesNavEnabled = true;
         } else {
             // Reset the view state to empty
-            PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, [], _getPrefsContext(), true);
+            _mrofList = [];
+            PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
             _deregisterSortcutsAndMenus();
             _initDefaultNavigationCommands();
+            _detachListners();
             isRecentFilesNavEnabled = false;
         }
     });
@@ -748,17 +769,11 @@ define(function (require, exports, module) {
 
         if (PreferencesManager.get(PREFS_RECENT_FILES)) {
             _initRecentFileMenusAndCommands();
+            _attachListners();
             isRecentFilesNavEnabled = true;
         } else {
             _initDefaultNavigationCommands();
             isRecentFilesNavEnabled = false;
         }
-
-        // Attach listners
-        MainViewManager.on("workingSetMove.pane-first-pane", _handleWorkingSetMove);
-        MainViewManager.on("currentFileChange", handleCurrentFileChange);
-        MainViewManager.on("paneDestroy", _handlePaneMerge);
-        EditorManager.on("activeEditorChange", _handleActiveEditorChange);
-        ProjectManager.on("beforeProjectClose beforeAppClose", _handleAppClose);
     });
 });
