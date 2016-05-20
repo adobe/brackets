@@ -92,13 +92,13 @@ define(function (require, exports, module) {
                 expect(pane.addView).not.toHaveBeenCalled();
                 expect(pane.showView).not.toHaveBeenCalled();
                 expect(anotherPane.addView).toHaveBeenCalledWith(editor);
-                expect(anotherPane.addView).toHaveBeenCalledWith(editor);
+                expect(anotherPane.showView).toHaveBeenCalledWith(editor);
 
                 EditorManager.openDocument(testDoc, pane);
 
                 expect(pane.addView).toHaveBeenCalled();
                 expect(pane.showView).toHaveBeenCalled();
-                expect(pane.showView).not.toHaveBeenCalledWith(editor);
+                expect(pane.addView).not.toHaveBeenCalledWith(editor);
                 expect(pane.showView).not.toHaveBeenCalledWith(editor);
             });
         });

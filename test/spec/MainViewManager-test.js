@@ -880,25 +880,6 @@ define(function (require, exports, module) {
                     expect(MainViewManager._getPaneIdForPath(getFileObject("test.html").fullPath)).toEqual("second-pane");
                 });
             });
-            // This test is no longer valid with split view for same doc
-            /*it("should not add files if they exist in other panes", function () {
-                runs(function () {
-                    MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.js"),
-                                                                         getFileObject("test.css")]);
-                    MainViewManager.addListToWorkingSet("second-pane", [getFileObject("test.js"),
-                                                                         getFileObject("test.css")]);
-                    expect(MainViewManager._getPaneIdForPath(getFileObject("test.js").fullPath)).toEqual("first-pane");
-                    expect(MainViewManager._getPaneIdForPath(getFileObject("test.css").fullPath)).toEqual("first-pane");
-                });
-                runs(function () {
-                    MainViewManager.addListToWorkingSet("second-pane", [getFileObject("test.txt"),
-                                                                         getFileObject("test.html")]);
-                    MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.txt"),
-                                                                         getFileObject("test.html")]);
-                    expect(MainViewManager._getPaneIdForPath(getFileObject("test.txt").fullPath)).toEqual("second-pane");
-                    expect(MainViewManager._getPaneIdForPath(getFileObject("test.html").fullPath)).toEqual("second-pane");
-                });
-            });*/
             it("should not add list of files to ALL_PANES ", function () {
                 runs(function () {
                     expect(function () {
