@@ -466,6 +466,7 @@ define(function (require, exports, module) {
 
         // Return all public functions for the cursor
         return _.assign(Object.create(null), {
+            currentMatch: {from: {line: 0, ch: 0}, to:  {line: 0, ch: 0}},
             /**
              * Set or update the document and query properties
              * @param {!{document: CodeMirror.Doc, searchQuery: string|RegExp, position: {line: number, ch: number}, ignoreCase: boolean}} properties
@@ -499,7 +500,9 @@ define(function (require, exports, module) {
 
             /**
              * Get the current match number counting from the first match.
-             * @return {number}
+             * This is a 0 based index count.
+             * A match is not selected until find is used to navigate to a match.
+             * @return {number} match number or -1 if no match selected.
              */
             getCurrentMatchNumber: function () {
                 _updateResultsIfNeeded(this);

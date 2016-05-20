@@ -62,7 +62,7 @@ define(function (require, exports, module) {
         });
 
         describe("scanDocumentForMatches", function () {
-            it("should select a word bounded by whitespace from a pos in the middle of the word", function () {
+            it("should match 4 locations of 'foo' ", function () {
                 var results = [];
                 BracketsSearchCursor.scanDocumentForMatches({
                     document: editor.document,
@@ -74,6 +74,55 @@ define(function (require, exports, module) {
                 });
                 expect(results).toEqual([ {line : 2, ch : 8}, {line : 2, ch : 31}, {line : 6, ch : 17}, {line : 8, ch : 8}]);
             });
+        });
+
+        describe("createSearchCursor", function () {
+            var cursor;
+            beforeEach(function () {
+                cursor = BracketsSearchCursor.createSearchCursor({
+                    document: editor.document,
+                    searchQuery: "foo",
+                    ignoreCase: true,
+                });
+            });
+
+            afterEach(function () {
+                cursor = null;
+            });
+            it("should match 4 locations of 'foo' ", function () {
+                var results = [];
+                cursor.forEachMatch(function (startPosition, endPosition) {
+                    results.push(startPosition);
+                });
+                expect(results).toEqual([ {line : 2, ch : 8}, {line : 2, ch : 31}, {line : 6, ch : 17}, {line : 8, ch : 8}]);
+            });
+
+            it("should count 4 matches of 'foo' ", function () {
+                expect(cursor.getMatchCount()).toEqual(4);
+            });
+
+            it("should have 0 as first match number after first find", function () {
+                var firstPosition = cursor.find();
+                expect(cursor.getCurrentMatchNumber()).toEqual(0);
+            });
+
+            it("should have 1 as first match number after first find and starting position after first match", function () {
+                cursor.setSearchDocumentAndQuery({position: {line: 2, ch: 10}});
+                var firstPosition = cursor.find();
+                expect(cursor.getCurrentMatchNumber()).toEqual(1);
+            });
+
+            it("should wrap search around after reversing past beginning", function () {
+                cursor.find(true);
+                expect(cursor.getCurrentMatchNumber()).toEqual(-1);
+                cursor.find(true);
+                expect(cursor.getCurrentMatchNumber()).toEqual(3);
+            });
+
+            it("should count document characters", function () {
+                expect(cursor.getDocCharacterCount()).toEqual(defaultContent.length + 1);
+            });
+
         });
     });
 });
