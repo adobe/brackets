@@ -64,16 +64,20 @@ define(function (require, exports, module) {
 
         describe("scanDocumentForMatches", function () {
             it("should match 4 locations of 'foo' ", function () {
-                var results = [];
+                var matchedPositions = [];
+                var matchArrays = [];
                 BracketsSearchCursor.scanDocumentForMatches({
                     document: editor.document,
-                    searchQuery: "foo",
+                    searchQuery: /(f)oo/,
                     ignoreCase: true,
                     fnEachMatch: function (startPosition, endPosition, matchArray) {
-                        results.push(startPosition);
+                        matchedPositions.push(startPosition);
+                        matchArrays.push(matchArray);
                     }
                 });
-                expect(results).toEqual([ {line : 2, ch : 8}, {line : 2, ch : 31}, {line : 6, ch : 17}, {line : 8, ch : 8}]);
+                expect(matchedPositions).toEqual([ {line : 2, ch : 8}, {line : 2, ch : 31}, {line : 6, ch : 17}, {line : 8, ch : 8}]);
+                expect(matchArrays[0][0]).toEqual("Foo");
+                expect(matchArrays[0][1]).toEqual("F");
             });
         });
 
@@ -82,7 +86,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 cursor = BracketsSearchCursor.createSearchCursor({
                     document: editor.document,
-                    searchQuery: "foo",
+                    searchQuery: /(f)oo/,
                     ignoreCase: true,
                 });
             });
@@ -118,7 +122,7 @@ define(function (require, exports, module) {
                 expect(cursor.getCurrentMatchNumber()).toEqual(3);
             });
 
-            it("should wrap around search", function () {
+            it("should wrap around search reverse direction", function () {
                 // find first match
                 cursor.find();
                 expect(cursor.getCurrentMatchNumber()).toEqual(0);
@@ -130,8 +134,31 @@ define(function (require, exports, module) {
                 expect(cursor.getCurrentMatchNumber()).toEqual(3);
             });
 
+            it("should wrap around search forward direction", function () {
+                // find last match
+                cursor.find(true);
+                expect(cursor.getCurrentMatchNumber()).toEqual(3);
+                // no match end of document
+                cursor.find();
+                expect(cursor.getCurrentMatchNumber()).toEqual(-1);
+                // should now wrap around on next forward
+                cursor.find();
+                expect(cursor.getCurrentMatchNumber()).toEqual(0);
+            });
+
             it("should count document characters", function () {
                 expect(cursor.getDocCharacterCount()).toEqual(defaultContent.length + 1);
+            });
+
+            it("should provide full match info for current match", function () {
+                cursor.find();
+                var matchInfo = cursor.getFullInfoForCurrentMatch();
+
+                expect(matchInfo.match.index).toEqual(72);
+                expect(matchInfo.match[0]).toEqual("Foo");
+                expect(matchInfo.match[1]).toEqual("F");
+                expect(matchInfo.from).toEqual({line : 2, ch : 8});
+                expect(matchInfo.to).toEqual({line: 2, ch: 11});
             });
 
         });
