@@ -64,7 +64,6 @@ define(function (require, exports, module) {
      */
     function _createLineCharacterCountIndex(text, lineSeparator) {
         var lineNumber;
-        console.time('_createLineCharacterCountIndex');
         // splitting is actually faster than using doc.getLine()
         var lines = text.split(lineSeparator);
         var lineSeparatorLength = lineSeparator.length;
@@ -75,7 +74,6 @@ define(function (require, exports, module) {
             totalCharacterCount += lines[lineNumber].length + lineSeparatorLength;
             lineCharacterCountIndex[lineNumber] = totalCharacterCount;
         }
-        console.timeEnd('_createLineCharacterCountIndex');
         return lineCharacterCountIndex;
     }
 
@@ -215,7 +213,6 @@ define(function (require, exports, module) {
      */
     function _findResultIndexNearPos(regexIndexer, pos, reverse, fnCompare) {
         var compare;
-        console.time("findNext");
 
         var length = regexIndexer.getItemCount();
         var upperBound = length - 1;
@@ -225,7 +222,6 @@ define(function (require, exports, module) {
             searchIndex = Math.floor((upperBound + lowerBound) / 2);
             compare = fnCompare(regexIndexer.getMatchIndexStart(searchIndex), pos);
             if (compare === 0) {
-                console.timeEnd("findNext");
                 return searchIndex;
             } else if (compare === -1) {
                 lowerBound = searchIndex + 1;
@@ -233,7 +229,6 @@ define(function (require, exports, module) {
                 upperBound = searchIndex - 1;
             }
         }
-        console.timeEnd("findNext");
         // no exact match, we are at the lower bound
         // if going forward return the next index
         if ((compare === -1) && (!reverse)) {
@@ -383,7 +378,6 @@ define(function (require, exports, module) {
         }
 
         function _createSearchResults(docText, query) {
-            console.time("exec");
             var matchArray;
             var index = 0;
             while ((matchArray = query.exec(docText)) !== null) {
@@ -395,7 +389,6 @@ define(function (require, exports, module) {
                     query.lastIndex++;
                 }
             }
-            console.timeEnd("exec");
             return _startEndIndexArray;
         }
         _createSearchResults(docText, query);
