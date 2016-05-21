@@ -599,7 +599,7 @@ define(function (require, exports, module) {
      * This is provided for consumers who wish to leverage the speed provided by the document index, but do
      * not need to use the features of a cursor.
      *
-     * @param {!{document: CodeMirror.Doc, searchQuery: string|RegExp, ignoreCase: boolean, fnEachMatch: function}} properties
+     * @param {!{document: CodeMirror.Doc, searchQuery: string|RegExp, ignoreCase: boolean, fnEachMatch: function({line: number, ch: number}, {line: number, ch: number, match: Array})}} properties
      */
     function scanDocumentForMatches(properties) {
         if (_needToIndexDocument(properties.document)) {

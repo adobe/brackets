@@ -53,7 +53,7 @@ define(function (require, exports, module) {
      * Maximum file size to search within (in chars)
      * @const {number}
      */
-    var FIND_MAX_FILE_SIZE  = 10000000;
+    var FIND_MAX_FILE_SIZE  = 16000000;
 
     /**
      * If the number of matches exceeds this limit, inline text highlighting is disabled
@@ -545,7 +545,6 @@ define(function (require, exports, module) {
                 if (resultCount <= FIND_HIGHLIGHT_MAX) {
                     toggleHighlighting(editor, true);
 
-                    console.time("highlight");
                     var scrollTrackPositions = [];
                     cursor.forEachMatch(function (fromPos, toPos) {
                         state.marked.push(cm.markText(fromPos, toPos,
@@ -553,7 +552,6 @@ define(function (require, exports, module) {
                         scrollTrackPositions.push(fromPos);
 
                     });
-                    console.timeEnd("highlight");
 
                     if (resultCount <= FIND_SCROLLTICK_MAX)
                         ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
@@ -597,10 +595,9 @@ define(function (require, exports, module) {
             // is in the middle of typing, not navigating explicitly; viewport jumping would be distracting.
             findNext(editor, false, true, state.searchStartPos);
         } else if (!initial) {
-            if (state.searchStartPos)
+            if (state.searchStartPos) {
                 editor._codeMirror.setCursor(state.searchStartPos);
-            else
-                console.log("start position is null");
+            }
         }
     }
 
