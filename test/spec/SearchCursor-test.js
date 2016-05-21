@@ -54,6 +54,7 @@ define(function (require, exports, module) {
             editor.document.getValue = editor.document.getText;
             editor.document.lineSeparator = function () { return '\n'; };
             editor.document.history = {generation: 1};
+            editor.document.lineCount = function () { return defaultContent.split('\n').length; };
         });
 
         afterEach(function () {
@@ -112,9 +113,19 @@ define(function (require, exports, module) {
                 expect(cursor.getCurrentMatchNumber()).toEqual(1);
             });
 
-            it("should wrap search around after reversing past beginning", function () {
+            it("should start search at end if reversing", function () {
+                cursor.find(true);
+                expect(cursor.getCurrentMatchNumber()).toEqual(3);
+            });
+
+            it("should wrap around search", function () {
+                // find first match
+                cursor.find();
+                expect(cursor.getCurrentMatchNumber()).toEqual(0);
+                // no match top of document
                 cursor.find(true);
                 expect(cursor.getCurrentMatchNumber()).toEqual(-1);
+                // should now wrap around on next reverse
                 cursor.find(true);
                 expect(cursor.getCurrentMatchNumber()).toEqual(3);
             });

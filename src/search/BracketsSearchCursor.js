@@ -422,7 +422,7 @@ define(function (require, exports, module) {
             var match = cursor.regexIndexer.nextMatch();
             if (!match) {
                 cursor.atOccurrence = false;
-                cursor.currentMatch = {line: cursor.doc.lineCount(), ch: 0};
+                cursor.currentPosition = null;
                 return false;
             }
             return match;
@@ -431,7 +431,7 @@ define(function (require, exports, module) {
             var match = cursor.regexIndexer.prevMatch();
             if (!match) {
                 cursor.atOccurrence = false;
-                cursor.currentMatch = {line: 0, ch: 0};
+                cursor.currentPosition = null;
                 return false;
             }
             return match;
@@ -461,12 +461,17 @@ define(function (require, exports, module) {
          */
         function _setPos(cursor, pos) {
             pos = pos || {line: 0, ch: 0};
-            cursor.currentMatch = {from: pos, to: pos};
+            cursor.currentPosition = {from: pos, to: pos};
+        }
+
+        function _startingPositionForFind(cursor, reverse) {
+            if (cursor.currentPosition) {return cursor.currentPosition; }
+            var position = reverse ? {line: cursor.doc.lineCount(), ch: 0} : {line: 0, ch: 0};
+            return {from: position, to: position};
         }
 
         // Return all public functions for the cursor
         return _.assign(Object.create(null), {
-            currentMatch: {from: {line: 0, ch: 0}, to:  {line: 0, ch: 0}},
             /**
              * Set or update the document and query properties
              * @param {!{document: CodeMirror.Doc, searchQuery: string|RegExp, position: {line: number, ch: number}, ignoreCase: boolean}} properties
@@ -520,8 +525,9 @@ define(function (require, exports, module) {
                 if (!this.regexIndexer.getCurrentMatch()) {
                     // There is currently no match position
                     // This is our first time or we hit the top or end of document using next or prev
+                    this.currentPosition = _startingPositionForFind(this, reverse);
                     var docLineIndex = _getDocumentIndex(this.doc);
-                    var matchIndex = _findResultIndexNearPos(this.regexIndexer, _indexFromPos(docLineIndex, this.currentMatch), reverse, _compareMatchResultToPos);
+                    var matchIndex = _findResultIndexNearPos(this.regexIndexer, _indexFromPos(docLineIndex, this.currentPosition), reverse, _compareMatchResultToPos);
                     if (matchIndex) {
                         this.regexIndexer.setCurrentMatchNumber(matchIndex);
                         foundPosition = this.regexIndexer.getCurrentMatch();
@@ -531,7 +537,7 @@ define(function (require, exports, module) {
                     foundPosition = reverse ? _findPrevious(this) : _findNext(this);
                 }
                 if (foundPosition) {
-                    this.currentMatch = foundPosition;
+                    this.currentPosition = foundPosition;
                     this.atOccurrence = !(!foundPosition);
                 }
                 return foundPosition;
