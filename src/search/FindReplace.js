@@ -102,7 +102,7 @@ define(function (require, exports, module) {
             position: pos
         });
         return this.searchCursor;
-    }
+    };
 
     function getSearchState(cm) {
         if (!cm._searchState) {
@@ -553,8 +553,9 @@ define(function (require, exports, module) {
 
                     });
 
-                    if (resultCount <= FIND_SCROLLTICK_MAX)
+                    if (resultCount <= FIND_SCROLLTICK_MAX) {
                         ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
+                    }
                 }
 
                 // Here we only update find bar with no result. In the case of a match
