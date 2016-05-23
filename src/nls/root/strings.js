@@ -313,6 +313,7 @@ define({
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
+    "CMD_RECENT_FILES_OPEN"               : "Open Recent",
     "CMD_ADD_TO_WORKING_SET"              : "Open To Working Set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
@@ -672,6 +673,11 @@ define({
     "COLLAPSE_CURRENT"              : "Collapse Current",
     "EXPAND_CURRENT"                : "Expand Current",
 
+    // extensions/default/NavigationAndHistory
+    "RECENT_FILES_DLG_HEADER"                    : "Recent Files",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Clear",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Clear Files Not in WorkingSet",
+
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true to automatically close braces, brackets and parentheses",
     "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "false to remove the \"Close Others Above\" from the Working Files context menu",
@@ -780,5 +786,6 @@ define({
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * This is a read-only file with the preferences supported\n * by {APP_NAME}.\n * Use this file as a reference to modify your preferences\n * file \"brackets.json\" opened in the other pane.\n * For more information on how to use preferences inside\n * {APP_NAME}, refer to the web page at https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Default",
     "DESCRIPTION_PURE_CODING_SURFACE"                : "true to enable code only mode and hide all other UI elements in {APP_NAME}",
-    "DESCRIPTION_INDENT_LINE_COMMENT"                : "true to enable indenting of line comments"
+    "DESCRIPTION_INDENT_LINE_COMMENT"                : "true to enable indenting of line comments",
+    "DESCRIPTION_RECENT_FILES_NAV"                   : "Enable/disable navigation in recent files"
 });

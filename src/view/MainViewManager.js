@@ -1714,6 +1714,7 @@ define(function (require, exports, module) {
     exports.findInWorkingSetByAddedOrder  = findInWorkingSetByAddedOrder;
     exports.findInWorkingSetByMRUOrder    = findInWorkingSetByMRUOrder;
     exports.findInAllWorkingSets          = findInAllWorkingSets;
+    exports.findInGlobalMRUList           = _findFileInMRUList;
 
     // Traversal
     exports.beginTraversal                = beginTraversal;
