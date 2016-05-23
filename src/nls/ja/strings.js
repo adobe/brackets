@@ -313,7 +313,7 @@ define({
 	"CMD_FILE_NEW": "新しいファイル",
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
-	"CMD_RECENT_FILES_OPEN": "最近使用したファイルを開く",
+	"CMD_RECENT_FILES_OPEN": "Open Recent\u2026",
 	"CMD_ADD_TO_WORKING_SET": "ワーキングセットに開く",
 	"CMD_OPEN_DROPPED_FILES": "ドロップしたファイルを開く",
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
@@ -676,7 +676,7 @@ define({
     // extensions/default/NavigationAndHistory
 	"RECENT_FILES_DLG_HEADER": "Recent Files",
 	"RECENT_FILES_DLG_CLEAR_BUTTON_LABEL": "消去",
-	"RECENT_FILES_DLG_CLEAR_BUTTON_TITLE": "Clear Files Not in WorkingSet",
+	"RECENT_FILES_DLG_CLEAR_BUTTON_TITLE": "Clear files not in Working Set",
 
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "中括弧、角括弧、丸括弧を自動的に閉じるには true",
