@@ -395,14 +395,18 @@ define(function (require, exports, module) {
             .appendTo($("body"));
     }
 
-    function createEditorInstance(doc, $editorHolder, visibleRange, paneId) {
+    function createEditorInstance(doc, pane, visibleRange) {
+        var $editorHolder = pane.$el || pane; // To handle actual pane mock or a fake container
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
 
         Editor.setUseTabChar(EDITOR_USE_TABS);
         Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
-        if (paneId) {
-            editor._paneId = paneId;
+
+        if (pane.addView) {
+            pane.addView(editor);
+            editor._paneId = pane.id;
         }
+
         EditorManager._notifyActiveEditorChanged(editor);
 
         return editor;
@@ -460,7 +464,8 @@ define(function (require, exports, module) {
             $el: $el,
             id: paneId || 'first-pane',
             $content: $fakeContent,
-            addView: function (path, editor) {
+            addView: function (editor) {
+                this.$content.append(editor.$el);
             },
             showView: function (editor) {
             }
