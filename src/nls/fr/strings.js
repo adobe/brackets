@@ -313,7 +313,7 @@ define({
 	"CMD_FILE_NEW": "Nouveau fichier",
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
-	"CMD_RECENT_FILES_OPEN": "Open Recent",
+	"CMD_RECENT_FILES_OPEN": "Open Recent\u2026",
 	"CMD_ADD_TO_WORKING_SET": "Ouvrir dans l’ensemble de travail",
 	"CMD_OPEN_DROPPED_FILES": "Ouvrir les fichiers déposés",
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
@@ -676,7 +676,7 @@ define({
     // extensions/default/NavigationAndHistory
 	"RECENT_FILES_DLG_HEADER": "Recent Files",
 	"RECENT_FILES_DLG_CLEAR_BUTTON_LABEL": "Effacer",
-	"RECENT_FILES_DLG_CLEAR_BUTTON_TITLE": "Clear Files Not in WorkingSet",
+	"RECENT_FILES_DLG_CLEAR_BUTTON_TITLE": "Clear files not in Working Set",
 
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "vrai pour fermer automatiquement les accolades, les crochets et les parenthèses",
