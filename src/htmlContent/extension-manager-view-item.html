@@ -2,7 +2,7 @@
     <td class="ext-info">
         <span class="ext-name">{{#metadata.title}}{{metadata.title}}{{/metadata.title}}{{^metadata.title}}{{metadata.name}}{{/metadata.title}}</span>
         {{#authorInfo}}
-            <span class="muted ext-author">{{{authorInfo}}}</span>
+            <span class="muted ext-author">{{{.}}}</span>
         {{/authorInfo}}
         <span class="muted ext-version">{{metadata.version}}</span>
         {{#hasVersionInfo}}
