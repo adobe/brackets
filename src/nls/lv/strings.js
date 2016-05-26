@@ -77,7 +77,7 @@ define({
 
     // User key map error strings
     "ERROR_KEYMAP_TITLE"                : "Kļūda, lasot lietotāja atslēgu karti",
-    "ERROR_KEYMAP_CORRUPT"              : "Atslēgu kartes datne nav derīgs JSON fails. Datne tiks atvērta, lai Jūs varētu izlabot formātu.",
+    "ERROR_KEYMAP_CORRUPT"              : "Atslēgu kartes datne nav derīga JSON datne. Datne tiks atvērta, lai Jūs varētu izlabot formātu.",
     "ERROR_LOADING_KEYMAP"              : "Atslēgu karte nav derīga UTF-8 kodējuma teksta datne un nevar tikt ielādēta",
     "ERROR_RESTRICTED_COMMANDS"         : "Nevar piešķirt saīsnes šīm komandām: {0}",
     "ERROR_RESTRICTED_SHORTCUTS"        : "Nevar piešķirt šīs saīsnes: {0}",
@@ -87,9 +87,9 @@ define({
     "ERROR_NONEXISTENT_COMMANDS"        : "Tiek piešķirtas saīsnes neeksistējošām komandām: {0}",
 
     // Application preferences corrupt error strings
-    "ERROR_PREFS_CORRUPT_TITLE"         : "Kļūda, lasot izvēles",
-    "ERROR_PREFS_CORRUPT"               : "Izvēļu datne nav derīgs JSON fails. Datne tiks atvērta, lai Jūs varētu izlabot formātu. Nepieciešams restartēt {APP_NAME}, lai izmaiņas stāstos spēkā.",
-    "ERROR_PROJ_PREFS_CORRUPT"          : "Izvēļu datne nav derīgs JSON fails. Datne tiks atvērta, lai Jūs varētu izlabot formātu. Nepieciešams pārlādēt projektu, lai izmaiņas stāstos spēkā.",
+    "ERROR_PREFS_CORRUPT_TITLE"         : "Kļūda, lasot iestatījumus",
+    "ERROR_PREFS_CORRUPT"               : "Iestatījumu datne nav derīga JSON datne. Datne tiks atvērta, lai Jūs varētu izlabot formātu. Nepieciešams restartēt {APP_NAME}, lai izmaiņas stāstos spēkā.",
+    "ERROR_PROJ_PREFS_CORRUPT"          : "Iestatījumu datne nav derīga JSON datne. Datne tiks atvērta, lai Jūs varētu izlabot formātu. Nepieciešams pārlādēt projektu, lai izmaiņas stāstos spēkā.",
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} vēl nedarbojas pārlūkā.",
@@ -101,19 +101,19 @@ define({
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Kļūda, palaižot pārlūku",
-    "ERROR_CANT_FIND_CHROME"            : "Pārlūks Google Chrome netika atrasta. Pārliecinieties, ka tā ir instalēta.",
+    "ERROR_CANT_FIND_CHROME"            : "Pārlūks Google Chrome netika atrasts. Pārliecinieties, ka tas ir instalēts.",
     "ERROR_LAUNCHING_BROWSER"           : "Radās kļūda, palaižot pārlūku. (kļūda {0})",
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Tiešā priekšskatījuma kļūda",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Savienojas ar pārlūku",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Lai savienotos ar tiešo priekšskatījumu, nepieciešams pārlādēt Chrome ar iespējotu attālo atkļūdošanu.<br/><br/>Vai vēlaties pārlādēt Chrome un iespējot attālo atkļūdošanu?<br/><br/>",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Lai savienotos ar tiešo priekšskatījumu, nepieciešams pārlādēt Chrome ar iespējotu attālo atkļūdošanu.<br /><br />Vai vēlaties pārlādēt Chrome un iespējot attālo atkļūdošanu?<br /><br />",
     "LIVE_DEV_LOADING_ERROR_MESSAGE"    : "Neizdevās ielādēt tiešā priekšskatījuma lapu.",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Atveriet HTML datni vai pārliecinieties, ka jūsu projektā ir datne index.html, lai palaistu tiešo priekšskatījumu.",
     "LIVE_DEV_NEED_BASEURL_MESSAGE"     : "Lai palaistu tiešo priekšskatījumu ar serverī importētu datni, nepieciešams norādīt šī projekta bāzes URL.",
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE" : "Kļūda, startējot HTTP serveri tiešā priekšskatījuma datnēm. Lūdzu, mēģiniet vēlreiz. ",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Laipni lūgts tiešajā priekšskatījumā!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Tiešais priekšskatījums savieno {APP_NAME} ar pārlūku. Tas palaiž HTML datnes priekšskatījumu pārlūkā, tad atjaunina priekšskatījumu, kad tiek rediģēts kods.<br/><br/>Šajā agrīnajā {APP_NAME} versijā tiešais priekšskatījums darbojas tikai ar <strong>Google Chrome</strong> un atjauninās, kad tiek rediģētas <strong>CSS vai HTML datnes</strong>. Izmaiņas JavaScript datnēs tiek automātiski pārlādētas saglabājot.<br/><br/>(Šis paziņojums paradīsies tikai vienreiz.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Sīkākai informācijai skatiet <a href='{0}' title='{0}'> Tiešā priekšskatījuma savienojuma kļūdu novēršana</a>.",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Tiešais priekšskatījums savieno {APP_NAME} ar pārlūku. Tas palaiž HTML datnes priekšskatījumu pārlūkā, tad atjaunina priekšskatījumu, kad tiek rediģēts kods.<br /><br />Šajā agrīnajā {APP_NAME} versijā tiešais priekšskatījums darbojas tikai ar <strong>Google Chrome</strong> un atjauninās, kad tiek rediģētas <strong>CSS vai HTML datnes</strong>. Izmaiņas JavaScript datnēs tiek automātiski pārlādētas saglabājot.<br /><br />(Šis paziņojums paradīsies tikai vienreiz.)",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"  : "Sīkākai informācijai skatiet <a href='{0}' title='{0}'>Tiešā priekšskatījuma savienojuma kļūdu novēršana</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Tiešais priekšskatījums",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Tiešais priekšskatījums: savienojas\u2026",
@@ -123,8 +123,8 @@ define({
     "LIVE_DEV_STATUS_TIP_SYNC_ERROR"    : "Tiešais priekšskatījums (netiek atjaunināts sintakses kļūdas dēļ)",
 
     "LIVE_DEV_DETACHED_REPLACED_WITH_DEVTOOLS" : "Tiešais priekšskatījums tika atcelts, jo bija atvērti pārlūka izstrādātāja rīki",
-    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Tiešais priekšskatījums tikai atcelts, jo lapa tika aizvērta pārlūkā",
-    "LIVE_DEV_NAVIGATED_AWAY"                  : "Tiešais priekšskatījums tika atcelts, jo pārlūks pārvietojās uz lapu, kas nav daļa no šī projekta.",
+    "LIVE_DEV_DETACHED_TARGET_CLOSED"          : "Tiešais priekšskatījums tika atcelts, jo lapa tika aizvērta pārlūkā",
+    "LIVE_DEV_NAVIGATED_AWAY"                  : "Tiešais priekšskatījums tika atcelts, jo pārlūks pārvietojās uz lapu, kas nav daļa no šī projekta",
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"           : "Tiešais priekšskatījums tika atcelts nezināma iemesla dēļ ({0})",
 
     "SAVE_CLOSE_TITLE"                  : "Saglabāt izmaiņas",
@@ -135,8 +135,8 @@ define({
     "CONFIRM_FOLDER_DELETE"             : "Vai tiešām vēlaties izdzēst mapi <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Datne izdzēsta",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> ir pārveidots diskā ārpus {APP_NAME}.<br /><br />Vai vēlaties saglabāt datni un pārrakstīt šīs izmaiņas?",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> ir pārveidots diskā ārpus {APP_NAME}, bet tam ir arī nesaglabātas izmaiņas {APP_NAME}.<br/><br/>Kuru versiju vēlaties paturēt?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ir pārveidots diskā ārpus {APP_NAME}, bet tam ir nesaglabātas izmaiņas {APP_NAME}.<br/><br/>Vai vēlaties paturēt izmaiņas?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> ir pārveidots diskā ārpus {APP_NAME}, bet tam ir arī nesaglabātas izmaiņas {APP_NAME}.<br /><br />Kuru versiju vēlaties paturēt?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> ir pārveidots diskā ārpus {APP_NAME}, bet tam ir nesaglabātas izmaiņas {APP_NAME}.<br /><br />Vai vēlaties paturēt izmaiņas?",
 
     // Generic dialog/button labels
     "DONE"                              : "Darīts",
@@ -165,7 +165,7 @@ define({
     "BUTTON_CASESENSITIVE_HINT"         : "Jāsakrīt reģistriem",
     "BUTTON_REGEXP_HINT"                : "Regulārā izteiksme",
     "REPLACE_WITHOUT_UNDO_WARNING_TITLE": "Aizstāt bez atcelšanas",
-    "REPLACE_WITHOUT_UNDO_WARNING"      : "Tā kā jāizmaina vairāk nekā {0} datnes, {APP_NAME} pārveidos neatvērtas datnes uz diska.<br/>Jūs nevarēsiet atcelt šajās datnēs veiktos aizvietojumus.",
+    "REPLACE_WITHOUT_UNDO_WARNING"      : "Tā kā jāizmaina vairāk nekā {0} datnes, {APP_NAME} pārveidos neatvērtas datnes uz diska.<br />Jūs nevarēsiet atcelt šajās datnēs veiktos aizvietojumus.",
     "BUTTON_REPLACE_WITHOUT_UNDO"       : "Aizstāt bez atcelšanas",
 
     "OPEN_FILE"                         : "Atvērt datni",
@@ -354,8 +354,8 @@ define({
     "CMD_UNINDENT"                        : "Nav atkāpes",
     "CMD_DUPLICATE"                       : "Dublēt",
     "CMD_DELETE_LINES"                    : "Dzēst rindu",
-    "CMD_COMMENT"                         : "Ieslēgt/izslēgt rindas komentāru",
-    "CMD_BLOCK_COMMENT"                   : "Ieslēgt/izslēgt bloka komentāru",
+    "CMD_COMMENT"                         : "Rādīt/slēpt rindas komentāru",
+    "CMD_BLOCK_COMMENT"                   : "Rādīt/slēpt bloka komentāru",
     "CMD_LINE_UP"                         : "Pārvietot rindu uz augšu",
     "CMD_LINE_DOWN"                       : "Pārvietot rindu uz leju",
     "CMD_OPEN_LINE_ABOVE"                 : "Atvērt augšējo rindu",
@@ -460,7 +460,7 @@ define({
     "PROJECT_SETTINGS_TITLE"               : "Projekta iestatījumi priekš: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Tiešā priekšskatījuma bāzes URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "Lai izmantotu lokālo serveri, ievadiet URL, kā, piemēram, http://localhost:8000/",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Protokolu {0} neatbalsta tiešais priekšskatījums&mdash;lūdzu, izmantojiet http: vai https: .",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Tiešais priekšskatījums neatbalsta protokolu {0} &mdash;lūdzu, izmantojiet http: vai https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "Bāzes URL nevar ietvert tādus meklēšanas parametrus kā \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Bāzes URL nevar ietver jaucējkodu kā \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Speciālajiem simboliem kā '{0}' jābūt %-kodētiem.",
@@ -493,11 +493,11 @@ define({
     "INSTALL_EXTENSION_TITLE"              : "Instalēt paplašinājumu",
     "UPDATE_EXTENSION_TITLE"               : "Atjaunināt paplašinājumu",
     "INSTALL_EXTENSION_LABEL"              : "Paplašinājuma URL",
-    "INSTALL_EXTENSION_HINT"               : "Paplašinājuma zip datnes URL vai \"GitHub\" repozitorijs",
+    "INSTALL_EXTENSION_HINT"               : "Paplašinājuma zip datnes URL vai GitHub repozitorijs",
     "INSTALLING_FROM"                      : "Instalē paplašinājumu no {0}\u2026",
     "INSTALL_SUCCEEDED"                    : "Instalēšana veiksmīga!",
     "INSTALL_FAILED"                       : "Instalēšana neveiksmīga.",
-    "CANCELING_INSTALL"                    : "Atceļ\u2026",
+    "CANCELING_INSTALL"                    : "Atceļ \u2026",
     "CANCELING_HUNG"                       : "Instalēšanas atcelšana aizņem daudz laika. Var būt radusies iekšēja kļūda.",
     "INSTALL_CANCELED"                     : "Instalēšana atcelta.",
     "VIEW_COMPLETE_DESCRIPTION"            : "Skatīt pilnīgu aprakstu",
@@ -580,7 +580,7 @@ define({
 
     "INLINE_EDITOR_NO_MATCHES"             : "Nav sakritību.",
     "INLINE_EDITOR_HIDDEN_MATCHES"         : "Visas sakritības ir sakļautas. Izvērsiet labajā pusē uzskaitītās datnes, lai apskatītu sakritības.",
-    "CSS_QUICK_EDIT_NO_MATCHES"            : "Neeksistē tādas CSS kārtulas, kas atbilstu izvēlētajam.<br>Nospiediet \"Jauna kārtula\", lai to izveidotu.",
+    "CSS_QUICK_EDIT_NO_MATCHES"            : "Neeksistē tādas CSS kārtulas, kas atbilstu izvēlētajam.<br> Nospiediet \"Jauna kārtula\", lai to izveidotu.",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"        : "Jūsu projektā nav stila lapu.<br>Izveidojiet to, lai pievienotu CSS kārtulas.",
 
     // Custom Viewers
@@ -627,14 +627,14 @@ define({
     "HEALTH_DATA_NOTIFICATION"                  : "Veselības atskaites iestatījumi",
     "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME} veselības atskaite",
     "HEALTH_DATA_DO_TRACK"                      : "Dalīties ar anonīmu informāciju, kā es izmantoju {APP_NAME}",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Lai uzlabotu {APP_NAME}, mēs periodiski nosūtam ierobežotu, <strong> anonīmu</strong> statistiku uzņēmumam \"Adobe\", kā Jūs izmantojat {APP_NAME}. Šī informācija palīdz noteikt funkciju prioritāti, atrast kļūdas un noteikt lietojamības problēmas.<br><br>Jūs varat redzēt savus datus vai izvēlēties nedalīties ar informāciju, izvēloties <strong>Palīdzība > Veselības atskaite</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Uzzināt vairāk par {APP_NAME} veselības atskaiti</a>",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Lai uzlabotu {APP_NAME}, mēs periodiski nosūtām ierobežotu, <strong>anonīmu</strong> statistiku uzņēmumam \"Adobe\", kā Jūs izmantojat {APP_NAME}. Šī informācija palīdz noteikt funkciju prioritāti, atrast kļūdas un noteikt lietojamības problēmas.<br><br>Jūs varat redzēt savus datus vai izvēlēties nedalīties ar informāciju, izvēloties <strong>Palīdzība > Veselības atskaite</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Uzzināt vairāk par {APP_NAME} veselības atskaiti</a>",
     "HEALTH_DATA_PREVIEW"                       : "{APP_NAME} veselības atskaite",
-    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p> Lai uzlabotu {APP_NAME}, mēs periodiski nosūtām ierobežotu, <strong> anonīmu</strong> statistiku uzņēmumam \"Adobe\", kā Jūs izmantojat {APP_NAME}. Šī informācija palīdz noteikt funkciju prioritāti, atrast kļūdas un noteikt lietojamības problēmas. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Uzzināt vairāk par {APP_NAME} veselības atskaiti</a> un kādu labumu tā dod {APP_NAME} kopienai, pasargājot jūsu privātumu.</p><p>Zemāk varat redzēt datu priekšskatījumu, kas tiks nosūtīti nākamajā veselības atskaitē<em>ja</em> tā ir iespējota.</p>",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p> Lai uzlabotu {APP_NAME}, mēs periodiski nosūtām ierobežotu, <strong>anonīmu</strong> statistiku uzņēmumam Adobe, kā Jūs izmantojat {APP_NAME}. Šī informācija palīdz noteikt funkciju prioritāti, atrast kļūdas un noteikt lietojamības problēmas. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Uzzināt vairāk par {APP_NAME} veselības atskaiti</a> un kādu labumu tā dod {APP_NAME} kopienai, pasargājot jūsu privātumu.</p><p>Zemāk varat redzēt datu priekšskatījumu, kas tiks nosūtīti nākamajā veselības atskaitē<em>ja</em> tā ir iespējota.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Laiks",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Progress",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>Pārvietot izvēlēto punktu<br><kbd class='text'>Atstarpe</kbd> Pārvietot par desmit vienībām<br><kbd class='text'>Tabulācija</kbd>Pārslēgšanās punkti",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>Pārvietot izvēlēto punktu<br><kbd class='text'>Shift</kbd> Pārvietot par desmit vienībām<br><kbd class='text'>Tabulācija</kbd> Pārslēgšanās punkti",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Palielināt vai samazināt soļus<br><kbd>←</kbd><kbd>→</kbd> 'Sākt' vai 'Beigt'",
     "INLINE_TIMING_EDITOR_INVALID"              : "Vecā vērtība <code>{0}</code> nav derīga, tāpēc parādītā funkcija tika mainīta uz <code>{1}</code>. Dokuments tiks atjaunināts līdz ar pirmo rediģēšanu.",
 
@@ -681,7 +681,7 @@ define({
     "DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS"         : "Tagu masīvs, kas nav automātiski jāaizver",
     "DESCRIPTION_CLOSE_TAGS_WHEN_OPENING"            : "Aizvērt, kad tiek ierakstīts atverošā taga > ",
     "DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING"            : "Aizvērt, kad tiek ierakstīts aizverošā taga / ",
-    "DESCRIPTION_CLOSE_TAGS_INDENT_TAGS"             : "Tagu masīvs, kurus atverot ir tukša rinda",
+    "DESCRIPTION_CLOSE_TAGS_INDENT_TAGS"             : "Tagu masīvs, kuru atverot ir tukša rinda",
     "DESCRIPTION_CODE_FOLDING_ALWAY_USE_INDENT_FOLD" : "vērtība true, lai vienmēr ģenerētu sakļaušanas atzīmes, kad mainās atkāpes līmenis",
     "DESCRIPTION_CODE_FOLDING_ENABLED"               : "vērtība true, lai iespējotu koda locīšanu",
     "DESCRIPTION_CODE_FOLDING_HIDE_UNTIL_MOUSEOVER"  : "vērtība true, lai sadaļu sakļaušanas atzīmes būtu redzamas, kustinot peli pāri koda kreisajai malai",
@@ -723,7 +723,7 @@ define({
     "DESCRIPTION_JSLINT_OPTIONS_MAXLEN"              : "Maksimālais simbolu skaits rindā",
     "DESCRIPTION_JSLINT_OPTIONS_NEWCAP"              : "vērtība true, lai atļautu konstruktorus ar mazo burtu",
     "DESCRIPTION_JSLINT_OPTIONS_NODE"                : "vērtība true, ja Node.js globālie mainīgie ir jānosaka iepriekš",
-    "DESCRIPTION_JSLINT_OPTIONS_NOMEN"               : "vērtība true, lai atļautu apakšsvītru identifikatora sākumā vai beigās",
+    "DESCRIPTION_JSLINT_OPTIONS_NOMEN"               : "vērtība true, lai atļautu apakšsvītru identifikatorus sākumā vai beigās",
     "DESCRIPTION_JSLINT_OPTIONS_PASSFAIL"            : "vērtība true, lai apstātos pie pirmās kļūdas",
     "DESCRIPTION_JSLINT_OPTIONS_PLUSPLUS"            : "vērtība true, lai atļautu  ++ un --",
     "DESCRIPTION_JSLINT_OPTIONS_REGEXP"              : "vērtība true, lai atļautu . un [^...]. regulārajā izteiksmē",
@@ -777,10 +777,7 @@ define({
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "vērtība false, lai atvērtu iestatījumu datni kreisajā/augšējā rūtī",
     "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "vērtība true, lai sakļautu rūtis, kad tiek aizvērta pēdējā rūts ar aizvēršanas pogu rūts galvenē",
     "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Rādīt/nerādīt aizvēršanas un pārnešanas pogas galvenē.",
-    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Šī datne ir tikai lasāma, izvēles atbalsta\n * {APP_NAME}.\n * Izmantojiet šo datni kā norādījumus, lai mainītu iestatījumus \n * file \"brackets.json\", kas ir atvērts citā rūtī.\n * Sīkākai informācija par iestatījumu izmantošanu\n * {APP_NAME} apmeklējiet tīmekļa vietni https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Šī datne ir tikai lasāma, iestatījumus atbalsta\n * {APP_NAME}.\n * Izmantojiet šo datni kā norādījumus, lai mainītu iestatījumus \n * datnē \"brackets.json\", kas ir atvērta citā rūtī.\n * Sīkākai informācija par iestatījumu izmantošanu\n * {APP_NAME} apmeklējiet tīmekļa vietni https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Noklusējums",
     "DESCRIPTION_PURE_CODING_SURFACE"                : "vērtība true, lai iespējotu tikai koda režīmu un paslēptu visus citus UI elementus {APP_NAME}",
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "vērtība true, lai iespējotu rindas komentāru atkāpi"
-});
-
-/* Last translated for a505026d40a4eb0bffc196eda30557c0e6b021bc */
