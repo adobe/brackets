@@ -627,7 +627,7 @@ define({
     "HEALTH_DATA_NOTIFICATION"                  : "Veselības atskaites iestatījumi",
     "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME} veselības atskaite",
     "HEALTH_DATA_DO_TRACK"                      : "Dalīties ar anonīmu informāciju, kā es izmantoju {APP_NAME}",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Lai uzlabotu {APP_NAME}, mēs periodiski nosūtām ierobežotu, <strong>anonīmu</strong> statistiku uzņēmumam \"Adobe\", kā Jūs izmantojat {APP_NAME}. Šī informācija palīdz noteikt funkciju prioritāti, atrast kļūdas un noteikt lietojamības problēmas.<br><br>Jūs varat redzēt savus datus vai izvēlēties nedalīties ar informāciju, izvēloties <strong>Palīdzība > Veselības atskaite</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Uzzināt vairāk par {APP_NAME} veselības atskaiti</a>",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Lai uzlabotu {APP_NAME}, mēs periodiski nosūtām ierobežotu, <strong>anonīmu</strong> statistiku uzņēmumam Adobe, kā Jūs izmantojat {APP_NAME}. Šī informācija palīdz noteikt funkciju prioritāti, atrast kļūdas un noteikt lietojamības problēmas.<br><br>Jūs varat redzēt savus datus vai izvēlēties nedalīties ar informāciju, izvēloties <strong>Palīdzība > Veselības atskaite</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Uzzināt vairāk par {APP_NAME} veselības atskaiti</a>",
     "HEALTH_DATA_PREVIEW"                       : "{APP_NAME} veselības atskaite",
     "HEALTH_DATA_PREVIEW_INTRO"                 : "<p> Lai uzlabotu {APP_NAME}, mēs periodiski nosūtām ierobežotu, <strong>anonīmu</strong> statistiku uzņēmumam Adobe, kā Jūs izmantojat {APP_NAME}. Šī informācija palīdz noteikt funkciju prioritāti, atrast kļūdas un noteikt lietojamības problēmas. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Uzzināt vairāk par {APP_NAME} veselības atskaiti</a> un kādu labumu tā dod {APP_NAME} kopienai, pasargājot jūsu privātumu.</p><p>Zemāk varat redzēt datu priekšskatījumu, kas tiks nosūtīti nākamajā veselības atskaitē<em>ja</em> tā ir iespējota.</p>",
 
@@ -781,3 +781,6 @@ define({
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Noklusējums",
     "DESCRIPTION_PURE_CODING_SURFACE"                : "vērtība true, lai iespējotu tikai koda režīmu un paslēptu visus citus UI elementus {APP_NAME}",
     "DESCRIPTION_INDENT_LINE_COMMENT"                : "vērtība true, lai iespējotu rindas komentāru atkāpi"
+});
+
+/* Last translated for a505026d40a4eb0bffc196eda30557c0e6b021bc */
