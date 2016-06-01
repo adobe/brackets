@@ -674,7 +674,7 @@ define({
 	"EXPAND_CURRENT": "現在のコードを展開",
 
     // extensions/default/NavigationAndHistory
-	"RECENT_FILES_DLG_HEADER": "Recent Files",
+	"RECENT_FILES_DLG_HEADER": "最近使用したファイル",
 	"RECENT_FILES_DLG_CLEAR_BUTTON_LABEL": "消去",
 	"RECENT_FILES_DLG_CLEAR_BUTTON_TITLE": "ワーキングセットにないファイルをクリア",
 
