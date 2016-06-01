@@ -1,6 +1,6 @@
 .modal-body {
     background-color: #fff;
-    overflow: auto;
+    overflow-y: auto;
 }
 
 .move-to-dialog {
