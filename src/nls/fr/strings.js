@@ -674,7 +674,7 @@ define({
 	"EXPAND_CURRENT": "Développer l’élément actif",
 
     // extensions/default/NavigationAndHistory
-	"RECENT_FILES_DLG_HEADER": "Recent Files",
+	"RECENT_FILES_DLG_HEADER": "Fichiers récents",
 	"RECENT_FILES_DLG_CLEAR_BUTTON_LABEL": "Effacer",
 	"RECENT_FILES_DLG_CLEAR_BUTTON_TITLE": "Effacer les fichiers non présents dans l’ensemble de travail",
 
