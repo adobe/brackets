@@ -581,7 +581,7 @@ define(function (require, exports, module) {
      * @param {Editor} editor - editor to extract file information
      */
     function _addToMROFList(file, paneId, cursorPos) {
-	var filePath = file.fullPath;
+	 var filePath = file.fullPath;
         
         if (!paneId) { // Don't handle this if not a full view/editor
             return;
@@ -772,7 +772,7 @@ define(function (require, exports, module) {
                 _initRecentFilesList();
             }
 
-	    _addToMROFList(newFile, newPaneId);
+	     _addToMROFList(newFile, newPaneId);
         }
     }
 
