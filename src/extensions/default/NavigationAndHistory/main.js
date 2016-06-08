@@ -581,7 +581,8 @@ define(function (require, exports, module) {
      * @param {Editor} editor - editor to extract file information
      */
     function _addToMROFList(file, paneId, cursorPos) {
-	    var filePath = file.fullPath;
+
+        var filePath = file.fullPath;
         
         if (!paneId) { // Don't handle this if not a full view/editor
             return;
@@ -608,6 +609,7 @@ define(function (require, exports, module) {
             // Mark the entry as inMem, so that we can knock it off from the list when removed from working set
             entry.inMem = true;
         }
+
 
         if (index !== -1) {
             _mrofList.splice(index, 1);
