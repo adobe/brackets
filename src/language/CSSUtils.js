@@ -156,7 +156,7 @@ define(function (require, exports, module) {
         if (!state || !state.context) {
             return false;
         }
-        return (state.context.type === "at");
+        return (state.context.type === "atBlock_parens");
     }
 
     /**
@@ -559,7 +559,7 @@ define(function (require, exports, module) {
                 break;
             }
 
-            if (backwardCtx.token.type && backwardCtx.token.type !== "tag" && backwardCtx.token.string !== "url") {
+            if (backwardCtx.token.type && backwardCtx.token.type !== "atom" && backwardCtx.token.string !== "url") {
                 // Previous token may be white-space
                 // Otherwise, previous token may only be "url("
                 break;

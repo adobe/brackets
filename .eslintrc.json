@@ -63,8 +63,6 @@
 
         "require": false,
         "define": false,
-        "$": false,
-        "PathUtils": false,
-        "Mustache": false
+        "$": false
     }
 }
