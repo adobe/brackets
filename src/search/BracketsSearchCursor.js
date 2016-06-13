@@ -290,6 +290,29 @@ define(function (require, exports, module) {
         return array;
     }
 
+    function _searchAndAddResultsToArray(query, docText, groupArray, matchCountLimit, searchEndIndex) {
+        var matchArray;
+        var index = 0;
+        searchEndIndex = searchEndIndex || docText.length;
+        matchCountLimit = matchCountLimit || 10000000;
+        matchCountLimit *= groupArray.groupSize();
+
+        while ((matchArray = query.exec(docText)) !== null) {
+            groupArray[index++] = matchArray.index;
+            groupArray[index++] = query.lastIndex;
+            // This is to stop infinite loop.  Some regular expressions can return 0 length match
+            // which will not advance the lastindex property.  Ex ".*"
+            if (matchArray.index === query.lastIndex) {
+                query.lastIndex++;
+            }
+            if ((index >= matchCountLimit) || (query.lastIndex > searchEndIndex)) {
+                break;
+            }
+        }
+
+        return index / groupArray.groupSize();
+    }
+
     /**
      * Creates the regex indexer which finds all matches within supplied text using the search query.
      * Uses a lookup index to efficiently map regular expression result indexes to position used by Brackets
@@ -297,13 +320,14 @@ define(function (require, exports, module) {
      * @param {Array} docLineIndex array used to map indexes to positions
      * @param {RegExp} query a regular expression used to find matches
      */
-    function _createRegexIndexer(docText, docLineIndex, query) {
+    function _createRegexIndexer(docText, docLineIndex, query, maxResults, startPosition) {
         // Start and End index of each match stored in array as:
         // [0] = start index of first match
         // [1] = end index of first match
         // ...
         // Each pair of start and end is considered a group when using the group array
         var _startEndIndexArray = _makeGroupArray([], 2);
+        maxResults = maxResults || 10000000;
 
         function nextMatch() {
             var currentMatchIndex = _startEndIndexArray.nextGroupIndex();
@@ -377,21 +401,21 @@ define(function (require, exports, module) {
             return currentMatch;
         }
 
-        function _createSearchResults(docText, query) {
-            var matchArray;
-            var index = 0;
-            while ((matchArray = query.exec(docText)) !== null) {
-                _startEndIndexArray[index++] = matchArray.index;
-                _startEndIndexArray[index++] = query.lastIndex;
-                // This is to stop infinite loop.  Some regular expressions can return 0 length match
-                // which will not advance the lastindex property.  Ex ".*"
-                if (matchArray.index === query.lastIndex) {
-                    query.lastIndex++;
-                }
+        function _createSearchResults(docText, query, startIndex) {
+            query.lastIndex = startIndex;
+            var resultCount = _searchAndAddResultsToArray(query, docText, _startEndIndexArray, maxResults);
+
+            if ((startIndex > 0) && (resultCount < maxResults)) {
+                query.lastIndex = 0;
+                var startEndIndexFromBeginningOfDocument = _makeGroupArray([], 2);
+                _searchAndAddResultsToArray(query, docText, startEndIndexFromBeginningOfDocument, maxResults, startIndex);
+                _startEndIndexArray = _makeGroupArray(startEndIndexFromBeginningOfDocument.concat(_startEndIndexArray), 2);
             }
+
             return _startEndIndexArray;
         }
-        _createSearchResults(docText, query);
+        _createSearchResults(docText, query, _indexFromPos(docLineIndex, startPosition));
+
         return {nextMatch : nextMatch,
                 prevMatch : prevMatch,
                 getItemByMatchNumber : getItemByMatchNumber,
@@ -474,7 +498,8 @@ define(function (require, exports, module) {
                 if (properties.ignoreCase) {this.ignoreCase = properties.ignoreCase; }
                 if (properties.document) {this.doc = properties.document; }
                 if (properties.searchQuery) {_setQuery(this, properties.searchQuery); }
-                if (properties.position) {_setPos(this, properties.position); }
+                if (properties.position || !this.currentPosition) {_setPos(this, properties.position); }
+                if (properties.maxResults) {this.maxResults = properties.maxResults; }
             },
 
             /**
@@ -566,7 +591,7 @@ define(function (require, exports, module) {
                 }
                 var docText = _getDocumentText(this.doc);
                 var docLineIndex = _getDocumentIndex(this.doc);
-                this.regexIndexer = _createRegexIndexer(docText, docLineIndex, this.query);
+                this.regexIndexer = _createRegexIndexer(docText, docLineIndex, this.query, this.maxResults, this.currentPosition);
                 this.resultsCurrent = true;
                 return this.getMatchCount();
             }
@@ -580,7 +605,6 @@ define(function (require, exports, module) {
      * @return {Object} The search cursor object
      */
     function createSearchCursor(properties) {
-        console.log("creating new search cursor");
         var searchCursor = _createCursor();
         searchCursor.setSearchDocumentAndQuery(properties);
         return searchCursor;

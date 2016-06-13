@@ -50,10 +50,10 @@ define(function (require, exports, module) {
         CodeMirror           = require("thirdparty/CodeMirror/lib/codemirror");
 
     /**
-     * Maximum file size to search within (in chars)
+     * Maximum number of matches to find
      * @const {number}
      */
-    var FIND_MAX_FILE_SIZE  = 16000000;
+    var FIND_RESULT_MAX  = 1000000;
 
     /**
      * If the number of matches exceeds this limit, inline text highlighting is disabled
@@ -90,7 +90,8 @@ define(function (require, exports, module) {
             this.searchCursor.setSearchDocumentAndQuery({
                 searchQuery: this.parsedQuery,
                 ignoreCase: !this.queryInfo.isCaseSensitive,
-                position: pos
+                position: pos,
+                maxResults: FIND_RESULT_MAX
             });
             return this.searchCursor;
         }
@@ -99,7 +100,8 @@ define(function (require, exports, module) {
             document: cm.getDoc(),
             searchQuery: this.parsedQuery,
             ignoreCase: !this.queryInfo.isCaseSensitive,
-            position: pos
+            position: pos,
+            maxResults: FIND_RESULT_MAX
         });
         return this.searchCursor;
     };
@@ -536,45 +538,38 @@ define(function (require, exports, module) {
 
             // Find *all* matches, searching from start of document
             // (Except on huge documents, where this is too expensive)
-            var cursor = state.updateSearchCursor(cm);
+            var cursor = state.updateSearchCursor(cm, state.searchStartPos);
 
-            if (cursor.getDocCharacterCount() <= FIND_MAX_FILE_SIZE) {
-                var resultCount = cursor.scanDocumentAndStoreResultsInCursor();
+            var resultCount = cursor.scanDocumentAndStoreResultsInCursor();
 
-                // Highlight all matches if there aren't too many
-                if (resultCount <= FIND_HIGHLIGHT_MAX) {
-                    toggleHighlighting(editor, true);
+            // Highlight all matches if there aren't too many
+            if (resultCount <= FIND_HIGHLIGHT_MAX) {
+                toggleHighlighting(editor, true);
 
-                    var scrollTrackPositions = [];
-                    cursor.forEachMatch(function (fromPos, toPos) {
-                        state.marked.push(cm.markText(fromPos, toPos,
-                             { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
-                        scrollTrackPositions.push(fromPos);
+                var scrollTrackPositions = [];
+                cursor.forEachMatch(function (fromPos, toPos) {
+                    state.marked.push(cm.markText(fromPos, toPos,
+                         { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
+                    scrollTrackPositions.push(fromPos);
 
-                    });
+                });
 
-                    if (resultCount <= FIND_SCROLLTICK_MAX) {
-                        ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
-                    }
+                if (resultCount <= FIND_SCROLLTICK_MAX) {
+                    ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
                 }
-
-                // Here we only update find bar with no result. In the case of a match
-                // a findNext() call is guaranteed to be followed by this function call,
-                // and findNext() in turn calls _updateFindBarWithMatchInfo() to show the
-                // match index.
-                if (state.searchCursor.getMatchCount() === 0) {
-                    findBar.showFindCount(Strings.FIND_NO_RESULTS);
-                }
-
-                state.foundAny = (state.searchCursor.getMatchCount() > 0);
-                indicateHasMatches(state.searchCursor.getMatchCount());
-
-            } else {
-                // On huge documents, just look for first match & then stop
-                findBar.showFindCount("");
-                state.foundAny = cursor.findNext();
-                indicateHasMatches();
             }
+
+            // Here we only update find bar with no result. In the case of a match
+            // a findNext() call is guaranteed to be followed by this function call,
+            // and findNext() in turn calls _updateFindBarWithMatchInfo() to show the
+            // match index.
+            if (state.searchCursor.getMatchCount() === 0) {
+                findBar.showFindCount(Strings.FIND_NO_RESULTS);
+            }
+
+            state.foundAny = (state.searchCursor.getMatchCount() > 0);
+            indicateHasMatches(state.searchCursor.getMatchCount());
+
         });
     }
 
