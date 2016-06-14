@@ -373,11 +373,11 @@ define(function (require, exports, module) {
       * @param {?Number} gutterLineNumber the gutter line number that was clicked to signal the fold event
       */
     function onUnFold(cm, from, to, gutterLineNumber) {
-        var state = cm.state.foldGutter,
-            line = isNaN(gutterLineNumber) ? from.line : gutterLineNumber;
+        var state = cm.state.foldGutter;
         var vp = cm.getViewport();
-        if (line >= state.from && line < state.to) {
-            updateFoldInfo(cm, line, Math.min(vp.to, to.line));
+        delete cm._lineFolds[from.line];
+        if (from.line >= state.from && from.line < state.to) {
+            updateFoldInfo(cm, from.line, Math.min(vp.to, to.line));
         }
     }
 
