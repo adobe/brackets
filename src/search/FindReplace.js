@@ -203,8 +203,7 @@ define(function (require, exports, module) {
 
         state.lastMatch = cursor.find(searchBackwards);
         if (!state.lastMatch && wrap !== false) {
-            // If no result found before hitting edge of file, try wrapping around
-            cursor = state.updateSearchCursor(cm, searchBackwards ? {line: cm.lineCount() - 1} : {line: 0, ch: 0});
+            // If no result found before hitting edge of file, try wrapping around by performing find again
             state.lastMatch = cursor.find(searchBackwards);
         }
         if (!state.lastMatch) {

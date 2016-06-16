@@ -146,6 +146,13 @@ define(function (require, exports, module) {
                 expect(cursor.getCurrentMatchNumber()).toEqual(0);
             });
 
+            it("should have correct number of matches when cursor is between begin and end matches", function () {
+                cursor.setSearchDocumentAndQuery({position: {line: 4, ch: 0}});
+                // find matches
+                cursor.find();
+                expect(cursor.getMatchCount()).toEqual(4);
+            });
+
             it("should count document characters", function () {
                 expect(cursor.getDocCharacterCount()).toEqual(defaultContent.length + 1);
             });
@@ -159,6 +166,30 @@ define(function (require, exports, module) {
                 expect(matchInfo.match[1]).toEqual("F");
                 expect(matchInfo.from).toEqual({line : 2, ch : 8});
                 expect(matchInfo.to).toEqual({line: 2, ch: 11});
+            });
+        });
+
+        describe("createSearchCursorMultiLineSelection", function () {
+            var cursor;
+            beforeEach(function () {
+                cursor = BracketsSearchCursor.createSearchCursor({
+                    document: editor.document,
+                    searchQuery: /define[\s\S]*callFoo/,
+                    ignoreCase: true,
+                });
+            });
+
+            afterEach(function () {
+                cursor = null;
+            });
+            it("should match with 1 selection of 6 lines", function () {
+                var results = [];
+                cursor.forEachMatch(function (startPosition, endPosition) {
+                    results.push(startPosition);
+                    results.push(endPosition);
+                });
+                expect(results.length).toEqual(2);
+                expect(results).toEqual([ { line : 1, ch : 0 }, { line : 6, ch : 20 } ]);
             });
 
         });

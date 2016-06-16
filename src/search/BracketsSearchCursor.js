@@ -290,6 +290,18 @@ define(function (require, exports, module) {
         return array;
     }
 
+    /**
+     * Performs a search using the supplied RegExp and adds all results
+     * of matched locations to the group array
+     *
+     * @private
+     * @param   {object}   query                           regular expression query
+     * @param   {[[Type]]} docText                         the text to search
+     * @param   {[[Type]]} groupArray                      group array to hold values of index locations
+     * @param   {[[Type]]} [matchCountLimit=10000000]      search will stop when match limit met
+     * @param   {[[Type]]} [searchEndIndex=docText.length] search will stop when last match exceeds index location
+     * @returns {[[Type]]} [[Description]]
+     */
     function _searchAndAddResultsToArray(query, docText, groupArray, matchCountLimit, searchEndIndex) {
         var matchArray;
         var index = 0;
@@ -314,6 +326,40 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Determine if the values of specified items in a group array are equal
+     * @private
+     * @param   {GroupArray} groupArray1 first group array
+     * @param   {GroupArray} groupNum1   item within group array
+     * @param   {GroupArray} groupArray2 second group array
+     * @param   {GroupArray} groupNum2   item within 2nd group array
+     * @returns {boolean}  true when values are equal
+     */
+    function _isGroupValuesEqual(groupArray1, groupNum1, groupArray2, groupNum2) {
+        if (_.isEqual(groupArray1.getGroupValue(groupNum1, 0), groupArray2.getGroupValue(groupNum2, 0)) &&
+                _.isEqual(groupArray1.getGroupValue(groupNum1, 1), groupArray2.getGroupValue(groupNum2, 1))) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * If the first item of the first group array and the last item of the second group array
+     * are equal, then remove the duplicate from the end of the second group array
+     * @private
+     * @param {GroupArray} firstSearchResults  [[Description]]
+     * @param {GroupArray} secondSearchResults [[Description]]
+     */
+    function _removeIfDuplicateResultOnEdge(firstSearchResults, secondSearchResults) {
+        if (firstSearchResults.itemCount() === 0 || secondSearchResults.itemCount() === 0) {
+            return;
+        }
+        if (_isGroupValuesEqual(firstSearchResults, 0, secondSearchResults, secondSearchResults.itemCount() - 1)) {
+            secondSearchResults.pop();
+            secondSearchResults.pop();
+        }
+    }
+
+    /**
      * Creates the regex indexer which finds all matches within supplied text using the search query.
      * Uses a lookup index to efficiently map regular expression result indexes to position used by Brackets
      * @param {String} docText the text to search for matches
@@ -328,6 +374,7 @@ define(function (require, exports, module) {
         // Each pair of start and end is considered a group when using the group array
         var _startEndIndexArray = _makeGroupArray([], 2);
         maxResults = maxResults || 10000000;
+        startPosition = startPosition || {to: {line: 0, ch: 0}, from: {line: 0, ch: 0}};
 
         function nextMatch() {
             var currentMatchIndex = _startEndIndexArray.nextGroupIndex();
@@ -401,14 +448,39 @@ define(function (require, exports, module) {
             return currentMatch;
         }
 
+
+
+        /**
+         * Performs a 2 part search if cursor is not at the beginning of the document.
+         * This is done to handle the case for very large documents so that we can reasonably limit
+         * the result to some number of matches starting at the cursor location.
+         *
+         * The first search is done starting at the cursor location and continues until the end
+         * of the document.  If we reach the end of the document and we have not exceeded the
+         * maximum number of matches, then a second search is done starting at the beginning of the
+         * document and combined with the first search.
+         *
+         * The effect is that this does a complete document search for most documents and only when
+         * the document is very large and also the matches are large we will limit starting at the cursor.
+         *
+         * @private
+         * @param   {[[Type]]} docText    [[Description]]
+         * @param   {object}   query      [[Description]]
+         * @param   {[[Type]]} startIndex [[Description]]
+         * @returns {[[Type]]} [[Description]]
+         */
         function _createSearchResults(docText, query, startIndex) {
             query.lastIndex = startIndex;
+            // perform first search at our starting index
             var resultCount = _searchAndAddResultsToArray(query, docText, _startEndIndexArray, maxResults);
 
             if ((startIndex > 0) && (resultCount < maxResults)) {
                 query.lastIndex = 0;
                 var startEndIndexFromBeginningOfDocument = _makeGroupArray([], 2);
                 _searchAndAddResultsToArray(query, docText, startEndIndexFromBeginningOfDocument, maxResults, startIndex);
+                // it is possible that on wrap around the last result is same as our first result
+                _removeIfDuplicateResultOnEdge(_startEndIndexArray, startEndIndexFromBeginningOfDocument);
+                // combine results of both searches
                 _startEndIndexArray = _makeGroupArray(startEndIndexFromBeginningOfDocument.concat(_startEndIndexArray), 2);
             }
 
@@ -498,7 +570,7 @@ define(function (require, exports, module) {
                 if (properties.ignoreCase) {this.ignoreCase = properties.ignoreCase; }
                 if (properties.document) {this.doc = properties.document; }
                 if (properties.searchQuery) {_setQuery(this, properties.searchQuery); }
-                if (properties.position || !this.currentPosition) {_setPos(this, properties.position); }
+                if (properties.position) {_setPos(this, properties.position); }
                 if (properties.maxResults) {this.maxResults = properties.maxResults; }
             },
 
