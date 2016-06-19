@@ -83,6 +83,7 @@ define(function (require, exports, module) {
         this.matchIndex = -1;
         this.markedCurrent = null;
         this.searchCursor = null;
+        this.highlightOnScroll = null;
     }
     SearchState.prototype.updateSearchCursor = function updateSearchCursor(cm, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
@@ -464,6 +465,7 @@ define(function (require, exports, module) {
         });
     }
 
+
     /** Clears all match highlights, including the current match */
     function clearHighlights(cm, state) {
         cm.operation(function () {
@@ -479,6 +481,31 @@ define(function (require, exports, module) {
 
         state.resultSet = [];
         state.matchIndex = -1;
+    }
+
+    function disableViewportHighlightingOfCurrentMatches(editor, state) {
+        editor.off("scroll", state.highlightOnScroll);
+        state.highlightOnScroll = null;
+    }
+
+    function enableViewportHighlightingOfCurrentMatches(cm, editor, state) {
+        if (state.highlightOnScroll) {return; } // do not add listener if already exists
+
+        state.highlightOnScroll = _.debounce(function (event, editor) {
+            console.log(event);
+            cm.operation(function () {
+                //clearHighlights(cm, state);
+                var viewPort = cm.getViewport();
+                var start = {line: viewPort.from, ch: 0};
+                var end   = {line: viewPort.to, ch: 0};
+                state.searchCursor.forEachMatchWithinRange(start, end, function (fromPos, toPos) {
+                    state.marked.push(cm.markText(fromPos, toPos,
+                         { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
+
+                });
+            });
+        }, 50);
+        editor.on("scroll", state.highlightOnScroll);
     }
 
     function clearSearch(cm) {
@@ -525,6 +552,7 @@ define(function (require, exports, module) {
             // Clear old highlights
             if (state.marked) {
                 clearHighlights(cm, state);
+                disableViewportHighlightingOfCurrentMatches(editor, state);
             }
 
             if (!state.parsedQuery) {
@@ -557,17 +585,7 @@ define(function (require, exports, module) {
                     ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
                 }
             } else {
-                var viewPort = cm.getViewport();
-                var start = {line: viewPort.from, ch: 0};
-                var end   = {line: viewPort.to, ch: 0};
-                // TODO this needs to happen on scroll events
-                // possibly this could be done as first search to create illusion of
-                // responsiveness
-                cursor.forEachMatchWithinRange(start, end, function (fromPos, toPos) {
-                    state.marked.push(cm.markText(fromPos, toPos,
-                         { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
-
-                });
+                enableViewportHighlightingOfCurrentMatches(cm, editor, state);
             }
 
             // Here we only update find bar with no result. In the case of a match
@@ -653,6 +671,9 @@ define(function (require, exports, module) {
             .on("close.FindReplace", function (e) {
                 // Clear highlights but leave search state in place so Find Next/Previous work after closing
                 clearHighlights(cm, state);
+
+                // Disable any active scroll highlighting
+                disableViewportHighlightingOfCurrentMatches(editor, state);
 
                 // Dispose highlighting UI (important to restore normal selection color as soon as focus goes back to the editor)
                 toggleHighlighting(editor, false);
