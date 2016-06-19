@@ -207,7 +207,7 @@ define(function (require, exports, module) {
      * If there is no match found before the end or beginning of the document
      * then this function returns false.
      * @param {!Object} regexIndexer instance of the regex indexer. see _createRegexIndexer
-     * @param {!{to: {line: number, ch: number} pos Starting position to search from
+     * @param {number} pos Starting index position to search from
      * @param {boolean} reverse direction to search.
      * @param {function(number, number)} fnCompare function to compare positions for binary search
      */
@@ -412,6 +412,29 @@ define(function (require, exports, module) {
             }
         }
 
+        function forEachMatchWithinRange(regexIndexer, startPosition, endPosition, fnResult) {
+            var nearestMatchIndex = _findResultIndexNearPos(regexIndexer, _indexFromPos(docLineIndex, {from: startPosition, to: endPosition}), false, _compareMatchResultToPos);
+            if (!nearestMatchIndex) {return; }
+
+            var nearestMatchPosition = _createPosFromIndex(docLineIndex, startPosition.line, _startEndIndexArray[nearestMatchIndex]);
+            if (nearestMatchPosition.line > endPosition.line) {return; }
+
+            var index;
+            var length = _startEndIndexArray.itemCount();
+            var lastLine = startPosition.line;
+            for (index = nearestMatchIndex; index < length; index++) {
+                var groupIndex = _startEndIndexArray.getGroupIndex(index);
+                var fromPos = _createPosFromIndex(docLineIndex, lastLine, _startEndIndexArray[groupIndex]);
+                var toPos = _createPosFromIndex(docLineIndex, fromPos.line, _startEndIndexArray[groupIndex + 1]);
+                lastLine = toPos.line;
+
+                // do not return results beyond end range position
+                if (fromPos.line > endPosition.line) {return; }
+
+                fnResult(fromPos, toPos);
+            }
+        }
+
         function getItemCount() {
             return _startEndIndexArray.itemCount();
         }
@@ -498,7 +521,8 @@ define(function (require, exports, module) {
                 getMatchIndexEnd : getMatchIndexEnd,
                 getCurrentMatchNumber : getCurrentMatchNumber,
                 getFullResultInfo : getFullResultInfo,
-                forEachMatch : forEachMatch
+                forEachMatch : forEachMatch,
+                forEachMatchWithinRange : forEachMatchWithinRange
             };
     }
 
@@ -640,6 +664,11 @@ define(function (require, exports, module) {
             forEachMatch: function (fnResult) {
                 _updateResultsIfNeeded(this);
                 this.regexIndexer.forEachMatch(fnResult);
+            },
+
+            forEachMatchWithinRange: function (startPosition, endPosition, fnResult) {
+                _updateResultsIfNeeded(this);
+                this.regexIndexer.forEachMatchWithinRange(this.regexIndexer, startPosition, endPosition, fnResult);
             },
 
             /**

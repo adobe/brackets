@@ -556,6 +556,18 @@ define(function (require, exports, module) {
                 if (resultCount <= FIND_SCROLLTICK_MAX) {
                     ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
                 }
+            } else {
+                var viewPort = cm.getViewport();
+                var start = {line: viewPort.from, ch: 0};
+                var end   = {line: viewPort.to, ch: 0};
+                // TODO this needs to happen on scroll events
+                // possibly this could be done as first search to create illusion of
+                // responsiveness
+                cursor.forEachMatchWithinRange(start, end, function (fromPos, toPos) {
+                    state.marked.push(cm.markText(fromPos, toPos,
+                         { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
+
+                });
             }
 
             // Here we only update find bar with no result. In the case of a match
