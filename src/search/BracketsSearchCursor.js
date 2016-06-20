@@ -413,8 +413,8 @@ define(function (require, exports, module) {
         }
 
         function forEachMatchWithinRange(regexIndexer, startPosition, endPosition, fnResult) {
-            var nearestMatchIndex = _findResultIndexNearPos(regexIndexer, _indexFromPos(docLineIndex, {from: startPosition, to: endPosition}), false, _compareMatchResultToPos);
-            if (!nearestMatchIndex) {return; }
+            var nearestMatchIndex = _findResultIndexNearPos(regexIndexer, _indexFromPos(docLineIndex, {from: startPosition, to: startPosition}), false, _compareMatchResultToPos);
+            if (nearestMatchIndex === false) {return; }
 
             var nearestMatchPosition = _createPosFromIndex(docLineIndex, startPosition.line, _startEndIndexArray[nearestMatchIndex]);
             if (nearestMatchPosition.line > endPosition.line) {return; }

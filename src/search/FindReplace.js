@@ -79,7 +79,6 @@ define(function (require, exports, module) {
         this.queryInfo = null;
         this.foundAny = false;
         this.marked = [];
-        this.resultSet = [];
         this.matchIndex = -1;
         this.markedCurrent = null;
         this.searchCursor = null;
@@ -479,11 +478,26 @@ define(function (require, exports, module) {
 
         ScrollTrackMarkers.clear();
 
-        state.resultSet = [];
         state.matchIndex = -1;
     }
 
+    function clearHighlightsOutsideViewport(cm, state) {
+        var viewPort = cm.getViewport();
+        cm.operation(function () {
+            state.marked = state.marked.filter(function (markedRange) {
+                var lineNumber = markedRange.lines[0].lineNo();
+                if (viewPort.from > lineNumber || lineNumber > viewPort.to) {
+                    markedRange.clear();
+                    return false;
+                }
+                return true;
+            });
+        });
+        state.markedCurrent = null;
+    }
+
     function disableViewportHighlightingOfCurrentMatches(editor, state) {
+        if (!state.highlightOnScroll) {return; }
         editor.off("scroll", state.highlightOnScroll);
         state.highlightOnScroll = null;
     }
@@ -492,12 +506,11 @@ define(function (require, exports, module) {
         if (state.highlightOnScroll) {return; } // do not add listener if already exists
 
         state.highlightOnScroll = _.debounce(function (event, editor) {
-            console.log(event);
             cm.operation(function () {
-                //clearHighlights(cm, state);
                 var viewPort = cm.getViewport();
                 var start = {line: viewPort.from, ch: 0};
                 var end   = {line: viewPort.to, ch: 0};
+                clearHighlightsOutsideViewport(cm, state);
                 state.searchCursor.forEachMatchWithinRange(start, end, function (fromPos, toPos) {
                     state.marked.push(cm.markText(fromPos, toPos,
                          { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
@@ -585,6 +598,7 @@ define(function (require, exports, module) {
                     ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
                 }
             } else {
+                toggleHighlighting(editor, true);
                 enableViewportHighlightingOfCurrentMatches(cm, editor, state);
             }
 
