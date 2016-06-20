@@ -493,7 +493,6 @@ define(function (require, exports, module) {
                 return true;
             });
         });
-        state.markedCurrent = null;
     }
 
     function disableViewportHighlightingOfCurrentMatches(editor, state) {
