@@ -501,21 +501,25 @@ define(function (require, exports, module) {
         state.highlightOnScroll = null;
     }
 
+    function highlightMatchesWithinViewport(cm, state) {
+        cm.operation(function () {
+            var viewPort = cm.getViewport();
+            var start = {line: viewPort.from, ch: 0};
+            var end   = {line: viewPort.to, ch: 0};
+            clearHighlightsOutsideViewport(cm, state);
+            state.searchCursor.forEachMatchWithinRange(start, end, function (fromPos, toPos) {
+                state.marked.push(cm.markText(fromPos, toPos,
+                     { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
+
+            });
+        });
+    }
+
     function enableViewportHighlightingOfCurrentMatches(cm, editor, state) {
         if (state.highlightOnScroll) {return; } // do not add listener if already exists
 
         state.highlightOnScroll = _.debounce(function (event, editor) {
-            cm.operation(function () {
-                var viewPort = cm.getViewport();
-                var start = {line: viewPort.from, ch: 0};
-                var end   = {line: viewPort.to, ch: 0};
-                clearHighlightsOutsideViewport(cm, state);
-                state.searchCursor.forEachMatchWithinRange(start, end, function (fromPos, toPos) {
-                    state.marked.push(cm.markText(fromPos, toPos,
-                         { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
-
-                });
-            });
+            highlightMatchesWithinViewport(cm, state);
         }, 50);
         editor.on("scroll", state.highlightOnScroll);
     }
@@ -598,6 +602,7 @@ define(function (require, exports, module) {
                 }
             } else {
                 toggleHighlighting(editor, true);
+                _.defer(function () {highlightMatchesWithinViewport(cm, state); });
                 enableViewportHighlightingOfCurrentMatches(cm, editor, state);
             }
 
