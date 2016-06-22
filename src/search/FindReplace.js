@@ -59,7 +59,7 @@ define(function (require, exports, module) {
      * If the number of matches exceeds this limit, inline text highlighting is disabled
      * @const {number}
      */
-    var FIND_HIGHLIGHT_MAX  = 10000;
+    var FIND_HIGHLIGHT_MAX  = 2000;
 
     /**
      * If the number of matches exceeds this limit, scroll-track tickmarks are disabled
@@ -547,6 +547,10 @@ define(function (require, exports, module) {
         ScrollTrackMarkers.setVisible(editor, enabled);
     }
 
+    var addScrollTicks = _.debounce(function addScrollTicks(editor, scrollTrackPositions) {
+        ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
+    }, 100);
+
     /**
      * Called each time the search query changes or document is modified (via Replace). Updates
      * the match count, match highlights and scrollbar tickmarks. Does not change the cursor pos.
@@ -579,32 +583,31 @@ define(function (require, exports, module) {
                 return;
             }
 
-            // Find *all* matches, searching from start of document
-            // (Except on huge documents, where this is too expensive)
             var cursor = state.updateSearchCursor(cm, state.searchStartPos);
-
             var resultCount = cursor.scanDocumentAndStoreResultsInCursor();
 
+
+            var scrollTrackPositions = [];
             // Highlight all matches if there aren't too many
             if (resultCount <= FIND_HIGHLIGHT_MAX) {
                 toggleHighlighting(editor, true);
 
-                var scrollTrackPositions = [];
                 cursor.forEachMatch(function (fromPos, toPos) {
                     state.marked.push(cm.markText(fromPos, toPos,
                          { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
-                    scrollTrackPositions.push(fromPos);
 
+                    if (resultCount <= FIND_SCROLLTICK_MAX) {
+                        scrollTrackPositions.push(fromPos);
+                    }
                 });
 
-                if (resultCount <= FIND_SCROLLTICK_MAX) {
-                    ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
-                }
             } else {
                 toggleHighlighting(editor, true);
                 _.defer(function () {highlightMatchesWithinViewport(cm, state); });
                 enableViewportHighlightingOfCurrentMatches(cm, editor, state);
             }
+
+            addScrollTicks(editor, scrollTrackPositions);
 
             // Here we only update find bar with no result. In the case of a match
             // a findNext() call is guaranteed to be followed by this function call,
@@ -618,6 +621,7 @@ define(function (require, exports, module) {
             indicateHasMatches(state.searchCursor.getMatchCount());
 
         });
+
     }
 
     /**
