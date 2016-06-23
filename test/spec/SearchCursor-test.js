@@ -79,6 +79,23 @@ define(function (require, exports, module) {
                 expect(matchArrays[0][0]).toEqual("Foo");
                 expect(matchArrays[0][1]).toEqual("F");
             });
+            it("should match 1 locations of 'require' ", function () {
+                var matchedPositions = [];
+                var matchArrays = [];
+                BracketsSearchCursor.scanDocumentForMatches({
+                    document: editor.document,
+                    searchQuery: /require/,
+                    ignoreCase: true,
+                    range: {from: {line: 4, ch: 0}, to: {line: 5, ch: 0}},
+                    fnEachMatch: function (startPosition, endPosition, matchArray) {
+                        matchedPositions.push(startPosition);
+                        matchArrays.push(matchArray);
+                    }
+                });
+                expect(matchedPositions).toEqual([ {line : 4, ch : 14} ]);
+                expect(matchedPositions.length).toEqual(1);
+                expect(matchArrays[0][0]).toEqual("require");
+            });
         });
 
         describe("createSearchCursor", function () {

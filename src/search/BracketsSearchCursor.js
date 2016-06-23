@@ -136,18 +136,41 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Returns the character offset from the beginning of the document based on
+     * object properties as pos.from.line and pos.from.ch
+     * where line is the line number in the document and ch is the character offset on the line
+     */
+    function _indexFromPos(lineCharacterCountIndexArray, pos) {
+        var indexAtStartOfLine = 0;
+        if (pos.line > 0) {
+            // Start with the sum of the character count at the end of previous line
+            indexAtStartOfLine = lineCharacterCountIndexArray[pos.line - 1];
+        }
+        // Add the number of characters offset from the start and return
+        return indexAtStartOfLine + pos.ch;
+    }
+
+    /**
      * Scan entire document and callback with each match found.
      * Uses the documentIndex to more efficiently create the position objects on found matches.
      */
-    function _scanDocumentUsingRegularExpression(documentIndex, documentText, regex, fnEachMatch) {
+    function _scanDocumentUsingRegularExpression(documentIndex, documentText, regex, range, fnEachMatch) {
         var matchArray;
+        var startRangeIndex = range !== undefined ? _indexFromPos(documentIndex, range.from) : 0;
+        var endRangeIndex = range !== undefined ? _indexFromPos(documentIndex, range.to) : documentIndex[documentIndex.length - 1];
+
+        regex.lastIndex = startRangeIndex;
         var lastMatchedLine = 0;
         while ((matchArray = regex.exec(documentText)) !== null) {
             var startPosition = _createPosFromIndex(documentIndex, lastMatchedLine, matchArray.index);
             var endPosition = _createPosFromIndex(documentIndex, startPosition.line, regex.lastIndex);
             lastMatchedLine = endPosition.line;
 
-            fnEachMatch(startPosition, endPosition, matchArray);
+            if (regex.lastIndex <= endRangeIndex) {
+                fnEachMatch(startPosition, endPosition, matchArray);
+            } else {
+                break;
+            }
             // This is to stop infinite loop.  Some regular expressions can return 0 length match
             // which will not advance the lastindex property.  Ex ".*"
             if (matchArray.index === regex.lastIndex) {
@@ -156,21 +179,6 @@ define(function (require, exports, module) {
         }
     }
 
-
-    /**
-     * Returns the character offset from the beginning of the document based on
-     * object properties as pos.from.line and pos.from.ch
-     * where line is the line number in the document and ch is the character offset on the line
-     */
-    function _indexFromPos(lineCharacterCountIndexArray, pos) {
-        var indexAtStartOfLine = 0;
-        if (pos.from.line > 0) {
-            // Start with the sum of the character count at the end of previous line
-            indexAtStartOfLine = lineCharacterCountIndexArray[pos.from.line - 1];
-        }
-        // Add the number of characters offset from the start and return
-        return indexAtStartOfLine + pos.from.ch;
-    }
 
     /**
      * Return an object that indicates the beginning and end of a match from the search
@@ -413,7 +421,7 @@ define(function (require, exports, module) {
         }
 
         function forEachMatchWithinRange(regexIndexer, startPosition, endPosition, fnResult) {
-            var nearestMatchIndex = _findResultIndexNearPos(regexIndexer, _indexFromPos(docLineIndex, {from: startPosition, to: startPosition}), false, _compareMatchResultToPos);
+            var nearestMatchIndex = _findResultIndexNearPos(regexIndexer, _indexFromPos(docLineIndex, startPosition), false, _compareMatchResultToPos);
             if (nearestMatchIndex === false) {return; }
 
             var nearestMatchPosition = _createPosFromIndex(docLineIndex, startPosition.line, _startEndIndexArray[nearestMatchIndex]);
@@ -509,7 +517,7 @@ define(function (require, exports, module) {
 
             return _startEndIndexArray;
         }
-        _createSearchResults(docText, query, _indexFromPos(docLineIndex, startPosition));
+        _createSearchResults(docText, query, _indexFromPos(docLineIndex, startPosition.from));
 
         return {nextMatch : nextMatch,
                 prevMatch : prevMatch,
@@ -641,7 +649,7 @@ define(function (require, exports, module) {
                     // This is our first time or we hit the top or end of document using next or prev
                     this.currentPosition = _startingPositionForFind(this, reverse);
                     var docLineIndex = _getDocumentIndex(this.doc);
-                    var matchIndex = _findResultIndexNearPos(this.regexIndexer, _indexFromPos(docLineIndex, this.currentPosition), reverse, _compareMatchResultToPos);
+                    var matchIndex = _findResultIndexNearPos(this.regexIndexer, _indexFromPos(docLineIndex, this.currentPosition.from), reverse, _compareMatchResultToPos);
                     if (matchIndex) {
                         this.regexIndexer.setCurrentMatchNumber(matchIndex);
                         foundPosition = this.regexIndexer.getCurrentMatch();
@@ -730,7 +738,7 @@ define(function (require, exports, module) {
             _indexDocument(properties.document);
         }
         var regex = _convertToRegularExpression(properties.searchQuery, properties.ignoreCase);
-        _scanDocumentUsingRegularExpression(_getDocumentIndex(properties.document), _getDocumentText(properties.document), regex, properties.fnEachMatch);
+        _scanDocumentUsingRegularExpression(_getDocumentIndex(properties.document), _getDocumentText(properties.document), regex, properties.range, properties.fnEachMatch);
     }
 
     exports.createSearchCursor = createSearchCursor;
