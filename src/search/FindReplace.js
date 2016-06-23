@@ -471,6 +471,8 @@ define(function (require, exports, module) {
         });
     }
 
+    // For large documents debouncing findNext reduces
+    // lag when typing in the search field
     var findNextDebounced = _.debounce(findNext, 100);
 
     /** Clears all match highlights, including the current match */
@@ -523,6 +525,9 @@ define(function (require, exports, module) {
         });
     }
 
+    // Starts dynamic highlighting of the viewport area during scrolling
+    // This is used for large numbers of matches to be more performant
+    // than highlighting all matches in the entire document at once
     function enableViewportHighlightingOfCurrentMatches(cm, editor, state) {
         if (state.highlightOnScroll) {return; } // do not add listener if already exists
 
@@ -555,45 +560,24 @@ define(function (require, exports, module) {
         ScrollTrackMarkers.setVisible(editor, enabled);
     }
 
+    // Adding scroll ticks is a bit slow operation
+    // debouncing reduces lag when typing in the search field
     var addScrollTicksDebounced = _.debounce(function addScrollTicks(editor, scrollTrackPositions) {
         ScrollTrackMarkers.clear();
         ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
     }, 100);
 
-    /**
-     * Called each time the search query changes or document is modified (via Replace). Updates
-     * the match count, match highlights and scrollbar tickmarks. Does not change the cursor pos.
-     */
-    function updateResultSet(editor) {
-        var cm = editor._codeMirror,
-            state = getSearchState(cm);
+    function indicateHasMatches(state, numResults) {
+        // Make the field red if it's not blank and it has no matches (which also covers invalid regexes)
+        findBar.showNoResults(!state.foundAny && findBar.getQueryInfo().query);
 
-        function indicateHasMatches(numResults) {
-            // Make the field red if it's not blank and it has no matches (which also covers invalid regexes)
-            findBar.showNoResults(!state.foundAny && findBar.getQueryInfo().query);
+        // Navigation buttons enabled if we have a query and more than one match
+        findBar.enableNavigation(state.foundAny && numResults > 1);
+        findBar.enableReplace(state.foundAny);
+    }
 
-            // Navigation buttons enabled if we have a query and more than one match
-            findBar.enableNavigation(state.foundAny && numResults > 1);
-            findBar.enableReplace(state.foundAny);
-        }
-
+    function performSearchUsingCursor(cm, state, editor) {
         cm.operation(function () {
-            // Clear old highlights
-            if (state.marked) {
-                addScrollTicksDebounced.cancel();
-                disableViewportHighlightingOfCurrentMatches(editor, state);
-                clearHighlights(cm, state);
-            }
-
-            if (!state.parsedQuery) {
-                // Search field is empty - no results
-                ScrollTrackMarkers.clear();
-                findBar.showFindCount("");
-                state.foundAny = false;
-                indicateHasMatches();
-                return;
-            }
-
             var cursor = state.updateSearchCursor(cm, state.searchStartPos);
             state.optimizeForLargeDocuments = cursor.getDocCharacterCount() > FIND_OPTIMIZE_THRESHOLD;
             var resultCount = cursor.scanDocumentAndStoreResultsInCursor();
@@ -617,7 +601,7 @@ define(function (require, exports, module) {
                 // as the user scrolls.
                 toggleHighlighting(editor, true);
                 // first, highlight what the user is currently viewing
-                highlightMatchesWithinViewport(cm, state);
+               // highlightMatchesWithinViewport(cm, state);
                 // start the event listener to highlight on scroll
                 enableViewportHighlightingOfCurrentMatches(cm, editor, state);
             }
@@ -633,10 +617,69 @@ define(function (require, exports, module) {
             }
 
             state.foundAny = (state.searchCursor.getMatchCount() > 0);
-            indicateHasMatches(state.searchCursor.getMatchCount());
+            indicateHasMatches(state, state.searchCursor.getMatchCount());
+
+        });
+    }
+
+    var performSearchUsingCursorDebounced = _.debounce(performSearchUsingCursor, 0);
+
+    /**
+     * Called each time the search query changes or document is modified (via Replace). Updates
+     * the match count, match highlights and scrollbar tickmarks. Does not change the cursor pos.
+     */
+    function updateResultSet(editor) {
+        var cm = editor._codeMirror,
+            state = getSearchState(cm);
+
+        cm.operation(function () {
+            // Clear old highlights
+            if (state.marked) {
+                // If the debounced tasks have not started
+                // then we go ahead and cancel them as the query has already changed
+                addScrollTicksDebounced.cancel();
+                performSearchUsingCursorDebounced.cancel();
+                disableViewportHighlightingOfCurrentMatches(editor, state);
+                clearHighlights(cm, state);
+            }
+
+            if (!state.parsedQuery) {
+                // Search field is empty - no results
+                ScrollTrackMarkers.clear();
+                findBar.showFindCount("");
+                state.foundAny = false;
+                indicateHasMatches(state);
+                return;
+            }
+
+            // Initial fast search and display in viewport
+            // This provides fast visual feedback in the editor
+            // regardless of the size of document or matches
+            var viewPort = cm.getViewport();
+            var viewPortStart = {line: viewPort.from, ch: 0};
+            var viewPortEnd   = {line: viewPort.to, ch: 0};
+            BracketsSearchCursor.scanDocumentForMatches({
+                document:  cm.getDoc(),
+                searchQuery: state.parsedQuery,
+                ignoreCase:  !state.queryInfo.isCaseSensitive,
+                range: {from: viewPortStart, to: viewPortEnd},
+                fnEachMatch: function (startPosition, endPosition, matchArray) {
+                    state.marked.push(cm.markText(startPosition, endPosition,
+                         { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
+
+                }
+            });
 
         });
 
+        if (!state.parsedQuery) {
+            return;
+        }
+        if (state.optimizeForLargeDocuments) {
+            performSearchUsingCursorDebounced(cm, state, editor);
+        } else {
+            performSearchUsingCursor(cm, state, editor);
+        }
     }
 
     /**
@@ -655,7 +698,6 @@ define(function (require, exports, module) {
         if (state.parsedQuery) {
             // 3rd arg: prefer to avoid scrolling if result is anywhere within view, since in this case user
             // is in the middle of typing, not navigating explicitly; viewport jumping would be distracting.
-//            findNext(editor, false, true, state.searchStartPos);
             if (state.optimizeForLargeDocuments) {
                 findNextDebounced(editor, false, true, state.searchStartPos);
             } else {
