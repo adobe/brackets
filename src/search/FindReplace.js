@@ -68,6 +68,12 @@ define(function (require, exports, module) {
     var FIND_SCROLLTICK_MAX = 2000;
 
     /**
+     * The size of document in number of characters at which we optimize for large document performance
+     * @const {number}
+     */
+    var FIND_OPTIMIZE_THRESHOLD = 1000000;
+
+    /**
      * Currently open Find or Find/Replace bar, if any
      * @type {?FindBar}
      */
@@ -83,6 +89,7 @@ define(function (require, exports, module) {
         this.markedCurrent = null;
         this.searchCursor = null;
         this.highlightOnScroll = null;
+        this.optimizeForLargeDocuments = false;
     }
     SearchState.prototype.updateSearchCursor = function updateSearchCursor(cm, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
@@ -464,9 +471,11 @@ define(function (require, exports, module) {
         });
     }
 
+    var findNextDebounced = _.debounce(findNext, 100);
 
     /** Clears all match highlights, including the current match */
     function clearHighlights(cm, state) {
+        findNextDebounced.cancel();
         cm.operation(function () {
             state.marked.forEach(function (markedRange) {
                 markedRange.clear();
@@ -475,8 +484,6 @@ define(function (require, exports, module) {
         });
         state.marked.length = 0;
         state.markedCurrent = null;
-
-        ScrollTrackMarkers.clear();
 
         state.matchIndex = -1;
     }
@@ -497,6 +504,7 @@ define(function (require, exports, module) {
 
     function disableViewportHighlightingOfCurrentMatches(editor, state) {
         if (!state.highlightOnScroll) {return; }
+        state.highlightOnScroll.cancel();
         editor.off("scroll", state.highlightOnScroll);
         state.highlightOnScroll = null;
     }
@@ -547,7 +555,8 @@ define(function (require, exports, module) {
         ScrollTrackMarkers.setVisible(editor, enabled);
     }
 
-    var addScrollTicks = _.debounce(function addScrollTicks(editor, scrollTrackPositions) {
+    var addScrollTicksDebounced = _.debounce(function addScrollTicks(editor, scrollTrackPositions) {
+        ScrollTrackMarkers.clear();
         ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
     }, 100);
 
@@ -571,12 +580,14 @@ define(function (require, exports, module) {
         cm.operation(function () {
             // Clear old highlights
             if (state.marked) {
-                clearHighlights(cm, state);
+                addScrollTicksDebounced.cancel();
                 disableViewportHighlightingOfCurrentMatches(editor, state);
+                clearHighlights(cm, state);
             }
 
             if (!state.parsedQuery) {
                 // Search field is empty - no results
+                ScrollTrackMarkers.clear();
                 findBar.showFindCount("");
                 state.foundAny = false;
                 indicateHasMatches();
@@ -584,8 +595,8 @@ define(function (require, exports, module) {
             }
 
             var cursor = state.updateSearchCursor(cm, state.searchStartPos);
+            state.optimizeForLargeDocuments = cursor.getDocCharacterCount() > FIND_OPTIMIZE_THRESHOLD;
             var resultCount = cursor.scanDocumentAndStoreResultsInCursor();
-
 
             var scrollTrackPositions = [];
             // Highlight all matches if there aren't too many
@@ -602,12 +613,16 @@ define(function (require, exports, module) {
                 });
 
             } else {
+                // with a lot of matches, we will highlight dynamically in the viewport
+                // as the user scrolls.
                 toggleHighlighting(editor, true);
-                _.defer(function () {highlightMatchesWithinViewport(cm, state); });
+                // first, highlight what the user is currently viewing
+                highlightMatchesWithinViewport(cm, state);
+                // start the event listener to highlight on scroll
                 enableViewportHighlightingOfCurrentMatches(cm, editor, state);
             }
 
-            addScrollTicks(editor, scrollTrackPositions);
+            addScrollTicksDebounced(editor, scrollTrackPositions);
 
             // Here we only update find bar with no result. In the case of a match
             // a findNext() call is guaranteed to be followed by this function call,
@@ -640,7 +655,12 @@ define(function (require, exports, module) {
         if (state.parsedQuery) {
             // 3rd arg: prefer to avoid scrolling if result is anywhere within view, since in this case user
             // is in the middle of typing, not navigating explicitly; viewport jumping would be distracting.
-            findNext(editor, false, true, state.searchStartPos);
+//            findNext(editor, false, true, state.searchStartPos);
+            if (state.optimizeForLargeDocuments) {
+                findNextDebounced(editor, false, true, state.searchStartPos);
+            } else {
+                findNext(editor, false, true, state.searchStartPos);
+            }
         } else if (!initial) {
             if (state.searchStartPos) {
                 editor._codeMirror.setCursor(state.searchStartPos);

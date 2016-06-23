@@ -666,6 +666,12 @@ define(function (require, exports, module) {
                 this.regexIndexer.forEachMatch(fnResult);
             },
 
+            /**
+             * Calls the result function for each match that is within the specified range
+             * @param {{line: number, ch: number}} startPosition Starting position of range
+             * @param {{line: number, ch: number}} endPosition   Ending position of range
+             * @param {function} fnResult      called for each match
+             */
             forEachMatchWithinRange: function (startPosition, endPosition, fnResult) {
                 _updateResultsIfNeeded(this);
                 this.regexIndexer.forEachMatchWithinRange(this.regexIndexer, startPosition, endPosition, fnResult);
