@@ -179,7 +179,7 @@
     "radiogroup":         { "attribOption": [] },
     "rel":                { "attribOption": ["alternate", "author", "bookmark", "help", "license", "next", "nofollow", "noreferrer", "prefetch", 
                                              "prev", "search", "sidebar", "tag", "external"] },
-    "link/rel":           { "attribOption": ["alternate", "author", "help", "icon", "license", "next", "pingback", "prefetch", "prev", "search", 
+    "link/rel":           { "attribOption": ["alternate", "author", "help", "icon", "import", "license", "next", "pingback", "prefetch", "prev", "search", 
                                              "sidebar", "stylesheet", "tag"] },
     "readonly":           { "attribOption": [], "type": "flag" },
     "required":           { "attribOption": [], "type": "flag" },
