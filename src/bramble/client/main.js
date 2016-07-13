@@ -504,11 +504,27 @@ define([
                     callback(err);
                 };
             }
-            // Renames are special, since we care about both filenames
+            // File Renames are special, since we care about both filenames
             function renameFileEventFn(type, oldFilename, newFilename, callback) {
                 return function(err) {
                     if(!err) {
                         self.trigger(type, [oldFilename, newFilename]);
+                    }
+                    callback(err);
+                };
+            }
+
+            // Folder Renames are special since we care about the old name,
+            // the new name and all the child paths that were changed as a
+            // result of the rename
+            function renameFolderEventFn(type, oldFolderPath, newFolderPath, folderChildren, callback) {
+                return function(err) {
+                    if(!err) {
+                        self.trigger(type, [{
+                            oldPath: oldFolderPath,
+                            newPath: newFolderPath,
+                            children: folderChildren
+                        }]);
                     }
                     callback(err);
                 };
@@ -588,6 +604,30 @@ define([
                 });
             }
 
+            function getChildrenOfFolder(folderPath, callback) {
+                var children = [];
+
+                function storeRelativePath(childPath, next) {
+                    // We don't care about child folders, only files because
+                    // the current user of Bramble viz. Thimble does not keep
+                    // track of folder paths and hence including them would be
+                    // redundant (possibly problematic)
+                    if(!childPath.endsWith("/")) {
+                        children.push(Path.relative(folderPath, childPath));
+                    }
+
+                    next();
+                }
+
+                shell.find(folderPath, { exec: storeRelativePath }, function(err) {
+                    if(err) {
+                        callback(err);
+                    } else {
+                        callback(null, children);
+                    }
+                });
+            }
+
             // Most fs methods can just get run normally, but we have to deal with
             // ArrayBuffer vs. Filer.Buffer for readFile and writeFile, and persist
             // watch callbacks. We also deal with the special case of `tutorial.html`.
@@ -607,22 +647,46 @@ define([
                 }));
                 break;
             case "rename":
-                wrappedCallback = renameFileEventFn("fileRename", args[0], args[1], callback);
-                _fs.rename.apply(_fs, args.concat(function(err) {
-                    if(!err) {
-                        // If we rename tutorial.html to something else, we're removing it
-                        if(args[0] === self.tutorialPath) {
-                            wrappedCallback = genericFileEventFn("tutorialRemoved", args[0], wrappedCallback);
-                            _tutorialExists = false;
-                        }
-                        // If we rename something to tutorial.html, we're adding a tutorial
-                        else if(args[1] === self.tutorialPath) {
-                            wrappedCallback = genericFileEventFn("tutorialAdded", args[1], wrappedCallback);
-                            _tutorialExists = true;
-                        }
+                // We need to check if the rename is happening on a file or a
+                // folder and accordingly trigger the right event and send the
+                // right data needed by the event listener
+                _fs.stat(args[0], function(err, stats) {
+                    if(err) {
+                        callback(err);
+                    } else if(stats.isDirectory()) {
+                        getChildrenOfFolder(args[0], function(err, children) {
+                            if(err) {
+                                callback(err);
+                            } else {
+                                _fs.rename.apply(
+                                    _fs,
+                                    args.concat(renameFolderEventFn(
+                                        "folderRename",
+                                        args[0], args[1], children,
+                                        callback
+                                    ))
+                                );
+                            }
+                        });
+                    } else {
+                        wrappedCallback = renameFileEventFn("fileRename", args[0], args[1], callback);
+                        _fs.rename.apply(_fs, args.concat(function(err) {
+                            if(!err) {
+                                // If we rename tutorial.html to something else, we're removing it
+                                if(args[0] === self.tutorialPath) {
+                                    wrappedCallback = genericFileEventFn("tutorialRemoved", args[0], wrappedCallback);
+                                    _tutorialExists = false;
+                                }
+                                // If we rename something to tutorial.html, we're adding a tutorial
+                                else if(args[1] === self.tutorialPath) {
+                                    wrappedCallback = genericFileEventFn("tutorialAdded", args[1], wrappedCallback);
+                                    _tutorialExists = true;
+                                }
+                            }
+                            wrappedCallback(err);
+                        }));
                     }
-                    wrappedCallback(err);
-                }));
+                });
                 break;
             case "unlink":
                 path = args[0];

@@ -378,5 +378,14 @@ There are also high-level events for changes to files:
 * `"fileChange"` - triggered whenever a file is created or updated within the project root.  It includes the `filename` of the file that changed.
 * `"fileDelete"` - triggered whenever a file is deleted within the project root.  It includes the `filename` of the file that was deleted.
 * `"fileRename"` - triggered whenever a file is renamed within the project root.  It includes the `oldFilename` and the `newFilename` of the file that was renamed.
+* `"folderRename"` - triggered whenever a folder is renamed within the project root. It includes an object that looks something like this:
+```js
+{
+  oldPath: "/path/before/rename",
+  newPath: "/path/after/rename",
+  // Paths to all files contained inside the folder being renamed
+  children: [ "relativeFilePath1",  "relativeFilePath2", ... ]
+}
+```
 
 NOTE: if you want to receive generic events for file system events, especially events across windows using the same file system, use [fs.watch()](https://github.com/filerjs/filer#watch) instead.
