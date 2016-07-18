@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, Mustache */
+/*global define, $, brackets, window */
 
 /**
  *  Utilities functions for displaying update notifications
@@ -38,7 +38,8 @@ define(function (require, exports, module) {
         NativeApp            = require("utils/NativeApp"),
         Strings              = require("strings"),
         UpdateDialogTemplate = require("text!htmlContent/update-dialog.html"),
-        UpdateListTemplate   = require("text!htmlContent/update-list.html");
+        UpdateListTemplate   = require("text!htmlContent/update-list.html"),
+        Mustache             = require("thirdparty/mustache/mustache");
 
     // make sure the global brackets variable is loaded
     require("utils/Global");

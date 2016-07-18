@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -2279,6 +2279,19 @@ define(function (require, exports, module) {
                         });
                         runs(function () {
                             expect($("#find-in-files-results").is(":visible")).toBe(false);
+                        });
+                    });
+                });
+                
+                describe("Disclosure Arrows", function () {
+               
+                    it("should expand/collapse items when clicked", function () {
+                        showSearchResults("foo", "bar");
+                        runs(function () {
+                            $(".disclosure-triangle").click();
+                            expect($("#items").is(":style")).toBeFalsy();
+                            $(".disclosure-triangle").click();
+                            expect($("#items").is(":style")).toBeTruthy();
                         });
                     });
                 });

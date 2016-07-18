@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -715,8 +715,9 @@ define(function (require, exports, module) {
                                                                                             paneId: "first-pane" });
                     waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
+                // With same doc split doc should be opened in first pane as well
                 runs(function () {
-                    expect(MainViewManager._getPaneIdForPath(testPath + "/test.js")).toEqual("second-pane");
+                    expect(MainViewManager._getPaneIdForPath(testPath + "/test.js")).toEqual("first-pane");
                 });
             });
             it("should close all files in pane", function () {
@@ -781,7 +782,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.setActivePaneId("second-pane");
                     MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, getFileObject("test.js"));
-                    expect(MainViewManager.findInAllWorkingSets(testPath + "/test.js").shift().paneId).toEqual("first-pane");
+                    expect(MainViewManager.findInAllWorkingSets(testPath + "/test.js").shift().paneId).toEqual("second-pane");
                 });
             });
             it("should add list to the appropriate workingset", function () {
@@ -810,7 +811,9 @@ define(function (require, exports, module) {
                                                                                          getFileObject("test.html")]);
                     // test.js gets added to the second pane because it was closed in the first-pane when test.css was opened
                     expect(MainViewManager.findInAllWorkingSets(testPath + "/test.js").shift().paneId).toEqual("second-pane");
-                    expect(MainViewManager.findInAllWorkingSets(testPath + "/test.css").shift().paneId).toEqual("first-pane");
+
+                    // test.css will be opened in second pane as well and in mru list will be ahead of the first pane entry
+                    expect(MainViewManager.findInAllWorkingSets(testPath + "/test.css").shift().paneId).toEqual("second-pane");
                     expect(MainViewManager.findInAllWorkingSets(testPath + "/test.html").shift().paneId).toEqual("second-pane");
                 });
             });
@@ -872,24 +875,6 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.setActivePaneId("first-pane");
                     MainViewManager.addListToWorkingSet("second-pane", [getFileObject("test.txt"),
-                                                                         getFileObject("test.html")]);
-                    expect(MainViewManager._getPaneIdForPath(getFileObject("test.txt").fullPath)).toEqual("second-pane");
-                    expect(MainViewManager._getPaneIdForPath(getFileObject("test.html").fullPath)).toEqual("second-pane");
-                });
-            });
-            it("should not add files if they exist in other panes", function () {
-                runs(function () {
-                    MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.js"),
-                                                                         getFileObject("test.css")]);
-                    MainViewManager.addListToWorkingSet("second-pane", [getFileObject("test.js"),
-                                                                         getFileObject("test.css")]);
-                    expect(MainViewManager._getPaneIdForPath(getFileObject("test.js").fullPath)).toEqual("first-pane");
-                    expect(MainViewManager._getPaneIdForPath(getFileObject("test.css").fullPath)).toEqual("first-pane");
-                });
-                runs(function () {
-                    MainViewManager.addListToWorkingSet("second-pane", [getFileObject("test.txt"),
-                                                                         getFileObject("test.html")]);
-                    MainViewManager.addListToWorkingSet("first-pane", [getFileObject("test.txt"),
                                                                          getFileObject("test.html")]);
                     expect(MainViewManager._getPaneIdForPath(getFileObject("test.txt").fullPath)).toEqual("second-pane");
                     expect(MainViewManager._getPaneIdForPath(getFileObject("test.html").fullPath)).toEqual("second-pane");

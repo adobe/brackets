@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -159,7 +159,7 @@ define(function (require, exports, module) {
                 return (event.ctrlKey || event.metaKey) ? MainViewManager.FIRST_PANE : null;
             }
 
-            return _secondPaneContext() || _firstPaneContext();
+            return event && (_secondPaneContext() || _firstPaneContext());
         }
 
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {

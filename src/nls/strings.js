@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     // TODO: dynamically populate the local prefix list below?
     module.exports = {
         root: true,
+        "bg": true,
         "cs": true,
         "da": true,
         "de": true,
@@ -53,6 +54,7 @@ define(function (require, exports, module) {
         "it": true,
         "ja": true,
         "ko": true,
+        "lv": true,
         "nb": true,
         "nl": true,
         "pl": true,

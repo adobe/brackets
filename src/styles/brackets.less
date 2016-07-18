@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -372,12 +372,12 @@ a, img {
         }
 
         .image-preview {
-            background: url(images/preview_bg.png);
+            background: url(images/preview-bg.svg);
             box-shadow: 0 1px 3px @bc-shadow;
             max-height: 100%;
 
             .dark & {
-                background: url(images/preview_bg_dark.png);
+                background: url(images/preview-bg-dark.svg);
                 box-shadow: 0 1px 3px @dark-bc-shadow;
             }
         }
@@ -513,8 +513,6 @@ a, img {
             background-origin: content-box;
             -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
             transform: translateZ(0); // future proofing
-            -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
-            filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
             z-index: 1;
             vertical-align: middle;
 
@@ -1853,7 +1851,7 @@ textarea.exclusions-editor {
     box-shadow: 0 5px 10px @bc-shadow;
     opacity: 0;
     
-    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99), 0, 1);
+    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99));
     -webkit-animation-fill-mode: forwards;
     animation-fill-mode: forwards;
     -webkit-transform-origin: 0 0;

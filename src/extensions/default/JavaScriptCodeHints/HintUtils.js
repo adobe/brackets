@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -92,8 +92,7 @@ define(function (require, exports, module) {
         case "number":
         case "regexp":
         case "string":
-        // exclude variable & param decls
-        case "def":
+        case "def":     // exclude variable & param decls
             return false;
         case "string-2":
             // exclude strings inside a regexp

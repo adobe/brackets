@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@ define(function (require, exports, module) {
 
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         QuickOpen           = brackets.getModule("search/QuickOpen"),
+        QuickOpenHelper     = brackets.getModule("search/QuickOpenHelper"),
         CSSUtils            = brackets.getModule("language/CSSUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         StringMatch         = brackets.getModule("utils/StringMatch");
@@ -80,14 +81,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @param {string} query what the user is searching for
-     * @param {boolean} returns true if this plugin wants to provide results for this query
-     */
-    function match(query) {
-        return (query[0] === "@");
-    }
-
-    /**
      * Scroll to the selected item in the current document (unless no query string entered yet,
      * in which case the topmost list item is irrelevant)
      * @param {?SearchResult} selectedItem
@@ -116,7 +109,7 @@ define(function (require, exports, module) {
             name: "CSS Selectors",
             languageIds: ["css", "less", "scss"],
             search: search,
-            match: match,
+            match: QuickOpenHelper.match,
             itemFocus: itemFocus,
             itemSelect: itemSelect
         }

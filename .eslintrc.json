@@ -43,7 +43,7 @@
         "new-parens": 2,
         "no-new-object": 2,
         "no-invalid-this": 0,
-        indent: [0, 4],
+        "indent": [0, 4],
 
         "valid-jsdoc": 0,
         "valid-typeof": 2,
@@ -63,8 +63,6 @@
 
         "require": false,
         "define": false,
-        "$": false,
-        "PathUtils": false,
-        "Mustache": false
+        "$": false
     }
 }

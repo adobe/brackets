@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -73,9 +73,9 @@ define(function (require, exports, module) {
                 expect(pane.addView).toHaveBeenCalled();
             });
             it("should use an existing editor for a document when requested on same pane", function () {
+                var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane, undefined);
                 spyOn(pane, "addView");
                 spyOn(pane, "showView");
-                var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane.$el, undefined, 'first-pane');
                 EditorManager.openDocument(testDoc, pane);
                 expect(pane.addView).not.toHaveBeenCalled();
                 expect(pane.showView).toHaveBeenCalledWith(editor);
@@ -85,14 +85,21 @@ define(function (require, exports, module) {
                 spyOn(pane, "showView");
                 spyOn(anotherPane, "addView");
                 spyOn(anotherPane, "showView");
-                var editor = SpecRunnerUtils.createEditorInstance(testDoc, anotherPane.$el, undefined, 'first-pane');
+
+                var editor = SpecRunnerUtils.createEditorInstance(testDoc, anotherPane, undefined);
                 EditorManager.openDocument(testDoc, anotherPane);
+
                 expect(pane.addView).not.toHaveBeenCalled();
                 expect(pane.showView).not.toHaveBeenCalled();
-                expect(anotherPane.addView).toHaveBeenCalled();
-                expect(anotherPane.addView).not.toHaveBeenCalledWith(editor);
-                expect(anotherPane.showView).toHaveBeenCalled();
-                expect(anotherPane.showView).not.toHaveBeenCalledWith(editor);
+                expect(anotherPane.addView).toHaveBeenCalledWith(editor);
+                expect(anotherPane.showView).toHaveBeenCalledWith(editor);
+
+                EditorManager.openDocument(testDoc, pane);
+
+                expect(pane.addView).toHaveBeenCalled();
+                expect(pane.showView).toHaveBeenCalled();
+                expect(pane.addView).not.toHaveBeenCalledWith(editor);
+                expect(pane.showView).not.toHaveBeenCalledWith(editor);
             });
         });
     });

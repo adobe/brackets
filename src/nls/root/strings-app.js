@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2013 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@ define({
     "APP_NAME"                             : "Brackets",
 
     // Self locales (used by Debug > Switch Language)
+    "LOCALE_BG"                                 : "български",
     "LOCALE_CS"                                 : "čeština",
     "LOCALE_DA"                                 : "Dansk",
     "LOCALE_DE"                                 : "Deutsch",
@@ -46,6 +47,7 @@ define({
     "LOCALE_IT"                                 : "italiano",
     "LOCALE_JA"                                 : "日本語",
     "LOCALE_KO"                                 : "한국어",
+    "LOCALE_LV"                                 : "latviešu",
     "LOCALE_NB"                                 : "norsk",
     "LOCALE_NL"                                 : "Nederlands",
     "LOCALE_PL"                                 : "polski",

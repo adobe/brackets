@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -98,7 +98,9 @@ define(function (require, exports, module) {
         TAB_SIZE            = "tabSize",
         UPPERCASE_COLORS    = "uppercaseColors",
         USE_TAB_CHAR        = "useTabChar",
-        WORD_WRAP           = "wordWrap";
+        WORD_WRAP           = "wordWrap",
+        INDENT_LINE_COMMENT   = "indentLineComment";
+    
 
     var cmOptions         = {};
 
@@ -207,7 +209,12 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
         description: Strings.DESCRIPTION_WORD_WRAP
     });
-
+    
+    PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
+        description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
+    });
+    
+    
     var editorOptions = Object.keys(cmOptions);
 
     /** Editor preferences */
@@ -331,6 +338,9 @@ define(function (require, exports, module) {
 
         // To track which pane the editor is being attached to if it's a full editor
         this._paneId = null;
+        
+        // To track the parent editor ( host editor at that time of creation) of an inline editor
+        this._hostEditor = null;
 
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
@@ -418,6 +428,15 @@ define(function (require, exports, module) {
         this.on("change", function (event, editor, changeList) {
             self._handleEditorChange(changeList);
         });
+        this.on("focus", function (event, editor) {
+            if (self._hostEditor) {
+                // Mark the host editor as the master editor for the hosting document
+                self._hostEditor.document._toggleMasterEditor(self._hostEditor);
+            } else {
+                // Set this full editor as master editor for the document
+                self.document._toggleMasterEditor(self);
+            }
+        });
 
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
         this._codeMirror.setOption("mode", mode);
@@ -458,6 +477,10 @@ define(function (require, exports, module) {
 
     Editor.prototype.markPaneId = function (paneId) {
         this._paneId = paneId;
+
+        // Also add this to the pool of full editors
+        this.document._associateEditor(this);
+
         // In case this Editor is initialized not as the first full editor for the document
         // and the document is already dirty and present in another working set, make sure
         // to add this documents to the new panes working set.
@@ -985,8 +1008,7 @@ define(function (require, exports, module) {
         this._codeMirror.on("focus", function () {
             self._focused = true;
             self.trigger("focus", self);
-            // Set this full editor as master editor for the document
-            self.document._toggleMasterEditor(self);
+            
         });
 
         this._codeMirror.on("blur", function () {
@@ -2504,6 +2526,27 @@ define(function (require, exports, module) {
         return PreferencesManager.get(WORD_WRAP, _buildPreferencesContext(fullPath));
     };
 
+    /**
+     * Sets lineCommentIndent option.
+     * 
+     * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
+     */
+    Editor.setIndentLineComment = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(INDENT_LINE_COMMENT, value, options);
+    };
+    
+    /**
+     * Returns true if word wrap is enabled for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getIndentLineComment = function (fullPath) {
+        return PreferencesManager.get(INDENT_LINE_COMMENT, _buildPreferencesContext(fullPath));
+    };
+    
     /**
      * Runs callback for every Editor instance that currently exists
      * @param {!function(!Editor)} callback

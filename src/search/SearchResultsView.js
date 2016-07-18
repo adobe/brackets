@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,7 @@
  *
  */
 
-/*global define, $, window, Mustache */
+/*global define, $, window */
 
 /*
  * Panel showing search results for a Find/Replace in Files operation.
@@ -43,6 +43,7 @@ define(function (require, exports, module) {
         Strings               = require("strings"),
         HealthLogger          = require("utils/HealthLogger"),
         _                     = require("thirdparty/lodash"),
+        Mustache              = require("thirdparty/mustache/mustache"),
 
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html"),

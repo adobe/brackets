@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2012 - present Adobe Systems Incorporated. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,8 +33,14 @@ require.config({
         "spec"                          : "../test/spec",
         "text"                          : "thirdparty/text/text",
         "i18n"                          : "thirdparty/i18n/i18n",
+        "react"                         : "thirdparty/react",
         "fileSystemImpl"                : "filesystem/impls/appshell/AppshellFileSystem",
         "preferences/PreferencesImpl"   : "../test/TestPreferencesImpl"
+    },
+    map: {
+        "*": {
+            "thirdparty/react":	"react"
+        }
     }
 });
 
