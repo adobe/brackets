@@ -230,7 +230,7 @@
         "blockComment": ["--[[", "]]"],
         "lineComment": ["--"]
     },
-    
+      
     "sql": {
         "name": "SQL",
         "mode": ["sql", "text/x-mysql"],
