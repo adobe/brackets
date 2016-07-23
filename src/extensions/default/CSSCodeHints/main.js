@@ -334,6 +334,12 @@ define(function (require, exports, module) {
                 selectInitial = true;
             }
 
+            if (lastContext === CSSUtils.PROP_VALUE) {
+                // close the session if we're coming from a property value
+                // see https://github.com/adobe/brackets/issues/9496
+                return null;
+            }
+
             lastContext = CSSUtils.PROP_NAME;
             needle = needle.substr(0, this.info.offset);
 
