@@ -752,8 +752,6 @@ define(function (require, exports, module) {
                 } else if (tagInfo.position.offset === 0) {
                     completion = "\"" + completion + "\"";
                 }
-            } else if (completion === tagInfo.attr.value) {
-                shouldReplace = false;
             }
 
             if (shouldReplace) {
