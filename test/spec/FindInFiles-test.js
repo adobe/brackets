@@ -1746,6 +1746,7 @@ define(function (require, exports, module) {
                         openTestProjectCopy(defaultSourcePath);
                         openSearchBar(null, true);
                         runs(function () {
+                            $("#find-what").val("").trigger("input");
                             expect($("#replace-all").is(":disabled")).toBe(true);
                         });
                     });
@@ -2289,9 +2290,11 @@ define(function (require, exports, module) {
                         showSearchResults("foo", "bar");
                         runs(function () {
                             $(".disclosure-triangle").click();
-                            expect($("#items").is(":style")).toBeFalsy();
+                            expect($(".disclosure-triangle").hasClass("expanded")).toBeFalsy();
+                            expect($(".bottom-panel-table tr[data-file-index=0][data-item-index=0]").is(":visible")).toBeFalsy();
                             $(".disclosure-triangle").click();
-                            expect($("#items").is(":style")).toBeTruthy();
+                            expect($(".disclosure-triangle").hasClass("expanded")).toBeTruthy();
+                            expect($(".bottom-panel-table tr[data-file-index=0][data-item-index=0]").is(":visible")).toBeTruthy();
                         });
                     });
                 });
