@@ -2291,10 +2291,13 @@ define(function (require, exports, module) {
                         runs(function () {
                             $(".disclosure-triangle").click();
                             expect($(".disclosure-triangle").hasClass("expanded")).toBeFalsy();
-                            expect($(".bottom-panel-table tr[data-file-index=0][data-item-index=0]").is(":visible")).toBeFalsy();
+                            // Check that all results are hidden
+                            expect($(".bottom-panel-table tr[data-file-index=0][data-match-index]:hidden").length).toEqual(7);
+                            expect($(".bottom-panel-table tr[data-file-index=1][data-match-index]:hidden").length).toEqual(4);
                             $(".disclosure-triangle").click();
                             expect($(".disclosure-triangle").hasClass("expanded")).toBeTruthy();
-                            expect($(".bottom-panel-table tr[data-file-index=0][data-item-index=0]").is(":visible")).toBeTruthy();
+                            expect($(".bottom-panel-table tr[data-file-index=0][data-match-index]:visible").length).toEqual(7);
+                            expect($(".bottom-panel-table tr[data-file-index=1][data-match-index]:visible").length).toEqual(4);
                         });
                     });
                 });
