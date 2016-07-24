@@ -88,6 +88,7 @@ define(function (require, exports, module) {
         CLOSE_TAGS          = "closeTags",
         DRAG_DROP           = "dragDropText",
         HIGHLIGHT_MATCHES   = "highlightMatches",
+        LINEWISE_COPY_CUT   = "lineWiseCopyCut",
         SCROLL_PAST_END     = "scrollPastEnd",
         SHOW_CURSOR_SELECT  = "showCursorWhenSelecting",
         SHOW_LINE_NUMBERS   = "showLineNumbers",
@@ -120,6 +121,7 @@ define(function (require, exports, module) {
     cmOptions[CLOSE_TAGS]         = "autoCloseTags";
     cmOptions[DRAG_DROP]          = "dragDrop";
     cmOptions[HIGHLIGHT_MATCHES]  = "highlightSelectionMatches";
+    cmOptions[LINEWISE_COPY_CUT]  = "lineWiseCopyCut";
     cmOptions[SCROLL_PAST_END]    = "scrollPastEnd";
     cmOptions[SHOW_CURSOR_SELECT] = "showCursorWhenSelecting";
     cmOptions[SHOW_LINE_NUMBERS]  = "lineNumbers";
@@ -173,6 +175,9 @@ define(function (require, exports, module) {
                 initial: false
             }
         }
+    });
+    PreferencesManager.definePreference(LINEWISE_COPY_CUT,  "boolean", true, {
+        description: Strings.DESCRIPTION_LINEWISE_COPY_CUT
     });
     PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false, {
         description: Strings.DESCRIPTION_SCROLL_PAST_END
@@ -401,6 +406,7 @@ define(function (require, exports, module) {
             indentWithTabs              : currentOptions[USE_TAB_CHAR],
             inputStyle                  : "textarea", // the "contenteditable" mode used on mobiles could cause issues
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
+            lineWiseCopyCut             : currentOptions[LINEWISE_COPY_CUT],
             lineWrapping                : currentOptions[WORD_WRAP],
             matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
             matchTags                   : { bothTags: true },
