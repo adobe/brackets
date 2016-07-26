@@ -56,16 +56,18 @@ define(function (require, exports, module) {
     var FIND_RESULT_MAX  = 1000000;
 
     /**
-     * If the number of matches exceeds this limit, inline text highlighting is disabled
+     * If the number of matches exceeds this limit, inline text highlighting is dynamically
+     * performed on scrolling.
      * @const {number}
      */
     var FIND_HIGHLIGHT_MAX  = 2000;
 
     /**
-     * If the number of matches exceeds this limit, scroll-track tickmarks are disabled
+     * The scroll tick resolution to use to display matched lines.  Matches beyond this number
+     * will not be shown as individual marks, but filtered to this level of detail.
      * @const {number}
      */
-    var FIND_SCROLLTICK_MAX = 2000;
+    var FIND_SCROLLTICK_LEVEL_OF_DETAIL = 1000;
 
     /**
      * The size of document in number of characters at which we optimize for large document performance
@@ -90,6 +92,8 @@ define(function (require, exports, module) {
         this.searchCursor = null;
         this.highlightOnScroll = null;
         this.optimizeForLargeDocuments = false;
+        this.linesPerScrollTick = 1;
+        this.tickMarks = [];
     }
     SearchState.prototype.updateSearchCursor = function updateSearchCursor(cm, pos) {
         // Heuristic: if the query string is all lowercase, do a case insensitive search.
@@ -427,6 +431,19 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Highlights current search position in the scroll track marks.
+     * @param   {SearchState}   state SearchState object
+     */
+    function markCurrentScrollTrack(state) {
+        var line = state.searchCursor.getFullInfoForCurrentMatch().from.line;
+        var tickIndex = _.findIndex(state.tickMarks, function (position) {
+                return position.line >= line && line < position.line + state.linesPerScrollTick;
+            });
+
+        ScrollTrackMarkers.markCurrent(tickIndex);
+    }
+
+    /**
      * Selects the next match (or prev match, if searchBackwards==true) starting from either the current position
      * (if pos unspecified) or the given position (if pos specified explicitly). The starting position
      * need not be an existing match. If a new match is found, sets to state.lastMatch either the regex
@@ -451,7 +468,7 @@ define(function (require, exports, module) {
                                                 {from: nextMatch.start, to: nextMatch.end}, searchBackwards);
                     // Update current-tickmark indicator - only if highlighting enabled (disabled if FIND_HIGHLIGHT_MAX threshold hit)
                     if (state.marked.length) {
-                        ScrollTrackMarkers.markCurrent(state.matchIndex);  // _updateFindBarWithMatchInfo() has updated this index
+                        markCurrentScrollTrack(state);
                     }
                 }
 
@@ -520,7 +537,6 @@ define(function (require, exports, module) {
             state.searchCursor.forEachMatchWithinRange(start, end, function (fromPos, toPos) {
                 state.marked.push(cm.markText(fromPos, toPos,
                      { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
-
             });
         });
     }
@@ -562,7 +578,24 @@ define(function (require, exports, module) {
 
     // Adding scroll ticks is a bit slow operation
     // debouncing reduces lag when typing in the search field
-    var addScrollTicksDebounced = _.debounce(function addScrollTicks(editor, scrollTrackPositions) {
+    var addScrollTicksDebounced = _.debounce(function addScrollTicks(editor) {
+        var cm = editor._codeMirror,
+            state = getSearchState(cm),
+            scrollTrackPositions = [],
+            cursor = state.searchCursor;
+
+        var pattern = cursor.createMatchedLinePattern(FIND_SCROLLTICK_LEVEL_OF_DETAIL);
+        var lineMatchPatternArray = pattern.lineMatchPatternArray;
+        var linesPerArraySlot = pattern.linesPerArraySlot;
+        state.linesPerScrollTick = linesPerArraySlot;
+        var tickIndex;
+        for (tickIndex = 0; tickIndex < lineMatchPatternArray.length; tickIndex++) {
+            if (lineMatchPatternArray[tickIndex]) {
+                scrollTrackPositions.push({line: Math.ceil(tickIndex * linesPerArraySlot)});
+            }
+        }
+
+        state.tickMarks = scrollTrackPositions;
         ScrollTrackMarkers.clear();
         ScrollTrackMarkers.addTickmarks(editor, scrollTrackPositions);
     }, 100);
@@ -582,18 +615,13 @@ define(function (require, exports, module) {
             state.optimizeForLargeDocuments = cursor.getDocCharacterCount() > FIND_OPTIMIZE_THRESHOLD;
             var resultCount = cursor.scanDocumentAndStoreResultsInCursor();
 
-            var scrollTrackPositions = [];
             // Highlight all matches if there aren't too many
             if (resultCount <= FIND_HIGHLIGHT_MAX) {
                 toggleHighlighting(editor, true);
 
                 cursor.forEachMatch(function (fromPos, toPos) {
-                    state.marked.push(cm.markText(fromPos, toPos,
-                         { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" }));
-
-                    if (resultCount <= FIND_SCROLLTICK_MAX) {
-                        scrollTrackPositions.push(fromPos);
-                    }
+                    var mark = cm.markText(fromPos, toPos, { className: "CodeMirror-searching", startStyle: "searching-first", endStyle: "searching-last" });
+                    state.marked.push(mark);
                 });
 
             } else {
@@ -601,12 +629,12 @@ define(function (require, exports, module) {
                 // as the user scrolls.
                 toggleHighlighting(editor, true);
                 // first, highlight what the user is currently viewing
-               // highlightMatchesWithinViewport(cm, state);
+                highlightMatchesWithinViewport(cm, state);
                 // start the event listener to highlight on scroll
                 enableViewportHighlightingOfCurrentMatches(cm, editor, state);
             }
 
-            addScrollTicksDebounced(editor, scrollTrackPositions);
+            addScrollTicksDebounced(editor);
 
             // Here we only update find bar with no result. In the case of a match
             // a findNext() call is guaranteed to be followed by this function call,
