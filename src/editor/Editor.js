@@ -88,6 +88,7 @@ define(function (require, exports, module) {
         CLOSE_TAGS          = "closeTags",
         DRAG_DROP           = "dragDropText",
         HIGHLIGHT_MATCHES   = "highlightMatches",
+        LINEWISE_COPY_CUT   = "lineWiseCopyCut",
         SCROLL_PAST_END     = "scrollPastEnd",
         SHOW_CURSOR_SELECT  = "showCursorWhenSelecting",
         SHOW_LINE_NUMBERS   = "showLineNumbers",
@@ -120,6 +121,7 @@ define(function (require, exports, module) {
     cmOptions[CLOSE_TAGS]         = "autoCloseTags";
     cmOptions[DRAG_DROP]          = "dragDrop";
     cmOptions[HIGHLIGHT_MATCHES]  = "highlightSelectionMatches";
+    cmOptions[LINEWISE_COPY_CUT]  = "lineWiseCopyCut";
     cmOptions[SCROLL_PAST_END]    = "scrollPastEnd";
     cmOptions[SHOW_CURSOR_SELECT] = "showCursorWhenSelecting";
     cmOptions[SHOW_LINE_NUMBERS]  = "lineNumbers";
@@ -173,6 +175,9 @@ define(function (require, exports, module) {
                 initial: false
             }
         }
+    });
+    PreferencesManager.definePreference(LINEWISE_COPY_CUT,  "boolean", true, {
+        description: Strings.DESCRIPTION_LINEWISE_COPY_CUT
     });
     PreferencesManager.definePreference(SCROLL_PAST_END,    "boolean", false, {
         description: Strings.DESCRIPTION_SCROLL_PAST_END
@@ -401,6 +406,7 @@ define(function (require, exports, module) {
             indentWithTabs              : currentOptions[USE_TAB_CHAR],
             inputStyle                  : "textarea", // the "contenteditable" mode used on mobiles could cause issues
             lineNumbers                 : currentOptions[SHOW_LINE_NUMBERS],
+            lineWiseCopyCut             : currentOptions[LINEWISE_COPY_CUT],
             lineWrapping                : currentOptions[WORD_WRAP],
             matchBrackets               : { maxScanLineLength: 50000, maxScanLines: 1000 },
             matchTags                   : { bothTags: true },
@@ -427,6 +433,15 @@ define(function (require, exports, module) {
         });
         this.on("change", function (event, editor, changeList) {
             self._handleEditorChange(changeList);
+        });
+        this.on("focus", function (event, editor) {
+            if (self._hostEditor) {
+                // Mark the host editor as the master editor for the hosting document
+                self._hostEditor.document._toggleMasterEditor(self._hostEditor);
+            } else {
+                // Set this full editor as master editor for the document
+                self.document._toggleMasterEditor(self);
+            }
         });
 
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
@@ -468,6 +483,10 @@ define(function (require, exports, module) {
 
     Editor.prototype.markPaneId = function (paneId) {
         this._paneId = paneId;
+
+        // Also add this to the pool of full editors
+        this.document._associateEditor(this);
+
         // In case this Editor is initialized not as the first full editor for the document
         // and the document is already dirty and present in another working set, make sure
         // to add this documents to the new panes working set.
@@ -993,14 +1012,6 @@ define(function (require, exports, module) {
 
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.on("focus", function () {
-            if (self._hostEditor) {
-                // Mark the host editor as the master editor for the hosting document
-                self._hostEditor.document._toggleMasterEditor(self._hostEditor);
-            } else {
-                // Set this full editor as master editor for the document
-                self.document._toggleMasterEditor(self);
-            }
-            
             self._focused = true;
             self.trigger("focus", self);
             

@@ -1470,12 +1470,40 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         $workingFilesContainer =  $("#working-set-list-container");
     });
+    
+    /*
+     * To be used by other modules/deafult-extensions which needs to borrow working set entry icons
+     * @param {!object} data - contains file info {fullPath, name, isFile}
+     * @param {!jQuery} $element - jquery fn wrap for the list item
+     */
+    function useIconProviders(data, $element) {
+        _iconProviders.forEach(function (provider) {
+            var icon = provider(data);
+            if (icon) {
+                $element.prepend($(icon));
+            }
+        });
+    }
 
-
+    /*
+     * To be used by other modules/default-extensions which needs to borrow working set entry custom classes
+     * @param {!object} data - contains file info {fullPath, name, isFile}
+     * @param {!jQuery} $element - jquery fn wrap for the list item
+     */
+    function useClassProviders(data, $element) {
+        _classProviders.forEach(function (provider) {
+            $element.addClass(provider(data));
+        });
+    }
+    
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
     exports.addIconProvider               = addIconProvider;
     exports.addClassProvider              = addClassProvider;
     exports.syncSelectionIndicator        = syncSelectionIndicator;
+    
+    // API to be used only by default extensions
+    exports.useIconProviders              = useIconProviders;
+    exports.useClassProviders               = useClassProviders;
 });

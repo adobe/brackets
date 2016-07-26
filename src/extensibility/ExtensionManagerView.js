@@ -36,8 +36,10 @@ define(function (require, exports, module) {
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         LocalizationUtils         = require("utils/LocalizationUtils"),
         LanguageManager           = require("language/LanguageManager"),
-        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html"),
-        Mustache                  = require("thirdparty/mustache/mustache");
+        Mustache                  = require("thirdparty/mustache/mustache"),
+        PathUtils                 = require("thirdparty/path-utils/path-utils"),
+        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
+        
 
     /**
      * Create a detached link element, so that we can use it later to extract url details like 'protocol'

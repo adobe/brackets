@@ -620,6 +620,34 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should completely replace file in HTML", function () {
+                var pos1    = { line: 25, ch: 11 },
+                    pos2    = { line: 25, ch: 27 },
+                    pos3    = { line: 25, ch: 34 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
+
+                    // False indicates hints were closed after insertion
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(false);
+
+                    // File name was completely replaced, not just appended to
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("'subfolder/chevron.png'");
+
+                    // Cursor was moved past closing single-quote
+                    expect(testEditor.getCursorPos()).toEqual(pos3);
+                });
+            });
+
             it("should insert filtered folder in HTML", function () {
                 var pos1    = { line: 23, ch: 11 },
                     pos2    = { line: 23, ch: 14 },
