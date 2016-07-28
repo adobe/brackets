@@ -26,16 +26,23 @@ define(function (require, exports, module) {
             testFiles = ["test.js", "test.hmtml"].map(function (file) {
                 return testDocumentDirectory + file;
             }),
+            // The line numbers referenced below are dependent on the files in /unittest-files directory.
+            // Remember to update the numbers if the files change.
             testFilesSpec = {
                 js: {
                     filePath: testDocumentDirectory + "test.js",
                     foldableLines: [ 11, 17, 21, 25, 27, 30],
-                    sameLevelFoldableLines: [17, 21]
+                    sameLevelFoldableLines: [17, 21],
+                    firstSelection: {start: {line: 2, ch: 0}, end: {line: 10, ch: 0}},
+                    secondSelection: {start: {line: 5, ch: 0}, end: {line: 8, ch: 4}}
+
                 },
                 html: {
                     filePath: testDocumentDirectory + "test.html",
-                    foldableLines: [1, 2, 5, 7, 8, 12, 13, 14, 18, 19, 24, 27, 37, 39, 46, 51, 56],
-                    sameLevelFoldableLines: [8, 12, 24, 37, 46, 51, 56]
+                    foldableLines: [1, 2, 5, 7, 8, 12, 13, 14, 18, 19, 24, 27],
+                    sameLevelFoldableLines: [8, 24],
+                    firstSelection: {start: {line: 3, ch: 0}, end: {line: 10, ch: 0}},
+                    secondSelection: {start: {line: 6, ch: 0}, end: {line: 17, ch: 4}}
                 }
             };
 
@@ -108,7 +115,7 @@ define(function (require, exports, module) {
          * @param {Number} line The line number to fold
          */
         function foldCodeOnLine(line) {
-            cm.setCursor(line);
+            cm.setCursor(line - 1);
             var promise = runCommand("codefolding.collapse");
             waitsForDone(promise, "Collapse code", 2000);
         }
@@ -118,7 +125,7 @@ define(function (require, exports, module) {
          * @param {Number} line The line number to fold
          */
         function expandCodeOnLine(line) {
-            cm.setCursor(line);
+            cm.setCursor(line - 1);
             var promise = runCommand("codefolding.expand");
             waitsForDone(promise, "Expand code", 2000);
         }
@@ -242,6 +249,7 @@ define(function (require, exports, module) {
         Object.keys(testFilesSpec).forEach(function (file) {
             var testFilePath = testFilesSpec[file].filePath;
             var foldableLines = testFilesSpec[file].foldableLines;
+            var testFileSpec = testFilesSpec[file];
             describe(file + " - Editor/Gutter", function () {
                 beforeEach(function () {
                     runs(function () {
@@ -346,7 +354,7 @@ define(function (require, exports, module) {
 
                 describe("Preferences", function () {
                     it("persists fold states", function () {
-                        var lineNumbers = testFilesSpec[file].sameLevelFoldableLines;
+                        var lineNumbers = testFileSpec.sameLevelFoldableLines;
                         runs(function () {
                             lineNumbers.forEach(function (line) {
                                 foldCodeOnLine(line);
@@ -362,7 +370,9 @@ define(function (require, exports, module) {
 
                         runs(function () {
                             var marks = getEditorFoldMarks();
-                            var gutterNumbers = marks.filter(filterFolded).map(getLineNumber);
+                            var gutterNumbers = marks.map(function (mark) {
+                                return mark.lines[0].lineNo();
+                            });
                             expect(gutterNumbers).toEqual(toZeroIndex(lineNumbers));
                         });
                     });
@@ -381,7 +391,6 @@ define(function (require, exports, module) {
                         });
 
                         runs(function () {
-                            //expect line 1 to be folded
                             var marks = getEditorFoldMarks();
                             expect(marks.length).toEqual(0);
                         });
@@ -413,7 +422,7 @@ define(function (require, exports, module) {
 
                     describe("Fold selected region", function () {
                         it("can be enabled by setting `makeSelectionsFoldable' to true", function () {
-                            var start = {line: 2, ch: 0}, end = {line: 6, ch: 0};
+                            var start = testFileSpec.firstSelection.start, end = testFileSpec.firstSelection.end;
                             setPreference("makeSelectionsFoldable", true);
 
                             selectTextInEditor(start, end);
@@ -426,7 +435,7 @@ define(function (require, exports, module) {
 
                         it("can be disabled by setting `makeSelectionsFoldable' to false", function () {
                             setPreference("makeSelectionsFoldable", false);
-                            var start = {line: 2, ch: 0}, end = {line: 6, ch: 0};
+                            var start = testFileSpec.firstSelection.start, end = testFileSpec.firstSelection.end;
                             selectTextInEditor(start, end);
 
                             runs(function () {
@@ -439,18 +448,18 @@ define(function (require, exports, module) {
                         });
 
                         it("shows fold ranges for only the most recent selection", function () {
-                            var firstSel = {start: {line: 1, ch: 0}, end: {line: 10, ch: 0}},
-                                secondSel = {start: {line: 3, ch: 0}, end: {line: 8, ch: 4}};
+                            var firstSelection = testFileSpec.firstSelection,
+                                secondSelection = testFileSpec.secondSelection;
 
-                            selectTextInEditor(firstSel.start, firstSel.end);
+                            selectTextInEditor(firstSelection.start, firstSelection.end);
 
-                            selectTextInEditor(secondSel.start, secondSel.end);
+                            selectTextInEditor(secondSelection.start, secondSelection.end);
 
                             runs(function () {
                                 var marks = getGutterFoldMarks().filter(filterOpen)
                                     .map(getLineNumber);
-                                expect(marks).toContain(secondSel.start.line);
-                                expect(marks).not.toContain(firstSel.start.line);
+                                expect(marks).toContain(secondSelection.start.line);
+                                expect(marks).not.toContain(firstSelection.start.line);
                             });
                         });
                     });
