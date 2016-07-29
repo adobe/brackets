@@ -131,7 +131,8 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
     "EXT_MODIFIED_TITLE"                : "External Changes",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirm Delete",
+    "CONFIRM_DELETE_TITLE"              : "Confirm Delete",
+    "CONFIRM_FILE_DELETE"               : "Are you sure you want to delete the file <span class='dialog-filename'>{0}</span>?",
     "CONFIRM_FOLDER_DELETE"             : "Are you sure you want to delete the folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Deleted",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> has been modified on disk outside of {APP_NAME}.<br /><br />Do you want to save the file and overwrite those changes?",
@@ -313,7 +314,7 @@ define({
     "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
-    "CMD_RECENT_FILES_OPEN"               : "Open Recent",
+    "CMD_RECENT_FILES_OPEN"               : "Open Recent\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Open To Working Set",
     "CMD_OPEN_DROPPED_FILES"              : "Open Dropped Files",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
@@ -676,7 +677,7 @@ define({
     // extensions/default/NavigationAndHistory
     "RECENT_FILES_DLG_HEADER"                    : "Recent Files",
     "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Clear",
-    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Clear Files Not in WorkingSet",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Clear files not in Working Set",
 
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "true to automatically close braces, brackets and parentheses",
@@ -744,6 +745,7 @@ define({
     "DESCRIPTION_LANGUAGE"                           : "Language specific settings",
     "DESCRIPTION_LANGUAGE_FILE_EXTENSIONS"           : "Additional mappings from file extension to language name",
     "DESCRIPTION_LANGUAGE_FILE_NAMES"                : "Additional mappings from file name to language name",
+    "DESCRIPTION_LINEWISE_COPY_CUT"                  : "Doing copy and cut when there's no selection will copy or cut the whole lines that have cursors in them",
     "DESCRIPTION_LINTING_ENABLED"                    : "true to enable Code Inspection",
     "DESCRIPTION_ASYNC_TIMEOUT"                      : "The time in milliseconds after which asynchronous linters time out",
     "DESCRIPTION_LINTING_PREFER"                     : "Array of linters to run first",
