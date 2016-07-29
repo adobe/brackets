@@ -113,16 +113,17 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Create an appropriate div based thickness to indent the tree correctly.
+     * Create an appropriate div based "thickness" to indent the tree correctly.
      *
-     * @param {int} depth - The depthness of the current node.
-     * @return {ReactComponent} - The resulting div.
+     * @param {int} depth The depth of the current node.
+     * @return {ReactComponent} The resulting div.
      */
     function _createThickness(depth) {
         return DOM.div({
             className: "thickness",
             style: {
-                width: (INDENTATION_WIDTH * depth) + "px"
+                display: "inline-block",
+                width: INDENTATION_WIDTH * depth
             }
         });
     }
@@ -130,18 +131,18 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     * Create the arrow icons used for the folders indented correctly.
+     * Create, and indent correctly, the arrow icons used for the folders.
      *
-     * @param {int} depth - The depthness of the current node.
-     * @return {ReactComponent} - The resulting ins.
+     * @param {int} depth The depth of the current node.
+     * @return {ReactComponent} The resulting ins.
      */
     function _createAlignedIns(depth) {
         return DOM.ins({
             className: "jstree-icon",
             style: {
-                marginLeft: (INDENTATION_WIDTH * depth) + "px"
+                marginLeft: INDENTATION_WIDTH * depth
             }
-        }, " ");
+        });
     }
 
     /**
@@ -502,8 +503,9 @@ define(function (require, exports, module) {
                 },
                 DOM.ins({
                     className: "jstree-icon"
-                }, " "),
+                }),
             ];
+
             var thickness = _createThickness(this.props.depth);
 
             if (this.props.entry.get("rename")) {
