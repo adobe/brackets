@@ -96,8 +96,9 @@ define(function (require, exports, module) {
 
         if (force === "fold") {
             delete range.cleared;
-            // in some cases such as in xml style files, the start of  line folds can span multiple lines
-            // render a gutter marker for both the beginning and end of the line
+            // In some cases such as in xml style files, the start of  line folds can span multiple lines.
+            // For instance the attributes of an element can span multiple lines. In these cases when folding
+            // we want to render a gutter marker for both the beginning and end of the opening xml tag.
             if (pos.line < range.from.line) {
                 cm._lineFolds[range.from.line] = range;
             } else {

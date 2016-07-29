@@ -23,9 +23,6 @@ define(function (require, exports, module) {
             foldMarkerClosed = gutterName + "-folded";
         var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
             testDocumentDirectory = extensionPath + "/unittest-files/",
-            testFiles = ["test.js", "test.hmtml"].map(function (file) {
-                return testDocumentDirectory + file;
-            }),
             // The line numbers referenced below are dependent on the files in /unittest-files directory.
             // Remember to update the numbers if the files change.
             testFilesSpec = {
@@ -35,7 +32,6 @@ define(function (require, exports, module) {
                     sameLevelFoldableLines: [17, 21],
                     firstSelection: {start: {line: 2, ch: 0}, end: {line: 10, ch: 0}},
                     secondSelection: {start: {line: 5, ch: 0}, end: {line: 8, ch: 4}}
-
                 },
                 html: {
                     filePath: testDocumentDirectory + "test.html",
@@ -44,9 +40,9 @@ define(function (require, exports, module) {
                     firstSelection: {start: {line: 3, ch: 0}, end: {line: 10, ch: 0}},
                     secondSelection: {start: {line: 6, ch: 0}, end: {line: 17, ch: 4}}
                 }
-            };
-
-        var open = "open", folded = "folded";
+            },
+            open = "open",
+            folded = "folded";
 
         /**
          * Utility to temporarily set preference values in the session scope
