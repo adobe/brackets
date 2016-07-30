@@ -359,9 +359,7 @@ define(function (require, exports, module) {
       */
     function onFold(cm, from, to) {
         var state = cm.state.foldGutter;
-        if (from.line >= state.from && from.line < state.to) {
-            updateFoldInfo(cm, from.line, from.line + 1);
-        }
+        updateFoldInfo(cm, from.line, from.line + 1);
     }
 
     /**
@@ -374,7 +372,7 @@ define(function (require, exports, module) {
         var state = cm.state.foldGutter;
         var vp = cm.getViewport();
         delete cm._lineFolds[from.line];
-        updateFoldInfo(cm, vp.from, to.line || vp.to);
+        updateFoldInfo(cm, from.line, to.line || vp.to);
     }
 
     /**

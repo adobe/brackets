@@ -28,7 +28,7 @@ define(function (require, exports, module) {
             testFilesSpec = {
                 js: {
                     filePath: testDocumentDirectory + "test.js",
-                    foldableLines: [ 11, 17, 21, 25, 27, 30],
+                    foldableLines: [1, 11, 17, 21, 25, 27, 30],
                     sameLevelFoldableLines: [17, 21],
                     firstSelection: {start: {line: 2, ch: 0}, end: {line: 10, ch: 0}},
                     secondSelection: {start: {line: 5, ch: 0}, end: {line: 8, ch: 4}}
