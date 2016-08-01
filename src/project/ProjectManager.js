@@ -1166,7 +1166,7 @@ define(function (require, exports, module) {
      */
     function _setFileTreeSelectionWidth(width) {
         model.setSelectionWidth(width);
-        _renderTree();
+        _renderTreeSync();
     }
 
     // Initialize variables and listeners that depend on the HTML DOM
