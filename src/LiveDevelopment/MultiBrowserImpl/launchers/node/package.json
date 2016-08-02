@@ -1,6 +1,6 @@
 {
   "name": "livedev-multibrowser-launchers",
   "dependencies": {
-    "open": "0.0.4"
+    "opn": "4.0.2"
   }
 }

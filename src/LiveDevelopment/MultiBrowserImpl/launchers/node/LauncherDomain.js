@@ -26,7 +26,7 @@
 (function () {
     "use strict";
 
-    var open = require("open");
+    var open = require("opn");
 
     /**
      * @private
