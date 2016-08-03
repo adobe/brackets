@@ -1,6 +1,0 @@
-{
-    "name": "brackets-files-watcher",
-    "dependencies": {
-        "chokidar": "1.6.0"
-    }
-}
