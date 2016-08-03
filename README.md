@@ -111,7 +111,8 @@ Not sure you needed the exclamation point there, but we like your enthusiasm.
 
 #### Contact info
 
-* **Slack:** [Brackets on Slack](https://brackets.slack.com) (You can join by [requesting an invite](https://brackets-slack.herokuapp.com/))
+* **E-mail:** [admin@brackets.io](mailto:admin@brackets.io)
+* **Slack:** [Brackets on Slack](https://brackets.slack.com) (You can join by sending a mail to [admin@brackets.io](mailto:admin@brackets.io) with the subject line `slack registration request` specifying the email addresses you would like to register).
 * **Developers mailing list:** http://groups.google.com/group/brackets-dev
 * **Twitter:** [@brackets](https://twitter.com/brackets)
 * **Blog:** http://blog.brackets.io/

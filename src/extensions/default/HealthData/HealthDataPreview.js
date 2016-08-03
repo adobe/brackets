@@ -22,12 +22,13 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, Mustache, brackets, $ */
+/*global define, brackets, $ */
 
 define(function (require, exports, module) {
     "use strict";
 
     var _                       = brackets.getModule("thirdparty/lodash"),
+        Mustache                = brackets.getModule("thirdparty/mustache/mustache"),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         Strings                 = brackets.getModule("strings"),
         Dialogs                 = brackets.getModule("widgets/Dialogs"),

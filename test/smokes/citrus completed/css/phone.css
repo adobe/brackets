@@ -3,39 +3,39 @@
 	width: 100%;
 }
 #logo {
-	height:auto;
-	width:270px;
 	background-image: url(../images/sml_logo.png);
-	margin-left:auto;
-	margin-right:auto;
+	height: auto;
+	margin-left: auto;
+	margin-right: auto;
+	width: 270px;
 }
 nav {
-	padding-top:100px;
+	padding-top: 100px;
 }
 nav ul {
-	font-size:24px;
+	font-size: 24px;
 }
 nav ul a {
-	width:97%;
-	padding-right:0;
+	padding-right: 0;
+	width: 97%;
 }
 nav ul li {
-	float:none;
+	float: none;
 }
 nav ul li:hover {
-	margin-top:0;
+	margin-top: 0;
 }
 #maincontent {
 	margin-top: 0;
-	padding:0;
+	padding: 0;
 }
 #vision {
-	background-image:none;
+	background-image: none;
+	font-size: 16px;
+	height: auto;
+	line-height: normal;
+	padding-top: 0;
 	width: 280px;
-	height:auto;
-	font-size:16px;
-	line-height:normal;
-	padding-top:0;
 }
 /* Uncomment the declarations in the following rules to hide the images in the pods. */
 .pod {
@@ -47,15 +47,15 @@ nav ul li:hover {
 }*/
 .podContent {
 	width: 302px;
-	height:180px;
+	height: 180px;
 	/*display:none;*/
 }
 /*#news .podContent {
 	display:block;
 }*/
 footer p {
-	margin-left:5px;
+	margin-left: 5px;
 }
 #facebookTwitter {
-	margin-right:5px;
+	margin-right: 5px;
 }

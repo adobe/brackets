@@ -65,6 +65,7 @@ define({
 	"ERROR_SAVING_FILE": "ファイル <span class='dialog-filename'>{0}</span> を保存する際にエラーが発生しました。{1}",
 	"ERROR_RENAMING_FILE_TITLE": "{0} の名前を変更する際にエラーが発生しました。",
 	"ERROR_RENAMING_FILE": "{2} <span class='dialog-filename'>{0}</span> の名前を変更する際にエラーが発生しました。{1}",
+	"ERROR_RENAMING_NOT_IN_PROJECT": "ファイルまたはディレクトリが、現在開いているプロジェクトの一部ではありません。現時点で、プロジェクトファイルの名前のみを変更できます。",
 	"ERROR_DELETING_FILE_TITLE": "{0} を削除する際にエラーが発生しました。",
 	"ERROR_DELETING_FILE": "{2} <span class='dialog-filename'>{0}</span> を削除する際にエラーが発生しました。{1}",
 	"INVALID_FILENAME_TITLE": "無効な{0}",
@@ -312,6 +313,7 @@ define({
 	"CMD_FILE_NEW": "新しいファイル",
 	"CMD_FILE_NEW_FOLDER": "新しいフォルダー",
 	"CMD_FILE_OPEN": "開く\u2026",
+	"CMD_RECENT_FILES_OPEN": "最近使用したファイルを開く\u2026",
 	"CMD_ADD_TO_WORKING_SET": "ワーキングセットに開く",
 	"CMD_OPEN_DROPPED_FILES": "ドロップしたファイルを開く",
 	"CMD_OPEN_FOLDER": "フォルダーを開く\u2026",
@@ -382,7 +384,7 @@ define({
 	"CMD_SHOW_SIDEBAR": "サイドバーを表示する",
 	"CMD_TOGGLE_SIDEBAR": "サイドバーの切り替え",
 	"CMD_TOGGLE_PANELS": "パネルの表示切り替え",
-	"CMD_TOGGLE_PURE_CODE": "中断なし",
+	"CMD_TOGGLE_PURE_CODE": "簡易表示",
 	"CMD_INCREASE_FONT_SIZE": "フォントサイズを大きく",
 	"CMD_DECREASE_FONT_SIZE": "フォントサイズを小さく",
 	"CMD_RESTORE_FONT_SIZE": "フォントサイズを元に戻す",
@@ -467,7 +469,7 @@ define({
 
     // Strings for Pane.js
 	"EMPTY_VIEW_HEADER": "<em>このペインにフォーカスがあるときにファイルを開く</em>",
-	"FLIPVIEW_BTN_TOOLTIP": "{0} ペインにこのビューを反転",
+	"FLIPVIEW_BTN_TOOLTIP": "このビューを {0} ペインにめくる",
 
     // Strings for themes-settings.html and themes-general.html
 	"CURRENT_THEME": "現在のテーマ",
@@ -671,6 +673,11 @@ define({
 	"COLLAPSE_CURRENT": "現在のコードをたたむ",
 	"EXPAND_CURRENT": "現在のコードを展開",
 
+    // extensions/default/NavigationAndHistory
+	"RECENT_FILES_DLG_HEADER": "最近使用したファイル",
+	"RECENT_FILES_DLG_CLEAR_BUTTON_LABEL": "消去",
+	"RECENT_FILES_DLG_CLEAR_BUTTON_TITLE": "ワーキングセットにないファイルをクリア",
+
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "中括弧、角括弧、丸括弧を自動的に閉じるには true",
 	"DESCRIPTION_CLOSE_OTHERS_ABOVE": "「作業中ファイル」コンテキストメニューから「上をすべて閉じる」を削除するには false",
@@ -776,7 +783,9 @@ define({
 	"DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE": "左側/上部のペインでユーザーの環境設定ファイルを開くには false",
 	"DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED": "ペインからの最後のファイルがペインのヘッダーの閉じるボタンにより閉じられた後、ペインを折りたたむには true",
 	"DESCRIPTION_SHOW_PANE_HEADER_BUTTONS": "ヘッダーの閉じるボタンと反転表示ボタンを表示するタイミングを切り替えます。",
-	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * これは、{APP_NAME} で環境設定がサポートされた\n読み取り専用ファイルです。\n * このファイルは、他のペインで開かれた環境設定ファイル brackets.json を\n * 変更する際の参照資料として使用します。\n * {APP_NAME} 内で環境設定を使用する方法については、Web ページ\n *  (https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences) を参照してください。\n */",
+	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * これは、{APP_NAME} がサポートしている環境設定が 記録された読み取り\n * 専用ファイルです。\n * もう片方のペインで開かれた環境設定ファイル brackets.json を変更\n * する際の参考としてお使いください。\n * {APP_NAME} 内で環境設定を使用する方法について は、Web ページ\n * https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n * を参照してください。\n*/",
 	"DEFAULT_PREFERENCES_JSON_DEFAULT": "デフォルト",
-	"DESCRIPTION_PURE_CODING_SURFACE": "{APP_NAME} でコードのみモードを有効にし、その他すべての UI エレメントを非表示にするには true"
+	"DESCRIPTION_PURE_CODING_SURFACE": "{APP_NAME} でコードのみモードを有効にし、その他すべての UI エレメントを非表示にするには true",
+	"DESCRIPTION_INDENT_LINE_COMMENT": "行コメントのインデントを有効にするには true",
+	"DESCRIPTION_RECENT_FILES_NAV": "最近使用したファイルのナビゲーションを有効化/無効化"
 });

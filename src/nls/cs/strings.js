@@ -380,6 +380,9 @@ define({
     "VIEW_MENU"                           : "Zobrazit",
     "CMD_HIDE_SIDEBAR"                    : "Skrýt boční menu",
     "CMD_SHOW_SIDEBAR"                    : "Zobrazit boční menu",
+    "CMD_TOGGLE_SIDEBAR"                  : "Zobrazit/skrýt boční menu",
+    "CMD_TOGGLE_PANELS"                   : "Zobrazit/skrýt panely",
+    "CMD_TOGGLE_PURE_CODE"                : "Žádné rozptylování",
     "CMD_INCREASE_FONT_SIZE"              : "Zvětšit velikost písma",
     "CMD_DECREASE_FONT_SIZE"              : "Zmenšit velikost písma",
     "CMD_RESTORE_FONT_SIZE"               : "Obnovit velikost písma",
@@ -688,6 +691,7 @@ define({
     "DESCRIPTION_ATTR_HINTS"                         : "Povolit/zakázat nápovědy HTML vlastností",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Povolit/zakázat nápovědy CSS/LESS/SCSS hodnot",
     "DESCRIPTION_JS_HINTS"                           : "Povolit/zakázat nápovědy v JavaScriptu",
+    "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "Povolit/zakázat detaily o datových typech v nápovědách kódu u JavaScriptu",
     "DESCRIPTION_PREF_HINTS"                         : "Povolit/zakázat nápovědy v preferencích",
     "DESCRIPTION_SPECIAL_CHAR_HINTS"                 : "Povolit/zakázat nápovědy HTML entit",
     "DESCRIPTION_SVG_HINTS"                          : "Povolit/zakázat nápovědy v SVG",
@@ -773,7 +777,8 @@ define({
     "DESCRIPTION_MERGE_PANES_WHEN_LAST_FILE_CLOSED"  : "true ke skrytí panelů po zavření posledního souboru z panelu pomocí tlačítka na hlavičce panelu",
     "DESCRIPTION_SHOW_PANE_HEADER_BUTTONS"           : "Změňte ke zobrazení tlačítek zavřít a rozdělit ve hlavičce.",
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Toto je soubor pouze ke čtení s preferencemi podporovanými\n * v {APP_NAME}.\n * Použijte tento soubor jako doporučení pro úpravu vašeho souboru s preferencemi\n * \"brackets.json\" otevřeném ve druhém panelu.\n * Pro více informací o úpravě preferencí\n * v {APP_NAME} se podívejte na webovou stránku https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
-    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Výchozí"
+    "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Výchozí",
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "true k povolení módu pouze s kódem a ke skrytí Všech dalších UI prvků v {APP_NAME}"
 });
 
-/* Last translated for 443aeb1e6779ab9d80baf8808171f7bbf5a5f838 */
+/* Last translated for fcd2e98ef35c110e00aebfbb6d3c3816e5156552 */

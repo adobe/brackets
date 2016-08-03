@@ -1101,8 +1101,16 @@ define(function (require, exports, module) {
     // far were strings, so we spare us the trouble of allowing more complex mode values.
     CodeMirror.defineMIME("text/x-brackets-html", {
         "name": "htmlmixed",
-        "scriptTypes": [{"matches": /\/x-handlebars|\/x-mustache|\/ng-template$|^text\/html$/i,
-                       "mode": null}]
+        "scriptTypes": [
+            {
+                "matches": /\/x-handlebars|\/x-mustache|\/ng-template$|^text\/html$/i,
+                "mode": "htmlmixed"
+            },
+            {
+                "matches": /^text\/(babel|jsx)$/i,
+                "mode": "jsx"
+            }
+        ]
     });
 
     // Define SVG MIME type so an SVG language can be defined for SVG-specific code hints.

@@ -1,0 +1,31 @@
+{
+    "recent-files.show": [
+        "Alt-O"
+    ],
+    "recent-files.next":  [
+        {
+            "key": "Ctrl-Tab"
+        },
+        {
+            "key": "Ctrl-Tab",
+            "platform": "mac"
+        },
+        {
+            "key": "Cmd-Shift-]",
+            "platform": "mac"
+        }
+    ],
+    "recent-files.prev":  [
+        {
+            "key": "Ctrl-Shift-Tab"
+        },
+        {
+            "key": "Ctrl-Shift-Tab",
+            "platform": "mac"
+        },
+        {
+            "key": "Cmd-Shift-[",
+            "platform": "mac"
+        }
+    ]
+}

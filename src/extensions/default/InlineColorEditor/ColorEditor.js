@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, window, Mustache */
+/*global define, brackets, $, window */
 
 define(function (require, exports, module) {
     "use strict";
@@ -31,6 +31,7 @@ define(function (require, exports, module) {
         PreferencesManager = brackets.getModule("preferences/PreferencesManager"),
         StringUtils        = brackets.getModule("utils/StringUtils"),
         Strings            = brackets.getModule("strings"),
+        Mustache           = brackets.getModule("thirdparty/mustache/mustache"),
         tinycolor          = require("thirdparty/tinycolor-min");
 
     /** Mustache template that forms the bare DOM structure of the UI */

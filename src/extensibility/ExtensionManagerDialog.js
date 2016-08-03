@@ -22,12 +22,13 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global brackets, define, $, Mustache */
+/*global brackets, define, $ */
 
 define(function (require, exports, module) {
     "use strict";
 
     var _                           = require("thirdparty/lodash"),
+        Mustache                    = require("thirdparty/mustache/mustache"),
         Dialogs                     = require("widgets/Dialogs"),
         DefaultDialogs              = require("widgets/DefaultDialogs"),
         FileSystem                  = require("filesystem/FileSystem"),
