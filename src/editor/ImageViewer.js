@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -36,8 +36,8 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         FileSystem          = require("filesystem/FileSystem"),
         FileUtils           = require("file/FileUtils"),
-        _                   = require("thirdparty/lodash"),
-        Mustache            = require("thirdparty/mustache/mustache");
+        _                   = require("thirdparty/lodash");
+
 
     var _viewers = {};
 

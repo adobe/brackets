@@ -21,7 +21,7 @@
  *
  */
 
-/*global define, $, window */
+/*global define, $, window, Mustache */
 
 /*
  * Panel showing search results for a Find/Replace in Files operation.
@@ -43,7 +43,6 @@ define(function (require, exports, module) {
         Strings               = require("strings"),
         HealthLogger          = require("utils/HealthLogger"),
         _                     = require("thirdparty/lodash"),
-        Mustache              = require("thirdparty/mustache/mustache"),
 
         searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
         searchResultsTemplate = require("text!htmlContent/search-results.html"),

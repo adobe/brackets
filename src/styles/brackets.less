@@ -372,12 +372,12 @@ a, img {
         }
 
         .image-preview {
-            background: url(images/preview-bg.svg);
+            background: url(images/preview_bg.png);
             box-shadow: 0 1px 3px @bc-shadow;
             max-height: 100%;
 
             .dark & {
-                background: url(images/preview-bg-dark.svg);
+                background: url(images/preview_bg_dark.png);
                 box-shadow: 0 1px 3px @dark-bc-shadow;
             }
         }
@@ -512,13 +512,9 @@ a, img {
             .sprite-icon(0, 0, 13px, 13px, "images/flip-view-icons.svg");
             background-origin: content-box;
             -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
-<<<<<<< HEAD
             transform: translateZ(0);
             -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
             filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
-=======
-            transform: translateZ(0); // future proofing
->>>>>>> adobe/master
             z-index: 1;
             vertical-align: middle;
 
@@ -1864,7 +1860,7 @@ textarea.exclusions-editor {
     box-shadow: 0 5px 10px @bc-shadow;
     opacity: 0;
     
-    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99));
+    .animation (autocomplete, 90ms, cubic-bezier(.01, .91, 0, .99), 0, 1);
     -webkit-animation-fill-mode: forwards;
     animation-fill-mode: forwards;
     -webkit-transform-origin: 0 0;

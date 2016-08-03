@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, require */
+/*global define, brackets, require, Mustache */
 
 
 require.config({
@@ -40,8 +40,7 @@ define(function (require, exports, module) {
     // Brackets modules
     var CommandManager      = brackets.getModule("command/CommandManager"),
         Menus               = brackets.getModule("command/Menus"),
-        Dialogs             = brackets.getModule("widgets/Dialogs"),
-        Mustache            = brackets.getModule("thirdparty/mustache/mustache");
+        Dialogs             = brackets.getModule("widgets/Dialogs");
 
     // Load an html fragment using the require text plugin. Mustache will later
     // be used to localize some of the text

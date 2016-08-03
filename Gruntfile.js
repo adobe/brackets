@@ -25,14 +25,7 @@ module.exports = function (grunt) {
     'use strict';
 
     // load dependencies
-    require('load-grunt-tasks')(grunt, {
-        pattern: [
-            'grunt-*',
-            '!grunt-cli',
-            '!grunt-lib-phantomjs',
-            '!grunt-template-jasmine-requirejs'
-        ]
-    });
+    require('load-grunt-tasks')(grunt, {pattern: ['grunt-contrib-*', 'grunt-targethtml', 'grunt-usemin', 'grunt-cleanempty', 'grunt-eslint']});
     grunt.loadTasks('tasks');
 
     // Project configuration.
@@ -281,6 +274,8 @@ module.exports = function (grunt) {
                     'src/thirdparty/CodeMirror/lib/util/searchcursor.js',
                     'src/thirdparty/CodeMirror/addon/edit/closetag.js',
                     'src/thirdparty/CodeMirror/addon/selection/active-line.js',
+                    'src/thirdparty/mustache/mustache.js',
+                    'src/thirdparty/path-utils/path-utils.min',
                     'src/thirdparty/less-2.5.1.min.js'
                 ],
                 helpers : [

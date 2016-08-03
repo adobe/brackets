@@ -45,8 +45,7 @@ define(function (require, exports, module) {
         EVENT_SHOULD_SELECT     = "select",
         EVENT_SHOULD_FOCUS      = "focus",
         ERROR_CREATION          = "creationError",
-        ERROR_INVALID_FILENAME  = "invalidFilename",
-        ERROR_NOT_IN_PROJECT    = "notInProject";
+        ERROR_INVALID_FILENAME  = "invalidFilename";
 
     /**
      * @private
@@ -800,25 +799,16 @@ define(function (require, exports, module) {
      * @return {$.Promise} resolved when the operation is complete.
      */
     ProjectModel.prototype.startRename = function (path) {
-        var d = new $.Deferred();
         path = _getPathFromFSObject(path);
         if (!path) {
             path = this._selections.context;
             if (!path) {
-                return d.resolve().promise();
+                return new $.Deferred().resolve().promise();
             }
         }
 
         if (this._selections.rename && this._selections.rename.path === path) {
             return;
-        }
-
-        if (!this.isWithinProject(path)) {
-            return d.reject({
-                type: ERROR_NOT_IN_PROJECT,
-                isFolder: !_pathIsFile(path),
-                fullPath: path
-            }).promise();
         }
 
         var projectRelativePath = this.makeProjectRelativeIfPossible(path);
@@ -835,6 +825,7 @@ define(function (require, exports, module) {
 
         this._viewModel.moveMarker("rename", null,
                                    projectRelativePath);
+        var d = new $.Deferred();
         this._selections.rename = {
             deferred: d,
             type: FILE_RENAMING,
@@ -1355,7 +1346,6 @@ define(function (require, exports, module) {
     exports.EVENT_SHOULD_FOCUS      = EVENT_SHOULD_FOCUS;
     exports.ERROR_CREATION          = ERROR_CREATION;
     exports.ERROR_INVALID_FILENAME  = ERROR_INVALID_FILENAME;
-    exports.ERROR_NOT_IN_PROJECT    = ERROR_NOT_IN_PROJECT;
     exports.FILE_RENAMING           = FILE_RENAMING;
     exports.FILE_CREATING           = FILE_CREATING;
     exports.RENAME_CANCELLED        = RENAME_CANCELLED;

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document */
+/*global define, $, document, Mustache */
 
 /**
  * A status bar with support for file information and busy and status indicators. This is a semi-generic
@@ -37,8 +37,7 @@ define(function (require, exports, module) {
     var AppInit          = require("utils/AppInit"),
         StatusBarHTML    = require("text!widgets/StatusBar.html"),
         Strings          = require("strings"),
-        WorkspaceManager = require("view/WorkspaceManager"),
-        Mustache         = require("thirdparty/mustache/mustache");
+        WorkspaceManager = require("view/WorkspaceManager");
 
     var _init = false;
 

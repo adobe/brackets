@@ -516,19 +516,17 @@ define(function (require, exports, module) {
                 myEditor.setCursorPos(0, 0);
 
                 twCommandManager.execute(Commands.CMD_FIND);
-                // The previous search term "b" was pre-filled, so the editor was centered there already
-                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                 enterSearchText("foo");
                 expectHighlightedMatches(fooExpectedMatches);
                 expectSelection(fooExpectedMatches[0]);
                 expectMatchIndex(0, 4);
-                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[1]);
                 expectMatchIndex(1, 4);
-                expect(myEditor.centerOnCursor.calls.length).toEqual(3);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
                 expectMatchIndex(2, 4);
@@ -541,26 +539,24 @@ define(function (require, exports, module) {
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[0]);
                 expectMatchIndex(0, 4);
-                expect(myEditor.centerOnCursor.calls.length).toEqual(6);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(5);
             });
 
             it("should find all case-insensitive matches with mixed-case text", function () {
                 myEditor.setCursorPos(0, 0);
 
                 twCommandManager.execute(Commands.CMD_FIND);
-                // The previous search term "foo" was pre-filled, so the editor was centered there already
-                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                 enterSearchText("Foo");
                 expectHighlightedMatches(fooExpectedMatches);
                 expectSelection(fooExpectedMatches[0]);
                 expectMatchIndex(0, 4);
-                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[1]);
                 expectMatchIndex(1, 4);
-                expect(myEditor.centerOnCursor.calls.length).toEqual(3);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[2]);
                 expectMatchIndex(2, 4);
@@ -573,7 +569,7 @@ define(function (require, exports, module) {
                 twCommandManager.execute(Commands.CMD_FIND_NEXT);
                 expectSelection(fooExpectedMatches[0]);
                 expectMatchIndex(0, 4);
-                expect(myEditor.centerOnCursor.calls.length).toEqual(6);
+                expect(myEditor.centerOnCursor.calls.length).toEqual(5);
             });
 
             it("should find all case-sensitive matches with mixed-case text", function () {
@@ -641,8 +637,6 @@ define(function (require, exports, module) {
                     myEditor.setCursorPos(0, 0);
 
                     twCommandManager.execute(Commands.CMD_FIND);
-                    // The previous search term "Foo" was pre-filled, so the editor was centered there already
-                    expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                     enterSearchText("foo");
                     pressEscape();
@@ -653,12 +647,12 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}});
-                    expect(myEditor.centerOnCursor.calls.length).toEqual(2);
+                    expect(myEditor.centerOnCursor.calls.length).toEqual(1);
 
                     // Simple linear Find Next
                     twCommandManager.execute(Commands.CMD_FIND_NEXT);
                     expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}});
-                    expect(myEditor.centerOnCursor.calls.length).toEqual(3);
+                    expect(myEditor.centerOnCursor.calls.length).toEqual(2);
                     twCommandManager.execute(Commands.CMD_FIND_NEXT);
                     expectSelection({start: {line: 6, ch: 17}, end: {line: 6, ch: 20}});
                     twCommandManager.execute(Commands.CMD_FIND_NEXT);
@@ -751,13 +745,13 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should remember the last search query", function () {
+            it("shouldn't Find Next after search bar reopened", function () {
                 runs(function () {
                     myEditor.setCursorPos(0, 0);
 
                     twCommandManager.execute(Commands.CMD_FIND);
 
-                    enterSearchText("Foo");
+                    enterSearchText("foo");
                     pressEscape();
                 });
 
@@ -769,36 +763,20 @@ define(function (require, exports, module) {
                     twCommandManager.execute(Commands.CMD_FIND);
 
                     expectSearchBarOpen();
-                    expect(getSearchField().val()).toEqual("Foo");
-                    expectHighlightedMatches(capitalFooSelections);
-                    expectSelection(capitalFooSelections[0]);
-                    expectMatchIndex(0, 3);
-                    expect(myEditor.centerOnCursor.calls.length).toEqual(3);
+                    expect(myEditor).toHaveCursorPosition(0, 0);
 
                     twCommandManager.execute(Commands.CMD_FIND_NEXT);
-                    expectSelection(capitalFooSelections[1]);
-                    expectMatchIndex(1, 3);
+                    expect(myEditor).toHaveCursorPosition(0, 0);
                 });
             });
 
             it("should open search bar on Find Next with no previous search", function () {
-                runs(function () {
-                    // Make sure we have no previous query
-                    twCommandManager.execute(Commands.CMD_FIND);
-                    enterSearchText("");
-                    pressEscape();
-                });
+                myEditor.setCursorPos(0, 0);
 
-                waitsForSearchBarClose();
+                twCommandManager.execute(Commands.CMD_FIND_NEXT);
 
-                runs(function () {
-                    myEditor.setCursorPos(0, 0);
-
-                    twCommandManager.execute(Commands.CMD_FIND_NEXT);
-
-                    expectSearchBarOpen();
-                    expect(myEditor).toHaveCursorPosition(0, 0);
-                });
+                expectSearchBarOpen();
+                expect(myEditor).toHaveCursorPosition(0, 0);
             });
 
             it("should select-all without affecting search state if Find invoked while search bar open", function () {  // #2478
@@ -877,38 +855,16 @@ define(function (require, exports, module) {
             });
 
             it("should use empty initial query for single cursor selection", function () {
-                runs(function () {
-                    // Make sure we have no previous query
-                    twCommandManager.execute(Commands.CMD_FIND);
-                    enterSearchText("");
-                    pressEscape();
-                });
-
-                waitsForSearchBarClose();
-
-                runs(function () {
-                    myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START});
-                    twCommandManager.execute(Commands.CMD_FIND);
-                    expect(getSearchField().val()).toEqual("");
-                });
+                myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START});
+                twCommandManager.execute(Commands.CMD_FIND);
+                expect(getSearchField().val()).toEqual("");
             });
 
             it("should use empty initial query for multiple cursor selection", function () {
-                runs(function () {
-                    // Make sure we have no previous query
-                    twCommandManager.execute(Commands.CMD_FIND);
-                    enterSearchText("");
-                    pressEscape();
-                });
-
-                waitsForSearchBarClose();
-
-                runs(function () {
-                    myEditor.setSelections([{start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, primary: true},
-                                            {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}}]);
-                    twCommandManager.execute(Commands.CMD_FIND);
-                    expect(getSearchField().val()).toEqual("");
-                });
+                myEditor.setSelections([{start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, primary: true},
+                                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}}]);
+                twCommandManager.execute(Commands.CMD_FIND);
+                expect(getSearchField().val()).toEqual("");
             });
 
             it("should get single selection as initial query", function () {
@@ -1002,15 +958,6 @@ define(function (require, exports, module) {
         describe("Terminating search", function () {
             it("shouldn't change selection on Escape after typing text, no Find Nexts", function () {
                 runs(function () {
-                    // Make sure we have no previous query
-                    twCommandManager.execute(Commands.CMD_FIND);
-                    enterSearchText("");
-                    pressEscape();
-                });
-
-                waitsForSearchBarClose();
-
-                runs(function () {
                     myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
 
                     twCommandManager.execute(Commands.CMD_FIND);
@@ -1034,6 +981,9 @@ define(function (require, exports, module) {
                     myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
 
                     twCommandManager.execute(Commands.CMD_FIND);
+                    expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
+
+                    enterSearchText("require");
                     expectSelection({start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}});
 
                     twCommandManager.execute(Commands.CMD_FIND_NEXT);
@@ -1050,24 +1000,13 @@ define(function (require, exports, module) {
             });
 
             it("should no-op on Find Next with blank search", function () {
-                runs(function () {
-                    // Make sure we have no previous query
-                    twCommandManager.execute(Commands.CMD_FIND);
-                    enterSearchText("");
-                    pressEscape();
-                });
+                myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
 
-                waitsForSearchBarClose();
+                twCommandManager.execute(Commands.CMD_FIND);
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
 
-                runs(function () {
-                    myEditor.setCursorPos(LINE_FIRST_REQUIRE, 0);
-
-                    twCommandManager.execute(Commands.CMD_FIND);
-                    expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0);
-
-                    twCommandManager.execute(Commands.CMD_FIND_NEXT);
-                    expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0); // no change
-                });
+                twCommandManager.execute(Commands.CMD_FIND_NEXT);
+                expect(myEditor).toHaveCursorPosition(LINE_FIRST_REQUIRE, 0); // no change
 
             });
         });

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, Mustache */
 
 /**
  * Utilities for creating and managing standard modal dialogs.
@@ -36,8 +36,7 @@ define(function (require, exports, module) {
     var KeyBindingManager = require("command/KeyBindingManager"),
         KeyEvent          = require("utils/KeyEvent"),
         Strings           = require("strings"),
-        DialogTemplate    = require("text!htmlContent/dialog-template.html"),
-        Mustache          = require("thirdparty/mustache/mustache");
+        DialogTemplate    = require("text!htmlContent/dialog-template.html");
 
     /**
      * Dialog Buttons IDs

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $, window, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
@@ -34,8 +34,7 @@ define(function (require, exports, module) {
         StringUtils       = require("utils/StringUtils"),
         ValidationUtils   = require("utils/ValidationUtils"),
         ViewUtils         = require("utils/ViewUtils"),
-        PopUpManager      = require("widgets/PopUpManager"),
-        Mustache          = require("thirdparty/mustache/mustache");
+        PopUpManager      = require("widgets/PopUpManager");
 
     var CodeHintListHTML  = require("text!htmlContent/code-hint-list.html");
 

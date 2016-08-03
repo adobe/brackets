@@ -1746,7 +1746,6 @@ define(function (require, exports, module) {
                         openTestProjectCopy(defaultSourcePath);
                         openSearchBar(null, true);
                         runs(function () {
-                            $("#find-what").val("").trigger("input");
                             expect($("#replace-all").is(":disabled")).toBe(true);
                         });
                     });
@@ -2280,24 +2279,6 @@ define(function (require, exports, module) {
                         });
                         runs(function () {
                             expect($("#find-in-files-results").is(":visible")).toBe(false);
-                        });
-                    });
-                });
-                
-                describe("Disclosure Arrows", function () {
-               
-                    it("should expand/collapse items when clicked", function () {
-                        showSearchResults("foo", "bar");
-                        runs(function () {
-                            $(".disclosure-triangle").click();
-                            expect($(".disclosure-triangle").hasClass("expanded")).toBeFalsy();
-                            // Check that all results are hidden
-                            expect($(".bottom-panel-table tr[data-file-index=0][data-match-index]:hidden").length).toEqual(7);
-                            expect($(".bottom-panel-table tr[data-file-index=1][data-match-index]:hidden").length).toEqual(4);
-                            $(".disclosure-triangle").click();
-                            expect($(".disclosure-triangle").hasClass("expanded")).toBeTruthy();
-                            expect($(".bottom-panel-table tr[data-file-index=0][data-match-index]:visible").length).toEqual(7);
-                            expect($(".bottom-panel-table tr[data-file-index=1][data-match-index]:visible").length).toEqual(4);
                         });
                     });
                 });
