@@ -119,7 +119,9 @@ define(function (require, exports, module) {
 
         var change;
 
-        stats.mtime = new Date(stats.mtime);
+        if (stats) {
+            stats.mtime = new Date(stats.mtime);
+        }
 
         if (event === "change") {
             // Only register change events if filename is passed
