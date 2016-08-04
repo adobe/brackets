@@ -1346,6 +1346,7 @@ define(function (require, exports, module) {
     exports._addWelcomeProjectPath  = _addWelcomeProjectPath;
     exports._isWelcomeProjectPath   = _isWelcomeProjectPath;
     exports._ensureTrailingSlash    = _ensureTrailingSlash;
+    exports._exclusionListRegEx     = _exclusionListRegEx;
     exports._shouldShowName         = _shouldShowName;
     exports._invalidChars           = _invalidChars;
 

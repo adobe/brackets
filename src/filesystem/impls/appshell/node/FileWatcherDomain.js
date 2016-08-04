@@ -84,11 +84,7 @@ function watchPath(path, ignored) {
         });
 
         watcher.on("all", function (event, filename, stats) {
-            var filename_ = filename.replace(/\\/g, "/");
-            var parent = filename_ && (fspath.dirname(filename_) + "/");
-            var name = filename_ && fspath.basename(filename_);
             var type;
-
             switch (event) {
             case "change":
             case "ready":
@@ -108,6 +104,14 @@ function watchPath(path, ignored) {
                 return;
             }
 
+            if (!filename) {
+                return;
+            }
+            // make sure it's normalized
+            filename = filename.replace(/\\/g, "/");
+
+            var parent = fspath.dirname(filename) + "/";
+            var name = fspath.basename(filename);
             _domainManager.emitEvent("fileWatcher", "change", [parent, type, name, stats]);
         });
 
