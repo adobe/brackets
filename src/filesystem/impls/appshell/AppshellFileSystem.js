@@ -115,6 +115,8 @@ define(function (require, exports, module) {
      * @private
      */
     function _fileWatcherChange(evt, path, event, filename, stats) {
+        console.log('_fileWatcherChange', evt, path, event, filename, stats);
+
         var change;
 
         stats.mtime = new Date(stats.mtime);
