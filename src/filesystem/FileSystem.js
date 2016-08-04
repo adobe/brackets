@@ -274,7 +274,7 @@ define(function (require, exports, module) {
         var impl = this._impl,
             recursiveWatch = impl.recursiveWatch,
             commandName = shouldWatch ? "watchPath" : "unwatchPath",
-            ignored = undefined;// PreferencesManager.get("fileWatchers.ignored");
+            ignored = ["**/.git/**", "**/.svn/**", "**/bower_components/**", "**/node_modules/**"];
 
         if (recursiveWatch) {
             // The impl can watch the entire subtree with one call on the root (we also fall into this case for
