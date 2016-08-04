@@ -587,11 +587,11 @@ define(function (require, exports, module) {
 
     /**
      * Indicates whether or not recursive watching notifications are supported
-     * by the watchPath call. Currently, only Darwin supports recursive watching.
+     * by the watchPath call. With chokidar, every platform supports recursive watching.
      *
      * @type {boolean}
      */
-    exports.recursiveWatch = (appshell.platform === "mac" || appshell.platform === "win");
+    exports.recursiveWatch = true;
 
     /**
      * Indicates whether or not the filesystem should expect and normalize UNC
