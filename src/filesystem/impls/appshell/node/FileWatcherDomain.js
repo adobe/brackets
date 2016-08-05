@@ -84,35 +84,14 @@ function watchPath(path, ignored) {
         });
 
         watcher.on("all", function (event, filename, stats) {
-            var type;
-            switch (event) {
-            case "change":
-            case "ready":
-                type = "change";
-                break;
-            case "add":
-            case "addDir":
-            case "unlink":
-            case "unlinkDir":
-                type = "rename";
-                break;
-            case "raw":
-            case "error":
-                return;
-            default:
-                console.error("Unknown watching event for file " + path + ": " + event);
-                return;
-            }
-
-            if (!filename) {
+            if (event === "raw" || event === "error" || !filename) {
                 return;
             }
             // make sure it's normalized
             filename = filename.replace(/\\/g, "/");
-
             var parent = fspath.dirname(filename) + "/";
             var name = fspath.basename(filename);
-            _domainManager.emitEvent("fileWatcher", "change", [parent, type, name, stats]);
+            _domainManager.emitEvent("fileWatcher", "change", [parent, event, name, stats]);
         });
 
         _watcherMap[path] = watcher;
