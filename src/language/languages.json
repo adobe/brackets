@@ -78,6 +78,22 @@
         "lineComment": ["//"]
     },
 
+    "typescript": {
+        "name": "TypeScript",
+        "mode": ["javascript", "text/typescript"],
+        "fileExtensions": ["ts"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
+    "tsx": {
+        "name": "TSX",
+        "mode": ["javascript", "text/typescript"],
+        "fileExtensions": ["tsx"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
     "dart": {
         "name": "Dart",
         "mode": ["dart", "application/dart"],
