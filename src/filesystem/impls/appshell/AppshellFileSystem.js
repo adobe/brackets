@@ -99,33 +99,34 @@ define(function (require, exports, module) {
 
     /**
      * Event handler for the Node fileWatcher domain's change event.
+     * event values from chokidar: "change", "ready", "add", "addDir", "unlink", "unlinkDir"
      *
      * @param {jQuery.Event} The underlying change event
-     * @param {string} path The path that is reported to have changed
      * @param {string} event The type of the event: either "change" or "rename"
-     * @param {string=} filename The name of the file that changed.
+     * @param {string} parentDirPath The path to the directory holding entry that has changed
+     * @param {string=} entryName The name of the file/directory that has changed
      * @private
      */
-    function _fileWatcherChange(evt, path, event, filename, stats) {
-        console.log('_fileWatcherChange', evt, path, event, filename, stats);
+    function _fileWatcherChange(evt, event, parentDirPath, entryName, statsObj) {
+        // console.log('_fileWatcherChange', event, parentDirPath, entryName, statsObj);
 
         var change;
-
-        if (stats) {
-            stats.mtime = new Date(stats.mtime);
-        }
-
-        if (event === "change") {
-            // Only register change events if filename is passed
-            if (filename) {
-                // an existing file was modified; stats are passed
-                change = path + filename;
-                _enqueueChange(change, stats);
-            }
-        } else if (event === "rename") {
-            // a new file was created; no stats are passed
-            change = path;
-            _enqueueChange(change, null);
+        switch (event) {
+        case "change":
+        case "ready":
+            // an existing file/directory was modified; stats are passed if available
+            var fsStats = statsObj ? new FileSystemStats(statsObj) : null;
+            _enqueueChange(parentDirPath + entryName, fsStats);
+            break;
+        case "add":
+        case "addDir":
+        case "unlink":
+        case "unlinkDir":
+            // file/directory was created/deleted; fire change on parent to reload contents
+            _enqueueChange(parentDirPath, null);
+            break;
+        default:
+            console.error("Unexpected 'change' event:", event);
         }
     }
 

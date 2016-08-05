@@ -65,6 +65,25 @@ function unwatchPath(path) {
 }
 
 /**
+ * Transform Node's native fs.stats to a format that can be sent through domain
+ * @param {stats} Node's fs.stats result
+ * @return {object} Can be consumed by new FileSystemStats(object); in Brackets
+ */
+function normalizeStats(nodeFsStats) {
+    // from shell: If "filename" is a symlink,
+    // realPath should be the actual path to the linked object
+    // not implemented in shell yet
+    return {
+        isFile: nodeFsStats.isFile(),
+        isDirectory: nodeFsStats.isDirectory(),
+        mtime: nodeFsStats.mtime,
+        size: nodeFsStats.size,
+        realPath: null,
+        hash: nodeFsStats.mtime.getTime()
+    };
+}
+
+/**
  * Watch a file or directory.
  * @param {string} path File or directory to watch.
  * @param {array} ignored List of File or directory to NOT watch.
@@ -83,15 +102,17 @@ function watchPath(path, ignored) {
             ignored: ignored
         });
 
-        watcher.on("all", function (event, filename, stats) {
+        watcher.on("all", function (event, filename, nodeFsStats) {
             if (event === "raw" || event === "error" || !filename) {
                 return;
             }
+            // make sure stats are normalized for domain transfer
+            var statsObj = nodeFsStats ? normalizeStats(nodeFsStats) : null;
             // make sure it's normalized
             filename = filename.replace(/\\/g, "/");
-            var parent = fspath.dirname(filename) + "/";
-            var name = fspath.basename(filename);
-            _domainManager.emitEvent("fileWatcher", "change", [parent, event, name, stats]);
+            var parentDirPath = fspath.dirname(filename) + "/";
+            var entryName = fspath.basename(filename);
+            _domainManager.emitEvent("fileWatcher", "change", [event, parentDirPath, entryName, statsObj]);
         });
 
         _watcherMap[path] = watcher;
@@ -166,10 +187,10 @@ function init(domainManager) {
         "fileWatcher",
         "change",
         [
-            {name: "path", type: "string"},
             {name: "event", type: "string"},
-            {name: "filename", type: "string"},
-            {name: "stats", type: "object"}
+            {name: "parentDirPath", type: "string"},
+            {name: "entryName", type: "string"},
+            {name: "statsObj", type: "object"}
         ]
     );
 

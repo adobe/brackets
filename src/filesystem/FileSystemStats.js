@@ -36,7 +36,7 @@ define(function (require, exports, module) {
 
         this._isFile = isFile;
         this._isDirectory = !isFile;
-        this._mtime = options.mtime;
+        this._mtime = options.mtime instanceof Date ? options.mtime : new Date(options.mtime);
         this._size = options.size;
         this._hash = options.hash;
 
