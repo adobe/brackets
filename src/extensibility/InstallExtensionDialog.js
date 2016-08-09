@@ -21,8 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, window, $, brackets, document */
 /*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {
@@ -260,7 +258,7 @@ define(function (require, exports, module) {
             break;
 
         case STATE_CLOSED:
-            $(document.body).off(".installDialog");
+            $(window.document.body).off(".installDialog");
 
            // Only resolve as successful if we actually installed something.
             Dialogs.cancelModalDialogIfOpen("install-extension-dialog");

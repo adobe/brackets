@@ -2,8 +2,7 @@
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 // Based on http://codemirror.net/addon/fold/foldgutter.js
 // Modified by Patrick Oladimeji for Brackets
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, document, window, $*/
+
 define(function (require, exports, module) {
     "use strict";
     var CodeMirror      = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
@@ -28,7 +27,7 @@ define(function (require, exports, module) {
       * @return {HTMLElement} a htmlelement representing the fold marker
       */
     function marker(spec) {
-        var elt = document.createElement("div");
+        var elt = window.document.createElement("div");
         elt.className = spec;
         return elt;
     }

@@ -20,8 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
 
 /**
  * ViewStateManager is a singleton for views to park their global viwe state. The state is saved

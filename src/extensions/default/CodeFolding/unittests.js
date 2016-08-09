@@ -3,7 +3,9 @@
  * @author Patrick Oladimeji
  * @date 01/08/2015 18:34
  */
-/*global define, brackets, describe, beforeEach, afterEach, it, expect, runs, waitsForDone, waitsFor*/
+
+/*global describe, beforeEach, afterEach, it, expect, runs, waitsForDone, waitsFor*/
+
 define(function (require, exports, module) {
     "use strict";
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),

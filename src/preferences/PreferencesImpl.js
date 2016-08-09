@@ -21,9 +21,6 @@
  *
  */
 
-
-/*global define, $, brackets */
-
 /**
  * Generates the fully configured preferences systems used throughout Brackets. This is intended
  * to be essentially private implementation that can be overridden for tests.

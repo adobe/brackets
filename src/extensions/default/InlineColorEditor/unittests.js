@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waits, runs, $, brackets, waitsForDone, spyOn */
+/*global describe, it, expect, beforeEach, afterEach, waits, runs, waitsForDone, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -357,7 +355,7 @@ define(function (require, exports, module) {
              * @param {boolean=} hide Whether to hide the color picker; default is true.
              */
             function makeUI(initialColor, callback, swatches, hide) {
-                colorEditor = new ColorEditor($(document.body),
+                colorEditor = new ColorEditor($(window.document.body),
                                               initialColor,
                                               callback || function () { },
                                               swatches || defaultSwatches);

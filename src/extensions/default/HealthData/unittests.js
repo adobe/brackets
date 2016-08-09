@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, describe, runs, beforeEach, it, afterEach, expect, waitsForDone, waitsForFail */
+/*global describe, runs, beforeEach, it, afterEach, expect, waitsForDone, waitsForFail */
 /*unittests: HealthData*/
 
 define(function (require, exports, module) {

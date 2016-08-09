@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global jasmine, define, describe, beforeEach, it, expect, spyOn */
+/*global jasmine, describe, beforeEach, it, expect, spyOn */
 
 define(function (require, exports, module) {
     "use strict";

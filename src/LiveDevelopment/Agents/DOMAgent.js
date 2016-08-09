@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, XMLHttpRequest */
-
 /**
  * DOMAgent constructs and maintains a tree of {DOMNode}s that represents the
  * rendered DOM tree in the remote browser. Nodes can be accessed by id or

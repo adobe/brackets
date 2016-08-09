@@ -21,11 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, require */
-
-
 require.config({
     paths: {
         "text" : "lib/text",
@@ -56,7 +51,7 @@ define(function (require, exports, module) {
     // This sample command first shows an alert passing in a localized
     // string in JavaScript then it shows a localized HTML dialog.
     function testCommand() {
-        alert(Strings.ALERT_MESSAGE);
+        window.alert(Strings.ALERT_MESSAGE);
 
         // Localize the dialog using Strings as the datasource and use it as the dialog template
         var localizedTemplate = Mustache.render(browserWrapperHtml, Strings);

@@ -21,10 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true,
-indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*jslint regexp: true */
 
 /**
  * Functions for working with extension packages

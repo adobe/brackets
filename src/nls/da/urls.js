@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
     // Relative to the samples folder
     "GETTING_STARTED"           : "da/Kom godt i gang"

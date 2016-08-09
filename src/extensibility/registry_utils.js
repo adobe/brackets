@@ -29,9 +29,6 @@
  * In the future, we should have a better mechanism for sharing code between the two.
  */
 
-/*jslint vars: true, plusplus: true, nomen: true, indent: 4, maxerr: 50 */
-/*global brackets, define*/
-
 define(function (require, exports, module) {
     "use strict";
 

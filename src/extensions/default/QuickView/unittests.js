@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, runs, brackets, waitsForDone */
+/*global describe, it, expect, beforeEach, runs, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -475,7 +474,7 @@ define(function (require, exports, module) {
                 checkImageDataAtPos("data:image/svg+xml;utf8, <svg version='1.1' xmlns='http://www.w3.org/2000/svg'></svg>", 185, 26);  // data url("") containing '
             });
 
-            it("Should show image preview for URLs with known image extensions", function() {
+            it("Should show image preview for URLs with known image extensions", function () {
                 checkImageDataAtPos("http://example.com/image.gif", 194, 20);
                 checkImageDataAtPos("http://example.com/image.png", 195, 20);
                 checkImageDataAtPos("http://example.com/image.jpe", 196, 20);
@@ -486,7 +485,7 @@ define(function (require, exports, module) {
                 checkImageDataAtPos("http://example.com/image.svg", 201, 20);
             });
 
-            it("Should show image preview for extensionless URLs (with protocol) with pref set", function() {
+            it("Should show image preview for extensionless URLs (with protocol) with pref set", function () {
                 // Flip the pref on and restore when done
                 var original = prefs.get("extensionlessImagePreview");
                 prefs.set("extensionlessImagePreview", true);
@@ -498,7 +497,7 @@ define(function (require, exports, module) {
                 prefs.set("extensionlessImagePreview", original);
             });
 
-            it("Should not show image preview for extensionless URLs (with protocol) without pref set", function() {
+            it("Should not show image preview for extensionless URLs (with protocol) without pref set", function () {
                 // Flip the pref off and restore when done
                 var original = prefs.get("extensionlessImagePreview");
                 prefs.set("extensionlessImagePreview", false);
@@ -510,7 +509,7 @@ define(function (require, exports, module) {
                 prefs.set("extensionlessImagePreview", original);
             });
 
-            it("Should ignore URLs for common non-image extensions", function() {
+            it("Should ignore URLs for common non-image extensions", function () {
                 expectNoPreviewAtPos(209, 20); // .html
                 expectNoPreviewAtPos(210, 20); // .css
                 expectNoPreviewAtPos(211, 20); // .js

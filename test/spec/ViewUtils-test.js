@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, $, beforeEach, afterEach, it, expect */
+/*global describe, beforeEach, afterEach, it, expect */
 /*unittests: ViewUtils*/
 
 define(function (require, exports, module) {
@@ -48,7 +47,7 @@ define(function (require, exports, module) {
                 /* 100% x 100px scroller with 100px x 1000px content */
                 $fixture = $("<div style='overflow:auto;height:100px'><div id='content' style='width:100px;height:1000px'></div></div>");
                 fixture = $fixture[0];
-                $(document.body).append($fixture);
+                $(window.document.body).append($fixture);
             });
 
             afterEach(function () {

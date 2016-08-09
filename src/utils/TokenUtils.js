@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 /**
  * Functions for iterating through tokens in the current editor buffer. Useful for doing
  * light parsing that can rely purely on information gathered by the code coloring mechanism.
