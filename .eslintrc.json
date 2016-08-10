@@ -1,15 +1,12 @@
 {
-    "env": {
-        "node": true
-    },
     "rules": {
-        "no-bitwise": 0,
+        "no-bitwise": 2,
         "curly": 2,
         "eqeqeq": 2,
         "guard-for-in": 0,
         "wrap-iife": [2, "outside"],
         "no-use-before-define": 0,
-        "new-cap": [0, {
+        "new-cap": [2, {
             "capIsNewExceptions": [
                 "$.Deferred",
                 "$.Event",
@@ -19,13 +16,13 @@
                 "JSLINT"
             ]}],
         "no-caller": 2,
-        "no-empty": 0,
+        "no-empty": 2,
         "no-new": 2,
         "no-invalid-regexp": 2,
         "no-control-regex": 2,
         "no-regex-spaces": 2,
         "no-undef": 2,
-        "strict": 0,
+        "strict": 2,
         "no-unused-vars": [0, {"vars": "all", "args": "none"}],
         "semi": 2,
 
@@ -54,12 +51,15 @@
     "globals": {
         "brackets": false,
 
+        "console": false,
+
         "window": false,
         "alert": false,
         "document": false,
         "localStorage": false,
         "navigator": false,
         "setTimeout": false,
+        "clearTimeout": false,
 
         "require": false,
         "define": false,

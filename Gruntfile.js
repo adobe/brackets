@@ -20,10 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
+/*eslint-env node*/
 /*global module, require*/
-module.exports = function (grunt) {
-    'use strict';
 
+'use strict';
+
+module.exports = function (grunt) {
     // load dependencies
     require('load-grunt-tasks')(grunt, {
         pattern: [

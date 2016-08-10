@@ -151,7 +151,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 CodeInspection._unregisterAll();
-                simpleJavascriptFileEntry = new FileSystem.getFileForPath(testFolder + "/errors.js");
+                simpleJavascriptFileEntry = FileSystem.getFileForPath(testFolder + "/errors.js");
             });
 
             it("should run a single registered linter", function () {
