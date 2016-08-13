@@ -62,13 +62,14 @@ define(function (require, exports, module) {
     brackets.getModule(["thirdparty/CodeMirror/addon/fold/brace-fold"]);
     brackets.getModule(["thirdparty/CodeMirror/addon/fold/comment-fold"]);
     brackets.getModule(["thirdparty/CodeMirror/addon/fold/markdown-fold"]);
-
+        
     // Still using slightly modified versions of the foldcode.js and foldgutter.js since we
     // need to modify the gutter click handler to take care of some collapse and expand features
     // e.g. collapsing all children when 'alt' key is pressed
     var foldGutter              = require("foldhelpers/foldgutter"),
         foldCode                = require("foldhelpers/foldcode"),
         indentFold              = require("foldhelpers/indentFold"),
+        handlebarsFold          = require("foldhelpers/handlebarsFold"),
         selectionFold           = require("foldhelpers/foldSelected");
 
 
@@ -394,9 +395,9 @@ define(function (require, exports, module) {
             return prefs.getSetting("alwaysUseIndentFold");
         }, indentFold);
 
-        CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
-        CodeMirror.registerHelper("fold", "tornado", CodeMirror.helpers.fold.brace);
-
+        CodeMirror.registerHelper("fold", "handlebars", handlebarsFold);
+        CodeMirror.registerHelper("fold", "htmlhandlebars", handlebarsFold);
+        
         EditorManager.on("activeEditorChange.CodeFolding", onActiveEditorChanged);
         DocumentManager.on("documentRefreshed.CodeFolding", function (event, doc) {
             restoreLineFolds(doc._masterEditor);
