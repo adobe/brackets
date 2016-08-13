@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
-
 /**
  * Button that opens a dropdown list when clicked. More akin to a popup menu than a combobox. Compared to a
  * simple <select> element:

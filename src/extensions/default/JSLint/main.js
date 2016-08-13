@@ -21,8 +21,7 @@
  *
  */
 
-
-/*global define, JSLINT, brackets */
+/*global JSLINT */
 
 /**
  * Provides JSLint results via the core linting extension point

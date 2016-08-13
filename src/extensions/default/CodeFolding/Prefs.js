@@ -4,8 +4,7 @@
  * @author Patrick Oladimeji
  * @date 3/22/14 20:39:53 PM
  */
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets*/
+
 define(function (require, exports, module) {
     "use strict";
 

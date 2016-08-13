@@ -21,7 +21,7 @@
  *
  */
 
-/*global $, define, describe, it, expect, jasmine */
+/*global describe, it, expect, jasmine */
 /*unittests: FileTreeView*/
 
 define(function (require, exports, module) {
@@ -559,7 +559,7 @@ define(function (require, exports, module) {
 
         describe("render", function () {
             it("should render into the given element", function () {
-                var el = document.createElement("div"),
+                var el = window.document.createElement("div"),
                     viewModel = new FileTreeViewModel.FileTreeViewModel();
                 viewModel._treeData = new Immutable.Map({
                     "subdir": twoLevel.getIn(["children", "subdir"])

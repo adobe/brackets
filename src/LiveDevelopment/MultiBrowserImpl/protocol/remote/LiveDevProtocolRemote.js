@@ -21,7 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
 /*jslint evil: true */
 
 // This is the script that Brackets live development injects into HTML pages in order to
@@ -165,14 +164,14 @@
             var i,
                 node;
 
-            var head = document.getElementsByTagName('head')[0];
+            var head = window.document.getElementsByTagName('head')[0];
             // create an style element to replace the one loaded with <link>
-            var s = document.createElement('style');
+            var s = window.document.createElement('style');
             s.type = 'text/css';
-            s.appendChild(document.createTextNode(msg.params.text));
+            s.appendChild(window.document.createTextNode(msg.params.text));
 
-            for (i = 0; i < document.styleSheets.length; i++) {
-                node = document.styleSheets[i];
+            for (i = 0; i < window.document.styleSheets.length; i++) {
+                node = window.document.styleSheets[i];
                 if (node.ownerNode.id === msg.params.url) {
                     head.insertBefore(s, node.ownerNode); // insert the style element here
                     // now can remove the style element previously created (if any)
@@ -195,8 +194,8 @@
             var i,
                 sheet,
                 text = "";
-            for (i = 0; i < document.styleSheets.length; i++) {
-                sheet = document.styleSheets[i];
+            for (i = 0; i < window.document.styleSheets.length; i++) {
+                sheet = window.document.styleSheets[i];
                 // if it was already 'reloaded'
                 if (sheet.ownerNode.id ===  msg.params.url) {
                     text = sheet.ownerNode.textContent;
@@ -207,7 +206,7 @@
                     // Deal with Firefox's SecurityError when accessing sheets
                     // from other domains, and Chrome returning `undefined`.
                     try {
-                        rules = document.styleSheets[i].cssRules;
+                        rules = window.document.styleSheets[i].cssRules;
                     } catch (e) {
                         if (e.name !== "SecurityError") {
                             throw e;
@@ -286,10 +285,10 @@
         },
 
         onClose: function () {
-            var body = document.getElementsByTagName("body")[0],
-                overlay = document.createElement("div"),
-                background = document.createElement("div"),
-                status = document.createElement("div");
+            var body = window.document.getElementsByTagName("body")[0],
+                overlay = window.document.createElement("div"),
+                background = window.document.createElement("div"),
+                status = window.document.createElement("div");
 
             overlay.style.width = "100%";
             overlay.style.height = "100%";
@@ -321,7 +320,7 @@
             body.appendChild(overlay);
 
             // change the title as well
-            document.title = "(Brackets Live Preview: closed) " + document.title;
+            window.document.title = "(Brackets Live Preview: closed) " + window.document.title;
         },
 
         setDocumentObserver: function (documentOberver) {

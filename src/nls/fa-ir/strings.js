@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -596,7 +593,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "پیشرفت",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> انتخاب حرکت نشانگر<br><kbd class='text'>شیفت</kbd>حرکت با ده واحد<br><kbd class='text'>تب</kbd> نقاط تغییر",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd>افزایش و یا کاهش گام<br><kbd>←</kbd><kbd>→</kbd> 'شروع' or 'پایان'",
-    "INLINE_TIMING_EDITOR_INVALID"              :"مقدار سابق <code>{0}</code> دیگر معتبر نمی باشد, زیرا تابع نمایش به مقدار <code>{1}</code> تغییر یافته. سند در اولین ویرایش بروزرسانی خواهد شد.",
+    "INLINE_TIMING_EDITOR_INVALID"              : "مقدار سابق <code>{0}</code> دیگر معتبر نمی باشد, زیرا تابع نمایش به مقدار <code>{1}</code> تغییر یافته. سند در اولین ویرایش بروزرسانی خواهد شد.",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "رنگ فعلی",

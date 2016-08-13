@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 /**
  * Initializes the global "brackets" variable and it's properties.
  * Modules should not access the global.brackets object until either

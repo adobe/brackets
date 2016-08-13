@@ -21,10 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, setTimeout */
-
-
 /*
  * Text field with attached dropdown list that is updated (based on a provider) whenever the text changes.
  *

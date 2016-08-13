@@ -21,8 +21,7 @@
  *
  */
 
-
-/*global define, describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, $, spyOn, beforeFirst, afterLast, brackets */
+/*global describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, spyOn, beforeFirst, afterLast */
 /*unittests: Install Extension Dialog*/
 
 define(function (require, exports, module) {

@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, console */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -66,7 +63,7 @@ define(function (require, exports, module) {
         oneTimeHealthData.uuid = userUuid;
         oneTimeHealthData.snapshotTime = Date.now();
         oneTimeHealthData.os = brackets.platform;
-        oneTimeHealthData.userAgent = navigator.userAgent;
+        oneTimeHealthData.userAgent = window.navigator.userAgent;
         oneTimeHealthData.osLanguage = brackets.app.language;
         oneTimeHealthData.bracketsLanguage = brackets.getLocale();
         oneTimeHealthData.bracketsVersion = brackets.metadata.version;

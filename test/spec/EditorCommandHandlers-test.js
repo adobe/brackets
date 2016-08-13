@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, runs, waitsForDone, beforeFirst, afterLast */
+/*global describe, it, expect, beforeEach, afterEach, runs, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -215,7 +214,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 setupFullEditor();
-                PreferencesManager.set("indentLineComment",true);
+                PreferencesManager.set("indentLineComment", true);
             });
 
             afterEach(function () {
@@ -490,7 +489,7 @@ define(function (require, exports, module) {
             describe("with multiple selections", function () {
                 it("should toggle comments on separate lines with cursor selections", function () {
 
-                   myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
                                         {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}}]);
 
                     var lines = defaultContent.split("\n");
@@ -555,9 +554,9 @@ define(function (require, exports, module) {
                                         {start: {line: 3, ch: 6}, end: {line: 3, ch: 8}, reversed: true}]);
 
                     var lines = defaultContent.split("\n");
-                    lines[1]= "    //function bar() {";
-                    lines[2]= "    //    ";
-                    lines[3]= "        //a();";
+                    lines[1] = "    //function bar() {";
+                    lines[2] = "    //    ";
+                    lines[3] = "        //a();";
 
 
                     var expectedText = lines.join("\n");
@@ -622,7 +621,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 setupFullEditor();
-                PreferencesManager.set("indentLineComment",false);
+                PreferencesManager.set("indentLineComment", false);
             });
 
             afterEach(function () {
@@ -2148,7 +2147,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 setupFullEditor(htmlContent, "html");
-                PreferencesManager.set("indentLineComment",false);
+                PreferencesManager.set("indentLineComment", false);
             });
 
             afterEach(function () {
@@ -2231,7 +2230,7 @@ define(function (require, exports, module) {
             describe("with multiple selections", function () {
                 
                 beforeEach(function () {
-                    PreferencesManager.set("indentLineComment",false);
+                    PreferencesManager.set("indentLineComment", false);
                 });
 
                 afterEach(function () {
@@ -2316,7 +2315,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 setupFullEditor(htmlContent, "html");
-                PreferencesManager.set("indentLineComment",true);
+                PreferencesManager.set("indentLineComment", true);
             });
 
             afterEach(function () {
@@ -2346,7 +2345,7 @@ define(function (require, exports, module) {
             describe("with multiple selections", function () {
                 
                 beforeEach(function () {
-                    PreferencesManager.set("indentLineComment",true);
+                    PreferencesManager.set("indentLineComment", true);
                 });
 
                 afterEach(function () {

@@ -24,8 +24,8 @@
 // A simple HTML tokenizer, originally adapted from https://github.com/fb55/htmlparser2
 // (MIT-licensed), but with significant customizations for use in HTML live development.
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, continue: true */
-/*global define */
+/*jslint continue: true */
+
 /*unittests: HTML Tokenizer*/
 
 define(function (require, exports, module) {

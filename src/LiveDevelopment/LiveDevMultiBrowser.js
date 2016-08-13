@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
-
 /**
  * LiveDevelopment allows Brackets to launch a browser with a "live preview" that's
  * connected to the current editor.
