@@ -25,7 +25,7 @@
  * @author Patrick Oladimeji
  * @date 10/24/13 9:35:26 AM
  */
-
+/*globals MutationObserver */
 define(function (require, exports, module) {
     "use strict";
 
@@ -72,7 +72,8 @@ define(function (require, exports, module) {
 
 
     /** Set to true when init() has run; set back to false after deinit() has run */
-    var _isInitialized = false;
+    var _isInitialized = false,
+        gutterObservers = {};
 
     /**
       * Restores the linefolds in the editor using values fetched from the preference store
@@ -270,9 +271,12 @@ define(function (require, exports, module) {
 
         // Reuse any existing fold gutter
         if (gutters.indexOf(GUTTER_NAME) < 0) {
-            var lnIndex = gutters.indexOf("CodeMirror-linenumbers");
+            var lineNumberIndex = gutters.indexOf("CodeMirror-linenumbers");
+            if (lineNumberIndex < 0) {
+                $(editor.getRootElement()).addClass("linenumber-disabled");
+            }
             $(editor.getRootElement()).addClass("folding-enabled");
-            gutters.splice(lnIndex + 1, 0, GUTTER_NAME);
+            gutters.splice(lineNumberIndex + 1, 0, GUTTER_NAME);
             cm.setOption("gutters",  gutters);
             cm.refresh();  // force recomputing gutter width - .folding-enabled class affects linenumbers gutter which has existing cached width
         }
@@ -316,6 +320,38 @@ define(function (require, exports, module) {
         if (editor._codeMirror.getOption("gutters").indexOf(GUTTER_NAME) === -1) {
             createGutter(editor);
             restoreLineFolds(editor);
+            //watch mutations on code mirror gutters and ensure line numbers are added before fold gutter
+            var config = {childList: true};
+            var gutters,
+                lineNumberIndex,
+                foldGutterIndex,
+                cm = editor._codeMirror,
+                guttersContainer = $(".CodeMirror-gutters", editor.getRootElement()),
+                observer = new MutationObserver(function (mutations) {
+                    observer.disconnect();
+                    //ensure fold-gutter appears after line numbers
+                    gutters = cm.getOption("gutters").slice(0);
+                    lineNumberIndex = gutters.indexOf("CodeMirror-linenumbers");
+                    foldGutterIndex = gutters.indexOf(GUTTER_NAME);
+                    if (lineNumberIndex > -1 && foldGutterIndex < lineNumberIndex) {
+                        gutters.splice(foldGutterIndex, 1);
+                        lineNumberIndex = gutters.indexOf("CodeMirror-linenumbers");
+                        gutters.splice(lineNumberIndex + 1, 0, GUTTER_NAME);
+                    }
+                    if (lineNumberIndex < 0) {
+                        $(editor.getRootElement()).addClass("linenumber-disabled");
+                    } else {
+                        $(editor.getRootElement()).removeClass("linenumber-disabled");
+                    }
+                    $(editor.getRootElement()).addClass("folding-enabled");
+                    cm.setOption("gutters", gutters);
+                    cm.refresh();
+                    createGutter(editor);
+                    //reconnect the observer
+                    observer.observe(guttersContainer[0], config);
+                });
+            observer.observe(guttersContainer[0], config);
+            gutterObservers[editor.document.file.fullPath] = observer;
         }
     }
 
@@ -371,6 +407,11 @@ define(function (require, exports, module) {
         Editor.forEveryEditor(function (editor) {
             CodeMirror.commands.unfoldAll(editor._codeMirror);
             removeGutter(editor);
+            //disconnect any mutation observers on the gutter
+            if (gutterObservers[editor.document.file.fullPath]) {
+                gutterObservers[editor.document.file.fullPath].disconnect();
+                delete gutterObservers[editor.document.file.fullPath];
+            }
         });
     }
 
