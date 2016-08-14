@@ -31,7 +31,12 @@
   <h2><a href="/posts/{{../permalink}}#{{id}}">{{title}}</a></h2>
   <div>{{body}}
     
-    
+      
+    {{#person}}
+    <div>Name: {{firstName}} {{lastName}}</div>
+    <div>Email: {{email}}</div>
+    <div>Phone: {{phone}}</div>
+  {{/person}}
     </div>
   {{/each}}
 </div>
