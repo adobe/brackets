@@ -25,7 +25,6 @@
  * @author Patrick Oladimeji
  * @date 10/24/13 9:35:26 AM
  */
-/*globals MutationObserver */
 define(function (require, exports, module) {
     "use strict";
 
