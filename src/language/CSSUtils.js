@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $ */
+/*jslint regexp: true */
 
 /**
  * Set of utilities for simple parsing of CSS text.

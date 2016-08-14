@@ -20,7 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*global module, require, process*/
+
+/*jslint node: true */
 
 module.exports = function (grunt) {
     "use strict";

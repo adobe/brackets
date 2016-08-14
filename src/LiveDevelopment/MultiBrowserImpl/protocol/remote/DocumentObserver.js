@@ -21,7 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
 /*global setInterval, clearInterval */
 
 (function (global) {
@@ -84,8 +83,8 @@
             }
         };
         //iterate on document.stylesheets (StyleSheetList doesn't provide forEach iterator).
-        for (j = 0; j < document.styleSheets.length; j++) {
-            s = document.styleSheets[j];
+        for (j = 0; j < window.document.styleSheets.length; j++) {
+            s = window.document.styleSheets[j];
             traverseRules(s, s.href);
         }
         return rel;
@@ -141,8 +140,8 @@
                 // TODO: This is just a temporary 'cross-browser' solution, it needs optimization.
                 var loadInterval = setInterval(function () {
                     var i;
-                    for (i = 0; i < document.styleSheets.length; i++) {
-                        if (document.styleSheets[i].href === href) {
+                    for (i = 0; i < window.document.styleSheets.length; i++) {
+                        if (window.document.styleSheets[i].href === href) {
                             //clear interval
                             clearInterval(loadInterval);
                             // notify stylesheets added
@@ -155,7 +154,7 @@
 
             onStylesheetRemoved : function (url) {
                 // get style node created when setting new text for stylesheet.
-                var s = document.getElementById(url);
+                var s = window.document.getElementById(url);
                 // remove
                 if (s && s.parentNode && s.parentNode.removeChild) {
                     s.parentNode.removeChild(s);
@@ -285,10 +284,10 @@
             });
         } else {
             // use MutationEvents as fallback
-            document.addEventListener('DOMNodeInserted', function niLstnr(e) {
+            window.document.addEventListener('DOMNodeInserted', function niLstnr(e) {
                 _onNodesAdded([e.target]);
             });
-            document.addEventListener('DOMNodeRemoved', function nrLstnr(e) {
+            window.document.addEventListener('DOMNodeRemoved', function nrLstnr(e) {
                 _onNodesRemoved([e.target]);
             });
         }

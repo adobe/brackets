@@ -22,7 +22,6 @@
  */
 
 /* unittests: ProjectModel */
-/*global define, brackets, $ */
 
 /**
  * Provides the data source for a project and manages the view model for the FileTreeView.

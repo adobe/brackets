@@ -21,8 +21,8 @@
  *
  */
 
-/* unittests: ProjectModel */
-/*global $, define, describe, it, expect, beforeEach, waitsForDone, waitsForFail, runs, spyOn, jasmine */
+/*global describe, it, expect, beforeEach, waitsForDone, waitsForFail, runs, spyOn, jasmine */
+/*unittests: ProjectModel */
 
 define(function (require, exports, module) {
     "use strict";

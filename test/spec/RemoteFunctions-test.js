@@ -21,8 +21,8 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, evil: true */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, window */
+/*jslint evil: true */
+/*global describe, it, xit, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
     'use strict';

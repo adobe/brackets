@@ -21,9 +21,8 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, unescape, window */
+/*jslint regexp: true */
+/*global unescape */
 
 /**
  * Set of utilities for working with files and text content.

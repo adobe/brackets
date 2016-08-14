@@ -2,8 +2,7 @@
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 // Based on http://codemirror.net/addon/fold/foldcode.js
 // Modified by Patrick Oladimeji for Brackets
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, document*/
+
 define(function (require, exports, module) {
     "use strict";
     var CodeMirror          = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
@@ -60,7 +59,7 @@ define(function (require, exports, module) {
         }
 
         function makeWidget() {
-            var widget = document.createElement("span");
+            var widget = window.document.createElement("span");
             widget.className = "CodeMirror-foldmarker";
             return widget;
         }

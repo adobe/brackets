@@ -21,8 +21,6 @@
  *
  */
 
-
-/*global define, localStorage, console */
 /*unittests: Preferences Manager */
 
 /**
@@ -196,7 +194,7 @@ define(function (require, exports, module) {
 
     // Check localStorage for a preferencesKey. Production and unit test keys
     // are used to keep preferences separate within the same storage implementation.
-    preferencesKey = localStorage.getItem("preferencesKey");
+    preferencesKey = window.localStorage.getItem("preferencesKey");
 
     if (!preferencesKey) {
         // use default key if none is found
@@ -204,11 +202,11 @@ define(function (require, exports, module) {
         doLoadPreferences = true;
     } else {
         // using a non-default key, check for additional settings
-        doLoadPreferences = !!(localStorage.getItem("doLoadPreferences"));
+        doLoadPreferences = !!(window.localStorage.getItem("doLoadPreferences"));
     }
 
     // Use localStorage by default
-    _initStorage(localStorage);
+    _initStorage(window.localStorage);
 
 
     // Public API

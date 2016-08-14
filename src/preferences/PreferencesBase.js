@@ -21,7 +21,7 @@
  *
  */
 
-/*global define, $, console, appshell */
+/*global appshell */
 /*unittests: Preferences Base */
 
 /**

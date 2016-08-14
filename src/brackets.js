@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: true, $, window, navigator, jQuery */
+/*global jQuery */
 
 // TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
 
@@ -244,7 +242,7 @@ define(function (require, exports, module) {
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
         // using the "Always" scroll bar setting.
-        var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(navigator.userAgent);
+        var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(window.navigator.userAgent);
         if (osxMatch && osxMatch[1] && Number(osxMatch[1]) >= 7) {
             // test a scrolling div for scrollbars
             var $testDiv = $("<div style='position:fixed;left:-50px;width:50px;height:50px;overflow:auto;'><div style='width:100px;height:100px;'/></div>").appendTo(window.document.body);

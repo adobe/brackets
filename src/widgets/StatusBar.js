@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document */
-
 /**
  * A status bar with support for file information and busy and status indicators. This is a semi-generic
  * container; for the code that decides what content appears in the status bar, see client modules like
@@ -109,7 +105,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        indicator = indicator || document.createElement("div");
+        indicator = indicator || window.document.createElement("div");
         tooltip = tooltip || "";
         style = style || "";
         id = id.replace(_indicatorIDRegexp, "-") || "";

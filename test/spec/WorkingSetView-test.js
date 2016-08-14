@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, waits */
+/*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst, afterLast, waits */
 
 define(function (require, exports, module) {
     "use strict";
@@ -166,12 +164,12 @@ define(function (require, exports, module) {
             // force the test window to initialize to unit test preferences
             // for just this test
             runs(function () {
-                localStorage.setItem("doLoadPreferences", true);
+                window.localStorage.setItem("doLoadPreferences", true);
             });
 
             // remove temporary unit test preferences with a single-spec after()
             this.after(function () {
-                localStorage.removeItem("doLoadPreferences");
+                window.localStorage.removeItem("doLoadPreferences");
             });
 
             // close test window while working set has 2 files (see beforeEach())

@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /**
  * The view that controls the showing and hiding of the sidebar.
  *

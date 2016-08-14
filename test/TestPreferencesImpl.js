@@ -21,9 +21,6 @@
  *
  */
 
-
-/*global define, $ */
-
 /**
  * Generates the fully configured preferences systems used IN TESTING. This configuration does
  * not manipulate the user's preferences.

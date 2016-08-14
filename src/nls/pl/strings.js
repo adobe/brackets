@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -84,7 +81,7 @@ define({
     "ERROR_MULTIPLE_SHORTCUTS"          : "Próbujesz przypisać kilka skrótów do następujących komend: {0}",
     "ERROR_DUPLICATE_SHORTCUTS"         : "Upewnij się, że następujące skróty są unikalne (nie nadpisują się): {0}",
     "ERROR_INVALID_SHORTCUTS"           : "Podane skróty są nieprawidłowe: {0}",
-    "ERROR_NONEXISTENT_COMMANDS"        : "Próbujesz przypisać skróty do niestniejących komend: {0}",    
+    "ERROR_NONEXISTENT_COMMANDS"        : "Próbujesz przypisać skróty do niestniejących komend: {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Błąd podczas wczytywania ustawień",

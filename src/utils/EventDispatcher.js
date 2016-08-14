@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /**
  * Implements a jQuery-like event dispatch pattern for non-DOM objects:
  *  - Listeners are attached via on()/one() & detached via off()

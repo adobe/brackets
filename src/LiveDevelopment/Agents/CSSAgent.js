@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*jslint forin: true */
 
 /**
  * CSSAgent keeps track of loaded style sheets and allows reloading them
