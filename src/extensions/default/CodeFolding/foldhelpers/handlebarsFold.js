@@ -4,6 +4,7 @@
  * @license MIT
  * @date 14/08/2016 22:04:21
  */
+
 define(function (require, exports, module) {
     "use strict";
     var CodeMirror = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
