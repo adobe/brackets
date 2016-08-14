@@ -1,4 +1,9 @@
-/*global define, $, brackets*/
+/**
+ * Fold range finder for handlebars/mustache template type files.
+ * @author Patrick Oladimeji
+ * @license MIT
+ * @date 14/08/2016 22:04:21
+ */
 define(function (require, exports, module) {
     "use strict";
     var CodeMirror = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
@@ -54,24 +59,25 @@ define(function (require, exports, module) {
     
     function getRange(cm, start) {
         var currentLine = start.line,
-            text = '',
+            text = cm.getLine(currentLine) || '',
             i = 0,
             tagStack = [],
             braceStack = [],
-            predicate,
             found,
             openTag,
             openPos,
-            currentCharacter;
-        text = cm.getLine(currentLine);
-        var openTagIndex = text.indexOf('{{');
+            currentCharacter,
+            openTagIndex = text.indexOf('{{');
+        
         if (openTagIndex < 0 || text[openTagIndex + 2] === '/') {
             return;
         }
+        
         found = scanTextUntil(cm, openTagIndex + 2, currentLine, endTag);
         if (!found) {
             return;
         }
+        
         if (found) {
             openPos = {from: {line: currentLine, ch: openTagIndex}, to: found.to};
             openTag = found.string.substring(0, found.string.length - 1);
@@ -129,15 +135,14 @@ define(function (require, exports, module) {
                 break;
             case '\'':
             case '"':
-                predicate = readUntil(text[i]);
-                found = scanTextUntil(cm, i + 1, currentLine, predicate);
+                found = scanTextUntil(cm, i + 1, currentLine, readUntil(text[i]));
                 if (found) {
                     i = found.to.ch;
                     currentLine = found.to.line;
                 }
                 break;
             default:
-                ++i;
+                break;
             }
             
             ++i;
