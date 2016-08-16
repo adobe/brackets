@@ -59,6 +59,13 @@ define(function (require, exports, module) {
     var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.hgtags$|^\.idea$|^\.c9revisions$|^\.SyncArchive$|^\.SyncID$|^\.SyncIgnore$|\~$/;
 
     /**
+     * @public
+     * Anymatch definition of files and folders that should be excluded directly
+     * node domain watching with chokidar
+     */
+    var exclusionGlob = ".git";
+
+    /**
      * @private
      * A string containing all invalid characters for a specific platform.
      * This will be used to construct a regular expression for checking invalid filenames.
@@ -1353,6 +1360,7 @@ define(function (require, exports, module) {
     exports._invalidChars           = _invalidChars;
 
     exports.shouldShow              = shouldShow;
+    exports.exclusionGlob           = exclusionGlob;
     exports.isValidFilename         = isValidFilename;
     exports.EVENT_CHANGE            = EVENT_CHANGE;
     exports.EVENT_SHOULD_SELECT     = EVENT_SHOULD_SELECT;

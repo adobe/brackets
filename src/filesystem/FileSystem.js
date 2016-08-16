@@ -852,17 +852,17 @@ define(function (require, exports, module) {
      * @param {function(string): boolean} filter - Returns true if a particular item should
      *      be watched, given its name (not full path). Items that are ignored are also
      *      filtered from Directory.getContents() results within this subtree.
-     * @param {string} nodeFilter - anymatch compatible definition for filtering out events
+     * @param {string} globFilter - glob compatible string definition for filtering out events
      *      on the node side.
      * @param {function(?string)=} callback - A function that is called when the watch has
      *      completed. If the watch fails, the function will have a non-null FileSystemError
      *      string parametr.
      */
-    FileSystem.prototype.watch = function (entry, filter, nodeFilter, callback) {
-        // make nodeFilter an optional argument
-        if (typeof nodeFilter === "function" && typeof callback !== "function") {
-            callback = nodeFilter;
-            nodeFilter = null;
+    FileSystem.prototype.watch = function (entry, filter, globFilter, callback) {
+        // make globFilter an optional argument
+        if (typeof globFilter === "function" && typeof callback !== "function") {
+            callback = globFilter;
+            globFilter = null;
         }
 
         var fullPath = entry.fullPath;
@@ -891,7 +891,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        var watchedRoot = new WatchedRoot(entry, filter, nodeFilter);
+        var watchedRoot = new WatchedRoot(entry, filter, globFilter);
 
         this._watchedRoots[fullPath] = watchedRoot;
 
