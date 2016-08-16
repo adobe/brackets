@@ -60,10 +60,10 @@ define(function (require, exports, module) {
 
     /**
      * @public
-     * Anymatch definition of files and folders that should be excluded directly
-     * node domain watching with chokidar
+     * Glob definition of files and folders that should be excluded directly
+     * inside node domain watching with chokidar
      */
-    var exclusionGlob = ".git";
+    var exclusionGlob = "**/(.pyc|.git|.gitmodules|.svn|.DS_Store|Thumbs.db|.hg|CVS|.hgtags|.idea|.c9revisions|.SyncArchive|.SyncID|.SyncIgnore)";
 
     /**
      * @private

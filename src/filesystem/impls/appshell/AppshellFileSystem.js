@@ -108,8 +108,6 @@ define(function (require, exports, module) {
      * @private
      */
     function _fileWatcherChange(evt, event, parentDirPath, entryName, statsObj) {
-        // console.log('_fileWatcherChange', event, parentDirPath, entryName, statsObj);
-
         var change;
         switch (event) {
         case "change":
