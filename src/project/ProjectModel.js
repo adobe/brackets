@@ -88,8 +88,10 @@ define(function (require, exports, module) {
         // Validate file name
         // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        return !((filename.search(new RegExp("[" + invalidChars + "]+")) !== -1) ||
-                 filename.match(_illegalFilenamesRegEx));
+        return !(
+            new RegExp("[" + invalidChars + "]+").test(filename) ||
+            _illegalFilenamesRegEx.test(filename)
+        );
     }
 
     /**
@@ -97,7 +99,7 @@ define(function (require, exports, module) {
      * @see #shouldShow
      */
     function _shouldShowName(name) {
-        return !name.match(_exclusionListRegEx);
+        return !_exclusionListRegEx.test(name);
     }
 
     /**
