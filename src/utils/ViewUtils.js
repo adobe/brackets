@@ -255,9 +255,6 @@ define(function (require, exports, module) {
                 // list item position is relative to scroller
                 var selectionMarkerTop = $listItem.offset().top - $scrollerElement.offset().top + $scrollerElement.get(0).scrollTop;
 
-                // force selection width to match scroller
-                $selectionMarker.width($scrollerElement.get(0).scrollWidth);
-
                 // move the selectionMarker position to align with the list item
                 $selectionMarker.css("top", selectionMarkerTop);
                 $selectionMarker.show();
