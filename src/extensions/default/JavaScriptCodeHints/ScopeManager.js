@@ -55,7 +55,7 @@ define(function (require, exports, module) {
 
     var ternEnvironment     = [],
         pendingTernRequests = {},
-        builtinFiles        = ["ecma5.json", "ecma6.json", "browser.json", "jquery.json"],
+        builtinFiles        = ["ecmascript.json", "browser.json", "jquery.json"],
         builtinLibraryNames = [],
         isDocumentDirty     = false,
         _hintCount          = 0,
