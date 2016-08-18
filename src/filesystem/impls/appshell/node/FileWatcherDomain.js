@@ -99,7 +99,8 @@ function watchPath(path, ignored) {
             ignoreInitial: true,
             ignorePermissionErrors: true,
             followSymlinks: true,
-            ignored: ignored
+            ignored: ignored,
+            usePolling: process.platform === "win32"
         });
 
         watcher.on("all", function (event, filename, nodeFsStats) {

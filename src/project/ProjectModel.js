@@ -63,7 +63,7 @@ define(function (require, exports, module) {
      * Glob definition of files and folders that should be excluded directly
      * inside node domain watching with chokidar
      */
-    var exclusionGlob = "**/(.pyc|.git|.gitmodules|.svn|.DS_Store|Thumbs.db|.hg|CVS|.hgtags|.idea|.c9revisions|.SyncArchive|.SyncID|.SyncIgnore)";
+    var exclusionGlob = "**/(.pyc|.git|.gitmodules|.svn|.DS_Store|Thumbs.db|.hg|CVS|.hgtags|.idea|.c9revisions|.SyncArchive|.SyncID|.SyncIgnore|node_modules)";
 
     /**
      * @private
