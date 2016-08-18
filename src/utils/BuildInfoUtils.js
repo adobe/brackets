@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
-
 /**
  * Utilities for determining the git SHA from an optional repository or from the
  * installed copy of Brackets.

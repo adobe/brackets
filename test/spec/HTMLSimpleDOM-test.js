@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50, evil: true */
-/*global define, describe, it, expect, jasmine */
+/*global describe, it, expect, jasmine */
 /*unittests: HTML SimpleDOM*/
 
 define(function (require, exports, module) {

@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window */
-
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -752,8 +748,6 @@ define(function (require, exports, module) {
                 } else if (tagInfo.position.offset === 0) {
                     completion = "\"" + completion + "\"";
                 }
-            } else if (completion === tagInfo.attr.value) {
-                shouldReplace = false;
             }
 
             if (shouldReplace) {

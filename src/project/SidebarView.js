@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /**
  * The view that controls the showing and hiding of the sidebar.
  *
@@ -190,14 +186,6 @@ define(function (require, exports, module) {
         $projectFilesContainer    = $sidebar.find("#project-files-container");
         $workingSetViewsContainer = $sidebar.find("#working-set-list-container");
 
-        function _resizeSidebarSelection() {
-            var $element;
-            $sidebar.find(".sidebar-selection").each(function (index, element) {
-                $element = $(element);
-                $element.width($element.parent()[0].scrollWidth);
-            });
-        }
-
         // init
         $sidebar.on("panelResizeStart", function (evt, width) {
             $sidebar.find(".sidebar-selection-extension").css("display", "none");
@@ -205,12 +193,10 @@ define(function (require, exports, module) {
         });
 
         $sidebar.on("panelResizeUpdate", function (evt, width) {
-            $sidebar.find(".sidebar-selection").width(width);
             ProjectManager._setFileTreeSelectionWidth(width);
         });
 
         $sidebar.on("panelResizeEnd", function (evt, width) {
-            _resizeSidebarSelection();
             $sidebar.find(".sidebar-selection-extension").css("display", "block").css("left", width);
             $sidebar.find(".scroller-shadow").css("display", "block");
             $projectFilesContainer.triggerHandler("scroll");
@@ -223,7 +209,6 @@ define(function (require, exports, module) {
 
         $sidebar.on("panelExpanded", function (evt, width) {
             WorkingSetView.refresh();
-            _resizeSidebarSelection();
             $sidebar.find(".scroller-shadow").css("display", "block");
             $sidebar.find(".sidebar-selection-extension").css("left", width);
             $projectFilesContainer.triggerHandler("scroll");

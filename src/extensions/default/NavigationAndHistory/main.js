@@ -21,11 +21,6 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, brackets */
-
-
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -164,14 +159,25 @@ define(function (require, exports, module) {
         var deferred = new $.Deferred(),
             fileEntry = FileSystem.getFileForPath(entry.file);
 
-        fileEntry.exists(function (err, exists) {
-            if (!err && exists) {
-                deferred.resolve();
-            } else {
+        if (entry.inMem) {
+            var indxInWS = MainViewManager.findInWorkingSet(entry.paneId, entry.file);
+            // Remove entry if InMemoryFile is not found in Working set
+            if (indxInWS === -1) {
                 _mrofList[index] = null;
                 deferred.reject();
+            } else {
+                deferred.resolve();
             }
-        });
+        } else {
+            fileEntry.exists(function (err, exists) {
+                if (!err && exists) {
+                    deferred.resolve();
+                } else {
+                    _mrofList[index] = null;
+                    deferred.reject();
+                }
+		    });
+	    }
 
         return deferred.promise();
     }
@@ -569,7 +575,9 @@ define(function (require, exports, module) {
      * @private
      * @param {Editor} editor - editor to extract file information
      */
-    function _addToMROFList(filePath, paneId, cursorPos) {
+    function _addToMROFList(file, paneId, cursorPos) {
+
+        var filePath = file.fullPath;
         
         if (!paneId) { // Don't handle this if not a full view/editor
             return;
@@ -591,6 +599,13 @@ define(function (require, exports, module) {
 
         entry = _makeMROFListEntry(filePath, paneId, cursorPos);
 
+        // Check if the file is an InMemoryFile
+        if (file.constructor.name === "InMemoryFile") {
+            // Mark the entry as inMem, so that we can knock it off from the list when removed from working set
+            entry.inMem = true;
+        }
+
+
         if (index !== -1) {
             _mrofList.splice(index, 1);
         }
@@ -600,7 +615,6 @@ define(function (require, exports, module) {
 
         PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
     }
-    
 
     // To update existing entry if a move has happened
     function _handleWorkingSetMove(event, file, sourcePaneId, destinationPaneId) {
@@ -755,7 +769,7 @@ define(function (require, exports, module) {
                 _initRecentFilesList();
             }
 
-            _addToMROFList(newFile.fullPath, newPaneId);
+	        _addToMROFList(newFile, newPaneId);
         }
     }
 
@@ -766,9 +780,9 @@ define(function (require, exports, module) {
                 _initRecentFilesList();
             }
 
-            var filePath = current.document.file.fullPath;
+            var file = current.document.file;
             var paneId = current._paneId;
-            _addToMROFList(filePath, paneId, current.getCursorPos(true, "first"));
+            _addToMROFList(file, paneId, current.getCursorPos(true, "first"));
         }
 
         if (previous) { // Capture the last know cursor position

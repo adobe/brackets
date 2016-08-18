@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, runs, $, brackets, waitsForDone */
+/*global describe, it, expect, beforeEach, afterEach, runs, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -503,7 +502,7 @@ define(function (require, exports, module) {
              *     callback. If none is supplied, a dummy function is passed.
              */
             function makeTimingFuncUI(initialTimingFunction, callback) {
-                var parent = $(document.body),
+                var parent = $(window.document.body),
                     match = TimingFunctionUtils.timingFunctionMatch(initialTimingFunction, true),
                     cb = callback || function () { };
 

@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, brackets, waitsForDone */
+/*global describe, it, expect, beforeEach, afterEach, beforeFirst, afterLast, waitsFor, runs, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -617,6 +615,34 @@ define(function (require, exports, module) {
 
                     // Filename was replaced
                     expect(testDocument.getRange(pos1, pos4)).toEqual("subfolder/chevron.png");
+                });
+            });
+
+            it("should completely replace file in HTML", function () {
+                var pos1    = { line: 25, ch: 11 },
+                    pos2    = { line: 25, ch: 27 },
+                    pos3    = { line: 25, ch: 34 };
+
+                runs(function () {
+                    testEditor.setCursorPos(pos2);
+                    hintsObj = null;
+                    expectAsyncHints(UrlCodeHints.hintProvider);
+                });
+
+                runs(function () {
+                    expect(hintsObj).toBeTruthy();
+                    expect(hintsObj.hints).toBeTruthy();
+                    expect(hintsObj.hints.length).toBe(1);
+                    expect(hintsObj.hints[0]).toBe("subfolder/chevron.png");
+
+                    // False indicates hints were closed after insertion
+                    expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(false);
+
+                    // File name was completely replaced, not just appended to
+                    expect(testDocument.getRange(pos1, pos3)).toEqual("'subfolder/chevron.png'");
+
+                    // Cursor was moved past closing single-quote
+                    expect(testEditor.getCursorPos()).toEqual(pos3);
                 });
             });
 

@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, nomen: true, regexp: true, maxerr: 50 */
-/*global define, brackets, $, window */
+/*jslint regexp: true */
 
 define(function (require, exports, module) {
     "use strict";

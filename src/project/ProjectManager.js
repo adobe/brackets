@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
-
 /**
  * ProjectManager glues together the project model and file tree view and integrates as needed with other parts
  * of Brackets. It is responsible for creating and updating the project tree when projects are opened
@@ -1166,7 +1163,7 @@ define(function (require, exports, module) {
      */
     function _setFileTreeSelectionWidth(width) {
         model.setSelectionWidth(width);
-        _renderTree();
+        _renderTreeSync();
     }
 
     // Initialize variables and listeners that depend on the HTML DOM

@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define */
-
 // This transport provides a WebSocket connection between Brackets and a live browser preview.
 // This is just a thin wrapper around the Node extension (NodeSocketTransportDomain) that actually
 // provides the WebSocket server and handles the communication. We also rely on an injected script in

@@ -22,7 +22,6 @@
  */
 
 /* unittests: ProjectModel */
-/*global define, brackets, $ */
 
 /**
  * Provides the data source for a project and manages the view model for the FileTreeView.
@@ -883,22 +882,23 @@ define(function (require, exports, module) {
      * Rename a file/folder. This will update the project tree data structures
      * and send notifications about the rename.
      *
-     * @param {string} oldName Old item name
-     * @param {string} newName New item name
+     * @param {string} oldPath Old name of the item with the path
+     * @param {string} newPath New name of the item with the path
+     * @param {string} newName New name of the item
      * @param {boolean} isFolder True if item is a folder; False if it is a file.
      * @return {$.Promise} A promise object that will be resolved or rejected when
      *   the rename is finished.
      */
-    function _renameItem(oldName, newName, isFolder) {
+    function _renameItem(oldPath, newPath, newName, isFolder) {
         var result = new $.Deferred();
 
-        if (oldName === newName) {
+        if (oldPath === newPath) {
             result.resolve();
-        } else if (!isValidFilename(FileUtils.getBaseName(newName), _invalidChars)) {
+        } else if (!isValidFilename(newName, _invalidChars)) {
             result.reject(ERROR_INVALID_FILENAME);
         } else {
-            var entry = isFolder ? FileSystem.getDirectoryForPath(oldName) : FileSystem.getFileForPath(oldName);
-            entry.rename(newName, function (err) {
+            var entry = isFolder ? FileSystem.getDirectoryForPath(oldPath) : FileSystem.getFileForPath(oldPath);
+            entry.rename(newPath, function (err) {
                 if (err) {
                     result.reject(err);
                 } else {
@@ -916,10 +916,11 @@ define(function (require, exports, module) {
      * Renames the item at the old path to the new name provided.
      *
      * @param {string} oldPath full path to the current location of file or directory (should include trailing slash for directory)
+     * @param {string} newPath full path to the new location of the file or directory
      * @param {string} newName new name for the file or directory
      */
-    ProjectModel.prototype._renameItem = function (oldPath, newName) {
-        return _renameItem(oldPath, newName, !_pathIsFile(oldPath));
+    ProjectModel.prototype._renameItem = function (oldPath, newPath, newName) {
+        return _renameItem(oldPath, newPath, newName, !_pathIsFile(oldPath));
     };
 
     /**
@@ -974,7 +975,7 @@ define(function (require, exports, module) {
                 renameInfo.deferred.reject(error);
             });
         } else {
-            this._renameItem(oldPath, newPath).then(function () {
+            this._renameItem(oldPath, newPath, newName).then(function () {
                 finalizeRename();
                 renameInfo.deferred.resolve({
                     newPath: newPath
@@ -1334,7 +1335,7 @@ define(function (require, exports, module) {
 
     // Init invalid characters string
     if (brackets.platform === "mac") {
-        _invalidChars = "?*|:";
+        _invalidChars = "?*|:/";
     } else if (brackets.platform === "linux") {
         _invalidChars = "?*|/";
     } else {

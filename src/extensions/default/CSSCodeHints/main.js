@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, brackets, $ */
+/*jslint regexp: true */
 
 define(function (require, exports, module) {
     "use strict";
@@ -332,6 +331,12 @@ define(function (require, exports, module) {
             // Select initial property if anything has been typed
             if (this.primaryTriggerKeys.indexOf(implicitChar) !== -1 || needle !== "") {
                 selectInitial = true;
+            }
+
+            if (lastContext === CSSUtils.PROP_VALUE) {
+                // close the session if we're coming from a property value
+                // see https://github.com/adobe/brackets/issues/9496
+                return null;
             }
 
             lastContext = CSSUtils.PROP_NAME;

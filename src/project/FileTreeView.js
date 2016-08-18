@@ -21,7 +21,6 @@
  *
  */
 
-/*global define, $*/
 /*unittests: FileTreeView*/
 
 /**
@@ -828,16 +827,10 @@ define(function (require, exports, module) {
                 width = selectionViewInfo.get("width"),
                 scrollWidth = selectionViewInfo.get("scrollWidth");
 
-            // Avoid endless horizontal scrolling
-            if (left + width > scrollWidth) {
-                left = scrollWidth - width;
-            }
-
             return DOM.div({
                 style: {
                     overflow: "auto",
                     left: left,
-                    width: width,
                     display: this.props.visible ? "block" : "none"
                 },
                 className: this.props.className
