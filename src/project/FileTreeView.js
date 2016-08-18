@@ -120,7 +120,6 @@ define(function (require, exports, module) {
      */
     function _createThickness(depth) {
         return DOM.div({
-            className: "thickness",
             style: {
                 display: "inline-block",
                 width: INDENTATION_WIDTH * depth
@@ -428,6 +427,7 @@ define(function (require, exports, module) {
         handleClick: function (e) {
             // If we're renaming, allow the click to go through to the rename input.
             if (this.props.entry.get("rename")) {
+                e.stopPropagation();
                 return;
             }
 
@@ -509,14 +509,13 @@ define(function (require, exports, module) {
             var thickness = _createThickness(this.props.depth);
 
             if (this.props.entry.get("rename")) {
+                liArgs.push(thickness);
                 nameDisplay = fileRenameInput({
                     actions: this.props.actions,
                     entry: this.props.entry,
                     name: this.props.name,
                     parentPath: this.props.parentPath
                 });
-
-                liArgs.push(thickness);
             } else {
                 // Need to flatten the argument list because getIcons returns an array
                 var aArgs = _.flatten([{
