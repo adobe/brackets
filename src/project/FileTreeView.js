@@ -657,6 +657,11 @@ define(function (require, exports, module) {
          * If you click on a directory, it will toggle between open and closed.
          */
         handleClick: function (event) {
+            if (this.props.entry.get("rename")) {
+                event.stopPropagation();
+                return;
+            }
+
             if (event.button !== LEFT_MOUSE_BUTTON) {
                 return;
             }
@@ -753,6 +758,8 @@ define(function (require, exports, module) {
             }, thickness, this.getIcons()]);
             if (!entry.get("rename")) {
                 aArgs.push(this.props.name);
+            } else {
+                aArgs.push(renameInput);
             }
 
             nameDisplay = DOM.a.apply(DOM.a, aArgs);
@@ -763,7 +770,6 @@ define(function (require, exports, module) {
                 onMouseDown: this.handleMouseDown
             },
                 _createAlignedIns(this.props.depth),
-                renameInput,
                 nameDisplay,
                 childNodes);
         }
