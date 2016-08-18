@@ -68,6 +68,9 @@ define(function LiveCSSDocumentModule(require, exports, module) {
 
         this.doc.on("change.LiveCSSDocument", this.onChange);
         this.doc.on("deleted.LiveCSSDocument", this.onDeleted);
+        if (editor) {
+            this._attachToEditor(editor);
+        }
     };
 
     LiveCSSDocument.prototype = Object.create(LiveDocument.prototype);

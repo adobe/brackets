@@ -307,7 +307,7 @@ define(function (require, exports, module) {
         docPromise.done(function (doc) {
             if ((_classForDocument(doc) === LiveCSSDocument) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
-                var liveDoc = _createLiveDocument(doc, null, roots);
+                var liveDoc = _createLiveDocument(doc, doc._masterEditor, roots);
                 if (liveDoc) {
                     _server.add(liveDoc);
                     _relatedDocuments[doc.url] = liveDoc;
