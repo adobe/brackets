@@ -127,7 +127,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Haluatko tallentaa tekemäsi muutokset dokumenttiin <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Haluatko tallentaa muutokset seuraaviin tiedostoihin?",
     "EXT_MODIFIED_TITLE"                : "Ulkoiset muutokset",
-    "CONFIRM_DELETE_TITLE"       : "Vahvista poisto",
+    "CONFIRM_DELETE_TITLE"              : "Vahvista poisto",
     "CONFIRM_FOLDER_DELETE"             : "Haluatko varmasti poistaa kansion <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Tiedosto poistettu",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> on muuttunut levyllä {APP_NAME}in ulkopuolella.<br /><br />Haluatko tallentaa tiedoston ja korvata kyseiset muutokset?",

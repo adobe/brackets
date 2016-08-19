@@ -128,7 +128,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Czy chcesz zapisać zmiany w dokumencie <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Czy chcesz zapisać zmiany w następujących plikach?",
     "EXT_MODIFIED_TITLE"                : "Zmiany zewnętrzne",
-    "CONFIRM_DELETE_TITLE"       : "Potwierdź usunięcie",
+    "CONFIRM_DELETE_TITLE"              : "Potwierdź usunięcie",
     "CONFIRM_FOLDER_DELETE"             : "Czy na pewno chcesz usunąć folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Plik został usunięty",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> został zmodyfikowany na dysku, poza {APP_NAME}.<br /><br />Czy chcesz zapisać plik i nadpisać te zmiany?",

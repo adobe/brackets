@@ -126,7 +126,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                        : "Чи бажаєте ви зберегти зміни внесені у файл <span class=\'dialog-filename\'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"                  : "Чи бажаєте ви зберегти зміни до наступних файлів?",
     "EXT_MODIFIED_TITLE"                        : "Зовнішні зміни",
-    "CONFIRM_DELETE_TITLE"               : "Підтвердження видалення",
+    "CONFIRM_DELETE_TITLE"                      : "Підтвердження видалення",
     "CONFIRM_FOLDER_DELETE"                     : "Ви дійсно хочете видалити теку <span class=\'dialog-filename\'>{0}</span>?",
     "FILE_DELETED_TITLE"                        : "Файл видалено",
     "EXT_MODIFIED_WARNING"                      : "<span class=\'dialog-filename\'>{0}</span> змінено на диску.<br /><br />Чи ви хочете зберегти файл і перезаписати ці зміни?",
