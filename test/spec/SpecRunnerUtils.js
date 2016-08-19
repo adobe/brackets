@@ -21,9 +21,8 @@
  *
  */
 
+/*global jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn */
 define(function (require, exports, module) {
     'use strict';
 

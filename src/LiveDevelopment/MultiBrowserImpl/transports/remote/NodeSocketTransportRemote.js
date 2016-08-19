@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint browser: true, vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global WebSocket */
-
 // This is a transport injected into the browser via a script that handles the low
 // level communication between the live development protocol handlers on both sides.
 // This transport provides a web socket mechanism. It's injected separately from the

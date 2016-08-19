@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, spyOn, expect, beforeEach, afterEach, $ */
+/*global describe, it, spyOn, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
     'use strict';
@@ -40,7 +38,7 @@ define(function (require, exports, module) {
             // hold the height, and we'll place the editor holder in it.
             $fakeContentDiv = $("<div class='content'/>")
                 .css("height", "200px")
-                .appendTo(document.body);
+                .appendTo(window.document.body);
 
             $fakeHolder = SpecRunnerUtils.createMockElement()
                                         .css("width", "1000px")
@@ -111,7 +109,7 @@ define(function (require, exports, module) {
             // hold the height, and we'll place the editor holder in it.
             $fakeContentDiv = $("<div class='content'/>")
                 .css("height", "200px")
-                .appendTo(document.body);
+                .appendTo(window.document.body);
 
             $fakeHolder = SpecRunnerUtils.createMockElement()
                                         .css("width", "1000px")

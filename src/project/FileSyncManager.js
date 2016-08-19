@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /**
  * FileSyncManager is a set of utilities to help track external modifications to the files and folders
  * in the currently open project.

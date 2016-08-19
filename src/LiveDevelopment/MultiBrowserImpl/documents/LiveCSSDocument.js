@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
-
 /**
  * LiveCSSDocument manages a single CSS source document
  *
@@ -72,6 +68,9 @@ define(function LiveCSSDocumentModule(require, exports, module) {
 
         this.doc.on("change.LiveCSSDocument", this.onChange);
         this.doc.on("deleted.LiveCSSDocument", this.onDeleted);
+        if (editor) {
+            this._attachToEditor(editor);
+        }
     };
 
     LiveCSSDocument.prototype = Object.create(LiveDocument.prototype);

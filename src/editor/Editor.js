@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
-
 /**
  * Editor is a 1-to-1 wrapper for a CodeMirror editor instance. It layers on Brackets-specific
  * functionality and provides APIs that cleanly pass through the bits of CodeMirror that the rest
@@ -1051,6 +1047,12 @@ define(function (require, exports, module) {
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
+        var currentText = this._codeMirror.getValue();
+        if (text === currentText) {
+            // there's nothing to reset
+            return;
+        }
+
         var perfTimerName = PerfUtils.markStart("Editor._resetText()\t" + (!this.document || this.document.file.fullPath));
 
         var cursorPos = this.getCursorPos(),

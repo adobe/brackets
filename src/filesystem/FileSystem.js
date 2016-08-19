@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
-
 /**
  * FileSystem is a model object representing a complete file system. This object creates
  * and manages File and Directory instances, dispatches events when the file system changes,
