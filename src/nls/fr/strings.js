@@ -128,7 +128,7 @@ define({
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
 	"SAVE_CLOSE_MULTI_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées aux fichiers suivants ?",
 	"EXT_MODIFIED_TITLE": "Modifications externes",
-	"CONFIRM_FOLDER_DELETE_TITLE": "Confirmer la suppression",
+	"CONFIRM_DELETE_TITLE": "Confirmer la suppression",
 	"CONFIRM_FOLDER_DELETE": "Voulez-vous vraiment supprimer le dossier <span class='dialog-filename'>{0}</span> ?",
 	"FILE_DELETED_TITLE": "Fichier supprimé",
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque, dans une application autre que {APP_NAME}.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",

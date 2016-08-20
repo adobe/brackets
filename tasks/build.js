@@ -250,10 +250,10 @@ module.exports = function (grunt) {
         var done = this.async(),
             PATH = "src/nls",
             ROOT_LANG = "root",
+            encounteredErrors = false,
             rootDefinitions = {},
             definitions,
-            unknownKeys,
-            encounteredErrors;
+            unknownKeys;
 
         function getDefinitions(abspath) {
             var fileContent,
@@ -292,7 +292,7 @@ module.exports = function (grunt) {
             }
         });
 
-        done(encounteredErrors);
+        done(!encounteredErrors);
     });
 
     build.getGitInfo = getGitInfo;

@@ -127,7 +127,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Chcete uložit změny v souboru <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Chcete uložit změny v následujících souborech?",
     "EXT_MODIFIED_TITLE"                : "Externí změny",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Potvrdit smazání",
+    "CONFIRM_DELETE_TITLE"              : "Potvrdit smazání",
     "CONFIRM_FOLDER_DELETE"             : "Opravdu chcete smazat složku <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Soubor smazán",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> byl změněn mimo {APP_NAME}.<br /><br />Chcete uložit soubor a přepsat tyto změny?",
