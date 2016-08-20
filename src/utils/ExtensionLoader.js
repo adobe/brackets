@@ -42,7 +42,7 @@ define(function (require, exports, module) {
         Async          = require("utils/Async"),
         ExtensionUtils = require("utils/ExtensionUtils"),
         UrlParams      = require("utils/UrlParams").UrlParams,
-        PathUtils              = require("thirdparty/path-utils/path-utils");
+        PathUtils      = require("thirdparty/path-utils/path-utils");
 
     // default async initExtension timeout
     var INIT_EXTENSION_TIMEOUT = 10000;
