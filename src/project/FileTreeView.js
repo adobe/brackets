@@ -59,8 +59,8 @@ define(function (require, exports, module) {
     var CLICK_RENAME_MINIMUM  = 500,
         RIGHT_MOUSE_BUTTON    = 2,
         LEFT_MOUSE_BUTTON     = 0;
-    
-    var INDENTATION_WIDTH     = 18;
+
+    var INDENTATION_WIDTH     = 10;
 
     /**
      * @private
@@ -712,8 +712,7 @@ define(function (require, exports, module) {
                 nodeClass,
                 childNodes,
                 children = entry.get("children"),
-                isOpen = entry.get("open"),
-                directoryClasses = "";
+                isOpen = entry.get("open");
 
             if (isOpen && children) {
                 nodeClass = "open";
@@ -731,47 +730,46 @@ define(function (require, exports, module) {
                 nodeClass = "closed";
             }
 
-            if (this.props.entry.get("selected")) {
-                directoryClasses += " jstree-clicked sidebar-selection";
-            }
+            var nameDisplay,
+                cx = Classnames;
 
-            if (entry.get("context")) {
-                directoryClasses += " context-node";
-            }
+            var directoryClasses = cx({
+                'jstree-clicked sidebar-selection': entry.get("selected"),
+                'context-node': entry.get("context")
+            });
 
-            var nameDisplay, renameInput;
-            if (entry.get("rename")) {
-                renameInput = directoryRenameInput({
-                    actions: this.props.actions,
-                    entry: this.props.entry,
-                    name: this.props.name,
-                    parentPath: this.props.parentPath
-                });
-            }
+            var liArgs = [
+                {
+                    className: this.getClasses("jstree-" + nodeClass),
+                    onClick: this.handleClick,
+                    onMouseDown: this.handleMouseDown
+                },
+                _createAlignedIns(this.props.depth)
+            ];
 
             var thickness = _createThickness(this.props.depth);
 
-            // Need to flatten the arguments because getIcons returns an array
-            var aArgs = _.flatten([{
-                href: "#",
-                className: directoryClasses
-            }, thickness, this.getIcons()]);
-            if (!entry.get("rename")) {
-                aArgs.push(this.props.name);
+            if (entry.get("rename")) {
+                liArgs.push(thickness);
+                nameDisplay = directoryRenameInput({
+                    actions: this.props.actions,
+                    entry: entry,
+                    name: this.props.name,
+                    parentPath: this.props.parentPath
+                });
             } else {
-                aArgs.push(renameInput);
+                // Need to flatten the arguments because getIcons returns an array
+                var aArgs = _.flatten([{
+                    href: "#",
+                    className: directoryClasses
+                }, thickness, this.getIcons(), this.props.name]);
+                nameDisplay = DOM.a.apply(DOM.a, aArgs);
             }
 
-            nameDisplay = DOM.a.apply(DOM.a, aArgs);
+            liArgs.push(nameDisplay);
+            liArgs.push(childNodes);
 
-            return DOM.li({
-                className: this.getClasses("jstree-" + nodeClass),
-                onClick: this.handleClick,
-                onMouseDown: this.handleMouseDown
-            },
-                _createAlignedIns(this.props.depth),
-                nameDisplay,
-                childNodes);
+            return DOM.li.apply(DOM.li, liArgs);
         }
     }));
 
