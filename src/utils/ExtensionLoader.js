@@ -286,7 +286,7 @@ define(function (require, exports, module) {
                 var extensionRequire = brackets.libRequire.config({
                     context: name,
                     baseUrl: config.baseUrl,
-                    paths: $.extend({}, config.paths, globalConfig)
+                    paths: $.extend({}, config.paths, globalPaths)
                 });
 
                 extensionRequire([entryPoint], function () {
