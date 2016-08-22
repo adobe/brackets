@@ -269,6 +269,9 @@ define(function (require, exports, module) {
                 runs(function () {
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
+                        // In LiveDocument._updateBrowser, we replace relative url()s with an absolute equivalent
+                        // Strip the leading http://127.0.0.1:port part so we can compare browser and editor text
+                        browserText = browserText.replace(/url\('http:\/\/127\.0\.0\.1:\d+\/import1\.css'\);/, "url('import1.css');");
                     }).always(function () {
                         doneSyncing = true;
                     });
