@@ -859,8 +859,8 @@ define(function (require, exports, module) {
      *      string parametr.
      */
     FileSystem.prototype.watch = function (entry, filter, globFilter, callback) {
-        // make globFilter an optional argument
-        if (typeof globFilter === "function" && typeof callback !== "function") {
+        // make globFilter an optional argument to stay backwards compatible
+        if (typeof callback === "undefined" && typeof globFilter === "function") {
             callback = globFilter;
             globFilter = null;
         }

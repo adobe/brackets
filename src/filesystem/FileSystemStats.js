@@ -36,6 +36,8 @@ define(function (require, exports, module) {
 
         this._isFile = isFile;
         this._isDirectory = !isFile;
+        // in case of stats transferred over a node-domain,
+        // mtime will have JSON-ified value which needs to be restored
         this._mtime = options.mtime instanceof Date ? options.mtime : new Date(options.mtime);
         this._size = options.size;
         this._hash = options.hash;
