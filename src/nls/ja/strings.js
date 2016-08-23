@@ -665,7 +665,7 @@ define({
 	"CMD_TOGGLE_RECENT_PROJECTS": "最近使用したプロジェクト",
 
     // extensions/default/WebPlatformDocs
-	"DOCS_MORE_LINK": "詳細",
+	"DOCS_MORE_LINK": "詳細を表示",
 
     // extensions/default/CodeFolding
 	"COLLAPSE_ALL": "すべて折りたたむ",
