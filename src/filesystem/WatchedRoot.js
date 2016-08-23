@@ -37,12 +37,12 @@ define(function (require, exports, module) {
      * @constructor
      * @param {File|Directory} entry
      * @param {function(string, string):boolean} filter
-     * @param {string} globFilter
+     * @param {Array<string>} filterGlobs
      */
-    function WatchedRoot(entry, filter, globFilter) {
+    function WatchedRoot(entry, filter, filterGlobs) {
         this.entry = entry;
         this.filter = filter;
-        this.globFilter = globFilter;
+        this.filterGlobs = filterGlobs;
     }
 
     // Status constants
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
     /**
      * @type {string}
      */
-    WatchedRoot.prototype.globFilter = null;
+    WatchedRoot.prototype.filterGlobs = null;
 
     /**
      * @type {number}

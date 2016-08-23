@@ -63,7 +63,11 @@ define(function (require, exports, module) {
      * Glob definition of files and folders that should be excluded directly
      * inside node domain watching with chokidar
      */
-    var exclusionGlob = "**/(.pyc|.git|.gitmodules|.svn|.DS_Store|Thumbs.db|.hg|CVS|.hgtags|.idea|.c9revisions|.SyncArchive|.SyncID|.SyncIgnore|node_modules)";
+    var defaultIgnoreGlobs = [
+        "**/(.pyc|.git|.gitmodules|.svn|.DS_Store|Thumbs.db|.hg|CVS|.hgtags|.idea|.c9revisions|.SyncArchive|.SyncID|.SyncIgnore)",
+        "**/bower_components",
+        "**/node_modules"
+    ];
 
     /**
      * @private
@@ -1355,12 +1359,11 @@ define(function (require, exports, module) {
     exports._addWelcomeProjectPath  = _addWelcomeProjectPath;
     exports._isWelcomeProjectPath   = _isWelcomeProjectPath;
     exports._ensureTrailingSlash    = _ensureTrailingSlash;
-    exports._exclusionListRegEx     = _exclusionListRegEx;
     exports._shouldShowName         = _shouldShowName;
     exports._invalidChars           = _invalidChars;
 
     exports.shouldShow              = shouldShow;
-    exports.exclusionGlob           = exclusionGlob;
+    exports.defaultIgnoreGlobs      = defaultIgnoreGlobs;
     exports.isValidFilename         = isValidFilename;
     exports.EVENT_CHANGE            = EVENT_CHANGE;
     exports.EVENT_SHOULD_SELECT     = EVENT_SHOULD_SELECT;

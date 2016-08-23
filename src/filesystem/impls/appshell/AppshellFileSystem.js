@@ -533,9 +533,9 @@ define(function (require, exports, module) {
     /**
      * Stop providing change notifications for the file or directory at the
      * given path, calling back asynchronously with a possibly null FileSystemError
-     * string when the operation is complete. This function needs to mirror the
-     * signature of watchPath and hence the ignored argument is passed from
-     * FileSystem code
+     * string when the operation is complete.
+     * This function needs to mirror the signature of watchPath
+     * because of FileSystem.prototype._watchOrUnwatchEntry implementation.
      *
      * @param {string} path
      * @param {function(?string)=} callback
@@ -577,7 +577,7 @@ define(function (require, exports, module) {
 
     /**
      * Indicates whether or not recursive watching notifications are supported
-     * by the watchPath call. With chokidar, every platform supports recursive watching.
+     * by the watchPath call.
      *
      * @type {boolean}
      */

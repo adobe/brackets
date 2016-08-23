@@ -25,10 +25,13 @@
 
 "use strict";
 
-var fspath = require("path");
-var fs = require("fs");
 var os = require("os");
-var chokidar = require('chokidar');
+var watcherImpl;
+if (process.platform === "win32") {
+    watcherImpl = require("./ChokidarWatcher"); // TODO: "./CSharpWatcher"
+} else {
+    watcherImpl = require("./ChokidarWatcher");
+}
 
 var _domainManager,
     _watcherMap = {};
@@ -65,82 +68,12 @@ function unwatchPath(path) {
 }
 
 /**
- * Transform Node's native fs.stats to a format that can be sent through domain
- * @param {stats} Node's fs.stats result
- * @return {object} Can be consumed by new FileSystemStats(object); in Brackets
- */
-function normalizeStats(nodeFsStats) {
-    // from shell: If "filename" is a symlink,
-    // realPath should be the actual path to the linked object
-    // not implemented in shell yet
-    return {
-        isFile: nodeFsStats.isFile(),
-        isDirectory: nodeFsStats.isDirectory(),
-        mtime: nodeFsStats.mtime,
-        size: nodeFsStats.size,
-        realPath: null,
-        hash: nodeFsStats.mtime.getTime()
-    };
-}
-
-/**
  * Watch a file or directory.
  * @param {string} path File or directory to watch.
- * @param {array} ignored List of File or directory to NOT watch.
+ * @param {array} ignored List of entries to ignore during watching.
  */
 function watchPath(path, ignored) {
-    if (_watcherMap.hasOwnProperty(path)) {
-        return;
-    }
-
-    try {
-        var watcher = chokidar.watch(path, {
-            persistent: true,
-            ignoreInitial: true,
-            ignorePermissionErrors: true,
-            followSymlinks: true,
-            ignored: ignored,
-            usePolling: process.platform === "win32"
-        });
-
-        watcher.on("all", function (type, filename, nodeFsStats) {
-            var event;
-            switch (type) {
-            case "change":
-                event = "changed";
-                break;
-            case "add":
-            case "addDir":
-                event = "created";
-                break;
-            case "unlink":
-            case "unlinkDir":
-                event = "deleted";
-                break;
-            default:
-                event = null;
-            }
-            if (!event || !filename) {
-                return;
-            }
-            // make sure stats are normalized for domain transfer
-            var statsObj = nodeFsStats ? normalizeStats(nodeFsStats) : null;
-            // make sure it's normalized
-            filename = filename.replace(/\\/g, "/");
-            var parentDirPath = fspath.dirname(filename) + "/";
-            var entryName = fspath.basename(filename);
-            _domainManager.emitEvent("fileWatcher", "change", [event, parentDirPath, entryName, statsObj]);
-        });
-
-        _watcherMap[path] = watcher;
-
-        watcher.on("error", function (err) {
-            console.error("Error watching file " + path + ": " + (err && err.message));
-            unwatchPath(path);
-        });
-    } catch (err) {
-        console.warn("Failed to watch file " + path + ": " + (err && err.message));
-    }
+    return watcherImpl.watchPath(path, ignored, _watcherMap);
 }
 
 /**
