@@ -112,7 +112,12 @@ define(function (require, exports, module) {
         switch (event) {
         case "changed":
             // an existing file/directory was modified; stats are passed if available
-            var fsStats = statsObj ? new FileSystemStats(statsObj) : null;
+            var fsStats;
+            if (statsObj) {
+                fsStats = new FileSystemStats(statsObj);
+            } else {
+                console.warn("FileWatcherDomain was expected to deliver stats for changed event!");
+            }
             _enqueueChange(parentDirPath + entryName, fsStats);
             break;
         case "created":

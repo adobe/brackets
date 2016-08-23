@@ -1,5 +1,8 @@
+"use strict";
+
 var fspath = require("path");
-var chokidar = require('chokidar');
+var chokidar = require("chokidar");
+var unwatchPath = require("./FileWatcherDomain").unwatchPath;
 
 /**
  * Transform Node's native fs.stats to a format that can be sent through domain
@@ -20,11 +23,7 @@ function normalizeStats(nodeFsStats) {
     };
 }
 
-function watchPath(path, ignored, _watcherMap) {
-    if (_watcherMap.hasOwnProperty(path)) {
-        return;
-    }
-
+function watchPath(path, ignored, _watcherMap, _domainManager) {
     try {
         var watcher = chokidar.watch(path, {
             persistent: true,

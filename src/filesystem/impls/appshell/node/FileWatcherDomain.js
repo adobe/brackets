@@ -28,7 +28,7 @@
 var os = require("os");
 var watcherImpl;
 if (process.platform === "win32") {
-    watcherImpl = require("./ChokidarWatcher"); // TODO: "./CSharpWatcher"
+    watcherImpl = require("./CSharpWatcher");
 } else {
     watcherImpl = require("./ChokidarWatcher");
 }
@@ -73,7 +73,10 @@ function unwatchPath(path) {
  * @param {array} ignored List of entries to ignore during watching.
  */
 function watchPath(path, ignored) {
-    return watcherImpl.watchPath(path, ignored, _watcherMap);
+    if (_watcherMap.hasOwnProperty(path)) {
+        return;
+    }
+    return watcherImpl.watchPath(path, ignored, _watcherMap, _domainManager);
 }
 
 /**
