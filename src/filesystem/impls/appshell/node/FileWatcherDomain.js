@@ -103,8 +103,24 @@ function watchPath(path, ignored) {
             usePolling: process.platform === "win32"
         });
 
-        watcher.on("all", function (event, filename, nodeFsStats) {
-            if (event === "raw" || event === "error" || !filename) {
+        watcher.on("all", function (type, filename, nodeFsStats) {
+            var event;
+            switch (type) {
+            case "change":
+                event = "changed";
+                break;
+            case "add":
+            case "addDir":
+                event = "created";
+                break;
+            case "unlink":
+            case "unlinkDir":
+                event = "deleted";
+                break;
+            default:
+                event = null;
+            }
+            if (!event || !filename) {
                 return;
             }
             // make sure stats are normalized for domain transfer

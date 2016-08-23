@@ -99,7 +99,7 @@ define(function (require, exports, module) {
 
     /**
      * Event handler for the Node fileWatcher domain's change event.
-     * event values from chokidar: "change", "ready", "add", "addDir", "unlink", "unlinkDir"
+     * recognized event values: "changed", "created", "deleted"
      *
      * @param {jQuery.Event} The underlying change event
      * @param {string} event The type of the event: either "change" or "rename"
@@ -110,16 +110,13 @@ define(function (require, exports, module) {
     function _fileWatcherChange(evt, event, parentDirPath, entryName, statsObj) {
         var change;
         switch (event) {
-        case "change":
-        case "ready":
+        case "changed":
             // an existing file/directory was modified; stats are passed if available
             var fsStats = statsObj ? new FileSystemStats(statsObj) : null;
             _enqueueChange(parentDirPath + entryName, fsStats);
             break;
-        case "add":
-        case "addDir":
-        case "unlink":
-        case "unlinkDir":
+        case "created":
+        case "deleted":
             // file/directory was created/deleted; fire change on parent to reload contents
             _enqueueChange(parentDirPath, null);
             break;
