@@ -189,6 +189,7 @@ define({
     "CMD_LINE_DOWN"                       : "Satırı Aşağıya Taşı",
     "CMD_TOGGLE_CLOSE_BRACKETS"           : "Parantezleri Otomatik Tamamla",
     "CMD_SHOW_CODE_HINTS"                 : "Kod İpuçlarını Göster",
+    "DOCS_MORE_LINK"                      : "Daha Fazla Bilgi",
 
     // Search menu commands
     "FIND_MENU"                           : "Bul",
