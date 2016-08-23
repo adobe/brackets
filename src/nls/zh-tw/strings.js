@@ -520,7 +520,7 @@ define({
     "INSTALL_EXTENSION_DROP"               : "放開 .zip 開始安裝",
     "INSTALL_EXTENSION_DROP_ERROR"         : "下列原因造成安裝或是更新失敗:",
     "INSTALL_FROM_URL"                     : "由 URL 安裝\u2026",
-    "INSTALL_EXTENSION_VALIDATING"         : "Validating\u2026",
+    "INSTALL_EXTENSION_VALIDATING"         : "檢查擴充功能中……\u2026",
     "EXTENSION_AUTHOR"                     : "作者",
     "EXTENSION_DATE"                       : "日期",
     "EXTENSION_INCOMPATIBLE_NEWER"         : "這個擴充功能需要較新版的 {APP_NAME} 才能使用。",
