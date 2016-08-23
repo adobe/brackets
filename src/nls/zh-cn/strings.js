@@ -665,7 +665,7 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS"                : "最近的项目",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK"                            : "更多信息",
+    "DOCS_MORE_LINK"                            : "阅读更多",
 
     // extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "收起所有",
