@@ -13,6 +13,7 @@
         "SHA": ""
     },
     "dependencies": {
+        "anymatch": "1.3.0",
         "chokidar": "1.6.0"
     },
     "devDependencies": {
