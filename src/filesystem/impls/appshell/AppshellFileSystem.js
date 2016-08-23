@@ -99,10 +99,9 @@ define(function (require, exports, module) {
 
     /**
      * Event handler for the Node fileWatcher domain's change event.
-     * recognized event values: "changed", "created", "deleted"
      *
      * @param {jQuery.Event} The underlying change event
-     * @param {string} event The type of the event: either "change" or "rename"
+     * @param {string} event The type of the event: "changed", "created" or "deleted"
      * @param {string} parentDirPath The path to the directory holding entry that has changed
      * @param {string=} entryName The name of the file/directory that has changed
      * @private

@@ -151,3 +151,4 @@ function init(domainManager) {
 }
 
 exports.init = init;
+exports.unwatchPath = unwatchPath;
