@@ -32,7 +32,8 @@ function watchPath(path, ignored, _watcherMap) {
             ignorePermissionErrors: true,
             followSymlinks: true,
             ignored: ignored,
-            usePolling: process.platform === "win32"
+            interval: 1000, // while not used in normal cases, if any error causes chokidar to fallback to polling, increase its intervals
+            binaryInterval: 1000
         });
 
         watcher.on("all", function (type, filename, nodeFsStats) {
