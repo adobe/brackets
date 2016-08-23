@@ -11,7 +11,7 @@ var fs = require("fs");
 var fspath = require("path");
 var cp = require("child_process");
 var anymatch = require('anymatch');
-var unwatchPath = require("./FileWatcherManager").unwatchPath;
+var fwm = require("./FileWatcherManager");
 
 function buildMatcher(ignored) {
     // in case of a glob like **/.git we want also to ignore its contents **/.git/**
@@ -20,7 +20,7 @@ function buildMatcher(ignored) {
     })));
 }
 
-function watchPath(path, ignored, _watcherMap, _domainManager) {
+function watchPath(path, ignored, _watcherMap) {
 
     var ignoreMatcher = buildMatcher(ignored);
     var closing = false;
@@ -67,27 +67,27 @@ function watchPath(path, ignored, _watcherMap, _domainManager) {
 
         // we need stats object for changed event
         if (event === "changed") {
-            fs.stat(absolutePath, function (err, stats) {
+            fs.stat(absolutePath, function (err, nodeFsStats) {
                 if (err) {
                     console.warn("CSharpWatcher err getting stats: " + err.toString());
                 }
-                _domainManager.emitEvent("fileWatcher", "change", [event, parentDirPath, entryName, stats]);
+                fwm.emitChange(event, parentDirPath, entryName, nodeFsStats);
             });
         } else {
-            _domainManager.emitEvent("fileWatcher", "change", [event, parentDirPath, entryName, null]);
+            fwm.emitChange(event, parentDirPath, entryName, null);
         }
     }
 
     function onError(err) {
         console.warn("CSharpWatcher process error: " + err.toString());
-        unwatchPath(path);
+        fwm.unwatchPath(path);
     }
 
     function onExit(code, signal) {
         if (!closing || signal !== "SIGTERM") {
             console.warn("CSharpWatcher terminated unexpectedly with code: " + code + ", signal: " + signal);
         }
-        unwatchPath(path);
+        fwm.unwatchPath(path);
     }
 
     try {

@@ -15,6 +15,25 @@ function setWatcherImpl(impl) {
 }
 
 /**
+ * Transform Node's native fs.stats to a format that can be sent through domain
+ * @param {stats} nodeFsStats Node's fs.stats result
+ * @return {object} Can be consumed by new FileSystemStats(object); in Brackets
+ */
+function normalizeStats(nodeFsStats) {
+    // from shell: If "filename" is a symlink,
+    // realPath should be the actual path to the linked object
+    // not implemented in shell yet
+    return {
+        isFile: nodeFsStats.isFile(),
+        isDirectory: nodeFsStats.isDirectory(),
+        mtime: nodeFsStats.mtime,
+        size: nodeFsStats.size,
+        realPath: null,
+        hash: nodeFsStats.mtime.getTime()
+    };
+}
+
+/**
  * @private
  * Un-watch a file or directory.
  * @param {string} path File or directory to unwatch.
@@ -70,8 +89,15 @@ function unwatchAll() {
     }
 }
 
+function emitChange(event, parentDirPath, entryName, nodeFsStats) {
+    // make sure stats are normalized for domain transfer
+    var statsObj = nodeFsStats ? normalizeStats(nodeFsStats) : null;
+    _domainManager.emitEvent("fileWatcher", "change", [event, parentDirPath, entryName, statsObj]);
+}
+
 exports.setDomainManager = setDomainManager;
 exports.setWatcherImpl = setWatcherImpl;
 exports.unwatchPath = unwatchPath;
 exports.watchPath = watchPath;
 exports.unwatchAll = unwatchAll;
+exports.emitChange = emitChange;
