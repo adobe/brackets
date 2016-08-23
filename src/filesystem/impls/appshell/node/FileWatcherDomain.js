@@ -26,70 +26,12 @@
 "use strict";
 
 var os = require("os");
+var watcherManager = require("./FileWatcherManager");
 var watcherImpl;
 if (process.platform === "win32") {
     watcherImpl = require("./CSharpWatcher");
 } else {
     watcherImpl = require("./ChokidarWatcher");
-}
-
-var _domainManager,
-    _watcherMap = {};
-
-/**
- * @private
- * Un-watch a file or directory.
- * @param {string} path File or directory to unwatch.
- */
-function _unwatchPath(path) {
-    var watcher = _watcherMap[path];
-
-    if (watcher) {
-        try {
-            watcher.close();
-        } catch (err) {
-            console.warn("Failed to unwatch file " + path + ": " + (err && err.message));
-        } finally {
-            delete _watcherMap[path];
-        }
-    }
-}
-
-/**
- * Un-watch a file or directory. For directories, unwatch all descendants.
- * @param {string} path File or directory to unwatch.
- */
-function unwatchPath(path) {
-    Object.keys(_watcherMap).forEach(function (keyPath) {
-        if (keyPath.indexOf(path) === 0) {
-            _unwatchPath(keyPath);
-        }
-    });
-}
-
-/**
- * Watch a file or directory.
- * @param {string} path File or directory to watch.
- * @param {array} ignored List of entries to ignore during watching.
- */
-function watchPath(path, ignored) {
-    if (_watcherMap.hasOwnProperty(path)) {
-        return;
-    }
-    return watcherImpl.watchPath(path, ignored, _watcherMap, _domainManager);
-}
-
-/**
- * Un-watch all files and directories.
- */
-function unwatchAll() {
-    var path;
-
-    for (path in _watcherMap) {
-        if (_watcherMap.hasOwnProperty(path)) {
-            unwatchPath(path);
-        }
-    }
 }
 
 /**
@@ -104,7 +46,7 @@ function init(domainManager) {
     domainManager.registerCommand(
         "fileWatcher",
         "watchPath",
-        watchPath,
+        watcherManager.watchPath,
         false,
         "Start watching a file or directory",
         [{
@@ -120,7 +62,7 @@ function init(domainManager) {
     domainManager.registerCommand(
         "fileWatcher",
         "unwatchPath",
-        unwatchPath,
+        watcherManager.unwatchPath,
         false,
         "Stop watching a single file or a directory and it's descendants",
         [{
@@ -132,7 +74,7 @@ function init(domainManager) {
     domainManager.registerCommand(
         "fileWatcher",
         "unwatchAll",
-        unwatchAll,
+        watcherManager.unwatchAll,
         false,
         "Stop watching all files and directories"
     );
@@ -147,8 +89,9 @@ function init(domainManager) {
         ]
     );
 
-    _domainManager = domainManager;
+    watcherManager.setDomainManager(domainManager);
+    watcherManager.setWatcherImpl(watcherImpl);
+
 }
 
 exports.init = init;
-exports.unwatchPath = unwatchPath;

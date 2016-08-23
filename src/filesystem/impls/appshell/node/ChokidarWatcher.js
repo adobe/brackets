@@ -4,7 +4,7 @@
 
 var fspath = require("path");
 var chokidar = require("chokidar");
-var unwatchPath = require("./FileWatcherDomain").unwatchPath;
+var unwatchPath = require("./FileWatcherManager").unwatchPath;
 
 /**
  * Transform Node's native fs.stats to a format that can be sent through domain

@@ -11,7 +11,7 @@ var fs = require("fs");
 var fspath = require("path");
 var cp = require("child_process");
 var anymatch = require('anymatch');
-var unwatchPath = require("./FileWatcherDomain").unwatchPath;
+var unwatchPath = require("./FileWatcherManager").unwatchPath;
 
 function buildMatcher(ignored) {
     // in case of a glob like **/.git we want also to ignore its contents **/.git/**
