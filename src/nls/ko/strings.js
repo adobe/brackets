@@ -663,7 +663,7 @@ define({
     "CMD_TOGGLE_RECENT_PROJECTS": "최근에 사용한 프로젝트",
 
     // extensions/default/WebPlatformDocs
-    "DOCS_MORE_LINK": "상세 정보",
+    "DOCS_MORE_LINK": "자세히 읽기",
 
     // extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "모두 접기",
