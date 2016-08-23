@@ -104,6 +104,7 @@ define(function (require, exports, module) {
      * @param {string} event The type of the event: "changed", "created" or "deleted"
      * @param {string} parentDirPath The path to the directory holding entry that has changed
      * @param {string=} entryName The name of the file/directory that has changed
+     * @param {object} statsObj Object that can be used to construct FileSystemStats
      * @private
      */
     function _fileWatcherChange(evt, event, parentDirPath, entryName, statsObj) {
@@ -513,7 +514,7 @@ define(function (require, exports, module) {
      * when the recursiveWatch property of this module is true.
      *
      * @param {string} path
-     * @param {array} ignored
+     * @param {Array<string>} ignored
      * @param {function(?string)=} callback
      */
     function watchPath(path, ignored, callback) {
@@ -542,6 +543,7 @@ define(function (require, exports, module) {
      * because of FileSystem.prototype._watchOrUnwatchEntry implementation.
      *
      * @param {string} path
+     * @param {Array<string>} ignored
      * @param {function(?string)=} callback
      */
     function unwatchPath(path, ignored, callback) {

@@ -39,8 +39,8 @@ function normalizeStats(nodeFsStats) {
 }
 
 /**
- * @private
  * Un-watch a file or directory.
+ * @private
  * @param {string} path File or directory to unwatch.
  */
 function _unwatchPath(path) {
@@ -72,7 +72,7 @@ function unwatchPath(path) {
 /**
  * Watch a file or directory.
  * @param {string} path File or directory to watch.
- * @param {array} ignored List of entries to ignore during watching.
+ * @param {Array<string>} ignored List of entries to ignore during watching.
  */
 function watchPath(path, ignored) {
     if (_watcherMap.hasOwnProperty(path)) {

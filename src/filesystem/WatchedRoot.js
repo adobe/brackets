@@ -61,7 +61,7 @@ define(function (require, exports, module) {
     WatchedRoot.prototype.filter = null;
 
     /**
-     * @type {string}
+     * @type {Array<string>}
      */
     WatchedRoot.prototype.filterGlobs = null;
 

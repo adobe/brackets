@@ -1,6 +1,6 @@
 /*
- * This copies the implementation of VSCode
- * https://github.com/Microsoft/vscode/blob/master/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts
+ * Code for working with CodeHelper.exe was inspired by:
+ * https://github.com/Microsoft/vscode/blob/314e122b16c5c1ca0288c8006e9c9c3039a51cd7/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts
  */
 
 /*jslint node: true */
@@ -11,7 +11,7 @@ var fs = require("fs");
 var fspath = require("path");
 var cp = require("child_process");
 var anymatch = require('anymatch');
-var fwm = require("./FileWatcherManager");
+var FileWatcherManager = require("./FileWatcherManager");
 
 function buildMatcher(ignored) {
     // in case of a glob like **/.git we want also to ignore its contents **/.git/**
@@ -71,23 +71,23 @@ function watchPath(path, ignored, _watcherMap) {
                 if (err) {
                     console.warn("CSharpWatcher err getting stats: " + err.toString());
                 }
-                fwm.emitChange(event, parentDirPath, entryName, nodeFsStats);
+                FileWatcherManager.emitChange(event, parentDirPath, entryName, nodeFsStats);
             });
         } else {
-            fwm.emitChange(event, parentDirPath, entryName, null);
+            FileWatcherManager.emitChange(event, parentDirPath, entryName, null);
         }
     }
 
     function onError(err) {
         console.warn("CSharpWatcher process error: " + err.toString());
-        fwm.unwatchPath(path);
+        FileWatcherManager.unwatchPath(path);
     }
 
     function onExit(code, signal) {
         if (!closing || signal !== "SIGTERM") {
             console.warn("CSharpWatcher terminated unexpectedly with code: " + code + ", signal: " + signal);
         }
-        fwm.unwatchPath(path);
+        FileWatcherManager.unwatchPath(path);
     }
 
     try {
@@ -107,11 +107,11 @@ function watchPath(path, ignored, _watcherMap) {
         });
 
         // Errors
-		handle.on("error", onError);
-		handle.stderr.on("data", onError);
+        handle.on("error", onError);
+        handle.stderr.on("data", onError);
 
-		// Exit
-		handle.on("exit", onExit);
+        // Exit
+        handle.on("exit", onExit);
 
         // Add handler for closing to the _watcherMap
         _watcherMap[path] = {

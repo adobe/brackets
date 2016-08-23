@@ -4,7 +4,7 @@
 
 var fspath = require("path");
 var chokidar = require("chokidar");
-var fwm = require("./FileWatcherManager");
+var FileWatcherManager = require("./FileWatcherManager");
 
 function watchPath(path, ignored, _watcherMap) {
     try {
@@ -42,14 +42,14 @@ function watchPath(path, ignored, _watcherMap) {
             filename = filename.replace(/\\/g, "/");
             var parentDirPath = fspath.dirname(filename) + "/";
             var entryName = fspath.basename(filename);
-            fwm.emitChange(event, parentDirPath, entryName, nodeFsStats);
+            FileWatcherManager.emitChange(event, parentDirPath, entryName, nodeFsStats);
         });
 
         _watcherMap[path] = watcher;
 
         watcher.on("error", function (err) {
             console.error("Error watching file " + path + ": " + (err && err.message));
-            fwm.unwatchPath(path);
+            FileWatcherManager.unwatchPath(path);
         });
     } catch (err) {
         console.warn("Failed to watch file " + path + ": " + (err && err.message));
