@@ -23,6 +23,7 @@ function buildMatcher(ignored) {
 function watchPath(path, ignored, _watcherMap, _domainManager) {
 
     var ignoreMatcher = buildMatcher(ignored);
+    var closing = false;
 
     function processLine(line) {
         if (line === "") {
@@ -83,7 +84,9 @@ function watchPath(path, ignored, _watcherMap, _domainManager) {
     }
 
     function onExit(code, signal) {
-        console.warn("CSharpWatcher terminated unexpectedly with code: " + code + ", signal: " + signal);
+        if (!closing || signal !== "SIGTERM") {
+            console.warn("CSharpWatcher terminated unexpectedly with code: " + code + ", signal: " + signal);
+        }
         unwatchPath(path);
     }
 
@@ -113,6 +116,7 @@ function watchPath(path, ignored, _watcherMap, _domainManager) {
         // Add handler for closing to the _watcherMap
         _watcherMap[path] = {
             close: function () {
+                closing = true;
                 handle.kill();
             }
         };
