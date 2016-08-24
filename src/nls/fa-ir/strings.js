@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -129,7 +126,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                    : "آیا مایلید تغییرات داده شده در سند ذخیره گردند <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"              : "آیا مایلید تغییرات داده شده در پرونده های زیر، ذخیره گردند?    ",
     "EXT_MODIFIED_TITLE"                    : "تغییرات خارجی",
-    "CONFIRM_FOLDER_DELETE_TITLE"           : "تایید حذف",
+    "CONFIRM_DELETE_TITLE"                  : "تایید حذف",
     "CONFIRM_FOLDER_DELETE"                 : "آیا مطمئنید می خواهید این پوشه حذف گردد <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                    : "پرونده حذف گردید",
     "EXT_MODIFIED_WARNING"                  : "<span class='dialog-filename'>{0}</span> خارج از براکتس ویرایش شده.<br /><br />آیا می خواهید پرونده را ذخیره و تغییراتی را که داده اید دوباره بر روی پرونده ویرایش شده اعمال نمایید؟",
@@ -596,7 +593,7 @@ define({
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "پیشرفت",
     "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> انتخاب حرکت نشانگر<br><kbd class='text'>شیفت</kbd>حرکت با ده واحد<br><kbd class='text'>تب</kbd> نقاط تغییر",
     "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd>افزایش و یا کاهش گام<br><kbd>←</kbd><kbd>→</kbd> 'شروع' or 'پایان'",
-    "INLINE_TIMING_EDITOR_INVALID"              :"مقدار سابق <code>{0}</code> دیگر معتبر نمی باشد, زیرا تابع نمایش به مقدار <code>{1}</code> تغییر یافته. سند در اولین ویرایش بروزرسانی خواهد شد.",
+    "INLINE_TIMING_EDITOR_INVALID"              : "مقدار سابق <code>{0}</code> دیگر معتبر نمی باشد, زیرا تابع نمایش به مقدار <code>{1}</code> تغییر یافته. سند در اولین ویرایش بروزرسانی خواهد شد.",
 
     // extensions/default/InlineColorEditor
     "COLOR_EDITOR_CURRENT_COLOR_SWATCH_TIP"     : "رنگ فعلی",

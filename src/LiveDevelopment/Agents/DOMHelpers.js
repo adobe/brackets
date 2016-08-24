@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define */
+/*jslint regexp: true */
 
 /**
  * DOMHelpers is a collection of functions used by the DOMAgent exports `eachNode(src, callback)`

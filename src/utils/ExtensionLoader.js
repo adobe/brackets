@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
-
 /**
  * ExtensionLoader searches the filesystem for extensions, then creates a new context for each one and loads it.
  * This module dispatches the following events:
@@ -45,7 +41,8 @@ define(function (require, exports, module) {
         FileUtils      = require("file/FileUtils"),
         Async          = require("utils/Async"),
         ExtensionUtils = require("utils/ExtensionUtils"),
-        UrlParams      = require("utils/UrlParams").UrlParams;
+        UrlParams      = require("utils/UrlParams").UrlParams,
+        PathUtils      = require("thirdparty/path-utils/path-utils");
 
     // default async initExtension timeout
     var INIT_EXTENSION_TIMEOUT = 10000;
@@ -65,10 +62,14 @@ define(function (require, exports, module) {
     // load the text and i18n modules.
     srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
 
-    var globalConfig = {
-            "text" : srcPath + "/thirdparty/text/text",
-            "i18n" : srcPath + "/thirdparty/i18n/i18n"
-        };
+
+    // Retrieve the global paths
+    var globalPaths = brackets._getGlobalRequireJSConfig().paths;
+
+    // Convert the relative paths to absolute
+    Object.keys(globalPaths).forEach(function (key) {
+        globalPaths[key] = PathUtils.makePathAbsolute(srcPath + "/" + globalPaths[key]);
+    });
 
     /**
      * Returns the full path of the default user extensions directory. This is in the users
@@ -161,8 +162,7 @@ define(function (require, exports, module) {
         var extensionConfig = {
             context: name,
             baseUrl: config.baseUrl,
-            /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
-            paths: globalConfig,
+            paths: globalPaths,
             locale: brackets.getLocale()
         };
 
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
                 var extensionRequire = brackets.libRequire.config({
                     context: name,
                     baseUrl: config.baseUrl,
-                    paths: $.extend({}, config.paths, globalConfig)
+                    paths: $.extend({}, config.paths, globalPaths)
                 });
 
                 extensionRequire([entryPoint], function () {

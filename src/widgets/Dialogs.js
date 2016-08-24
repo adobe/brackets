@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
-
 /**
  * Utilities for creating and managing standard modal dialogs.
  */
@@ -342,7 +338,7 @@ define(function (require, exports, module) {
             } else if ($otherBtn.length) {
                 $otherBtn.focus();
             } else {
-                document.activeElement.blur();
+                window.document.activeElement.blur();
             }
 
             // Push our global keydown handler onto the global stack of handlers.

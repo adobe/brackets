@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -131,7 +128,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Vai vēlaties saglabāt veiktās izmaiņas dokumentā <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Vai vēlaties saglabāt izmaiņas šajās datnēs?",
     "EXT_MODIFIED_TITLE"                : "Ārējas izmaiņas",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Apstiprināt dzēšanu",
+    "CONFIRM_DELETE_TITLE"              : "Apstiprināt dzēšanu",
     "CONFIRM_FOLDER_DELETE"             : "Vai tiešām vēlaties izdzēst mapi <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Datne izdzēsta",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> ir pārveidots diskā ārpus {APP_NAME}.<br /><br />Vai vēlaties saglabāt datni un pārrakstīt šīs izmaiņas?",

@@ -21,8 +21,8 @@
  *
  */
 
-/* unittests: ProjectModel */
-/*global $, define, describe, it, expect, beforeEach, waitsForDone, waitsForFail, runs, spyOn, jasmine */
+/*global describe, it, expect, beforeEach, waitsForDone, waitsForFail, runs, spyOn, jasmine */
+/*unittests: ProjectModel */
 
 define(function (require, exports, module) {
     "use strict";
@@ -789,7 +789,7 @@ define(function (require, exports, module) {
                     expect(vm._treeData.get("subdir1")).toBeUndefined();
                     expect(vm._treeData.get("somethingelse")).toBeDefined();
                     expect(vm._treeData.getIn(["somethingelse", "open"])).toBe(true);
-                    expect(model._renameItem).toHaveBeenCalledWith("/foo/subdir1/", "/foo/somethingelse/");
+                    expect(model._renameItem).toHaveBeenCalledWith("/foo/subdir1/", "/foo/somethingelse/", "somethingelse");
                 });
 
                 it("fails for invalid filenames", function () {

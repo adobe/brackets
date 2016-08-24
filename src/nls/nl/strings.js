@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -130,7 +127,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Wil je de wijzigingen opslaan die je maakte in het document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wil je je wijzigingen van de volgende bestanden opslaan?",
     "EXT_MODIFIED_TITLE"                : "Externe wijzigingen",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Bevestig verwijderen",
+    "CONFIRM_DELETE_TITLE"              : "Bevestig verwijderen",
     "CONFIRM_FOLDER_DELETE"             : "Ben je zeker dat je de map <span class='dialog-filename'>{0}</span> wil verwijderen?",
     "FILE_DELETED_TITLE"                : "Bestand verwijderd",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> is gewijzigd op de schijf buiten {APP_NAME}.<br /><br />Wil je het bestand overschrijven evenals de wijzigingen buiten {APP_NAME} om?",

@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -129,7 +126,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Doriți să salvați modificările făcute în documentul <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Doriți să salvați modificările din următoarele fișiere?",
     "EXT_MODIFIED_TITLE"                : "Modificări externe",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmare ștergere dosar",
+    "CONFIRM_DELETE_TITLE"              : "Confirmare ștergere dosar",
     "CONFIRM_FOLDER_DELETE"             : "Sunteți sigur că doriți să ștergeți dosarul <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Fișier șters",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> a fost modificat pe disc.<br /><br />Doriți să salvați fișierul și să suprascrieți aceste modificări?",

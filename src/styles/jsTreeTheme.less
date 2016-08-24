@@ -27,10 +27,10 @@
 @li-min-height: 23px;
 
 .jstree ul, .jstree li { display:block; margin:0 0 0 0; padding:0 0 0 0; list-style-type:none; }
-.jstree li { display:block; min-height:@li-min-height; line-height:16px; white-space:nowrap; margin-left:18px; min-width:18px; }
+.jstree li { display:block; min-height:@li-min-height; line-height:16px; white-space:nowrap; min-width:18px; }
 .jstree-rtl li { margin-left:0; margin-right:18px; }
-.jstree > ul > li { margin-left:0px; }
-.jstree-rtl > ul > li { margin-right:0px; }
+.jstree > ul > li { margin-left:0; }
+.jstree-rtl > ul > li { margin-right:0; }
 .jstree ins { display:inline-block; text-decoration:none; width:18px; height:18px; margin:0 0 0 0; padding:0; }
 .jstree a:focus { outline: none; }
 .jstree a > ins { height:16px; width:16px; }
@@ -86,13 +86,9 @@ li.jstree-closed > ul { display:none; }
         color: @project-panel-text-2;
     }
     &.jstree-closed, &.jstree-open {
-        margin-left: 10px;
         > a {
             color: @project-panel-text-2;
         }
-    }
-    &.jstree-leaf {
-        margin-left: 10px;
     }
 }
 
@@ -155,6 +151,7 @@ ins.jstree-icon {
     left: 3px !important;
     top: 2px !important;
     margin: 0;
+    margin-bottom: 5px; /* It should instead be applyed only to folders */
     padding: 0;
     position: relative;
     width: 150px;
@@ -169,11 +166,11 @@ ins.jstree-icon {
 }
 
 #vakata-contextmenu.jstree-brackets-context,
-#vakata-contextmenu.jstree-brackets-context li ul { background:#f0f0f0; border:1px solid #979797; -moz-box-shadow: 1px 1px 2px #999; -webkit-box-shadow: 1px 1px 2px #999; box-shadow: 1px 1px 2px #999; }
+#vakata-contextmenu.jstree-brackets-context li ul { background:#f0f0f0; border:1px solid #979797; box-shadow: 1px 1px 2px #999; }
 #vakata-contextmenu.jstree-brackets-context li { }
 #vakata-contextmenu.jstree-brackets-context a { color:black; }
 #vakata-contextmenu.jstree-brackets-context a:hover,
-#vakata-contextmenu.jstree-brackets-context .vakata-hover > a { padding:0 5px; background:#e8eff7; border:1px solid #aecff7; color:black; -moz-border-radius:2px; -webkit-border-radius:2px; border-radius:2px; }
+#vakata-contextmenu.jstree-brackets-context .vakata-hover > a { padding:0 5px; background:#e8eff7; border:1px solid #aecff7; color:black; border-radius:2px; }
 #vakata-contextmenu.jstree-brackets-context li.jstree-contextmenu-disabled a,
 #vakata-contextmenu.jstree-brackets-context li.jstree-contextmenu-disabled a:hover { color:silver; background:transparent; border:0; padding:1px 4px; }
 #vakata-contextmenu.jstree-brackets-context li.vakata-separator { background:white; border-top:1px solid #e0e0e0; margin:0; }

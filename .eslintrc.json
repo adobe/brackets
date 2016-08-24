@@ -54,15 +54,17 @@
     "globals": {
         "brackets": false,
 
-        "window": false,
-        "alert": false,
-        "document": false,
-        "localStorage": false,
-        "navigator": false,
-        "setTimeout": false,
-
         "require": false,
         "define": false,
-        "$": false
+        "$": false,
+
+        "window": false,
+        "setTimeout": false,
+        "clearTimeout": false,
+
+        "ArrayBuffer": false,
+        "XMLHttpRequest": false,
+        "Uint32Array": false,
+        "WebSocket": false
     }
 }

@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /**
  * Utilities for dealing with animations in the UI.
  */
@@ -40,7 +36,7 @@ define(function (require, exports, module) {
      * @return {string} The supported transitionend event name.
      */
     function _detectTransitionEvent() {
-        var event, el = document.createElement("fakeelement");
+        var event, el = window.document.createElement("fakeelement");
 
         var transitions = {
             "OTransition"     : "oTransitionEnd",

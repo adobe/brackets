@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -84,7 +81,7 @@ define({
     "ERROR_MULTIPLE_SHORTCUTS"          : "Próbujesz przypisać kilka skrótów do następujących komend: {0}",
     "ERROR_DUPLICATE_SHORTCUTS"         : "Upewnij się, że następujące skróty są unikalne (nie nadpisują się): {0}",
     "ERROR_INVALID_SHORTCUTS"           : "Podane skróty są nieprawidłowe: {0}",
-    "ERROR_NONEXISTENT_COMMANDS"        : "Próbujesz przypisać skróty do niestniejących komend: {0}",    
+    "ERROR_NONEXISTENT_COMMANDS"        : "Próbujesz przypisać skróty do niestniejących komend: {0}",
 
     // Application preferences corrupt error strings
     "ERROR_PREFS_CORRUPT_TITLE"         : "Błąd podczas wczytywania ustawień",
@@ -131,7 +128,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Czy chcesz zapisać zmiany w dokumencie <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Czy chcesz zapisać zmiany w następujących plikach?",
     "EXT_MODIFIED_TITLE"                : "Zmiany zewnętrzne",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Potwierdź usunięcie",
+    "CONFIRM_DELETE_TITLE"              : "Potwierdź usunięcie",
     "CONFIRM_FOLDER_DELETE"             : "Czy na pewno chcesz usunąć folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Plik został usunięty",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> został zmodyfikowany na dysku, poza {APP_NAME}.<br /><br />Czy chcesz zapisać plik i nadpisać te zmiany?",

@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -129,7 +126,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Да ли желите да сачувате измене које сте направили у документу <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Да ли желите да сачувате Ваше измене над следећим датотекама?",
     "EXT_MODIFIED_TITLE"                : "Екстерне измене",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Потврди брисање",
+    "CONFIRM_DELETE_TITLE"              : "Потврди брисање",
     "CONFIRM_FOLDER_DELETE"             : "Да ли сте сигурни да желите обрисати директоријум <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Датотека обрисана",
     "EXT_MODIFIED_WARNING"              : "Датотека <span class='dialog-filename'>{0}</span> је измењена на диску.<br /><br />Да ли желите да сачувате датотеку и преснимите те измене?",

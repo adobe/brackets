@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, expect, brackets, spyOn, runs, waits */
+/*global describe, beforeEach, afterEach, it, expect, spyOn, runs, waits */
 /*unittests: KeyBindingManager */
 
 define(function (require, exports, module) {
