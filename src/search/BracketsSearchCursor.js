@@ -36,6 +36,7 @@ define(function (require, exports, module) {
      * text = The text of the document
      * index = The document line index for lookups
      * generation = the document history generation number
+     * @private
      */
     var _documentMap = new WeakMap();
 
@@ -43,6 +44,7 @@ define(function (require, exports, module) {
      * Determines if the current document has changed since we last stored the docInfo
      * @param {CodeMirror.Doc} doc
      * @return boolean
+     * @private
      */
     function _needToIndexDocument(doc) {
         var docInfo = _documentMap.get(doc);
@@ -62,8 +64,9 @@ define(function (require, exports, module) {
      * This is needed to efficiently convert character index offsets to position objects of line and character offset.
      * @param {String} text The string to index
      * @param {String} lineSeparator The ending character that splits lines
+     * @private
      */
-    function _createLineCharacterCountIndex(text, lineSeparator) {
+    function _createDocLineIndex(text, lineSeparator) {
         var lineNumber;
         // splitting is actually faster than using doc.getLine()
         var lines = text.split(lineSeparator);
@@ -81,26 +84,29 @@ define(function (require, exports, module) {
     /**
      * Creates the document index and store in our map
      * @param {CodeMirror.Doc} doc The codemirror document
+     * @private
      */
     function _indexDocument(doc) {
         var docText = doc.getValue();
-        var docLineIndex = _createLineCharacterCountIndex(docText, doc.lineSeparator());
+        var docLineIndex = _createDocLineIndex(docText, doc.lineSeparator());
         _documentMap.set(doc, {text: docText, index: docLineIndex, generation: doc.history.generation});
     }
 
     /**
      * Gets the document index
      * @param {CodeMirror.Doc} doc The codemirror document
-     * @returns {Array<number>} see '_createLineCharacterCountIndex' for contents of Array
+     * @return {Array<number>} see '_createDocLineIndex' for contents of Array
+     * @private
      */
-    function _getDocumentIndex(doc) {
+    function _getdocLineIndex(doc) {
         return _documentMap.get(doc).index;
     }
 
     /**
      * Gets the document text
      * @param {CodeMirror.Doc} doc The codemirror document
-     * @returns {String} document text content
+     * @return {String} document text content
+     * @private
      */
     function _getDocumentText(doc) {
         return _documentMap.get(doc).text;
@@ -112,6 +118,7 @@ define(function (require, exports, module) {
      * If already regular expression, then just set the flags as appropriate
      * @param {Object}  stringOrRegex A string or regular expression
      * @param {boolean} ignoreCase True to ignore case for searchers
+     * @private
      */
     function _convertToRegularExpression(stringOrRegex, ignoreCase) {
         if (typeof stringOrRegex === "string") {
@@ -124,21 +131,21 @@ define(function (require, exports, module) {
     /**
      * Finds the line number for the given index
      * @private
-     * @param {Array<number>} lineCharacterCountIndexArray See '_createLineCharacterCountIndex'
+     * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {number}        startSearchingWithLine       Line number to start search
      * @param {number}        indexWithinDoc               The index of the character offset from the start of the document
-     * @returns {number}      The line number for the given index.
+     * @return {number}      The line number for the given index.
      */
-    function _lineFromIndex(lineCharacterCountIndexArray, startSearchingWithLine, indexWithinDoc) {
+    function _lineFromIndex(docLineIndex, startSearchingWithLine, indexWithinDoc) {
         var lineNumber;
-        var lineCount = lineCharacterCountIndexArray.length;
+        var lineCount = docLineIndex.length;
         // linear search for line number turns out to be usually faster than binary search
         // as matches tend to come relatively close together and we can boost the linear
         // search performance using starting position since we often know our progress through the document.
         for (lineNumber = startSearchingWithLine; lineNumber < lineCount; lineNumber++) {
             // If the total character count at this line is greater than the index
             // then the index must be somewhere on this line
-            if (lineCharacterCountIndexArray[lineNumber] > indexWithinDoc) {
+            if (docLineIndex[lineNumber] > indexWithinDoc) {
                 return lineNumber;
             }
         }
@@ -147,15 +154,16 @@ define(function (require, exports, module) {
     /**
      * Given the character offset from the beginning of the document
      * creates an object which has the position information
-     * @param {Array<number>} lineCharacterCountIndexArray See '_createLineCharacterCountIndex'
+     * @private
+     * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {number} startSearchingWithLine Line number to start search
      * @param {number} indexWithinDoc The index of the character offset from the start of the document
      * @return {{line: number, ch: number}} Line and character offsets
      */
-    function _createPosFromIndex(lineCharacterCountIndexArray, startSearchingWithLine, indexWithinDoc) {
-        var lineNumber = _lineFromIndex(lineCharacterCountIndexArray, startSearchingWithLine, indexWithinDoc);
+    function _createPosFromIndex(docLineIndex, startSearchingWithLine, indexWithinDoc) {
+        var lineNumber = _lineFromIndex(docLineIndex, startSearchingWithLine, indexWithinDoc);
 
-        var previousLineEndingCharacterIndex = lineNumber > 0 ? lineCharacterCountIndexArray[lineNumber - 1] : 0;
+        var previousLineEndingCharacterIndex = lineNumber > 0 ? docLineIndex[lineNumber - 1] : 0;
         // create a Pos with the line number and the character offset relative to the beginning of this line
         return {line: lineNumber, ch: indexWithinDoc - previousLineEndingCharacterIndex };
     }
@@ -164,14 +172,15 @@ define(function (require, exports, module) {
      * Returns the character offset from the beginning of the document based on
      * object properties as pos.from.line and pos.from.ch
      * where line is the line number in the document and ch is the character offset on the line
-     * @param {Array<number>} lineCharacterCountIndexArray See '_createLineCharacterCountIndex'
+     * @private
+     * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {{line: number, ch: number}} pos Object describing the position within the document
      */
-    function _indexFromPos(lineCharacterCountIndexArray, pos) {
+    function _indexFromPos(docLineIndex, pos) {
         var indexAtStartOfLine = 0;
         if (pos.line > 0) {
             // Start with the sum of the character count at the end of previous line
-            indexAtStartOfLine = lineCharacterCountIndexArray[pos.line - 1];
+            indexAtStartOfLine = docLineIndex[pos.line - 1];
         }
         // Add the number of characters offset from the start and return
         return indexAtStartOfLine + pos.ch;
@@ -179,24 +188,25 @@ define(function (require, exports, module) {
 
     /**
      * Scans entire document and callback with each match found.
-     * Uses the documentIndex to more efficiently create the position objects on found matches.
+     * Uses the docLineIndex to more efficiently create the position objects on found matches.
      *
-     * @param {Array<number>} lineCharacterCountIndexArray See '_createLineCharacterCountIndex'
+     * @private
+     * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {String}        documentText                 Text to scan
      * @param {RegExp}        regex                        Regular expression used to search
      * @param {{from: {line: number, ch: number}, to: {line: number, ch: number}}} range Area to scan for matches
      * @param {function({line: number, ch: number}, {line: number, ch: number}, Array )} fnEachMatch Function is called with start position, end position and Regex match Array
      */
-    function _scanDocumentUsingRegularExpression(documentIndex, documentText, regex, range, fnEachMatch) {
+    function _scanDocumentUsingRegularExpression(docLineIndex, documentText, regex, range, fnEachMatch) {
         var matchArray;
-        var startRangeIndex = range !== undefined ? _indexFromPos(documentIndex, range.from) : 0;
-        var endRangeIndex = range !== undefined ? _indexFromPos(documentIndex, range.to) : documentIndex[documentIndex.length - 1];
+        var startRangeIndex = range !== undefined ? _indexFromPos(docLineIndex, range.from) : 0;
+        var endRangeIndex = range !== undefined ? _indexFromPos(docLineIndex, range.to) : docLineIndex[docLineIndex.length - 1];
 
         regex.lastIndex = startRangeIndex;
         var lastMatchedLine = 0;
         while ((matchArray = regex.exec(documentText)) !== null) {
-            var startPosition = _createPosFromIndex(documentIndex, lastMatchedLine, matchArray.index);
-            var endPosition = _createPosFromIndex(documentIndex, startPosition.line, regex.lastIndex);
+            var startPosition = _createPosFromIndex(docLineIndex, lastMatchedLine, matchArray.index);
+            var endPosition = _createPosFromIndex(docLineIndex, startPosition.line, regex.lastIndex);
             lastMatchedLine = endPosition.line;
 
             if (regex.lastIndex <= endRangeIndex) {
@@ -215,7 +225,8 @@ define(function (require, exports, module) {
 
     /**
      * Returns an object that indicates the beginning and end of a match from the search
-     * @param {Array<number>} docLineIndex See '_createLineCharacterCountIndex'
+     * @private
+     * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {number}        indexStart   Start location using index
      * @param {number}        indexEnd     End location using index
      * @param {number}        startLine    Starting line to search for line locations
@@ -234,9 +245,10 @@ define(function (require, exports, module) {
 
     /**
      * Comparison function for binary search of index positions within document.
+     * @private
      * @param {number} matchIndex First match index for compare
      * @param {number} posIndex   Second match index for compare
-     * @returns {number} Result of comparison
+     * @return {number} Result of comparison
      */
     function _compareMatchResultToPos(matchIndex, posIndex) {
         if (matchIndex === posIndex) {
@@ -254,6 +266,7 @@ define(function (require, exports, module) {
      * match result which is in the search direction.
      * If there is no match found before the end or beginning of the document
      * then this function returns false.
+     * @private
      * @param {!Object} regexIndexer instance of the regex indexer. see _createRegexIndexer
      * @param {number} pos Starting index position to search from
      * @param {boolean} reverse direction to search.
@@ -301,9 +314,10 @@ define(function (require, exports, module) {
      * by groups of items.
      * This is useful for both performance and memory consumption to store the indexes
      * of the match result beginning and ending locations.
+     * @private
      * @param {Array} array The array to enhance
      * @param {number} groupSize The number of indices that belong to a group
-     * @returns {GroupArray} Enhanced Array
+     * @return {GroupArray} Enhanced Array
      */
     function _makeGroupArray(array, groupSize) {
         var _currentGroupIndex = -groupSize;
@@ -349,7 +363,7 @@ define(function (require, exports, module) {
      * @param   {GroupArray} groupArray                      group array to hold values of index locations
      * @param   {number}     [matchCountLimit=10000000]      search will stop when match limit met
      * @param   {number}     [searchEndIndex=docText.length] search will stop when last match exceeds index location
-     * @returns {number}                                     Count of results
+     * @return {number}                                     Count of results
      */
     function _searchAndAddResultsToArray(query, docText, groupArray, matchCountLimit, searchEndIndex) {
         var matchArray;
@@ -381,7 +395,7 @@ define(function (require, exports, module) {
      * @param   {GroupArray} groupNum1   Item within group array
      * @param   {GroupArray} groupArray2 Second group array
      * @param   {GroupArray} groupNum2   Item within 2nd group array
-     * @returns {boolean}  true when values are equal
+     * @return {boolean}  true when values are equal
      */
     function _isGroupValuesEqual(groupArray1, groupNum1, groupArray2, groupNum2) {
         if (_.isEqual(groupArray1.getGroupValue(groupNum1, 0), groupArray2.getGroupValue(groupNum2, 0)) &&
@@ -411,12 +425,13 @@ define(function (require, exports, module) {
     /**
      * Creates the regex indexer which finds all matches within supplied text using the search query.
      * Uses a lookup index to efficiently map regular expression result indexes to position used by Brackets
+     * @private
      * @param {String} docText       The text to search for matches
      * @param {Array}  docLineIndex  Array used to map indexes to positions
      * @param {RegExp} query         A regular expression used to find matches
      * @param {number} maxResults    The limit of the number of matches to perform
      * @param {{to: {line: number, ch: number}, from: {line: number, ch: number}} startPosition Start searching at this position
-     * @returns {RegexIndexer} A new instance of the regular expression indexer
+     * @return {RegexIndexer} A new instance of the regular expression indexer
      */
     function _createRegexIndexer(docText, docLineIndex, query, maxResults, startPosition) {
         // Start and End index of each match stored in array as:
@@ -555,7 +570,7 @@ define(function (require, exports, module) {
          * @param   {String} docText    Text to search
          * @param   {Regex}  query      A regular expression
          * @param   {number} startIndex Index location to start search
-         * @returns {GroupArray} Array of search results
+         * @return {GroupArray} Array of search results
          */
         function _createSearchResults(docText, query, startIndex) {
             query.lastIndex = startIndex;
@@ -595,7 +610,7 @@ define(function (require, exports, module) {
 
     /**
      * Creates a regular expression cursor object that this module will provide to consumers
-     * @returns {SearchCursor} A new instance of a search cursor
+     * @return {SearchCursor} A new instance of a search cursor
      */
     function _createCursor() {
         function _findNext(cursor) {
@@ -671,7 +686,7 @@ define(function (require, exports, module) {
              */
             getDocCharacterCount: function () {
                 _updateResultsIfNeeded(this);
-                var docLineIndex = _getDocumentIndex(this.doc);
+                var docLineIndex = _getdocLineIndex(this.doc);
                 return docLineIndex[docLineIndex.length - 1];
             },
 
@@ -707,7 +722,7 @@ define(function (require, exports, module) {
                     // There is currently no match position
                     // This is our first time or we hit the top or end of document using next or prev
                     this.currentPosition = _startingPositionForFind(this, reverse);
-                    var docLineIndex = _getDocumentIndex(this.doc);
+                    var docLineIndex = _getdocLineIndex(this.doc);
                     var matchIndex = _findResultIndexNearPos(this.regexIndexer, _indexFromPos(docLineIndex, this.currentPosition.from), reverse, _compareMatchResultToPos);
                     if (matchIndex) {
                         this.regexIndexer.setCurrentMatchNumber(matchIndex);
@@ -760,12 +775,12 @@ define(function (require, exports, module) {
              * A value of '1' is positive match.
              *
              * @param   {[[Type]]} levelOfDetail An Array of this size will be created and filled with a pattern matching lines matched
-             * @returns {object}   An array filled with line match pattern
+             * @return {object}   An array filled with line match pattern
              */
             createMatchedLinePattern: function (levelOfDetail) {
                 _updateResultsIfNeeded(this);
                 var representationArray = new Uint8Array(levelOfDetail);
-                var docLineIndex = _getDocumentIndex(this.doc);
+                var docLineIndex = _getdocLineIndex(this.doc);
                 var linesPerArraySlot = docLineIndex.length / levelOfDetail;
                 this.regexIndexer.fillWithMatchedLinePattern(representationArray);
                 return {linesPerArraySlot: linesPerArraySlot, lineMatchPatternArray: representationArray};
@@ -782,7 +797,7 @@ define(function (require, exports, module) {
                     _indexDocument(this.doc);
                 }
                 var docText = _getDocumentText(this.doc);
-                var docLineIndex = _getDocumentIndex(this.doc);
+                var docLineIndex = _getdocLineIndex(this.doc);
                 this.regexIndexer = _createRegexIndexer(docText, docLineIndex, this.query, this.maxResults, this.currentPosition);
                 this.resultsCurrent = true;
                 return this.getMatchCount();
@@ -815,7 +830,7 @@ define(function (require, exports, module) {
             _indexDocument(properties.document);
         }
         var regex = _convertToRegularExpression(properties.searchQuery, properties.ignoreCase);
-        _scanDocumentUsingRegularExpression(_getDocumentIndex(properties.document), _getDocumentText(properties.document), regex, properties.range, properties.fnEachMatch);
+        _scanDocumentUsingRegularExpression(_getdocLineIndex(properties.document), _getDocumentText(properties.document), regex, properties.range, properties.fnEachMatch);
     }
 
     exports.createSearchCursor = createSearchCursor;
