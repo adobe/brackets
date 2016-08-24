@@ -35,6 +35,10 @@
         "branch": "",
         "SHA": ""
     },
+    "dependencies": {
+        "anymatch": "1.3.0",
+        "chokidar": "1.6.0"
+    },
     "devDependencies": {
         "grunt": "0.4.5",
         "jasmine-node": "1.11.0",
