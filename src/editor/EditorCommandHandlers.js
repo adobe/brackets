@@ -21,10 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
-
 /**
  * Text-editing commands that apply to whichever Editor is currently focused
  */
@@ -210,7 +206,7 @@ define(function (require, exports, module) {
             line = doc.getLine(startLine);
             var originalCursorPosition = line.search(/\S|$/);
             
-            var firstCharPosition,cursorPosition = originalCursorPosition;
+            var firstCharPosition, cursorPosition = originalCursorPosition;
             
             for (i = startLine; i <= endLine; i++) {
                 //check if preference for indent line comment is available otherwise go back to default indentation
@@ -227,7 +223,7 @@ define(function (require, exports, module) {
                         cursorPosition = originalCursorPosition;
                     }
                     
-                    editGroup.push({text: prefixes[0], start: {line: i, ch: cursorPosition}}); 
+                    editGroup.push({text: prefixes[0], start: {line: i, ch: cursorPosition}});
                 } else {
                     editGroup.push({text: prefixes[0], start: {line: i, ch: 0}});
                 }

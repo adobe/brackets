@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
-
 /**
  * LiveDevelopment allows Brackets to launch a browser with a "live preview" that's
  * connected to the current editor.
@@ -310,7 +307,7 @@ define(function (require, exports, module) {
         docPromise.done(function (doc) {
             if ((_classForDocument(doc) === LiveCSSDocument) &&
                     (!_liveDocument || (doc !== _liveDocument.doc))) {
-                var liveDoc = _createLiveDocument(doc, null, roots);
+                var liveDoc = _createLiveDocument(doc, doc._masterEditor, roots);
                 if (liveDoc) {
                     _server.add(liveDoc);
                     _relatedDocuments[doc.url] = liveDoc;

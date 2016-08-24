@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, spyOn, expect, beforeEach, afterEach, $ */
+/*global describe, it, spyOn, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
     'use strict';
@@ -40,7 +38,7 @@ define(function (require, exports, module) {
             // hold the height, and we'll place the editor holder in it.
             $fakeContentDiv = $("<div class='content'/>")
                 .css("height", "200px")
-                .appendTo(document.body);
+                .appendTo(window.document.body);
 
             $fakeHolder = SpecRunnerUtils.createMockElement()
                                         .css("width", "1000px")
@@ -73,9 +71,9 @@ define(function (require, exports, module) {
                 expect(pane.addView).toHaveBeenCalled();
             });
             it("should use an existing editor for a document when requested on same pane", function () {
+                var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane, undefined);
                 spyOn(pane, "addView");
                 spyOn(pane, "showView");
-                var editor = SpecRunnerUtils.createEditorInstance(testDoc, pane.$el, undefined, 'first-pane');
                 EditorManager.openDocument(testDoc, pane);
                 expect(pane.addView).not.toHaveBeenCalled();
                 expect(pane.showView).toHaveBeenCalledWith(editor);
@@ -85,14 +83,21 @@ define(function (require, exports, module) {
                 spyOn(pane, "showView");
                 spyOn(anotherPane, "addView");
                 spyOn(anotherPane, "showView");
-                var editor = SpecRunnerUtils.createEditorInstance(testDoc, anotherPane.$el, undefined, 'first-pane');
+
+                var editor = SpecRunnerUtils.createEditorInstance(testDoc, anotherPane, undefined);
                 EditorManager.openDocument(testDoc, anotherPane);
+
                 expect(pane.addView).not.toHaveBeenCalled();
                 expect(pane.showView).not.toHaveBeenCalled();
-                expect(anotherPane.addView).toHaveBeenCalled();
-                expect(anotherPane.addView).not.toHaveBeenCalledWith(editor);
-                expect(anotherPane.showView).toHaveBeenCalled();
-                expect(anotherPane.showView).not.toHaveBeenCalledWith(editor);
+                expect(anotherPane.addView).toHaveBeenCalledWith(editor);
+                expect(anotherPane.showView).toHaveBeenCalledWith(editor);
+
+                EditorManager.openDocument(testDoc, pane);
+
+                expect(pane.addView).toHaveBeenCalled();
+                expect(pane.showView).toHaveBeenCalled();
+                expect(pane.addView).not.toHaveBeenCalledWith(editor);
+                expect(pane.showView).not.toHaveBeenCalledWith(editor);
             });
         });
     });
@@ -104,7 +109,7 @@ define(function (require, exports, module) {
             // hold the height, and we'll place the editor holder in it.
             $fakeContentDiv = $("<div class='content'/>")
                 .css("height", "200px")
-                .appendTo(document.body);
+                .appendTo(window.document.body);
 
             $fakeHolder = SpecRunnerUtils.createMockElement()
                                         .css("width", "1000px")

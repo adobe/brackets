@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global brackets, define, $ */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -255,7 +252,7 @@ define(function (require, exports, module) {
                     // new install or an update.
                     Package.validate(path, { requirePackageJSON: true }).done(function (info) {
                         if (info.errors.length) {
-                            result.reject(Package.formatError(info.errors));
+                            result.reject(info.errors.map(Package.formatError).join(" "));
                             return;
                         }
 

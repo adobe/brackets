@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /**
  * PreferenceStorage defines an interface for persisting preference data as
  * name/value pairs for a module or plugin.

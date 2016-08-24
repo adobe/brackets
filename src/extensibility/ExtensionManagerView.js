@@ -21,8 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, Mustache, PathUtils */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -36,13 +34,15 @@ define(function (require, exports, module) {
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         LocalizationUtils         = require("utils/LocalizationUtils"),
         LanguageManager           = require("language/LanguageManager"),
-        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html"),
-        Mustache                  = require("thirdparty/mustache/mustache");
+        Mustache                  = require("thirdparty/mustache/mustache"),
+        PathUtils                 = require("thirdparty/path-utils/path-utils"),
+        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html");
+        
 
     /**
      * Create a detached link element, so that we can use it later to extract url details like 'protocol'
      */
-    var _tmpLink = document.createElement('a');
+    var _tmpLink = window.document.createElement('a');
 
     /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized

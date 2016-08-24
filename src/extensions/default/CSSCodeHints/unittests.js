@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, $, brackets */
+/*global describe, it, xit, expect, beforeEach, afterEach */
 
 define(function (require, exports, module) {
     "use strict";
@@ -685,7 +684,9 @@ define(function (require, exports, module) {
                 var hints = expectHints(CSSCodeHints.cssPropHintProvider, undefined, true).hints;
                 expect(hints[0].text()).toBe("aliceblue"); // first hint should be aliceblue
                 expect(hints[0].find(".color-swatch").length).toBe(1);
-                expect(hints[0].find(".color-swatch").css("backgroundColor")).toBe("rgb(240, 248, 255)");
+                // CEF 2623 will output "aliceblue" whereas earlier versions give "rgb(240, 248, 255)",
+                // so we need this ugly hack to make sure this test passes on both
+                expect(hints[0].find(".color-swatch").css("backgroundColor")).toMatch(/^rgb\(240, 248, 255\)$|aliceblue/);
             });
 
             it("should filter out color names appropriately", function () {

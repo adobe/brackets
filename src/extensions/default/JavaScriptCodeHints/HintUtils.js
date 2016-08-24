@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define */
+/*jslint regexp: true */
 
 define(function (require, exports, module) {
     "use strict";
@@ -92,8 +91,7 @@ define(function (require, exports, module) {
         case "number":
         case "regexp":
         case "string":
-        // exclude variable & param decls
-        case "def":
+        case "def":     // exclude variable & param decls
             return false;
         case "string-2":
             // exclude strings inside a regexp

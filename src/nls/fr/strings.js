@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -65,6 +62,7 @@ define({
 	"ERROR_SAVING_FILE": "Une erreur s’est produite lors de la tentative d’enregistrement du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_RENAMING_FILE_TITLE": "Erreur lors du changement de nom du {0}",
 	"ERROR_RENAMING_FILE": "Une erreur s’est produite lors de la tentative de changement de nom du {2} <span class='dialog-filename'>{0}</span>. {1}",
+	"ERROR_RENAMING_NOT_IN_PROJECT": "Le fichier ou le répertoire ne fait pas partie du projet actuellement ouvert. Or, seuls les fichiers appartenant au projet peuvent être renommés à ce stade.",
 	"ERROR_DELETING_FILE_TITLE": "Erreur lors de la suppression du {0}",
 	"ERROR_DELETING_FILE": "Une erreur s’est produite lors de la tentative de suppression du {2} <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "{0} non valide",
@@ -130,7 +128,7 @@ define({
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
 	"SAVE_CLOSE_MULTI_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées aux fichiers suivants ?",
 	"EXT_MODIFIED_TITLE": "Modifications externes",
-	"CONFIRM_FOLDER_DELETE_TITLE": "Confirmer la suppression",
+	"CONFIRM_DELETE_TITLE": "Confirmer la suppression",
 	"CONFIRM_FOLDER_DELETE": "Voulez-vous vraiment supprimer le dossier <span class='dialog-filename'>{0}</span> ?",
 	"FILE_DELETED_TITLE": "Fichier supprimé",
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque, dans une application autre que {APP_NAME}.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",
@@ -312,6 +310,7 @@ define({
 	"CMD_FILE_NEW": "Nouveau fichier",
 	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
+	"CMD_RECENT_FILES_OPEN": "Ouvrir les fichiers récents\u2026",
 	"CMD_ADD_TO_WORKING_SET": "Ouvrir dans l’ensemble de travail",
 	"CMD_OPEN_DROPPED_FILES": "Ouvrir les fichiers déposés",
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
@@ -671,6 +670,11 @@ define({
 	"COLLAPSE_CURRENT": "Réduire l’élément actif",
 	"EXPAND_CURRENT": "Développer l’élément actif",
 
+    // extensions/default/NavigationAndHistory
+	"RECENT_FILES_DLG_HEADER": "Fichiers récents",
+	"RECENT_FILES_DLG_CLEAR_BUTTON_LABEL": "Effacer",
+	"RECENT_FILES_DLG_CLEAR_BUTTON_TITLE": "Effacer les fichiers non présents dans l’ensemble de travail",
+
     // Descriptions of core preferences
 	"DESCRIPTION_CLOSE_BRACKETS": "vrai pour fermer automatiquement les accolades, les crochets et les parenthèses",
 	"DESCRIPTION_CLOSE_OTHERS_ABOVE": "faux pour supprimer l’option « Fermer les autres au-dessus » du menu contextuel Fichiers de travail",
@@ -778,5 +782,7 @@ define({
 	"DESCRIPTION_SHOW_PANE_HEADER_BUTTONS": "Permet de choisir quand afficher les boutons Fermer et Transférer la vue dans l’en-tête.",
 	"DEFAULT_PREFERENCES_JSON_HEADER_COMMENT": "/*\n * Fichier en lecture seule contenant les préférences prises\n * en charge par {APP_NAME}.\n * Utilisez ce fichier en référence pour modifier\n * votre fichier de préférences « brackets.json » ouvert dans l’autre volet.\n * Pour savoir comment utiliser les préférences dans\n * {APP_NAME}, reportez-vous à la page https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences.\n */",
 	"DEFAULT_PREFERENCES_JSON_DEFAULT": "Par défaut",
-	"DESCRIPTION_PURE_CODING_SURFACE": "vrai pour activer le mode code seul et masquer tous les autres éléments de l’interface utilisateur dans {APP_NAME}"
+	"DESCRIPTION_PURE_CODING_SURFACE": "vrai pour activer le mode code seul et masquer tous les autres éléments de l’interface utilisateur dans {APP_NAME}",
+	"DESCRIPTION_INDENT_LINE_COMMENT": "vrai pour activer la mise en retrait des commentaires sur une ligne",
+	"DESCRIPTION_RECENT_FILES_NAV": "Activer/désactiver la navigation dans les fichiers récents"
 });

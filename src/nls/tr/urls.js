@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
     // Relative to the samples folder
     "ADOBE_THIRD_PARTY"         : "http://www.adobe.com/go/thirdparty_tr/",

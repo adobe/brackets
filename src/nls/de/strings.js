@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -65,6 +62,7 @@ define({
     "ERROR_SAVING_FILE"                 : "Beim Speichern der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "ERROR_RENAMING_FILE_TITLE"         : "Fehler beim Umbenennen von {0}", // TODO: depends on {0} gender
     "ERROR_RENAMING_FILE"               : "Beim Umbenennen von {2} <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}", // TODO: depends on {2} gender
+    "ERROR_RENAMING_NOT_IN_PROJECT"     : "Die Datei oder der Ordner ist nicht Teil des geöffneten Projekts. Leider können derzeit nur Dateien im Projekt umbenannt werden.",
     "ERROR_DELETING_FILE_TITLE"         : "Fehler beim Löschen von {0}", // TODO: depends on {0} gender
     "ERROR_DELETING_FILE"               : "Beim Löschen von {2} <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten. {1}", // TODO: depends on {2} gender
     "INVALID_FILENAME_TITLE"            : "Ungültiger {0}",
@@ -130,7 +128,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Löschen bestätigen",
+    "CONFIRM_DELETE_TITLE"              : "Löschen bestätigen",
     "CONFIRM_FOLDER_DELETE"             : "Sind Sie sich sicher, dass Sie den Ordner <span class='dialog-filename'>{0}</span> löschen wollen?",
     "FILE_DELETED_TITLE"                : "Datei gelöscht",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> wurde außerhalb von {APP_NAME} geändert.<br /><br />Wollen Sie die Datei speichern und die externen Änderungen ersetzen?",
@@ -312,6 +310,7 @@ define({
     "CMD_FILE_NEW"                        : "Neue Datei",
     "CMD_FILE_NEW_FOLDER"                 : "Neuer Ordner",
     "CMD_FILE_OPEN"                       : "Öffnen\u2026",
+    "CMD_RECENT_FILES_OPEN"               : "Zuletzt verwendete Dateien öffnen\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Im Projekt öffnen",
     "CMD_OPEN_DROPPED_FILES"              : "Abgelegte Dateien öffnen",
     "CMD_OPEN_FOLDER"                     : "Ordner öffnen\u2026",
@@ -381,7 +380,7 @@ define({
     "CMD_HIDE_SIDEBAR"                    : "Seitenleiste verbergen",
     "CMD_SHOW_SIDEBAR"                    : "Seitenleiste zeigen",
     "CMD_TOGGLE_SIDEBAR"                  : "Seitenleiste anzeigen/verbergen",
-    "CMD_TOGGLE_PANEL"                    : "Panels anzeigen/verbergen",
+    "CMD_TOGGLE_PANELS"                   : "Panels anzeigen/verbergen",
     "CMD_TOGGLE_PURE_CODE"                : "Ablenkungsfreier Modus",
     "CMD_INCREASE_FONT_SIZE"              : "Schrift vergrößern",
     "CMD_DECREASE_FONT_SIZE"              : "Schrift verkleinern",
@@ -670,6 +669,12 @@ define({
     "EXPAND_ALL"                    : "Alle ausklappen",
     "COLLAPSE_CURRENT"              : "Aktuelle einklappen",
     "EXPAND_CURRENT"                : "Aktuelle ausklappen",
+    
+    // extensions/default/NavigationAndHistory
+    "RECENT_FILES_DLG_HEADER"                    : "Kürzlich verwendete Dateien",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Leeren",
+    "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Entferne alle Dateien aus der Liste, die nicht im Projekt geöffnet sind",
+    
 
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "Aktiviert das automatische Schließen von runden, eckigen und geschweiften Klammern",
@@ -779,7 +784,9 @@ define({
 
     "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * Dies ist ein schreibgeschütztes Dokument, das alle von\n * {APP_NAME} unterstützten Einstellungen auflistet.\n * Nutzen Sie dieses Dokument als Referenz, um die\n * Einstellungsdatei \"brackets.json\", die in der anderen\n * Ansicht geöffnet ist, anzupassen.\n * Besuchen Sie auch https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences,\n * um mehr über den Umgang mit Einstellungen in {APP_NAME}\n * zu erfahren.\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "Standard",
-    "DESCRIPTION_PURE_CODING_SURFACE"                : "Aktiviert den Ablenkungsfreien Modus, bei dem alle UI-Elemente außer dem Code ausgeblendet werden"
+    "DESCRIPTION_PURE_CODING_SURFACE"                : "Aktiviert den Ablenkungsfreien Modus, bei dem alle UI-Elemente außer dem Code ausgeblendet werden",
+    "DESCRIPTION_INDENT_LINE_COMMENT"                : "Aktiviert das Einrücken von Zeilenkommentaren",
+    "DESCRIPTION_RECENT_FILES_NAV"                   : "Aktiviert das Navigieren durch kürzlich verwendete Dateien"
 });
 
-/* Last translated for fcd2e98ef35c110e00aebfbb6d3c3816e5156552 */
+/* Last translated for 96f34a04b0cb3226fff29ae43bc3bc07bedc2d16 */

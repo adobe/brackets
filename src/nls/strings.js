@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define(function (require, exports, module) {
 
     "use strict";
@@ -54,6 +51,7 @@ define(function (require, exports, module) {
         "it": true,
         "ja": true,
         "ko": true,
+        "lv": true,
         "nb": true,
         "nl": true,
         "pl": true,

@@ -21,9 +21,8 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50, evil: true */
-/*global define, $, describe, beforeEach, afterEach, it, runs, expect, spyOn, jasmine, Node */
+/*jslint evil: true, regexp: true */
+/*global describe, beforeEach, afterEach, it, runs, expect, spyOn, jasmine, Node */
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
@@ -68,7 +67,7 @@ define(function (require, exports, module) {
         }
     }
 
-    var entityParsingNode = document.createElement("div");
+    var entityParsingNode = window.document.createElement("div");
 
     /**
      * domFeatures is a prototype object that augments a SimpleDOM object to have more of the

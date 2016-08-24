@@ -73,10 +73,10 @@ a:focus {
     background: @project-panel-base-color;
     color: #bbb;
     letter-spacing: .01em;
-    text-shadow: 0px 1px 2px @bc-shadow-large;
+    text-shadow: 0 1px 2px @bc-shadow-large;
 
     .dark & {
-        text-shadow: 0px 1px 2px @dark-bc-shadow-large;
+        text-shadow: 0 1px 2px @dark-bc-shadow-large;
     }
 }
 
@@ -88,10 +88,10 @@ a:focus {
     z-index: @z-index-brackets-drag-ghost;
     background-color: transparent;
 
-    text-shadow: 0px 1px 2px @bc-shadow-large;
+    text-shadow: 0 1px 2px @bc-shadow-large;
     
     .dark & {
-        text-shadow: 0px 1px 2px @dark-bc-shadow-large;
+        text-shadow: 0 1px 2px @dark-bc-shadow-large;
     }
 }
 
@@ -156,6 +156,7 @@ a:focus {
             max-height: 90vh;
             overflow-y: auto;
             -webkit-animation: none;
+            animation: none;
         }
     }
     .title {
@@ -179,7 +180,7 @@ a:focus {
     box-sizing: border-box;
 
     background: @main-toolbar-background-color;
-    padding: 7px 0px;
+    padding: 7px 0;
 
     // Ensure icons are vertically stacked & horizontally centered
     .vbox;
@@ -199,7 +200,7 @@ a:focus {
             background-repeat: no-repeat;
             display: block;
             height: 24px;
-            margin: 7px 0px 0px 3px;
+            margin: 7px 0 0 3px;
             width: 24px;
         }
 
@@ -259,8 +260,6 @@ a:focus {
 
         white-space: nowrap;
         overflow: hidden;
-        -ms-text-overflow: ellipsis;
-        -o-text-overflow: ellipsis;
         text-overflow: ellipsis;
     }
 
@@ -284,6 +283,7 @@ a:focus {
 .dropdown-menu {
     .animation(dropdown, 90ms, cubic-bezier(0, .97, .2, .99));
     -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
     border: none;
     border-radius: @bc-border-radius;
 
@@ -305,6 +305,7 @@ a:focus {
 
 .codehint-menu.open .dropdown-menu {
     -webkit-animation: none;
+    animation: none;
 }
 
 .toolbar .nav, .context-menu, .codehint-menu {
@@ -373,6 +374,7 @@ a:focus {
         // This technique won't work on all browsers; see comments in #4593 for alternative options.
         width: -webkit-max-content;
         width: -moz-max-content;
+        width: max-content;
 
         background-color: @bc-menu-bg;
         .border-radius(0 0 3px 3px);
@@ -392,7 +394,7 @@ a:focus {
 
                 // Slightly less padding on left to account for checkmark.
                 // More padding on top than bottom to center font within its bg highlight better.
-                padding: 2px 10px 0px 6px;
+                padding: 2px 10px 0 6px;
 
                 color: @bc-menu-text;
                 text-shadow: none;
@@ -502,7 +504,7 @@ a:focus {
             a {
                 // Less padding than on menus. More padding on top than bottom
                 // to center font within its bg highlight better.
-                padding: 2px 20px 0px 0px;
+                padding: 2px 20px 0 0;
 
                 // Don't show highlighting on hover for code hints...
                 &:hover {
@@ -571,8 +573,8 @@ a:focus {
 .btn-dropdown::after {
     content: "";
     display: block;
-    height: 0px;
-    width: 0px;
+    height: 0;
+    width: 0;
     position: absolute;
     right: 7px;
     top: 11px;
@@ -678,6 +680,7 @@ a:focus {
 /* Status bar language picker's DropdownButton */
 .dropdownbutton-popup.dropdown-status-bar {
     -webkit-transform-origin: 0 100%;
+    transform-origin: 0 100%;
     height: auto;
     max-height: 80%;
     
@@ -1525,7 +1528,7 @@ input[type="color"],
     box-shadow: inset 0 1px @bc-highlight-hard;
     -webkit-font-smoothing: antialiased;
     text-shadow: none;
-    margin: 3px 0px 3px 3px;
+    margin: 3px 0 3px 3px;
 
     .dark & {
         background-color: @dark-bc-btn-bg;

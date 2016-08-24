@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /**
  * MainViewManager manages the arrangement of all open panes as well as provides the controller
  * logic behind all views in the MainView (e.g. ensuring that a file doesn't appear in 2 lists)
@@ -1714,6 +1711,7 @@ define(function (require, exports, module) {
     exports.findInWorkingSetByAddedOrder  = findInWorkingSetByAddedOrder;
     exports.findInWorkingSetByMRUOrder    = findInWorkingSetByMRUOrder;
     exports.findInAllWorkingSets          = findInAllWorkingSets;
+    exports.findInGlobalMRUList           = _findFileInMRUList;
 
     // Traversal
     exports.beginTraversal                = beginTraversal;

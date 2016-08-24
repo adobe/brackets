@@ -21,8 +21,6 @@
  *
  */
 
-/*global define, $, window */
-
 /*
  * Panel showing search results for a Find/Replace in Files operation.
  */

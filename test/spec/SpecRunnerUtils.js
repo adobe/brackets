@@ -21,9 +21,8 @@
  *
  */
 
+/*global jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn */
 define(function (require, exports, module) {
     'use strict';
 
@@ -395,14 +394,18 @@ define(function (require, exports, module) {
             .appendTo($("body"));
     }
 
-    function createEditorInstance(doc, $editorHolder, visibleRange, paneId) {
+    function createEditorInstance(doc, pane, visibleRange) {
+        var $editorHolder = pane.$el || pane; // To handle actual pane mock or a fake container
         var editor = new Editor(doc, true, $editorHolder.get(0), visibleRange);
 
         Editor.setUseTabChar(EDITOR_USE_TABS);
         Editor.setSpaceUnits(EDITOR_SPACE_UNITS);
-        if (paneId) {
-            editor._paneId = paneId;
+
+        if (pane.addView) {
+            pane.addView(editor);
+            editor._paneId = pane.id;
         }
+
         EditorManager._notifyActiveEditorChanged(editor);
 
         return editor;
@@ -460,7 +463,8 @@ define(function (require, exports, module) {
             $el: $el,
             id: paneId || 'first-pane',
             $content: $fakeContent,
-            addView: function (path, editor) {
+            addView: function (editor) {
+                this.$content.append(editor.$el);
             },
             showView: function (editor) {
             }

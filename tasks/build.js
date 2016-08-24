@@ -20,8 +20,8 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*jslint regexp:true*/
-/*global module, require, process*/
+
+/*jslint node: true, regexp: true */
 
 module.exports = function (grunt) {
     "use strict";
@@ -250,10 +250,10 @@ module.exports = function (grunt) {
         var done = this.async(),
             PATH = "src/nls",
             ROOT_LANG = "root",
+            encounteredErrors = false,
             rootDefinitions = {},
             definitions,
-            unknownKeys,
-            encounteredErrors;
+            unknownKeys;
 
         function getDefinitions(abspath) {
             var fileContent,
@@ -292,7 +292,7 @@ module.exports = function (grunt) {
             }
         });
 
-        done(encounteredErrors);
+        done(!encounteredErrors);
     });
 
     build.getGitInfo = getGitInfo;

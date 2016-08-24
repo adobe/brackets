@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -130,7 +127,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "您想要儲存 <span class='dialog-filename'>{0}</span> 檔案的變更嗎?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "您想要儲存下列檔案的變更嗎?",
     "EXT_MODIFIED_TITLE"                : "外部變更",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "確定刪除",
+    "CONFIRM_DELETE_TITLE"              : "確定刪除",
     "CONFIRM_FOLDER_DELETE"             : "您確定要刪除 <span class='dialog-filename'>{0}</span> 資料夾嗎?",
     "FILE_DELETED_TITLE"                : "檔案已刪除",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> 在 {APP_NAME} 外被修改過了。<br /><br />您想要儲存檔案並覆寫蓋掉外部的變更嗎?",
