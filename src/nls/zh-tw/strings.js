@@ -763,7 +763,7 @@ define({
     "DESCRIPTION_FONT_SMOOTHING"                     : "只適用 Mac: \"subpixel-antialiased\" 代表啟用子像素鋸齒消除模式，或是設成 \"antialiased\" 使用灰階鋸齒消除模式。",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "false 代表不要使用分割窗格開啟喜好設定檔",
     "DESCRIPTION_OPEN_USER_PREFS_IN_SECOND_PANE"     : "false 代表在左窗格或上窗格開啟使用者喜好設定檔",
-    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * 這是 {APP_NAME} 支援的喜好設定值，內容是唯讀的，請勿直接修改。\n * 供您參考並請修改開在另一個窗格的 \"brackets.json\" 個人喜好設定檔。\n * 如果想更了解 {APP_NAME} 喜好設定，請參考網頁 https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
+    "DEFAULT_PREFERENCES_JSON_HEADER_COMMENT"        : "/*\n * 這是 {APP_NAME} 支援的喜好設定值，此檔是唯讀的，僅供您參考，請勿直接修改。\n * 若您要修改您的設定檔請修改開在另一個窗格的 \"brackets.json\" 個人喜好設定檔。\n * 如果想更了解 {APP_NAME} 喜好設定，請參考網頁 https://github.com/adobe/brackets/wiki/How-to-Use-Brackets#preferences\n */",
     "DEFAULT_PREFERENCES_JSON_DEFAULT"               : "預設"
 });
 
