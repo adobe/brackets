@@ -21,6 +21,24 @@
  *
  */
 
+
+/**
+ * BracketsSearchCursor is a module which is used to search a document using regular expressions
+ * and store the results internally in order to facilitate navigation forward and backward through
+ * the found results.
+ *
+ * This is currently used by the FindReplace module, but also may be used by extensions which
+ * have need of performing document searches.
+ *
+ * An index is created of for line and character offsets for fast conversion to and from Pos objects
+ * to index locations.  CodeMirror does not have an effecient method to perform this conversion.
+ *
+ * All instances of the search cursor will share the same document index and if the document changes
+ * since the index creation a new index is created automatically
+ *
+ */
+
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, WeakMap, Uint32Array, Uint8Array */
 
@@ -62,8 +80,8 @@ define(function (require, exports, module) {
      * Creates an array which stores the sum of all characters in the document
      * up to the point of each line.
      * This is needed to efficiently convert character index offsets to position objects of line and character offset.
-     * @param {String} text The string to index
-     * @param {String} lineSeparator The ending character that splits lines
+     * @param {string} text The string to index
+     * @param {string} lineSeparator The ending character that splits lines
      * @private
      */
     function _createDocLineIndex(text, lineSeparator) {
@@ -105,7 +123,7 @@ define(function (require, exports, module) {
     /**
      * Gets the document text
      * @param {CodeMirror.Doc} doc The codemirror document
-     * @return {String} document text content
+     * @return {string} document text content
      * @private
      */
     function _getDocumentText(doc) {
@@ -175,6 +193,7 @@ define(function (require, exports, module) {
      * @private
      * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {{line: number, ch: number}} pos Object describing the position within the document
+     * @return {number} character offset from the beginning of the document
      */
     function _indexFromPos(docLineIndex, pos) {
         var indexAtStartOfLine = 0;
@@ -192,12 +211,12 @@ define(function (require, exports, module) {
      *
      * @private
      * @param {Array<number>} docLineIndex See '_createDocLineIndex'
-     * @param {String}        documentText                 Text to scan
+     * @param {string}        documentText                 Text to scan
      * @param {RegExp}        regex                        Regular expression used to search
      * @param {{from: {line: number, ch: number}, to: {line: number, ch: number}}} range Area to scan for matches
      * @param {function({line: number, ch: number}, {line: number, ch: number}, Array )} fnEachMatch Function is called with start position, end position and Regex match Array
      */
-    function _scanDocumentUsingRegularExpression(docLineIndex, documentText, regex, range, fnEachMatch) {
+    function _scanDocument(docLineIndex, documentText, regex, range, fnEachMatch) {
         var matchArray;
         var startRangeIndex = range !== undefined ? _indexFromPos(docLineIndex, range.from) : 0;
         var endRangeIndex = range !== undefined ? _indexFromPos(docLineIndex, range.to) : docLineIndex[docLineIndex.length - 1];
@@ -248,16 +267,10 @@ define(function (require, exports, module) {
      * @private
      * @param {number} matchIndex First match index for compare
      * @param {number} posIndex   Second match index for compare
-     * @return {number} Result of comparison
+     * @return {number} negative, zero or positive value if the first argument is less than, equal to or greater than the second argument, correspondingly.
      */
-    function _compareMatchResultToPos(matchIndex, posIndex) {
-        if (matchIndex === posIndex) {
-            return 0;
-        } else if (matchIndex < posIndex) {
-            return -1;
-        } else {
-            return 1;
-        }
+    function _compareOffsets(matchIndex, posIndex) {
+        return Math.sign(matchIndex - posIndex);
     }
 
     /**
@@ -271,6 +284,7 @@ define(function (require, exports, module) {
      * @param {number} pos Starting index position to search from
      * @param {boolean} reverse direction to search.
      * @param {function(number, number)} fnCompare function to compare positions for binary search
+     * @return {number} offset from the beginning of the document
      */
     function _findResultIndexNearPos(regexIndexer, pos, reverse, fnCompare) {
         var compare;
@@ -282,12 +296,15 @@ define(function (require, exports, module) {
         while (lowerBound <= upperBound) {
             searchIndex = Math.floor((upperBound + lowerBound) / 2);
             compare = fnCompare(regexIndexer.getMatchIndexStart(searchIndex), pos);
-            if (compare === 0) {
-                return searchIndex;
-            } else if (compare === -1) {
+            switch (compare) {
+            case -1:
                 lowerBound = searchIndex + 1;
-            } else {
+                break;
+            case 0:
+                return searchIndex;
+            case 1:
                 upperBound = searchIndex - 1;
+                break;
             }
         }
         // no exact match, we are at the lower bound
@@ -359,7 +376,7 @@ define(function (require, exports, module) {
      *
      * @private
      * @param   {object}     query                           regular expression query
-     * @param   {String}     docText                         the text to search
+     * @param   {string}     docText                         the text to search
      * @param   {GroupArray} groupArray                      group array to hold values of index locations
      * @param   {number}     [matchCountLimit=10000000]      search will stop when match limit met
      * @param   {number}     [searchEndIndex=docText.length] search will stop when last match exceeds index location
@@ -426,7 +443,7 @@ define(function (require, exports, module) {
      * Creates the regex indexer which finds all matches within supplied text using the search query.
      * Uses a lookup index to efficiently map regular expression result indexes to position used by Brackets
      * @private
-     * @param {String} docText       The text to search for matches
+     * @param {string} docText       The text to search for matches
      * @param {Array}  docLineIndex  Array used to map indexes to positions
      * @param {RegExp} query         A regular expression used to find matches
      * @param {number} maxResults    The limit of the number of matches to perform
@@ -480,7 +497,7 @@ define(function (require, exports, module) {
         }
 
         function forEachMatchWithinRange(regexIndexer, startPosition, endPosition, fnResult) {
-            var nearestMatchIndex = _findResultIndexNearPos(regexIndexer, _indexFromPos(docLineIndex, startPosition), false, _compareMatchResultToPos);
+            var nearestMatchIndex = _findResultIndexNearPos(regexIndexer, _indexFromPos(docLineIndex, startPosition), false, _compareOffsets);
             if (nearestMatchIndex === false) {return; }
 
             var nearestMatchPosition = _createPosFromIndex(docLineIndex, startPosition.line, _startEndIndexArray[nearestMatchIndex]);
@@ -567,7 +584,7 @@ define(function (require, exports, module) {
          * the document is very large and also the matches are large we will limit starting at the cursor.
          *
          * @private
-         * @param   {String} docText    Text to search
+         * @param   {string} docText    Text to search
          * @param   {Regex}  query      A regular expression
          * @param   {number} startIndex Index location to start search
          * @return {GroupArray} Array of search results
@@ -723,7 +740,7 @@ define(function (require, exports, module) {
                     // This is our first time or we hit the top or end of document using next or prev
                     this.currentPosition = _startingPositionForFind(this, reverse);
                     var docLineIndex = _getdocLineIndex(this.doc);
-                    var matchIndex = _findResultIndexNearPos(this.regexIndexer, _indexFromPos(docLineIndex, this.currentPosition.from), reverse, _compareMatchResultToPos);
+                    var matchIndex = _findResultIndexNearPos(this.regexIndexer, _indexFromPos(docLineIndex, this.currentPosition.from), reverse, _compareOffsets);
                     if (matchIndex) {
                         this.regexIndexer.setCurrentMatchNumber(matchIndex);
                         foundPosition = this.regexIndexer.getCurrentMatch();
@@ -830,7 +847,7 @@ define(function (require, exports, module) {
             _indexDocument(properties.document);
         }
         var regex = _convertToRegularExpression(properties.searchQuery, properties.ignoreCase);
-        _scanDocumentUsingRegularExpression(_getdocLineIndex(properties.document), _getDocumentText(properties.document), regex, properties.range, properties.fnEachMatch);
+        _scanDocument(_getdocLineIndex(properties.document), _getDocumentText(properties.document), regex, properties.range, properties.fnEachMatch);
     }
 
     exports.createSearchCursor = createSearchCursor;
