@@ -21,11 +21,11 @@
  *
  */
 
+/*eslint-env node */
 /*jslint node: true */
+'use strict';
 
 module.exports = function (grunt) {
-    'use strict';
-
     // load dependencies
     require('load-grunt-tasks')(grunt, {
         pattern: [

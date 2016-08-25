@@ -21,6 +21,8 @@
  *
  */
 
+/*jslint regexp: true */
+
 /**
  * LiveCSSDocument manages a single CSS source document
  *
@@ -45,7 +47,8 @@ define(function LiveCSSDocumentModule(require, exports, module) {
     var _               = require("thirdparty/lodash"),
         CSSUtils        = require("language/CSSUtils"),
         EventDispatcher = require("utils/EventDispatcher"),
-        LiveDocument    = require("LiveDevelopment/MultiBrowserImpl/documents/LiveDocument");
+        LiveDocument    = require("LiveDevelopment/MultiBrowserImpl/documents/LiveDocument"),
+        PathUtils       = require("thirdparty/path-utils/path-utils");
 
     /**
      * @constructor
@@ -93,14 +96,31 @@ define(function LiveCSSDocumentModule(require, exports, module) {
      * When the user edits the file, update the stylesheet in the browser and redraw highlights.
      */
     LiveCSSDocument.prototype._updateBrowser = function () {
-        var i;
+        var i,
+            docUrl = this.doc.url;
+
+        // Determines whether an url() line contains a relative or absolute URL, and makes
+        // the URL absolute to the CSS file if it is relative
+        function makeUrlsRelativeToCss(match, quotationMark, url) {
+            if (PathUtils.isRelativeUrl(url)) {
+                var absUrl = PathUtils.makeUrlAbsolute(url, docUrl);
+                return "url(" + quotationMark + absUrl + quotationMark + ")";
+            }
+            return match;
+        }
+
         for (i = 0; i < this.roots.length; i++) {
-            if (this.doc.url !== this.roots[i].toString()) {
+            if (docUrl !== this.roots[i].toString()) {
                 // if it's not directly included through <link>,
                 // reload the original doc
                 this.trigger("updateDoc", this.roots[i]);
             } else {
-                this.protocol.setStylesheetText(this.doc.url, this.doc.getText());
+                var docText = this.doc.getText();
+
+                // Replace all occurrences of url() where the URL is relative to the CSS file with
+                // an absolute URL so it is relative to the CSS file, not the HTML file (see #11936)
+                docText = docText.replace(/\burl\(\s*(["']?)([^)\n]+)\1\s*\)/ig, makeUrlsRelativeToCss);
+                this.protocol.setStylesheetText(docUrl, docText);
             }
         }
         this.redrawHighlights();
