@@ -658,7 +658,7 @@ define(function (require, exports, module) {
      * @param {array} fileList The list of files that changed.
      */
     function filesChanged(fileList) {
-        if (FindUtils.isNodeSearchDisabled()) {
+        if (FindUtils.isNodeSearchDisabled() || fileList.length === 0) {
             return;
         }
         var updateObject = {
