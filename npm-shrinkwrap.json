@@ -4,7 +4,7 @@
   "dependencies": {
     "anymatch": {
       "version": "1.3.0",
-      "from": "anymatch@>=1.3.0 <2.0.0",
+      "from": "anymatch@1.3.0",
       "resolved": "https://registry.npmjs.org/anymatch/-/anymatch-1.3.0.tgz"
     },
     "arr-diff": {
@@ -28,9 +28,9 @@
       "resolved": "https://registry.npmjs.org/arrify/-/arrify-1.0.1.tgz"
     },
     "async-each": {
-      "version": "1.0.0",
+      "version": "1.0.1",
       "from": "async-each@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/async-each/-/async-each-1.0.0.tgz"
+      "resolved": "https://registry.npmjs.org/async-each/-/async-each-1.0.1.tgz"
     },
     "balanced-match": {
       "version": "0.4.2",
@@ -159,7 +159,7 @@
     },
     "is-glob": {
       "version": "2.0.1",
-      "from": "is-glob@>=2.0.0 <3.0.0",
+      "from": "is-glob@>=2.0.1 <3.0.0",
       "resolved": "https://registry.npmjs.org/is-glob/-/is-glob-2.0.1.tgz"
     },
     "is-number": {
@@ -204,7 +204,7 @@
     },
     "minimatch": {
       "version": "3.0.3",
-      "from": "minimatch@3.0.3",
+      "from": "minimatch@>=3.0.2 <4.0.0",
       "resolved": "https://registry.npmjs.org/minimatch/-/minimatch-3.0.3.tgz"
     },
     "normalize-path": {

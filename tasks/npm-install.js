@@ -22,7 +22,6 @@
  */
 
 /*jslint node: true */
-/*global Promise */
 
 module.exports = function (grunt) {
     "use strict";
@@ -34,17 +33,15 @@ module.exports = function (grunt) {
         path    = require("path"),
         exec    = require('child_process').exec;
     
-    function runNpmInstall(where) {
-        return new Promise(function (resolve, reject) {
-            grunt.log.writeln("running npm install --production in " + where);
-            exec('npm install --production', { cwd: './' + where }, function (err, stdout, stderr) {
-                if (err) {
-                    grunt.log.error(stderr);
-                } else {
-                    grunt.log.writeln(stdout || "finished npm install in " + where);
-                }
-                return err ? reject(stderr) : resolve(stdout);
-            });
+    function runNpmInstall(where, callback) {
+        grunt.log.writeln("running npm install --production in " + where);
+        exec('npm install --production', { cwd: './' + where }, function (err, stdout, stderr) {
+            if (err) {
+                grunt.log.error(stderr);
+            } else {
+                grunt.log.writeln(stdout || "finished npm install in " + where);
+            }
+            return err ? callback(stderr) : callback(null, stdout);
         });
     }
 
@@ -56,9 +53,9 @@ module.exports = function (grunt) {
         common.writeJSON(grunt, "dist/package.json", packageJSON);
 
         var done = this.async();
-        runNpmInstall("dist")
-            .then(function () { done(); })
-            .catch(function (err) { done(false); });
+        runNpmInstall("dist", function (err) {
+            return err ? done(false) : done();
+        });
     });
     
     grunt.registerTask("npm-install-extensions", "Install node_modules for default extensions which have package.json defined", function () {
@@ -73,9 +70,9 @@ module.exports = function (grunt) {
             });
             var done = _.after(files.length, _done);
             files.forEach(function (file) {
-                runNpmInstall(path.dirname(file))
-                    .then(function () { done(); })
-                    .catch(function (err) { _done(false); });
+                runNpmInstall(path.dirname(file), function (err) {
+                    return err ? _done(false) : done();
+                });
             });
         });
     });

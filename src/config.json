@@ -41,6 +41,7 @@
         "lodash": "4.15.0"
     },
     "devDependencies": {
+        "glob": "7.0.6",
         "grunt": "0.4.5",
         "jasmine-node": "1.11.0",
         "grunt-jasmine-node": "0.1.0",
