@@ -748,6 +748,7 @@ define({
     "DESCRIPTION_ASYNC_TIMEOUT"                      : "The time in milliseconds after which asynchronous linters time out",
     "DESCRIPTION_LINTING_PREFER"                     : "Array of linters to run first",
     "DESCRIPTION_LIVE_DEV_MULTIBROWSER"              : "true to enable experimental Live Preview",
+    "DESCRIPTION_LIVE_DEV_SOCKETPORT"                : "Experimental Live Preview communication socket port number",
     "DESCRIPTION_USE_PREFERED_ONLY"                  : "true to run providers specified in linting.prefer only",
     "DESCRIPTION_MAX_CODE_HINTS"                     : "Maximum code hints displayed at once",
     "DESCRIPTION_PATH"                               : "Path specific settings",

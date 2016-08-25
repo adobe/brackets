@@ -58,7 +58,7 @@
     var _clients = {};
 
     // This must match the port declared in NodeSocketTransport.js.
-    // TODO: randomize this?
+    // Default socket port number
     var SOCKET_PORT = 8123;
 
     /**
@@ -76,11 +76,13 @@
     /**
      * @private
      * Creates the WebSocketServer and handles incoming connections.
+     * @param {number} port
      */
-    function _createServer() {
+    function _createServer(port) {
         if (!_wsServer) {
             // TODO: make port configurable, or use random port
-            _wsServer = new WebSocketServer({port: SOCKET_PORT});
+            port = port || SOCKET_PORT;
+            _wsServer = new WebSocketServer({port: port});
             _wsServer.on("connection", function (ws) {
                 ws.on("message", function (msg) {
                     console.log("WebSocketServer - received - " + msg);
@@ -140,10 +142,10 @@
 
     /**
      * Initializes the socket server.
-     * @param {string} url
+     * @param {number} port
      */
-    function _cmdStart(url) {
-        _createServer();
+    function _cmdStart(port) {
+        _createServer(port);
     }
 
     /**
@@ -192,7 +194,9 @@
             _cmdStart,     // command handler function
             false,          // this command is synchronous in Node
             "Creates the WS server",
-            []
+            [
+                {name: "port", type: "number", description: "number of WS port"}
+            ]
         );
         domainManager.registerCommand(
             "nodeSocketTransport",      // domain name

@@ -469,7 +469,7 @@
             "requestFilter",
             [{
                 name: "location",
-                type: "{hostname: string, pathname: string, port: number, root: string: id: number}",
+                type: "{hostname: string, pathname: string, port: number, root: string, id: number}",
                 description: "request path"
             }]
         );

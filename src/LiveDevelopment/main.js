@@ -78,6 +78,10 @@ define(function main(require, exports, module) {
     var multiBrowserPref = prefs.definePreference(PREF_MULTIBROWSER, "boolean", false, {
         description: Strings.DESCRIPTION_LIVE_DEV_MULTIBROWSER
     });
+    var PREF_SOCKETPORT = "socketport";
+    var transportSocketPort = prefs.definePreference(PREF_SOCKETPORT, "number", 8123, {
+        description: Strings.DESCRIPTION_LIVE_DEV_SOCKETPORT
+    });
 
     /** Toggles or sets the preference **/
     function _togglePref(key, value) {
@@ -351,6 +355,14 @@ define(function main(require, exports, module) {
                         });
                 } else {
                     _setImplementation(prefs.get(PREF_MULTIBROWSER));
+                }
+            });
+        transportSocketPort
+            .on("change", function () {
+                // Stop current session if it is open and multibrowser
+                if (LiveDevImpl && LiveDevImpl === MultiBrowserLiveDev &&
+                   LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE) {
+                    LiveDevImpl.close();
                 }
             });
 

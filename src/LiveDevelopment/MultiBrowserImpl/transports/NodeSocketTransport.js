@@ -31,7 +31,11 @@ define(function (require, exports, module) {
 
     var FileUtils       = require("file/FileUtils"),
         EventDispatcher = require("utils/EventDispatcher"),
-        NodeDomain      = require("utils/NodeDomain");
+        NodeDomain      = require("utils/NodeDomain"),
+        PreferencesManager  = require("preferences/PreferencesManager");
+    
+    var prefs = PreferencesManager.getExtensionPrefs("livedev");
+    var PREF_SOCKETPORT = "socketport";
 
     // The script that will be injected into the previewed HTML to handle the other side of the socket connection.
     var NodeSocketTransportRemote = require("text!LiveDevelopment/MultiBrowserImpl/transports/remote/NodeSocketTransportRemote.js");
@@ -43,9 +47,8 @@ define(function (require, exports, module) {
     var NodeSocketTransportDomain = new NodeDomain("nodeSocketTransport", domainPath);
 
     // This must match the port declared in NodeSocketTransportDomain.js.
-    // TODO: randomize this?
-    var SOCKET_PORT = 8123;
-
+    var SOCKET_PORT = prefs.get(PREF_SOCKETPORT) || 8123;
+    
     /**
      * Returns the script that should be injected into the browser to handle the other end of the transport.
      * @return {string}
@@ -55,6 +58,12 @@ define(function (require, exports, module) {
             NodeSocketTransportRemote +
             "this._Brackets_LiveDev_Socket_Transport_URL = 'ws://localhost:" + SOCKET_PORT + "';\n" +
             "</script>\n";
+    }
+
+    function start () {
+        SOCKET_PORT = prefs.get(PREF_SOCKETPORT);
+        console.log("NodeSocketTransport - start on port:" + SOCKET_PORT);
+        NodeSocketTransportDomain.exec('start', SOCKET_PORT);
     }
 
     // Events
@@ -74,10 +83,11 @@ define(function (require, exports, module) {
 
     // Exports
     exports.getRemoteScript = getRemoteScript;
+    exports.start = start;
 
     // Proxy the node domain methods directly through, since they have exactly the same
     // signatures as the ones we're supposed to provide.
-    ["start", "send", "close"].forEach(function (method) {
+    ["send", "close"].forEach(function (method) {
         exports[method] = function () {
             var args = Array.prototype.slice.call(arguments);
             args.unshift(method);
