@@ -192,6 +192,11 @@
       "from": "kind-of@>=3.0.2 <4.0.0",
       "resolved": "https://registry.npmjs.org/kind-of/-/kind-of-3.0.4.tgz"
     },
+    "lodash": {
+      "version": "4.15.0",
+      "from": "lodash@4.15.0",
+      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.15.0.tgz"
+    },
     "micromatch": {
       "version": "2.3.11",
       "from": "micromatch@>=2.1.5 <3.0.0",
