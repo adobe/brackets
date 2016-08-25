@@ -31,7 +31,7 @@ var semver   = require("semver"),
     request  = require("request"),
     fs       = require("fs-extra"),
     temp     = require("temp"),
-    npm      = require("npm"),
+    spawn    = require('child_process').spawn,
     validate = require("./package-validator").validate;
 
 // Automatically clean up temp files on exit
@@ -81,6 +81,54 @@ function _removeFailedInstallation(installDirectory) {
 }
 
 /**
+ * Private function to run 'npm install --production' command in the extension directory.
+ *
+ * @param {string} installDirectory Directory to remove
+ * @param {function} callback NodeJS style callback to call after finish
+ */
+function _performNpmInstall(installDirectory, callback) {
+    var npmPath = path.resolve(path.dirname(require.resolve("npm")), "..", "bin", "npm-cli.js");
+    var args = [npmPath, 'install', '--production'];
+
+    console.log("running npm install --production in " + installDirectory);
+
+    var child = spawn(process.execPath, args, { cwd: installDirectory });
+
+    child.on("error", function (err) {
+        return callback(err);
+    });
+
+    var stdout = [];
+    child.stdout.addListener("data", function (buffer) {
+        stdout.push(buffer);
+    });
+
+    var stderr = [];
+    child.stderr.addListener("data", function (buffer) {
+        stderr.push(buffer);
+    });
+
+    var exitCode;
+    child.addListener("exit", function (code) {
+        exitCode = code;
+    });
+
+    child.addListener("close", function () {
+        stderr = Buffer.concat(stderr);
+        stdout = Buffer.concat(stdout);
+        if (exitCode > 0) {
+            console.error("npm-stderr: " + stderr);
+            return callback(new Error(stderr));
+        }
+        console.warn("npm-stderr: " + stderr);
+        console.log("npm-stdout: " + stdout);
+        return callback();
+    });
+
+    child.stdin.end();
+}
+
+/**
  * Private function to unzip to the correct directory.
  *
  * @param {string} Absolute path to the package zip file
@@ -115,45 +163,24 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
             };
 
             if (err) {
-                fail(err);
-                return;
+                return fail(err);
             }
 
-            var packageJson,
-                npmDependencies;
+            var packageJson;
 
             try {
-                packageJson = JSON.parse(fs.readFileSync(path.join(installDirectory, "package.json"), {
-                    encoding: "utf8"
-                }));
+                packageJson = fs.readJsonSync(path.join(installDirectory, "package.json"));
             } catch (e) {
                 packageJson = null;
             }
 
-            if (packageJson && packageJson.dependencies) {
-                npmDependencies = Object.keys(packageJson.dependencies).map(function (key) {
-                    return key + "@" + packageJson.dependencies[key];
-                });
+            if (!packageJson || !packageJson.dependencies) {
+                return finish();
             }
 
-            if (npmDependencies && npmDependencies.length > 0) {
-                npm.load(function (err, npm) {
-                    if (err) {
-                        fail(err);
-                        return;
-                    }
-                    npm.commands.install(installDirectory, npmDependencies, function (err, result) {
-                        if (err) {
-                            fail(err);
-                            return;
-                        }
-                        finish();
-                    });
-                });
-            } else {
-                finish();
-            }
-
+            _performNpmInstall(installDirectory, function (err) {
+                return err ? fail(err) : finish();
+            });
         });
     });
 }
