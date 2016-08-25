@@ -21,6 +21,7 @@
  *
  */
 
+/*eslint-env node */
 /*jslint node: true */
 /*global setImmediate */
 

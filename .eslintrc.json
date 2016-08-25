@@ -1,7 +1,4 @@
 {
-    "env": {
-        "node": true
-    },
     "rules": {
         "no-bitwise": 0,
         "curly": 2,
@@ -59,6 +56,7 @@
         "$": false,
 
         "window": false,
+        "console": false,
         "setTimeout": false,
         "clearTimeout": false,
 

@@ -21,6 +21,7 @@
  *
  */
 
+/*eslint-env node */
 /*jslint node: true, regexp: true */
 
 module.exports = function (grunt) {
