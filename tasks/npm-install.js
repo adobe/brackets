@@ -22,12 +22,31 @@
  */
 
 /*jslint node: true */
+/*global Promise */
 
 module.exports = function (grunt) {
     "use strict";
 
-    var common  = require("./lib/common")(grunt),
-        build   = require("./build")(grunt);
+    var _       = require("lodash"),
+        common  = require("./lib/common")(grunt),
+        build   = require("./build")(grunt),
+        glob    = require("glob"),
+        path    = require("path"),
+        exec    = require('child_process').exec;
+    
+    function runNpmInstall(where) {
+        return new Promise(function (resolve, reject) {
+            grunt.log.writeln("running npm install --production in " + where);
+            exec('npm install --production', { cwd: './' + where }, function (err, stdout, stderr) {
+                if (err) {
+                    grunt.log.error(stderr);
+                } else {
+                    grunt.log.writeln(stdout || "finished npm install in " + where);
+                }
+                return err ? reject(stderr) : resolve(stdout);
+            });
+        });
+    }
 
     // task: write-config
     grunt.registerTask("npm-install", "Install node_modules to the dist folder so it gets bundled with release", function () {
@@ -36,16 +55,28 @@ module.exports = function (grunt) {
         delete packageJSON.scripts; // we don't want to run post-install scripts in dist folder
         common.writeJSON(grunt, "dist/package.json", packageJSON);
 
-        var exec = require('child_process').exec;
         var done = this.async();
-        exec('npm install --production', { cwd: './dist' }, function(err, stdout, stderr) {
+        runNpmInstall("dist")
+            .then(function () { done(); })
+            .catch(function (err) { done(false); });
+    });
+    
+    grunt.registerTask("npm-install-extensions", "Install node_modules for default extensions which have package.json defined", function () {
+        var _done = this.async();
+        glob("src/extensions/**/package.json", function (err, files) {
             if (err) {
-                grunt.log.error(stderr);
-                done(false);
-            } else {
-                grunt.log.writeln(stdout);
-                done();
+                grunt.log.error(err);
+                return _done(false);
             }
+            files = files.filter(function (path) {
+                return path.indexOf("node_modules") === -1;
+            });
+            var done = _.after(files.length, _done);
+            files.forEach(function (file) {
+                runNpmInstall(path.dirname(file))
+                    .then(function () { done(); })
+                    .catch(function (err) { _done(false); });
+            });
         });
     });
 
