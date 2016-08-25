@@ -21,6 +21,7 @@
  *
  */
 
+/*eslint-env node */
 /*jslint node: true */
 
 var fs = require("fs");
