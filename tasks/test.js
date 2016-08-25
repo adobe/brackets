@@ -23,10 +23,9 @@
 
 /*eslint-env node */
 /*jslint node: true */
+"use strict";
 
 module.exports = function (grunt) {
-    "use strict";
-
     var common          = require("./lib/common")(grunt),
         child_process   = require("child_process"),
         q               = require("q"),

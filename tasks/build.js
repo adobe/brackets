@@ -23,10 +23,9 @@
 
 /*eslint-env node */
 /*jslint node: true, regexp: true */
+"use strict";
 
 module.exports = function (grunt) {
-    "use strict";
-
     var child_process   = require("child_process"),
         http            = require("http"),
         https           = require("https"),

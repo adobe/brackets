@@ -22,7 +22,7 @@
         "no-control-regex": 2,
         "no-regex-spaces": 2,
         "no-undef": 2,
-        "strict": 0,
+        "strict": 2,
         "no-unused-vars": [0, {"vars": "all", "args": "none"}],
         "semi": 2,
 
