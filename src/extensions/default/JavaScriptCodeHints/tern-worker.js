@@ -35,7 +35,7 @@ var config = {};
     require(["./MessageIds", "./HintUtils2"], function (messageIds, hintUtils2) {
         MessageIds = messageIds;
         HintUtils2 = hintUtils2;
-        var ternRequire = require.config({baseUrl: "./thirdparty"});
+        var ternRequire = require.config({baseUrl: "./node_modules"});
         ternRequire(["tern/lib/tern", "tern/lib/infer", "tern/plugin/requirejs", "tern/plugin/doc_comment", "tern/plugin/angular"], function (tern, infer, requirejs, docComment) {
             Tern = tern;
             Infer = infer;
@@ -110,7 +110,7 @@ var config = {};
              * Create a new tern server.
              *
              * @param {Object} env - an Object with the environment, as read in from
-             *  the json files in thirdparty/tern/defs
+             *  the json files in node_modules/tern/defs
              * @param {Array.<string>} files - a list of filenames tern should be aware of
              */
             function initTernServer(env, files) {

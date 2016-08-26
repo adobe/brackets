@@ -323,7 +323,7 @@ module.exports = function (grunt) {
     });
 
     // task: install
-    grunt.registerTask('install', ['write-config', 'less']);
+    grunt.registerTask('install', ['write-config', 'less', 'npm-install-extensions']);
 
     // task: test
     grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);

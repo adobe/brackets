@@ -26,7 +26,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Acorn                       = require("thirdparty/acorn/acorn");
+    var Acorn                       = require("node_modules/acorn/dist/acorn");
 
     var LANGUAGE_ID                 = "javascript",
         HTML_LANGUAGE_ID            = "html",
