@@ -1,6 +1,6 @@
 {
     "rules": {
-        "no-bitwise": 0,
+        "no-bitwise": 2,
         "curly": 2,
         "eqeqeq": 2,
         "guard-for-in": 0,

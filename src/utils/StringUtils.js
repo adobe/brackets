@@ -25,6 +25,7 @@
    @CC wiki attribution: esmiralha
 */
 
+/*eslint no-bitwise: off */
 /*jslint bitwise: true */
 
 /**
