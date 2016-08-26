@@ -363,11 +363,6 @@ define(function main(require, exports, module) {
             _updateHighlightCheckmark();
         });
 
-    PreferencesManager.convertPreferences(module, {
-        "highlight": "user livedev.highlight",
-        "afterFirstLaunch": "user livedev.afterFirstLaunch"
-    }, true);
-
     config.highlight = PreferencesManager.getViewState("livedev.highlight");
 
     // init commands
