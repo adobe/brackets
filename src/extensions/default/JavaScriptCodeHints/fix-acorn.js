@@ -24,6 +24,8 @@
 /*eslint-env node */
 /*jslint node: true */
 
+"use strict";
+
 var fs = require("fs");
 var path = require("path");
 var fpath = path.resolve(__dirname, "node_modules", "acorn", "dist", "acorn_loose.js");
