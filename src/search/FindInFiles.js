@@ -795,7 +795,7 @@ define(function (require, exports, module) {
         
         var addPromise;
         if (entry.isDirectory) {
-            if (!added || !removed || (!added.length && !removed.length)) {
+            if (!added || !removed || (added.length === 0 && removed.length === 0)) {
                 // If the added or removed sets are null, must redo the search for the entire subtree - we
                 // don't know which child files/folders may have been added or removed.
                 _removeSearchResultsForEntry(entry);
