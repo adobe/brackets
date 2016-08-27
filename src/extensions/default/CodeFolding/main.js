@@ -25,7 +25,6 @@
  * @author Patrick Oladimeji
  * @date 10/24/13 9:35:26 AM
  */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -53,7 +52,12 @@ define(function (require, exports, module) {
         collapseAllKey          = "Alt-1",
         expandAllKey            = "Shift-Alt-1",
         collapseAllKeyMac       = "Cmd-1",
-        expandAllKeyMac         = "Cmd-Shift-1";
+        expandAllKeyMac         = "Cmd-Shift-1",
+        SAVE_FOLD_STATES        = "saveFoldStates",
+        HIDE_UNTIL_MOUSE_OVER   = "hideUntilMouseover",
+        MAKE_SELECTION_FOLDABLE = "makeSelectionFoldable",
+        ALWAYS_USE_INDENT_FOLD  = "alwaysUseIndentFold",
+        LINE_NUMBER_GUTTER      = "CodeMirror-linenumbers";
 
     ExtensionUtils.loadStyleSheet(module, "main.less");
 
@@ -70,10 +74,10 @@ define(function (require, exports, module) {
         indentFold              = require("foldhelpers/indentFold"),
         selectionFold           = require("foldhelpers/foldSelected");
 
-
     /** Set to true when init() has run; set back to false after deinit() has run */
-    var _isInitialized = false;
-
+    var _isInitialized = false,
+        gutterObservers = {};
+        
     /**
       * Restores the linefolds in the editor using values fetched from the preference store
       * Checks the document to ensure that changes have not been made (e.g., in a different editor)
@@ -112,7 +116,7 @@ define(function (require, exports, module) {
             });
         }
 
-        var saveFolds = prefs.getSetting("saveFoldStates");
+        var saveFolds = prefs.getSetting(SAVE_FOLD_STATES);
         if (!editor || !saveFolds) {
             return;
         }
@@ -147,7 +151,7 @@ define(function (require, exports, module) {
       * @param {Editor} editor the editor whose line folds should be saved
       */
     function saveLineFolds(editor) {
-        var saveFolds = prefs.getSetting("saveFoldStates");
+        var saveFolds = prefs.getSetting(SAVE_FOLD_STATES);
         if (!editor || !saveFolds) {
             return;
         }
@@ -263,6 +267,7 @@ define(function (require, exports, module) {
       */
     function createGutter(editor) {
         var cm = editor._codeMirror;
+        var rootElement = editor.getRootElement();
         var path = editor.document.file.fullPath, _lineFolds = prefs.getFolds(path);
         _lineFolds = _lineFolds || {};
         cm._lineFolds = _lineFolds;
@@ -270,9 +275,12 @@ define(function (require, exports, module) {
 
         // Reuse any existing fold gutter
         if (gutters.indexOf(GUTTER_NAME) < 0) {
-            var lnIndex = gutters.indexOf("CodeMirror-linenumbers");
-            $(editor.getRootElement()).addClass("folding-enabled");
-            gutters.splice(lnIndex + 1, 0, GUTTER_NAME);
+            var lineNumberIndex = gutters.indexOf(LINE_NUMBER_GUTTER);
+            if (lineNumberIndex < 0) {
+                $(rootElement).addClass("linenumber-disabled");
+            }
+            $(rootElement).addClass("folding-enabled");
+            gutters.splice(lineNumberIndex + 1, 0, GUTTER_NAME);
             cm.setOption("gutters",  gutters);
             cm.refresh();  // force recomputing gutter width - .folding-enabled class affects linenumbers gutter which has existing cached width
         }
@@ -280,17 +288,17 @@ define(function (require, exports, module) {
 
         $(cm.getGutterElement()).on({
             mouseenter: function () {
-                if (prefs.getSetting("hideUntilMouseover")) {
+                if (prefs.getSetting(HIDE_UNTIL_MOUSE_OVER)) {
                     foldGutter.updateInViewport(cm);
                 } else {
-                    $(editor.getRootElement()).addClass("over-gutter");
+                    $(rootElement).addClass("over-gutter");
                 }
             },
             mouseleave: function () {
-                if (prefs.getSetting("hideUntilMouseover")) {
+                if (prefs.getSetting(HIDE_UNTIL_MOUSE_OVER)) {
                     foldGutter.clearGutter(cm);
                 } else {
-                    $(editor.getRootElement()).removeClass("over-gutter");
+                    $(rootElement).removeClass("over-gutter");
                 }
             }
         });
@@ -304,10 +312,12 @@ define(function (require, exports, module) {
         var cm = editor._codeMirror;
         var gutters = cm.getOption("gutters").slice(0);
         var index = gutters.indexOf(GUTTER_NAME);
-        $(editor.getRootElement()).removeClass("folding-enabled");
+        var rootElement = editor.getRootElement();
+        $(rootElement).removeClass("folding-enabled");
         gutters.splice(index, 1);
         cm.setOption("gutters",  gutters);
-        cm.refresh();  // force recomputing gutter width - .folding-enabled class affected linenumbers gutter
+        // Force recomputing gutter width - .folding-enabled class affected linenumbers gutter
+        cm.refresh();
         CodeMirror.defineOption("foldGutter", false, null);
     }
 
@@ -316,6 +326,39 @@ define(function (require, exports, module) {
         if (editor._codeMirror.getOption("gutters").indexOf(GUTTER_NAME) === -1) {
             createGutter(editor);
             restoreLineFolds(editor);
+            // Watch mutations on code mirror gutters and ensure line numbers are added before fold gutter.
+            var config = {childList: true};
+            var gutters,
+                lineNumberIndex,
+                foldGutterIndex,
+                cm = editor._codeMirror,
+                rootElement = editor.getRootElement(),
+                guttersContainer = $(".CodeMirror-gutters", rootElement),
+                observer = new MutationObserver(function (mutations) {
+                    observer.disconnect();
+                    // Ensure fold-gutter appears after line numbers.
+                    gutters = cm.getOption("gutters").slice(0);
+                    lineNumberIndex = gutters.indexOf(LINE_NUMBER_GUTTER);
+                    foldGutterIndex = gutters.indexOf(GUTTER_NAME);
+                    if (lineNumberIndex > -1 && foldGutterIndex < lineNumberIndex) {
+                        gutters.splice(foldGutterIndex, 1);
+                        lineNumberIndex = gutters.indexOf(LINE_NUMBER_GUTTER);
+                        gutters.splice(lineNumberIndex + 1, 0, GUTTER_NAME);
+                    }
+                    if (lineNumberIndex < 0) {
+                        $(rootElement).addClass("linenumber-disabled");
+                    } else {
+                        $(rootElement).removeClass("linenumber-disabled");
+                    }
+                    $(rootElement).addClass("folding-enabled");
+                    cm.setOption("gutters", gutters);
+                    cm.refresh();
+                    createGutter(editor);
+                    // Reconnect the observer.
+                    observer.observe(guttersContainer[0], config);
+                });
+            observer.observe(guttersContainer[0], config);
+            gutterObservers[editor.document.file.fullPath] = observer;
         }
     }
 
@@ -371,6 +414,12 @@ define(function (require, exports, module) {
         Editor.forEveryEditor(function (editor) {
             CodeMirror.commands.unfoldAll(editor._codeMirror);
             removeGutter(editor);
+            //disconnect any mutation observers on the gutter
+            var gutterObserver = gutterObservers[editor.document.file.fullPath];
+            if (gutterObserver) {
+                gutterObserver.disconnect();
+                delete gutterObservers[editor.document.file.fullPath];
+            }
         });
     }
 
@@ -387,10 +436,10 @@ define(function (require, exports, module) {
         // don't, we register helpers explicitly here. We also register a global helper for generic indent-based
         // folding, which cuts across all languages if enabled via preference.
         CodeMirror.registerGlobalHelper("fold", "selectionFold", function (mode, cm) {
-            return prefs.getSetting("makeSelectionsFoldable");
+            return prefs.getSetting(MAKE_SELECTION_FOLDABLE);
         }, selectionFold);
         CodeMirror.registerGlobalHelper("fold", "indent", function (mode, cm) {
-            return prefs.getSetting("alwaysUseIndentFold");
+            return prefs.getSetting(ALWAYS_USE_INDENT_FOLD);
         }, indentFold);
 
         CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
