@@ -1,3 +1,26 @@
+/*
+ * Copyright (c) 2016 - present Adobe Systems Incorporated. All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 /**
  * Fold range finder for handlebars/mustache template type files.
  * @author Patrick Oladimeji
@@ -7,14 +30,15 @@
 define(function (require, exports, module) {
     "use strict";
     var CodeMirror = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
-        endOfLineSpaceRegex = /\s$/;
+        endOfLineSpaceRegex = /\s$/,
+        StringUtils = brackets.getModule("utils/StringUtils");
 
     /**
      * Utility function for scanning the text in a document until a certain condition is met
      * @param {object}  cm  The code mirror object representing the document
      * @param {string}  startCh  The start character position for the scan operation
      * @param {number}  startLine The start line position for the scan operation
-     * @param {function} condition A predicate function that takes in the text seen so far and returns true if the scanning process should be halted
+     * @param {function (string): boolean} condition A predicate function that takes in the text seen so far and returns true if the scanning process should be halted
      * @returns {{from:CodeMirror.Pos, to: CodeMirror.Pos, string: string}} An object representing the range of text scanned.
      */
     function scanTextUntil(cm, startCh, startLine, condition) {
@@ -56,7 +80,7 @@ define(function (require, exports, module) {
     }
 
     function endTag(seen) {
-        return endOfLineSpaceRegex.test(seen) || seen.endsWith("}");
+        return endOfLineSpaceRegex.test(seen) || StringUtils.endsWith(seen, "}");
     }
 
     /**
