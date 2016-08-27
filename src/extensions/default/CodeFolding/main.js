@@ -55,7 +55,7 @@ define(function (require, exports, module) {
         expandAllKeyMac         = "Cmd-Shift-1",
         SAVE_FOLD_STATES        = "saveFoldStates",
         HIDE_UNTIL_MOUSE_OVER   = "hideUntilMouseover",
-        MAKE_SELECTION_FOLDABLE = "makeSelectionFoldable",
+        MAKE_SELECTIONS_FOLDABLE = "makeSelectionsFoldable",
         ALWAYS_USE_INDENT_FOLD  = "alwaysUseIndentFold",
         LINE_NUMBER_GUTTER      = "CodeMirror-linenumbers";
 
@@ -436,7 +436,7 @@ define(function (require, exports, module) {
         // don't, we register helpers explicitly here. We also register a global helper for generic indent-based
         // folding, which cuts across all languages if enabled via preference.
         CodeMirror.registerGlobalHelper("fold", "selectionFold", function (mode, cm) {
-            return prefs.getSetting(MAKE_SELECTION_FOLDABLE);
+            return prefs.getSetting(MAKE_SELECTIONS_FOLDABLE);
         }, selectionFold);
         CodeMirror.registerGlobalHelper("fold", "indent", function (mode, cm) {
             return prefs.getSetting(ALWAYS_USE_INDENT_FOLD);
