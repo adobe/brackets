@@ -61,7 +61,6 @@
         "clearTimeout": false,
 
         "ArrayBuffer": false,
-        "MutationObserver": false,
         "XMLHttpRequest": false,
         "Uint32Array": false,
         "WebSocket": false
