@@ -38,6 +38,49 @@
 @background: #1d1f21;
 @foreground: #ddd;
 
+/* Scrollbar Styling */
+
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+::-webkit-scrollbar-button {
+    width: 12px;
+    height: 12px;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(240,240,240, 0.3);
+    border: 3px solid @background;
+    border-radius: 12px;
+    margin: 3px 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(240,240,240, 0.5);
+    border: 3px solid @background;
+}
+::-webkit-scrollbar-thumb:active {
+    background: #ffffff;
+    border: 3px solid #2f2f2f;
+}
+::-webkit-scrollbar-track {
+    background: @background;
+    border: 0;
+}
+::-webkit-scrollbar-track:hover {
+    background: transparent;
+}
+::-webkit-scrollbar-track:active {
+    background: #2f2f2f;
+}
+::-webkit-scrollbar-button {
+    width: 0;
+    height: 0;
+    display: none;
+}
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
 /* Code Styling */
 
 .CodeMirror, .CodeMirror-scroll {
