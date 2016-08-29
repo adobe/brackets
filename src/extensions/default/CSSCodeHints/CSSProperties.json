@@ -120,7 +120,7 @@
     "left":                        {"values": ["auto", "inherit"]},
     "letter-spacing":              {"values": ["normal", "inherit"]},
     "line-height":                 {"values": ["normal", "inherit"]},
-    "list-style":                  {"values": ["armenian", "circle", "decimal", "decimal-leading-zero", "disc", "georgian", "inherit", "inside", "lower-alpha", "lower-greek", "lower-latin", "lower-roman", "none", "outside", "square", "upper-alpha", "upper-latin", "upper-roman", "url()"]},
+    "list-style":                  {"values": ["none", "inherit", "initial", "unset", "url", "armenian", "circle", "decimal", "decimal-leading-zero", "disc", "georgian", "inside", "lower-alpha", "lower-greek", "lower-latin", "lower-roman", "outside", "square", "upper-alpha", "upper-latin", "upper-roman"]},
     "list-style-image":            {"values": ["none", "url()", "inherit"]},
     "list-style-position":         {"values": ["inside", "outside", "inherit"]},
     "list-style-type":             {"values": ["armenian", "circle", "decimal", "decimal-leading-zero", "disc", "georgian", "lower-alpha", "lower-greek", "lower-latin", "lower-roman", "none", "square", "upper-alpha", "upper-latin", "upper-roman", "inherit"]},
