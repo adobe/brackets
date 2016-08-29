@@ -28,6 +28,7 @@ Thumbs.db
 
 # unit test working directory
 /test/results
+/test/temp
 
 # Netbeans
 /nbproject
