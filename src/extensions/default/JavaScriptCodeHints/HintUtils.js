@@ -142,7 +142,7 @@ define(function (require, exports, module) {
         return literals.map(function (t) {
             t.literal = true;
             t.kind = kind;
-            t.origin = "ecma5";
+            t.origin = "ecmascript";
             if (kind === "string") {
                 if (/[\\\\]*[^\\]"/.test(t.value)) {
                     t.delimiter = SINGLE_QUOTE;
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
     function annotateKeywords(keywords) {
         return keywords.map(function (t) {
             t.keyword = true;
-            t.origin = "ecma5";
+            t.origin = "ecmascript";
             return t;
         });
     }
