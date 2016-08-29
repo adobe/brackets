@@ -266,16 +266,7 @@ define(function (require, exports, module) {
         var path = editor.document.file.fullPath, _lineFolds = prefs.getFolds(path);
         _lineFolds = _lineFolds || {};
         cm._lineFolds = _lineFolds;
-        var gutters = cm.getOption("gutters").slice(0);
-
-        // Reuse any existing fold gutter
-        if (gutters.indexOf(GUTTER_NAME) < 0) {
-            var lnIndex = gutters.indexOf("CodeMirror-linenumbers");
-            $(editor.getRootElement()).addClass("folding-enabled");
-            gutters.splice(lnIndex + 1, 0, GUTTER_NAME);
-            cm.setOption("gutters",  gutters);
-            cm.refresh();  // force recomputing gutter width - .folding-enabled class affects linenumbers gutter which has existing cached width
-        }
+        editor.registerGutter(GUTTER_NAME, 101);
         cm.setOption("foldGutter", {onGutterClick: onGutterClick});
 
         $(cm.getGutterElement()).on({
@@ -301,13 +292,8 @@ define(function (require, exports, module) {
      * @param {CodeMirror} cm the CodeMirror instance whose gutter should be removed
      */
     function removeGutter(editor) {
-        var cm = editor._codeMirror;
-        var gutters = cm.getOption("gutters").slice(0);
-        var index = gutters.indexOf(GUTTER_NAME);
+        editor.clearGutter(GUTTER_NAME);
         $(editor.getRootElement()).removeClass("folding-enabled");
-        gutters.splice(index, 1);
-        cm.setOption("gutters",  gutters);
-        cm.refresh();  // force recomputing gutter width - .folding-enabled class affected linenumbers gutter
         CodeMirror.defineOption("foldGutter", false, null);
     }
 
@@ -382,6 +368,7 @@ define(function (require, exports, module) {
 
         foldCode.init();
         foldGutter.init();
+
 
         // Many CodeMirror modes specify which fold helper should be used for that language. For a few that
         // don't, we register helpers explicitly here. We also register a global helper for generic indent-based

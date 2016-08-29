@@ -99,7 +99,7 @@ define(function (require, exports, module) {
                 i = sr.to.line + 1;
             } else {
                 range = cm._lineFolds[i] || (func && func(cm, pos));
-             
+
                 if (!fade || (fade && $gutter.is(":hover"))) {
                     if (cm.isFolded(i)) {
                         // expand fold if invalid
