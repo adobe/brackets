@@ -144,7 +144,7 @@ define(function (require, exports, module) {
 
                 // Place cursor inside a sample regular expression
                 // Note: line for pos is 0-based and editor lines numbers are 1-based
-                initCodeHintTest("testRegexp.js", pos);
+                initCodeHintTest("testRegExp.js", pos);
 
                 runs(function () {
                     editor = EditorManager.getCurrentFullEditor();
