@@ -122,6 +122,14 @@ var config = {};
                 };
                 ternServer = new Tern.Server(ternOptions);
 
+                // Since we don't specify projectDir, Tern will "normalize" file names by
+                // removing any leading "/" (the default projectDir, which cannot be changed to "").
+                // This is not a problem on Windows, but on Mac and Linux, it will break
+                // absolute paths ("/home/" to "home/", for example)
+                ternServer.normalizeFilename = function (name) {
+                    return name;
+                };
+
                 files.forEach(function (file) {
                     ternServer.addFile(file);
                 });
