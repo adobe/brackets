@@ -837,7 +837,6 @@ define(function (require, exports, module) {
          *      of the file tern wants the contents of
          */
         function handleTernGetFile(request) {
-            console.log("handleTernGetFile", rootTernDir, request.file);
 
             function replyWith(name, txt) {
                 _postMessageByPass({
@@ -1083,8 +1082,6 @@ define(function (require, exports, module) {
          * Create a new tern server.
          */
         function initTernServer(dir, files) {
-            console.log("initTernServer", dir, files);
-            
             initTernWorker();
             numResolvedFiles = 0;
             numAddedFiles = 0;
