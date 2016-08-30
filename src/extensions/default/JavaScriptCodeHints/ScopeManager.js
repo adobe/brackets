@@ -909,8 +909,8 @@ define(function (require, exports, module) {
             }
 
             if (!isFileExcludedInternal(name)) {
-                getDocText(rootTernDir + name).fail(function () {
-                    console.error("getDocText.fail", rootTernDir + name);
+                var fullPath = name.indexOf(rootTernDir) === 0 ? name : rootTernDir + name;
+                getDocText(fullPath).fail(function () {
                     // check relative to project root
                     getDocText(projectRoot + name)
                         // last look for any files that end with the right path
