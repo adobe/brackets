@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         FileSystem           = brackets.getModule("filesystem/FileSystem"),
         FileUtils            = brackets.getModule("file/FileUtils"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
+        ProjectManager       = brackets.getModule("project/ProjectManager"),
         SpecRunnerUtils      = brackets.getModule("spec/SpecRunnerUtils"),
         JSCodeHints          = require("main"),
         Preferences          = require("Preferences"),
@@ -445,6 +446,10 @@ define(function (require, exports, module) {
 
         describe("JavaScript Code Hinting Basic", function () {
             beforeFirst(function () {
+                ProjectManager.openProject(extensionPath + "/unittest-files");
+                waitsFor(function () {
+                    return ProjectManager.getProjectRoot() !== null;
+                });
                 brackets._configureJSCodeHints({
                     noReset: true
                 });
