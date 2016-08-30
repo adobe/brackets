@@ -867,7 +867,6 @@ define(function (require, exports, module) {
                     promise = DocumentManager.getDocumentText(file);
 
                 promise.done(function (docText) {
-                    console.log("getDocText.success", filePath);
                     resolvedFiles[name] = filePath;
                     numResolvedFiles++;
                     replyWith(name, filterText(docText));
@@ -911,7 +910,7 @@ define(function (require, exports, module) {
 
             if (!isFileExcludedInternal(name)) {
                 getDocText(rootTernDir + name).fail(function () {
-                    console.log("getDocText.fail", rootTernDir + name);
+                    console.error("getDocText.fail", rootTernDir + name);
                     // check relative to project root
                     getDocText(projectRoot + name)
                         // last look for any files that end with the right path
@@ -1185,15 +1184,18 @@ define(function (require, exports, module) {
                             return;
                         }
 
-                        var ternRoot = "/";
+                        // ternRoot should be X:/ on windows
+                        var ternRoot = brackets.platform === "win" ? dir.slice(0, 3) : "/";
+
                         var files = contents
                             .filter(function (entry) {
                                 return entry.isFile && !isFileExcluded(entry);
                             })
                             .map(function (entry) {
-                                return entry.fullPath.indexOf(ternRoot) === 0 ?
-                                    entry.fullPath.substring(ternRoot.length) :
-                                    entry.fullPath;
+                                if (entry.fullPath.indexOf(ternRoot) === 0) {
+                                    return entry.fullPath.slice(ternRoot.length);
+                                }
+                                throw new Error(entry.fullPath + " is not in tern root directory " + ternRoot);
                             });
 
                         // note: files have to be relative to ternRoot
