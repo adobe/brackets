@@ -141,22 +141,6 @@ define(function (require, exports, module) {
     }
 
     /**
-      * Clears the code folding gutter
-      * @param {!CodeMirror} cm the CodeMirror instance for the active  editor
-      */
-    function clearGutter(cm) {
-        var opts = cm.state.foldGutter.options;
-        cm.clearGutter(opts.gutter);
-        var blank = marker("CodeMirror-foldgutter-blank");
-        var vp = cm.getViewport();
-        cm.operation(function () {
-            cm.eachLine(vp.from, vp.to, function (line) {
-                cm.setGutterMarker(line.lineNo(), opts.gutter, blank);
-            });
-        });
-    }
-
-    /**
      * Helper function to return the fold text marker on a line in an editor
      * @param   {CodeMirror} cm   The CodeMirror instance for the active editor
      * @param   {Number}     line The line number representing the position of the fold marker
@@ -407,7 +391,6 @@ define(function (require, exports, module) {
     }
 
     exports.init = init;
-    exports.clearGutter = clearGutter;
     exports.updateInViewport = updateInViewport;
 
 });

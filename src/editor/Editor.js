@@ -417,9 +417,10 @@ define(function (require, exports, module) {
 
         /**
          * A list of gutter name and priorities currently registered for editors.
+         * The line number gutter is defined as { name: LINE_NUMBER_GUTTER, priority: 100 }
          * @type {Array.<{name: string, priority: number, languages: Array}}
          */
-        this._registeredGutters = [{ name: LINE_NUMBER_GUTTER, priority: 100 }];
+        this._registeredGutters = [];
 
         // Can't get CodeMirror's focused state without searching for
         // CodeMirror-focused. Instead, track focus via onFocus and onBlur
@@ -2338,10 +2339,7 @@ define(function (require, exports, module) {
             } else if (prefName === SHOW_LINE_NUMBERS) {
                 Editor._toggleLinePadding(!newValue);
                 this._codeMirror.setOption(cmOptions[SHOW_LINE_NUMBERS], newValue);
-                var gutters = this._codeMirror.getOption("gutters");
-
                 if (newValue) {
-
                     this.registerGutter(LINE_NUMBER_GUTTER, 100);
                 } else {
                     this.unregisterGutter(LINE_NUMBER_GUTTER);
@@ -2415,12 +2413,28 @@ define(function (require, exports, module) {
      * @param   {string}   name The name of the gutter to initialise
      */
     Editor.prototype._initializeGutter = function (name) {
-        var gutters = this._registeredGutters.sort(function (a, b) {
-            return a.priority - b.priority;
-        }).map(function (gutter) {
-            return gutter.name;
-        });
+
+        function sortGuttersByPriority(gutters) {
+            return gutters.sort(function (a, b) {
+                return a.priority - b.priority;
+            }).map(function (gutter) {
+                return gutter.name;
+            });
+        }
+        var rootElement = this.getRootElement();
+        var gutters = sortGuttersByPriority(this._registeredGutters);
+
+        if (gutters.indexOf(LINE_NUMBER_GUTTER) < 0 && this._codeMirror.getOption(cmOptions[SHOW_LINE_NUMBERS])) {
+            this._registeredGutters.push({name: LINE_NUMBER_GUTTER, priority: 100});
+            gutters = sortGuttersByPriority(this._registeredGutters);
+        }
+
         this._codeMirror.setOption("gutters", gutters);
+        if (gutters.indexOf(LINE_NUMBER_GUTTER) > -1) {
+            $(rootElement).removeClass("linenumber-disabled");
+        } else {
+            $(rootElement).addClass("linenumber-disabled");
+        }
         this._codeMirror.refresh();
     };
 
@@ -2431,7 +2445,6 @@ define(function (require, exports, module) {
      * @param   {object}   marker     The jquery object representint the marker to the inserted in the gutter
      */
     Editor.prototype.setGutterMarker = function (lineNumber, gutterName, marker) {
-        var gutters = this._codeMirror.getOption("gutters");
         var gutterNameRegistered = this._registeredGutters.some(function (gutter) {
             return gutter.name === gutterName;
         });
@@ -2451,6 +2464,55 @@ define(function (require, exports, module) {
      */
     Editor.prototype.getRegisteredGutters = function () {
         return this._registeredGutters;
+    };
+
+    /**
+     * Registers the gutter with the specified name at the given priority.
+     * @param {string} name    The name to register with the quarter
+     * @param {number} priority  A number denoting the priority of the gutter. Priorities higher than 100 appear after the line numbers. Priority less than 100 appear before.
+     * @param {?Array<number>} languageIds A list of language ids that this gutter is valid for. If no language ids are passed, then the gutter is valid in all languages.
+     */
+    Editor.prototype.registerGutter = function (name, priority, languageIds) {
+        if (isNaN(priority)) {
+            console.warn("A non-numeric priority value was passed to registerGutter. The value will default to 0.");
+            priority = 0;
+        }
+
+        if (!name || typeof name !== "string") {
+            throw new Error("The name of the registered gutter must be a string.");
+        }
+
+        var gutter = {name: name, priority: priority, languages: languageIds};
+        var gutterExists = this._registeredGutters.some(function (gutter) {
+            return gutter.name === name;
+        });
+
+        if (!gutterExists) {
+            this._registeredGutters.push(gutter);
+            this._initializeGutter(name);
+        }
+    };
+
+    /**
+     * Unregisters the gutter with the specified name and removes it from the UI.
+     * @param {string} name The name of the gutter to be un registered.
+     */
+    Editor.prototype.unregisterGutter = function (name) {
+        var gutters = this._codeMirror.getOption("gutters").slice(0);
+        var gutterIndex = gutters.indexOf(name);
+        if (gutterIndex > -1) {
+            gutters.splice(gutterIndex, 1);
+        }
+        this._codeMirror.setOption("gutters", gutters);
+        this._codeMirror.refresh();
+        var i, gutter;
+        for (i = 0; i < this._registeredGutters.length; i++) {
+            gutter = this._registeredGutters[i];
+            if (gutter.name === name) {
+                this._registeredGutters.splice(i, 1);
+                break;
+            }
+        }
     };
 
     // Global settings that affect Editor instances that share the same preference locations
@@ -2650,59 +2712,6 @@ define(function (require, exports, module) {
         _.each($holders, function ($holder) {
             $holder.toggleClass("show-line-padding", Boolean(showLinePadding));
         });
-    };
-
-    /**
-     * Registers the gutter with the specified name at the given priority.
-     * @param {string} name    The name to register with the quarter
-     * @param {number} priority  A number denoting the priority of the gutter. Priorities higher than 100 appear after the line numbers. Priority less than 100 appear before.
-     * @param {?Array<number>} languageIds A list of language ids that this gutter is valid for. If no language ids are passed, then the gutter is valid in all languages.
-     */
-    Editor.prototype.registerGutter = function (name, priority, languageIds) {
-        if (isNaN(priority)) {
-            console.warn("a non-numeric priority value was passed to registerGutter. The value will default to 0");
-            priority = 0;
-        }
-
-        if (!name || typeof name !== "string") {
-            throw new Error("The name of the registered gutter must be a string and must not already exist in the list");
-        }
-
-        var gutter = {name: name, priority: priority, languages: languageIds};
-
-//        Editor.forEveryEditor(function (editor) {
-        var gutterExists = this._registeredGutters.some(function (gutter) {
-            return gutter.name === name;
-        });
-        if (!gutterExists) {
-            this._registeredGutters.push(gutter);
-            this._initializeGutter(name);
-        }
-//        });
-    };
-
-    /**
-     * Unregisters the gutter with the specified name and removes it from the UI.
-     * @param {string} name The name of the gutter to be un registered.
-     */
-    Editor.prototype.unregisterGutter = function (name) {
-//        Editor.forEveryEditor(function (editor) {
-        var gutters = this._codeMirror.getOption("gutters").slice(0);
-        var gutterIndex = gutters.indexOf(name);
-        if (gutterIndex > -1) {
-            gutters.splice(gutterIndex, 1);
-        }
-        this._codeMirror.setOption("gutters", gutters);
-        this._codeMirror.refresh();
-        var i, gutter;
-        for (i = 0; i < this._registeredGutters.length; i++) {
-            gutter = this._registeredGutters[i];
-            if (gutter.name === name) {
-                this._registeredGutters.splice(i, 1);
-                break;
-            }
-        }
-//        });
     };
 
     // Set up listeners for preference changes

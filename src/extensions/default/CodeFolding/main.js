@@ -257,6 +257,20 @@ define(function (require, exports, module) {
         }
     }
 
+    function clearGutter(editor) {
+        var cm = editor._codeMirror;
+        var BLANK_GUTTER_CLASS = "CodeMirror-foldgutter-blank";
+        editor.clearGutter(GUTTER_NAME);
+        var blank = window.document.createElement("div");
+        blank.className = BLANK_GUTTER_CLASS;
+        var vp = cm.getViewport();
+        cm.operation(function () {
+            cm.eachLine(vp.from, vp.to, function (line) {
+                editor.setGutterMarker(line.lineNo(), GUTTER_NAME, blank);
+            });
+        });
+    }
+
     /**
       * Initialises and creates the code-folding gutter.
       * @param {Editor} editor the editor on which to initialise the fold gutter
@@ -266,6 +280,7 @@ define(function (require, exports, module) {
         var path = editor.document.file.fullPath, _lineFolds = prefs.getFolds(path);
         _lineFolds = _lineFolds || {};
         cm._lineFolds = _lineFolds;
+        $(editor.getRootElement()).addClass("folding-enabled");
         editor.registerGutter(GUTTER_NAME, 101);
         cm.setOption("foldGutter", {onGutterClick: onGutterClick});
 
@@ -279,7 +294,7 @@ define(function (require, exports, module) {
             },
             mouseleave: function () {
                 if (prefs.getSetting("hideUntilMouseover")) {
-                    foldGutter.clearGutter(cm);
+                    clearGutter(editor);
                 } else {
                     $(editor.getRootElement()).removeClass("over-gutter");
                 }
@@ -288,18 +303,24 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Remove the fold gutter for a given CodeMirror instance.
-     * @param {CodeMirror} cm the CodeMirror instance whose gutter should be removed
-     */
+      * Remove the fold gutter for a given CodeMirror instance.
+      * @param {Editor} editor the editor instance whose gutter should be removed
+      */
     function removeGutter(editor) {
-        editor.clearGutter(GUTTER_NAME);
+        editor.unregisterGutter(GUTTER_NAME);
         $(editor.getRootElement()).removeClass("folding-enabled");
         CodeMirror.defineOption("foldGutter", false, null);
     }
 
-    /** Add gutter and restore saved expand/collapse state */
+    /**
+      * Add gutter and restore saved expand/collapse state.
+      * @param {Editor} editor the editor instance where gutter should be added.
+      */
     function enableFoldingInEditor(editor) {
-        if (editor._codeMirror.getOption("gutters").indexOf(GUTTER_NAME) === -1) {
+        var gutterExists = editor.getRegisteredGutters().some(function (gutter) {
+            return gutter.name === GUTTER_NAME;
+        });
+        if (!gutterExists) {
             createGutter(editor);
             restoreLineFolds(editor);
         }
