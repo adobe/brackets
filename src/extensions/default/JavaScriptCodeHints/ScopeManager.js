@@ -837,6 +837,7 @@ define(function (require, exports, module) {
          *      of the file tern wants the contents of
          */
         function handleTernGetFile(request) {
+            console.log("handleTernGetFile", rootTernDir, request.file);
 
             function replyWith(name, txt) {
                 _postMessageByPass({
@@ -866,6 +867,7 @@ define(function (require, exports, module) {
                     promise = DocumentManager.getDocumentText(file);
 
                 promise.done(function (docText) {
+                    console.log("getDocText.success", filePath);
                     resolvedFiles[name] = filePath;
                     numResolvedFiles++;
                     replyWith(name, filterText(docText));
@@ -908,14 +910,13 @@ define(function (require, exports, module) {
             }
 
             if (!isFileExcludedInternal(name)) {
-                getDocText(name).fail(function () {
-                    getDocText(rootTernDir + name).fail(function () {
-                        // check relative to project root
-                        getDocText(projectRoot + name)
-                            // last look for any files that end with the right path
-                            // in the project
-                            .fail(findNameInProject);
-                    });
+                getDocText(rootTernDir + name).fail(function () {
+                    console.log("getDocText.fail", rootTernDir + name);
+                    // check relative to project root
+                    getDocText(projectRoot + name)
+                        // last look for any files that end with the right path
+                        // in the project
+                        .fail(findNameInProject);
                 });
             }
         }
@@ -1083,6 +1084,8 @@ define(function (require, exports, module) {
          * Create a new tern server.
          */
         function initTernServer(dir, files) {
+            console.log("initTernServer", dir, files);
+            
             initTernWorker();
             numResolvedFiles = 0;
             numAddedFiles = 0;
@@ -1109,7 +1112,7 @@ define(function (require, exports, module) {
                     }
                 }
             });
-            rootTernDir = dir + "/";
+            rootTernDir = dir;
         }
 
         /**
@@ -1182,15 +1185,19 @@ define(function (require, exports, module) {
                             return;
                         }
 
+                        var ternRoot = "/";
                         var files = contents
                             .filter(function (entry) {
                                 return entry.isFile && !isFileExcluded(entry);
                             })
                             .map(function (entry) {
-                                return entry.fullPath;
+                                return entry.fullPath.indexOf(ternRoot) === 0 ?
+                                    entry.fullPath.substring(ternRoot.length) :
+                                    entry.fullPath;
                             });
 
-                        initTernServer(dir, files);
+                        // note: files have to be relative to ternRoot
+                        initTernServer(ternRoot, files);
 
                         var hintsPromise = primePump(path);
                         hintsPromise.done(function () {
