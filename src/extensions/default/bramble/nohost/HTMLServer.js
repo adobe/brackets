@@ -143,17 +143,31 @@ define(function (require, exports, module) {
         if(liveDocument) {
             serve(liveDocument.getResponseData().body);
         } else {
-            fs.readFile(path, "utf8", function(err, body) {
+            fs.readFile(path, "utf8", function(err, content) {
                 if(err) {
                     return callback(err);
                 }
 
                 // Since we're not instrumenting this doc fully for some reason,
                 // at least inject the scroll manager so we can track scroll position.
-                body = body.replace(/<\/\s*head>/,
-                    MouseManager.getRemoteScript(path) +
-                    LinkManager.getRemoteScript() + "$&");
-                serve(body);
+                var scripts = MouseManager.getRemoteScript(path) + LinkManager.getRemoteScript();
+                var scriptsWithEndTag = scripts + "$&";
+                var headRegex = new RegExp(/<\/\s*head>/);
+                var htmlRegex = new RegExp(/<\/\s*html>/);
+
+                // Try to inject the scripts at the end of the <head> element
+                // if it is present
+                if(headRegex.test(content)) {
+                    content = content.replace(headRegex, scriptsWithEndTag);
+                } else if(htmlRegex.test(content)) {
+                // Otherwise add them at the end of the <html> element
+                    content = content.replace(htmlRegex, scriptsWithEndTag);
+                } else {
+                // Otherwise just add it at the end of the content
+                    content += scripts;
+                }
+
+                serve(content);
             });
         }
     };
