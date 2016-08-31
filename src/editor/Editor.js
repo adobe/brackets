@@ -429,6 +429,8 @@ define(function (require, exports, module) {
 
         this._installEditorListeners();
 
+        this._renderGutters();
+
         this.on("cursorActivity", function (event, editor) {
             self._handleCursorActivity(event);
         });
@@ -2408,34 +2410,47 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Initializes an already registered gutter with the specified name
+     * Renders all registered gutters
      * @private
-     * @param   {string}   name The name of the gutter to initialise
      */
-    Editor.prototype._initializeGutter = function (name) {
+    Editor.prototype._renderGutters = function () {
+        var languageId = this.document.getLanguage().getId();
 
-        function sortGuttersByPriority(gutters) {
-            return gutters.sort(function (a, b) {
-                return a.priority - b.priority;
-            }).map(function (gutter) {
-                return gutter.name;
-            });
+        function _filterByLanguages(gutter) {
+            return !gutter.languages || gutter.languages.indexOf(languageId) > -1;
         }
-        var rootElement = this.getRootElement();
-        var gutters = sortGuttersByPriority(this._registeredGutters);
 
+        function _sortByPriority(a, b) {
+            return a.priority - b.priority;
+        }
+
+        function _getName(gutter) {
+            return gutter.name;
+        }
+
+        var gutters = this._registeredGutters.map(_getName),
+            rootElement = this.getRootElement();
+
+        // If the line numbers gutter has not been explicitly registered and the CodeMirror lineNumbes option is
+        // set to true, we explicitly add the line  numbers gutter. This case occurs the first time the editor loads
+        // and showwLineNumbers is set to true in preferences
         if (gutters.indexOf(LINE_NUMBER_GUTTER) < 0 && this._codeMirror.getOption(cmOptions[SHOW_LINE_NUMBERS])) {
             this._registeredGutters.push({name: LINE_NUMBER_GUTTER, priority: 100});
-            gutters = sortGuttersByPriority(this._registeredGutters);
         }
 
+        gutters = this._registeredGutters.sort(_sortByPriority)
+            .filter(_filterByLanguages)
+            .map(_getName);
+
         this._codeMirror.setOption("gutters", gutters);
-        if (gutters.indexOf(LINE_NUMBER_GUTTER) > -1) {
-            $(rootElement).removeClass("linenumber-disabled");
-        } else {
-            $(rootElement).addClass("linenumber-disabled");
-        }
+
         this._codeMirror.refresh();
+
+        if (gutters.indexOf(LINE_NUMBER_GUTTER) < 0) {
+            $(rootElement).addClass("linenumber-disabled");
+        } else {
+            $(rootElement).removeClass("linenumber-disabled");
+        }
     };
 
     /**
@@ -2454,7 +2469,6 @@ define(function (require, exports, module) {
             return;
         }
 
-        this._initializeGutter(gutterName);
         this._codeMirror.setGutterMarker(lineNumber, gutterName, marker);
     };
 
@@ -2482,14 +2496,14 @@ define(function (require, exports, module) {
             throw new Error("The name of the registered gutter must be a string.");
         }
 
-        var gutter = {name: name, priority: priority, languages: languageIds};
-        var gutterExists = this._registeredGutters.some(function (gutter) {
-            return gutter.name === name;
-        });
+        var gutter = {name: name, priority: priority, languages: languageIds},
+            gutterExists = this._registeredGutters.some(function (gutter) {
+                return gutter.name === name;
+            });
 
         if (!gutterExists) {
             this._registeredGutters.push(gutter);
-            this._initializeGutter(name);
+            this._renderGutters();
         }
     };
 
@@ -2498,21 +2512,16 @@ define(function (require, exports, module) {
      * @param {string} name The name of the gutter to be un registered.
      */
     Editor.prototype.unregisterGutter = function (name) {
-        var gutters = this._codeMirror.getOption("gutters").slice(0);
-        var gutterIndex = gutters.indexOf(name);
-        if (gutterIndex > -1) {
-            gutters.splice(gutterIndex, 1);
-        }
-        this._codeMirror.setOption("gutters", gutters);
-        this._codeMirror.refresh();
         var i, gutter;
         for (i = 0; i < this._registeredGutters.length; i++) {
             gutter = this._registeredGutters[i];
             if (gutter.name === name) {
                 this._registeredGutters.splice(i, 1);
+                this._renderGutters();
                 break;
             }
         }
+
     };
 
     // Global settings that affect Editor instances that share the same preference locations
