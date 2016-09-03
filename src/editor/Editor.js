@@ -98,7 +98,12 @@ define(function (require, exports, module) {
         WORD_WRAP           = "wordWrap",
         INDENT_LINE_COMMENT   = "indentLineComment";
 
-
+   /**
+     * A list of gutter name and priorities currently registered for editors.
+     * The line number gutter is defined as { name: LINE_NUMBER_GUTTER, priority: 100 }
+     * @type {Array.<{name: string, priority: number, languages: Array}}
+     */
+    var registeredGutters = [];
     var cmOptions         = {};
 
     /**
@@ -110,7 +115,8 @@ define(function (require, exports, module) {
         DEFAULT_SPACE_UNITS     =  4,
         DEFAULT_TAB_SIZE        =  4,
         MAX_SPACE_UNITS         = 10,
-        MAX_TAB_SIZE            = 10;
+        MAX_TAB_SIZE            = 10,
+        LINE_NUMBER_GUTTER_PRIORITY    = 100;
 
     // Mappings from Brackets preferences to CodeMirror options
     cmOptions[CLOSE_BRACKETS]     = "autoCloseBrackets";
@@ -415,12 +421,6 @@ define(function (require, exports, module) {
             readOnly                    : isReadOnly
         });
 
-        /**
-         * A list of gutter name and priorities currently registered for editors.
-         * The line number gutter is defined as { name: LINE_NUMBER_GUTTER, priority: 100 }
-         * @type {Array.<{name: string, priority: number, languages: Array}}
-         */
-        this._registeredGutters = [];
 
         // Can't get CodeMirror's focused state without searching for
         // CodeMirror-focused. Instead, track focus via onFocus and onBlur
@@ -2342,9 +2342,9 @@ define(function (require, exports, module) {
                 Editor._toggleLinePadding(!newValue);
                 this._codeMirror.setOption(cmOptions[SHOW_LINE_NUMBERS], newValue);
                 if (newValue) {
-                    this.registerGutter(LINE_NUMBER_GUTTER, 100);
+                    Editor.registerGutter(LINE_NUMBER_GUTTER, LINE_NUMBER_GUTTER_PRIORITY);
                 } else {
-                    this.unregisterGutter(LINE_NUMBER_GUTTER);
+                    Editor.unregisterGutter(LINE_NUMBER_GUTTER);
                 }
                 this.refreshAll();
             } else {
@@ -2428,22 +2428,21 @@ define(function (require, exports, module) {
             return gutter.name;
         }
 
-        var gutters = this._registeredGutters.map(_getName),
+        var gutters = registeredGutters.map(_getName),
             rootElement = this.getRootElement();
 
         // If the line numbers gutter has not been explicitly registered and the CodeMirror lineNumbes option is
         // set to true, we explicitly add the line  numbers gutter. This case occurs the first time the editor loads
         // and showwLineNumbers is set to true in preferences
         if (gutters.indexOf(LINE_NUMBER_GUTTER) < 0 && this._codeMirror.getOption(cmOptions[SHOW_LINE_NUMBERS])) {
-            this._registeredGutters.push({name: LINE_NUMBER_GUTTER, priority: 100});
+            registeredGutters.push({name: LINE_NUMBER_GUTTER, priority: LINE_NUMBER_GUTTER_PRIORITY});
         }
 
-        gutters = this._registeredGutters.sort(_sortByPriority)
+        gutters = registeredGutters.sort(_sortByPriority)
             .filter(_filterByLanguages)
             .map(_getName);
 
         this._codeMirror.setOption("gutters", gutters);
-
         this._codeMirror.refresh();
 
         if (gutters.indexOf(LINE_NUMBER_GUTTER) < 0) {
@@ -2460,7 +2459,7 @@ define(function (require, exports, module) {
      * @param   {object}   marker     The jquery object representint the marker to the inserted in the gutter
      */
     Editor.prototype.setGutterMarker = function (lineNumber, gutterName, marker) {
-        var gutterNameRegistered = this._registeredGutters.some(function (gutter) {
+        var gutterNameRegistered = registeredGutters.some(function (gutter) {
             return gutter.name === gutterName;
         });
 
@@ -2476,8 +2475,8 @@ define(function (require, exports, module) {
      * Returns the list of gutters current registered on this editor.
      * @return {!Array.<{name: string, priority: number}>}
      */
-    Editor.prototype.getRegisteredGutters = function () {
-        return this._registeredGutters;
+    Editor.getRegisteredGutters = function () {
+        return registeredGutters;
     };
 
     /**
@@ -2486,7 +2485,7 @@ define(function (require, exports, module) {
      * @param {number} priority  A number denoting the priority of the gutter. Priorities higher than 100 appear after the line numbers. Priority less than 100 appear before.
      * @param {?Array<number>} languageIds A list of language ids that this gutter is valid for. If no language ids are passed, then the gutter is valid in all languages.
      */
-    Editor.prototype.registerGutter = function (name, priority, languageIds) {
+    Editor.registerGutter = function (name, priority, languageIds) {
         if (isNaN(priority)) {
             console.warn("A non-numeric priority value was passed to registerGutter. The value will default to 0.");
             priority = 0;
@@ -2497,30 +2496,36 @@ define(function (require, exports, module) {
         }
 
         var gutter = {name: name, priority: priority, languages: languageIds},
-            gutterExists = this._registeredGutters.some(function (gutter) {
+            gutterExists = registeredGutters.some(function (gutter) {
                 return gutter.name === name;
             });
 
         if (!gutterExists) {
-            this._registeredGutters.push(gutter);
-            this._renderGutters();
+            registeredGutters.push(gutter);
         }
+
+        Editor.forEveryEditor(function (editor) {
+            editor._renderGutters();
+        });
     };
 
     /**
      * Unregisters the gutter with the specified name and removes it from the UI.
      * @param {string} name The name of the gutter to be un registered.
      */
-    Editor.prototype.unregisterGutter = function (name) {
+    Editor.unregisterGutter = function (name) {
         var i, gutter;
-        for (i = 0; i < this._registeredGutters.length; i++) {
-            gutter = this._registeredGutters[i];
+        for (i = 0; i < registeredGutters.length; i++) {
+            gutter = registeredGutters[i];
             if (gutter.name === name) {
-                this._registeredGutters.splice(i, 1);
-                this._renderGutters();
+                registeredGutters.splice(i, 1);
                 break;
             }
         }
+
+        Editor.forEveryEditor(function (editor) {
+            editor._renderGutters();
+        });
 
     };
 
