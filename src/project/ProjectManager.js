@@ -388,15 +388,20 @@ define(function (require, exports, module) {
      * the file tree OR in the working set; or null if no item is selected anywhere in the sidebar.
      * May NOT be identical to the current Document - a folder may be selected in the sidebar, or the sidebar may not
      * have the current document visible in the tree & working set.
+     * @param {boolean=} includeWorkingSet If true, fall back to the working set item that is selected if there's
+     *      no selected file tree item (default behaviour)
      * @return {?(File|Directory)}
      */
-    function getSelectedItem() {
+    function getSelectedItem(includeWorkingSet) {
+        if (includeWorkingSet === undefined) {
+            includeWorkingSet = true;
+        }
         // Prefer file tree context, then selection, else use working set
         var selectedEntry = model.getContext();
         if (!selectedEntry) {
             selectedEntry = model.getSelected();
         }
-        if (!selectedEntry) {
+        if (!selectedEntry && includeWorkingSet) {
             selectedEntry = MainViewManager.getCurrentlyViewedFile();
         }
         return selectedEntry;

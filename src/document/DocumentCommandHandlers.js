@@ -629,7 +629,7 @@ define(function (require, exports, module) {
         // (Note: 'selected' may be an item that's selected in the workingset and not the tree; but in that case
         // ProjectManager.createNewItem() ignores the baseDir we give it and falls back to the project root on its own)
         var baseDirEntry,
-            selected = ProjectManager.getSelectedItem();
+            selected = ProjectManager.getSelectedItem(false);
         if ((!selected) || (selected instanceof InMemoryFile)) {
             selected = ProjectManager.getProjectRoot();
         }
