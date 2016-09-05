@@ -1,5 +1,7 @@
 FIT, CSE2410-02 Software Engineering
 
+Instructors: Dr. Keith Gallagher, Casey Doran
+
 Team: ChainsawFist
 
 Members:	
