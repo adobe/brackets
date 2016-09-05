@@ -4,6 +4,7 @@ Members:	Christopher Lindelof, Chris
 		Lawrence Nadur, Logan
 		Boyce Poleon Jr., Boyce
 		James Ranyak, James
+
 -------------------
 
 Welcome to Brackets! [![Build Status](https://travis-ci.org/adobe/brackets.svg?branch=master)](https://travis-ci.org/adobe/brackets)
