@@ -1,9 +1,14 @@
 FIT, CSE2410-02 Software Engineering
+
 Team: ChainsawFist
-Members:	Christopher Lindelof, Chris
-		Lawrence Nadur, Logan
-		Boyce Poleon Jr., Boyce
-		James Ranyak, James
+
+Members:	Christopher Lindelof,
+
+		Lawrence Nadur,
+
+		Boyce Poleon Jr.,
+
+		James Ranyak,
 
 -------------------
 
