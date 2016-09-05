@@ -12,7 +12,7 @@ Members:
 
 		Boyce Poleon Jr.,
 
-		James Ranyak,
+		James Ranyak
 
 -------------------
 
