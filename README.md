@@ -2,7 +2,9 @@ FIT, CSE2410-02 Software Engineering
 
 Team: ChainsawFist
 
-Members:	Christopher Lindelof,
+Members:	
+
+		Christopher Lindelof,
 
 		Lawrence Nadur,
 
