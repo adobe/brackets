@@ -6,13 +6,13 @@ Team: ChainsawFist
 
 Members:	
 
-		Christopher Lindelof,
+		Christopher Lindelof, Chris
 
-		Lawrence Nadur,
+		Lawrence Nadur, Logan
 
-		Boyce Poleon Jr.,
+		Boyce Poleon Jr., Boyce
 
-		James Ranyak
+		James Ranyak, James
 
 -------------------
 
