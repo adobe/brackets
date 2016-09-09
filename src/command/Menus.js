@@ -179,6 +179,19 @@ define(function (require, exports, module) {
     }
 
     /**
+    * Removes the attached event listeners from the corresponding object.
+    * @param {Command} command
+    */
+    function removeMenuItemEventListeners(command) {
+        command
+            .off("enabledStateChange", command._enabledChanged)
+            .off("checkedStateChange", command._checkedChanged)
+            .off("nameChange", command._nameChanged)
+            .off("keyBindingAdded", command._keyBindingAdded)
+            .off("keyBindingRemoved", command._keyBindingRemoved);
+    }
+
+    /**
      * Check whether a ContextMenu exists for the given id.
      * @param {string} id
      * @return {boolean}
@@ -444,9 +457,10 @@ define(function (require, exports, module) {
                 console.error("removeMenuItem(): command not found: " + command);
                 return;
             }
-
+            removeMenuItemEventListeners(commandObj);
             commandID = command;
         } else {
+            removeMenuItemEventListeners(command);
             commandID = command.getID();
         }
         menuItemID = this._getMenuItemId(commandID);
