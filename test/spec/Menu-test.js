@@ -737,34 +737,30 @@ define(function (require, exports, module) {
 
             it("should add then remove new menu item ensuring event listeners have also been detached", function () {
                 runs(function () {
-                    var commandId = "Menu-test.removeMenuItem.command4";
                     var menuItemId = "menu-test-removeMenuItem4";
+                    var commandId = "Menu-test.removeMenuItem.command4";
                     CommandManager.register("Brackets Test Command Custom", commandId, function () {});
                     var menu = Menus.addMenu("Custom", menuItemId);
-                    var $listItems = testWindow.$("#menu-custom > ul").children();
-                    expect($listItems.length).toBe(0);
 
-                    // Re-use commands that are already registered
+
                     var menuItem = menu.addMenuItem(commandId);
 
-                    expect(menuItem).toBeTruthy();
-                    expect(menuItem).toBeDefined();
-
-                    $listItems = menuDOMChildren(menuItemId);
-                    expect($listItems.length).toBe(1);
-
                     var command = CommandManager.get(commandId);
-                    expect(typeof (command)).toBe("object");
 
-                    // Test event
-                    command.on("nameChange", menuItem._nameChanged);
-
+                    expect(typeof (command._eventHandlers.enabledStateChange)).toBe("object");
+                    expect(typeof (command._eventHandlers.checkedStateChange)).toBe("object");
                     expect(typeof (command._eventHandlers.nameChange)).toBe("object");
+                    expect(typeof (command._eventHandlers.keyBindingAdded)).toBe("object");
+                    expect(typeof (command._eventHandlers.keyBindingRemoved)).toBe("object");
 
                     menu.removeMenuItem(command);
 
-                    // Check if test event has been removed
+                    // Check if attached events have been removed
                     expect(command._eventHandlers.nameChange).toBeUndefined();
+                    expect(command._eventHandlers.checkedStateChange).toBeUndefined();
+                    expect(command._eventHandlers.KeyBindingAdded).toBeUndefined();
+                    expect(command._eventHandlers.keyBindingRemoved).toBeUndefined();
+                    expect(command._eventHandlers.enabledStateChange).toBeUndefined();
                 });
             });
         });
