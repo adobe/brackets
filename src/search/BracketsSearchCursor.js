@@ -280,22 +280,22 @@ define(function (require, exports, module) {
      * If there is no match found before the end or beginning of the document
      * then this function returns false.
      * @private
-     * @param {!Object} regexIndexer instance of the regex indexer. see _createRegexIndexer
+     * @param {!Object} searchResults instance of the regex indexer. see _createSearchResults
      * @param {number} pos Starting index position to search from
      * @param {boolean} reverse direction to search.
      * @param {function(number, number)} fnCompare function to compare positions for binary search
      * @return {number} offset from the beginning of the document
      */
-    function _findResultIndexNearPos(regexIndexer, pos, reverse, fnCompare) {
+    function _findResultIndexNearPos(searchResults, pos, reverse, fnCompare) {
         var compare;
 
-        var length = regexIndexer.getItemCount();
+        var length = searchResults.getItemCount();
         var upperBound = length - 1;
         var lowerBound = 0;
         var searchIndex;
         while (lowerBound <= upperBound) {
             searchIndex = Math.floor((upperBound + lowerBound) / 2);
-            compare = fnCompare(regexIndexer.getMatchIndexStart(searchIndex), pos);
+            compare = fnCompare(searchResults.getMatchIndexStart(searchIndex), pos);
             switch (compare) {
             case -1:
                 lowerBound = searchIndex + 1;
@@ -331,6 +331,25 @@ define(function (require, exports, module) {
         this._currentGroupIndex = -groupSize;
         this._groupSize = groupSize;
     }
+    /**
+     * Determines if the values of specified items in a group array are equal
+     * @private
+     * @param   {GroupArray} groupArray1 First group array
+     * @param   {GroupArray} groupNum1   Item within group array
+     * @param   {GroupArray} groupArray2 Second group array
+     * @param   {GroupArray} groupNum2   Item within 2nd group array
+     * @return {boolean}  true when values are equal
+     */
+    GroupArray.prototype.isGroupValuesEqual = function (groupNum1, groupArray2, groupNum2) {
+        var groupNumber;
+        var groupSize = this.groupSize();
+        for (groupNumber = 0; groupNumber < groupSize; groupNumber++) {
+            if (!_.isEqual(this.getGroupValue(groupNum1, groupNumber), groupArray2.getGroupValue(groupNum2, groupNumber))) {
+                return false;
+            }
+        }
+        return true;
+    };
     GroupArray.prototype.nextGroupIndex = function () {
         if (this._currentGroupIndex < this.array.length - this._groupSize) {
             this._currentGroupIndex += this._groupSize;
@@ -409,23 +428,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Determines if the values of specified items in a group array are equal
-     * @private
-     * @param   {GroupArray} groupArray1 First group array
-     * @param   {GroupArray} groupNum1   Item within group array
-     * @param   {GroupArray} groupArray2 Second group array
-     * @param   {GroupArray} groupNum2   Item within 2nd group array
-     * @return {boolean}  true when values are equal
-     */
-    function _isGroupValuesEqual(groupArray1, groupNum1, groupArray2, groupNum2) {
-        if (_.isEqual(groupArray1.getGroupValue(groupNum1, 0), groupArray2.getGroupValue(groupNum2, 0)) &&
-                _.isEqual(groupArray1.getGroupValue(groupNum1, 1), groupArray2.getGroupValue(groupNum2, 1))) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * If the first item of the first group array and the last item of the second group array
      * are equal, then remove the duplicate from the end of the second group array
      * @private
@@ -436,11 +438,128 @@ define(function (require, exports, module) {
         if (firstSearchResults.itemCount() === 0 || secondSearchResults.itemCount() === 0) {
             return;
         }
-        if (_isGroupValuesEqual(firstSearchResults, 0, secondSearchResults, secondSearchResults.itemCount() - 1)) {
+        if (firstSearchResults.isGroupValuesEqual(0, secondSearchResults, secondSearchResults.itemCount() - 1)) {
             secondSearchResults.array.pop();
             secondSearchResults.array.pop();
         }
     }
+
+    function SearchResults(startEndIndexArray, docLineIndex) {
+        this._startEndIndexArray = startEndIndexArray;
+        this.docLineIndex = docLineIndex;
+    }
+    SearchResults.prototype.nextMatch = function nextMatch() {
+        var currentMatchIndex = this._startEndIndexArray.nextGroupIndex();
+        if (currentMatchIndex === false) {
+            return false;
+        }
+        // TODO potentially could be optimized if we could pass in the prev match line for starting search
+        // However, seems very fast already for current use case
+        return _createSearchResult(this.docLineIndex, this._startEndIndexArray.array[currentMatchIndex], this._startEndIndexArray.array[currentMatchIndex + 1]);
+    };
+
+    SearchResults.prototype.prevMatch = function prevMatch() {
+        var currentMatchIndex = this._startEndIndexArray.prevGroupIndex();
+        if (currentMatchIndex === false) {
+            return false;
+        }
+        return _createSearchResult(this.docLineIndex, this._startEndIndexArray.array[currentMatchIndex], this._startEndIndexArray.array[currentMatchIndex + 1]);
+    };
+
+    SearchResults.prototype.getItemByMatchNumber = function getItemByMatchNumber(matchNumber) {
+        var groupIndex = this._startEndIndexArray.getGroupIndex(matchNumber);
+        return _createSearchResult(this.docLineIndex, this._startEndIndexArray.array[groupIndex], this._startEndIndexArray.array[groupIndex + 1]);
+    };
+
+    SearchResults.prototype.forEachMatch = function forEachMatch(fnMatch) {
+        var index;
+        var length = this._startEndIndexArray.itemCount();
+        var lastLine = 0;
+        for (index = 0; index < length; index++) {
+            var groupIndex = this._startEndIndexArray.getGroupIndex(index);
+            var fromPos = _createPosFromIndex(this.docLineIndex, lastLine, this._startEndIndexArray.array[groupIndex]);
+            var toPos = _createPosFromIndex(this.docLineIndex, fromPos.line, this._startEndIndexArray.array[groupIndex + 1]);
+            lastLine = toPos.line;
+            fnMatch(fromPos, toPos);
+        }
+    };
+
+    SearchResults.prototype.forEachMatchWithinRange = function forEachMatchWithinRange(searchResults, startPosition, endPosition, fnResult) {
+        var nearestMatchIndex = _findResultIndexNearPos(searchResults, _indexFromPos(this.docLineIndex, startPosition), false, _compareOffsets);
+        if (nearestMatchIndex === false) {return; }
+
+        var nearestMatchPosition = _createPosFromIndex(this.docLineIndex, startPosition.line, this._startEndIndexArray.array[nearestMatchIndex]);
+        if (nearestMatchPosition.line > endPosition.line) {return; }
+
+        var index;
+        var length = this._startEndIndexArray.itemCount();
+        var lastLine = startPosition.line;
+        for (index = nearestMatchIndex; index < length; index++) {
+            var groupIndex = this._startEndIndexArray.getGroupIndex(index);
+            var fromPos = _createPosFromIndex(this.docLineIndex, lastLine, this._startEndIndexArray.array[groupIndex]);
+            var toPos = _createPosFromIndex(this.docLineIndex, fromPos.line, this._startEndIndexArray.array[groupIndex + 1]);
+            lastLine = toPos.line;
+
+            // do not return results beyond end range position
+            if (fromPos.line > endPosition.line) {return; }
+
+            fnResult(fromPos, toPos);
+        }
+    };
+
+    SearchResults.prototype.fillWithMatchedLinePattern = function fillWithMatchedLinePattern(patternArray) {
+        var index;
+        var length = this._startEndIndexArray.itemCount();
+        var lastLine = 0;
+        var linesPerArraySlot = this.docLineIndex.length / patternArray.length;
+        for (index = 0; index < length; index++) {
+            var groupIndex = this._startEndIndexArray.getGroupIndex(index);
+            var fromLine = _lineFromIndex(this.docLineIndex, lastLine, this._startEndIndexArray.array[groupIndex]);
+            lastLine = fromLine;
+            patternArray[Math.floor(fromLine / linesPerArraySlot)] = 1;
+        }
+    };
+
+    SearchResults.prototype.getItemCount = function getItemCount() {
+        return this._startEndIndexArray.itemCount();
+    };
+
+    SearchResults.prototype.getCurrentMatch = function getCurrentMatch() {
+        var currentMatchIndex = this._startEndIndexArray.currentGroupIndex();
+        if (currentMatchIndex > -1) {
+            return _createSearchResult(this.docLineIndex, this._startEndIndexArray.array[currentMatchIndex], this._startEndIndexArray.array[currentMatchIndex + 1]);
+        }
+    };
+
+    SearchResults.prototype.getMatchIndexStart = function getMatchIndexStart(matchNumber) {
+        return this._startEndIndexArray.getGroupValue(matchNumber, 0);
+    };
+
+    SearchResults.prototype.getMatchIndexEnd = function getMatchIndexEnd(matchNumber) {
+        return this._startEndIndexArray.getGroupValue(matchNumber, 1);
+    };
+
+    SearchResults.prototype.setCurrentMatchNumber = function setCurrentMatchNumber(number) {
+        this._startEndIndexArray.setCurrentGroup(number);
+    };
+
+    SearchResults.prototype.getCurrentMatchNumber = function getCurrentMatchNumber() {
+        return this._startEndIndexArray.currentGroupNumber();
+    };
+
+    SearchResults.prototype.getFullResultInfo = function getFullResultInfo(matchNumber, query, docText) {
+        var groupIndex = this._startEndIndexArray.getGroupIndex(matchNumber);
+        query.lastIndex = this._startEndIndexArray.array[groupIndex];
+        var matchInfo = query.exec(docText);
+        var currentMatch = this.getCurrentMatch();
+        currentMatch.match = matchInfo;
+        return currentMatch;
+    };
+
+
+
+
+
 
     /**
      * Creates the regex indexer which finds all matches within supplied text using the search query.
@@ -451,9 +570,9 @@ define(function (require, exports, module) {
      * @param {RegExp} query         A regular expression used to find matches
      * @param {number} maxResults    The limit of the number of matches to perform
      * @param {{to: {line: number, ch: number}, from: {line: number, ch: number}} startPosition Start searching at this position
-     * @return {RegexIndexer} A new instance of the regular expression indexer
+     * @return {SearchResults} A new instance of the regular expression indexer
      */
-    function _createRegexIndexer(docText, docLineIndex, query, maxResults, startPosition) {
+    function _createSearchResults(docText, docLineIndex, query, maxResults, startPosition) {
         // Start and End index of each match stored in array as:
         // [0] = start index of first match
         // [1] = end index of first match
@@ -462,116 +581,6 @@ define(function (require, exports, module) {
         var _startEndIndexArray = _makeGroupArray([], 2);
         maxResults = maxResults || 10000000;
         startPosition = startPosition || {to: {line: 0, ch: 0}, from: {line: 0, ch: 0}};
-
-        function nextMatch() {
-            var currentMatchIndex = _startEndIndexArray.nextGroupIndex();
-            if (currentMatchIndex === false) {
-                return false;
-            }
-            // TODO potentially could be optimized if we could pass in the prev match line for starting search
-            // However, seems very fast already for current use case
-            return _createSearchResult(docLineIndex, _startEndIndexArray.array[currentMatchIndex], _startEndIndexArray.array[currentMatchIndex + 1]);
-        }
-
-        function prevMatch() {
-            var currentMatchIndex = _startEndIndexArray.prevGroupIndex();
-            if (currentMatchIndex === false) {
-                return false;
-            }
-            return _createSearchResult(docLineIndex, _startEndIndexArray.array[currentMatchIndex], _startEndIndexArray.array[currentMatchIndex + 1]);
-        }
-
-        function getItemByMatchNumber(matchNumber) {
-            var groupIndex = _startEndIndexArray.getGroupIndex(matchNumber);
-            return _createSearchResult(docLineIndex, _startEndIndexArray.array[groupIndex], _startEndIndexArray.array[groupIndex + 1]);
-        }
-
-        function forEachMatch(fnMatch) {
-            var index;
-            var length = _startEndIndexArray.itemCount();
-            var lastLine = 0;
-            for (index = 0; index < length; index++) {
-                var groupIndex = _startEndIndexArray.getGroupIndex(index);
-                var fromPos = _createPosFromIndex(docLineIndex, lastLine, _startEndIndexArray.array[groupIndex]);
-                var toPos = _createPosFromIndex(docLineIndex, fromPos.line, _startEndIndexArray.array[groupIndex + 1]);
-                lastLine = toPos.line;
-                fnMatch(fromPos, toPos);
-            }
-        }
-
-        function forEachMatchWithinRange(regexIndexer, startPosition, endPosition, fnResult) {
-            var nearestMatchIndex = _findResultIndexNearPos(regexIndexer, _indexFromPos(docLineIndex, startPosition), false, _compareOffsets);
-            if (nearestMatchIndex === false) {return; }
-
-            var nearestMatchPosition = _createPosFromIndex(docLineIndex, startPosition.line, _startEndIndexArray.array[nearestMatchIndex]);
-            if (nearestMatchPosition.line > endPosition.line) {return; }
-
-            var index;
-            var length = _startEndIndexArray.itemCount();
-            var lastLine = startPosition.line;
-            for (index = nearestMatchIndex; index < length; index++) {
-                var groupIndex = _startEndIndexArray.getGroupIndex(index);
-                var fromPos = _createPosFromIndex(docLineIndex, lastLine, _startEndIndexArray.array[groupIndex]);
-                var toPos = _createPosFromIndex(docLineIndex, fromPos.line, _startEndIndexArray.array[groupIndex + 1]);
-                lastLine = toPos.line;
-
-                // do not return results beyond end range position
-                if (fromPos.line > endPosition.line) {return; }
-
-                fnResult(fromPos, toPos);
-            }
-        }
-
-        function fillWithMatchedLinePattern(patternArray) {
-            var index;
-            var length = _startEndIndexArray.itemCount();
-            var lastLine = 0;
-            var linesPerArraySlot = docLineIndex.length / patternArray.length;
-            for (index = 0; index < length; index++) {
-                var groupIndex = _startEndIndexArray.getGroupIndex(index);
-                var fromLine = _lineFromIndex(docLineIndex, lastLine, _startEndIndexArray.array[groupIndex]);
-                lastLine = fromLine;
-                patternArray[Math.floor(fromLine / linesPerArraySlot)] = 1;
-            }
-        }
-
-        function getItemCount() {
-            return _startEndIndexArray.itemCount();
-        }
-
-        function getCurrentMatch() {
-            var currentMatchIndex = _startEndIndexArray.currentGroupIndex();
-            if (currentMatchIndex > -1) {
-                return _createSearchResult(docLineIndex, _startEndIndexArray.array[currentMatchIndex], _startEndIndexArray.array[currentMatchIndex + 1]);
-            }
-        }
-
-        function getMatchIndexStart(matchNumber) {
-            return _startEndIndexArray.getGroupValue(matchNumber, 0);
-        }
-
-        function getMatchIndexEnd(matchNumber) {
-            return _startEndIndexArray.getGroupValue(matchNumber, 1);
-        }
-
-        function setCurrentMatchNumber(number) {
-            _startEndIndexArray.setCurrentGroup(number);
-        }
-
-        function getCurrentMatchNumber() {
-            return _startEndIndexArray.currentGroupNumber();
-        }
-
-        function getFullResultInfo(matchNumber, query, docText) {
-            var groupIndex = _startEndIndexArray.getGroupIndex(matchNumber);
-            query.lastIndex = _startEndIndexArray.array[groupIndex];
-            var matchInfo = query.exec(docText);
-            var currentMatch = getCurrentMatch();
-            currentMatch.match = matchInfo;
-            return currentMatch;
-        }
-
-
 
         /**
          * Performs a 2 part search if cursor is not at the beginning of the document.
@@ -592,7 +601,7 @@ define(function (require, exports, module) {
          * @param   {number} startIndex Index location to start search
          * @return {GroupArray} Array of search results
          */
-        function _createSearchResults(docText, query, startIndex) {
+        function initializeSearchResults(docText, query, startIndex) {
             query.lastIndex = startIndex;
             // perform first search at our starting index
             var resultCount = _searchAndAddResultsToArray(query, docText, _startEndIndexArray, maxResults);
@@ -609,22 +618,9 @@ define(function (require, exports, module) {
 
             return _startEndIndexArray;
         }
-        _createSearchResults(docText, query, _indexFromPos(docLineIndex, startPosition.from));
+        initializeSearchResults(docText, query, _indexFromPos(docLineIndex, startPosition.from));
 
-        return {nextMatch : nextMatch,
-                prevMatch : prevMatch,
-                getItemByMatchNumber : getItemByMatchNumber,
-                getItemCount : getItemCount,
-                getCurrentMatch : getCurrentMatch,
-                setCurrentMatchNumber : setCurrentMatchNumber,
-                getMatchIndexStart : getMatchIndexStart,
-                getMatchIndexEnd : getMatchIndexEnd,
-                getCurrentMatchNumber : getCurrentMatchNumber,
-                getFullResultInfo : getFullResultInfo,
-                forEachMatch : forEachMatch,
-                forEachMatchWithinRange : forEachMatchWithinRange,
-                fillWithMatchedLinePattern : fillWithMatchedLinePattern
-            };
+        return new SearchResults(_startEndIndexArray, docLineIndex);
     }
 
 
@@ -634,7 +630,7 @@ define(function (require, exports, module) {
      */
     function _createCursor() {
         function _findNext(cursor) {
-            var match = cursor.regexIndexer.nextMatch();
+            var match = cursor.searchResults.nextMatch();
             if (!match) {
                 cursor.atOccurrence = false;
                 cursor.currentPosition = null;
@@ -643,7 +639,7 @@ define(function (require, exports, module) {
             return match;
         }
         function _findPrevious(cursor) {
-            var match = cursor.regexIndexer.prevMatch();
+            var match = cursor.searchResults.prevMatch();
             if (!match) {
                 cursor.atOccurrence = false;
                 cursor.currentPosition = null;
@@ -716,7 +712,7 @@ define(function (require, exports, module) {
              */
             getMatchCount: function () {
                 _updateResultsIfNeeded(this);
-                return this.regexIndexer.getItemCount();
+                return this.searchResults.getItemCount();
             },
 
             /**
@@ -727,7 +723,7 @@ define(function (require, exports, module) {
              */
             getCurrentMatchNumber: function () {
                 _updateResultsIfNeeded(this);
-                return this.regexIndexer.getCurrentMatchNumber();
+                return this.searchResults.getCurrentMatchNumber();
             },
 
             /**
@@ -738,15 +734,15 @@ define(function (require, exports, module) {
             find: function (reverse) {
                 _updateResultsIfNeeded(this);
                 var foundPosition;
-                if (!this.regexIndexer.getCurrentMatch()) {
+                if (!this.searchResults.getCurrentMatch()) {
                     // There is currently no match position
                     // This is our first time or we hit the top or end of document using next or prev
                     this.currentPosition = _startingPositionForFind(this, reverse);
                     var docLineIndex = _getdocLineIndex(this.doc);
-                    var matchIndex = _findResultIndexNearPos(this.regexIndexer, _indexFromPos(docLineIndex, this.currentPosition.from), reverse, _compareOffsets);
+                    var matchIndex = _findResultIndexNearPos(this.searchResults, _indexFromPos(docLineIndex, this.currentPosition.from), reverse, _compareOffsets);
                     if (matchIndex) {
-                        this.regexIndexer.setCurrentMatchNumber(matchIndex);
-                        foundPosition = this.regexIndexer.getCurrentMatch();
+                        this.searchResults.setCurrentMatchNumber(matchIndex);
+                        foundPosition = this.searchResults.getCurrentMatch();
                     }
                 }
                 if (!foundPosition) {
@@ -765,7 +761,7 @@ define(function (require, exports, module) {
              */
             forEachMatch: function (fnResult) {
                 _updateResultsIfNeeded(this);
-                this.regexIndexer.forEachMatch(fnResult);
+                this.searchResults.forEachMatch(fnResult);
             },
 
             /**
@@ -776,7 +772,7 @@ define(function (require, exports, module) {
              */
             forEachMatchWithinRange: function (startPosition, endPosition, fnResult) {
                 _updateResultsIfNeeded(this);
-                this.regexIndexer.forEachMatchWithinRange(this.regexIndexer, startPosition, endPosition, fnResult);
+                this.searchResults.forEachMatchWithinRange(this.searchResults, startPosition, endPosition, fnResult);
             },
 
             /**
@@ -785,7 +781,7 @@ define(function (require, exports, module) {
              */
             getFullInfoForCurrentMatch: function () {
                 var docText = _getDocumentText(this.doc);
-                return this.regexIndexer.getFullResultInfo(this.regexIndexer.getCurrentMatchNumber(), this.query, docText);
+                return this.searchResults.getFullResultInfo(this.searchResults.getCurrentMatchNumber(), this.query, docText);
             },
 
             /**
@@ -802,7 +798,7 @@ define(function (require, exports, module) {
                 var representationArray = new Uint8Array(levelOfDetail);
                 var docLineIndex = _getdocLineIndex(this.doc);
                 var linesPerArraySlot = docLineIndex.length / levelOfDetail;
-                this.regexIndexer.fillWithMatchedLinePattern(representationArray);
+                this.searchResults.fillWithMatchedLinePattern(representationArray);
                 return {linesPerArraySlot: linesPerArraySlot, lineMatchPatternArray: representationArray};
             },
 
@@ -818,7 +814,7 @@ define(function (require, exports, module) {
                 }
                 var docText = _getDocumentText(this.doc);
                 var docLineIndex = _getdocLineIndex(this.doc);
-                this.regexIndexer = _createRegexIndexer(docText, docLineIndex, this.query, this.maxResults, this.currentPosition);
+                this.searchResults = _createSearchResults(docText, docLineIndex, this.query, this.maxResults, this.currentPosition);
                 this.resultsCurrent = true;
                 return this.getMatchCount();
             }
