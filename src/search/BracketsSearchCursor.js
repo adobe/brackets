@@ -21,6 +21,24 @@
  *
  */
 
+
+/**
+ * BracketsSearchCursor is a module which is used to search a document using regular expressions
+ * and store the results internally in order to facilitate navigation forward and backward through
+ * the found results.
+ *
+ * This is currently used by the FindReplace module, but also may be used by extensions which
+ * have need of performing document searches.
+ *
+ * An index is created of for line and character offsets for fast conversion to and from Pos objects
+ * to index locations.  CodeMirror does not have an effecient method to perform this conversion.
+ *
+ * All instances of the search cursor will share the same document index and if the document changes
+ * since the index creation a new index is created automatically
+ *
+ */
+
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, WeakMap, Uint32Array, Uint8Array */
 
@@ -36,6 +54,7 @@ define(function (require, exports, module) {
      * text = The text of the document
      * index = The document line index for lookups
      * generation = the document history generation number
+     * @private
      */
     var _documentMap = new WeakMap();
 
@@ -43,6 +62,7 @@ define(function (require, exports, module) {
      * Determines if the current document has changed since we last stored the docInfo
      * @param {CodeMirror.Doc} doc
      * @return boolean
+     * @private
      */
     function _needToIndexDocument(doc) {
         var docInfo = _documentMap.get(doc);
@@ -60,10 +80,11 @@ define(function (require, exports, module) {
      * Creates an array which stores the sum of all characters in the document
      * up to the point of each line.
      * This is needed to efficiently convert character index offsets to position objects of line and character offset.
-     * @param {String} text The string to index
-     * @param {String} lineSeparator The ending character that splits lines
+     * @param {string} text The string to index
+     * @param {string} lineSeparator The ending character that splits lines
+     * @private
      */
-    function _createLineCharacterCountIndex(text, lineSeparator) {
+    function _createDocLineIndex(text, lineSeparator) {
         var lineNumber;
         // splitting is actually faster than using doc.getLine()
         var lines = text.split(lineSeparator);
@@ -81,26 +102,29 @@ define(function (require, exports, module) {
     /**
      * Creates the document index and store in our map
      * @param {CodeMirror.Doc} doc The codemirror document
+     * @private
      */
     function _indexDocument(doc) {
         var docText = doc.getValue();
-        var docLineIndex = _createLineCharacterCountIndex(docText, doc.lineSeparator());
+        var docLineIndex = _createDocLineIndex(docText, doc.lineSeparator());
         _documentMap.set(doc, {text: docText, index: docLineIndex, generation: doc.history.generation});
     }
 
     /**
      * Gets the document index
      * @param {CodeMirror.Doc} doc The codemirror document
-     * @returns {Array<number>} see '_createLineCharacterCountIndex' for contents of Array
+     * @return {Array<number>} see '_createDocLineIndex' for contents of Array
+     * @private
      */
-    function _getDocumentIndex(doc) {
+    function _getdocLineIndex(doc) {
         return _documentMap.get(doc).index;
     }
 
     /**
      * Gets the document text
      * @param {CodeMirror.Doc} doc The codemirror document
-     * @returns {String} document text content
+     * @return {string} document text content
+     * @private
      */
     function _getDocumentText(doc) {
         return _documentMap.get(doc).text;
@@ -112,6 +136,7 @@ define(function (require, exports, module) {
      * If already regular expression, then just set the flags as appropriate
      * @param {Object}  stringOrRegex A string or regular expression
      * @param {boolean} ignoreCase True to ignore case for searchers
+     * @private
      */
     function _convertToRegularExpression(stringOrRegex, ignoreCase) {
         if (typeof stringOrRegex === "string") {
@@ -124,21 +149,21 @@ define(function (require, exports, module) {
     /**
      * Finds the line number for the given index
      * @private
-     * @param {Array<number>} lineCharacterCountIndexArray See '_createLineCharacterCountIndex'
+     * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {number}        startSearchingWithLine       Line number to start search
      * @param {number}        indexWithinDoc               The index of the character offset from the start of the document
-     * @returns {number}      The line number for the given index.
+     * @return {number}      The line number for the given index.
      */
-    function _lineFromIndex(lineCharacterCountIndexArray, startSearchingWithLine, indexWithinDoc) {
+    function _lineFromIndex(docLineIndex, startSearchingWithLine, indexWithinDoc) {
         var lineNumber;
-        var lineCount = lineCharacterCountIndexArray.length;
+        var lineCount = docLineIndex.length;
         // linear search for line number turns out to be usually faster than binary search
         // as matches tend to come relatively close together and we can boost the linear
         // search performance using starting position since we often know our progress through the document.
         for (lineNumber = startSearchingWithLine; lineNumber < lineCount; lineNumber++) {
             // If the total character count at this line is greater than the index
             // then the index must be somewhere on this line
-            if (lineCharacterCountIndexArray[lineNumber] > indexWithinDoc) {
+            if (docLineIndex[lineNumber] > indexWithinDoc) {
                 return lineNumber;
             }
         }
@@ -147,15 +172,16 @@ define(function (require, exports, module) {
     /**
      * Given the character offset from the beginning of the document
      * creates an object which has the position information
-     * @param {Array<number>} lineCharacterCountIndexArray See '_createLineCharacterCountIndex'
+     * @private
+     * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {number} startSearchingWithLine Line number to start search
      * @param {number} indexWithinDoc The index of the character offset from the start of the document
      * @return {{line: number, ch: number}} Line and character offsets
      */
-    function _createPosFromIndex(lineCharacterCountIndexArray, startSearchingWithLine, indexWithinDoc) {
-        var lineNumber = _lineFromIndex(lineCharacterCountIndexArray, startSearchingWithLine, indexWithinDoc);
+    function _createPosFromIndex(docLineIndex, startSearchingWithLine, indexWithinDoc) {
+        var lineNumber = _lineFromIndex(docLineIndex, startSearchingWithLine, indexWithinDoc);
 
-        var previousLineEndingCharacterIndex = lineNumber > 0 ? lineCharacterCountIndexArray[lineNumber - 1] : 0;
+        var previousLineEndingCharacterIndex = lineNumber > 0 ? docLineIndex[lineNumber - 1] : 0;
         // create a Pos with the line number and the character offset relative to the beginning of this line
         return {line: lineNumber, ch: indexWithinDoc - previousLineEndingCharacterIndex };
     }
@@ -164,14 +190,16 @@ define(function (require, exports, module) {
      * Returns the character offset from the beginning of the document based on
      * object properties as pos.from.line and pos.from.ch
      * where line is the line number in the document and ch is the character offset on the line
-     * @param {Array<number>} lineCharacterCountIndexArray See '_createLineCharacterCountIndex'
+     * @private
+     * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {{line: number, ch: number}} pos Object describing the position within the document
+     * @return {number} character offset from the beginning of the document
      */
-    function _indexFromPos(lineCharacterCountIndexArray, pos) {
+    function _indexFromPos(docLineIndex, pos) {
         var indexAtStartOfLine = 0;
         if (pos.line > 0) {
             // Start with the sum of the character count at the end of previous line
-            indexAtStartOfLine = lineCharacterCountIndexArray[pos.line - 1];
+            indexAtStartOfLine = docLineIndex[pos.line - 1];
         }
         // Add the number of characters offset from the start and return
         return indexAtStartOfLine + pos.ch;
@@ -179,24 +207,25 @@ define(function (require, exports, module) {
 
     /**
      * Scans entire document and callback with each match found.
-     * Uses the documentIndex to more efficiently create the position objects on found matches.
+     * Uses the docLineIndex to more efficiently create the position objects on found matches.
      *
-     * @param {Array<number>} lineCharacterCountIndexArray See '_createLineCharacterCountIndex'
-     * @param {String}        documentText                 Text to scan
+     * @private
+     * @param {Array<number>} docLineIndex See '_createDocLineIndex'
+     * @param {string}        documentText                 Text to scan
      * @param {RegExp}        regex                        Regular expression used to search
      * @param {{from: {line: number, ch: number}, to: {line: number, ch: number}}} range Area to scan for matches
      * @param {function({line: number, ch: number}, {line: number, ch: number}, Array )} fnEachMatch Function is called with start position, end position and Regex match Array
      */
-    function _scanDocumentUsingRegularExpression(documentIndex, documentText, regex, range, fnEachMatch) {
+    function _scanDocument(docLineIndex, documentText, regex, range, fnEachMatch) {
         var matchArray;
-        var startRangeIndex = range !== undefined ? _indexFromPos(documentIndex, range.from) : 0;
-        var endRangeIndex = range !== undefined ? _indexFromPos(documentIndex, range.to) : documentIndex[documentIndex.length - 1];
+        var startRangeIndex = range !== undefined ? _indexFromPos(docLineIndex, range.from) : 0;
+        var endRangeIndex = range !== undefined ? _indexFromPos(docLineIndex, range.to) : docLineIndex[docLineIndex.length - 1];
 
         regex.lastIndex = startRangeIndex;
         var lastMatchedLine = 0;
         while ((matchArray = regex.exec(documentText)) !== null) {
-            var startPosition = _createPosFromIndex(documentIndex, lastMatchedLine, matchArray.index);
-            var endPosition = _createPosFromIndex(documentIndex, startPosition.line, regex.lastIndex);
+            var startPosition = _createPosFromIndex(docLineIndex, lastMatchedLine, matchArray.index);
+            var endPosition = _createPosFromIndex(docLineIndex, startPosition.line, regex.lastIndex);
             lastMatchedLine = endPosition.line;
 
             if (regex.lastIndex <= endRangeIndex) {
@@ -215,11 +244,12 @@ define(function (require, exports, module) {
 
     /**
      * Returns an object that indicates the beginning and end of a match from the search
-     * @param {Array<number>} docLineIndex See '_createLineCharacterCountIndex'
+     * @private
+     * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {number}        indexStart   Start location using index
      * @param {number}        indexEnd     End location using index
      * @param {number}        startLine    Starting line to search for line locations
-     *
+     * @return {{from: {line: number, ch: number}, to: {line: number, ch: number}}} Line and character offsets
      */
     function _createSearchResult(docLineIndex, indexStart, indexEnd, startLine) {
         if (typeof startLine === 'undefined') {
@@ -234,18 +264,13 @@ define(function (require, exports, module) {
 
     /**
      * Comparison function for binary search of index positions within document.
+     * @private
      * @param {number} matchIndex First match index for compare
      * @param {number} posIndex   Second match index for compare
-     * @returns {number} Result of comparison
+     * @return {number} negative, zero or positive value if the first argument is less than, equal to or greater than the second argument, correspondingly.
      */
-    function _compareMatchResultToPos(matchIndex, posIndex) {
-        if (matchIndex === posIndex) {
-            return 0;
-        } else if (matchIndex < posIndex) {
-            return -1;
-        } else {
-            return 1;
-        }
+    function _compareOffsets(matchIndex, posIndex) {
+        return Math.sign(matchIndex - posIndex);
     }
 
     /**
@@ -254,27 +279,32 @@ define(function (require, exports, module) {
      * match result which is in the search direction.
      * If there is no match found before the end or beginning of the document
      * then this function returns false.
-     * @param {!Object} regexIndexer instance of the regex indexer. see _createRegexIndexer
+     * @private
+     * @param {!Object} searchResults instance of the regex indexer. see _createSearchResults
      * @param {number} pos Starting index position to search from
      * @param {boolean} reverse direction to search.
      * @param {function(number, number)} fnCompare function to compare positions for binary search
+     * @return {number} offset from the beginning of the document
      */
-    function _findResultIndexNearPos(regexIndexer, pos, reverse, fnCompare) {
+    function _findResultIndexNearPos(searchResults, pos, reverse, fnCompare) {
         var compare;
 
-        var length = regexIndexer.getItemCount();
+        var length = searchResults.getItemCount();
         var upperBound = length - 1;
         var lowerBound = 0;
         var searchIndex;
         while (lowerBound <= upperBound) {
             searchIndex = Math.floor((upperBound + lowerBound) / 2);
-            compare = fnCompare(regexIndexer.getMatchIndexStart(searchIndex), pos);
-            if (compare === 0) {
-                return searchIndex;
-            } else if (compare === -1) {
+            compare = fnCompare(searchResults.getMatchIndexStart(searchIndex), pos);
+            switch (compare) {
+            case -1:
                 lowerBound = searchIndex + 1;
-            } else {
+                break;
+            case 0:
+                return searchIndex;
+            case 1:
                 upperBound = searchIndex - 1;
+                break;
             }
         }
         // no exact match, we are at the lower bound
@@ -296,47 +326,68 @@ define(function (require, exports, module) {
         return searchIndex;
     }
 
+    function GroupArray(array, groupSize) {
+        this.array = array;
+        this._currentGroupIndex = -groupSize;
+        this._groupSize = groupSize;
+    }
+    /**
+     * Determines if the values of specified items in a group array are equal
+     * @private
+     * @param   {GroupArray} groupArray1 First group array
+     * @param   {GroupArray} groupNum1   Item within group array
+     * @param   {GroupArray} groupArray2 Second group array
+     * @param   {GroupArray} groupNum2   Item within 2nd group array
+     * @return {boolean}  true when values are equal
+     */
+    GroupArray.prototype.isGroupValuesEqual = function (groupNum1, groupArray2, groupNum2) {
+        var groupNumber;
+        var groupSize = this.groupSize();
+        for (groupNumber = 0; groupNumber < groupSize; groupNumber++) {
+            if (!_.isEqual(this.getGroupValue(groupNum1, groupNumber), groupArray2.getGroupValue(groupNum2, groupNumber))) {
+                return false;
+            }
+        }
+        return true;
+    };
+    GroupArray.prototype.nextGroupIndex = function () {
+        if (this._currentGroupIndex < this.array.length - this._groupSize) {
+            this._currentGroupIndex += this._groupSize;
+        } else {
+            this._currentGroupIndex = -this._groupSize;
+            return false;
+        }
+        return this._currentGroupIndex;
+    };
+    GroupArray.prototype.prevGroupIndex = function () {
+        if (this._currentGroupIndex - this._groupSize > -1) {
+            this._currentGroupIndex -= this._groupSize;
+        } else {
+            this._currentGroupIndex = -this._groupSize;
+            return false;
+        }
+        return this._currentGroupIndex;
+    };
+    GroupArray.prototype.setCurrentGroup = function (groupNumber) {this._currentGroupIndex = groupNumber * this._groupSize; };
+    GroupArray.prototype.getGroupIndex = function (groupNumber) { return this._groupSize * groupNumber; };
+    GroupArray.prototype.getGroupValue = function (groupNumber, valueIndexWithinGroup) {return this.array[(this._groupSize * groupNumber) + valueIndexWithinGroup]; };
+    GroupArray.prototype.currentGroupIndex = function () { return this._currentGroupIndex; };
+    GroupArray.prototype.currentGroupNumber = function () { return this._currentGroupIndex / this._groupSize; };
+    GroupArray.prototype.groupSize = function () { return this._groupSize; };
+    GroupArray.prototype.itemCount = function () { return this.array.length / this._groupSize; };
+
     /**
      * Enhances array with functions which facilitate managing the array contents
      * by groups of items.
      * This is useful for both performance and memory consumption to store the indexes
      * of the match result beginning and ending locations.
+     * @private
      * @param {Array} array The array to enhance
      * @param {number} groupSize The number of indices that belong to a group
-     * @returns {GroupArray} Enhanced Array
+     * @return {GroupArray} Enhanced Array
      */
     function _makeGroupArray(array, groupSize) {
-        var _currentGroupIndex = -groupSize;
-        _.assign(array, {
-            nextGroupIndex: function () {
-                if (_currentGroupIndex < array.length - groupSize) {
-                    _currentGroupIndex += groupSize;
-                } else {
-                    _currentGroupIndex = -groupSize;
-                    return false;
-                }
-                return _currentGroupIndex;
-            },
-            prevGroupIndex: function () {
-                if (_currentGroupIndex - groupSize > -1) {
-                    _currentGroupIndex -= groupSize;
-                } else {
-                    _currentGroupIndex = -groupSize;
-                    return false;
-                }
-                return _currentGroupIndex;
-            },
-            setCurrentGroup: function (groupNumber) {_currentGroupIndex = groupNumber * groupSize; },
-
-            getGroupIndex: function (groupNumber) { return groupSize * groupNumber; },
-            getGroupValue: function (groupNumber, valueIndexWithinGroup) {return array[(groupSize * groupNumber) + valueIndexWithinGroup]; },
-            currentGroupIndex: function () { return _currentGroupIndex; },
-            currentGroupNumber: function () { return _currentGroupIndex / groupSize; },
-            groupSize: function () { return groupSize; },
-            itemCount: function () { return array.length / groupSize; },
-
-        });
-        return array;
+        return new GroupArray(array, groupSize);
     }
 
     /**
@@ -345,11 +396,11 @@ define(function (require, exports, module) {
      *
      * @private
      * @param   {object}     query                           regular expression query
-     * @param   {String}     docText                         the text to search
+     * @param   {string}     docText                         the text to search
      * @param   {GroupArray} groupArray                      group array to hold values of index locations
      * @param   {number}     [matchCountLimit=10000000]      search will stop when match limit met
      * @param   {number}     [searchEndIndex=docText.length] search will stop when last match exceeds index location
-     * @returns {number}                                     Count of results
+     * @return {number}                                     Count of results
      */
     function _searchAndAddResultsToArray(query, docText, groupArray, matchCountLimit, searchEndIndex) {
         var matchArray;
@@ -358,9 +409,11 @@ define(function (require, exports, module) {
         matchCountLimit = matchCountLimit || 10000000;
         matchCountLimit *= groupArray.groupSize();
 
+        var resultIndexArray = groupArray.array;
+
         while ((matchArray = query.exec(docText)) !== null) {
-            groupArray[index++] = matchArray.index;
-            groupArray[index++] = query.lastIndex;
+            resultIndexArray[index++] = matchArray.index;
+            resultIndexArray[index++] = query.lastIndex;
             // This is to stop infinite loop.  Some regular expressions can return 0 length match
             // which will not advance the lastindex property.  Ex ".*"
             if (matchArray.index === query.lastIndex) {
@@ -375,23 +428,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Determines if the values of specified items in a group array are equal
-     * @private
-     * @param   {GroupArray} groupArray1 First group array
-     * @param   {GroupArray} groupNum1   Item within group array
-     * @param   {GroupArray} groupArray2 Second group array
-     * @param   {GroupArray} groupNum2   Item within 2nd group array
-     * @returns {boolean}  true when values are equal
-     */
-    function _isGroupValuesEqual(groupArray1, groupNum1, groupArray2, groupNum2) {
-        if (_.isEqual(groupArray1.getGroupValue(groupNum1, 0), groupArray2.getGroupValue(groupNum2, 0)) &&
-                _.isEqual(groupArray1.getGroupValue(groupNum1, 1), groupArray2.getGroupValue(groupNum2, 1))) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * If the first item of the first group array and the last item of the second group array
      * are equal, then remove the duplicate from the end of the second group array
      * @private
@@ -402,23 +438,136 @@ define(function (require, exports, module) {
         if (firstSearchResults.itemCount() === 0 || secondSearchResults.itemCount() === 0) {
             return;
         }
-        if (_isGroupValuesEqual(firstSearchResults, 0, secondSearchResults, secondSearchResults.itemCount() - 1)) {
-            secondSearchResults.pop();
-            secondSearchResults.pop();
+        if (firstSearchResults.isGroupValuesEqual(0, secondSearchResults, secondSearchResults.itemCount() - 1)) {
+            secondSearchResults.array.pop();
+            secondSearchResults.array.pop();
         }
     }
+
+    function SearchResults(startEndIndexArray, docLineIndex) {
+        this._startEndIndexArray = startEndIndexArray;
+        this.docLineIndex = docLineIndex;
+    }
+    SearchResults.prototype.nextMatch = function nextMatch() {
+        var currentMatchIndex = this._startEndIndexArray.nextGroupIndex();
+        if (currentMatchIndex === false) {
+            return false;
+        }
+        // TODO potentially could be optimized if we could pass in the prev match line for starting search
+        // However, seems very fast already for current use case
+        return _createSearchResult(this.docLineIndex, this._startEndIndexArray.array[currentMatchIndex], this._startEndIndexArray.array[currentMatchIndex + 1]);
+    };
+
+    SearchResults.prototype.prevMatch = function prevMatch() {
+        var currentMatchIndex = this._startEndIndexArray.prevGroupIndex();
+        if (currentMatchIndex === false) {
+            return false;
+        }
+        return _createSearchResult(this.docLineIndex, this._startEndIndexArray.array[currentMatchIndex], this._startEndIndexArray.array[currentMatchIndex + 1]);
+    };
+
+    SearchResults.prototype.getItemByMatchNumber = function getItemByMatchNumber(matchNumber) {
+        var groupIndex = this._startEndIndexArray.getGroupIndex(matchNumber);
+        return _createSearchResult(this.docLineIndex, this._startEndIndexArray.array[groupIndex], this._startEndIndexArray.array[groupIndex + 1]);
+    };
+
+    SearchResults.prototype.forEachMatch = function forEachMatch(fnMatch) {
+        var index;
+        var length = this._startEndIndexArray.itemCount();
+        var lastLine = 0;
+        for (index = 0; index < length; index++) {
+            var groupIndex = this._startEndIndexArray.getGroupIndex(index);
+            var fromPos = _createPosFromIndex(this.docLineIndex, lastLine, this._startEndIndexArray.array[groupIndex]);
+            var toPos = _createPosFromIndex(this.docLineIndex, fromPos.line, this._startEndIndexArray.array[groupIndex + 1]);
+            lastLine = toPos.line;
+            fnMatch(fromPos, toPos);
+        }
+    };
+
+    SearchResults.prototype.forEachMatchWithinRange = function forEachMatchWithinRange(searchResults, startPosition, endPosition, fnResult) {
+        var nearestMatchIndex = _findResultIndexNearPos(searchResults, _indexFromPos(this.docLineIndex, startPosition), false, _compareOffsets);
+        if (nearestMatchIndex === false) {return; }
+
+        var nearestMatchPosition = _createPosFromIndex(this.docLineIndex, startPosition.line, this._startEndIndexArray.array[nearestMatchIndex]);
+        if (nearestMatchPosition.line > endPosition.line) {return; }
+
+        var index;
+        var length = this._startEndIndexArray.itemCount();
+        var lastLine = startPosition.line;
+        for (index = nearestMatchIndex; index < length; index++) {
+            var groupIndex = this._startEndIndexArray.getGroupIndex(index);
+            var fromPos = _createPosFromIndex(this.docLineIndex, lastLine, this._startEndIndexArray.array[groupIndex]);
+            var toPos = _createPosFromIndex(this.docLineIndex, fromPos.line, this._startEndIndexArray.array[groupIndex + 1]);
+            lastLine = toPos.line;
+
+            // do not return results beyond end range position
+            if (fromPos.line > endPosition.line) {return; }
+
+            fnResult(fromPos, toPos);
+        }
+    };
+
+    SearchResults.prototype.fillWithMatchedLinePattern = function fillWithMatchedLinePattern(patternArray) {
+        var index;
+        var length = this._startEndIndexArray.itemCount();
+        var lastLine = 0;
+        var linesPerArraySlot = this.docLineIndex.length / patternArray.length;
+        for (index = 0; index < length; index++) {
+            var groupIndex = this._startEndIndexArray.getGroupIndex(index);
+            var fromLine = _lineFromIndex(this.docLineIndex, lastLine, this._startEndIndexArray.array[groupIndex]);
+            lastLine = fromLine;
+            patternArray[Math.floor(fromLine / linesPerArraySlot)] = 1;
+        }
+    };
+
+    SearchResults.prototype.getItemCount = function getItemCount() {
+        return this._startEndIndexArray.itemCount();
+    };
+
+    SearchResults.prototype.getCurrentMatch = function getCurrentMatch() {
+        var currentMatchIndex = this._startEndIndexArray.currentGroupIndex();
+        if (currentMatchIndex > -1) {
+            return _createSearchResult(this.docLineIndex, this._startEndIndexArray.array[currentMatchIndex], this._startEndIndexArray.array[currentMatchIndex + 1]);
+        }
+    };
+
+    SearchResults.prototype.getMatchIndexStart = function getMatchIndexStart(matchNumber) {
+        return this._startEndIndexArray.getGroupValue(matchNumber, 0);
+    };
+
+    SearchResults.prototype.getMatchIndexEnd = function getMatchIndexEnd(matchNumber) {
+        return this._startEndIndexArray.getGroupValue(matchNumber, 1);
+    };
+
+    SearchResults.prototype.setCurrentMatchNumber = function setCurrentMatchNumber(number) {
+        this._startEndIndexArray.setCurrentGroup(number);
+    };
+
+    SearchResults.prototype.getCurrentMatchNumber = function getCurrentMatchNumber() {
+        return this._startEndIndexArray.currentGroupNumber();
+    };
+
+    SearchResults.prototype.getFullResultInfo = function getFullResultInfo(matchNumber, query, docText) {
+        var groupIndex = this._startEndIndexArray.getGroupIndex(matchNumber);
+        query.lastIndex = this._startEndIndexArray.array[groupIndex];
+        var matchInfo = query.exec(docText);
+        var currentMatch = this.getCurrentMatch();
+        currentMatch.match = matchInfo;
+        return currentMatch;
+    };
 
     /**
      * Creates the regex indexer which finds all matches within supplied text using the search query.
      * Uses a lookup index to efficiently map regular expression result indexes to position used by Brackets
-     * @param {String} docText       The text to search for matches
+     * @private
+     * @param {string} docText       The text to search for matches
      * @param {Array}  docLineIndex  Array used to map indexes to positions
      * @param {RegExp} query         A regular expression used to find matches
      * @param {number} maxResults    The limit of the number of matches to perform
      * @param {{to: {line: number, ch: number}, from: {line: number, ch: number}} startPosition Start searching at this position
-     * @returns {RegexIndexer} A new instance of the regular expression indexer
+     * @return {SearchResults} A new instance of the regular expression indexer
      */
-    function _createRegexIndexer(docText, docLineIndex, query, maxResults, startPosition) {
+    function _createSearchResults(docText, docLineIndex, query, maxResults, startPosition) {
         // Start and End index of each match stored in array as:
         // [0] = start index of first match
         // [1] = end index of first match
@@ -427,116 +576,6 @@ define(function (require, exports, module) {
         var _startEndIndexArray = _makeGroupArray([], 2);
         maxResults = maxResults || 10000000;
         startPosition = startPosition || {to: {line: 0, ch: 0}, from: {line: 0, ch: 0}};
-
-        function nextMatch() {
-            var currentMatchIndex = _startEndIndexArray.nextGroupIndex();
-            if (currentMatchIndex === false) {
-                return false;
-            }
-            // TODO potentially could be optimized if we could pass in the prev match line for starting search
-            // However, seems very fast already for current use case
-            return _createSearchResult(docLineIndex, _startEndIndexArray[currentMatchIndex], _startEndIndexArray[currentMatchIndex + 1]);
-        }
-
-        function prevMatch() {
-            var currentMatchIndex = _startEndIndexArray.prevGroupIndex();
-            if (currentMatchIndex === false) {
-                return false;
-            }
-            return _createSearchResult(docLineIndex, _startEndIndexArray[currentMatchIndex], _startEndIndexArray[currentMatchIndex + 1]);
-        }
-
-        function getItemByMatchNumber(matchNumber) {
-            var groupIndex = _startEndIndexArray.getGroupIndex(matchNumber);
-            return _createSearchResult(docLineIndex, _startEndIndexArray[groupIndex], _startEndIndexArray[groupIndex + 1]);
-        }
-
-        function forEachMatch(fnMatch) {
-            var index;
-            var length = _startEndIndexArray.itemCount();
-            var lastLine = 0;
-            for (index = 0; index < length; index++) {
-                var groupIndex = _startEndIndexArray.getGroupIndex(index);
-                var fromPos = _createPosFromIndex(docLineIndex, lastLine, _startEndIndexArray[groupIndex]);
-                var toPos = _createPosFromIndex(docLineIndex, fromPos.line, _startEndIndexArray[groupIndex + 1]);
-                lastLine = toPos.line;
-                fnMatch(fromPos, toPos);
-            }
-        }
-
-        function forEachMatchWithinRange(regexIndexer, startPosition, endPosition, fnResult) {
-            var nearestMatchIndex = _findResultIndexNearPos(regexIndexer, _indexFromPos(docLineIndex, startPosition), false, _compareMatchResultToPos);
-            if (nearestMatchIndex === false) {return; }
-
-            var nearestMatchPosition = _createPosFromIndex(docLineIndex, startPosition.line, _startEndIndexArray[nearestMatchIndex]);
-            if (nearestMatchPosition.line > endPosition.line) {return; }
-
-            var index;
-            var length = _startEndIndexArray.itemCount();
-            var lastLine = startPosition.line;
-            for (index = nearestMatchIndex; index < length; index++) {
-                var groupIndex = _startEndIndexArray.getGroupIndex(index);
-                var fromPos = _createPosFromIndex(docLineIndex, lastLine, _startEndIndexArray[groupIndex]);
-                var toPos = _createPosFromIndex(docLineIndex, fromPos.line, _startEndIndexArray[groupIndex + 1]);
-                lastLine = toPos.line;
-
-                // do not return results beyond end range position
-                if (fromPos.line > endPosition.line) {return; }
-
-                fnResult(fromPos, toPos);
-            }
-        }
-
-        function fillWithMatchedLinePattern(patternArray) {
-            var index;
-            var length = _startEndIndexArray.itemCount();
-            var lastLine = 0;
-            var linesPerArraySlot = docLineIndex.length / patternArray.length;
-            for (index = 0; index < length; index++) {
-                var groupIndex = _startEndIndexArray.getGroupIndex(index);
-                var fromLine = _lineFromIndex(docLineIndex, lastLine, _startEndIndexArray[groupIndex]);
-                lastLine = fromLine;
-                patternArray[Math.floor(fromLine / linesPerArraySlot)] = 1;
-            }
-        }
-
-        function getItemCount() {
-            return _startEndIndexArray.itemCount();
-        }
-
-        function getCurrentMatch() {
-            var currentMatchIndex = _startEndIndexArray.currentGroupIndex();
-            if (currentMatchIndex > -1) {
-                return _createSearchResult(docLineIndex, _startEndIndexArray[currentMatchIndex], _startEndIndexArray[currentMatchIndex + 1]);
-            }
-        }
-
-        function getMatchIndexStart(matchNumber) {
-            return _startEndIndexArray.getGroupValue(matchNumber, 0);
-        }
-
-        function getMatchIndexEnd(matchNumber) {
-            return _startEndIndexArray.getGroupValue(matchNumber, 1);
-        }
-
-        function setCurrentMatchNumber(number) {
-            _startEndIndexArray.setCurrentGroup(number);
-        }
-
-        function getCurrentMatchNumber() {
-            return _startEndIndexArray.currentGroupNumber();
-        }
-
-        function getFullResultInfo(matchNumber, query, docText) {
-            var groupIndex = _startEndIndexArray.getGroupIndex(matchNumber);
-            query.lastIndex = _startEndIndexArray[groupIndex];
-            var matchInfo = query.exec(docText);
-            var currentMatch = getCurrentMatch();
-            currentMatch.match = matchInfo;
-            return currentMatch;
-        }
-
-
 
         /**
          * Performs a 2 part search if cursor is not at the beginning of the document.
@@ -552,12 +591,12 @@ define(function (require, exports, module) {
          * the document is very large and also the matches are large we will limit starting at the cursor.
          *
          * @private
-         * @param   {String} docText    Text to search
+         * @param   {string} docText    Text to search
          * @param   {Regex}  query      A regular expression
          * @param   {number} startIndex Index location to start search
-         * @returns {GroupArray} Array of search results
+         * @return {GroupArray} Array of search results
          */
-        function _createSearchResults(docText, query, startIndex) {
+        function initializeSearchResults(docText, query, startIndex) {
             query.lastIndex = startIndex;
             // perform first search at our starting index
             var resultCount = _searchAndAddResultsToArray(query, docText, _startEndIndexArray, maxResults);
@@ -569,225 +608,211 @@ define(function (require, exports, module) {
                 // it is possible that on wrap around the last result is same as our first result
                 _removeIfDuplicateResultOnEdge(_startEndIndexArray, startEndIndexFromBeginningOfDocument);
                 // combine results of both searches
-                _startEndIndexArray = _makeGroupArray(startEndIndexFromBeginningOfDocument.concat(_startEndIndexArray), 2);
+                _startEndIndexArray = _makeGroupArray(startEndIndexFromBeginningOfDocument.array.concat(_startEndIndexArray.array), 2);
             }
 
             return _startEndIndexArray;
         }
-        _createSearchResults(docText, query, _indexFromPos(docLineIndex, startPosition.from));
+        initializeSearchResults(docText, query, _indexFromPos(docLineIndex, startPosition.from));
 
-        return {nextMatch : nextMatch,
-                prevMatch : prevMatch,
-                getItemByMatchNumber : getItemByMatchNumber,
-                getItemCount : getItemCount,
-                getCurrentMatch : getCurrentMatch,
-                setCurrentMatchNumber : setCurrentMatchNumber,
-                getMatchIndexStart : getMatchIndexStart,
-                getMatchIndexEnd : getMatchIndexEnd,
-                getCurrentMatchNumber : getCurrentMatchNumber,
-                getFullResultInfo : getFullResultInfo,
-                forEachMatch : forEachMatch,
-                forEachMatchWithinRange : forEachMatchWithinRange,
-                fillWithMatchedLinePattern : fillWithMatchedLinePattern
-            };
+        return new SearchResults(_startEndIndexArray, docLineIndex);
     }
+
+    function SearchCursor() {
+
+    }
+    SearchCursor.prototype._findNext = function _findNext(cursor) {
+        var match = cursor.searchResults.nextMatch();
+        if (!match) {
+            cursor.atOccurrence = false;
+            cursor.currentPosition = null;
+            return false;
+        }
+        return match;
+    };
+    SearchCursor.prototype._findPrevious = function _findPrevious(cursor) {
+        var match = cursor.searchResults.prevMatch();
+        if (!match) {
+            cursor.atOccurrence = false;
+            cursor.currentPosition = null;
+            return false;
+        }
+        return match;
+    };
+    SearchCursor.prototype._updateResultsIfNeeded = function _updateResultsIfNeeded(cursor) {
+        if (_needToIndexDocument(cursor.doc)) {
+            _indexDocument(cursor.doc);
+            cursor.resultsCurrent = false;
+        }
+        if (!cursor.resultsCurrent) {
+            cursor.scanDocumentAndStoreResultsInCursor();
+        }
+    };
+    SearchCursor.prototype._setQuery = function _setQuery(cursor, query) {
+        var newRegexQuery = _convertToRegularExpression(query, cursor.ignoreCase);
+        if ((cursor.query) && (cursor.query.source !== newRegexQuery.source)) {
+            // query has changed
+            cursor.resultsCurrent = false;
+        }
+        cursor.query = newRegexQuery;
+    };
+    /**
+     * Sets the location of where the search cursor should be located
+     * @param {!Object} cursor The search cursor
+     * @param {!{line: number, ch: number}} pos The search cursor location
+     */
+    SearchCursor.prototype._setPos = function _setPos(cursor, pos) {
+        pos = pos || {line: 0, ch: 0};
+        cursor.currentPosition = {from: pos, to: pos};
+    };
+    SearchCursor.prototype._startingPositionForFind = function _startingPositionForFind(cursor, reverse) {
+        if (cursor.currentPosition) {return cursor.currentPosition; }
+        var position = reverse ? {line: cursor.doc.lineCount(), ch: 0} : {line: 0, ch: 0};
+        return {from: position, to: position};
+    };
+    /**
+     * Sets or updates the document and query properties
+     * @param {!{document:                                                                                                    CodeMirror.string|RegExp, position: {line: number, ch: number}, ignoreCase: boolean}} properties
+     */
+    SearchCursor.prototype.setSearchDocumentAndQuery = function (properties) {
+        this.atOccurrence = false;
+        if (properties.ignoreCase) {this.ignoreCase = properties.ignoreCase; }
+        if (properties.document) {this.doc = properties.document; }
+        if (properties.searchQuery) {this._setQuery(this, properties.searchQuery); }
+        if (properties.position) {this._setPos(this, properties.position); }
+        if (properties.maxResults) {this.maxResults = properties.maxResults; }
+    };
+
+    /**
+     * Gets the total number of characters in the document
+     * @return {number}
+     */
+    SearchCursor.prototype.getDocCharacterCount = function () {
+        this._updateResultsIfNeeded(this);
+        var docLineIndex = _getdocLineIndex(this.doc);
+        return docLineIndex[docLineIndex.length - 1];
+    };
+
+    /**
+     * Gets the total number of matches
+     * @return {number}
+     */
+    SearchCursor.prototype.getMatchCount = function () {
+        this._updateResultsIfNeeded(this);
+        return this.searchResults.getItemCount();
+    };
+
+    /**
+     * Gets the current match number counting from the first match.
+     * This is a 0 based index count.
+     * A match is not selected until find is used to navigate to a match.
+     * @return {number} match number or -1 if no match selected.
+     */
+    SearchCursor.prototype.getCurrentMatchNumber = function () {
+        this._updateResultsIfNeeded(this);
+        return this.searchResults.getCurrentMatchNumber();
+    };
+
+    /**
+     * Finds the next match in the indicated search direction
+     * @param {boolean} reverse true searches backwards. false searches forwards
+     * @return {{to: {line: number, ch: number}, from: {line: number, ch: number}}}
+     */
+    SearchCursor.prototype.find = function (reverse) {
+        this._updateResultsIfNeeded(this);
+        var foundPosition;
+        if (!this.searchResults.getCurrentMatch()) {
+            // There is currently no match position
+            // This is our first time or we hit the top or end of document using next or prev
+            this.currentPosition = this._startingPositionForFind(this, reverse);
+            var docLineIndex = _getdocLineIndex(this.doc);
+            var matchIndex = _findResultIndexNearPos(this.searchResults, _indexFromPos(docLineIndex, this.currentPosition.from), reverse, _compareOffsets);
+            if (matchIndex) {
+                this.searchResults.setCurrentMatchNumber(matchIndex);
+                foundPosition = this.searchResults.getCurrentMatch();
+            }
+        }
+        if (!foundPosition) {
+            foundPosition = reverse ? this._findPrevious(this) : this._findNext(this);
+        }
+        if (foundPosition) {
+            this.currentPosition = foundPosition;
+            this.atOccurrence = !(!foundPosition);
+        }
+        return foundPosition;
+    };
+
+    /**
+     * Iterates over each result from searching the document calling the function with the start and end positions of each match
+     * @param {function({line: number, ch: number}, {line: number, ch: number})} fnResult
+     */
+    SearchCursor.prototype.forEachMatch = function (fnResult) {
+        this._updateResultsIfNeeded(this);
+        this.searchResults.forEachMatch(fnResult);
+    };
+
+    /**
+     * Calls the result function for each match that is within the specified range
+     * @param {{line: number, ch: number}} startPosition Starting position of range
+     * @param {{line: number, ch: number}} endPosition   Ending position of range
+     * @param {function} fnResult      called for each match
+     */
+    SearchCursor.prototype.forEachMatchWithinRange = function (startPosition, endPosition, fnResult) {
+        this._updateResultsIfNeeded(this);
+        this.searchResults.forEachMatchWithinRange(this.searchResults, startPosition, endPosition, fnResult);
+    };
+
+    /**
+     * Gets the start and end positions plus the regular expression match array data
+     * @return {{to: {line: number, ch: number}, from: {line: number, ch: number}, match: Array}} returns start and end of match with the array of results
+     */
+    SearchCursor.prototype.getFullInfoForCurrentMatch = function () {
+        var docText = _getDocumentText(this.doc);
+        return this.searchResults.getFullResultInfo(this.searchResults.getCurrentMatchNumber(), this.query, docText);
+    };
+
+    /**
+     * Creates an Array of integers which is filled with a pattern matching the lines
+     * of the document which contain matches.
+     * A value of '0' is no match.
+     * A value of '1' is positive match.
+     *
+     * @param   {[[Type]]} levelOfDetail An Array of this size will be created and filled with a pattern matching lines matched
+     * @return {object}   An array filled with line match pattern
+     */
+    SearchCursor.prototype.createMatchedLinePattern = function (levelOfDetail) {
+        this._updateResultsIfNeeded(this);
+        var representationArray = new Uint8Array(levelOfDetail);
+        var docLineIndex = _getdocLineIndex(this.doc);
+        var linesPerArraySlot = docLineIndex.length / levelOfDetail;
+        this.searchResults.fillWithMatchedLinePattern(representationArray);
+        return {linesPerArraySlot: linesPerArraySlot, lineMatchPatternArray: representationArray};
+    };
+
+    /**
+     * Finds the indexes of all matches based on the current search query
+     * The matches can then be navigated and retrieved using the functions of the search cursor.
+     *
+     * @return {number} the count of matches found.
+     */
+    SearchCursor.prototype.scanDocumentAndStoreResultsInCursor = function () {
+        if (_needToIndexDocument(this.doc)) {
+            _indexDocument(this.doc);
+        }
+        var docText = _getDocumentText(this.doc);
+        var docLineIndex = _getdocLineIndex(this.doc);
+        this.searchResults = _createSearchResults(docText, docLineIndex, this.query, this.maxResults, this.currentPosition);
+        this.resultsCurrent = true;
+        return this.getMatchCount();
+    };
 
 
     /**
      * Creates a regular expression cursor object that this module will provide to consumers
-     * @returns {SearchCursor} A new instance of a search cursor
+     * @return {SearchCursor} A new instance of a search cursor
      */
     function _createCursor() {
-        function _findNext(cursor) {
-            var match = cursor.regexIndexer.nextMatch();
-            if (!match) {
-                cursor.atOccurrence = false;
-                cursor.currentPosition = null;
-                return false;
-            }
-            return match;
-        }
-        function _findPrevious(cursor) {
-            var match = cursor.regexIndexer.prevMatch();
-            if (!match) {
-                cursor.atOccurrence = false;
-                cursor.currentPosition = null;
-                return false;
-            }
-            return match;
-        }
-
-        function _updateResultsIfNeeded(cursor) {
-            if (_needToIndexDocument(cursor.doc)) {
-                _indexDocument(cursor.doc);
-                cursor.resultsCurrent = false;
-            }
-            if (!cursor.resultsCurrent) {
-                cursor.scanDocumentAndStoreResultsInCursor();
-            }
-        }
-        function _setQuery(cursor, query) {
-            var newRegexQuery = _convertToRegularExpression(query, cursor.ignoreCase);
-            if ((cursor.query) && (cursor.query.source !== newRegexQuery.source)) {
-                // query has changed
-                cursor.resultsCurrent = false;
-            }
-            cursor.query = newRegexQuery;
-        }
-        /**
-         * Sets the location of where the search cursor should be located
-         * @param {!Object} cursor The search cursor
-         * @param {!{line: number, ch: number}} pos The search cursor location
-         */
-        function _setPos(cursor, pos) {
-            pos = pos || {line: 0, ch: 0};
-            cursor.currentPosition = {from: pos, to: pos};
-        }
-
-        function _startingPositionForFind(cursor, reverse) {
-            if (cursor.currentPosition) {return cursor.currentPosition; }
-            var position = reverse ? {line: cursor.doc.lineCount(), ch: 0} : {line: 0, ch: 0};
-            return {from: position, to: position};
-        }
-
-        // Returns all public functions for the cursor
-        return _.assign(Object.create(null), {
-            /**
-             * Sets or updates the document and query properties
-             * @param {!{document: CodeMirror.Doc, searchQuery: string|RegExp, position: {line: number, ch: number}, ignoreCase: boolean}} properties
-             */
-            setSearchDocumentAndQuery: function (properties) {
-                this.atOccurrence = false;
-                if (properties.ignoreCase) {this.ignoreCase = properties.ignoreCase; }
-                if (properties.document) {this.doc = properties.document; }
-                if (properties.searchQuery) {_setQuery(this, properties.searchQuery); }
-                if (properties.position) {_setPos(this, properties.position); }
-                if (properties.maxResults) {this.maxResults = properties.maxResults; }
-            },
-
-            /**
-             * Gets the total number of characters in the document
-             * @return {number}
-             */
-            getDocCharacterCount: function () {
-                _updateResultsIfNeeded(this);
-                var docLineIndex = _getDocumentIndex(this.doc);
-                return docLineIndex[docLineIndex.length - 1];
-            },
-
-            /**
-             * Gets the total number of matches
-             * @return {number}
-             */
-            getMatchCount: function () {
-                _updateResultsIfNeeded(this);
-                return this.regexIndexer.getItemCount();
-            },
-
-            /**
-             * Gets the current match number counting from the first match.
-             * This is a 0 based index count.
-             * A match is not selected until find is used to navigate to a match.
-             * @return {number} match number or -1 if no match selected.
-             */
-            getCurrentMatchNumber: function () {
-                _updateResultsIfNeeded(this);
-                return this.regexIndexer.getCurrentMatchNumber();
-            },
-
-            /**
-             * Finds the next match in the indicated search direction
-             * @param {boolean} reverse true searches backwards. false searches forwards
-             * @return {{to: {line: number, ch: number}, from: {line: number, ch: number}}}
-             */
-            find: function (reverse) {
-                _updateResultsIfNeeded(this);
-                var foundPosition;
-                if (!this.regexIndexer.getCurrentMatch()) {
-                    // There is currently no match position
-                    // This is our first time or we hit the top or end of document using next or prev
-                    this.currentPosition = _startingPositionForFind(this, reverse);
-                    var docLineIndex = _getDocumentIndex(this.doc);
-                    var matchIndex = _findResultIndexNearPos(this.regexIndexer, _indexFromPos(docLineIndex, this.currentPosition.from), reverse, _compareMatchResultToPos);
-                    if (matchIndex) {
-                        this.regexIndexer.setCurrentMatchNumber(matchIndex);
-                        foundPosition = this.regexIndexer.getCurrentMatch();
-                    }
-                }
-                if (!foundPosition) {
-                    foundPosition = reverse ? _findPrevious(this) : _findNext(this);
-                }
-                if (foundPosition) {
-                    this.currentPosition = foundPosition;
-                    this.atOccurrence = !(!foundPosition);
-                }
-                return foundPosition;
-            },
-
-            /**
-             * Iterates over each result from searching the document calling the function with the start and end positions of each match
-             * @param {function({line: number, ch: number}, {line: number, ch: number})} fnResult
-             */
-            forEachMatch: function (fnResult) {
-                _updateResultsIfNeeded(this);
-                this.regexIndexer.forEachMatch(fnResult);
-            },
-
-            /**
-             * Calls the result function for each match that is within the specified range
-             * @param {{line: number, ch: number}} startPosition Starting position of range
-             * @param {{line: number, ch: number}} endPosition   Ending position of range
-             * @param {function} fnResult      called for each match
-             */
-            forEachMatchWithinRange: function (startPosition, endPosition, fnResult) {
-                _updateResultsIfNeeded(this);
-                this.regexIndexer.forEachMatchWithinRange(this.regexIndexer, startPosition, endPosition, fnResult);
-            },
-
-            /**
-             * Gets the start and end positions plus the regular expression match array data
-             * @return {{to: {line: number, ch: number}, from: {line: number, ch: number}, match: Array}} returns start and end of match with the array of results
-             */
-            getFullInfoForCurrentMatch: function () {
-                var docText = _getDocumentText(this.doc);
-                return this.regexIndexer.getFullResultInfo(this.regexIndexer.getCurrentMatchNumber(), this.query, docText);
-            },
-
-            /**
-             * Creates an Array of integers which is filled with a pattern matching the lines
-             * of the document which contain matches.
-             * A value of '0' is no match.
-             * A value of '1' is positive match.
-             *
-             * @param   {[[Type]]} levelOfDetail An Array of this size will be created and filled with a pattern matching lines matched
-             * @returns {object}   An array filled with line match pattern
-             */
-            createMatchedLinePattern: function (levelOfDetail) {
-                _updateResultsIfNeeded(this);
-                var representationArray = new Uint8Array(levelOfDetail);
-                var docLineIndex = _getDocumentIndex(this.doc);
-                var linesPerArraySlot = docLineIndex.length / levelOfDetail;
-                this.regexIndexer.fillWithMatchedLinePattern(representationArray);
-                return {linesPerArraySlot: linesPerArraySlot, lineMatchPatternArray: representationArray};
-            },
-
-            /**
-             * Finds the indexes of all matches based on the current search query
-             * The matches can then be navigated and retrieved using the functions of the search cursor.
-             *
-             * @return {number} the count of matches found.
-             */
-            scanDocumentAndStoreResultsInCursor: function () {
-                if (_needToIndexDocument(this.doc)) {
-                    _indexDocument(this.doc);
-                }
-                var docText = _getDocumentText(this.doc);
-                var docLineIndex = _getDocumentIndex(this.doc);
-                this.regexIndexer = _createRegexIndexer(docText, docLineIndex, this.query, this.maxResults, this.currentPosition);
-                this.resultsCurrent = true;
-                return this.getMatchCount();
-            }
-        });
+        return new SearchCursor();
     }
 
     /**
@@ -815,7 +840,7 @@ define(function (require, exports, module) {
             _indexDocument(properties.document);
         }
         var regex = _convertToRegularExpression(properties.searchQuery, properties.ignoreCase);
-        _scanDocumentUsingRegularExpression(_getDocumentIndex(properties.document), _getDocumentText(properties.document), regex, properties.range, properties.fnEachMatch);
+        _scanDocument(_getdocLineIndex(properties.document), _getDocumentText(properties.document), regex, properties.range, properties.fnEachMatch);
     }
 
     exports.createSearchCursor = createSearchCursor;
