@@ -746,19 +746,25 @@ define(function (require, exports, module) {
 
                     // Re-use commands that are already registered
                     var menuItem = menu.addMenuItem(commandId);
+
                     expect(menuItem).toBeTruthy();
                     expect(menuItem).toBeDefined();
 
                     $listItems = menuDOMChildren(menuItemId);
                     expect($listItems.length).toBe(1);
-                    
+
                     var command = CommandManager.get(commandId);
                     expect(typeof (command)).toBe("object");
-                    
-                    command.on("enabledStateChange", command._enabledChanged);
-                    var length = command._eventHandlers.enabledStateChange.length;
+
+                    // Test event
+                    command.on("nameChange", menuItem._nameChanged);
+
+                    expect(typeof (command._eventHandlers.nameChange)).toBe("object");
+
                     menu.removeMenuItem(command);
-                    expect(command._eventHandlers.enabledStateChange.length).toBeLessThan(length);
+
+                    // Check if test event has been removed
+                    expect(command._eventHandlers.nameChange).toBeUndefined();
                 });
             });
         });
