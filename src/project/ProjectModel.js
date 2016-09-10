@@ -59,6 +59,16 @@ define(function (require, exports, module) {
     var _exclusionListRegEx = /\.pyc$|^\.git$|^\.gitmodules$|^\.svn$|^\.DS_Store$|^Thumbs\.db$|^\.hg$|^CVS$|^\.hgtags$|^\.idea$|^\.c9revisions$|^\.SyncArchive$|^\.SyncID$|^\.SyncIgnore$|\~$/;
 
     /**
+     * Glob definition of files and folders that should be excluded directly
+     * inside node domain watching with chokidar
+     */
+    var defaultIgnoreGlobs = [
+        "**/(.pyc|.git|.gitmodules|.svn|.DS_Store|Thumbs.db|.hg|CVS|.hgtags|.idea|.c9revisions|.SyncArchive|.SyncID|.SyncIgnore)",
+        "**/bower_components",
+        "**/node_modules"
+    ];
+
+    /**
      * @private
      * A string containing all invalid characters for a specific platform.
      * This will be used to construct a regular expression for checking invalid filenames.
@@ -88,8 +98,10 @@ define(function (require, exports, module) {
         // Validate file name
         // Checks for valid Windows filenames:
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        return !((filename.search(new RegExp("[" + invalidChars + "]+")) !== -1) ||
-                 filename.match(_illegalFilenamesRegEx));
+        return !(
+            new RegExp("[" + invalidChars + "]+").test(filename) ||
+            _illegalFilenamesRegEx.test(filename)
+        );
     }
 
     /**
@@ -97,7 +109,7 @@ define(function (require, exports, module) {
      * @see #shouldShow
      */
     function _shouldShowName(name) {
-        return !name.match(_exclusionListRegEx);
+        return !_exclusionListRegEx.test(name);
     }
 
     /**
@@ -1350,6 +1362,7 @@ define(function (require, exports, module) {
     exports._invalidChars           = _invalidChars;
 
     exports.shouldShow              = shouldShow;
+    exports.defaultIgnoreGlobs      = defaultIgnoreGlobs;
     exports.isValidFilename         = isValidFilename;
     exports.EVENT_CHANGE            = EVENT_CHANGE;
     exports.EVENT_SHOULD_SELECT     = EVENT_SHOULD_SELECT;

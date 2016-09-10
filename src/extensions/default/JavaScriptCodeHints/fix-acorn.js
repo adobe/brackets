@@ -23,38 +23,12 @@
 
 /*eslint-env node */
 /*jslint node: true */
+
 "use strict";
 
-module.exports = function (grunt) {
-    var common      = {},
-        path        = require("path"),
-        _platform;
-
-    function writeJSON(grunt, path, obj) {
-        grunt.file.write(path, JSON.stringify(obj, null, "    "));
-    }
-
-    function resolve(relPath) {
-        return path.resolve(process.cwd(), relPath);
-    }
-
-    function platform() {
-        if (!_platform) {
-            if (process.platform === "darwin") {
-                _platform = "mac";
-            } else if (process.platform === "win32") {
-                _platform = "win";
-            } else {
-                _platform = "linux";
-            }
-        }
-
-        return _platform;
-    }
-
-    common.writeJSON    = writeJSON;
-    common.resolve      = resolve;
-    common.platform     = platform;
-
-    return common;
-};
+var fs = require("fs");
+var path = require("path");
+var fpath = path.resolve(__dirname, "node_modules", "acorn", "dist", "acorn_loose.js");
+var content = fs.readFileSync(fpath, "utf8");
+content = content.replace(/'\.\/acorn\.js'/g, "'./acorn'");
+fs.writeFileSync(fpath, content, "utf8");

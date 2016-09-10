@@ -658,7 +658,7 @@ define(function (require, exports, module) {
      * @param {array} fileList The list of files that changed.
      */
     function filesChanged(fileList) {
-        if (FindUtils.isNodeSearchDisabled()) {
+        if (FindUtils.isNodeSearchDisabled() || fileList.length === 0) {
             return;
         }
         var updateObject = {
@@ -804,7 +804,7 @@ define(function (require, exports, module) {
 
         var addPromise;
         if (entry.isDirectory) {
-            if (!added || !removed) {
+            if (!added || !removed || (added.length === 0 && removed.length === 0)) {
                 // If the added or removed sets are null, must redo the search for the entire subtree - we
                 // don't know which child files/folders may have been added or removed.
                 _removeSearchResultsForEntry(entry);
