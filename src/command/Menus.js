@@ -182,13 +182,13 @@ define(function (require, exports, module) {
     * Removes the attached event listeners from the corresponding object.
     * @param {Command} command
     */
-    function removeMenuItemEventListeners(command) {
-        command
-            .off("enabledStateChange", command._enabledChanged)
-            .off("checkedStateChange", command._checkedChanged)
-            .off("nameChange", command._nameChanged)
-            .off("keyBindingAdded", command._keyBindingAdded)
-            .off("keyBindingRemoved", command._keyBindingRemoved);
+    function removeMenuItemEventListeners(menuItem) {
+        menuItem._command
+            .off("enabledStateChange", menuItem._enabledChanged)
+            .off("checkedStateChange", menuItem._checkedChanged)
+            .off("nameChange", menuItem._nameChanged)
+            .off("keyBindingAdded", menuItem._keyBindingAdded)
+            .off("keyBindingRemoved", menuItem._keyBindingRemoved);
     }
 
     /**
@@ -457,13 +457,14 @@ define(function (require, exports, module) {
                 console.error("removeMenuItem(): command not found: " + command);
                 return;
             }
-            removeMenuItemEventListeners(commandObj);
             commandID = command;
         } else {
-            removeMenuItemEventListeners(command);
             commandID = command.getID();
         }
         menuItemID = this._getMenuItemId(commandID);
+
+        var menuItem = getMenuItem(menuItemID);
+        removeMenuItemEventListeners(menuItem);
 
         if (_isHTMLMenu(this.id)) {
             // Targeting parent to get the menu item <a> and the <li> that contains it

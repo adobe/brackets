@@ -746,21 +746,25 @@ define(function (require, exports, module) {
                     var menuItem = menu.addMenuItem(commandId);
 
                     var command = CommandManager.get(commandId);
+                    command.on("testEvent", function () {});
 
                     expect(typeof (command._eventHandlers.enabledStateChange)).toBe("object");
                     expect(typeof (command._eventHandlers.checkedStateChange)).toBe("object");
                     expect(typeof (command._eventHandlers.nameChange)).toBe("object");
                     expect(typeof (command._eventHandlers.keyBindingAdded)).toBe("object");
                     expect(typeof (command._eventHandlers.keyBindingRemoved)).toBe("object");
+                    expect(typeof (command._eventHandlers.testEvent)).toBe("object");
 
                     menu.removeMenuItem(command);
 
                     // Check if attached events have been removed
                     expect(command._eventHandlers.nameChange).toBeUndefined();
                     expect(command._eventHandlers.checkedStateChange).toBeUndefined();
-                    expect(command._eventHandlers.KeyBindingAdded).toBeUndefined();
+                    expect(command._eventHandlers.keyBindingAdded).toBeUndefined();
                     expect(command._eventHandlers.keyBindingRemoved).toBeUndefined();
                     expect(command._eventHandlers.enabledStateChange).toBeUndefined();
+                    expect(typeof (command._eventHandlers.testEvent)).toBe("object");
+
                 });
             });
         });
