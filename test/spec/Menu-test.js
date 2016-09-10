@@ -734,6 +734,33 @@ define(function (require, exports, module) {
                     expect(menu).toBeTruthy();   // Verify that we got this far...
                 });
             });
+
+            it("should add then remove new menu item ensuring event listeners have also been detached", function () {
+                runs(function () {
+                    var commandId = "Menu-test.removeMenuItem.command4";
+                    var menuItemId = "menu-test-removeMenuItem4";
+                    CommandManager.register("Brackets Test Command Custom", commandId, function () {});
+                    var menu = Menus.addMenu("Custom", menuItemId);
+                    var $listItems = testWindow.$("#menu-custom > ul").children();
+                    expect($listItems.length).toBe(0);
+
+                    // Re-use commands that are already registered
+                    var menuItem = menu.addMenuItem(commandId);
+                    expect(menuItem).toBeTruthy();
+                    expect(menuItem).toBeDefined();
+
+                    $listItems = menuDOMChildren(menuItemId);
+                    expect($listItems.length).toBe(1);
+                    
+                    var command = CommandManager.get(commandId);
+                    expect(typeof (command)).toBe("object");
+                    
+                    command.on("enabledStateChange", command._enabledChanged);
+                    var length = command._eventHandlers.enabledStateChange.length;
+                    menu.removeMenuItem(command);
+                    expect(command._eventHandlers.enabledStateChange.length).toBeLessThan(length);
+                });
+            });
         });
 
 
