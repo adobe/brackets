@@ -95,6 +95,7 @@
     "flow-into":                   {"values": ["none"], "type": "named-flow"},
     "flow-from":                   {"values": ["none", "inherit"], "type": "named-flow"},
     "font":                        {"values": []},
+    "font-display":                {"values": ["auto", "block", "swap", "fallback", "optional"]},
     "font-family":                 {"values": ["cursive", "fantasy", "inherit", "monospace", "sans-serif", "serif"]},
     "font-feature-settings":       {"values": ["normal"]},
     "font-kerning":                {"values": ["auto", "none", "normal"]},
