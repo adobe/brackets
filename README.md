@@ -21,7 +21,7 @@ $Open .gdoc files
 	2. request access to 'Live Preview'
 		a. inform that user must access to the gdoc file (because the nature of the files are to exist w/ resriction & to be online)
 	3. once granted, have the browser open the link
-	4. once link is opened, pull the page source
+	4. once link is opened, pull the page source into Brackets
 ~~~~
 
 -------------------
