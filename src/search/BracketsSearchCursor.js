@@ -676,7 +676,7 @@ define(function (require, exports, module) {
      */
     SearchCursor.prototype.setSearchDocumentAndQuery = function (properties) {
         this.atOccurrence = false;
-        if (properties.ignoreCase) {this.ignoreCase = properties.ignoreCase; }
+        if (properties.ignoreCase !== undefined) {this.ignoreCase = properties.ignoreCase; }
         if (properties.document) {this.doc = properties.document; }
         if (properties.searchQuery) {this._setQuery(this, properties.searchQuery); }
         if (properties.position) {this._setPos(this, properties.position); }
