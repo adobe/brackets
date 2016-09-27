@@ -48,21 +48,23 @@ define(function (require, exports, module) {
         _           = require("thirdparty/lodash");
 
     /**
+     * @private
+     *
      * Store document text and index
      * key: {CodeMirror.Doc}
      * value: { text: {string}, index: {Array<number>}, generation: {number} }
      * text = The text of the document
      * index = The document line index for lookups
      * generation = the document history generation number
-     * @private
      */
     var _documentMap = new WeakMap();
 
     /**
+     * @private
+     *
      * Determines if the current document has changed since we last stored the docInfo
      * @param {CodeMirror.Doc} doc
      * @return boolean
-     * @private
      */
     function _needToIndexDocument(doc) {
         var docInfo = _documentMap.get(doc);
@@ -77,12 +79,13 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     *
      * Creates an array which stores the sum of all characters in the document
      * up to the point of each line.
      * This is needed to efficiently convert character index offsets to position objects of line and character offset.
      * @param {string} text The string to index
      * @param {string} lineSeparator The ending character that splits lines
-     * @private
      */
     function _createDocLineIndex(text, lineSeparator) {
         var lineNumber;
@@ -100,9 +103,10 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     *
      * Creates the document index and store in our map
      * @param {CodeMirror.Doc} doc The codemirror document
-     * @private
      */
     function _indexDocument(doc) {
         var docText = doc.getValue();
@@ -111,20 +115,22 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     *
      * Gets the document index
      * @param {CodeMirror.Doc} doc The codemirror document
      * @return {Array<number>} see '_createDocLineIndex' for contents of Array
-     * @private
      */
     function _getdocLineIndex(doc) {
         return _documentMap.get(doc).index;
     }
 
     /**
+     * @private
+     *
      * Gets the document text
      * @param {CodeMirror.Doc} doc The codemirror document
      * @return {string} document text content
-     * @private
      */
     function _getDocumentText(doc) {
         return _documentMap.get(doc).text;
@@ -132,11 +138,12 @@ define(function (require, exports, module) {
 
 
     /**
+     * @private
+     *
      * Converts plain text query into regular expression
      * If already regular expression, then just set the flags as appropriate
      * @param {Object}  stringOrRegex A string or regular expression
      * @param {boolean} ignoreCase True to ignore case for searchers
-     * @private
      */
     function _convertToRegularExpression(stringOrRegex, ignoreCase) {
         if (typeof stringOrRegex === "string") {
@@ -147,8 +154,9 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Finds the line number for the given index
      * @private
+     *
+     * Finds the line number for the given index
      * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {number}        startSearchingWithLine       Line number to start search
      * @param {number}        indexWithinDoc               The index of the character offset from the start of the document
@@ -170,9 +178,10 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     *
      * Given the character offset from the beginning of the document
      * creates an object which has the position information
-     * @private
      * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {number} startSearchingWithLine Line number to start search
      * @param {number} indexWithinDoc The index of the character offset from the start of the document
@@ -187,10 +196,11 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     *
      * Returns the character offset from the beginning of the document based on
      * object properties as pos.from.line and pos.from.ch
      * where line is the line number in the document and ch is the character offset on the line
-     * @private
      * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {{line: number, ch: number}} pos Object describing the position within the document
      * @return {number} character offset from the beginning of the document
@@ -206,10 +216,11 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     *
      * Scans entire document and callback with each match found.
      * Uses the docLineIndex to more efficiently create the position objects on found matches.
      *
-     * @private
      * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {string}        documentText                 Text to scan
      * @param {RegExp}        regex                        Regular expression used to search
@@ -243,8 +254,9 @@ define(function (require, exports, module) {
 
 
     /**
-     * Returns an object that indicates the beginning and end of a match from the search
      * @private
+     *
+     * Returns an object that indicates the beginning and end of a match from the search
      * @param {Array<number>} docLineIndex See '_createDocLineIndex'
      * @param {number}        indexStart   Start location using index
      * @param {number}        indexEnd     End location using index
@@ -263,8 +275,9 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Comparison function for binary search of index positions within document.
      * @private
+     *
+     * Comparison function for binary search of index positions within document.
      * @param {number} matchIndex First match index for compare
      * @param {number} posIndex   Second match index for compare
      * @return {number} negative, zero or positive value if the first argument is less than, equal to or greater than the second argument, correspondingly.
@@ -274,12 +287,13 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     *
      * Finds the result that is at or nearest the position passed to function.
      * If a match result is not at the position, it will then locate the closest
      * match result which is in the search direction.
      * If there is no match found before the end or beginning of the document
      * then this function returns false.
-     * @private
      * @param {!Object} searchResults instance of the regex indexer. see _createSearchResults
      * @param {number} pos Starting index position to search from
      * @param {boolean} reverse direction to search.
@@ -332,8 +346,9 @@ define(function (require, exports, module) {
         this._groupSize = groupSize;
     }
     /**
-     * Determines if the values of specified items in a group array are equal
      * @private
+     *
+     * Determines if the values of specified items in a group array are equal
      * @param   {GroupArray} groupArray1 First group array
      * @param   {GroupArray} groupNum1   Item within group array
      * @param   {GroupArray} groupArray2 Second group array
@@ -377,11 +392,12 @@ define(function (require, exports, module) {
     GroupArray.prototype.itemCount = function () { return this.array.length / this._groupSize; };
 
     /**
+     * @private
+     *
      * Enhances array with functions which facilitate managing the array contents
      * by groups of items.
      * This is useful for both performance and memory consumption to store the indexes
      * of the match result beginning and ending locations.
-     * @private
      * @param {Array} array The array to enhance
      * @param {number} groupSize The number of indices that belong to a group
      * @return {GroupArray} Enhanced Array
@@ -391,10 +407,11 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     *
      * Performs a search using the supplied RegExp and adds all results
      * of matched locations to the group array
      *
-     * @private
      * @param   {object}     query                           regular expression query
      * @param   {string}     docText                         the text to search
      * @param   {GroupArray} groupArray                      group array to hold values of index locations
@@ -428,9 +445,10 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     *
      * If the first item of the first group array and the last item of the second group array
      * are equal, then remove the duplicate from the end of the second group array
-     * @private
      * @param {GroupArray} firstSearchResults  First search results
      * @param {GroupArray} secondSearchResults Second search results
      */
@@ -557,9 +575,10 @@ define(function (require, exports, module) {
     };
 
     /**
+     * @private
+     *
      * Creates the regex indexer which finds all matches within supplied text using the search query.
      * Uses a lookup index to efficiently map regular expression result indexes to position used by Brackets
-     * @private
      * @param {string} docText       The text to search for matches
      * @param {Array}  docLineIndex  Array used to map indexes to positions
      * @param {RegExp} query         A regular expression used to find matches
