@@ -396,6 +396,7 @@ define(function (require, exports, module) {
 
         CodeMirror.registerHelper("fold", "handlebars", handlebarsFold);
         CodeMirror.registerHelper("fold", "htmlhandlebars", handlebarsFold);
+        CodeMirror.registerHelper("fold", "htmlmixed", handlebarsFold);
 
         EditorManager.on("activeEditorChange.CodeFolding", onActiveEditorChanged);
         DocumentManager.on("documentRefreshed.CodeFolding", function (event, doc) {
