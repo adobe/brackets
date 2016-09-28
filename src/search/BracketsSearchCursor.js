@@ -771,6 +771,16 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Returns character index offset within the document.
+     * @param   {{line: number, ch: number}} position a specified location within the document
+     * @returns {number} index character offset within the document
+     */
+    SearchCursor.prototype.indexFromPos = function (position) {
+        var docLineIndex = _getdocLineIndex(this.doc);
+        return _indexFromPos(docLineIndex, position);
+    };
+
+    /**
      * Calls the result function for each match that is within the specified range
      * @param {{line: number, ch: number}} startPosition Starting position of range
      * @param {{line: number, ch: number}} endPosition   Ending position of range

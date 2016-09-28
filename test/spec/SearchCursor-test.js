@@ -208,6 +208,14 @@ define(function (require, exports, module) {
                 expect(results.length).toEqual(2);
                 expect(results).toEqual([ { line : 1, ch : 0 }, { line : 6, ch : 20 } ]);
             });
+            it("captured lines should contain linefeed", function () {
+                var results = [];
+                cursor.forEachMatch(function (startPosition, endPosition) {
+                    var start = cursor.indexFromPos(startPosition);
+                    var end   = cursor.indexFromPos(endPosition);
+                    expect(defaultContent.charAt(end) === '\n');
+                });
+            });
 
         });
     });
