@@ -29,8 +29,8 @@
 
 define(function (require, exports, module) {
     "use strict";
-    var CodeMirror = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
-        endOfLineSpaceRegex = /\s$/,
+    var CodeMirror  = brackets.getModule("thirdparty/CodeMirror/lib/codemirror"),
+        _           = brackets.getModule("thirdparty/lodash"),
         StringUtils = brackets.getModule("utils/StringUtils");
 
     /**
@@ -79,8 +79,14 @@ define(function (require, exports, module) {
         }
     }
 
-    function endTag(seen) {
-        return endOfLineSpaceRegex.test(seen) || StringUtils.endsWith(seen, "}");
+    /**
+     * Utility function used to detect the end of a helper name when scanning a series of text.
+     * The end of a helper name is signalled by a space character or the `}`
+     * @param   {string}  seen The string seen so far
+     * @returns {boolean} True when the end of a helper name has been detected.
+     */
+    function endHelperName(seen) {
+        return (/\s$/).test(seen) || StringUtils.endsWith(seen, "}");
     }
 
     /**
@@ -111,7 +117,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        found = scanTextUntil(cm, openTagIndex + 2, currentLine, endTag);
+        found = scanTextUntil(cm, openTagIndex + 2, currentLine, endHelperName);
         if (!found) {
             return;
         }
@@ -121,7 +127,7 @@ define(function (require, exports, module) {
             to: found.to
         };
         openTag = found.string.substring(0, found.string.length - 1);
-        if (openTag[0] === "#" || openTag[0] === "~") {
+        if (openTag[0] === "#" || openTag[0] === "~" || openTag[0] === "^") {
             found = scanTextUntil(cm, openPos.to.ch, openPos.to.line, function (seen) {
                 return seen.length > 1 && seen.substr(-2) === "}}";
             });
@@ -142,12 +148,13 @@ define(function (require, exports, module) {
             switch (currentCharacter) {
             case "{":
                 if (text[i + 1] === "{") {
-                    found = scanTextUntil(cm, i + 2, currentLine, endTag);
+                    found = scanTextUntil(cm, i + 2, currentLine, endHelperName);
                     if (found) {
                         var tag = found.string.substring(0, found.string.length - 1);
-                        if (tag[0] === "#" || tag[0] === "~") {
+                        if (tag[0] === "#" || tag[0] === "~" || tag[0] === "^") {
                             tagStack.push(tag.substr(1));
-                        } else if (tag[0] === "/" && tagStack[tagStack.length - 1] === tag.substr(1)) {
+                        } else if (tag[0] === "/" &&
+                                   (_.last(tagStack) === tag.substr(1) || _.last(tagStack) === "*" + tag.substr(1))) {
                             tagStack.pop();
                             if (tagStack.length === 0 && braceStack.length === 0) {
                                 range = {

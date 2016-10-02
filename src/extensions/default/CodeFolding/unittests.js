@@ -44,7 +44,7 @@ define(function (require, exports, module) {
                 },
                 hbs: {
                     filePath: testDocumentDirectory + "test.hbs",
-                    foldableLines: [1, 7, 14, 16, 17, 21, 26, 28, 29, 32, 33],
+                    foldableLines: [1, 7, 14, 16, 17, 21, 26, 28, 29, 32, 33, 38, 41],
                     sameLevelFoldableLines: [1, 7, 14],
                     firstSelection: {start: {line: 2, ch: 0}, end: {line: 10, ch: 0}},
                     secondSelection: {start: {line: 5, ch: 0}, end: {line: 8, ch: 4}}
