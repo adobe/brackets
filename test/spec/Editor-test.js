@@ -1939,14 +1939,25 @@ define(function (require, exports, module) {
                 
             beforeEach(function () {
                 createTestEditor(defaultContent, "javascript");
-                myEditor.registerGutter(leftGutter, 1);
-                myEditor.registerGutter(rightGutter, 101);
+                Editor.registerGutter(leftGutter, 1);
+                Editor.registerGutter(rightGutter, 101);
+            });
+            
+            afterEach(function () {
+                var nonLineNumberGutters = Editor.getRegisteredGutters().map(function (gutter) {
+                    return gutter.name;
+                });
+                nonLineNumberGutters.forEach(function (gutter) {
+                    if (gutter !== lineNumberGutter) {
+                        Editor.unregisterGutter(gutter);
+                    }
+                });
             });
             
             it("should register multiple gutters in the correct order", function () {
                 var expectedGutters = [leftGutter, lineNumberGutter, rightGutter];
                 var gutters  = myEditor._codeMirror.getOption("gutters");
-                var registeredGutters = myEditor.getRegisteredGutters().map(function (gutter) {
+                var registeredGutters = Editor.getRegisteredGutters().map(function (gutter) {
                     return gutter.name;
                 });
                 expect(gutters).toEqual(expectedGutters);
@@ -1955,10 +1966,10 @@ define(function (require, exports, module) {
             
             it("should return gutters registered with the same priority in insertion order", function () {
                 var secondRightGutter = "second-right";
-                myEditor.registerGutter(secondRightGutter, 101);
+                Editor.registerGutter(secondRightGutter, 101);
                 var expectedGutters = [leftGutter, lineNumberGutter, rightGutter, secondRightGutter];
                 var gutters  = myEditor._codeMirror.getOption("gutters");
-                var registeredGutters = myEditor.getRegisteredGutters().map(function (gutter) {
+                var registeredGutters = Editor.getRegisteredGutters().map(function (gutter) {
                     return gutter.name;
                 });
                 expect(gutters).toEqual(expectedGutters);
@@ -1967,11 +1978,11 @@ define(function (require, exports, module) {
             
             it("should have only gutters registered with the intended languageIds ", function () {
                 var lessOnlyGutter = "less-only-gutter";
-                myEditor.registerGutter(lessOnlyGutter, 101, ["less"]);
+                Editor.registerGutter(lessOnlyGutter, 101, ["less"]);
                 var expectedGutters = [leftGutter, lineNumberGutter, rightGutter];
                 var expectedRegisteredGutters = [leftGutter, lineNumberGutter, rightGutter, lessOnlyGutter];
                 var gutters  = myEditor._codeMirror.getOption("gutters");
-                var registeredGutters = myEditor.getRegisteredGutters().map(function (gutter) {
+                var registeredGutters = Editor.getRegisteredGutters().map(function (gutter) {
                     return gutter.name;
                 });
                 expect(gutters).toEqual(expectedGutters);
@@ -1979,12 +1990,12 @@ define(function (require, exports, module) {
             });
             
             it("should unregister gutters correctly", function () {
-                myEditor.unregisterGutter(leftGutter);
-                myEditor.unregisterGutter(rightGutter);
-                myEditor.registerGutter(leftGutter, 1);
+                Editor.unregisterGutter(leftGutter);
+                Editor.unregisterGutter(rightGutter);
+                Editor.registerGutter(leftGutter, 1);
                 var expectedGutters = [leftGutter, lineNumberGutter];
                 var gutters  = myEditor._codeMirror.getOption("gutters");
-                var registeredGutters = myEditor.getRegisteredGutters().map(function (gutter) {
+                var registeredGutters = Editor.getRegisteredGutters().map(function (gutter) {
                     return gutter.name;
                 });
                 expect(gutters).toEqual(expectedGutters);
