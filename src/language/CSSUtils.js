@@ -90,7 +90,7 @@ define(function (require, exports, module) {
             return null;
         }
         var state = ctx.token.state.localState || ctx.token.state;
-        if (!state.context && ctx.token.state.html.localState) {
+        if (!state.context && ctx.token.state.html && ctx.token.state.html.localState) {
             state = ctx.token.state.html.localState;
         }
         return state;

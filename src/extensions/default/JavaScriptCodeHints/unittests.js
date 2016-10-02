@@ -1152,8 +1152,8 @@ define(function (require, exports, module) {
                 testDoc.replaceRange("help.", start, start);
                 testEditor.setCursorPos(end);
                 var hintObj = expectHints(JSCodeHints.jsHintProvider);
-                // check we have a properties from "Function", "Array", and "Date"
-                hintsPresentOrdered(hintObj, ["apply", "concat", "getSeconds"]);
+                // check we have a properties from "Function", "String", and "Array"
+                hintsPresentOrdered(hintObj, ["apply", "charCodeAt", "concat"]);
             });
 
             it("should switch to guesses after typing a query that does not match any hints", function () {

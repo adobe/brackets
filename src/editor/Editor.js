@@ -1034,10 +1034,10 @@ define(function (require, exports, module) {
         });
         // For word wrap. Code adapted from https://codemirror.net/demo/indentwrap.html#
         this._codeMirror.on("renderLine", function (cm, line, elt) {
-            var charWidth = self._codeMirror.defaultCharWidth(), basePadding = 4;
+            var charWidth = self._codeMirror.defaultCharWidth();
             var off = CodeMirror.countColumn(line.text, null, cm.getOption("tabSize")) * charWidth;
             elt.style.textIndent = "-" + off + "px";
-            elt.style.paddingLeft = (basePadding + off) + "px";
+            elt.style.paddingLeft = off + "px";
         });
     };
 
@@ -1047,6 +1047,12 @@ define(function (require, exports, module) {
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
+        var currentText = this._codeMirror.getValue();
+        if (text === currentText) {
+            // there's nothing to reset
+            return;
+        }
+
         var perfTimerName = PerfUtils.markStart("Editor._resetText()\t" + (!this.document || this.document.file.fullPath));
 
         var cursorPos = this.getCursorPos(),

@@ -308,8 +308,6 @@ define(function (require, exports, module) {
     function parseQueryInfo(queryInfo) {
         var queryExpr;
 
-        // TODO: only major difference between this one and the one in FindReplace is that
-        // this always returns a regexp even for simple strings. Reconcile.
         if (!queryInfo || !queryInfo.query) {
             return {empty: true};
         }

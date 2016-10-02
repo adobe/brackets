@@ -968,6 +968,7 @@ a, img {
     border-bottom: 1px solid @bc-highlight;
     box-sizing: border-box;
     height: 23px;
+    width: 100%;
     position: absolute;
 }
 
@@ -998,6 +999,7 @@ a, img {
     box-sizing: border-box;
     position: absolute;
     height: 23px;
+    width: 100%;
 }
 
 //Initially start with the open files hidden, they will get show as files are added
@@ -1008,13 +1010,10 @@ a, img {
 #project-files-container {
     .box-flex(1);
 
-    ul {
+    div > ul {
+        padding-bottom: 24px;
         padding-left: 8px;
     }
-
-    > ul {
-        padding-bottom: 24px;
-    }    
 }
 
 .scroller-shadow {
@@ -1023,6 +1022,7 @@ a, img {
     height: 5px;
     position: fixed;
     z-index: @z-index-brackets-scroller-shadow;
+    pointer-events: none; // serves as a "click through", so clicks go to the file tree behind (see #12684)
 
     &.top {
         #gradient > .vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
@@ -1167,7 +1167,7 @@ a, img {
 
     .inline-editor-header {
         display: inline-block;
-        padding: 9px 10px 1px 40px;
+        padding: 8px 10px 2px 40px;
 
         .filename {
             vertical-align: middle;

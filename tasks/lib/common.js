@@ -21,11 +21,11 @@
  *
  */
 
+/*eslint-env node */
 /*jslint node: true */
+"use strict";
 
 module.exports = function (grunt) {
-    "use strict";
-
     var common      = {},
         path        = require("path"),
         _platform;

@@ -21,11 +21,11 @@
  *
  */
 
+/*eslint-env node */
 /*jslint node: true */
+'use strict';
 
 module.exports = function (grunt) {
-    'use strict';
-
     // load dependencies
     require('load-grunt-tasks')(grunt, {
         pattern: [
@@ -323,7 +323,7 @@ module.exports = function (grunt) {
     });
 
     // task: install
-    grunt.registerTask('install', ['write-config', 'less']);
+    grunt.registerTask('install', ['write-config', 'less', 'npm-install-extensions']);
 
     // task: test
     grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);
@@ -347,6 +347,7 @@ module.exports = function (grunt) {
         /*'cssmin',*/
         /*'uglify',*/
         'copy',
+        'npm-install',
         'cleanempty',
         'usemin',
         'build-config'
