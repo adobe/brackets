@@ -2403,7 +2403,7 @@ define(function (require, exports, module) {
 
     /**
      * Clears all marks from the gutter with the specified name.
-     * @param {string} name The name of the gutter to remove.
+     * @param {string} name The name of the gutter to clear.
      */
     Editor.prototype.clearGutter = function (name) {
         this._codeMirror.clearGutter(name);
@@ -2484,7 +2484,7 @@ define(function (require, exports, module) {
      * Registers the gutter with the specified name at the given priority.
      * @param {string} name    The name to register with the quarter
      * @param {number} priority  A number denoting the priority of the gutter. Priorities higher than 100 appear after the line numbers. Priority less than 100 appear before.
-     * @param {?Array<number>} languageIds A list of language ids that this gutter is valid for. If no language ids are passed, then the gutter is valid in all languages.
+     * @param {?Array<string>} languageIds A list of language ids that this gutter is valid for. If no language ids are passed, then the gutter is valid in all languages.
      */
     Editor.prototype.registerGutter = function (name, priority, languageIds) {
         if (isNaN(priority)) {
