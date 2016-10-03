@@ -392,14 +392,17 @@ define(function (require, exports, module) {
         if (event.type === "keydown" && this.isHandlingKeyCode(event)) {
             keyCode = event.keyCode;
 
-            if (event.keyCode === KeyEvent.DOM_VK_ESCAPE || 
-                  (event.shiftKey &&
+            if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+                event.stopImmediatePropagation();
+                this.handleClose();
+
+                return false;
+            } else if (event.shiftKey &&
                     (event.keyCode === KeyEvent.DOM_VK_UP ||
                      event.keyCode === KeyEvent.DOM_VK_DOWN ||
                      event.keyCode === KeyEvent.DOM_VK_PAGE_UP ||
-                     event.keyCode === KeyEvent.DOM_VK_PAGE_DOWN))) {
+                     event.keyCode === KeyEvent.DOM_VK_PAGE_DOWN)) {
                 this.handleClose();
-
                 // Let the event bubble.
                 return false;
             } else if (keyCode === KeyEvent.DOM_VK_UP) {
