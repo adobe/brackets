@@ -1,0 +1,47 @@
+{{!--
+        comments
+        go
+        here
+--}}
+
+{{#test}}
+
+
+{{/test}}
+
+<h1>Comments</h1>
+
+<div id="comments">
+
+    {{#each comments}}
+        {{../permalink
+
+        }}
+
+        {{#if title}}
+            {{../permalink}}
+        {{/if}}
+    {{/each}}
+
+    {{#each comments}}
+    <h2><a href="/posts/{{../permalink}}#{{id}}">{{title}}</a></h2>
+    <div>
+        {{
+            body
+        }}
+        <section class="person">
+            {{~person}}
+                <div>Name: {{firstName}} {{lastName}}</div>
+                <div>Email: {{email}}</div>
+                <div>Phone: {{phone}}</div>
+            {{/person}}
+            {{#*inline "myPartial"}}
+                My Content
+            {{/inline}}
+            {{^relationships}}
+                Relationship details go here
+            {{/relationships}}
+        </section>
+    </div>
+    {{/each}}
+</div>
