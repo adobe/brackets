@@ -68,6 +68,7 @@ define(function (require, exports, module) {
     var foldGutter              = require("foldhelpers/foldgutter"),
         foldCode                = require("foldhelpers/foldcode"),
         indentFold              = require("foldhelpers/indentFold"),
+        handlebarsFold          = require("foldhelpers/handlebarsFold"),
         selectionFold           = require("foldhelpers/foldSelected");
 
 
@@ -393,8 +394,9 @@ define(function (require, exports, module) {
             return prefs.getSetting("alwaysUseIndentFold");
         }, indentFold);
 
-        CodeMirror.registerHelper("fold", "django", CodeMirror.helpers.fold.brace);
-        CodeMirror.registerHelper("fold", "tornado", CodeMirror.helpers.fold.brace);
+        CodeMirror.registerHelper("fold", "handlebars", handlebarsFold);
+        CodeMirror.registerHelper("fold", "htmlhandlebars", handlebarsFold);
+        CodeMirror.registerHelper("fold", "htmlmixed", handlebarsFold);
 
         EditorManager.on("activeEditorChange.CodeFolding", onActiveEditorChanged);
         DocumentManager.on("documentRefreshed.CodeFolding", function (event, doc) {
