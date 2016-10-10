@@ -568,7 +568,7 @@ define({
     "EXTENSION_NOT_INSTALLED"              : "Impossibile rimuovere l’estensione {0}. Non era installata.",
     "NO_EXTENSIONS"                        : "Nessuna estensione ancora installata.<br />Clicca nel tab delle Disponibili per iniziare.",
     "NO_EXTENSION_MATCHES"                 : "Nessuna estensione soddisfa la tua ricerca.",
-    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: Queste estensioni possono provenire da autori diversi da {APP_NAME} se stessi. Le estensioni non vengono riviste e dispongono di privilegi locali completi. Fai attenzione quando installi le estensioni da sorgenti sconosciute.",
+    "REGISTRY_SANITY_CHECK_WARNING"        : "NOTA: Queste estensioni possono provenire da autori diversi da {APP_NAME}. Le estensioni non vengono riviste e dispongono di privilegi locali completi. Fai attenzione quando installi le estensioni da sorgenti sconosciute.",
     "EXTENSIONS_INSTALLED_TITLE"           : "Installate",
     "EXTENSIONS_AVAILABLE_TITLE"           : "Disponibili",
     "EXTENSIONS_THEMES_TITLE"              : "Temi",

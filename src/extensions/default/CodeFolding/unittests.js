@@ -41,6 +41,13 @@ define(function (require, exports, module) {
                     sameLevelFoldableLines: [8, 24],
                     firstSelection: {start: {line: 3, ch: 0}, end: {line: 10, ch: 0}},
                     secondSelection: {start: {line: 6, ch: 0}, end: {line: 17, ch: 4}}
+                },
+                hbs: {
+                    filePath: testDocumentDirectory + "test.hbs",
+                    foldableLines: [1, 7, 14, 16, 17, 21, 26, 28, 29, 32, 33, 38, 41],
+                    sameLevelFoldableLines: [1, 7, 14],
+                    firstSelection: {start: {line: 2, ch: 0}, end: {line: 10, ch: 0}},
+                    secondSelection: {start: {line: 5, ch: 0}, end: {line: 8, ch: 4}}
                 }
             },
             open = "open",
@@ -163,7 +170,7 @@ define(function (require, exports, module) {
         /**
          * Helper function to return the fold markers on the current codeMirror instance
          *
-         * @returns {[[Type]]} [[Description]]
+         * @returns {Array<object>} An array of objects containing the line and the type of marker.
          */
         function getGutterFoldMarks() {
             testEditor = EditorManager.getCurrentFullEditor();

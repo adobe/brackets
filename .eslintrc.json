@@ -46,7 +46,8 @@
         "valid-typeof": 2,
 
         "no-trailing-spaces": 0,
-        "eol-last": 0
+        "eol-last": 0,
+        "max-len": [1, 120]
     },
     "globals": {
         "brackets": false,
