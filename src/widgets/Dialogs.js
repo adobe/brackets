@@ -305,6 +305,9 @@ define(function (require, exports, module) {
             return _keydownHook.call($dlg, e, autoDismiss);
         };
 
+        // Store current focus
+        var lastFocus = window.document.activeElement;
+
         // Pipe dialog-closing notification back to client code
         $dlg.one("hidden", function () {
             var buttonId = $dlg.data("buttonId");
@@ -324,6 +327,10 @@ define(function (require, exports, module) {
 
             // Remove our global keydown handler.
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
+
+
+            // Restore previous focus
+            lastFocus.focus();
 
             //Remove wrapper
             $(".modal-wrapper:last").remove();
