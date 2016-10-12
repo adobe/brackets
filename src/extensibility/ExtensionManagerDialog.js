@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         ExtensionManagerViewModel   = require("extensibility/ExtensionManagerViewModel");
 
     var dialogTemplate    = require("text!htmlContent/extension-manager-dialog.html");
-
+    
     // bootstrap tabs component
     require("widgets/bootstrap-tab");
 
@@ -378,6 +378,7 @@ define(function (require, exports, module) {
                 setActiveTab($(this));
             });
 
+        
         // Navigate through tabs via Ctrl-(Shift)-Tab
         // (focus may be on document.body if text in extension listing clicked - see #9511)
         $(window.document).on("keyup.extensionManager", function (event) {
@@ -429,7 +430,8 @@ define(function (require, exports, module) {
 
             return promise;
         }, true);
-
+         
+        
         modelInitPromise.always(function () {
             $(".spinner", $dlg).remove();
 
@@ -448,14 +450,20 @@ define(function (require, exports, module) {
                     }
                 });
             });
-
+            
+            var $primaryButton = $(".primary", $dlg);
             // Filter the views when the user types in the search field.
             $dlg.on("input", ".search", function (e) {
+                $primaryButton.removeClass("primary"); //remove focus from "close" so enter does not close dialog.
                 var query = $(this).val();
                 views.forEach(function (view) {
                     view.filter(query);
                 });
             }).on("click", ".search-clear", clearSearch);
+            
+            $search.on("blur", function (e) {  //set focus on "close" when the search field is not in marked.
+                $primaryButton.addClass("primary");
+            });
 
             // Disable the search field when there are no items in the model
             models.forEach(function (model, index) {
