@@ -416,6 +416,12 @@ define(function (require, exports, module) {
 
                 // respect max size if one provided (e.g. by WorkspaceManager)
                 var maxSize = $element.data("maxsize");
+
+                // set maxSize for sidebar to prevent user from extending it to full window width. Issue#6822
+                if($element.hasClass('sidebar') && maxSize === undefined) {
+                    maxSize = $(window).width() - 200;
+                }
+
                 if (maxSize !== undefined) {
                     newSize = Math.min(newSize, maxSize);
                 }
