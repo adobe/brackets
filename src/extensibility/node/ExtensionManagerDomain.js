@@ -178,7 +178,10 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
             }
 
             _performNpmInstall(installDirectory, function (err) {
-                return err ? fail(err) : finish();
+                if (err) {
+                    return fail(err);
+                }
+                finish();
             });
         });
     });
