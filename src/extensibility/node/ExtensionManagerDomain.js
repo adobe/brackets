@@ -114,13 +114,15 @@ function _performNpmInstall(installDirectory, callback) {
     });
 
     child.addListener("close", function () {
-        stderr = Buffer.concat(stderr);
-        stdout = Buffer.concat(stdout);
+        stderr = Buffer.concat(stderr).toString();
+        stdout = Buffer.concat(stdout).toString();
         if (exitCode > 0) {
             console.error("npm-stderr: " + stderr);
             return callback(new Error(stderr));
         }
-        console.warn("npm-stderr: " + stderr);
+        if (stderr) {
+            console.warn("npm-stderr: " + stderr);
+        }
         console.log("npm-stdout: " + stdout);
         return callback();
     });
