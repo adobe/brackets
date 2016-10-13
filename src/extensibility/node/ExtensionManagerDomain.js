@@ -139,6 +139,20 @@ function _performNpmInstall(installDirectory, callback) {
 function _performInstall(packagePath, installDirectory, validationResult, callback) {
     validationResult.installedTo = installDirectory;
 
+    var fail = function (err) {
+        _removeFailedInstallation(installDirectory);
+        callback(err, null);
+    };
+
+    var finish = function () {
+        // The status may have already been set previously (as in the
+        // DISABLED case.
+        if (!validationResult.installationStatus) {
+            validationResult.installationStatus = Statuses.INSTALLED;
+        }
+        callback(null, validationResult);
+    };
+
     fs.mkdirs(installDirectory, function (err) {
         if (err) {
             callback(err);
@@ -147,21 +161,6 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
         var sourceDir = path.join(validationResult.extractDir, validationResult.commonPrefix);
 
         fs.copy(sourceDir, installDirectory, function (err) {
-
-            var fail = function (err) {
-                _removeFailedInstallation(installDirectory);
-                callback(err, null);
-            };
-
-            var finish = function () {
-                // The status may have already been set previously (as in the
-                // DISABLED case.
-                if (!validationResult.installationStatus) {
-                    validationResult.installationStatus = Statuses.INSTALLED;
-                }
-                callback(null, validationResult);
-            };
-
             if (err) {
                 return fail(err);
             }
