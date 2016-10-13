@@ -108,7 +108,7 @@ function _performNpmInstall(installDirectory, callback) {
         stderr.push(buffer);
     });
 
-    var exitCode;
+    var exitCode = 0;
     child.addListener("exit", function (code) {
         exitCode = code;
     });
