@@ -328,9 +328,10 @@ define(function (require, exports, module) {
             // Remove our global keydown handler.
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
 
-
             // Restore previous focus
-            lastFocus.focus();
+            if(lastFocus){
+                lastFocus.focus();    
+            }
 
             //Remove wrapper
             $(".modal-wrapper:last").remove();
