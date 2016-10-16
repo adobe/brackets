@@ -329,7 +329,7 @@ define(function (require, exports, module) {
             KeyBindingManager.removeGlobalKeydownHook(keydownHook);
 
             // Restore previous focus
-            if(lastFocus) {
+            if (lastFocus) {
                 lastFocus.focus();    
             }
 
