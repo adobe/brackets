@@ -26,11 +26,12 @@
 
 "use strict";
 
-var DecompressZip = require("decompress-zip"),
-    semver        = require("semver"),
-    path          = require("path"),
-    temp          = require("temp"),
-    fs            = require("fs-extra");
+var DecompressZip               = require("decompress-zip"),
+    semver                      = require("semver"),
+    path                        = require("path"),
+    temp                        = require("temp"),
+    fs                          = require("fs-extra"),
+    performNpmInstallIfRequired = require("./npm-installer").performNpmInstallIfRequired;
 
 // Track and cleanup files at exit
 temp.track();
@@ -293,12 +294,13 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
                 if (!isTheme && !fs.existsSync(mainJS)) {
                     errors.push([Errors.MISSING_MAIN, zipPath, mainJS]);
                 }
-                callback(null, {
+
+                performNpmInstallIfRequired({
                     errors: errors,
                     metadata: metadata,
                     commonPrefix: commonPrefix,
                     extractDir: extractDir
-                });
+                }, callback);
             });
         });
     });

@@ -31,7 +31,6 @@ var semver   = require("semver"),
     request  = require("request"),
     fs       = require("fs-extra"),
     temp     = require("temp"),
-    spawn    = require('child_process').spawn,
     validate = require("./package-validator").validate;
 
 // Automatically clean up temp files on exit
@@ -81,56 +80,6 @@ function _removeFailedInstallation(installDirectory) {
 }
 
 /**
- * Private function to run 'npm install --production' command in the extension directory.
- *
- * @param {string} installDirectory Directory to remove
- * @param {function} callback NodeJS style callback to call after finish
- */
-function _performNpmInstall(installDirectory, callback) {
-    var npmPath = path.resolve(path.dirname(require.resolve("npm")), "..", "bin", "npm-cli.js");
-    var args = [npmPath, 'install', '--production'];
-
-    console.log("running npm install --production in " + installDirectory);
-
-    var child = spawn(process.execPath, args, { cwd: installDirectory });
-
-    child.on("error", function (err) {
-        return callback(err);
-    });
-
-    var stdout = [];
-    child.stdout.addListener("data", function (buffer) {
-        stdout.push(buffer);
-    });
-
-    var stderr = [];
-    child.stderr.addListener("data", function (buffer) {
-        stderr.push(buffer);
-    });
-
-    var exitCode = 0;
-    child.addListener("exit", function (code) {
-        exitCode = code;
-    });
-
-    child.addListener("close", function () {
-        stderr = Buffer.concat(stderr).toString();
-        stdout = Buffer.concat(stdout).toString();
-        if (exitCode > 0) {
-            console.error("npm-stderr: " + stderr);
-            return callback(new Error(stderr));
-        }
-        if (stderr) {
-            console.warn("npm-stderr: " + stderr);
-        }
-        console.log("npm-stdout: " + stdout);
-        return callback();
-    });
-
-    child.stdin.end();
-}
-
-/**
  * Private function to unzip to the correct directory.
  *
  * @param {string} Absolute path to the package zip file
@@ -166,25 +115,7 @@ function _performInstall(packagePath, installDirectory, validationResult, callba
             if (err) {
                 return fail(err);
             }
-
-            var packageJson;
-
-            try {
-                packageJson = fs.readJsonSync(path.join(installDirectory, "package.json"));
-            } catch (e) {
-                packageJson = null;
-            }
-
-            if (!packageJson || !packageJson.dependencies) {
-                return finish();
-            }
-
-            _performNpmInstall(installDirectory, function (err) {
-                if (err) {
-                    return fail(err);
-                }
-                finish();
-            });
+            finish();
         });
     });
 }
