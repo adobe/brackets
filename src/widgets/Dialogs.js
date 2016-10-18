@@ -166,7 +166,9 @@ define(function (require, exports, module) {
             stopEvent();
             if (e.target.tagName === "BUTTON") {
                 this.find(e.target).click();
-            } else {
+            } else if (e.target.tagName !== "INPUT") {
+                // If the target element is not BUTTON or INPUT, click the primary button
+                // We're making an exception for INPUT element because of this issue: GH-11416
                 $primaryBtn.click();
             }
         } else if (e.which === KeyEvent.DOM_VK_SPACE) {
