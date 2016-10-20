@@ -108,7 +108,15 @@ define(function (require, exports, module) {
      * @private
      * @see #shouldShow
      */
-    function _shouldShowName(name) {
+    function _shouldShowName(name, path) { // TODO: Refactor this into a function that can also see if the name is a file
+        if(path){
+            var fs = _getFSObject(path);
+            
+            //var test = fs.getDirectoryForPath(_ensureTrailingSlash(path));
+        }
+        if (/(Icon(?![\.\?\*\|\:\/\w]))+/.test(name) && fs.isFile){
+            return false;
+        }
         return !_exclusionListRegEx.test(name);
     }
 
@@ -118,7 +126,7 @@ define(function (require, exports, module) {
      * @param {!FileSystemEntry} entry File or directory to filter
      * @return {boolean} true if the file should be displayed
      */
-    function shouldShow(entry) {
+    function shouldShow(entry, path) {
         return _shouldShowName(entry.name);
     }
 
