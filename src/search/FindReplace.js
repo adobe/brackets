@@ -21,10 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
 /*unittests: FindReplace*/
-
 
 /**
  * Adds Find and Replace commands
@@ -94,24 +91,19 @@ define(function (require, exports, module) {
             findBar.showError(null);
         }
 
-        if (!queryInfo || !queryInfo.query) {
+        var parsed = FindUtils.parseQueryInfo(queryInfo);
+        if (parsed.empty === true) {
             return "";
         }
 
-        // Is it a (non-blank) regex?
-        if (queryInfo.isRegexp) {
-            try {
-                return new RegExp(queryInfo.query, queryInfo.isCaseSensitive ? "" : "i");
-            } catch (e) {
-                if (findBar) {
-                    findBar.showError(e.message);
-                }
-                return "";
+        if (!parsed.valid) {
+            if (findBar) {
+                findBar.showError(parsed.error);
             }
-
-        } else {
-            return queryInfo.query;
+            return "";
         }
+
+        return parsed.queryExpr;
     }
 
     /**

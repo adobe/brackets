@@ -20,10 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
-
 /**
  * Button that opens a dropdown list when clicked. More akin to a popup menu than a combobox. Compared to a
  * simple <select> element:
@@ -264,14 +260,19 @@ define(function (require, exports, module) {
             posTop = Math.max(0, toggleOffset.top - $dropdown.height() - 4);
         }
 
+        // Take in consideration the scrollbar to prevent unexpected behaviours (see #10963).
+        var dropdownElement = this.$dropdown[0];
+        var scrollWidth = dropdownElement.offsetWidth - dropdownElement.clientWidth + 1;
+
         if (clip.right > 0) {
-            // Right is clipped, so adjust left to fit menu in editor
-            posLeft = Math.max(0, posLeft - clip.right);
+            // Right is clipped, so adjust left to fit menu in editor.
+            posLeft = Math.max(0, posLeft - clip.right - scrollWidth);
         }
 
         $dropdown.css({
             left: posLeft,
-            top: posTop
+            top: posTop,
+            width: $dropdown.width() + scrollWidth
         });
 
         // Attach event handlers

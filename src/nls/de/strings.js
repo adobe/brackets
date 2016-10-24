@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -131,7 +128,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Löschen bestätigen",
+    "CONFIRM_DELETE_TITLE"              : "Löschen bestätigen",
     "CONFIRM_FOLDER_DELETE"             : "Sind Sie sich sicher, dass Sie den Ordner <span class='dialog-filename'>{0}</span> löschen wollen?",
     "FILE_DELETED_TITLE"                : "Datei gelöscht",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> wurde außerhalb von {APP_NAME} geändert.<br /><br />Wollen Sie die Datei speichern und die externen Änderungen ersetzen?",

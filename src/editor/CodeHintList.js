@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -307,14 +304,21 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Check whether keyCode is one of the keys that we handle or not.
+     * Check whether Event is one of the keys that we handle or not.
      *
-     * @param {number} keyCode
+     * @param {KeyBoardEvent|keyBoardEvent.keyCode} keyEvent
      */
-    CodeHintList.prototype.isHandlingKeyCode = function (keyCode) {
+    CodeHintList.prototype.isHandlingKeyCode = function (keyCodeOrEvent) {
+        var keyCode = typeof keyCodeOrEvent === "object" ? keyCodeOrEvent.keyCode : keyCodeOrEvent;
+        var ctrlKey = typeof keyCodeOrEvent === "object" ? keyCodeOrEvent.ctrlKey : false;
+
+
         return (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN ||
                 keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN ||
                 keyCode === KeyEvent.DOM_VK_RETURN ||
+                keyCode === KeyEvent.DOM_VK_CONTROL ||
+                keyCode === KeyEvent.DOM_VK_ESCAPE ||
+                (ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE) ||
                 (keyCode === KeyEvent.DOM_VK_TAB && this.insertHintOnTab));
     };
 
@@ -385,21 +389,26 @@ define(function (require, exports, module) {
         }
 
         // (page) up, (page) down, enter and tab key are handled by the list
-        if (event.type === "keydown" && this.isHandlingKeyCode(event.keyCode)) {
+        if (event.type === "keydown" && this.isHandlingKeyCode(event)) {
             keyCode = event.keyCode;
 
-            if (event.shiftKey &&
+            if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+                event.stopImmediatePropagation();
+                this.handleClose();
+
+                return false;
+            } else if (event.shiftKey &&
                     (event.keyCode === KeyEvent.DOM_VK_UP ||
                      event.keyCode === KeyEvent.DOM_VK_DOWN ||
                      event.keyCode === KeyEvent.DOM_VK_PAGE_UP ||
                      event.keyCode === KeyEvent.DOM_VK_PAGE_DOWN)) {
                 this.handleClose();
-
                 // Let the event bubble.
                 return false;
             } else if (keyCode === KeyEvent.DOM_VK_UP) {
                 _rotateSelection.call(this, -1);
-            } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
+            } else if (keyCode === KeyEvent.DOM_VK_DOWN ||
+                    (event.ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE)) {
                 _rotateSelection.call(this, 1);
             } else if (keyCode === KeyEvent.DOM_VK_PAGE_UP) {
                 _rotateSelection.call(this, -_itemsPerPage());
@@ -481,8 +490,6 @@ define(function (require, exports, module) {
                 .css({"left": hintPos.left, "top": hintPos.top, "width": hintPos.width + "px"});
             this.opened = true;
 
-            PopUpManager.addPopUp(this.$hintMenu, this.handleClose, true);
-
             KeyBindingManager.addGlobalKeydownHook(this._keydownHook);
         }
     };
@@ -504,7 +511,16 @@ define(function (require, exports, module) {
                                 "width": hintPos.width + "px"});
         }
     };
-
+    /**
+     * Calls the move up keybind to move hint suggestion selector
+     *
+     * @param {KeyBoardEvent} keyEvent
+     */
+    CodeHintList.prototype.callMoveUp = function (event) {
+        delete event.type;
+        event.type = "keydown";
+        this._keydownHook(event);
+    };
     /**
      * Closes the hint list
      */

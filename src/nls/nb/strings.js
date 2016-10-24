@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -115,7 +112,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Ønsker du å lagre enderinger i dokumentet <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Ønsker du å lagre enderinger i følgende filer?",
     "EXT_MODIFIED_TITLE"                : "Eksterne endringer",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Bekreft sletting",
+    "CONFIRM_DELETE_TITLE"              : "Bekreft sletting",
     "CONFIRM_FOLDER_DELETE"             : "Er du sikker på at du vil slette katalogen <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Fil slettet",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> har blitt modifisert på disk.<br /><br />Vil du lagre filen og overskrive de endringene?",

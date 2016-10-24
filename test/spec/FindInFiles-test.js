@@ -21,8 +21,8 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, spyOn */
+/*jslint regexp: true */
+/*global describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -1746,6 +1746,7 @@ define(function (require, exports, module) {
                         openTestProjectCopy(defaultSourcePath);
                         openSearchBar(null, true);
                         runs(function () {
+                            $("#find-what").val("").trigger("input");
                             expect($("#replace-all").is(":disabled")).toBe(true);
                         });
                     });
@@ -2289,9 +2290,14 @@ define(function (require, exports, module) {
                         showSearchResults("foo", "bar");
                         runs(function () {
                             $(".disclosure-triangle").click();
-                            expect($("#items").is(":style")).toBeFalsy();
+                            expect($(".disclosure-triangle").hasClass("expanded")).toBeFalsy();
+                            // Check that all results are hidden
+                            expect($(".bottom-panel-table tr[data-file-index=0][data-match-index]:hidden").length).toEqual(7);
+                            expect($(".bottom-panel-table tr[data-file-index=1][data-match-index]:hidden").length).toEqual(4);
                             $(".disclosure-triangle").click();
-                            expect($("#items").is(":style")).toBeTruthy();
+                            expect($(".disclosure-triangle").hasClass("expanded")).toBeTruthy();
+                            expect($(".bottom-panel-table tr[data-file-index=0][data-match-index]:visible").length).toEqual(7);
+                            expect($(".bottom-panel-table tr[data-file-index=1][data-match-index]:visible").length).toEqual(4);
                         });
                     });
                 });

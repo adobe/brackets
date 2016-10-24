@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -131,7 +128,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "保存 <span class='dialog-filename'>{0}</span> 文件中所做的修改？",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "是否保存以下文件的修改？",
     "EXT_MODIFIED_TITLE"                : "外部文件发生变化",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "删除确认",
+    "CONFIRM_DELETE_TITLE"              : "删除确认",
     "CONFIRM_FOLDER_DELETE"             : "确认要删除目录 <span class='dialog-filename'>{0}</span>？",
     "FILE_DELETED_TITLE"                : "文件已删除",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> 已产生了外部修改，<br /><br />是否保存并覆盖外部修改？",

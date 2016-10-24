@@ -21,13 +21,12 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define */
+/*jslint regexp: true */
 
 define(function (require, exports, module) {
     "use strict";
 
-    var Acorn                       = require("thirdparty/acorn/acorn");
+    var Acorn                       = require("node_modules/acorn/dist/acorn");
 
     var LANGUAGE_ID                 = "javascript",
         HTML_LANGUAGE_ID            = "html",
@@ -143,7 +142,7 @@ define(function (require, exports, module) {
         return literals.map(function (t) {
             t.literal = true;
             t.kind = kind;
-            t.origin = "ecma5";
+            t.origin = "ecmascript";
             if (kind === "string") {
                 if (/[\\\\]*[^\\]"/.test(t.value)) {
                     t.delimiter = SINGLE_QUOTE;
@@ -166,7 +165,7 @@ define(function (require, exports, module) {
     function annotateKeywords(keywords) {
         return keywords.map(function (t) {
             t.keyword = true;
-            t.origin = "ecma5";
+            t.origin = "ecmascript";
             return t;
         });
     }

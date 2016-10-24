@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -130,7 +127,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "¿Quieres guardar los cambios existentes en el documento <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "¿Quieres guardar tus cambios en los siguientes documentos?",
     "EXT_MODIFIED_TITLE"                : "Cambios externos",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmar eliminación",
+    "CONFIRM_DELETE_TITLE"              : "Confirmar eliminación",
     "CONFIRM_FOLDER_DELETE"             : "¿Estás seguro que deseas eliminar el directorio <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Archivo eliminado",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> ha sido modificado en el disco fuera de {APP_NAME}.<br><br>¿Deseas guardar el archivo y sobrescribir esos cambios?",

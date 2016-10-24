@@ -21,9 +21,8 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, node: true, nomen: true,
-indent: 4, maxerr: 50 */
+/*eslint-env node */
+/*jslint node: true */
 
 "use strict";
 

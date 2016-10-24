@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
-
 /**
  * The FileSystemStats represents a particular FileSystemEntry's stats.
  */
@@ -40,9 +36,13 @@ define(function (require, exports, module) {
 
         this._isFile = isFile;
         this._isDirectory = !isFile;
-        this._mtime = options.mtime;
+        // in case of stats transferred over a node-domain,
+        // mtime will have JSON-ified value which needs to be restored
+        this._mtime = options.mtime instanceof Date ? options.mtime : new Date(options.mtime);
         this._size = options.size;
-        this._hash = options.hash;
+        // hash is a property introduced by brackets and it's calculated
+        // as a valueOf modification time -> calculate here if it's not present
+        this._hash = options.hash || this._mtime.valueOf();
 
         var realPath = options.realPath;
         if (realPath) {

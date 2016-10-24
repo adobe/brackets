@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -131,7 +128,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Искате ли да запазите промените, които направихте в документа <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Искате ли да запазите промените си в следните файлове?",
     "EXT_MODIFIED_TITLE"                : "Външни промени",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Потвърждаване на изтриването",
+    "CONFIRM_DELETE_TITLE"              : "Потвърждаване на изтриването",
     "CONFIRM_FOLDER_DELETE"             : "Наистина ли искате да изтриете папката <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Изтрит файл",
     "EXT_MODIFIED_WARNING"              : "Файлът <span class='dialog-filename'>{0}</span> беше променен извън {APP_NAME}.<br /><br />Искате ли да запазите файла и да презапишете промените му?",

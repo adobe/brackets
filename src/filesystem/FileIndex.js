@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
-
 /**
  * FileIndex is an internal module used by FileSystem to maintain an index of all files and directories.
  *

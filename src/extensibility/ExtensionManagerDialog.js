@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global brackets, define, $ */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -255,7 +252,7 @@ define(function (require, exports, module) {
                     // new install or an update.
                     Package.validate(path, { requirePackageJSON: true }).done(function (info) {
                         if (info.errors.length) {
-                            result.reject(Package.formatError(info.errors));
+                            result.reject(info.errors.map(Package.formatError).join(" "));
                             return;
                         }
 
@@ -312,6 +309,7 @@ define(function (require, exports, module) {
             views   = [],
             $search,
             $searchClear,
+            $modalDlg,
             context = { Strings: Strings, showRegistry: !!brackets.config.extension_registry },
             models  = [];
 
@@ -338,6 +336,7 @@ define(function (require, exports, module) {
             $search.val("");
             views.forEach(function (view, index) {
                 view.filter("");
+                $modalDlg.scrollTop(0);
             });
 
             if (!updateSearchDisabled()) {
@@ -363,14 +362,15 @@ define(function (require, exports, module) {
         $dlg = dialog.getElement();
         $search = $(".search", $dlg);
         $searchClear = $(".search-clear", $dlg);
+        $modalDlg = $(".modal-body", $dlg);
 
         function setActiveTab($tab) {
             if (models[_activeTabIndex]) {
-                models[_activeTabIndex].scrollPos = $(".modal-body", $dlg).scrollTop();
+                models[_activeTabIndex].scrollPos = $modalDlg.scrollTop();
             }
             $tab.tab("show");
             if (models[_activeTabIndex]) {
-                $(".modal-body", $dlg).scrollTop(models[_activeTabIndex].scrollPos || 0);
+                $modalDlg.scrollTop(models[_activeTabIndex].scrollPos || 0);
                 clearSearch();
             }
         }
@@ -437,7 +437,7 @@ define(function (require, exports, module) {
             $(".spinner", $dlg).remove();
 
             views.forEach(function (view) {
-                view.$el.appendTo($(".modal-body", $dlg));
+                view.$el.appendTo($modalDlg);
             });
 
             // Update search UI before new tab is shown
@@ -457,6 +457,7 @@ define(function (require, exports, module) {
                 var query = $(this).val();
                 views.forEach(function (view) {
                     view.filter(query);
+                    $modalDlg.scrollTop(0);
                 });
             }).on("click", ".search-clear", clearSearch);
 

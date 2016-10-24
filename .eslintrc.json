@@ -1,9 +1,6 @@
 {
-    "env": {
-        "node": true
-    },
     "rules": {
-        "no-bitwise": 0,
+        "no-bitwise": 2,
         "curly": 2,
         "eqeqeq": 2,
         "guard-for-in": 0,
@@ -25,7 +22,7 @@
         "no-control-regex": 2,
         "no-regex-spaces": 2,
         "no-undef": 2,
-        "strict": 0,
+        "strict": 2,
         "no-unused-vars": [0, {"vars": "all", "args": "none"}],
         "semi": 2,
 
@@ -49,20 +46,24 @@
         "valid-typeof": 2,
 
         "no-trailing-spaces": 0,
-        "eol-last": 0
+        "eol-last": 0,
+        "max-len": [1, 120]
     },
     "globals": {
         "brackets": false,
 
-        "window": false,
-        "alert": false,
-        "document": false,
-        "localStorage": false,
-        "navigator": false,
-        "setTimeout": false,
-
         "require": false,
         "define": false,
-        "$": false
+        "$": false,
+
+        "window": false,
+        "console": false,
+        "setTimeout": false,
+        "clearTimeout": false,
+
+        "ArrayBuffer": false,
+        "XMLHttpRequest": false,
+        "Uint32Array": false,
+        "WebSocket": false
     }
 }

@@ -220,8 +220,8 @@ a, img {
 
     #status-language {
         border-right: 1px solid @bc-panel-border;
-        padding: 0px;
-        margin: 0px;
+        padding: 0;
+        margin: 0;
         
         .dark & {
             border-right: 1px solid @dark-bc-panel-separator;
@@ -347,10 +347,10 @@ a, img {
         .image-view {
             overflow: hidden;
             position: absolute;
-            top: 0px;
-            right: 0px;
-            bottom: 0px;
-            left: 0px;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             text-align: center;
             .image-centering {
                 display: inline-block;
@@ -503,7 +503,7 @@ a, img {
         &-flipview-btn {
             position: relative;
             display: none;
-            top: 0px;
+            top: 0;
             padding-top: 2px;
             padding-right: 4px;
             padding-left: 4px;
@@ -840,6 +840,7 @@ a, img {
     -webkit-transform: translateZ(0); // forces GPU mode for better filter rendering on retina
     transform: translateZ(0); // future proofing
     -webkit-filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
+    filter: drop-shadow(0 1px 0 rgba(0,0,0,0.36));
     z-index: 1;
 }
 
@@ -905,7 +906,7 @@ a, img {
 
 .open-files-container {
     .box-flex(0);
-    padding: 0px;
+    padding: 0;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
 
@@ -967,6 +968,7 @@ a, img {
     border-bottom: 1px solid @bc-highlight;
     box-sizing: border-box;
     height: 23px;
+    width: 100%;
     position: absolute;
 }
 
@@ -997,6 +999,7 @@ a, img {
     box-sizing: border-box;
     position: absolute;
     height: 23px;
+    width: 100%;
 }
 
 //Initially start with the open files hidden, they will get show as files are added
@@ -1007,13 +1010,10 @@ a, img {
 #project-files-container {
     .box-flex(1);
 
-    ul {
+    div > ul {
+        padding-bottom: 24px;
         padding-left: 8px;
     }
-
-    > ul {
-        padding-bottom: 24px;
-    }    
 }
 
 .scroller-shadow {
@@ -1022,6 +1022,7 @@ a, img {
     height: 5px;
     position: fixed;
     z-index: @z-index-brackets-scroller-shadow;
+    pointer-events: none; // serves as a "click through", so clicks go to the file tree behind (see #12684)
 
     &.top {
         #gradient > .vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
@@ -1059,22 +1060,30 @@ a, img {
 .jstree-brackets .jstree-no-dots .jstree-open > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0) rotate(90deg);
-    -webkit-transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
+    transform: translateZ(0) rotate(90deg);
+    transition: -webkit-transform 190ms cubic-bezier(.01, .91, 0, .99);
+    transition: transform 190ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
+    filter: drop-shadow(1px 0 1px @bc-shadow);
     
     .dark & {
-        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);        
+        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);
+        filter: drop-shadow(1px 0 1px @dark-bc-shadow);
     }
 }
 
 .jstree-brackets .jstree-no-dots .jstree-closed > ins {
     background-position: 7px -8px;
     -webkit-transform: translateZ(0); /* Need this to make sure that the svg isn't blurry on retina. */
-    -webkit-transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
+    transform: translateZ(0);
+    transition: -webkit-transform 90ms cubic-bezier(.01, .91, 0, .99);
+    transition: transform 90ms cubic-bezier(.01, .91, 0, .99);
     -webkit-filter: drop-shadow(1px 0 1px @bc-shadow);
+    filter: drop-shadow(1px 0 1px @bc-shadow);
     
     .dark & {
-        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);        
+        -webkit-filter: drop-shadow(1px 0 1px @dark-bc-shadow);
+        filter: drop-shadow(1px 0 1px @dark-bc-shadow);
     }
 }
 
@@ -1123,7 +1132,7 @@ a, img {
 /* Styles for inline editors */
 
 .inline-text-editor {
-    line-height: 0px;
+    line-height: 0;
 }
 
 .inline-widget {
@@ -1158,7 +1167,7 @@ a, img {
 
     .inline-editor-header {
         display: inline-block;
-        padding: 9px 10px 1px 40px;
+        padding: 8px 10px 2px 40px;
 
         .filename {
             vertical-align: middle;
@@ -1203,13 +1212,13 @@ a, img {
     }
 
     .shadow.top {
-        top: 0px;
-        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
+        top: 0;
+        background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
     }
 
     .shadow.bottom {
-        bottom: 0px;
-        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
+        bottom: 0;
+        background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
     }
 
     .CodeMirror-scroll {
@@ -1303,7 +1312,7 @@ a, img {
 
         ul {
             margin: 0;
-            padding: 10px 0px 10px 5px;
+            padding: 10px 0 10px 5px;
             list-style: none;
         }
 
@@ -1311,7 +1320,7 @@ a, img {
             color: @bc-text-emphasized;
             margin: 0;
             overflow: hidden;
-            padding: 2px 0px 2px 15px;
+            padding: 2px 0 2px 15px;
             text-overflow: ellipsis;
             white-space: nowrap;
 
@@ -1469,6 +1478,7 @@ a, img {
         // Unfortunately, the way jsTree sprites are aligned within their 18px boxes doesn't look good in
         // other contexts, so we need some tweaks here instead of straight multiples of @jstree-sprite-size
         -webkit-transform: translateZ(0) rotate(90deg);
+        transform: translateZ(0) rotate(90deg);
     }
 }
 
@@ -1486,7 +1496,9 @@ a, img {
     padding: 5px 4px 4px 14px;
 
     -webkit-transform: translate(0, 0); // Prefix still required.
+    transform: translate(0, 0);
     transition: -webkit-transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
+    transition: transform 66ms cubic-bezier(0, 0.62, 0.04, 0.99);
     z-index: @z-index-brackets-modalbar;
 
     .dark & {
@@ -1669,19 +1681,19 @@ a, img {
     }
     #replace-all.solo {
         border-left: none;
-        margin-left: 0px;
+        margin-left: 0;
     }
 
     // Make find field snug with options buttons
     //    & replace snug with replace commands
     #find-what, #replace-with {
-        margin-right: 0px;
+        margin-right: 0;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
     }
     #find-case-sensitive, #replace-yes {
         border-left: none;
-        margin-left: 0px;
+        margin-left: 0;
         border-radius: 0;
     }
 }
@@ -2024,14 +2036,14 @@ textarea.exclusions-editor {
 }
 
 @-webkit-keyframes spinner-rotateplane {
-    0% { -webkit-transform: perspective(120px) }
-    50% { -webkit-transform: perspective(120px) rotateY(180deg) }
-    100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg) }
+    0% { -webkit-transform: perspective(120px); }
+    50% { -webkit-transform: perspective(120px) rotateY(180deg); }
+    100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg); }
 }
 @keyframes spinner-rotateplane {
-    0% { -webkit-transform: perspective(120px) rotateX(0deg) rotateY(0deg); transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
-    50% { -webkit-transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); }
-    100% { -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); }
+    0% { transform: perspective(120px) rotateX(0deg) rotateY(0deg); }
+    50% { transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg); }
+    100% { transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg); }
 }
 
 
@@ -2153,7 +2165,7 @@ label input {
         }
     }
     &.animateOpen {
-        -webkit-transition: -webkit-transform 125ms;
+        transition: -webkit-transform 125ms;
         transition: transform 125ms;
         -webkit-transform: scale(1);
         transform: scale(1);
@@ -2162,7 +2174,7 @@ label input {
         // Make the animation use the GPU--especially important for retina.
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
-        -webkit-transition: opacity 500ms 5s ease-in, -webkit-transform 500ms 5s;
+        transition: opacity 500ms 5s ease-in, -webkit-transform 500ms 5s;
         transition: opacity 500ms 5s ease-in, transform 500ms 5s;
         opacity: 0.0;
     }
