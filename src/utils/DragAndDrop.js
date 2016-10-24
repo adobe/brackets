@@ -210,7 +210,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_DROPPED_FILES, Commands.FILE_OPEN_DROPPED_FILES, openDroppedFiles);
 
     // Export public API
-    exports.attachHandlers      = attachHandlers;
     exports.isValidDrop         = isValidDrop;
+    exports.attachHandlers      = attachHandlers;
     exports.openDroppedFiles    = openDroppedFiles;
 });
