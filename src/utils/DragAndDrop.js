@@ -154,11 +154,11 @@ define(function (require, exports, module) {
 
         function handleDragOver(event) {
             event = event.originalEvent || event;
-
+            event.stopPropagation();
+            event.preventDefault();
+            
             var files = event.dataTransfer.files;
             if (files && files.length) {
-                event.stopPropagation();
-                event.preventDefault();
 
                 var dropEffect = "none";
 
@@ -172,12 +172,11 @@ define(function (require, exports, module) {
 
         function handleDrop(event) {
             event = event.originalEvent || event;
-
+            event.stopPropagation(); //moved from inside below if-statement
+            event.preventDefault(); //the default behavior and propagation should be stopped no matter what 
+            
             var files = event.dataTransfer.files;
             if (files && files.length) {
-                event.stopPropagation();
-                event.preventDefault();
-
                 brackets.app.getDroppedFiles(function (err, paths) {
                     if (!err) {
                         openDroppedFiles(paths);
