@@ -103,6 +103,7 @@ define(function (require, exports, module) {
       body: true,
       li: true,
       dd: true,
+      dt: true, // This is not actually correct, but showing a syntax error is not helpful
       p: true,
       rb: true,
       rt: true,
