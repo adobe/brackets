@@ -1431,7 +1431,7 @@ define(function (require, exports, module) {
             });
 
             it("should handle deleting of a non-empty tag character-by-character", function () {
-                setupEditor("<div><p>deleteme</p>{{0}}</div>", true);
+                setupEditor("<div><b>deleteme</b>{{0}}</div>", true);
                 runs(function () {
                     var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
                         pTagID = previousDOM.children[0].tagID,
@@ -1448,6 +1448,22 @@ define(function (require, exports, module) {
                     deleteAndExpect(editor, result.finalDOM, result.finalPos, 1, [
                         [{type: "elementDelete", tagID: pTagID}]
                     ], true);
+                });
+            });
+
+            it("should handle deleting of a single character exactly between two elements", function () {
+                setupEditor("<p><br>X{{0}}<br></p>", true);
+                runs(function () {
+                    var previousDOM = HTMLSimpleDOM.build(editor.document.getText()),
+                        pTagID = previousDOM.tagID,
+                        br1TagID = previousDOM.children[0].tagID,
+                        br2TagID = previousDOM.children[2].tagID;
+
+                    HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
+
+                    deleteAndExpect(editor, previousDOM, offsets[0], 1, [
+                        [{type: 'textDelete', parentID: pTagID, afterID: br1TagID, beforeID: br2TagID}]
+                    ]);
                 });
             });
 
@@ -1607,10 +1623,10 @@ define(function (require, exports, module) {
                     expect(previousDOM).toBe(null);
 
                     // Type the opening tag--should be invalid all the way
-                    result = typeAndExpect(editor, previousDOM, {line: 0, ch: 0}, "<html></html");
+                    result = typeAndExpect(editor, previousDOM, {line: 0, ch: 0}, "<html");
                     expect(result.finalInvalid).toBe(true);
 
-                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // Finally become valid by closing the start tag. Note that this elementInsert
                     // should be treated specially by RemoteFunctions not to actually insert the
                     // element, but just copy its ID to the autocreated HTML element.
                     result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
@@ -1675,10 +1691,10 @@ define(function (require, exports, module) {
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
 
                     // Type the opening tag--should be invalid all the way
-                    result = typeAndExpect(editor, previousDOM, offsets[0], "<body></body");
+                    result = typeAndExpect(editor, previousDOM, offsets[0], "<body");
                     expect(result.finalInvalid).toBe(true);
 
-                    // Finally become valid by closing the end tag. Note that this elementInsert
+                    // Finally become valid by closing the start tag. Note that this elementInsert
                     // should be treated specially by RemoteFunctions not to actually insert the
                     // element, but just copy its ID to the autocreated HTML element.
                     result = typeAndExpect(editor, result.finalDOM, result.finalPos, ">", [
@@ -1695,6 +1711,16 @@ define(function (require, exports, module) {
                             ];
                         }
                     ], true); // because we were invalid before this operation
+                });
+            });
+
+            it("should handle adding a space after </html>", function () {
+                setupEditor("<html></html>", true);
+                runs(function () {
+                    doEditTest(editor.document.getText(), function (editor, previousDOM) {
+                        editor.document.replaceRange(" ", {line: 0, ch: 13});
+                    }, function (result, previousDOM, incremental) {
+                    }, true);
                 });
             });
 
