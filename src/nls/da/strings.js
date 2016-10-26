@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -115,7 +112,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Ønsker du at gemme ændringerne i dokumentet <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Ønsker du at gemme ændringerne i følgende filer?",
     "EXT_MODIFIED_TITLE"                : "Eksterne ændringer",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Bekræft sletning",
+    "CONFIRM_DELETE_TITLE"              : "Bekræft sletning",
     "CONFIRM_FOLDER_DELETE"             : "Er du sikker på at du vil slette mappen <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Fil slettet",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> er blevet ændret på disken.<br /><br />Ønsker du at gemme filen og overskrive disse ændringer?",

@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -129,7 +126,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Apakah Anda ingin menyimpan perubahan yang Anda buat di dokumen <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Apakah Anda ingin menyimpan perubahan pada file berikut?",
     "EXT_MODIFIED_TITLE"                : "Perubahan Eksternal",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Konfirmasi Hapus",
+    "CONFIRM_DELETE_TITLE"              : "Konfirmasi Hapus",
     "CONFIRM_FOLDER_DELETE"             : "Apakah Anda yakin ingin menghapus folder <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "File Dihapus",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> telah dimodifikasi di disk.<br /><br />Apakah Anda ingin menyimpan file dan menimpa perubahan tersebut?",

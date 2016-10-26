@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define */
-
 /**
  * LiveHTMLDocument manages a single HTML source document. Edits to the HTML are applied live in
  * the browser, and the DOM node corresponding to the selection is highlighted.

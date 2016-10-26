@@ -21,7 +21,6 @@
  *
  */
 
-/*global define, $*/
 /*unittests: FileTreeView*/
 
 /**
@@ -60,6 +59,8 @@ define(function (require, exports, module) {
     var CLICK_RENAME_MINIMUM  = 500,
         RIGHT_MOUSE_BUTTON    = 2,
         LEFT_MOUSE_BUTTON     = 0;
+
+    var INDENTATION_WIDTH     = 10;
 
     /**
      * @private
@@ -107,6 +108,40 @@ define(function (require, exports, module) {
         var width = measuringElement.width();
         measuringElement.remove();
         return width;
+    }
+
+    /**
+     * @private
+     *
+     * Create an appropriate div based "thickness" to indent the tree correctly.
+     *
+     * @param {int} depth The depth of the current node.
+     * @return {ReactComponent} The resulting div.
+     */
+    function _createThickness(depth) {
+        return DOM.div({
+            style: {
+                display: "inline-block",
+                width: INDENTATION_WIDTH * depth
+            }
+        });
+    }
+
+    /**
+     * @private
+     *
+     * Create, and indent correctly, the arrow icons used for the folders.
+     *
+     * @param {int} depth The depth of the current node.
+     * @return {ReactComponent} The resulting ins.
+     */
+    function _createAlignedIns(depth) {
+        return DOM.ins({
+            className: "jstree-icon",
+            style: {
+                marginLeft: INDENTATION_WIDTH * depth
+            }
+        });
     }
 
     /**
@@ -392,6 +427,7 @@ define(function (require, exports, module) {
         handleClick: function (e) {
             // If we're renaming, allow the click to go through to the rename input.
             if (this.props.entry.get("rename")) {
+                e.stopPropagation();
                 return;
             }
 
@@ -458,7 +494,22 @@ define(function (require, exports, module) {
                 'context-node': this.props.entry.get("context")
             });
 
+            var liArgs = [
+                {
+                    className: this.getClasses("jstree-leaf"),
+                    onClick: this.handleClick,
+                    onMouseDown: this.handleMouseDown,
+                    onDoubleClick: this.handleDoubleClick
+                },
+                DOM.ins({
+                    className: "jstree-icon"
+                }),
+            ];
+
+            var thickness = _createThickness(this.props.depth);
+
             if (this.props.entry.get("rename")) {
+                liArgs.push(thickness);
                 nameDisplay = fileRenameInput({
                     actions: this.props.actions,
                     entry: this.props.entry,
@@ -470,20 +521,13 @@ define(function (require, exports, module) {
                 var aArgs = _.flatten([{
                     href: "#",
                     className: fileClasses
-                }, this.getIcons(), name, extension]);
+                }, thickness, this.getIcons(), name, extension]);
                 nameDisplay = DOM.a.apply(DOM.a, aArgs);
             }
 
-            return DOM.li({
-                className: this.getClasses("jstree-leaf"),
-                onClick: this.handleClick,
-                onMouseDown: this.handleMouseDown,
-                onDoubleClick: this.handleDoubleClick
-            },
-                DOM.ins({
-                    className: "jstree-icon"
-                }, " "),
-                nameDisplay);
+            liArgs.push(nameDisplay);
+
+            return DOM.li.apply(DOM.li, liArgs);
         }
     }));
 
@@ -613,6 +657,11 @@ define(function (require, exports, module) {
          * If you click on a directory, it will toggle between open and closed.
          */
         handleClick: function (event) {
+            if (this.props.entry.get("rename")) {
+                event.stopPropagation();
+                return;
+            }
+
             if (event.button !== LEFT_MOUSE_BUTTON) {
                 return;
             }
@@ -663,12 +712,12 @@ define(function (require, exports, module) {
                 nodeClass,
                 childNodes,
                 children = entry.get("children"),
-                isOpen = entry.get("open"),
-                directoryClasses = "";
+                isOpen = entry.get("open");
 
             if (isOpen && children) {
                 nodeClass = "open";
                 childNodes = directoryContents({
+                    depth: this.props.depth + 1,
                     parentPath: this.myPath(),
                     contents: children,
                     extensions: this.props.extensions,
@@ -681,46 +730,46 @@ define(function (require, exports, module) {
                 nodeClass = "closed";
             }
 
-            if (this.props.entry.get("selected")) {
-                directoryClasses += " jstree-clicked sidebar-selection";
-            }
+            var nameDisplay,
+                cx = Classnames;
 
-            if (entry.get("context")) {
-                directoryClasses += " context-node";
-            }
+            var directoryClasses = cx({
+                'jstree-clicked sidebar-selection': entry.get("selected"),
+                'context-node': entry.get("context")
+            });
 
-            var nameDisplay, renameInput;
+            var liArgs = [
+                {
+                    className: this.getClasses("jstree-" + nodeClass),
+                    onClick: this.handleClick,
+                    onMouseDown: this.handleMouseDown
+                },
+                _createAlignedIns(this.props.depth)
+            ];
+
+            var thickness = _createThickness(this.props.depth);
+
             if (entry.get("rename")) {
-                renameInput = directoryRenameInput({
+                liArgs.push(thickness);
+                nameDisplay = directoryRenameInput({
                     actions: this.props.actions,
-                    entry: this.props.entry,
+                    entry: entry,
                     name: this.props.name,
                     parentPath: this.props.parentPath
                 });
+            } else {
+                // Need to flatten the arguments because getIcons returns an array
+                var aArgs = _.flatten([{
+                    href: "#",
+                    className: directoryClasses
+                }, thickness, this.getIcons(), this.props.name]);
+                nameDisplay = DOM.a.apply(DOM.a, aArgs);
             }
 
-            // Need to flatten the arguments because getIcons returns an array
-            var aArgs = _.flatten([{
-                href: "#",
-                className: directoryClasses
-            }, this.getIcons()]);
-            if (!entry.get("rename")) {
-                aArgs.push(this.props.name);
-            }
+            liArgs.push(nameDisplay);
+            liArgs.push(childNodes);
 
-            nameDisplay = DOM.a.apply(DOM.a, aArgs);
-
-            return DOM.li({
-                className: this.getClasses("jstree-" + nodeClass),
-                onClick: this.handleClick,
-                onMouseDown: this.handleMouseDown
-            },
-                DOM.ins({
-                    className: "jstree-icon"
-                }, " "),
-                renameInput,
-                nameDisplay,
-                childNodes);
+            return DOM.li.apply(DOM.li, liArgs);
         }
     }));
 
@@ -765,6 +814,7 @@ define(function (require, exports, module) {
 
                 if (FileTreeViewModel.isFile(entry)) {
                     return fileNode({
+                        depth: this.props.depth,
                         parentPath: this.props.parentPath,
                         name: name,
                         entry: entry,
@@ -776,6 +826,7 @@ define(function (require, exports, module) {
                     });
                 } else {
                     return directoryNode({
+                        depth: this.props.depth,
                         parentPath: this.props.parentPath,
                         name: name,
                         entry: entry,
@@ -828,16 +879,10 @@ define(function (require, exports, module) {
                 width = selectionViewInfo.get("width"),
                 scrollWidth = selectionViewInfo.get("scrollWidth");
 
-            // Avoid endless horizontal scrolling
-            if (left + width > scrollWidth) {
-                left = scrollWidth - width;
-            }
-
             return DOM.div({
                 style: {
                     overflow: "auto",
                     left: left,
-                    width: width,
                     display: this.props.visible ? "block" : "none"
                 },
                 className: this.props.className
@@ -978,6 +1023,7 @@ define(function (require, exports, module) {
                 }),
                 contents = directoryContents({
                     isRoot: true,
+                    depth: 1,
                     parentPath: this.props.parentPath,
                     sortDirectoriesFirst: this.props.sortDirectoriesFirst,
                     contents: this.props.treeData,

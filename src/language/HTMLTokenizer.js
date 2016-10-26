@@ -24,8 +24,8 @@
 // A simple HTML tokenizer, originally adapted from https://github.com/fb55/htmlparser2
 // (MIT-licensed), but with significant customizations for use in HTML live development.
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, continue: true */
-/*global define */
+/*jslint continue: true */
+
 /*unittests: HTML Tokenizer*/
 
 define(function (require, exports, module) {
@@ -678,9 +678,14 @@ define(function (require, exports, module) {
             this._index++;
         }
 
-        if (this._index === this._buffer.length && this._state !== TEXT) {
-            // We hit EOF in the middle of processing something else.
-            this._emitSpecialToken("error");
+        if (!this._token) {
+            if (this._state !== TEXT) {
+                // We hit EOF in the middle of processing something else.
+                this._emitSpecialToken("error");
+            } else {
+                this._emitTokenIfNonempty("text");
+                this._startSection();
+            }
         }
         return this._token;
     };

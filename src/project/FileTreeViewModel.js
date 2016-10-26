@@ -21,7 +21,6 @@
  *
  */
 
-/*global define */
 /*unittests: FileTreeViewModel*/
 
 /**

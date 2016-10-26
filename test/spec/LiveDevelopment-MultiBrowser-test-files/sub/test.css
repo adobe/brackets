@@ -1,3 +1,7 @@
 body { background-color: red;}
 
+.main { background: url(icon_chevron.png); }
+
+.sub { background: url(file:///fake.png); }
+
 h1 { color: blue; }

@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: false, $ */
-
 /**
  * The ViewCommandHandlers object dispatches the following event(s):
  *    - fontSizeChange -- Triggered when the font size is changed via the

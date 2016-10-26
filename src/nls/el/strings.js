@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -103,7 +100,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Θέλετε να αποθηκεύσετε τις αλλαγές που κάνατε στο έγγραφο <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Θέλετε να αποθηκεύσετε τις αλλαγές σας στα παρακάτω αρχεία;",
     "EXT_MODIFIED_TITLE"                : "Εξωτερικές Αλλαγές",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Επιβεβαίωση Διαγραφής",
+    "CONFIRM_DELETE_TITLE"              : "Επιβεβαίωση Διαγραφής",
     "CONFIRM_FOLDER_DELETE"             : "Είστε σίγουρος ότι θέλετε να διαγράψετε τον φάκελο <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Το Αρχείο Διαγράφηκε",
     "EXT_MODIFIED_MESSAGE"              : "Το <span class='dialog-filename'>{0}</span> έχει τροποποιηθεί στο δίσκο, αλλά υπάρχουν και μη αποθηκευμένες αλλαγές στο {APP_NAME}.<br /><br />Ποια έκδοση θέλετε να κρατήσετε;",

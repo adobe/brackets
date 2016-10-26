@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
-
 /**
  * Provides the protocol that Brackets uses to talk to a browser instance for live development.
  * Protocol methods are converted to a JSON message format, which is then sent over a provided

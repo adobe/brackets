@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 /**
  * Initializes the global "brackets" variable and it's properties.
  * Modules should not access the global.brackets object until either
@@ -125,5 +121,12 @@ define(function (require, exports, module) {
     // only be able to load modules that have already been loaded once.
     global.brackets.getModule = require;
 
+    /* API for retrieving the global RequireJS config
+     * For internal use only
+     */
+    global.brackets._getGlobalRequireJSConfig = function () {
+        return global.require.s.contexts._.config;
+    };
+    
     exports.global = global;
 });

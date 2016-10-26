@@ -21,9 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {
@@ -51,10 +48,14 @@ define(function (require, exports, module) {
         article : { p: true },
         aside   : { p: true },
         blockquote : { p: true },
+        colgroup: { caption: true },
+        details : { p: true },
         dir     : { p: true },
         div     : { p: true },
         dl      : { p: true },
         fieldset: { p: true },
+        figcaption: { p: true },
+        figure  : { p: true },
         footer  : { p: true },
         form    : { p: true },
         h1      : { p: true },
@@ -75,17 +76,48 @@ define(function (require, exports, module) {
         section : { p: true },
         table   : { p: true },
         ul      : { p: true },
-        rt      : { rp: true, rt: true },
-        rp      : { rp: true, rt: true },
+        rb      : { rb: true, rt: true, rtc: true, rp: true },
+        rp      : { rb: true, rt: true, rp: true },
+        rt      : { rb: true, rt: true, rp: true },
+        rtc     : { rb: true, rt: true, rtc: true, rp: true },
         optgroup: { optgroup: true, option: true },
         option  : { option: true },
-        tbody   : { thead: true, tbody: true, tfoot: true },
-        tfoot   : { tbody: true },
-        tr      : { tr: true, th: true, td: true },
+        tbody   : { caption: true, colgroup: true, thead: true, tbody: true, tfoot: true, },
+        tfoot   : { caption: true, colgroup: true, thead: true, tbody: true },
+        thead   : { caption: true, colgroup: true },
+        tr      : { tr: true, th: true, td: true, caption: true },
         th      : { th: true, td: true },
-        td      : { thead: true, th: true, td: true },
-        body    : { head: true, link: true, script: true }
+        td      : { th: true, td: true },
+        body    : { head: true }
     };
+
+    /**
+     * A list of elements which are automatically closed when their parent is closed:
+     * http://www.w3.org/html/wg/drafts/html/master/syntax.html#optional-tags
+     */
+    var optionalClose = {
+      html: true,
+      body: true,
+      li: true,
+      dd: true,
+      dt: true, // This is not actually correct, but showing a syntax error is not helpful
+      p: true,
+      rb: true,
+      rt: true,
+      rtc: true,
+      rp: true,
+      optgroup: true,
+      option: true,
+      colgroup: true,
+      caption: true,
+      tbody: true,
+      tfoot: true,
+      tr: true,
+      td: true,
+      th: true
+    };
+
+    // TODO: handle optional start tags
 
     /**
      * A list of tags that are self-closing (do not contain other elements).
@@ -385,13 +417,6 @@ define(function (require, exports, module) {
                             break;
                         }
                     }
-                    if (strict && i !== stack.length - 1) {
-                        // If we're in strict mode, treat unbalanced tags as invalid.
-                        PerfUtils.finalizeMeasurement(timerBuildFull);
-                        PerfUtils.addMeasurement(timerBuildPart);
-                        this._logError(token);
-                        return null;
-                    }
                     if (i >= 0) {
                         do {
                             // For all tags we're implicitly closing (before we hit the matching tag), we want the
@@ -402,6 +427,13 @@ define(function (require, exports, module) {
                             if (stack.length === i + 1) {
                                 closeTag(token.end + 1, _offsetPos(token.endPos, 1));
                             } else {
+                                if (strict && !optionalClose.hasOwnProperty(stack[stack.length - 1].tag)) {
+                                    // If we're in strict mode, treat unbalanced tags as invalid.
+                                    PerfUtils.finalizeMeasurement(timerBuildFull);
+                                    PerfUtils.addMeasurement(timerBuildPart);
+                                    this._logError(token);
+                                    return null;
+                                }
                                 closeTag(token.start - 2, _offsetPos(token.startPos, -2));
                             }
                         } while (stack.length > i);
@@ -450,24 +482,16 @@ define(function (require, exports, module) {
             lastIndex = token.end;
         }
 
-        // If we have any tags hanging open (e.g. html or body), fail the parse if we're in strict mode,
+        // If we have any tags hanging open, fail the parse if we're in strict mode,
         // otherwise close them at the end of the document.
-        if (stack.length) {
-            if (strict) {
+        while (stack.length) {
+            if (strict && !optionalClose.hasOwnProperty(stack[stack.length - 1].tag)) {
                 PerfUtils.finalizeMeasurement(timerBuildFull);
                 PerfUtils.addMeasurement(timerBuildPart);
                 this._logError(token);
                 return null;
-            } else {
-                // Manually compute the position of the end of the text (we can't rely on the
-                // tokenizer for this since it may not get to the very end)
-                // TODO: should probably make the tokenizer get to the end...
-                var lines = this.text.split("\n"),
-                    lastPos = {line: lines.length - 1, ch: lines[lines.length - 1].length};
-                while (stack.length) {
-                    closeTag(this.text.length, lastPos);
-                }
             }
+            closeTag(this.text.length, this.t._indexPos);
         }
 
         var dom = lastClosedTag;

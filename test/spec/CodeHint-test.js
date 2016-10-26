@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waitsForDone, expect, $, beforeFirst, afterLast */
+/*global describe, beforeEach, afterEach, it, runs, waitsForDone, expect, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";
@@ -145,7 +144,7 @@ define(function (require, exports, module) {
 
                 // Place cursor inside a sample regular expression
                 // Note: line for pos is 0-based and editor lines numbers are 1-based
-                initCodeHintTest("testRegexp.js", pos);
+                initCodeHintTest("testRegExp.js", pos);
 
                 runs(function () {
                     editor = EditorManager.getCurrentFullEditor();
@@ -274,6 +273,88 @@ define(function (require, exports, module) {
 
                     // and popup should auto-close
                     expectNoHints();
+
+                    editor = null;
+                });
+            });
+
+            it("should go to next hint with ctrl+space", function () {
+                var editor,
+                    pos = {line: 3, ch: 1},
+                    hintBefore,
+                    hintAfter;
+
+                // minimal markup with an open '<' before IP
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", pos);
+
+                // simulate ctrl+space key to make sure it goes to next hint
+                runs(function () {
+                    var e = $.Event("keydown");
+                    e.keyCode = KeyEvent.DOM_VK_SPACE;
+                    e.ctrlKey = true;
+
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+
+                    invokeCodeHints();
+                    var codeHintList = expectSomeHints();
+                    hintBefore = codeHintList.selectedIndex;
+
+                    // make sure hint list starts at 0
+                    expect(hintBefore).toEqual(0);
+
+                    // simulate ctrl+space keyhook
+                    CodeHintManager._getCodeHintList()._keydownHook(e);
+                    hintAfter = codeHintList.selectedIndex;
+
+                    // selectedIndex should be one more after doing ctrl+space key event.
+                    expect(hintBefore).toEqual(hintAfter-1);
+
+                    editor = null;
+                });
+            });
+
+            it("should loop to first hint when ctrl+space at last hint", function () {
+                var editor,
+                    pos = {line: 3, ch: 1},
+                    hintBefore,
+                    hintAfter;
+
+                // minimal markup with an open '<' before IP
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", pos);
+
+                // simulate ctrl+space key to make sure it goes to next hint
+                runs(function () {
+                    var e = $.Event("keydown");
+                    e.keyCode = KeyEvent.DOM_VK_UP;
+
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+
+                    invokeCodeHints();
+
+                    // simulate up keyhook to send it to last hint
+                    CodeHintManager._getCodeHintList()._keydownHook(e);
+
+                    var codeHintList = expectSomeHints();
+                    hintBefore = codeHintList.selectedIndex;
+                    var numberOfHints = codeHintList.$hintMenu.find("li").length-1;
+
+                    // should be at last hint
+                    expect(hintBefore).toEqual(numberOfHints);
+
+                    // call ctrl+space to loop it to first hint
+                    e.keyCode = KeyEvent.DOM_VK_SPACE;
+                    e.ctrlKey = true;
+
+                    // simulate ctrl+space keyhook to send it to first hint
+                    CodeHintManager._getCodeHintList()._keydownHook(e);
+                    hintAfter = codeHintList.selectedIndex;
+
+                    // should now be at hint 0
+                    expect(hintAfter).toEqual(0);
 
                     editor = null;
                 });

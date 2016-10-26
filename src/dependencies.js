@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, evil:true */
-/*global window, document */
-
 /**
  * Check for missing dependencies
  */
@@ -48,6 +45,6 @@ window.setTimeout(function () {
                   "<p>If you're still having problems, please contact us via one of the channels mentioned at the bottom of the <a target=\"blank\" href=\"../README.md\">README</a>.</p>" +
                   "<p><a href=\"#\" onclick=\"window.location.reload()\">Reload Brackets</a></p>";
 
-        document.write(str);
+        window.document.write(str);
     }
 }, 1000);
