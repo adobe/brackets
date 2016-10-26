@@ -418,6 +418,7 @@ define({
     "CMD_SHOW_IN_EXPLORER"                : "Show in Explorer",
     "CMD_SHOW_IN_FINDER"                  : "Show in Finder",
     "CMD_SHOW_IN_OS"                      : "Show in OS",
+    "CMD_SPLITVIEW_TOGGLE"                : "Toggle Panes",
 
     // Help menu commands
     "HELP_MENU"                           : "Help",
