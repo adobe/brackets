@@ -1659,6 +1659,7 @@ define(function (require, exports, module) {
         return result;
     }
     
+    
     /**
      * Setup a ready event to initialize ourself
      */
