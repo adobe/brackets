@@ -92,7 +92,8 @@ define(function (require, exports, module) {
         AsyncUtils          = require("utils/Async"),
         ViewUtils           = require("utils/ViewUtils"),
         Resizer             = require("utils/Resizer"),
-        Pane                = require("view/Pane").Pane;
+        Pane                = require("view/Pane").Pane,
+        KeyBindingManager   = brackets.getModule("command/KeyBindingManager");
 
     /**
      * Preference setting name for the MainView Saved State
@@ -842,6 +843,35 @@ define(function (require, exports, module) {
             });
 
         return result.promise();
+    }
+
+    /**
+     * Switch between panes
+     */
+    function switchPaneFocus() {
+        var $firstPane = $('#first-pane'), $secondPane = $('#second-pane');
+        if($firstPane.hasClass('active-pane')) {
+            $secondPane.click();
+        }
+        else {
+            $firstPane.click();
+        }
+    }
+
+    /**
+     * Unit test for switching from first pane to second pane
+     */
+    function switchPaneUnitTest1To2() {
+        var $firstPane = $('#first-pane');
+        $firstPane.click();
+        KeyBindingManager._handleKey('Alt-W');
+    }
+
+    /**
+     * Unit test for switching from second pane to first pane
+     */
+    function switchPaneUnitTest2To1() {
+        KeyBindingManager._handleKey('Alt-W');
     }
 
     /**
@@ -1616,6 +1646,10 @@ define(function (require, exports, module) {
         //  get an event handler for workspace events and we don't listen
         //  to the event before we've been initialized
         WorkspaceManager.on("workspaceUpdateLayout", _updateLayout);
+
+        // Listen to key Alt-W to toggle between panes
+        CommandManager.register(Strings.CMD_SWITCH_PANE_FOCUS, Commands.CMD_SWITCH_PANE_FOCUS, switchPaneFocus);
+        KeyBindingManager.addBinding(Commands.CMD_SWITCH_PANE_FOCUS, {key: 'Alt-W'});
     }
 
     /**
@@ -1729,6 +1763,9 @@ define(function (require, exports, module) {
 
     exports.getAllOpenFiles               = getAllOpenFiles;
     exports.focusActivePane               = focusActivePane;
+    exports.switchPaneFocus               = switchPaneFocus;
+    exports.switchPaneUnitTest1To2        = switchPaneUnitTest1To2;
+    exports.switchPaneUnitTest2To1        = switchPaneUnitTest2To1;
 
     // Layout
     exports.setLayoutScheme               = setLayoutScheme;
