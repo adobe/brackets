@@ -209,19 +209,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Toggle between panes
-     */
-    function _handleSwitchPane() {
-        var $firstPane = $('#first-pane'), $secondPane = $('#second-pane');
-        if($firstPane.hasClass('active-pane')) {
-            $secondPane.click();
-        }
-        else {
-            $firstPane.click();
-        }
-    }
-
-    /**
      * @typedef {!$el: jQuery, getFile:function():!File, updateLayout:function(forceRefresh:boolean), destroy:function(),  getScrollPos:function():?,  adjustScrollPos:function(state:Object=, heightDelta:number)=, getViewState:function():?*=, restoreViewState:function(viewState:!*)=, notifyContainerChange:function()=, notifyVisibilityChange:function(boolean)=} View
      */
 
