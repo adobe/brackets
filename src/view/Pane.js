@@ -167,7 +167,6 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils"),
         ProjectManager      = require("project/ProjectManager"),
         paneTemplate        = require("text!htmlContent/pane.html");
-    var KeyBindingManager   = brackets.getModule("command/KeyBindingManager");
 
     /**
      * Internal pane id
@@ -398,10 +397,6 @@ define(function (require, exports, module) {
             this.$headerCloseBtn.css("display", "none");
             break;
         }
-
-        // Listen to key Alt-W to toggle between panes
-        CommandManager.register(Strings.CMD_SPLITVIEW_TOGGLE, Commands.CMD_SPLITVIEW_TOGGLE, _handleSwitchPane);
-        KeyBindingManager.addBinding(Commands.CMD_SPLITVIEW_TOGGLE, {key: 'Alt-W'});
 
         // Listen to document events so we can update ourself
         DocumentManager.on(this._makeEventName("fileNameChange"),  _.bind(this._handleFileNameChange, this));
