@@ -219,7 +219,7 @@ define({
     "ERROR_CSSQUICKEDIT_BETWEENCLASSES"     : "CSS-pikamuokkaus: sijoita kohdistin yksittäiseen luokan nimeen",
     "ERROR_CSSQUICKEDIT_CLASSNOTFOUND"      : "CSS-pikamuokkaus: puutteellinen class-määrite",
     "ERROR_CSSQUICKEDIT_IDNOTFOUND"         : "CSS-pikamuokkaus: puutteellinen id-määrite",
-    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS-pikamuokkaus: sijoita kohdistin tägiin taikka class- tai id-määritteeseen",
+    "ERROR_CSSQUICKEDIT_UNSUPPORTEDATTR"    : "CSS-pikamuokkaus: sijoita kohdistin tägiin taikka class- tai id-attribuuttiin",
     "ERROR_TIMINGQUICKEDIT_INVALIDSYNTAX"   : "CSS:n aikafunktion pikamuokkaus: virheellinen syntaksi",
     "ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND"    : "JS-pikamuokkaus: sijoita kohdistin funktion nimeen",
 
@@ -459,7 +459,7 @@ define({
     "PROJECT_SETTINGS_TITLE"               : "Projektin asetukset kohteelle: {0}",
     "PROJECT_SETTING_BASE_URL"             : "Esikatselun perus-URL",
     "PROJECT_SETTING_BASE_URL_HINT"        : "Käytä paikall. palvelinta antamalla URL, kuten http://localhost:8000/",
-    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Esikatselu ei tue {0}-protokollaa. Käytä joko http: tai https: -mallia.",
+    "BASEURL_ERROR_INVALID_PROTOCOL"       : "Esikatselu ei tue {0}-protokollaa. Käytä joko http: tai https: \u2011muotoa.",
     "BASEURL_ERROR_SEARCH_DISALLOWED"      : "URL-osoite ei voi sisältää hakuparametreja, kuten ”{0}”.",
     "BASEURL_ERROR_HASH_DISALLOWED"        : "URL-osoite ei voi sisältää ristikkomerkkejä, kuten ”{0}”.",
     "BASEURL_ERROR_INVALID_CHAR"           : "Erikoismerkit, kuten ”{0}”, täytyy %-koodata.",
@@ -503,7 +503,7 @@ define({
     "VIEW_TRUNCATED_DESCRIPTION"           : "Näytä katkaistu kuvaus",
     // These must match the error codes in ExtensionsDomain.Errors.* :
     "INVALID_ZIP_FILE"                     : "Ladattu sisältö ei ole kelvollinen zip-tiedosto.",
-	"MISSING_PACKAGE_JSON"                 : "Paketissa ei ole tiedostoa package.json.",
+    "MISSING_PACKAGE_JSON"                 : "Paketissa ei ole tiedostoa package.json.",
     "INVALID_PACKAGE_JSON"                 : "Tiedosto package.json on virheellinen. (Virhe {0}.)",
     "MISSING_PACKAGE_NAME"                 : "Tiedostoon package.json ei ole merkitty paketin nimeä.",
     "BAD_PACKAGE_NAME"                     : "{0} on virheellinen paketin nimi.",
@@ -629,7 +629,7 @@ define({
     "HEALTH_DATA_DO_TRACK"                      : "Jaa nimettömiä tietoja {APP_NAME}in käytöstäni",
     "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Jotta voit parantaa {APP_NAME}ia, lähetämme säännöllisesti Adobelle rajattuja, <strong>nimettömiä</strong> tilastotietoja siitä, kuinka käytät tuotetta. Nämä tiedot auttavat priorisoimaan ominaisuuksia, löytämään bugeja ja huomaamaan käytettävyysongelmia.<br><br>Voit nähdä tietosi tai valita, ettei tietoja jaeta, valitsemalla <strong>Ohje > Terveydentilaraportti</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lue lisää {APP_NAME}in terveydentilaraportista</a>",
     "HEALTH_DATA_PREVIEW"                       : "{APP_NAME}in terveydentilaraportti",
-    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Jotta voit parantaa {APP_NAME}ia, lähetämme säännöllisesti Adobelle rajattuja, <strong>nimettömiä</strong> tilastotietoja siitä, kuinka käytät tuotetta. Nämä tiedot auttavat priorisoimaan ominaisuuksia, löytämään bugeja ja huomaamaan käytettävyysongelmia. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lue lisää {APP_NAME}in terveydentilaraportista</a> ja siitä, kuinka se hyödyttää {APP_NAME}-yhteisöä samalla, kun suojelemme yksityisyyttäsi.</p><p>Alla on esikatselu tiedoista, jotka lähetetään seuraavassa terveydentilaraportissasi <em>jos</em> se on otettu käyttöön.</p>",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Jotta voimme parantaa {APP_NAME}ia, lähetämme säännöllisesti Adobelle rajattuja, <strong>nimettömiä</strong> tilastotietoja siitä, kuinka käytät tuotetta. Nämä tiedot auttavat priorisoimaan ominaisuuksia, löytämään bugeja ja huomaamaan käytettävyysongelmia. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Lue lisää {APP_NAME}in terveydentilaraportista</a> ja siitä, kuinka se hyödyttää {APP_NAME}-yhteisöä samalla, kun suojelemme yksityisyyttäsi.</p><p>Alla on esikatselu tiedoista, jotka lähetetään seuraavassa terveydentilaraportissasi <em>jos</em> se on otettu käyttöön.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Aika",
@@ -694,7 +694,7 @@ define({
     "DESCRIPTION_CODE_FOLDING_MIN_FOLD_SIZE"         : "Rivejä vähintään ennen kuin pienennettävän osion kuvake tulee esiin",
     "DESCRIPTION_CODE_FOLDING_SAVE_FOLD_STATES"      : "true: muista pienennetyt osiot, jos tiedosto tai projekti suljetaan ja avataan sitten uudelleen",
     "DESCRIPTION_CODE_FOLDING_MAKE_SELECTIONS_FOLDABLE": "true: ota valitun tekstin koodin laskostus käyttöön editorissa",
-    "DESCRIPTION_ATTR_HINTS"                         : "Näytä tai piilota HTML-määritteiden vihjeet",
+    "DESCRIPTION_ATTR_HINTS"                         : "Näytä tai piilota HTML-attribuuttien vihjeet",
     "DESCRIPTION_CSS_PROP_HINTS"                     : "Näytä tai piilota CSS/LESS/SCSS-ominaisuuksien vihjeet",
     "DESCRIPTION_JS_HINTS"                           : "Näytä tai piilota JavaScript-koodin vihjeet",
     "DESCRIPTION_JS_HINTS_TYPE_DETAILS"              : "Näytä tai piilota datatyyppien yksityiskohdat JavaScript-koodin vihjeissä",
