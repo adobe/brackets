@@ -32,14 +32,24 @@ define(function (require, exports, module) {
         Menus           = require("command/Menus"),
         Strings         = require("strings"),
         MainViewManager = require("view/MainViewManager"),
-        CommandManager  = require("command/CommandManager");    
+        CommandManager  = require("command/CommandManager");
 
+    /**
+     * Disables menu items present in items if enabled is true.
+     * enabled is true if file is saved and present on user system.
+     * @param {boolean} enabled
+     * @param {array} items
+     */
     function _setContextMenuItemsVisible(enabled, items) {
         items.forEach(function (item) {
             CommandManager.get(item).setEnabled(enabled);
         });
     }
     
+    /**
+     * Checks if file saved and present on system and
+     * disables menu items accordingly
+     */
     function _setMenuItemsVisible() {
         var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
         if (file) {
