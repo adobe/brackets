@@ -542,11 +542,11 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     MainViewManager.switchPaneUnitTest1To2();
-                    expect(MainViewManager.ACTIVE_PANE).toEqual("second-pane");
+                    expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
                 });
                 runs(function () {
                     MainViewManager.switchPaneUnitTest2To1();
-                    expect(MainViewManager.ACTIVE_PANE).toEqual("first-pane");
+                    expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
                 });
 
                 runs(function () {
@@ -554,11 +554,11 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     MainViewManager.switchPaneUnitTest1To2();
-                    expect(MainViewManager.ACTIVE_PANE).toEqual("second-pane");
+                    expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
                 });
                 runs(function () {
                     MainViewManager.switchPaneUnitTest2To1();
-                    expect(MainViewManager.ACTIVE_PANE).toEqual("first-pane");
+                    expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
                 });
             });
             it("should activate pane when editor gains focus", function () {
