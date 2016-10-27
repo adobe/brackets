@@ -536,6 +536,31 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getLayoutScheme()).toEqual({rows: 1, columns: 1});
                 });
             });
+            it("should switch pane when alt-w is pressed", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    MainViewManager.switchPaneUnitTest1To2();
+                    expect(MainViewManager.ACTIVE_PANE).toEqual("second-pane");
+                });
+                runs(function () {
+                    MainViewManager.switchPaneUnitTest2To1();
+                    expect(MainViewManager.ACTIVE_PANE).toEqual("first-pane");
+                });
+
+                runs(function () {
+                    MainViewManager.setLayoutScheme(2, 1);
+                });
+                runs(function () {
+                    MainViewManager.switchPaneUnitTest1To2();
+                    expect(MainViewManager.ACTIVE_PANE).toEqual("second-pane");
+                });
+                runs(function () {
+                    MainViewManager.switchPaneUnitTest2To1();
+                    expect(MainViewManager.ACTIVE_PANE).toEqual("first-pane");
+                });
+            });
             it("should activate pane when editor gains focus", function () {
                 var editors = {},
                     handler = function (e, doc, editor, paneId) {
