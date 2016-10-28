@@ -536,6 +536,34 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getLayoutScheme()).toEqual({rows: 1, columns: 1});
                 });
             });
+            it("should switch pane when Commands.CMD_SWITCH_PANE_FOCUS is called", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    $('#first-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
+                    expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
+                });
+                runs(function () {
+                    $('#second-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
+                    expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
+                });
+                runs(function () {
+                    MainViewManager.setLayoutScheme(2, 1);
+                });
+                runs(function () {
+                    $('#first-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
+                    expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
+                });
+                runs(function () {
+                    $('#second-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
+                    expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
+                });
+            });
             it("should activate pane when editor gains focus", function () {
                 var editors = {},
                     handler = function (e, doc, editor, paneId) {
