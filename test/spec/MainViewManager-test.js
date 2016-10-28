@@ -551,7 +551,6 @@ define(function (require, exports, module) {
                     CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
                     expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
                 });
-
                 runs(function () {
                     MainViewManager.setLayoutScheme(2, 1);
                 });
