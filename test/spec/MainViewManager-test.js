@@ -34,8 +34,7 @@ define(function (require, exports, module) {
         ProjectManager,          // loaded from brackets.test
         FileSystem,              // loaded from brackets.test
         Dialogs,                 // loaded from brackets.test
-        SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
-        KeyEvent                 = require("utils/KeyEvent");
+        SpecRunnerUtils          = require("spec/SpecRunnerUtils");
 
     describe("MainViewManager", function () {
         this.category = "mainview";
