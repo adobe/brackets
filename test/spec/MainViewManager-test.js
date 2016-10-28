@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         ProjectManager,          // loaded from brackets.test
         FileSystem,              // loaded from brackets.test
         Dialogs,                 // loaded from brackets.test
-        SpecRunnerUtils          = require("spec/SpecRunnerUtils");
+        SpecRunnerUtils          = require("spec/SpecRunnerUtils"),
+        KeyEvent                 = require("utils/KeyEvent");
 
     describe("MainViewManager", function () {
         this.category = "mainview";
@@ -536,16 +537,18 @@ define(function (require, exports, module) {
                     expect(MainViewManager.getLayoutScheme()).toEqual({rows: 1, columns: 1});
                 });
             });
-            it("should switch pane when alt-w is pressed", function () {
+            it("should switch pane when Commands.CMD_SWITCH_PANE_FOCUS is called", function () {
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
-                    MainViewManager.switchPaneUnitTest1To2();
+                    $('#first-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
                     expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
                 });
                 runs(function () {
-                    MainViewManager.switchPaneUnitTest2To1();
+                    $('#second-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
                     expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
                 });
 
@@ -553,11 +556,13 @@ define(function (require, exports, module) {
                     MainViewManager.setLayoutScheme(2, 1);
                 });
                 runs(function () {
-                    MainViewManager.switchPaneUnitTest1To2();
+                    $('#first-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
                     expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
                 });
                 runs(function () {
-                    MainViewManager.switchPaneUnitTest2To1();
+                    $('#second-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
                     expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
                 });
             });

@@ -859,22 +859,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Unit test for switching from first pane to second pane
-     */
-    function switchPaneUnitTest1To2() {
-        var $firstPane = $('#first-pane');
-        $firstPane.click();
-        KeyBindingManager._handleKey('Alt-W');
-    }
-
-    /**
-     * Unit test for switching from second pane to first pane
-     */
-    function switchPaneUnitTest2To1() {
-        KeyBindingManager._handleKey('Alt-W');
-    }
-
-    /**
      * DocumentManager.pathDeleted Event handler to remove a file
      * from the MRU list
      * @param {!jQuery.event} e -
@@ -1764,8 +1748,6 @@ define(function (require, exports, module) {
     exports.getAllOpenFiles               = getAllOpenFiles;
     exports.focusActivePane               = focusActivePane;
     exports.switchPaneFocus               = switchPaneFocus;
-    exports.switchPaneUnitTest1To2        = switchPaneUnitTest1To2;
-    exports.switchPaneUnitTest2To1        = switchPaneUnitTest2To1;
 
     // Layout
     exports.setLayoutScheme               = setLayoutScheme;
