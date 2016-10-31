@@ -1009,7 +1009,7 @@ define(function (require, exports, module) {
                 bubbles: true,
                 cancelable: true,
                 keyIdentifier: key
-            }
+            };
         } else {
             options.view = doc.defaultView;
             options.bubbles = true;
