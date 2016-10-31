@@ -995,20 +995,34 @@ define(function (require, exports, module) {
      * Simulate key event. Found this code here:
      * http://stackoverflow.com/questions/10455626/keydown-simulation-in-chrome-fires-normally-but-not-the-correct-key
      *
-     * TODO: need parameter(s) for modifier keys
-     *
      * @param {Number} key Key code
      * @param (String) event Key event to simulate
      * @param {HTMLElement} element Element to receive event
+     * @param {KeyboardEventInit} options Optional arguments for key event
      */
-    function simulateKeyEvent(key, event, element) {
-        var doc = element.ownerDocument,
-            oEvent = doc.createEvent('KeyboardEvent');
+    function simulateKeyEvent(key, event, element, options) {
+        var doc = element.ownerDocument;
+
+        if(typeof options === 'undefined') {
+            options = { 
+                view: doc.defaultView,
+                bubbles: true,
+                cancelable: true,
+                keyIdentifier: key
+            }
+        } else {
+            options.view = doc.defaultView;
+            options.bubbles = true;
+            options.cancelable = true;
+            options.keyIdentifier = key;
+        }
+
+        var oEvent = new KeyboardEvent(event, options);
 
         if (event !== "keydown" && event !== "keyup" && event !== "keypress") {
             console.log("SpecRunnerUtils.simulateKeyEvent() - unsupported keyevent: " + event);
             return;
-        }
+        }        
 
         // Chromium Hack: need to override the 'which' property.
         // Note: this code is not designed to work in IE, Safari,
@@ -1028,12 +1042,6 @@ define(function (require, exports, module) {
                 return this.keyCodeVal;
             }
         });
-
-        if (oEvent.initKeyboardEvent) {
-            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, key, 0, false, false, false, false);
-        } else {
-            oEvent.initKeyEvent(event, true, true, doc.defaultView, false, false, false, false, key, 0);
-        }
 
         oEvent.keyCodeVal = key;
         if (oEvent.keyCode !== key) {
