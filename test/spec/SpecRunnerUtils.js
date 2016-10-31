@@ -21,7 +21,8 @@
  *
  */
 
-/*global jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn */
+/*global jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn,
+KeyboardEvent */
 
 define(function (require, exports, module) {
     'use strict';
