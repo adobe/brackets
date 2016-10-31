@@ -1045,7 +1045,7 @@ define(function (require, exports, module) {
 
         oEvent.keyCodeVal = key;
         if (oEvent.keyCode !== key) {
-            console.log("keyCode mismatch " + oEvent.keyCode + "(" + oEvent.which + ")");
+            console.log("SpecRunnerUtils.simulateKeyEvent() - keyCode mismatch: " + oEvent.keyCode);
         }
 
         element.dispatchEvent(oEvent);
