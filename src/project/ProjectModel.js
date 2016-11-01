@@ -111,10 +111,10 @@ define(function (require, exports, module) {
     function _shouldShowName(name, path) { // TODO: Refactor this into a function that can also see if the name is a file
         if(path){
             var fs = _getFSObject(path);
-            
+            //fs.FileSystem.resolve(path+"/", function (err, entry, stat){});
             //var test = fs.getDirectoryForPath(_ensureTrailingSlash(path));
         }
-        if (/(Icon(?![\.\?\*\|\:\/\w]))+/.test(name) && fs.isFile){
+        if (/(\r)+/.test(name) && fs.isFile){
             return false;
         }
         return !_exclusionListRegEx.test(name);
