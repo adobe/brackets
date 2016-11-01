@@ -418,6 +418,24 @@ define(function (require, exports, module) {
                     expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
                 });
             });
+
+            it("should not clean history when reset is called with the same text with different line-endings", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: JS_FILE});
+                    waitsForDone(promise, "Open file");
+                });
+                runs(function () {
+                    var doc = DocumentManager.getOpenDocumentForPath(JS_FILE);
+
+                    // Put some text into editor
+                    doc.setText("a\r\nb\r\nc");
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
+
+                    // Reset text with the same value, expect history not to change
+                    doc.refreshText("a\nb\nc", Date.now());
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
+                });
+            });
         });
 
         describe("Refresh and change events", function () {
