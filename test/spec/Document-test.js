@@ -426,13 +426,19 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     var doc = DocumentManager.getOpenDocumentForPath(JS_FILE);
+                    var crlf = "a\r\nb\r\nc";
+                    var lf = "a\nb\nc";
 
                     // Put some text into editor
-                    doc.setText("a\r\nb\r\nc");
+                    doc.setText(crlf);
                     expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
 
                     // Reset text with the same value, expect history not to change
-                    doc.refreshText("a\nb\nc", Date.now());
+                    doc.refreshText(lf, Date.now());
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
+
+                    // Reset text with the same value, expect history not to change
+                    doc.refreshText(crlf, Date.now());
                     expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
                 });
             });
