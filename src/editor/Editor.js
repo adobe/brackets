@@ -98,12 +98,13 @@ define(function (require, exports, module) {
         WORD_WRAP           = "wordWrap",
         INDENT_LINE_COMMENT   = "indentLineComment";
 
-   /**
-     * A list of gutter name and priorities currently registered for editors.
-     * The line number gutter is defined as { name: LINE_NUMBER_GUTTER, priority: 100 }
-     * @type {Array.<{name: string, priority: number, languages: Array}}
-     */
+    /**
+      * A list of gutter name and priorities currently registered for editors.
+      * The line number gutter is defined as { name: LINE_NUMBER_GUTTER, priority: 100 }
+      * @type {Array.<{name: string, priority: number, languageIds: Array}}
+      */
     var registeredGutters = [];
+
     var cmOptions         = {};
 
     /**
@@ -115,7 +116,9 @@ define(function (require, exports, module) {
         DEFAULT_SPACE_UNITS     =  4,
         DEFAULT_TAB_SIZE        =  4,
         MAX_SPACE_UNITS         = 10,
-        MAX_TAB_SIZE            = 10,
+        MAX_TAB_SIZE            = 10;
+
+    var LINE_NUMBER_GUTTER = "CodeMirror-linenumbers",
         LINE_NUMBER_GUTTER_PRIORITY    = 100;
 
     // Mappings from Brackets preferences to CodeMirror options
@@ -221,7 +224,6 @@ define(function (require, exports, module) {
         description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
     });
 
-    var LINE_NUMBER_GUTTER = "CodeMirror-linenumbers";
     var editorOptions = Object.keys(cmOptions);
 
     /** Editor preferences */
@@ -421,7 +423,6 @@ define(function (require, exports, module) {
             readOnly                    : isReadOnly
         });
 
-
         // Can't get CodeMirror's focused state without searching for
         // CodeMirror-focused. Instead, track focus via onFocus and onBlur
         // options and track state with this._focused
@@ -458,7 +459,6 @@ define(function (require, exports, module) {
         this._duringSync = true;
         this._resetText(document.getText());
         this._duringSync = false;
-
 
         if (range) {
             this._updateHiddenLines();
@@ -2432,8 +2432,8 @@ define(function (require, exports, module) {
             rootElement = this.getRootElement();
 
         // If the line numbers gutter has not been explicitly registered and the CodeMirror lineNumbes option is
-        // set to true, we explicitly add the line  numbers gutter. This case occurs the first time the editor loads
-        // and showwLineNumbers is set to true in preferences
+        // set to true, we explicitly add the line numbers gutter. This case occurs the first time the editor loads
+        // and showLineNumbers is set to true in preferences
         if (gutters.indexOf(LINE_NUMBER_GUTTER) < 0 && this._codeMirror.getOption(cmOptions[SHOW_LINE_NUMBERS])) {
             registeredGutters.push({name: LINE_NUMBER_GUTTER, priority: LINE_NUMBER_GUTTER_PRIORITY});
         }
@@ -2456,7 +2456,7 @@ define(function (require, exports, module) {
      * Sets the marker for the specified gutter on the specified line number
      * @param   {string}   lineNumber The line number for the inserted gutter marker
      * @param   {string}   gutterName The name of the gutter
-     * @param   {object}   marker     The jquery object representint the marker to the inserted in the gutter
+     * @param   {object}   marker     The dom element representing the marker to the inserted in the gutter
      */
     Editor.prototype.setGutterMarker = function (lineNumber, gutterName, marker) {
         var gutterNameRegistered = registeredGutters.some(function (gutter) {
@@ -2464,7 +2464,7 @@ define(function (require, exports, module) {
         });
 
         if (!gutterNameRegistered) {
-            console.warn("Gutter name must be registered before calling Editor.setGutterMarker");
+            console.warn("Gutter name must be registered before calling editor.setGutterMarker");
             return;
         }
 
@@ -2472,7 +2472,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns the list of gutters current registered on this editor.
+     * Returns the list of gutters current registered on all editors.
      * @return {!Array.<{name: string, priority: number}>}
      */
     Editor.getRegisteredGutters = function () {
@@ -2481,8 +2481,8 @@ define(function (require, exports, module) {
 
     /**
      * Registers the gutter with the specified name at the given priority.
-     * @param {string} name    The name to register with the quarter
-     * @param {number} priority  A number denoting the priority of the gutter. Priorities higher than 100 appear after the line numbers. Priority less than 100 appear before.
+     * @param {string} name    The name of the gutter.
+     * @param {number} priority  A number denoting the priority of the gutter. Priorities higher than LINE_NUMBER_GUTTER_PRIORITY appear after the line numbers. Priority less than LINE_NUMBER_GUTTER_PRIORITY appear before.
      * @param {?Array<string>} languageIds A list of language ids that this gutter is valid for. If no language ids are passed, then the gutter is valid in all languages.
      */
     Editor.registerGutter = function (name, priority, languageIds) {

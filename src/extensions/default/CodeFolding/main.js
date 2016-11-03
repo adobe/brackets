@@ -75,6 +75,8 @@ define(function (require, exports, module) {
 
     /** Set to true when init() has run; set back to false after deinit() has run */
     var _isInitialized = false;
+
+    /** Used to keep track of files for which line folds have been restored.*/
     var initialisedFiles = {};
 
     /**
@@ -346,6 +348,7 @@ define(function (require, exports, module) {
             delete initialisedFiles[file.fullPath];
         }
     }
+
     /**
       * Saves the line folds in the current full editor before it is closed.
       */
@@ -394,7 +397,6 @@ define(function (require, exports, module) {
 
         foldCode.init();
         foldGutter.init();
-
 
         // Many CodeMirror modes specify which fold helper should be used for that language. For a few that
         // don't, we register helpers explicitly here. We also register a global helper for generic indent-based
