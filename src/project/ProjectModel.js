@@ -189,6 +189,7 @@ define(function (require, exports, module) {
      */
     function doCreate(path, isFolder) {
         var d = new $.Deferred();
+        var fs = _getFSObject(path);
 
         var name = FileUtils.getBaseName(path);
         if (!isValidFilename(name, _invalidChars)) {
