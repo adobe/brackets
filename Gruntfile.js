@@ -397,7 +397,8 @@ module.exports = function (grunt) {
                 '<%= meta.src %>',
                 '<%= meta.test %>',
                 '!src/extensions/extra/**',
-                '!src/bramble/thirdparty/**'
+                '!src/bramble/thirdparty/**',
+                '!src/nls/**'
             ],
             grunt:  '<%= meta.grunt %>',
             src:    [
@@ -406,7 +407,8 @@ module.exports = function (grunt) {
                 '!src/extensions/default/HTMLHinter/slowparse/**',
                 '!src/extensions/default/HTMLHinter/tooltipsy.source.js',
                 '!src/extensions/extra/**',
-                '!src/bramble/thirdparty/**'
+                '!src/bramble/thirdparty/**',
+                '!src/nls/**'
             ],
             test:   '<%= meta.test %>',
             /* use strict options to mimic JSLINT until we migrate to JSHINT in Brackets */

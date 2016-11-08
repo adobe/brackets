@@ -171,6 +171,10 @@ function run() {
 
     return fs.readdirAsync(src)
     .then(function(folders) {
+        var DSStoreIndex = folders.indexOf(".DS_Store");
+        if(DSStoreIndex > -1) {
+            folders.splice(DSStoreIndex, 1);
+        }
         locales = folders;
         return Promise.map(locales, getExistingLocalizedContent, CONCURRENCY);
     })

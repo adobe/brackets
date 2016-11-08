@@ -150,6 +150,8 @@
         "dist/extensions/default/bramble-move-file/htmlContent/move-to-dialog.html",
         "dist/extensions/default/bramble-move-file/htmlContent/directory-tree.html",
         "dist/extensions/default/bramble-move-file/styles/style.css",
-        "dist/extensions/default/bramble-move-file/images/*.svg"
+        "dist/extensions/default/bramble-move-file/images/*.svg",
+
+        "dist/extensions/extra/bramble-watch-index.html/main.js"
     ]
 }
