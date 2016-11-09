@@ -572,14 +572,23 @@ define(function (require, exports, module) {
      * @private
      * Ensures the suggested file name doesn't already exit.
      * @param {Directory} dir  The directory to use
-     * @param {string} baseFileName  The base to start with, "-n" will get appended to make unique
+     * @param {object} fileNameOptions  Properties about the filename that should be used. The object should contain these properties:
+     *   baseFileName: The base to start with, "-n" will get appended to make unique
+     *   extension: Optional extension to be used in the filename
      * @param {boolean} isFolder True if the suggestion is for a folder name
      * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with
      *   the given base name
      */
-    function _getUntitledFileSuggestion(dir, baseFileName, isFolder) {
-        var suggestedName   = baseFileName + "-" + _nextUntitledIndexToUse++,
-            deferred        = $.Deferred();
+    function _getUntitledFileSuggestion(dir, fileNameOptions, isFolder) {
+        var baseFileName = fileNameOptions.baseFileName,
+            extension    = fileNameOptions.extension ? fileNameOptions.extension.replace(/^\.?/, ".") : "";
+
+        if(isFolder) {
+            extension = "";
+        }
+
+        var suggestedName = baseFileName + "-" + (_nextUntitledIndexToUse++) + extension,
+            deferred      = $.Deferred();
 
         if (_nextUntitledIndexToUse > 9999) {
             //we've tried this enough
@@ -591,7 +600,7 @@ define(function (require, exports, module) {
 
             entry.exists(function (err, exists) {
                 if (err || exists) {
-                    _getUntitledFileSuggestion(dir, baseFileName, isFolder)
+                    _getUntitledFileSuggestion(dir, fileNameOptions, isFolder)
                         .then(deferred.resolve, deferred.reject);
                 } else {
                     deferred.resolve(suggestedName);
@@ -649,7 +658,7 @@ define(function (require, exports, module) {
                 .always(function () { fileNewInProgress = false; });
         }
 
-        return _getUntitledFileSuggestion(baseDirEntry, Strings.UNTITLED, isFolder)
+        return _getUntitledFileSuggestion(baseDirEntry, { baseFileName: Strings.UNTITLED }, isFolder)
             .then(createWithSuggestedName, createWithSuggestedName.bind(undefined, Strings.UNTITLED));
     }
 
@@ -714,9 +723,12 @@ define(function (require, exports, module) {
             options.ext = options.ext ? options.ext.replace(/^\.?/, ".") : "";
             options.basenamePrefix = options.basenamePrefix || Strings.UNTITLED;
 
-            _getUntitledFileSuggestion({fullPath: root + "/"}, options.basenamePrefix, false)
+            _getUntitledFileSuggestion(
+                { fullPath: root + "/" },
+                { baseFileName: options.basenamePrefix, extension: options.ext },
+                false
+            )
                 .then(function(filename) {
-                    filename = filename + options.ext;
                     writeContents(filename, options.contents);
                 });
         }
