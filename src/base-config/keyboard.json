@@ -70,16 +70,6 @@
             "displayKey": "Shift-Alt-↓"
         }
     ],
-    "edit.indent":  [
-        {
-            "key": "Ctrl-]"
-        }
-    ],
-    "edit.unindent":  [
-        {
-            "key": "Ctrl-["
-        }
-    ],
     "edit.duplicate":  [
         "Ctrl-D"
     ],
