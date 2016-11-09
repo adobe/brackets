@@ -156,6 +156,18 @@ define(function (require, exports, module) {
             event = event.originalEvent || event;
 
             var files = event.dataTransfer.files;
+
+            var types = event.dataTransfer.types;
+            if(!files.length){// stop default behavior if a url is dragged in so the browser does not takeove
+                types.forEach(function (value){
+                    if(value == "text/uri-list"){ //plain text just has text/html
+                        event.stopPropagation();
+                        event.preventDefault();
+                        return;
+                    }
+                });
+            }
+
             if (files && files.length) {
                 event.stopPropagation();
                 event.preventDefault();
@@ -174,6 +186,18 @@ define(function (require, exports, module) {
             event = event.originalEvent || event;
 
             var files = event.dataTransfer.files;
+
+            var types = event.dataTransfer.types;
+            if(!files.length){// stop default behavior if a url is dragged in so the browser does not takeove
+                types.forEach(function (value){
+                    if(value == "text/uri-list"){ //plain text just has text/html
+                        event.stopPropagation();
+                        event.preventDefault();
+                        return;
+                    }
+                });
+            }
+
             if (files && files.length) {
                 event.stopPropagation();
                 event.preventDefault();
