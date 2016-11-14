@@ -80,8 +80,12 @@ define(function (require, exports, module) {
         _fileNameChangeHandler,
         clearSearch;
     
-    /* Waits for FS changes to stack up until processing them (scripts like npm install can do a lot of movements on the disk) */
-    var FILE_SYSTEM_EVENT_DEBOUNCE_TIME = 1000;
+    /**
+     * Waits for FS changes to stack up until processing them
+     * (scripts like npm install can do a lot of movements on the disk)
+     * @const
+     */
+    var FILE_SYSTEM_EVENT_DEBOUNCE_TIME = 100;
 
     /** Remove the listeners that were tracking potential search result changes */
     function _removeListeners() {
@@ -665,7 +669,7 @@ define(function (require, exports, module) {
      * Inform node that the list of files has changed.
      * @param {array} fileList The list of files that changed.
      */
-    function filesChanged(fileList) {        
+    function filesChanged(fileList) {
         if (FindUtils.isNodeSearchDisabled() || !fileList || fileList.length === 0) {
             return;
         }
@@ -859,29 +863,33 @@ define(function (require, exports, module) {
     
     _processCachedFileSystemEvents = _.debounce(function () {
         // we need to reduce _cachedFileSystemEvents not to contain duplicates!
-        _cachedFileSystemEvents = _cachedFileSystemEvents.reduce(function (result, arr) {
-            var fsEntry = arr[1];
-            var fullPath = fsEntry ? fsEntry.fullPath : null;            
+        _cachedFileSystemEvents = _cachedFileSystemEvents.reduce(function (result, obj) {
+            var fullPath = obj.entry ? obj.entry.fullPath : null;
             // merge added
-            if (result[fullPath] && arr[2]) {
-                arr[2] = arr[2].concat(result[fullPath][2]);
+            if (result[fullPath] && obj.added) {
+                obj.added = obj.added.concat(result[fullPath].added);
             }
             // merge removed
-            if (result[fullPath] && arr[3]) {
-                arr[3] = arr[3].concat(result[fullPath][3]);
+            if (result[fullPath] && obj.removed) {
+                obj.removed = obj.removed.concat(result[fullPath].removed);
             }
             // use the latest event as base
-            result[fullPath] = arr;
+            result[fullPath] = obj;
             return result;
         }, {});
-        _.forEach(_cachedFileSystemEvents, function (arr) {
-            _fileSystemChangeHandler.apply(null, arr);
+        _.forEach(_cachedFileSystemEvents, function (obj) {
+            _fileSystemChangeHandler(obj.event, obj.entry, obj.added, obj.removed);
         });
         _cachedFileSystemEvents = [];
     }, FILE_SYSTEM_EVENT_DEBOUNCE_TIME);
     
     _debouncedFileSystemChangeHandler = function (event, entry, added, removed) {
-        _cachedFileSystemEvents.push([ event, entry, added, removed ]);
+        _cachedFileSystemEvents.push({
+            event: event,
+            entry: entry,
+            added: added,
+            removed: removed
+        });
         _processCachedFileSystemEvents();
     };
 
