@@ -744,7 +744,7 @@ define(function (require, exports, module) {
 
         /*
          * Remove existing search results that match the given entry's path
-         * @param {(File|Directory)} entry
+         * @param {Array.<(File|Directory)>} entries
          */
         function _removeSearchResultsForEntries(entries) {
             var fullPaths = [];
@@ -766,8 +766,8 @@ define(function (require, exports, module) {
         }
 
         /*
-         * Add new search results for this entry and all of its children
-         * @param {(File|Directory)} entry
+         * Add new search results for these entries and all of its children
+         * @param {Array.<(File|Directory)>} entries
          * @return {jQuery.Promise} Resolves when the results have been added
          */
         function _addSearchResultsForEntries(entries) {
@@ -859,8 +859,15 @@ define(function (require, exports, module) {
         });
     };
     
+    /**
+     * This stores file system events emitted by watchers that were not yet processed
+     */
     var _cachedFileSystemEvents = [];
     
+    /**
+     * Debounced function to process emitted file system events
+     * for cases when there's a lot of fs events emitted in a very short period of time
+     */
     _processCachedFileSystemEvents = _.debounce(function () {
         // we need to reduce _cachedFileSystemEvents not to contain duplicates!
         _cachedFileSystemEvents = _cachedFileSystemEvents.reduce(function (result, obj) {
@@ -883,6 +890,10 @@ define(function (require, exports, module) {
         _cachedFileSystemEvents = [];
     }, FILE_SYSTEM_EVENT_DEBOUNCE_TIME);
     
+    /**
+     * Wrapper function for _fileSystemChangeHandler which handles all incoming fs events
+     * putting them to cache and executing a debounced function
+     */
     _debouncedFileSystemChangeHandler = function (event, entry, added, removed) {
         _cachedFileSystemEvents.push({
             event: event,
