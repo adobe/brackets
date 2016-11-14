@@ -830,8 +830,6 @@ define(function (require, exports, module) {
 
         var addPromise;
         if (entry.isDirectory) {
-            added = added || [];
-            removed = removed || [];
             if (added.length === 0 && removed.length === 0) {
                 // If the added or removed sets are null, must redo the search for the entire subtree - we
                 // don't know which child files/folders may have been added or removed.
@@ -872,12 +870,9 @@ define(function (require, exports, module) {
         // we need to reduce _cachedFileSystemEvents not to contain duplicates!
         _cachedFileSystemEvents = _cachedFileSystemEvents.reduce(function (result, obj) {
             var fullPath = obj.entry ? obj.entry.fullPath : null;
-            // merge added
-            if (result[fullPath] && obj.added) {
+            // merge added & removed
+            if (result[fullPath] && obj.isDirectory) {
                 obj.added = obj.added.concat(result[fullPath].added);
-            }
-            // merge removed
-            if (result[fullPath] && obj.removed) {
                 obj.removed = obj.removed.concat(result[fullPath].removed);
             }
             // use the latest event as base
@@ -895,9 +890,17 @@ define(function (require, exports, module) {
      * putting them to cache and executing a debounced function
      */
     _debouncedFileSystemChangeHandler = function (event, entry, added, removed) {
+        // normalize this here so we don't need to handle null later
+        var isDirectory = false;
+        if (entry && entry.isDirectory) {
+            isDirectory = true;
+            added = added || [];
+            removed = removed || [];
+        }
         _cachedFileSystemEvents.push({
             event: event,
             entry: entry,
+            isDirectory: isDirectory,
             added: added,
             removed: removed
         });
