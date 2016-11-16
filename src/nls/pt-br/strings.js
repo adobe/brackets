@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -130,7 +127,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Você quer salvar as alterações feitas no documento <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Você quer salvar as alterações feitas aos seguintes arquivos?",
     "EXT_MODIFIED_TITLE"                : "Alterações externas",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Confirmar exclusão",
+    "CONFIRM_DELETE_TITLE"              : "Confirmar exclusão",
     "CONFIRM_FOLDER_DELETE"             : "Tem certeza que deseja excluir a pasta <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Arquivo excluído",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> foi modificado no disco.<br /><br />Deseja salvar o arquivo e sobrescrever essas alterações?",
@@ -621,9 +618,9 @@ define({
     "HEALTH_DATA_NOTIFICATION"                  : "Preferências do relatório de saúde",
     "HEALTH_FIRST_POPUP_TITLE"                  : "Relatório de saúde do {APP_NAME}",
     "HEALTH_DATA_DO_TRACK"                      : "Compartilhe informações anônimas sobre como eu uso o {APP_NAME}",
-    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Com a intenção de melhorar a sua experiência com {APP_NAME}, nós enviamos periódicamente alguns poucos dados estatísticos de forma <strong>anônima</strong> para a Adobe, sobre como você utiliza o {APP_NAME}. Essas informações nos ajudam a priorizar novas funcionalidades, encontrar bugs, e encontrar problemas de usabilidade.<br><br>Você pode ver e/ou escolher o que deseja compartilhar em <strong>Ajuda > Relatório de saúde Brackets</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Aprenda mais sobre a saúde de seu {APP_NAME}</a>",
+    "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Com a intenção de melhorar a sua experiência com {APP_NAME}, nós enviamos periodicamente alguns poucos dados estatísticos de forma <strong>anônima</strong> para a Adobe, sobre como você utiliza o {APP_NAME}. Essas informações nos ajudam a priorizar novas funcionalidades, encontrar bugs, e encontrar problemas de usabilidade.<br><br>Você pode ver e/ou escolher o que deseja compartilhar em <strong>Ajuda > Relatório de saúde Brackets</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Aprenda mais sobre a saúde de seu {APP_NAME}</a>",
     "HEALTH_DATA_PREVIEW"                       : "Relatório de saúde do {APP_NAME}",
-    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Com a intenção de melhorar a sua experiência com {APP_NAME}, nós enviamos periódicamente alguns poucos dados estatísticos de forma <strong>anônima</strong> para a Adobe, sobre como você utiliza o {APP_NAME}. Essas informações nos ajudam a priorizar novas funcionalidades, encontrar bugs, e encontrar problemas de usabilidade. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Aprenda mais sobre a saúde de seu {APP_NAME}</a> e veja como isso beneficiará a comunidade {APP_NAME}, e isso tudo mantendo sua privacidade.</p><p>Abaixo está uma prévia de como será modelo de dados enviados em seu próximo relatório de saúde <em>se</em> ele for habilitado por você.</p>",
+    "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Com a intenção de melhorar a sua experiência com {APP_NAME}, nós enviamos periodicamente alguns poucos dados estatísticos de forma <strong>anônima</strong> para a Adobe, sobre como você utiliza o {APP_NAME}. Essas informações nos ajudam a priorizar novas funcionalidades, encontrar bugs, e encontrar problemas de usabilidade. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Aprenda mais sobre a saúde de seu {APP_NAME}</a> e veja como isso beneficiará a comunidade {APP_NAME}, e isso tudo mantendo sua privacidade.</p><p>Abaixo está uma prévia de como será modelo de dados enviados em seu próximo relatório de saúde <em>se</em> ele for habilitado por você.</p>",
 
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Tempo",
@@ -667,12 +664,12 @@ define({
     "EXPAND_CURRENT"                : "Expandir Posição Atual",
 
     // Descriptions of core preferences
-    "DESCRIPTION_CLOSE_BRACKETS"                     : "verdadeiro (true) para fechar chaves, colchetes e parênteses automáticamente",
+    "DESCRIPTION_CLOSE_BRACKETS"                     : "verdadeiro (true) para fechar chaves, colchetes e parênteses automaticamente",
     "DESCRIPTION_CLOSE_OTHERS_ABOVE"                 : "falso (false) para remover  \"Fechar outros acima\" do menu de contexto Arquivos abertos",
     "DESCRIPTION_CLOSE_OTHERS_BELOW"                 : "falso (false) para remover \"Fechar outros abaixo\" do menu de contexto Arquivos abertos",
     "DESCRIPTION_CLOSE_OTHERS"                       : "falso (false) para remover \"Fechar outros\" do menu de contexto Arquivos abertos",
     "DESCRIPTION_CLOSE_TAGS"                         : "Definir opções de fechamento de tags",
-    "DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS"         : "Uma matriz de tags não deve ser automáticamente fechada",
+    "DESCRIPTION_CLOSE_TAGS_DONT_CLOSE_TAGS"         : "Uma matriz de tags não deve ser automaticamente fechada",
     "DESCRIPTION_CLOSE_TAGS_WHEN_OPENING"            : "Fechar > quando a abertura da tag for digitada",
     "DESCRIPTION_CLOSE_TAGS_WHEN_CLOSING"            : "Fechar / quando o fechamento da tag for digitada",
     "DESCRIPTION_CLOSE_TAGS_INDENT_TAGS"             : "Um vetor de tags terá uma linha em branco entre as tags quando for aberta",
@@ -696,11 +693,11 @@ define({
     "DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN"       : "Destaque todas strings correspondentes ao símbolo em que o cursor se encontra (não é necessária uma seleção)",
     "DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY"       : "Destaque somente quando um símbolo selecionado estiver completo",
     "DESCRIPTION_INSERT_HINT_ON_TAB"                 : "verdadeiro (true) para inserir a sugestão de código ao pressionar tab",
-    "DESCRIPTION_NO_HINTS_ON_DOT"                    : "verdadeiro (true) para não mostrar automáticamente dicas para JS quando  . for digitado",
+    "DESCRIPTION_NO_HINTS_ON_DOT"                    : "verdadeiro (true) para não mostrar automaticamente dicas para JS quando  . for digitado",
     "DESCRIPTION_JSLINT_OPTIONS"                     : "Um objeto com valores padrões para JSLint",
     "DESCRIPTION_JSLINT_OPTIONS_ASS"                 : "verdadeiro (true) para permitir expressões de atribuição",
     "DESCRIPTION_JSLINT_OPTIONS_BITWISE"             : "verdadeiro (true) para permitir operadores bitwise",
-    "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "verdadeiro (true) se as funçõesvariáveis globais do navegador devem ser predefinidos",
+    "DESCRIPTION_JSLINT_OPTIONS_BROWSER"             : "verdadeiro (true) se as funções variáveis globais do navegador devem ser predefinidos",
     "DESCRIPTION_JSLINT_OPTIONS_CLOSURE"             : "verdadeiro (true) para permitir expressões idiomáticas do Google Closure",
     "DESCRIPTION_JSLINT_OPTIONS_CONTINUE"            : "verdadeiro (true) para permitir a declaração  \"continue\"",
     "DESCRIPTION_JSLINT_OPTIONS_COUCH"               : "verdadeiro (true) se as funções/variáveis globais do CouchDB devem ser predefinidos",
@@ -741,8 +738,8 @@ define({
     "DESCRIPTION_SCROLL_PAST_END"                    : "verdadeiro (true) para habilitar o scrolling após o fim do arquivo",
     "DESCRIPTION_SHOW_CODE_HINTS"                    : "falso (false) para desabilitar todos as sugestões de código",
     "DESCRIPTION_SHOW_CURSOR_WHEN_SELECTING"         : "Mantenha o cursor visível quando houver uma seleção de texto",
-    "DESCRIPTION_SHOW_LINE_NUMBERS"                  : "verdadeiro (true) para mostrar o número das linhas na borda \"gutter\" as esquerda do editor",
-    "DESCRIPTION_SMART_INDENT"                       : "Identar automáticamente quando se criar um novo bloco",
+    "DESCRIPTION_SHOW_LINE_NUMBERS"                  : "verdadeiro (true) para mostrar o número das linhas na borda \"gutter\" à esquerda do editor",
+    "DESCRIPTION_SMART_INDENT"                       : "Identar automaticamente quando se criar um novo bloco",
     "DESCRIPTION_SOFT_TABS"                          : "falso (false) para desabilitar o comportamento de \"soft tabs\"",
     "DESCRIPTION_SORT_DIRECTORIES_FIRST"             : "verdadeiro (true) para ordenar os diretórios no topo da árvore de projetos",
     "DESCRIPTION_SPACE_UNITS"                        : "Quantidade de espaços utilizados na identações baseada em espaços",
@@ -755,14 +752,14 @@ define({
     "DESCRIPTION_DETECTED_EXCLUSIONS"                : "Uma lista de arquivos que foram detectados problemas fazem o Tern não funcionar corretamente",
     "DESCRIPTION_INFERENCE_TIMEOUT"                  : "Quantidade de vezes que o Tern deixará de tentar de compreender os arquivos",
     "DESCRIPTION_SHOW_ERRORS_IN_STATUS_BAR"          : "verdadeiro (true) para mostrar os erros na barra de status",
-    "DESCRIPTION_QUICK_VIEW_ENABLED"                 : "verdadeiro (true) pra habilitar  Visualização Rápida/Quick View",
+    "DESCRIPTION_QUICK_VIEW_ENABLED"                 : "verdadeiro (true) pra habilitar Visualização Rápida/Quick View",
     "DESCRIPTION_EXTENSION_LESS_IMAGE_PREVIEW"       : "verdadeiro (true) para mostrar uma prévia de imagem para URLs sem extensões",
     "DESCRIPTION_THEME"                              : "Selecionar um tema para {APP_NAME}",
     "DESCRIPTION_USE_THEME_SCROLLBARS"               : "verdadeiro (true) para permitir barras de rolagem customizadas",
     "DESCRIPTION_LINTING_COLLAPSED"                  : "verdadeiro (true) para agrupar painel de sugestões",
     "DESCRIPTION_FONT_FAMILY"                        : "Alterar fonte",
     "DESCRIPTION_FONT_SIZE"                          : "Alterar o tamanho da fonte; e.g. 13px",
-    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "verdadeiro (true) para habilitar a búsca baseada em nós/node",
+    "DESCRIPTION_FIND_IN_FILES_NODE"                 : "verdadeiro (true) para habilitar a busca baseada em nós/node",
     "DESCRIPTION_FIND_IN_FILES_INSTANT"              : "verdadeiro (true) para habilitar busca instantânea",
     "DESCRIPTION_FONT_SMOOTHING"                     : "Somente para Mac: \"subpixel-antialiased\" para habilitar sub-pixel antialiasing ou \"antialiased\" para gray scale antialiasing / antialiasing com escala de cinza",
     "DESCRIPTION_OPEN_PREFS_IN_SPLIT_VIEW"           : "falso (false) para desabilitar a abertura do arquivo de preferências em tela dividida",

@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waitsForDone */
+/*global describe, beforeEach, afterEach, it, runs, waitsForDone */
 
 // TODO: Eventually we should have a brackets performance test suite that is separate from the unit tests
 

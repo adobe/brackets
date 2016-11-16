@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect */
+/*global describe, it, expect */
 /*unittests: HTML Tokenizer*/
 
 define(function (require, exports, module) {

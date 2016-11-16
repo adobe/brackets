@@ -21,9 +21,7 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, jasmine, describe, beforeFirst, afterLast, beforeEach, afterEach, it, runs, expect, waitsForDone */
+/*global jasmine, describe, beforeFirst, afterLast, beforeEach, afterEach, it, runs, expect, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -400,6 +398,48 @@ define(function (require, exports, module) {
                     doc.off("change", changeListener);
                     DocumentManager.off("dirtyFlagChange", dirtyFlagListener);
                     doc = null;
+                });
+            });
+
+            it("should not clean history when reset is called with the same text as in the editor", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: JS_FILE});
+                    waitsForDone(promise, "Open file");
+                });
+                runs(function () {
+                    var doc = DocumentManager.getOpenDocumentForPath(JS_FILE);
+
+                    // Put some text into editor
+                    doc.setText("Foo");
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
+
+                    // Reset text with the same value, expect history not to change
+                    doc.refreshText("Foo", Date.now());
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
+                });
+            });
+
+            it("should not clean history when reset is called with the same text with different line-endings", function () {
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: JS_FILE});
+                    waitsForDone(promise, "Open file");
+                });
+                runs(function () {
+                    var doc = DocumentManager.getOpenDocumentForPath(JS_FILE);
+                    var crlf = "a\r\nb\r\nc";
+                    var lf = "a\nb\nc";
+
+                    // Put some text into editor
+                    doc.setText(crlf);
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
+
+                    // Reset text with the same value, expect history not to change
+                    doc.refreshText(lf, Date.now());
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
+
+                    // Reset text with the same value, expect history not to change
+                    doc.refreshText(crlf, Date.now());
+                    expect(doc._masterEditor._codeMirror.historySize().undo).toBe(1);
                 });
             });
         });

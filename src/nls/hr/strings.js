@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -108,7 +105,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Želite li sačuvati izmjene koje ste napravili u dokumentu <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Želite li sačuvati izmjene sljedećih datoteka?",
     "EXT_MODIFIED_TITLE"                : "Vanjske izmjene",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Potvrdi brisanje",
+    "CONFIRM_DELETE_TITLE"              : "Potvrdi brisanje",
     "CONFIRM_FOLDER_DELETE"             : "Da li ste sigurni da želite obrisati mapu <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Datoteka Obrisana",
     "EXT_MODIFIED_WARNING"              : "<span class='dialog-filename'>{0}</span> je bio izmjenjen na disku.<br /><br />Da li želite sačuvati datoteku i spremiti preko tih izmjena?",

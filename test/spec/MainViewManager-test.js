@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, describe, beforeEach, afterEach, it, runs, expect, waitsForDone, spyOn, jasmine */
+/*global describe, beforeEach, afterEach, it, runs, expect, waitsForDone, spyOn, jasmine */
 
 define(function (require, exports, module) {
     'use strict';
@@ -535,6 +534,34 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     expect(MainViewManager.getLayoutScheme()).toEqual({rows: 1, columns: 1});
+                });
+            });
+            it("should switch pane when Commands.CMD_SWITCH_PANE_FOCUS is called", function () {
+                runs(function () {
+                    MainViewManager.setLayoutScheme(1, 2);
+                });
+                runs(function () {
+                    $('#first-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
+                    expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
+                });
+                runs(function () {
+                    $('#second-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
+                    expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
+                });
+                runs(function () {
+                    MainViewManager.setLayoutScheme(2, 1);
+                });
+                runs(function () {
+                    $('#first-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
+                    expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
+                });
+                runs(function () {
+                    $('#second-pane').click();
+                    CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
+                    expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
                 });
             });
             it("should activate pane when editor gains focus", function () {

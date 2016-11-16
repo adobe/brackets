@@ -21,9 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
 /*unittests: HTML Instrumentation*/
 
 /**
@@ -145,21 +142,16 @@ define(function (require, exports, module) {
         }
 
         // The mark with the latest start is the innermost one.
-        match = marks[marks.length - 1];
+        match = marks.pop();
         if (preferParent) {
             // If the match is exactly at the edge of the range and preferParent is set,
-            // we want to pop upwards.
-            if (_posEq(match.range.from, pos) || _posEq(match.range.to, pos)) {
-                if (marks.length > 1) {
-                    match = marks[marks.length - 2];
-                } else {
-                    // We must be outside the root, so there's no containing tag.
-                    match = null;
-                }
+            // we want to pop upwards. If pos is exactly between two marks, we need to pop upwards twice.
+            while (match && (_posEq(match.range.from, pos) || _posEq(match.range.to, pos))) {
+                match = marks.pop();
             }
         }
 
-        return match.mark;
+        return match && match.mark;
     }
 
     /**

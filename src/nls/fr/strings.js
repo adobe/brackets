@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -131,7 +128,8 @@ define({
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
 	"SAVE_CLOSE_MULTI_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées aux fichiers suivants ?",
 	"EXT_MODIFIED_TITLE": "Modifications externes",
-	"CONFIRM_FOLDER_DELETE_TITLE": "Confirmer la suppression",
+	"CONFIRM_DELETE_TITLE": "Confirmer la suppression",
+	"CONFIRM_FILE_DELETE": "Voulez-vous vraiment supprimer le fichier <span class='dialog-filename'>{0}</span> ?",
 	"CONFIRM_FOLDER_DELETE": "Voulez-vous vraiment supprimer le dossier <span class='dialog-filename'>{0}</span> ?",
 	"FILE_DELETED_TITLE": "Fichier supprimé",
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> a été modifié sur le disque, dans une application autre que {APP_NAME}.<br /><br />Voulez-vous enregistrer le fichier et remplacer ces modifications ?",
@@ -505,6 +503,7 @@ define({
 	"VIEW_TRUNCATED_DESCRIPTION": "Voir la description tronquée",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "Le contenu téléchargé n’est pas un fichier zip valide.",
+	"MISSING_PACKAGE_JSON": "Le pack ne contient pas de fichier package.json.",
 	"INVALID_PACKAGE_JSON": "Le fichier package.json n’est pas valide (erreur : {0}).",
 	"MISSING_PACKAGE_NAME": "Le fichier package.json n’indique pas le nom du pack.",
 	"BAD_PACKAGE_NAME": "{0} n’est pas un nom de pack valide.",
@@ -744,6 +743,7 @@ define({
 	"DESCRIPTION_LANGUAGE": "Paramètres spécifiques à la langue",
 	"DESCRIPTION_LANGUAGE_FILE_EXTENSIONS": "Mappages supplémentaires entre extension de fichier et nom de langue",
 	"DESCRIPTION_LANGUAGE_FILE_NAMES": "Mappages supplémentaires entre nom de fichier et nom de langue",
+	"DESCRIPTION_LINEWISE_COPY_CUT": "Si vous coupez ou copiez sans rien avoir sélectionné, la ligne sur laquelle se trouve le curseur est coupée ou copiée dans son intégralité.",
 	"DESCRIPTION_LINTING_ENABLED": "vrai pour activer l’inspection de code",
 	"DESCRIPTION_ASYNC_TIMEOUT": "Durée, en millisecondes, après laquelle les utilitaires lint asynchrones échouent",
 	"DESCRIPTION_LINTING_PREFER": "Ensemble d’utilitaires lint à exécuter en premier",

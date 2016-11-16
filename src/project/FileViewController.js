@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, event */
-
 /**
  * Responsible for coordinating file selection between views by permitting only one view
  * to show the current file selection at a time. Currently, only WorkingSetView and
@@ -152,14 +149,14 @@ define(function (require, exports, module) {
         function _getDerivedPaneContext() {
 
             function _secondPaneContext() {
-                return (event.ctrlKey || event.metaKey) && event.altKey ? MainViewManager.SECOND_PANE : null;
+                return (window.event.ctrlKey || window.event.metaKey) && window.event.altKey ? MainViewManager.SECOND_PANE : null;
             }
 
             function _firstPaneContext() {
-                return (event.ctrlKey || event.metaKey) ? MainViewManager.FIRST_PANE : null;
+                return (window.event.ctrlKey || window.event.metaKey) ? MainViewManager.FIRST_PANE : null;
             }
 
-            return event && (_secondPaneContext() || _firstPaneContext());
+            return window.event && (_secondPaneContext() || _firstPaneContext());
         }
 
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {

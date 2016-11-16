@@ -21,10 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
-
 /**
  * Text-editing commands that apply to whichever Editor is currently focused
  */
@@ -210,7 +206,7 @@ define(function (require, exports, module) {
             line = doc.getLine(startLine);
             var originalCursorPosition = line.search(/\S|$/);
             
-            var firstCharPosition,cursorPosition = originalCursorPosition;
+            var firstCharPosition, cursorPosition = originalCursorPosition;
             
             for (i = startLine; i <= endLine; i++) {
                 //check if preference for indent line comment is available otherwise go back to default indentation
@@ -227,7 +223,7 @@ define(function (require, exports, module) {
                         cursorPosition = originalCursorPosition;
                     }
                     
-                    editGroup.push({text: prefixes[0], start: {line: i, ch: cursorPosition}}); 
+                    editGroup.push({text: prefixes[0], start: {line: i, ch: cursorPosition}});
                 } else {
                     editGroup.push({text: prefixes[0], start: {line: i, ch: 0}});
                 }
@@ -1117,17 +1113,7 @@ define(function (require, exports, module) {
         return handleUndoRedo("redo");
     }
 
-    /**
-     * Special command handler that just ignores the command. This is used for Cut, Copy, and Paste.
-     * These menu items are handled natively, but need to be registered in our JavaScript code so the
-     * menu items can be created.
-     */
-    function ignoreCommand() {
-        // Do nothing. The shell will call the native handler for the command.
-        return (new $.Deferred()).reject().promise();
-    }
-
-	function _handleSelectAll() {
+    function _handleSelectAll() {
         var result = new $.Deferred(),
             editor = EditorManager.getFocusedEditor();
 
@@ -1139,6 +1125,19 @@ define(function (require, exports, module) {
         }
 
         return result.promise();
+    }
+
+    function _execCommand(cmd) {
+        window.document.execCommand(cmd);
+    }
+    function _execCommandCut() {
+        _execCommand("cut");
+    }
+    function _execCommandCopy() {
+        _execCommand("copy");
+    }
+    function _execCommandPaste() {
+        _execCommand("paste");
     }
 
     // Register commands
@@ -1159,8 +1158,8 @@ define(function (require, exports, module) {
 
     CommandManager.register(Strings.CMD_UNDO,                   Commands.EDIT_UNDO,                   handleUndo);
     CommandManager.register(Strings.CMD_REDO,                   Commands.EDIT_REDO,                   handleRedo);
-    CommandManager.register(Strings.CMD_CUT,                    Commands.EDIT_CUT,                    ignoreCommand);
-    CommandManager.register(Strings.CMD_COPY,                   Commands.EDIT_COPY,                   ignoreCommand);
-    CommandManager.register(Strings.CMD_PASTE,                  Commands.EDIT_PASTE,                  ignoreCommand);
+    CommandManager.register(Strings.CMD_CUT,                    Commands.EDIT_CUT,                    _execCommandCut);
+    CommandManager.register(Strings.CMD_COPY,                   Commands.EDIT_COPY,                   _execCommandCopy);
+    CommandManager.register(Strings.CMD_PASTE,                  Commands.EDIT_PASTE,                  _execCommandPaste);
     CommandManager.register(Strings.CMD_SELECT_ALL,             Commands.EDIT_SELECT_ALL,             _handleSelectAll);
 });

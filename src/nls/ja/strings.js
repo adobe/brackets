@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -131,7 +128,8 @@ define({
 	"SAVE_CLOSE_MESSAGE": "文書 <span class='dialog-filename'>{0}</span> に加えた変更を保存しますか？",
 	"SAVE_CLOSE_MULTI_MESSAGE": "以下のファイルに対する変更を保存しますか？",
 	"EXT_MODIFIED_TITLE": "外部で変更されました。",
-	"CONFIRM_FOLDER_DELETE_TITLE": "削除の確認",
+	"CONFIRM_DELETE_TITLE": "削除の確認",
+	"CONFIRM_FILE_DELETE": "ファイル <span class='dialog-filename'>{0}</span> を削除してもよろしいですか？",
 	"CONFIRM_FOLDER_DELETE": "<span class='dialog-filename'>{0}</span> フォルダーを削除してもよろしいですか？",
 	"FILE_DELETED_TITLE": "ファイルは削除されました",
 	"EXT_MODIFIED_WARNING": "<span class='dialog-filename'>{0}</span> は {APP_NAME} 外のディスク上で変更されています。<br /><br />ファイルを保存し、これらの変更を上書きしますか？",
@@ -505,6 +503,7 @@ define({
 	"VIEW_TRUNCATED_DESCRIPTION": "省略された説明を表示",
     // These must match the error codes in ExtensionsDomain.Errors.* :
 	"INVALID_ZIP_FILE": "ダウンロードされたコンテンツは有効な zip ファイルではありません。",
+	"MISSING_PACKAGE_JSON": "パッケージに package.json ファイルがありません。",
 	"INVALID_PACKAGE_JSON": "package.json ファイルは有効ではありません (エラーは {0} です)。",
 	"MISSING_PACKAGE_NAME": "package.json ファイルはパッケージ名を指定していません。",
 	"BAD_PACKAGE_NAME": "{0} は無効なパッケージ名です。",
@@ -744,6 +743,7 @@ define({
 	"DESCRIPTION_LANGUAGE": "言語固有の設定",
 	"DESCRIPTION_LANGUAGE_FILE_EXTENSIONS": "ファイル拡張子から言語名への追加のマッピング",
 	"DESCRIPTION_LANGUAGE_FILE_NAMES": "ファイル名から言語名への追加のマッピング",
+	"DESCRIPTION_LINEWISE_COPY_CUT": "何も選択せずにコピーやカットを行うと、カーソルのあるすべての行がコピーまたはカットされます。",
 	"DESCRIPTION_LINTING_ENABLED": "コード検証を有効にするには true",
 	"DESCRIPTION_ASYNC_TIMEOUT": "非同期の構文チェックがタイムアウトするまでの時間 (ミリ秒)",
 	"DESCRIPTION_LINTING_PREFER": "最初に実行する構文チェックの配列",

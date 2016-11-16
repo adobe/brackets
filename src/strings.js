@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define, brackets, window */
-
 /**
  * This file provides the interface to user visible strings in Brackets. Code that needs
  * to display strings should should load this module by calling `var Strings = require("strings")`.

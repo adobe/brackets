@@ -21,10 +21,8 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true,
-indent: 4, maxerr: 50, regexp: true */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone, spyOn, jasmine */
+/*jslint regexp: true */
+/*global describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, spyOn, jasmine */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {
@@ -216,7 +214,7 @@ define(function (require, exports, module) {
                 model = new ModelClass();
                 modelDisposed = false;
                 waitsForDone(view.initialize(model), "view initializing");
-                view.$el.appendTo(document.body);
+                view.$el.appendTo(window.document.body);
             });
             runs(function () {
                 spyOn(view.model, "dispose").andCallThrough();
@@ -1579,7 +1577,7 @@ define(function (require, exports, module) {
                         spyOn(NativeApp, "openURLInDefaultBrowser");
 
                         var event = new window.Event("click", { bubbles: false, cancelable: true });
-                        document.querySelector("a[href='https://github.com/someuser']").dispatchEvent(event);
+                        window.document.querySelector("a[href='https://github.com/someuser']").dispatchEvent(event);
 
                         expect(NativeApp.openURLInDefaultBrowser).toHaveBeenCalledWith("https://github.com/someuser");
                         expect(window.location.href).toBe(origHref);

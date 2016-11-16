@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -180,6 +176,19 @@ define(function (require, exports, module) {
      */
     function getContextMenu(id) {
         return contextMenuMap[id];
+    }
+
+    /**
+    * Removes the attached event listeners from the corresponding object.
+    * @param {ManuItem} menuItem
+    */
+    function removeMenuItemEventListeners(menuItem) {
+        menuItem._command
+            .off("enabledStateChange", menuItem._enabledChanged)
+            .off("checkedStateChange", menuItem._checkedChanged)
+            .off("nameChange", menuItem._nameChanged)
+            .off("keyBindingAdded", menuItem._keyBindingAdded)
+            .off("keyBindingRemoved", menuItem._keyBindingRemoved);
     }
 
     /**
@@ -448,12 +457,14 @@ define(function (require, exports, module) {
                 console.error("removeMenuItem(): command not found: " + command);
                 return;
             }
-
             commandID = command;
         } else {
             commandID = command.getID();
         }
         menuItemID = this._getMenuItemId(commandID);
+
+        var menuItem = getMenuItem(menuItemID);
+        removeMenuItemEventListeners(menuItem);
 
         if (_isHTMLMenu(this.id)) {
             // Targeting parent to get the menu item <a> and the <li> that contains it

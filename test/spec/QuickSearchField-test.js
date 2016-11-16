@@ -20,9 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, maxerr: 50 */
-/*global $, jasmine, define, describe, it, expect, beforeEach, afterEach, runs, waitsFor */
+/*global jasmine, describe, it, expect, beforeEach, afterEach, runs, waitsFor */
 
 define(function (require, exports, module) {
     'use strict';

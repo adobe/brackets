@@ -21,10 +21,6 @@
  *
  */
 
-
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
-
 /**
  * ScriptAgent tracks all executed scripts, defines internal breakpoints, and
  * interfaces with the remote debugger.

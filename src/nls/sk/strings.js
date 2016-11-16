@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
-
 define({
 
     /**
@@ -102,7 +99,7 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Chcete uložiť zmeny, ktoré ste spravili v dokumente <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Chcete uložiť zmeny v následujúcich súboroch?",
     "EXT_MODIFIED_TITLE"                : "Externé zmeny",
-    "CONFIRM_FOLDER_DELETE_TITLE"       : "Potvrdte odstránenie",
+    "CONFIRM_DELETE_TITLE"              : "Potvrdte odstránenie",
     "CONFIRM_FOLDER_DELETE"             : "Ste si istý zmazaním priečinku <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                : "Súbor odstránený",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> bol upravený na disku, ale tiež ma neuložené zmeny in {APP_NAME}.<br /><br />Ktorú verziu chcete ponechať?",

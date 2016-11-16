@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
 /*
  * The core search functionality used by Find in Files and single-file Replace Batch.
  */
@@ -96,7 +93,19 @@ define(function (require, exports, module) {
     }
 
     function nodeFileCacheComplete(event, numFiles, cacheSize) {
-        var projectName = ProjectManager.getProjectRoot().name || "noName00";
+        if (/\/test\/SpecRunner\.html$/.test(window.location.pathname)) {
+            // Ignore the event in the SpecRunner window
+            return;
+        }
+
+        var projectRoot = ProjectManager.getProjectRoot(),
+            projectName = projectRoot ? projectRoot.name : null;
+
+        if (!projectName) {
+            console.error("'File cache complete' event received, but no project root found");
+            projectName = "noName00";
+        }
+
         FindUtils.setInstantSearchDisabled(false);
         // Node search could be disabled if some error has happened in node. But upon
         // project change, if we get this message, then it means that node search is working,
@@ -649,7 +658,7 @@ define(function (require, exports, module) {
      * @param {array} fileList The list of files that changed.
      */
     function filesChanged(fileList) {
-        if (FindUtils.isNodeSearchDisabled()) {
+        if (FindUtils.isNodeSearchDisabled() || fileList.length === 0) {
             return;
         }
         var updateObject = {
@@ -795,7 +804,7 @@ define(function (require, exports, module) {
 
         var addPromise;
         if (entry.isDirectory) {
-            if (!added || !removed) {
+            if (!added || !removed || (added.length === 0 && removed.length === 0)) {
                 // If the added or removed sets are null, must redo the search for the entire subtree - we
                 // don't know which child files/folders may have been added or removed.
                 _removeSearchResultsForEntry(entry);

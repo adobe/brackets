@@ -21,8 +21,7 @@
  *
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, brackets, window, open */
+/*global open */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
