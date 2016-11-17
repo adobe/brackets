@@ -151,15 +151,10 @@ module.exports = function (grunt) {
                 // Options: https://github.com/jrburke/r.js/blob/master/build/example.build.js
                 options: {
                     // `name` and `out` is set by grunt-usemin
-                    baseUrl: 'src',
-                    optimize: 'uglify2',
+                    baseUrl: "src",
                     // brackets.js should not be loaded until after polyfills defined in "utils/Compatibility"
                     // so explicitly include it in main.js
                     include: ["utils/Compatibility", "brackets"],
-                    // TODO: Figure out how to make sourcemaps work with grunt-usemin
-                    // https://github.com/yeoman/grunt-usemin/issues/30
-                    generateSourceMaps: true,
-                    useSourceUrl: true,
                     // required to support SourceMaps
                     // http://requirejs.org/docs/errors.html#sourcemapcomments
                     preserveLicenseComments: false,
@@ -167,7 +162,18 @@ module.exports = function (grunt) {
                     // Disable closure, we want define/require to be globals
                     wrap: false,
                     exclude: ["text!config.json"],
-                    uglify2: {} // https://github.com/mishoo/UglifyJS2
+                    useSourceUrl: false,
+                    generateSourceMaps: true,
+                    optimize: "uglify2",
+                    uglify2: {
+                        output: {
+                            beautify: false,
+                            // Include comments that match this regexp
+                            comments: /license|copyright|\(c\)/i
+                        }
+                    },
+                    mangle: true,
+                    compress: true
                 }
             }
         },

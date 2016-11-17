@@ -1188,14 +1188,6 @@ define(function (require, exports, module) {
             $projectTreeContainer.trigger("contentChanged");
         });
 
-        Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuOpen", function () {
-            actionCreator.restoreContext();
-        });
-
-        Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuClose", function () {
-            model.setContext(null, false, true);
-        });
-
         $projectTreeContainer.on("contextmenu", function () {
             forceFinishRename();
         });
@@ -1220,6 +1212,16 @@ define(function (require, exports, module) {
         _renderTree();
 
         ViewUtils.addScrollerShadow($projectTreeContainer[0]);
+    });
+
+    AppInit.appReady(function () {
+        Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuOpen", function () {
+            actionCreator.restoreContext();
+        });
+
+        Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU).on("beforeContextMenuClose", function () {
+            model.setContext(null, false, true);
+        });
     });
 
     /**
