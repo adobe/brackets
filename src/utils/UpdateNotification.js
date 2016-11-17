@@ -265,6 +265,9 @@ define(function (require, exports, module) {
         var $dlg        = $(".update-dialog.instance"),
             $updateList = $dlg.find(".update-info");
 
+        // Make the update notification icon clickable again
+        _addedClickHandler = false;
+
         updates.Strings = Strings;
         $updateList.html(Mustache.render(UpdateListTemplate, updates));
     }
@@ -376,12 +379,14 @@ define(function (require, exports, module) {
                     var $updateNotification = $("#update-notification");
 
                     $updateNotification.css("display", "block");
-                    if (!_addedClickHandler) {
-                        _addedClickHandler = true;
-                        $updateNotification.on("click", function () {
+
+                    $updateNotification.on("click", function () {
+                        // Block the click until the Notification Dialog opens
+                        if (!_addedClickHandler) {
+                            _addedClickHandler = true;
                             checkForUpdate(true);
-                        });
-                    }
+                        }
+                    });
 
                     // Only show the update dialog if force = true, or if the user hasn't been
                     // alerted of this update
