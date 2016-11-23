@@ -39,3 +39,6 @@ Thumbs.db
 # Files that can be automatically downloaded that we don't want to ship with our builds
 /src/extensibility/node/node_modules/request/tests/
 
+# Ignore modules downloaded from npm
+/src/thirdparty/CodeMirror
+
