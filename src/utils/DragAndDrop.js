@@ -160,7 +160,7 @@ define(function (require, exports, module) {
             var types = event.dataTransfer.types;
             if(!files.length){// stop default behavior if a url is dragged in so the browser does not takeove
                 types.forEach(function (value){
-                    if(value == "text/uri-list"){ //plain text just has text/html
+                    if(value === "text/uri-list"){ //plain text just has text/html
                         event.stopPropagation();
                         event.preventDefault();
                         return;
@@ -190,7 +190,7 @@ define(function (require, exports, module) {
             var types = event.dataTransfer.types;
             if(!files.length){// stop default behavior if a url is dragged in so the browser does not takeove
                 types.forEach(function (value){
-                    if(value == "text/uri-list"){ //plain text just has text/html
+                    if(value === "text/uri-list"){ //plain text just has text/html
                         event.stopPropagation();
                         event.preventDefault();
                         return;
