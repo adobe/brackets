@@ -34,6 +34,9 @@ The Linux version has most of the features of the Mac and Windows versions, but
 is still missing a few things. See the [Linux wiki page](https://github.com/adobe/brackets/wiki/Linux-Version)
 for a list of known issues and to find out how you can help.
 
+Additionally, for a list of common Linux installation issues and workarounds you can [visit this guide](https://nathanjplummer.github.io/Brackets/).
+
+
 #### Usage
 
 By default, Brackets opens a folder containing some simple "Getting Started" content.
@@ -56,9 +59,6 @@ see the [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-E
 Having problems starting Brackets the first time, or not sure how to use Brackets?  Please 
 review [Troubleshooting](https://github.com/adobe/brackets/wiki/Troubleshooting), which helps 
 you to fix common problems and find extra help if needed.
-
-For a list of common Linux issues and workarounds you can [visit this guide](https://nathanjplummer.github.io/Brackets/).
-
 
 Helping Brackets
 ----------------
