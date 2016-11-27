@@ -30,9 +30,10 @@
  * modules should define a single function that returns an object of all
  * exported functions.
  */
-function RemoteFunctions(experimental, remoteWSPort) {
+function RemoteFunctions(config, remoteWSPort) {
     "use strict";
 
+    var experimental = config.experimental;
     var lastKeepAliveTime = Date.now();
 
     /**
@@ -285,16 +286,17 @@ function RemoteFunctions(experimental, remoteWSPort) {
                 "box-shadow": "0 0 1px #fff",
                 "box-sizing": "border-box"
             };
+            
+            var preferences = config.remoteHighlight.stylesToSet;
+            var prop;
+            
+            for (prop in preferences) {
+                stylesToSet[prop] = preferences[prop];
+            }
 
-            var animateStartValues = {
-                "background-color": "rgba(0, 162, 255, 0.5)",
-                "opacity": 0
-            };
+            var animateStartValues = config.remoteHighlight.animateStartValue;
 
-            var animateEndValues = {
-                "background-color": "rgba(0, 162, 255, 0)",
-                "opacity": 1
-            };
+            var animateEndValues = config.remoteHighlight.animateEndValue;
 
             var transitionValues = {
                 "-webkit-transition-property": "opacity, background-color",
