@@ -61,6 +61,27 @@ define(function (require, exports, module) {
         // No valid entries found
         return false;
     }
+    
+    /**
+     * Determines if the event contains a type list that has a URI-list.
+     * If it does and contains an empty file list, then what is being dropped is a URL.
+     * If that is true then we stop the event propagation and default behavior to save Brackets editor from the browser taking over.
+     * @param {Array.<File>} files Array of File objects from the event datastructure. URLs are the only drop item that would contain a URI-list.
+     * @param {event} event The event datastucture containing datatransfer information about the drag/drop event. Contains a type list which may or may not hold a URI-list depending on what was dragged/dropped. Interested if it does.
+     */
+    function stopURIListPropagation(files, event) {
+
+        var types = event.dataTransfer.types;
+            if((!files || !files.length) && types){// stop default behavior if a url is dragged in so the browser does not takeove
+                types.forEach(function (value){
+                    if(value === "text/uri-list"){ //plain text just has text/html
+                        event.stopPropagation();
+                        event.preventDefault();
+                        return;
+                    }
+                });
+            }
+    }
 
     /**
      * Open dropped files
@@ -157,16 +178,7 @@ define(function (require, exports, module) {
 
             var files = event.dataTransfer.files;
 
-            var types = event.dataTransfer.types;
-            if(!files.length){// stop default behavior if a url is dragged in so the browser does not takeove
-                types.forEach(function (value){
-                    if(value === "text/uri-list"){ //plain text just has text/html
-                        event.stopPropagation();
-                        event.preventDefault();
-                        return;
-                    }
-                });
-            }
+            stopURIListPropagation(files, event);
 
             if (files && files.length) {
                 event.stopPropagation();
@@ -187,16 +199,7 @@ define(function (require, exports, module) {
 
             var files = event.dataTransfer.files;
 
-            var types = event.dataTransfer.types;
-            if(!files.length){// stop default behavior if a url is dragged in so the browser does not takeove
-                types.forEach(function (value){
-                    if(value === "text/uri-list"){ //plain text just has text/html
-                        event.stopPropagation();
-                        event.preventDefault();
-                        return;
-                    }
-                });
-            }
+            stopURIListPropagation(files, event);
 
             if (files && files.length) {
                 event.stopPropagation();
