@@ -786,6 +786,9 @@ define(function (require, exports, module) {
                 oldResults = null;
                 wasQuickChange = false;
                 FindInFiles.searchModel.on("change.FindInFilesTest", function (event, quickChange) {
+                    if (!FindInFiles.searchModel.hasResults()) {
+                        return;
+                    }
                     gotChange = true;
                     wasQuickChange = quickChange;
                 });
@@ -2218,13 +2221,24 @@ define(function (require, exports, module) {
 
                 describe("Panel closure on changes", function () {
                     it("should close the panel and detach listeners if a file is modified on disk", function () {
+                        var gotChange = false,
+                            wasQuickChange;
+                        FindInFiles.searchModel.on("change.FindInFilesTest", function (event, quickChange) {
+                            if (!FindInFiles.searchModel.hasResults()) {
+                                return;
+                            }
+                            gotChange = true;
+                            wasQuickChange = quickChange;
+                        });
                         showSearchResults("foo", "bar");
                         runs(function () {
                             expect($("#find-in-files-results").is(":visible")).toBe(true);
                             waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/foo.html"), "write", "changed content"));
                         });
+                        waitsFor(function () { return gotChange; }, "model change event");
                         runs(function () {
                             expect($("#find-in-files-results").is(":visible")).toBe(false);
+                            FindInFiles.searchModel.off(".FindInFilesTest");
                         });
                     });
 
