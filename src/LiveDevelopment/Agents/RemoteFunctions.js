@@ -294,8 +294,6 @@ function RemoteFunctions(config, remoteWSPort) {
             var animateEndValues = config.remoteHighlight.animateEndValue;
 
             var transitionValues = {
-                "-webkit-transition-property": "opacity, background-color, transform",
-                "-webkit-transition-duration": "300ms, 2.3s",
                 "transition-property": "opacity, background-color, transform",
                 "transition-duration": "300ms, 2.3s"
             };
