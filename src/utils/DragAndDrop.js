@@ -70,17 +70,17 @@ define(function (require, exports, module) {
      * @param {event} event The event datastucture containing datatransfer information about the drag/drop event. Contains a type list which may or may not hold a URI-list depending on what was dragged/dropped. Interested if it does.
      */
     function stopURIListPropagation(files, event) {
-
         var types = event.dataTransfer.types;
-            if((!files || !files.length) && types){// stop default behavior if a url is dragged in so the browser does not takeove
-                types.forEach(function (value){
-                    if(value === "text/uri-list"){ //plain text just has text/html
-                        event.stopPropagation();
-                        event.preventDefault();
-                        return;
-                    }
-                });
-            }
+            
+        if ((!files || !files.length) && types) {// stop default behavior if a url is dragged in so the browser does not takeove
+            types.forEach(function (value) {
+                if (value === "text/uri-list") { //plain text just has text/html
+                    event.stopPropagation();
+                    event.preventDefault();
+                    return;
+                }
+            });
+        }
     }
 
     /**
