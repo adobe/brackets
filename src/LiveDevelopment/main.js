@@ -82,11 +82,11 @@ define(function main(require, exports, module) {
     // "livedev.remoteHighlight" preference
     var PREF_REMOTEHIGHLIGHT = "remoteHighlight";
     var remoteHighlightPref = prefs.definePreference(PREF_REMOTEHIGHLIGHT, "object", {
-        "animateStartValue": {
+        animateStartValue: {
             "background-color": "rgba(0, 162, 255, 0.5)",
             "opacity": 0
         },
-        "animateEndValue": {
+        animateEndValue: {
             "background-color": "rgba(0, 162, 255, 0)",
             "opacity": 1
         }

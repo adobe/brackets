@@ -287,12 +287,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 "box-sizing": "border-box"
             };
             
-            var preferences = config.remoteHighlight.stylesToSet;
-            var prop;
-            
-            for (prop in preferences) {
-                stylesToSet[prop] = preferences[prop];
-            }
+            var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
 
             var animateStartValues = config.remoteHighlight.animateStartValue;
 
@@ -313,7 +308,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 }
             }
 
-            _setStyleValues(stylesToSet, highlight.style);
+            _setStyleValues(mergedStyles, highlight.style);
             _setStyleValues(
                 doAnimation ? animateStartValues : animateEndValues,
                 highlight.style
