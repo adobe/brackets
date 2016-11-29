@@ -372,7 +372,10 @@ define(function main(require, exports, module) {
         
         remoteHighlightPref
             .on("change", function () {
-                LiveDevImpl.close(false, "Changed display preferences");
+                config.remoteHighlight = prefs.get(PREF_REMOTEHIGHLIGHT);
+                       
+                if (LiveDevImpl && LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE)
+                    LiveDevImpl.agents.remote.call("updateConfig",JSON.stringify(config));
             });
 
     });

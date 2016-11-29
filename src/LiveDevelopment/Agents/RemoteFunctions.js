@@ -837,6 +837,11 @@ function RemoteFunctions(config, remoteWSPort) {
     function getSimpleDOM() {
         return JSON.stringify(_domElementToJSON(window.document.documentElement));
     }
+    
+    function updateConfig(newConfig) {
+        config = JSON.parse(newConfig);
+        return JSON.stringify(config);
+    }
 
     // init
     _editHandler = new DOMEditHandler(window.document);
@@ -889,6 +894,7 @@ function RemoteFunctions(config, remoteWSPort) {
         "highlightRule"         : highlightRule,
         "redrawHighlights"      : redrawHighlights,
         "applyDOMEdits"         : applyDOMEdits,
-        "getSimpleDOM"          : getSimpleDOM
+        "getSimpleDOM"          : getSimpleDOM,
+        "updateConfig"          : updateConfig
     };
 }
