@@ -88,8 +88,20 @@ define(function main(require, exports, module) {
         },
         animateEndValue: {
             "background-color": "rgba(0, 162, 255, 0)",
-            "opacity": 1
-        }
+            "opacity": 0.6
+        },
+        "paddingStyling": {
+            "border-width": "1px",
+            "border-style": "dashed",
+            "border-color": "rgba(0, 162, 255, 0.5)"
+        },
+        "marginStyling": {
+            "background-color": "rgba(21, 165, 255, 0.58)"
+        },
+        "stylesToSet": {
+            "border-width": "1px"
+        },
+        "showPaddingMargin": true
     }, {
         description: "LivePreview highlight settings"
     });

@@ -262,6 +262,180 @@ function RemoteFunctions(config, remoteWSPort) {
                 return;
             }
 
+            var showMarginPadding;
+            if (config.remoteHighlight.showPaddingMargin) {
+                showMarginPadding = 'block';
+            } else {
+                showMarginPadding = 'none';
+            }
+            
+            var elementStyling = window.getComputedStyle(element, null);
+            
+            var calculateSize = function () {
+                var sum = 0;
+                var i;
+                for (i = 0; i < arguments.length; i++) {
+                    sum += parseInt(arguments[i], 10);
+                }
+                return sum;
+            };
+            
+            var mainBoxStyles = config.remoteHighlight.stylesToSet;
+            
+            var paddingVisualisations = [
+                // padding-top
+                {
+                    "height": elementStyling.getPropertyValue('padding-top'),
+                    "width": elementBounds.width + "px",
+                    "position": "absolute",
+                    "top": -calculateSize(
+                        mainBoxStyles['border-width']
+                    ) + "px",
+                    "left": -calculateSize(
+                        mainBoxStyles['border-width']
+                    ) + "px",
+                    "box-sizing": "border-box",
+                    "display": showMarginPadding
+                },
+                // padding-right
+                {
+                    "width": elementStyling.getPropertyValue('padding-right'),
+                    "height": elementBounds.height + "px",
+                    "position": "absolute",
+                    "top": 0,
+                    "right": -calculateSize(
+                        mainBoxStyles['border-width']
+                    ) + "px",
+                    "box-sizing": "border-box",
+                    "display": showMarginPadding
+                },
+                // padding-bottom
+                {
+                    "height": elementStyling.getPropertyValue('padding-bottom'),
+                    "width": elementBounds.width + "px",
+                    "position": "absolute",
+                    "bottom": -calculateSize(
+                        mainBoxStyles['border-width']
+                    ) + "px",
+                    "left": 0,
+                    "box-sizing": "border-box",
+                    "display": showMarginPadding
+                },
+                // padding-left
+                {
+                    "height": elementBounds.height + "px",
+                    "width": elementStyling.getPropertyValue('padding-left'),
+                    "position": "absolute",
+                    "top": 0,
+                    "left": -calculateSize(
+                        mainBoxStyles['border-width']
+                    ) + "px",
+                    "box-sizing": "border-box",
+                    "display": showMarginPadding
+                }
+            ];
+                
+            var marginVisualisations = [
+                // margin-top
+                {
+                    "height": elementStyling.getPropertyValue('margin-top'),
+                    "width": elementBounds.width + "px",
+                    "position": "absolute",
+                    "top": -calculateSize(
+                        elementStyling.getPropertyValue('margin-top'),
+                        mainBoxStyles['border-width']
+                    ) + "px",
+                    "left": -calculateSize(
+                        mainBoxStyles['border-width']
+                    ) + "px",
+                    "box-sizing": "border-box",
+                    "display": showMarginPadding
+                },
+                // margin-right
+                {
+                    "width": elementStyling.getPropertyValue('margin-right'),
+                    "height":
+                        calculateSize(
+                            elementBounds.height,
+                            elementStyling.getPropertyValue('margin-top'),
+                            elementStyling.getPropertyValue('margin-bottom')
+                        ) + "px",
+                    "position": "absolute",
+                    "top": -calculateSize(
+                        elementStyling.getPropertyValue('margin-top'),
+                        mainBoxStyles['border-width']
+                    ) + "px",
+                    "right": -calculateSize(
+                        elementStyling.getPropertyValue('margin-right'),
+                        mainBoxStyles['border-width']
+                    ) + "px",
+                    "box-sizing": "border-box",
+                    "display": showMarginPadding
+                },
+                // margin-bottom
+                {
+                    "height": elementStyling.getPropertyValue('margin-bottom'),
+                    "width": elementBounds.width + "px",
+                    "position": "absolute",
+                    "bottom": -calculateSize(
+                        mainBoxStyles['border-width'],
+                        elementStyling.getPropertyValue('margin-bottom')
+                    ) + "px",
+                    "left": -calculateSize(
+                        mainBoxStyles['border-width']
+                    ) + "px",
+                    "box-sizing": "border-box",
+                    "display": showMarginPadding
+                },
+                {
+                    "height": calculateSize(
+                        elementBounds.height,
+                        elementStyling.getPropertyValue('margin-top'),
+                        elementStyling.getPropertyValue('margin-bottom')
+                    ) + "px",
+                    "width": elementStyling.getPropertyValue('margin-left'),
+                    "position": "absolute",
+                    "top": -calculateSize(
+                        elementStyling.getPropertyValue('margin-top'),
+                        mainBoxStyles['border-width']
+                    ) + "px",
+                    "left": -calculateSize(
+                        elementStyling.getPropertyValue('margin-left'),
+                        mainBoxStyles['border-width']
+                    ) + "px",
+                    "box-sizing": "border-box",
+                    "display": showMarginPadding
+                }
+            ];
+            
+            var setupVisualisations = function (arr, config) {
+                var i;
+                for (i = 0; i < arr.length; i++) {
+                    var el = window.document.createElement("div");
+                    var styles = Object.assign(
+                        {},
+                        config,
+                        arr[i]
+                    );
+
+                    _setStyleValues(
+                        styles,
+                        el.style
+                    );
+
+                    highlight.appendChild(el);
+                }
+            };
+            
+            setupVisualisations(
+                marginVisualisations,
+                config.remoteHighlight.marginStyling
+            );
+            setupVisualisations(
+                paddingVisualisations,
+                config.remoteHighlight.paddingStyling
+            );
+            
             highlight.className = HIGHLIGHT_CLASSNAME;
 
             var offset = _screenOffset(element);
