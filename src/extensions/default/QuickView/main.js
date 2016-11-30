@@ -819,11 +819,6 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_ENABLE_QUICK_VIEW, CMD_ENABLE_QUICK_VIEW, toggleEnableQuickView);
     Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(CMD_ENABLE_QUICK_VIEW, null, Menus.AFTER, Commands.VIEW_TOGGLE_INSPECTION);
 
-    // Convert old preferences
-    PreferencesManager.convertPreferences(module, {
-        "enabled": "user quickview.enabled"
-    });
-
     // Setup initial UI state
     setEnabled(prefs.get("enabled"), true);
     setExtensionlessImagePreview(prefs.get("extensionlessImagePreview"), true);

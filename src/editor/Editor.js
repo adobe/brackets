@@ -1048,7 +1048,11 @@ define(function (require, exports, module) {
      */
     Editor.prototype._resetText = function (text) {
         var currentText = this._codeMirror.getValue();
-        if (text === currentText) {
+
+        // compare with ignoring line-endings, issue #11826
+        var textLF = text ? text.replace(/(\r\n|\r|\n)/g, "\n") : null;
+        var currentTextLF = currentText ? currentText.replace(/(\r\n|\r|\n)/g, "\n") : null;
+        if (textLF === currentTextLF) {
             // there's nothing to reset
             return;
         }
@@ -2593,21 +2597,6 @@ define(function (require, exports, module) {
             });
         });
     });
-
-    /**
-     * @private
-     *
-     * Manage the conversion from old-style localStorage prefs to the new file-based ones.
-     */
-    function _convertPreferences() {
-        var rules = {};
-        editorOptions.forEach(function (setting) {
-            rules[setting] = "user";
-        });
-        PreferencesManager.convertPreferences(module, rules);
-    }
-
-    _convertPreferences();
 
     // Define public API
     exports.Editor                  = Editor;
