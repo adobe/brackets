@@ -90,19 +90,19 @@ function _removeFailedInstallation(installDirectory) {
 function _performInstall(packagePath, installDirectory, validationResult, callback) {
     validationResult.installedTo = installDirectory;
 
-    var fail = function (err) {
+    function fail(err) {
         _removeFailedInstallation(installDirectory);
         callback(err, null);
-    };
+    }
 
-    var finish = function () {
+    function finish() {
         // The status may have already been set previously (as in the
         // DISABLED case.
         if (!validationResult.installationStatus) {
             validationResult.installationStatus = Statuses.INSTALLED;
         }
         callback(null, validationResult);
-    };
+    }
 
     fs.mkdirs(installDirectory, function (err) {
         if (err) {
@@ -220,7 +220,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, pCall
         return;
     }
 
-    var validateCallback = function (err, validationResult) {
+    function validateCallback(err, validationResult) {
         validationResult.localPath = packagePath;
 
         // This is a wrapper for the callback that will delete the temporary
@@ -307,7 +307,7 @@ function _cmdInstall(packagePath, destinationDirectory, options, callback, pCall
             validationResult.disabledReason = null;
             _performInstall(packagePath, installDirectory, validationResult, deleteTempAndCallback);
         }
-    };
+    }
 
     validate(packagePath, {}, validateCallback);
 }
