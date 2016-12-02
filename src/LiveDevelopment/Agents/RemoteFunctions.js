@@ -262,12 +262,17 @@ function RemoteFunctions(config, remoteWSPort) {
                 return;
             }
 
-            var showMarginPadding;
-            if (config.remoteHighlight.showPaddingMargin) {
-                showMarginPadding = 'block';
-            } else {
-                showMarginPadding = 'none';
-            }
+            var setVisibility = function (el){
+                if (
+                    !config.remoteHighlight.showPaddingMargin || 
+                    parseInt(el.height, 10) <= 0 || 
+                    parseInt(el.width, 10) <= 0 
+                ) {
+                    el.display = 'none';
+                } else {
+                    el.display = 'block';
+                }
+            };
             
             var elementStyling = window.getComputedStyle(element, null);
             
@@ -293,9 +298,7 @@ function RemoteFunctions(config, remoteWSPort) {
                     ) + "px",
                     "left": -calculateSize(
                         mainBoxStyles['border-width']
-                    ) + "px",
-                    "box-sizing": "border-box",
-                    "display": showMarginPadding
+                    ) + "px"
                 },
                 // padding-right
                 {
@@ -305,9 +308,7 @@ function RemoteFunctions(config, remoteWSPort) {
                     "top": 0,
                     "right": -calculateSize(
                         mainBoxStyles['border-width']
-                    ) + "px",
-                    "box-sizing": "border-box",
-                    "display": showMarginPadding
+                    ) + "px"
                 },
                 // padding-bottom
                 {
@@ -317,9 +318,7 @@ function RemoteFunctions(config, remoteWSPort) {
                     "bottom": -calculateSize(
                         mainBoxStyles['border-width']
                     ) + "px",
-                    "left": 0,
-                    "box-sizing": "border-box",
-                    "display": showMarginPadding
+                    "left": 0
                 },
                 // padding-left
                 {
@@ -329,9 +328,7 @@ function RemoteFunctions(config, remoteWSPort) {
                     "top": 0,
                     "left": -calculateSize(
                         mainBoxStyles['border-width']
-                    ) + "px",
-                    "box-sizing": "border-box",
-                    "display": showMarginPadding
+                    ) + "px"
                 }
             ];
                 
@@ -347,9 +344,7 @@ function RemoteFunctions(config, remoteWSPort) {
                     ) + "px",
                     "left": -calculateSize(
                         mainBoxStyles['border-width']
-                    ) + "px",
-                    "box-sizing": "border-box",
-                    "display": showMarginPadding
+                    ) + "px"
                 },
                 // margin-right
                 {
@@ -368,9 +363,7 @@ function RemoteFunctions(config, remoteWSPort) {
                     "right": -calculateSize(
                         elementStyling.getPropertyValue('margin-right'),
                         mainBoxStyles['border-width']
-                    ) + "px",
-                    "box-sizing": "border-box",
-                    "display": showMarginPadding
+                    ) + "px"
                 },
                 // margin-bottom
                 {
@@ -383,9 +376,7 @@ function RemoteFunctions(config, remoteWSPort) {
                     ) + "px",
                     "left": -calculateSize(
                         mainBoxStyles['border-width']
-                    ) + "px",
-                    "box-sizing": "border-box",
-                    "display": showMarginPadding
+                    ) + "px"
                 },
                 {
                     "height": calculateSize(
@@ -402,17 +393,19 @@ function RemoteFunctions(config, remoteWSPort) {
                     "left": -calculateSize(
                         elementStyling.getPropertyValue('margin-left'),
                         mainBoxStyles['border-width']
-                    ) + "px",
-                    "box-sizing": "border-box",
-                    "display": showMarginPadding
+                    ) + "px"
                 }
             ];
             
             var setupVisualisations = function (arr, config) {
                 var i;
                 for (i = 0; i < arr.length; i++) {
-                    var el = window.document.createElement("div");
-                    var styles = Object.assign(
+                    setVisibility(arr[i]);
+                    
+                    // Applies to every visualisationElement (padding or margin div)
+                    arr[i]["box-sizing"] = "border-box";
+                    var el = window.document.createElement("div"),
+                        styles = Object.assign(
                         {},
                         config,
                         arr[i]
