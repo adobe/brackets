@@ -278,11 +278,6 @@ module.exports = function (grunt) {
                 vendor : [
                     'test/polyfills.js', /* For reference to why this polyfill is needed see Issue #7951. The need for this should go away once the version of phantomjs gets upgraded to 2.0 */
                     'src/thirdparty/jquery-2.1.3.min.js',
-                    'src/thirdparty/CodeMirror/lib/codemirror.js',
-                    'src/thirdparty/CodeMirror/lib/util/dialog.js',
-                    'src/thirdparty/CodeMirror/lib/util/searchcursor.js',
-                    'src/thirdparty/CodeMirror/addon/edit/closetag.js',
-                    'src/thirdparty/CodeMirror/addon/selection/active-line.js',
                     'src/thirdparty/less-2.5.1.min.js'
                 ],
                 helpers : [
@@ -298,7 +293,19 @@ module.exports = function (grunt) {
                             'spec' : '../test/spec',
                             'text' : 'thirdparty/text/text',
                             'i18n' : 'thirdparty/i18n/i18n'
-                        }
+                        },
+                        map: {
+                            "*": {
+                                "thirdparty/CodeMirror2": "thirdparty/CodeMirror"
+                            }
+                        },
+                        packages: [
+                            {
+                                name: "thirdparty/CodeMirror",
+                                location: "../node_modules/codemirror",
+                                main: "lib/codemirror"
+                            }
+                        ]
                     }
                 }
             }
