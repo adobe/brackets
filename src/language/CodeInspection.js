@@ -80,11 +80,6 @@ define(function (require, exports, module) {
 
     var prefs = PreferencesManager.getExtensionPrefs("linting");
 
-    PreferencesManager.convertPreferences(module, {
-        "enabled": "user linting.enabled",
-        "collapsed": "user linting.collapsed"
-    });
-
     /**
      * When disabled, the errors panel is closed and the status bar icon is grayed out.
      * Takes precedence over _collapsed.

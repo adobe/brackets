@@ -1375,8 +1375,6 @@ define(function (require, exports, module) {
                     console.error(ex);
                 }
 
-                PreferencesManager.savePreferences();
-
                 postCloseHandler();
             })
             .fail(function () {
