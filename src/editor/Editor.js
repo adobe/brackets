@@ -119,7 +119,8 @@ define(function (require, exports, module) {
         MAX_TAB_SIZE            = 10;
 
     var LINE_NUMBER_GUTTER = "CodeMirror-linenumbers",
-        LINE_NUMBER_GUTTER_PRIORITY    = 100;
+        LINE_NUMBER_GUTTER_PRIORITY     = 100,
+        CODE_FOLDING_GUTTER_PRIORITY    = 1000;
 
     // Mappings from Brackets preferences to CodeMirror options
     cmOptions[CLOSE_BRACKETS]     = "autoCloseBrackets";
@@ -2496,7 +2497,8 @@ define(function (require, exports, module) {
         }
 
         if (!name || typeof name !== "string") {
-            throw new Error("The name of the registered gutter must be a string.");
+            console.error("The name of the registered gutter must be a string.");
+            return;
         }
 
         var gutter = {name: name, priority: priority, languages: languageIds},
@@ -2515,22 +2517,17 @@ define(function (require, exports, module) {
 
     /**
      * Unregisters the gutter with the specified name and removes it from the UI.
-     * @param {string} name The name of the gutter to be un registered.
+     * @param {string} name The name of the gutter to be unregistered.
      */
     Editor.unregisterGutter = function (name) {
         var i, gutter;
-        for (i = 0; i < registeredGutters.length; i++) {
-            gutter = registeredGutters[i];
-            if (gutter.name === name) {
-                registeredGutters.splice(i, 1);
-                break;
-            }
-        }
+        registeredGutters = registeredGutters.filter(function (gutter) {
+            return gutter.name !== name;
+        });
 
         Editor.forEveryEditor(function (editor) {
             editor._renderGutters();
         });
-
     };
 
     // Global settings that affect Editor instances that share the same preference locations
@@ -2731,7 +2728,10 @@ define(function (require, exports, module) {
             $holder.toggleClass("show-line-padding", Boolean(showLinePadding));
         });
     };
-
+    
+    Editor.LINE_NUMBER_GUTTER_PRIORITY = LINE_NUMBER_GUTTER_PRIORITY;
+    Editor.CODE_FOLDING_GUTTER_PRIORITY = CODE_FOLDING_GUTTER_PRIORITY;
+    
     // Set up listeners for preference changes
     editorOptions.forEach(function (prefName) {
         PreferencesManager.on("change", prefName, function () {

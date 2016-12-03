@@ -25,7 +25,7 @@
  * @author Patrick Oladimeji
  * @date 10/24/13 9:35:26 AM
  */
-
+ 
 define(function (require, exports, module) {
     "use strict";
 
@@ -38,7 +38,6 @@ define(function (require, exports, module) {
         EditorManager           = brackets.getModule("editor/EditorManager"),
         ProjectManager          = brackets.getModule("project/ProjectManager"),
         ViewStateManager        = brackets.getModule("view/ViewStateManager"),
-        MainViewManager         = brackets.getModule("view/MainViewManager"),
         KeyBindingManager       = brackets.getModule("command/KeyBindingManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         Menus                   = brackets.getModule("command/Menus"),
@@ -48,7 +47,7 @@ define(function (require, exports, module) {
         EXPAND                  = "codefolding.expand",
         EXPAND_ALL              = "codefolding.expand.all",
         GUTTER_NAME             = "CodeMirror-foldgutter",
-        CODE_FOLDING_GUTTER_PRIORITY   = 1000,
+        CODE_FOLDING_GUTTER_PRIORITY   = Editor.CODE_FOLDING_GUTTER_PRIORITY,
         codeFoldingMenuDivider  = "codefolding.divider",
         collapseKey             = "Ctrl-Alt-[",
         expandKey               = "Ctrl-Alt-]",
@@ -78,7 +77,6 @@ define(function (require, exports, module) {
     var _isInitialized = false;
 
     /** Used to keep track of files for which line folds have been restored.*/
-    var initialisedFiles = {};
 
     /**
       * Restores the linefolds in the editor using values fetched from the preference store
@@ -146,8 +144,6 @@ define(function (require, exports, module) {
         Object.keys(cm._lineFolds).forEach(function (line) {
             cm.foldCode(Number(line), {range: cm._lineFolds[line]});
         });
-
-        initialisedFiles[path] = Date.now();
     }
 
     /**
@@ -283,7 +279,7 @@ define(function (require, exports, module) {
       * Renders and sets up event listeners the code-folding gutter.
       * @param {Editor} editor the editor on which to initialise the fold gutter
       */
-    function setupGutter(editor) {
+    function setupGutterEventListeners(editor) {
         var cm = editor._codeMirror;
         $(editor.getRootElement()).addClass("folding-enabled");
         cm.setOption("foldGutter", {onGutterClick: onGutterClick});
@@ -321,10 +317,8 @@ define(function (require, exports, module) {
       * @param {Editor} editor the editor instance where gutter should be added.
       */
     function enableFoldingInEditor(editor) {
-        if (!initialisedFiles[editor.document.file.fullPath]) {
-            restoreLineFolds(editor);
-            setupGutter(editor);
-        }
+        restoreLineFolds(editor);
+        setupGutterEventListeners(editor);
         editor._codeMirror.refresh();
     }
 
@@ -341,12 +335,6 @@ define(function (require, exports, module) {
         }
         if (previous) {
             saveLineFolds(previous);
-        }
-    }
-
-    function clearInitialisedFile(event, file) {
-        if (file) {
-            delete initialisedFiles[file.fullPath];
         }
     }
 
@@ -381,7 +369,6 @@ define(function (require, exports, module) {
         EditorManager.off(".CodeFolding");
         DocumentManager.off(".CodeFolding");
         ProjectManager.off(".CodeFolding");
-        MainViewManager.off(".CodeFolding");
 
         // Remove gutter & revert collapsed sections in all currently open editors
         Editor.forEveryEditor(function (editor) {
@@ -420,10 +407,6 @@ define(function (require, exports, module) {
 
         ProjectManager.on("beforeProjectClose.CodeFolding beforeAppClose.CodeFolding", saveBeforeClose);
 
-        MainViewManager.on("workingSetRemove.CodeFolding", clearInitialisedFile);
-        MainViewManager.on("workingSetRemoveList.CodeFolding", function (event, files) {
-            files.forEach(clearInitialisedFile);
-        });
         //create menus
         codeFoldingMenuDivider = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuDivider();
         Menus.getMenu(Menus.AppMenuBar.VIEW_MENU).addMenuItem(COLLAPSE_ALL);
