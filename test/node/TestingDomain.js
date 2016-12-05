@@ -97,7 +97,6 @@ function init(domainManager) {
         getSystemTempDir,
         true,
         "The default os tmpdir",
-        [],
         [
             {
                 name: "tmpdir",

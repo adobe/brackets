@@ -366,7 +366,7 @@ define(function (require, exports, module) {
      * Generate a test document directory name.
      */
     function getTestDocumentsTempFolder() {
-        return _systemTempDir + "_unitTestDummyPath_" + "/";
+        return _systemTempDir + "/_unitTestDummyPath_/";
     }
 
     /**
@@ -399,6 +399,11 @@ define(function (require, exports, module) {
         var language    = options.language || LanguageManager.getLanguage("javascript"),
             filename    = options.filename || (getTestDocumentsTempFolder() + "_dummyFile_" + Date.now() + "." + language._fileExtensions[0]),
             content     = options.content || "";
+
+        // always create test files in temp folder
+        if (options.filename) {
+            filename = getTestDocumentsTempFolder() + options.filename;
+        }
 
         // Use unique filename to avoid collissions in open documents list
         var dummyFile = _getFileSystem().getFileForPath(filename);
